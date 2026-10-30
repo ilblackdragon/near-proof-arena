@@ -192,6 +192,55 @@ def mutations(c):
         x.gce = b"\x01" + u32(0)
         return True
 
+    def flip(b, i):
+        return b[:i] + bytes([b[i] ^ 1]) + b[i + 1:]
+
+    # offsets inside the encoded segments (claim_schema layout): chunk_inner = u32 len ++ inner,
+    # inner = tag(1) prev_block_hash prev_state_root prev_outcome_root encoded_merkle_root (4 x 32)
+    # encoded_length(8) height_created(8) ...; block = hv(1) prev(32) u32 len ++ inner_lite ...,
+    # inner_lite = height(8) epoch_id next_epoch_id prev_state_root prev_outcome_root (4 x 32)
+    # timestamp(8) next_bp_hash(32) block_merkle_root(32)
+    HC = 4 + 1 + 128 + 8
+    LITE = 1 + 32 + 4
+    BMR = LITE + 8 + 128 + 8 + 32
+
+    def inner_hc(x):
+        x.inner = flip(x.inner, HC)
+        return True
+
+    def epoch_other(x):
+        others = [e[0] for e in x.epochs if e[0] != x.epoch_id]
+        if not others:
+            return False
+        x.epoch_id = others[0]
+        return True
+
+    def rs_t1(x):
+        x.rs = struct.pack("<HH", 1, 1)
+        return True
+
+    def bmr0(x):
+        if not x.blocks:
+            return False
+        x.blocks[0][0] = flip(x.blocks[0][0], BMR)
+        return True
+
+    def bmr1(x):
+        if len(x.blocks) < 2:
+            return False
+        x.blocks[1][0] = flip(x.blocks[1][0], BMR)
+        return True
+
+    def truncate_main(x):
+        # the blocks before the main block (b2i = number of old-chunk implicit transitions)
+        b2i = len(x.facts) - 1
+        if b2i < 1 or b2i >= len(x.blocks):
+            return False
+        x.blocks, x.flags = x.blocks[:b2i], x.flags[:b2i]
+        ref = {x.epoch_id} | {hdr[LITE + 8:LITE + 40] for hdr, _ in x.blocks}
+        x.epochs = [e for e in x.epochs if e[0] in ref]
+        return True
+
     def txv_flip(x):
         if not x.txv:
             return False
@@ -216,6 +265,13 @@ def mutations(c):
         ("L0-D2-031", "l0.c.validator_update_toggle", vu_toggle),
         ("L0-D2-037", "l0.c.tx_valid_extra", txv_len),
         ("L0-D2-028", "l0.c.genesis_extra_some", gce_some),
+        # second pass (2026-10-30)
+        ("L0-D2-003", "l0.c.inner_height_created", inner_hc),
+        ("L0-D2-004", "l0.c.epoch_id_other", epoch_other),
+        ("L0-D2-014", "l0.c.rs_total1", rs_t1),
+        ("L0-D2-021", "l0.c.prev_block_merkle_root", bmr0),
+        ("L0-D2-022", "l0.c.block1_merkle_root", bmr1),
+        ("L0-D2-026", "l0.c.truncate_before_main", truncate_main),
     ]
 
 

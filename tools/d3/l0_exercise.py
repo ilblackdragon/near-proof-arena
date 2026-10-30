@@ -46,15 +46,19 @@ def _trace_batch(binary, cases, timeout):
     for line in p.stderr.splitlines():
         if line.startswith("CASE "):
             cur = str(Path(line[5:]).resolve())
-            ev[cur] = {"hosts": collections.Counter(), "acts": collections.Counter()}
+            ev[cur] = {"hosts": collections.Counter(), "acts": collections.Counter(),
+                       "events": collections.Counter()}
         elif line.startswith("H ") and cur:
             ev[cur]["hosts"][line[2:]] += 1
         elif line.startswith("A ") and cur:
             ev[cur]["acts"][line[2:]] += 1
+        elif line.startswith(("I ", "W ")) and cur:
+            ev[cur]["events"][line] += 1
     if set(ev) != set(rows):
         raise ValueError("trace markers do not match the result rows")
     return [{"case": c, "verdict": r["verdict"], "reason": r["reason"],
-             "hosts": dict(ev[c]["hosts"]), "acts": dict(ev[c]["acts"])} for c, r in rows.items()]
+             "hosts": dict(ev[c]["hosts"]), "acts": dict(ev[c]["acts"]),
+             "events": dict(ev[c]["events"])} for c, r in rows.items()]
 
 
 def cmd_trace(a):
