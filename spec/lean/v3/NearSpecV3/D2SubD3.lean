@@ -117,7 +117,9 @@ D0/D1 never compare the `epoch_start_after` flags with the headers, D2/D3 requir
 is in `RelD0`, `RelD1` and `RelD1a B0` but not in `RelD2`/`RelD3` (`not_d1_sub_d2`,
 `not_d1a_sub_d3`). The two lemmas below stay true but their hypothesis does not hold; closing
 `WitnessLift` needs either D2's genesis rule in D0/D1 or a claim condition (evidence:
-`docs/evidence/lean-chunk-completion/proof-debt/d1-genesis-flag/`). -/
+`docs/evidence/lean-chunk-completion/proof-debt/d1-genesis-flag/`). Decision (2026-10-30): the
+rungs of the statement are now `RelD3 ∧ InRungDk` (`Rungs.lean`, `ChallengeChunkV3R.lean`), where
+every inclusion and the lift are projections. -/
 
 theorem relD1a_relD3_of_d1_d2 (hd12 : ∀ cb w, RelD1 cb w → RelD2 cb w) {B : Nat} {cb w : Bytes}
     {W Dp N : Nat} (h : RelD1a B cb w W Dp N) : D3.RelD3 cb w :=
