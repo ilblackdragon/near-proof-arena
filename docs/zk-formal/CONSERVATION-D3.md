@@ -42,6 +42,14 @@ delayed receipt only on the shard it routes to (buffered receipts are outgoing a
 this removes a double count rather than adding a hypothesis. Re-run on the fixed statement: all
 26,888 chunks equal.
 
+**A second false case, also found by the prover.** With the shard-aware measure, a receipt for
+another shard passed in as `incoming`, or created by a foreign signer's transaction to itself, can
+be delayed into this shard's queue and is then not counted. So the statement now assumes the chunk's
+inputs belong to the shard: every incoming receipt routes to `own` (what `checkD2CoreObs`'s filter
+at `ChunkValidationD2.lean:213` establishes) and every transaction's signer does (the chunk
+producer's invariant; **`checkD2` does not check it**, so a bridge from `RelD3` to this statement
+needs either that check or an argument that a foreign signer's transaction fails without writes).
+
 ## Why the obligations in `TOP_LEVEL_THEOREM.md` / `ConservationStatement.lean` are not used
 
 Read against the code, each is false as written:
