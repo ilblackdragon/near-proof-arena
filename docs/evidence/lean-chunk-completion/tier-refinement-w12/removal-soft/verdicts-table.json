@@ -1,0 +1,177 @@
+{
+ "runtimeLimits": {
+  "delete-account/honest": {
+   "reject": 16,
+   "cases": 16,
+   "incomplete": 16
+  },
+  "delete-account/mutant": {
+   "reject": 832,
+   "cases": 832,
+   "incomplete": 176
+  },
+  "delete-account-large/honest": {
+   "accept": 4,
+   "cases": 4
+  },
+  "delete-account-large/mutant": {
+   "reject": 160,
+   "cases": 204,
+   "accept": 44
+  },
+  "other/honest": {
+   "accept": 1380,
+   "cases": 1380
+  },
+  "other/mutant": {
+   "reject": 2100,
+   "cases": 2700,
+   "accept": 600
+  },
+  "reinsert/honest": {
+   "reject": 32,
+   "cases": 32,
+   "incomplete": 32
+  },
+  "reinsert/mutant": {
+   "reject": 1712,
+   "cases": 1712,
+   "incomplete": 352
+  },
+  "reinsert-one/honest": {
+   "accept": 4,
+   "cases": 4
+  },
+  "reinsert-one/mutant": {
+   "reject": 152,
+   "cases": 196,
+   "accept": 44
+  },
+  "vm-delete/honest": {
+   "reject": 4,
+   "cases": 4,
+   "incomplete": 4
+  },
+  "vm-delete/mutant": {
+   "reject": 212,
+   "cases": 212,
+   "incomplete": 44
+  }
+ },
+ "storageResolution": {
+  "delete-account/honest": {
+   "accept": 16,
+   "cases": 16
+  },
+  "delete-account/mutant": {
+   "reject": 656,
+   "cases": 832,
+   "accept": 176
+  },
+  "delete-account-large/honest": {
+   "accept": 4,
+   "cases": 4
+  },
+  "delete-account-large/mutant": {
+   "reject": 160,
+   "cases": 204,
+   "accept": 44
+  },
+  "other/honest": {
+   "accept": 1380,
+   "cases": 1380
+  },
+  "other/mutant": {
+   "reject": 2100,
+   "cases": 2700,
+   "accept": 600
+  },
+  "reinsert/honest": {
+   "accept": 32,
+   "cases": 32
+  },
+  "reinsert/mutant": {
+   "reject": 1360,
+   "cases": 1712,
+   "accept": 352
+  },
+  "reinsert-one/honest": {
+   "accept": 4,
+   "cases": 4
+  },
+  "reinsert-one/mutant": {
+   "reject": 152,
+   "cases": 196,
+   "accept": 44
+  },
+  "vm-delete/honest": {
+   "accept": 4,
+   "cases": 4
+  },
+  "vm-delete/mutant": {
+   "reject": 168,
+   "cases": 212,
+   "accept": 44
+  }
+ },
+ "signed": {
+  "delete-account/honest": {
+   "reject": 16,
+   "cases": 16,
+   "incomplete": 16
+  },
+  "delete-account/mutant": {
+   "reject": 832,
+   "cases": 832,
+   "incomplete": 176
+  },
+  "delete-account-large/honest": {
+   "out_of_domain": 4,
+   "cases": 4
+  },
+  "delete-account-large/mutant": {
+   "reject": 88,
+   "cases": 204,
+   "out_of_domain": 116
+  },
+  "other/honest": {
+   "accept": 1362,
+   "cases": 1380,
+   "out_of_domain": 18
+  },
+  "other/mutant": {
+   "reject": 2100,
+   "cases": 2700,
+   "accept": 600
+  },
+  "reinsert/honest": {
+   "reject": 32,
+   "cases": 32,
+   "incomplete": 32
+  },
+  "reinsert/mutant": {
+   "reject": 1712,
+   "cases": 1712,
+   "incomplete": 352
+  },
+  "reinsert-one/honest": {
+   "out_of_domain": 4,
+   "cases": 4
+  },
+  "reinsert-one/mutant": {
+   "reject": 84,
+   "cases": 196,
+   "out_of_domain": 112
+  },
+  "vm-delete/honest": {
+   "reject": 4,
+   "cases": 4,
+   "incomplete": 4
+  },
+  "vm-delete/mutant": {
+   "reject": 212,
+   "cases": 212,
+   "incomplete": 44
+  }
+ }
+}

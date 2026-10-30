@@ -314,6 +314,10 @@ pub enum Scenario {
     /// `code-response` (src/scenarios.rs, W02): chunks whose accessed pre-state contract code is
     /// exactly at / one byte over the 64 MiB `ContractCodeResponse` cap.
     CodeResponse,
+    /// `removal-soft` (src/scenarios.rs, W12 O4 ground truth): ContractData removals (VM
+    /// `storage_remove`, `DeleteAccount`) that push the recorder's upper bound past the 4,000,000 B
+    /// chunk soft limit while the witness's values stay below it.
+    RemovalSoft,
 }
 
 /// The opt-in successor scenario (`NEAR_SUCCESSOR_SCENARIO`); unset = the baseline workload.
@@ -351,6 +355,7 @@ pub fn scenario() -> Option<Scenario> {
         Ok(value) if value == "gate-b-caps" => Some(Scenario::GateBCaps),
         Ok(value) if value == "eval-loops" => Some(Scenario::EvalLoops),
         Ok(value) if value == "code-response" => Some(Scenario::CodeResponse),
+        Ok(value) if value == "removal-soft" => Some(Scenario::RemovalSoft),
         Ok(value) if value == "runtime-errors" => Some(Scenario::RuntimeErrors),
         Ok(value) if value == "pipeline-race" => Some(Scenario::PipelineRace),
         Ok(value) if value == "code-cache" => Some(Scenario::CodeCache),
