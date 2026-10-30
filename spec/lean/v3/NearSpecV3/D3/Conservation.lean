@@ -276,6 +276,11 @@ receipt with `gasPrice = 0` makes the gas for minting value-free in the measure,
 `subsidized ≤ burnt` guard does not bound the total. Without it an account could in principle be
 credited up to the `u128Max` V2 marker. Found by the deepseek-fv lead.
 
+Shard ids `< 2^16`: buffered receipts are keyed `kBuf s i = [14] ++ u16 s ++ u64 i`, so two shard
+ids equal mod `2^16` share keys and the forward loop (which reads the pre-state trie) would forward
+one stored receipt twice; `bufferReceipt` itself refuses `shard > 65535`. Found by the deepseek-fv
+provers (kernel-checked).
+
 The two `system` hypotheses exclude what only a forged input can contain. No revealed account
 `system`: the runtime cannot create one (`actCreateAccount` rejects it, it is not implicit, and
 `stateInit` is out of D3's domain), so no function call ever runs *at* `system` — a contract there
@@ -295,6 +300,7 @@ def ChunkConservation : Prop :=
     (ownCong : Congestion) (out : MainOutD2) (o : Ovl),
     t.wf = true →
     env.ctx.gasLimit < 2 ^ 64 →
+    (∀ s ∈ env.ctx.layout.shardIds, s < 2 ^ 16) →
     (∀ v, t.find (nibbles (kAccount AccountId.system)) ≠ some (some v)) →
     (∀ r ∈ incoming ++ storedRcpts t, SysGasFree r) →
     (∀ r ∈ incoming, env.ctx.layout.shardOf r.recv = env.ctx.own) →
