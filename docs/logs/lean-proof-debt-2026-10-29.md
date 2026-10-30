@@ -163,3 +163,22 @@ reduction). Details and the D1 ⊂ D2 scoping are in the evidence README §6.
 'NearSpecV3.Successor.checkD3F_reject_of_checkD3_reject' depends on axioms: [propext, Classical.choice, Quot.sound]
 'NearSpecV3.Successor.checkD3F_verdict_of_decided' depends on axioms: [propext, Classical.choice, Quot.sound]
 ```
+
+## 9. Round 3 (2026-10-30): D1 ⊂ D2 — counterexample, phase simulation not started
+
+* Merged main (`71e9dbc25`, FuelFinal / vmCall).
+* **D1 ⊂ D2 is false** (`0747ecd60`): kernel-checked counterexample (genesis `epoch_start_after`
+  flag; D0/D1 never compare the flags with the headers, D2/D3 require `!isGenesis || flag = 1`).
+  `not_d1_sub_d2`, `not_d1_sub_d3`, `not_d0_sub_d3`, `not_d1a_sub_d3`; five `decide +kernel`
+  modules, each ≤ 35 s and ≤ 6.5 GB. Evidence: `docs/evidence/lean-chunk-completion/proof-debt/d1-genesis-flag/`.
+* So `WitnessLift` is not provable without a decision (D2's genesis rule in D0/D1, or a claim
+  hypothesis, or `Rel_Dk := RelD3 ∧ InDk`). The phase simulation was not started; its phase list and
+  status are in the evidence README §7 (A–E: none done, B blocked).
+* Censuses re-run serially (round 2 used interleaved parallel output): honest + ood 3,394/3,394,
+  mutants (every 8th, case list from a file) 951/951 D1 accepts are D2 and D3 accepts.
+
+```
+'NearSpecV3.Examples.not_d1_sub_d2' depends on axioms: [propext, Quot.sound]
+'NearSpecV3.Examples.not_d0_sub_d3' depends on axioms: [propext, Classical.choice, Quot.sound]
+'NearSpecV3.Examples.not_d1a_sub_d3' depends on axioms: [propext, Classical.choice, Quot.sound]
+```

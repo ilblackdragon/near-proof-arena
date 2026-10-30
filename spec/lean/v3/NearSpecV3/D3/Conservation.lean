@@ -199,11 +199,19 @@ in the post-state plus the value of the outgoing receipts plus the chunk's `bala
 Summed over the shards of a block, every outgoing receipt is some shard's incoming receipt, so the
 total changes by `Σ rewards − Σ balance_burnt` — the block header's `total_supply` identity
 (`Supply.verifyTotalSupply_accept`). Transactions are internal: the signer's charge reappears as
-`txBurnt` plus the value of the receipt it creates. -/
+`txBurnt` plus the value of the receipt it creates.
+
+The two hypotheses say the chunk's inputs belong to the shard. `checkD2CoreObs` establishes the
+first (it filters the incoming receipts by `L.shardOf r.recv == H.shardId`,
+`ChunkValidationD2.lean:213`); the second is the chunk producer's invariant and is not checked by
+`checkD2`. Without them a foreign receipt can enter this shard's delayed queue, where `nearIn` does
+not count it (it is a sibling's resharding leftover by the same test that `delayPop` applies). -/
 def ChunkConservation : Prop :=
   ∀ (prims : Prims) (env : Env) (t : PTrie) (vu : Option ValidatorUpdateFacts)
     (lastProps : List (Bytes × Nat)) (incoming : List Rcpt) (txs : List (TxD2 × Bool))
     (ownCong : Congestion) (out : MainOutD2) (o : Ovl),
+    (∀ r ∈ incoming, env.ctx.layout.shardOf r.recv = env.ctx.own) →
+    (∀ tf ∈ txs, env.ctx.layout.shardOf tf.1.signer = env.ctx.own) →
     applyNewChunkD2Obs (D3.d3Hooks Wasm.pv86) prims env t vu lastProps incoming txs ownCong
       = .ok (out, o) →
     ∃ t', finalTrie o = some t' ∧

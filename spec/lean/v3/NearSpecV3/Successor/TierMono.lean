@@ -478,11 +478,11 @@ rest are open, each checked empirically (`docs/evidence/lean-chunk-completion/ti
   (checkReshardCore reshardingDriver …)` on segments without a genesis block: `ReshardCore` walks the
   segment per block layout and must reduce to `checkD2CoreWithObs` when every epoch has one layout
   and no split gate is set. Only the verdict-level form can hold (see `VRefines`).
-* **O7 complete-code witness** — not a lift, and not in the join: on warm-cache chunks it rejects
-  (`w.code_complete`) where every other whole-state tier excludes or accepts; the counterexample
-  family is in the evidence. Since the W08 merge the complete policy is the cold one on
-  authenticated witness bytes (`complete_eq_cold`); the resolve-level steps toward O7 are
-  `complete_ok_coldPartial` and `complete_untimely_ood` (`TierRefine.lean`).
+* **O7 complete-code witness** — since W08 (2026-10-29) the complete policy is the cold
+  validator's resolution plus a hash check on witness bytes (`CodeResolution.complete_eq_cold`),
+  so the 178 warm-cache rejects (`w.code_complete`) are gone, and an untimely pipelined preparation
+  is a race exclusion under both policies (`complete_untimely_ood`, `TierRefine.lean`). The
+  chunk-level refinement is still open.
 -/
 
 #print axioms checkSuccessor_segment_mono
