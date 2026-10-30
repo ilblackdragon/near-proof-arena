@@ -33,6 +33,15 @@ function calls with promises and attached deposits, refunds, burns, delayed and 
 The statement was tested before any proof effort, so a failing proof cannot be blamed on a false
 target.
 
+**One false case was found by the prover, not the corpus, and fixed.** The first deepseek-fv lead
+noticed that `delayPop` (`D2/Queues.lean:459-480`) drops delayed receipts routed to another shard —
+resharding leftovers: both children of a split inherit the parent's delayed queue and each drops
+its sibling's copies — while the measure counted them, so the identity failed on such a pre-state.
+No corpus chunk has such a leftover. `nearIn` now takes the layout and shard id and counts a
+delayed receipt only on the shard it routes to (buffered receipts are outgoing and always count);
+this removes a double count rather than adding a hypothesis. Re-run on the fixed statement: all
+26,888 chunks equal.
+
 ## Why the obligations in `TOP_LEVEL_THEOREM.md` / `ConservationStatement.lean` are not used
 
 Read against the code, each is false as written:
