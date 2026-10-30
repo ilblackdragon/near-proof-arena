@@ -122,18 +122,23 @@ theorem compose_pv86 (cb w : Bytes)
     NearSpecV3.D3.RelD3 cb w :=
   coverage_pv86 cb w sa hagree hstate
 
-/-- **Why there is no `cfg`-general form.**  `checkD3` is *fixed* at `Wasm.pv86`
-(`D3/FunctionCall.lean:400-401`: `checkD2Core (d3Hooks Wasm.pv86) …`), so a join that concludes
+/-- **Why there is no `cfg`-general form.**  `checkD3`'s legacy core is *fixed* at `Wasm.pv86`
+(`D3/FunctionCall.lean`: `checkD3Core := checkD2Core (d3Hooks Wasm.pv86) …`), so a join that concludes
 `RelD3` must be at `pv86` specifically — there is no protocol-parametric statement to prove.  A
 `compose_cfg` at an arbitrary `cfg` would have to conclude `checkD2Core (d3Hooks cfg) …`, which is
-*not* `RelD3`.  This is why `compose_pv86` is the join and not a special case of something wider. -/
+*not* `RelD3`.  This is why `compose_pv86` is the join and not a special case of something wider.
+
+Since the UQ-010 hand-over (2026-10-29, `D3/Signed.lean`) `RelD3` is the core *or* a recorder-engine
+decision outside the core's preconditions (resharding, storage-proof limits), so the core run is
+sufficient for `RelD3` (`D3.checkD3_of_core_ok`), not equivalent to it; the equivalence holds for the
+core itself, which is what this theorem now states. -/
 theorem compose_is_pv86_only :
     ∀ (cfg : NearCfg) (cb w : Bytes),
-      (NearSpecV3.D3.RelD3 cb w ↔
+      (NearSpecV3.D3.checkD3Core cb w = .ok () ↔
         checkD2Core (NearSpecV3.D3.d3Hooks Wasm.pv86) true cb w
           (some NearSpecV3.D3.gAlpha) = .ok ()) := by
   intro cfg cb w
-  unfold NearSpecV3.D3.RelD3 NearSpecV3.D3.checkD3
+  unfold NearSpecV3.D3.checkD3Core
   exact Iff.rfl
 
 /-! ## §3. Why the old statement cannot be repaired in place
@@ -187,12 +192,15 @@ pipeline reads its hook at exactly one place, so agreement at `.fcall` determine
 verdict.  That is a real structural theorem about `checkD2Core`.  It is not a soundness transfer,
 because both sides of the equation it proves are the same run. -/
 
-/-- **`compose_pv86`'s premise is equivalent to its conclusion.**  Given `.fcall` agreement,
-`StateSide` and `RelD3` are the same proposition: the premise can be neither weaker nor stronger
-than what is being concluded, so the theorem transfers no soundness. -/
+/-- **`compose_pv86`'s premise is equivalent to the core of its conclusion.**  Given `.fcall`
+agreement, `StateSide` and `RelD3`'s legacy core (`checkD3Core = .ok ()`) are the same proposition:
+the premise can be neither weaker nor stronger than the core, so the theorem transfers no soundness.
+(Since the UQ-010 hand-over, 2026-10-29, `RelD3` itself is wider than its core: it also accepts
+claims the core excludes as resharding or above its storage-proof bound. The premise still only ever
+reaches `RelD3` through the core, `D3.checkD3_of_core_ok`.) -/
 theorem compose_pv86_premise_iff_conclusion (cb w : Bytes) (sa : StateArm)
     (hagree : ArmAgrees Wasm.pv86 sa) :
-    StateSide Wasm.pv86 cb w sa ↔ NearSpecV3.D3.RelD3 cb w := by
+    StateSide Wasm.pv86 cb w sa ↔ NearSpecV3.D3.checkD3Core cb w = .ok () := by
   have h : StateSide Wasm.pv86 cb w sa
       = (checkD2Core (NearSpecV3.D3.d3Hooks Wasm.pv86) true cb w
           (some NearSpecV3.D3.gAlpha) = .ok ()) := by
@@ -201,12 +209,12 @@ theorem compose_pv86_premise_iff_conclusion (cb w : Bytes) (sa : StateArm)
   rw [h]
   exact Iff.rfl
 
-/-- **The join reduces to the identity on `RelD3`.**  Stated separately from the `iff` so the
+/-- **The join reduces to the identity on `RelD3`'s core.**  Stated separately from the `iff` so the
 reduction is visible as a term: once `.fcall` agreement holds, nothing about the state pipeline's
-verdict is needed that `RelD3` did not already supply. -/
+verdict is needed that the core run did not already supply. -/
 theorem compose_pv86_reduces_to_refl (cb w : Bytes) (sa : StateArm)
     (hagree : ArmAgrees Wasm.pv86 sa) :
-    NearSpecV3.D3.RelD3 cb w → NearSpecV3.D3.RelD3 cb w :=
+    NearSpecV3.D3.checkD3Core cb w = .ok () → NearSpecV3.D3.checkD3Core cb w = .ok () :=
   fun hrel => (compose_pv86_premise_iff_conclusion cb w sa hagree).mp
     ((compose_pv86_premise_iff_conclusion cb w sa hagree).mpr hrel)
 

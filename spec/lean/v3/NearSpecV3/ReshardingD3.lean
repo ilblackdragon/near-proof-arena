@@ -1,5 +1,4 @@
 import NearSpecV3.GenesisD3
-import NearSpecV3.Wasm.DomainD3
 
 /-!
 # `NearSpecV3.ReshardingD3` — resharding, split gate and same-layout: what D3 excludes and why
@@ -65,6 +64,44 @@ The split gate is a *different* condition and the exclusion is **not** unconditi
 `splitGate_reachable_at_pv86` and the discussion in `## The split gate at PV86` below.
 -/
 
+/-! ## `noResharding` (formerly `Wasm/DomainD3.lean`)
+
+`Wasm.DomainD3` was a parallel domain statement outside `checkD3`'s import closure (UQ-010). It is
+retired (2026-10-29, `docs/research/lean-chunk-w00-owner-map.md` §3.4). Its `noResharding` is kept
+here, where its theorems live, as the description of the *legacy core*'s (`D3.checkD3Core`) two
+resharding guards. It is **not** a domain condition of the statement of record: `D3.checkD3` decides
+claims that fail it (the resharding hand-over, `D3/Signed.lean`). Its `contractInD3α` was dropped:
+it excluded a contract that merely imports a curve host, while dispatch excludes only a call
+(`D3/FunctionCall.lean` `contractOOD`, `Wasm/Exec.lean` `runCall`), so it described no checker. -/
+
+namespace NearSpecV3.Wasm
+
+/-- No resharding anywhere in the claim's segment: one shard layout, no split gate. -/
+def noResharding (c : Claim) : Bool :=
+  (match c.epochs with
+   | [] => true
+   | e :: _ => c.epochs.all (·.shardLayout == e.shardLayout)) &&
+    c.applyFacts.all (fun f => f.splitGate.isNone)
+
+theorem noResharding_spec (c : Claim) (h : noResharding c = true) :
+    (∀ e ∈ c.epochs, ∀ e' ∈ c.epochs, e.shardLayout = e'.shardLayout) ∧
+      ∀ f ∈ c.applyFacts, f.splitGate = none := by
+  simp only [noResharding, Bool.and_eq_true] at h
+  obtain ⟨h1, h2⟩ := h
+  refine ⟨fun e he e' he' => ?_, fun f hf => ?_⟩
+  · cases hc : c.epochs with
+    | nil => rw [hc] at he; exact absurd he (List.not_mem_nil)
+    | cons e0 es =>
+      rw [hc] at h1 he he'
+      have a1 := List.all_eq_true.mp h1 e he
+      have a2 := List.all_eq_true.mp h1 e' he'
+      rw [beq_iff_eq] at a1 a2
+      rw [a1, a2]
+  · have := List.all_eq_true.mp h2 f hf
+    exact Option.isNone_iff_eq_none.mp this
+
+end NearSpecV3.Wasm
+
 namespace NearSpecV3
 
 open NearSpec NearSpecV3.D2
@@ -106,7 +143,7 @@ theorem sameLayout_means_no_layout_difference (c : Claim) (ep : EpochRec)
     ¬ (e.shardLayout ≠ e'.shardLayout) := by
   simp [sameLayout_forbids_resharding c ep h he he']
 
-/-- `Wasm.DomainD3.noResharding`'s first conjunct, as a standalone function of the epoch list (so
+/-- `Wasm.noResharding`'s first conjunct, as a standalone function of the epoch list (so
 the theorems below can state it without a dependent `match` on `c.epochs`). -/
 def layoutUniformOf (l : List EpochRec) : Bool :=
   match l with
@@ -131,7 +168,7 @@ theorem layoutUniformOf_iff (l : List EpochRec) :
       exact h e he e0 (List.mem_cons_self ..)
 
 /-- `sameLayout c ep` and `noResharding`'s layout conjunct agree whenever the endorsed epoch is in
-the claim's epoch table. `Wasm.DomainD3.noResharding` compares all epochs against the *head* epoch;
+the claim's epoch table. `Wasm.noResharding` compares all epochs against the *head* epoch;
 the checker's `c.same_layout` compares all epochs against the *endorsed* epoch. `checkD2Core` requires
 the endorsed epoch to be a member of `c.epochs` (`c.epochs.find? (·.epochId == c.epochId)`), so under
 that precondition the two predicates are the same condition on the claim. -/
@@ -145,7 +182,7 @@ theorem sameLayout_eq_layout_part (c : Claim) (ep : EpochRec) (hmem : ep ∈ c.e
     exact h e he ep hmem
 
 /-- **`noResharding` is exactly the conjunction of the two guards.** So the D2 predicates
-`c.same_layout` and `c.no_split_gate` are precisely the two conjuncts of `Wasm.DomainD3.noResharding`,
+`c.same_layout` and `c.no_split_gate` are precisely the two conjuncts of `Wasm.noResharding`,
 and an edit to either cannot drift silently away from the domain statement. -/
 theorem noResharding_iff_guards (c : Claim) (ep : EpochRec) (hmem : ep ∈ c.epochs) :
     Wasm.noResharding c = true ↔ (sameLayout c ep = true ∧ noSplitGate c = true) := by

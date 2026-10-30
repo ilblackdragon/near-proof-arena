@@ -1,6 +1,6 @@
 import NearSpecV3.Logged.D3L
 
-/-! # `functionCallL` = `functionCall`, `checkD3L` = `checkD3` -/
+/-! # `functionCallL` = `functionCall`, `checkD3L` = `checkD3Core` (the legacy core of `checkD3`) -/
 
 namespace NearSpecV3.Logged
 
@@ -203,7 +203,7 @@ namespace NearSpecV3.Logged
 open NearSpec NearSpecV3 NearSpecV3.D2 NearSpecV3.D3
 
 /-- **The logged D3 checker computes `checkD3`.** -/
-theorem checkD3L_eq (cb wb : Bytes) : SM.run (storesOf wb) (checkD3L cb wb) = checkD3 cb wb := by
+theorem checkD3L_eq (cb wb : Bytes) : SM.run (storesOf wb) (checkD3L cb wb) = checkD3Core cb wb := by
   have h := checkD2Core_logged (d3Hooks Wasm.pv86) (d3HooksL Wasm.pv86) (fun _ _ _ => HooksR_d3 _) true cb wb
     (some gAlpha)
   unfold RK at h; exact h.symm

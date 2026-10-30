@@ -4,6 +4,7 @@ import NearSpecV3.ChunkValidationD1a
 import NearSpecV3.ChunkValidationD1
 import NearSpecV3.ChunkValidationD2
 import NearSpecV3.D3.FunctionCall
+import NearSpecV3.D3.Signed
 
 /-!
 # `near-chunk-v3`: one challenge for the formalized chunk state-transition domains

@@ -8,7 +8,7 @@ the exact list of recorded-storage keys it read. Keys are tagged: `(0, h)` is a 
 the merged main store (`base_state ++ code blobs`, incl. contract code and every trie node / value
 the WASM storage host functions read), `(k + 1, h)` one of implicit transition `k`'s `base_state`.
 
-* `checkD3Reads_eq`: the pair is `(checkD3 cb wb, reads)`.
+* `checkD3Reads_eq`: the pair is `(checkD3Core cb wb, reads)`.
 * `checkD3_congr`: any store that answers those keys like the witness gives the same verdict and
   the same reads.
 * `reads_restrict_eq` / `reads_fixed`: the witness store restricted to the read keys gives the same
@@ -29,13 +29,13 @@ def checkD3Reads (cb wb : Bytes) : Except String Unit × List (Nat × Bytes) :=
 def d3Reads (cb wb : Bytes) : List (Nat × Bytes) := (checkD3Reads cb wb).2
 
 theorem checkD3Reads_eq (cb wb : Bytes) :
-    checkD3Reads cb wb = (checkD3 cb wb, SM.reads (storesOf wb) (checkD3L cb wb)) := by
+    checkD3Reads cb wb = (checkD3Core cb wb, SM.reads (storesOf wb) (checkD3L cb wb)) := by
   unfold checkD3Reads
   rw [SM.runR_eq]
   show (SM.run (storesOf wb) (checkD3L cb wb), _) = _
   rw [checkD3L_eq]; rfl
 
-theorem checkD3Reads_fst (cb wb : Bytes) : (checkD3Reads cb wb).1 = checkD3 cb wb := by
+theorem checkD3Reads_fst (cb wb : Bytes) : (checkD3Reads cb wb).1 = checkD3Core cb wb := by
   rw [checkD3Reads_eq]
 
 theorem d3Reads_eq (cb wb : Bytes) : d3Reads cb wb = SM.reads (storesOf wb) (checkD3L cb wb) := by
@@ -44,7 +44,7 @@ theorem d3Reads_eq (cb wb : Bytes) : d3Reads cb wb = SM.reads (storesOf wb) (che
 /-- **Stores agreeing on the reads give the same result** (and the same reads). -/
 theorem checkD3_congr (cb wb : Bytes) (g : Nat × Bytes → Option Bytes)
     (h : ∀ k ∈ d3Reads cb wb, g k = storesOf wb k) :
-    SM.run g (checkD3L cb wb) = checkD3 cb wb ∧ SM.reads g (checkD3L cb wb) = d3Reads cb wb := by
+    SM.run g (checkD3L cb wb) = checkD3Core cb wb ∧ SM.reads g (checkD3L cb wb) = d3Reads cb wb := by
   rw [d3Reads_eq] at h ⊢
   have := SM.run_congr (storesOf wb) g (checkD3L cb wb) h
   rw [checkD3L_eq] at this
@@ -52,7 +52,7 @@ theorem checkD3_congr (cb wb : Bytes) (g : Nat × Bytes → Option Bytes)
 
 /-- The witness store restricted to the read keys gives the same verdict. -/
 theorem reads_restrict_eq (cb wb : Bytes) :
-    SM.run (SM.restrict (storesOf wb) (d3Reads cb wb)) (checkD3L cb wb) = checkD3 cb wb := by
+    SM.run (SM.restrict (storesOf wb) (d3Reads cb wb)) (checkD3L cb wb) = checkD3Core cb wb := by
   rw [d3Reads_eq, SM.run_restrict, checkD3L_eq]
 
 /-- **Fixed point**: the run on the restricted store reads exactly the same keys. -/

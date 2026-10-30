@@ -2,6 +2,7 @@ import NearSpecV3.D2.Receipts
 import NearSpecV3.ChunkValidationD2
 import NearSpecV3.Wasm.Exec
 import NearSpecV3.Wasm.Arcs
+import NearSpecV3.Wasm.Fuel
 
 /-!
 # RuntimeD3: WASM execution behind D2's `ActionHooks.functionCall`
@@ -301,7 +302,11 @@ def functionCall (cfg : NearCfg) (c : ActCtx) (st : ActSt) (ar : AR) (b : Base) 
       m.insert (toBA k) (v.map toBA)) {}
   let real : TTN.RealStore := { store := fun hb => (env.codeOf (ofBA hb)).map toBA,
                                 root := toBA env.preRoot, overlay := ovl, pfx }
-  let fuel := (gas / pv86.regularOpCost + 2) * 64 + 1000000
+  -- UQ-010 (2026-10-29): the signed engine uses the successor budget `wasmFuel` (W02). The legacy
+  -- `(gas / regular + 2) · 64 + 10⁶` budget is exhausted by valid zero-fee control-flow loops
+  -- (`Wasm/Fuel.lean`, `docs/evidence/lean-chunk-completion/fuel-termination/`). More fuel changes
+  -- only a call that exhausted the legacy budget (`Wasm.successorFuel_moves_only_exhausted`).
+  let fuel := wasmFuel cfg gas
   match runCallWithLimits cfg codeB (strOf method) ctx fuel true false (some real) with
   | .line l =>
     let (burnt, used) ← lineOutcome l
@@ -389,7 +394,7 @@ At that table size the single-segment proof is ≈ 2.3 MiB, under the 8 MiB cap
 at checkpoint 5 from the measured EXEC/RAM rows per operator (`D3_WASM_REQUIREMENTS.md` §2.4). -/
 def gAlpha : Nat := 2 ^ 22 * 822756
 
-/-- `Rel_D3` checker: the D2 pipeline (`checkD2Core`) with code blobs allowed and WASM execution
+/-- The legacy-engine core of `Rel_D3` (`D3.checkD3`, `D3/Signed.lean`): the D2 pipeline (`checkD2Core`) with code blobs allowed and WASM execution
 behind the FunctionCall hook. `InD3α` = `InD2` minus `e.wasm`/`w.no_code`, plus the WASM-level
 conditions reported by the hook (`out of domain (e.wasm-α) …`) and the per-chunk cap
 `out of domain (e.g_alpha)`.
@@ -398,31 +403,13 @@ conditions reported by the hook (`out of domain (e.wasm-α) …`) and the per-ch
 contract must be in the witness (`spec/near-chunk-validation-d3.md` §2.2). A nearcore validator
 with a warm compiled-contract cache may accept witnesses that `Rel_D3` rejects (for example one with
 no code blobs at all). `Rel_D3` is the conservative statement that does not depend on any cache. -/
-def checkD3 (claimBytes witnessBytes : NearSpec.Bytes) : Except String Unit :=
+def checkD3Core (claimBytes witnessBytes : NearSpec.Bytes) : Except String Unit :=
   checkD2Core (d3Hooks Wasm.pv86) true claimBytes witnessBytes (some gAlpha)
 
-def RelD3 (claimBytes witnessBytes : NearSpec.Bytes) : Prop := checkD3 claimBytes witnessBytes = .ok ()
-
-/-- **The D3 relation as a decidable boolean.**  A `Bool` mirror of the `Except` checker, so the
-kernel can evaluate the relation on concrete bytes, plus a `Decidable` instance.
-
-Note the polarity differs from `RelD0`/`RelD1`/`RelD2` on purpose: those are *Bool-primary*
-(`RelDk c w := acceptsDk c w = true`), while `RelD3` keeps the `Except` equation as its definition,
-because the D3 proofs in `zk-formal` (`Join/Fold.lean`, `Join/Coverage.lean`) consume that
-definitional form.  `relD3_iff_acceptsD3` proves the two agree, so this is a bridge, not a
-redefinition. -/
-def acceptsD3 (claimBytes witnessBytes : NearSpec.Bytes) : Bool :=
-  match checkD3 claimBytes witnessBytes with
-  | .ok () => true
-  | .error _ => false
-
-theorem relD3_iff_acceptsD3 (c w : NearSpec.Bytes) : RelD3 c w ↔ acceptsD3 c w = true := by
-  unfold RelD3 acceptsD3
-  cases h : checkD3 c w with
-  | ok u => cases u; simp
-  | error e => simp
-
-instance (c w : NearSpec.Bytes) : Decidable (RelD3 c w) :=
-  decidable_of_iff (acceptsD3 c w = true) (relD3_iff_acceptsD3 c w).symm
+/-! `checkD3`, `RelD3`, `acceptsD3` and the `Decidable` instance — the signed statement of record —
+are defined in `NearSpecV3/D3/Signed.lean`. Since the UQ-010 completeness fixes of 2026-10-29 the
+statement is `checkD3Core` plus a hand-over of the legacy pipeline's resharding exclusions
+(`c.same_layout`, `c.no_split_gate`) to the resharding walk, which needs `Successor.ReshardCore` and
+so cannot live in this module (`ReshardCore` imports it). -/
 
 end NearSpecV3.D3
