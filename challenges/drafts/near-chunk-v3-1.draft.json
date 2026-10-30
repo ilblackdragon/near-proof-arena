@@ -38,7 +38,7 @@
       },
       {
         "id": "w.size",
-        "text": "state witness (near-arena-witness-v3 state_witness field) <= 8 MiB; the cold-fetched contract code fits one ContractCodeResponse (MAX_UNCOMPRESSED_CONTRACT_CODE_RESPONSE_SIZE = 64 MiB); the storage-proof limits are decided (legacy core below 4,000,000 bytes of values and code, the recorder engine above it, D3/Signed.lean)"
+        "text": "state witness (near-arena-witness-v3 state_witness field) <= 8 MiB; the cold-fetched contract code fits one ContractCodeResponse (MAX_UNCOMPRESSED_CONTRACT_CODE_RESPONSE_SIZE = 64 MiB); the storage-proof limits are decided (legacy core while the witness's values and code plus 2,000 bytes per ContractData removal of the recorder run stay at most 4,000,000 bytes, the recorder engine above it; D3/Signed.lean storageCrossed)"
       },
       {
         "id": "w.shape",
@@ -82,7 +82,7 @@
     "formal_spec": {
       "relation_module": "NearSpecV3.ChallengeChunkV3R",
       "relation_decl": "NearSpecV3.RelChunkV3R",
-      "tree_digest": "sha256:740d6bedd801685f6cd2fba5d8638f5705656c8b3dc74cb56bb97a3f9147bed6",
+      "tree_digest": "sha256:a61d8ff43cf7a93b9b1b7c8c9d998f061473ce21f797b18cd4ee478889ccdb23",
       "lean_toolchain": "leanprover/lean4:v4.34.1"
     },
     "spec_doc_digest": "sha256:b68420e35a81c52a1dacf03b865e599dcf0a76ecc836235f8b3d2db765e33e94"
