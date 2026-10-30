@@ -1446,3 +1446,62 @@ population.
   premise rows, `hNS` holds wherever the recorder's limits are not reached.
 * G3b may deserve a recorder-side look. It is unreachable when the witness reveals the receiver's
   pre-state account, which the recorder itself records.
+
+## 15. Update 2026-10-30 (sixth O4 session, continued): the removal-aware hand-over (§14.1 fixed)
+
+This section implements the fix proposed in §14.1, on the coordinator's instruction under the user's
+standing decision of 2026-10-27: a signed-tier reject of a valid chunk is fixed as a strengthening of
+`checkD3`/`RelD3`.
+
+Changed Lean:
+
+* `D3/Signed.lean`: `removalProbe`, `recorderRemovals`, `storageCrossed`, and `handover e c w`, which
+  now takes the claim;
+* `Successor/Config.lean`: `withStorageExclusion r c w`;
+* call sites and proofs in `TierProofs`, `TierRefine`, `TierMono`, `TierWholeWalk`, `TierO4` and
+  `TierO4X`.
+
+The full default build is ok (424 jobs). There is no `sorry`, and the axioms are unchanged.
+`make pin-check` is ok. The v3.1 draft is regenerated with the new `w.size` text
+(`spec/tools/near_chunk_v3_uq010.py`). The move is recorded as move (f) in owner map §3.4.
+
+### The rule
+
+A core error is handed over (signed tier) or excluded as `w.size` (narrower legacy tiers) when
+`legacyMergedBytes w + 2000 · R > 4,000,000`, with `R = recorderRemovals c w`.
+
+* **What `R` counts.** `R` is the number of ContractData removals in the main transition of the
+  signed recorder engine, run on the same claim and witness. It uses `signedRecorderDriver` or
+  `signedReshardDriver`, as the hand-over does.
+* **How `R` is obtained.** A probe driver replaces the engine's `apply`. It stops right after the
+  main transition and reports `cdRemovals` as its result. When the run stops before the main
+  transition completes, `R = 0`.
+* **Why the condition is not circular.** `R` depends only on `(c, w)`, not on the core's result.
+* **When `R` is computed.** Only on a core error whose merged size alone is within the bound.
+* **Why `R` is the right count.** The recorder runs the chunk as nearcore does. Up to the first
+  receipt nearcore defers, its removals are nearcore's removals.
+
+Both wrappers use the same condition, and it depends only on `(c, w)`. So `Refines.storage` still
+gives every named pair: `.signed ⊑ .runtimeLimits`, `.signed ⊑ .floats`,
+`.signed ⊑ .genesisFloatsProtoGas`, and the others. The O4 theorems now use
+`withStorageExclusion_refines` in place of the old `_small` lemma.
+
+### Evidence
+
+* **After:** checker `9b583e3a…`, built from `61389b178`.
+* **Before, and the breakage control:** the current checker `2347323d…`. It is semantically main's
+  checker, because main has changed only proof modules since it was built.
+* Per-case rows and the `ba.py` diffs are in `removal-handover/`.
+
+| population | tier | cases | moves | toward nearcore | Lean accepts of a nearcore reject (after) | reject → OOD |
+|---|---|---|---|---|---|---|
+| `removal-soft`, all 7,296 (4 seeds) | signed | 7,296 | 624 `reject → accept`, all nearcore-valid (52 honest chunks + 572 accepted mutants). 956 nearcore rejects stay `reject`, now with the recorder's reason (`InvalidCongestionInfo`, header fields, post-state root) | 624 | 0 | 0 |
+
+**PENDING.** These runs were still in progress at the time of this commit (`removal-handover/horun.sh`):
+
+* signed on the full corpus (235,716 cases), diffed against `gateb-prefreeze/corpus-signed`;
+* signed on shard 13 (1,223 chunks), before and after;
+* signed and `runtimeLimits` on the 3,138 census and the 577 fixtures, with the before rows taken from
+  `o4-replay/`;
+* `runtimeLimits` on `removal-soft`. The expected result is 624 `reject → OOD (w.size)` moves, which
+  is how the narrower tiers are designed to behave.

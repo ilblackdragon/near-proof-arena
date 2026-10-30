@@ -177,8 +177,8 @@ theorem checkSuccessor_gas_mono (cfg : ProtocolCfg) (g : Option Nat) (hg : CapLe
         · exact checkD2CoreGWith_gas_mono _ _ _ _ _ _ _ hg
         · exact checkD2CoreWith_gas_mono _ _ _ _ _ _ _ hg
       · refine Refines.ite_congr _ (fun _ => ?_) (fun _ => ?_)
-        · exact Refines.storage _ (checkD2CoreG_gas_mono _ _ _ _ _ _ hg)
-        · exact Refines.storage _ (checkD2Core_gas_mono _ _ _ _ _ _ hg)
+        · exact Refines.storage _ _ (checkD2CoreG_gas_mono _ _ _ _ _ _ hg)
+        · exact Refines.storage _ _ (checkD2Core_gas_mono _ _ _ _ _ _ hg)
   · exact Refines.refl _
 
 /-- Switching on the genesis-aware main transition never changes a decided verdict, at any
@@ -199,7 +199,7 @@ theorem checkSuccessor_genesis_mono (cfg : ProtocolCfg) (hr : cfg.resharding = f
     split
     · refine Refines.ite_congr _ (fun _ => ?_) (fun _ => ?_)
       · exact checkD2CoreWith_refines_GWith _ rfl _ _ _ _ _
-      · exact Refines.storage _ (checkD2Core_refines_G _ _ _ _ _)
+      · exact Refines.storage _ _ (checkD2Core_refines_G _ _ _ _ _)
     · exact Refines.refl _
   · exact Refines.refl _
 

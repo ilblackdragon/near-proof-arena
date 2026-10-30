@@ -47,8 +47,9 @@ no honest genesis segment has a layout change).
 
 The hand-over fires (`handover`) exactly when the legacy result is an error and
 * it is one of the resharding exclusions (precondition 1), or
-* it is the storage-proof `w.size` exclusion, or the witness's values and code exceed 4,000,000 bytes
-  (precondition 2). On such a witness the legacy core can never accept (its `w.size` check is
+* it is the storage-proof `w.size` exclusion, or the witness's values and code plus 2,000 B per
+  ContractData removal of the recorder run exceed 4,000,000 bytes (`storageCrossed`, precondition 2;
+  the removal term since 2026-10-30). On such a witness the legacy core can never accept (its `w.size` check is
   necessary for acceptance), so its error is a premature exclusion.
 
 What this changes, as proved below:
@@ -89,11 +90,6 @@ def legacyMergedBytes (witnessBytes : Bytes) : Nat :=
 /-- The legacy core's storage-proof bound (`legacyDriver.sizeOk` with no removals). -/
 def legacyStorageBound : Nat := 4000000
 
-/-- When the signed statement decides a legacy error with the recorder engine (module comment). -/
-def handover (e : String) (witnessBytes : Bytes) : Bool :=
-  reshardHandover e || hasPrefixL storageProofPrefix e ||
-    decide (legacyStorageBound < legacyMergedBytes witnessBytes)
-
 /-- The recorder engine at the signed feature set, deciding resharding. Exact storage-proof limits
 (the recorder's `sizeOk` is `true`), nearcore's code-response cap, and the clear witness format; the
 8 MiB state-witness bound, `c.segment` and `c.layout` stay because the driver's lift flags keep their
@@ -104,6 +100,56 @@ def signedReshardDriver (cfg : Wasm.NearCfg) : ExecutionDriver :=
 /-- The same, one shard layout (for a segment that reaches genesis). -/
 def signedRecorderDriver (cfg : Wasm.NearCfg) : ExecutionDriver :=
   { recorderDriver cfg false .coldPartial with compressedWitness := false }
+
+/-- The prefix of the removal probe's report (`removalProbe`). No checker error starts with it. -/
+def removalTag : String := "o4 removal probe: "
+
+/-- A driver that stops right after its main transition and reports the transition's ContractData
+removal count as an error `removalTag ++ toString cdRemovals` (an engine error stops every shell, so
+the shell returns it unchanged). -/
+def removalProbe (d : ExecutionDriver) : ExecutionDriver :=
+  { d with apply := fun h p e t vu ps rs txs cg =>
+      match d.apply h p e t vu ps rs txs cg with
+      | .ok out => .error (removalTag ++ toString out.cdRemovals)
+      | .error err => .error err }
+
+/-- **`R`, the removal count of the storage-proof bound** (W12 O4, 2026-10-30, owner map §3.4). The
+number of ContractData removals (`TrieUpdate::remove`, each charged 2,000 B by nearcore's recorder,
+`update.rs:169-177`) in the main transition of the recorder engine at the signed feature set, run on
+the same claim and witness (`signedRecorderDriver`/`signedReshardDriver`, as the hand-over runs it);
+`0` when that run stops before the main transition completes. It depends only on the claim and the
+witness, not on the legacy result, so the hand-over condition below is not circular. The recorder
+runs the chunk as nearcore does (soft limit included), so up to the first receipt nearcore defers
+it performs exactly nearcore's removals. -/
+def recorderRemovals (claimBytes witnessBytes : Bytes) : Nat :=
+  let r : Except String Unit :=
+    if segmentHasGenesis claimBytes then
+      checkD2CoreWith (removalProbe (signedRecorderDriver Wasm.pv86)) (D3.d3Hooks Wasm.pv86) true
+        claimBytes witnessBytes none
+    else
+      checkReshardCore (removalProbe (signedReshardDriver Wasm.pv86)) (D3.d3Hooks Wasm.pv86) true
+        claimBytes witnessBytes none
+  match r with
+  | .error s => if s.startsWith removalTag then ((s.drop removalTag.length).toString.toNat?).getD 0 else 0
+  | .ok _ => 0
+
+/-- **The storage-proof precondition of the legacy core** (precondition 2): the witness's values
+and code plus 2,000 B per ContractData removal (`R = recorderRemovals`) exceed 4,000,000 B. Above
+it nearcore may postpone receipts (`check_proof_size_limit_exceed` counts
+`recorded + 2000 · removals`), so a legacy error there may be premature. Until 2026-10-30 the
+condition omitted the removal term, and the legacy core rejected nearcore-valid chunks whose
+removals alone crossed the limit (`tier-refinement-w12/removal-soft/`). `R` is evaluated only when
+the merged size alone does not decide. -/
+def storageCrossed (claimBytes witnessBytes : Bytes) : Bool :=
+  decide (legacyStorageBound < legacyMergedBytes witnessBytes) ||
+    decide (legacyStorageBound < legacyMergedBytes witnessBytes + 2000 * recorderRemovals claimBytes witnessBytes)
+
+theorem storageCrossed_of_big {c w : Bytes} (h : legacyStorageBound < legacyMergedBytes w) :
+    storageCrossed c w = true := by simp [storageCrossed, h]
+
+/-- When the signed statement decides a legacy error with the recorder engine (module comment). -/
+def handover (e : String) (claimBytes witnessBytes : Bytes) : Bool :=
+  reshardHandover e || hasPrefixL storageProofPrefix e || storageCrossed claimBytes witnessBytes
 
 /-- The recorder-engine decision of the signed statement. -/
 def signedRecorderCheck (cfg : Wasm.NearCfg) (gasCap : Option Nat) (claimBytes witnessBytes : Bytes) :
@@ -121,7 +167,7 @@ def withReshardHandover (cfg : Wasm.NearCfg) (r : Except String Unit)
   match r with
   | .ok u => .ok u
   | .error e =>
-    if handover e witnessBytes then signedRecorderCheck cfg none claimBytes witnessBytes
+    if handover e claimBytes witnessBytes then signedRecorderCheck cfg none claimBytes witnessBytes
     else .error e
 
 theorem withReshardHandover_ok (cfg : Wasm.NearCfg) (c w : Bytes) :
@@ -132,12 +178,12 @@ fires. -/
 theorem withReshardHandover_cases (cfg : Wasm.NearCfg)
     (r : Except String Unit) (c w : Bytes) :
     withReshardHandover cfg r c w = r ∨
-      ∃ e, r = .error e ∧ handover e w = true ∧
+      ∃ e, r = .error e ∧ handover e c w = true ∧
         withReshardHandover cfg r c w = signedRecorderCheck cfg none c w := by
   cases r with
   | ok u => exact .inl rfl
   | error e =>
-    cases hc : handover e w
+    cases hc : handover e c w
     · exact .inl (by simp only [withReshardHandover, hc, Bool.false_eq_true, ite_false])
     · exact .inr ⟨e, rfl, hc, by simp only [withReshardHandover, hc, ite_true]⟩
 
@@ -170,7 +216,7 @@ theorem checkD3_of_core_ok (c w : NearSpec.Bytes) (h : checkD3Core c w = .ok ())
 /-- `checkD3` is the legacy core, except on the core's errors outside its preconditions. -/
 theorem checkD3_cases (c w : NearSpec.Bytes) :
     checkD3 c w = checkD3Core c w ∨
-      ∃ e, checkD3Core c w = .error e ∧ handover e w = true ∧
+      ∃ e, checkD3Core c w = .error e ∧ handover e c w = true ∧
         checkD3 c w = signedRecorderCheck Wasm.pv86 none c w :=
   withReshardHandover_cases Wasm.pv86 (checkD3Core c w) c w
 

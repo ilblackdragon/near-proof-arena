@@ -601,26 +601,25 @@ theorem runtimeLimits_storageResolution_wasm :
 storage-proof precondition. -/
 theorem tier_runtimeLimits_eq (c w : Bytes) :
     Tier.checker .runtimeLimits c w = withStorageExclusion
-      (checkD2CoreG (D3.d3Hooks (Tier.cfg .storageResolution).wasm) true c w (some maxGasBurnt)) w := rfl
+      (checkD2CoreG (D3.d3Hooks (Tier.cfg .storageResolution).wasm) true c w (some maxGasBurnt)) c w := rfl
 
 /-- Above the storage bound the storage precondition excludes every legacy result. -/
-theorem withStorageExclusion_big {r : Except String Unit} {w : Bytes} (hr : NoAcc r)
+theorem withStorageExclusion_big {r : Except String Unit} {c w : Bytes} (hr : NoAcc r)
     (hB : legacyStorageBound < legacyMergedBytes w) :
-    ∃ e, withStorageExclusion r w = .error e ∧ isExclusion e = true := by
+    ∃ e, withStorageExclusion r c w = .error e ∧ isExclusion e = true := by
   cases r with
   | ok u => exact absurd rfl (hr u)
   | error e =>
     cases he : isExclusion e
-    · exact ⟨legacyStorageExclusion, by simp [withStorageExclusion, he, hB], by decide⟩
+    · exact ⟨legacyStorageExclusion, by simp [withStorageExclusion, he, storageCrossed_of_big hB], by decide⟩
     · exact ⟨e, by simp [withStorageExclusion, he], he⟩
 
-theorem withStorageExclusion_small (r : Except String Unit) {w : Bytes}
-    (hB : legacyMergedBytes w ≤ legacyStorageBound) : withStorageExclusion r w = r := by
-  cases r with
-  | ok u => rfl
-  | error e =>
-    have : ¬ legacyStorageBound < legacyMergedBytes w := Nat.not_lt.mpr hB
-    simp [withStorageExclusion, this]
+/-- The storage precondition only turns rejects into an exclusion, so it keeps a refinement. -/
+theorem withStorageExclusion_refines {r y : Except String Unit} (c w : Bytes) (h : Refines r y) :
+    Refines (withStorageExclusion r c w) y := by
+  rcases withStorageExclusion_cases r c w with hs | ⟨e, _, _, _, hs⟩
+  · rw [hs]; exact h
+  · rw [hs]; exact Or.inr ⟨_, rfl, by decide⟩
 
 
 /-- The `.storageResolution` checker is the same shell at the recorder driver. -/
@@ -637,7 +636,8 @@ theorem relSuccessor_runtimeLimits_storageResolution_of
     Refines (Tier.checker .runtimeLimits c w) (Tier.checker .storageResolution c w) := by
   rw [tier_runtimeLimits_eq]
   by_cases hB : legacyMergedBytes w ≤ legacyStorageBound
-  · rw [withStorageExclusion_small _ hB, tier_storageResolution_eq]
+  · refine withStorageExclusion_refines c w ?_
+    rw [tier_storageResolution_eq]
     exact checkD2CoreGWith_legacy_recorder _ hE c w hw hB _
   · obtain ⟨e, he, hx⟩ := withStorageExclusion_big (checkD2CoreG_noacc _ c w _ (Nat.lt_of_not_le hB))
       (Nat.lt_of_not_le hB)
