@@ -429,6 +429,23 @@ floats 150, `c.not_genesis` 137, global-contract and state-init shapes ~303, non
 keys 79, `c.segment` 3. On mainnet shard 13, 279 of 1,223 chunks are excluded for floats. These are
 recorded, not changed here.
 
+**Move (f), 2026-10-30 (W12 O4): precondition 2 counts ContractData removals.** Found by the
+`removal-soft` ground truth (`../evidence/lean-chunk-completion/tier-refinement-w12/README.md` §14.1,
+§15): nearcore charges 2,000 B per ContractData removal in `main_storage_proof_size_soft_limit`, so
+removals alone can make it defer receipts while the witness's values stay under 4,000,000 B; the core
+then ran the deferred receipt and rejected the valid chunk (`MissingTrieValue`). Precondition 2 is now
+`storageCrossed c w`: the witness's values and code **plus 2,000 · R** exceed 4,000,000 B, where `R =
+recorderRemovals c w` is the ContractData removal count of the main transition of the signed recorder
+engine run on the same claim and witness (`0` if that run stops earlier). `R` is a function of `(c, w)`
+alone, independent of the core's result (no circularity), and is evaluated only on a core error whose
+merged size alone does not decide. The narrower legacy tiers' `withStorageExclusion` uses the same
+condition, so `.signed ⊑ .runtimeLimits/.floats/.genesisFloatsProtoGas` etc. keep holding (re-proved;
+`checkD3_of_core_ok`, `checkD3_cases` unchanged in form, `handover` now takes the claim). The v3.1
+draft's `w.size` restriction text says so. Removal-soft (7,296 cases, 4 seeds): 624 signed
+`reject → accept` moves, all nearcore-valid; 956 nearcore rejects keep `reject` with the recorder's
+reason; no Lean accept of a nearcore reject, no `reject → OOD`. Corpus, census, shard 13 and fixtures:
+W12 README §15.
+
 ### 3.5 Rung decision record — `Rel_Dk := RelD3 ∧ InDk` (2026-10-30)
 
 **Finding.** `D1 ⊂ D2` (and `D0 ⊂ D3`, `RelD1a ⊂ RelD3`) is false: D0/D1 never compare the

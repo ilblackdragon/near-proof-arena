@@ -1,0 +1,27 @@
+{
+ "name": "rs-signed",
+ "cases": 7296,
+ "counts": {
+  "after:accept": 2586,
+  "after:reject": 4456,
+  "after:out_of_domain": 254
+ },
+ "moves": {
+  "reject->accept | nearcore ok | toward": 624,
+  "reject->reject (reason) | nearcore reject | neutral": 956
+ },
+ "reason_pairs": {
+  "invalid: MissingTrieValue (account) => ": 384,
+  "invalid: StorageInconsistentState(MissingTrieValue => ": 240,
+  "invalid: MissingTrieValue (account) => invalid: InvalidCongestionInfo": 128,
+  "invalid: StorageInconsistentState(MissingTrieValue => invalid: InvalidCongestionInfo": 80,
+  "invalid: MissingTrieValue (account) => invalid: InvalidChunkEncodedMerkleRoot": 64,
+  "invalid: MissingTrieValue (account) => invalid: main transition post state root": 52,
+  "invalid: StorageInconsistentState(MissingTrieValue => invalid: InvalidChunkEncodedMerkleRoot": 40,
+  "invalid: MissingTrieValue (account) => invalid: InvalidBandwidthRequests": 32,
+  "invalid: MissingTrieValue (account) => invalid: InvalidChunkEncodedLength": 32,
+  "invalid: MissingTrieValue (account) => invalid: InvalidGasLimit": 32,
+  "invalid: MissingTrieValue (account) => invalid: InvalidBalanceBurnt": 32,
+  "invalid: MissingTrieValue (account) => invalid: InvalidGasUsed": 32
+ }
+}
