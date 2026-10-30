@@ -3827,8 +3827,8 @@
       "why": "`claim-v3.md` \u00a72.4 T3/T4/T8/T10/T11/T13/T14 are outside `Rel`; a proof alone is not meaningful."
     },
     {
-      "disposition": "open",
-      "disposition_detail": "Wasmtime LoadingError/WasmUnknownError/resource LinkError branches at PV86: proof owed (L7) (docs/research/lean-chunk-w00-owner-map.md \u00a73)",
+      "disposition": "resolved 2026-10-27 (W03)",
+      "disposition_detail": "every LoadingError/WasmUnknownError/LinkError/slot-retry site has a disposition: unreachable (source), modelled with fixtures, or host-state only (spec/environment-v3.md); 33,930 rows, 0 disagreements (runtime-errors) (docs/research/lean-chunk-w00-owner-map.md \u00a73)",
       "id": "UQ-014",
       "owner": "L7",
       "question": "Are the Wasmtime `LoadingError` / `WasmUnknownError` / resource `LinkError` branches (H2/H9/H10) truly absent at PV86, or must they be modelled?",

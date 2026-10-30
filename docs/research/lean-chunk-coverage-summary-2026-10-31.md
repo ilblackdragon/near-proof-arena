@@ -108,9 +108,10 @@ There are no `partial` or `missing` rows left.
 
 ## What still stands between this inventory and Gate B
 
-1. **UQ-014 is open.** It asks about the Wasmtime `LoadingError`/`WasmUnknownError`/resource
-   `LinkError` branches at PV86 (L7, proof owed). The plan says Gate B cannot pass with an
-   unresolved UQ.
+1. ~~UQ-014 is open.~~ **Resolved** (integrator, 2026-10-31): the register row was stale. UQ-014 was
+   closed on 2026-10-27 by the W03 runtime-errors package (every construction site has a
+   disposition; 33,930 rows, 0 disagreements; [runtime-errors](../evidence/lean-chunk-completion/runtime-errors/README.md)).
+   The owner map and `UQ_DISPOSITION` now say so; no UQ remains open.
 2. **`L0-D3-006` is implemented but not validated.** It needs a magic-hash fixture and a breakage
    control. The plan requires every reachable row to be "implemented and validated". The branch is
    reachable on mainnet for pre-PV83 ETH-implicit accounts.

@@ -518,7 +518,7 @@ UQ_DISPOSITION = {
  "UQ-011": ("resolved for allFeatures 2026-10-26", "c.segment, w.size (8 MiB) and c.layout lifted; nearcore's 64 MiB/48 MiB witness limits kept (gate-b-caps, size-limit-fixtures)"),
  "UQ-012": ("resolved for allFeatures 2026-10-26", "gasCap := none; 1.8 Pgas chunks accept and match nearcore (gate-b-caps)"),
  "UQ-013": ("resolved 2026-10-30 by user decision", "admission contract A1: the verifier rebuilds the claim's trusted section from its own chain state and requires byte identity (open-uqs)"),
- "UQ-014": ("open", "Wasmtime LoadingError/WasmUnknownError/resource LinkError branches at PV86: proof owed (L7)"),
+ "UQ-014": ("resolved 2026-10-27 (W03)", "every LoadingError/WasmUnknownError/LinkError/slot-retry site has a disposition: unreachable (source), modelled with fixtures, or host-state only (spec/environment-v3.md); 33,930 rows, 0 disagreements (runtime-errors)"),
  "UQ-015": ("resolved 2026-10-29", "the signed bound is sound; allFeatures does not use it (open-uqs; row L0-D2-040)"),
  "UQ-016": ("resolved 2026-10-29", "no action-log entry reaches the unmodeled exclusion on whole-state tiers (open-uqs)"),
  "UQ-017": ("resolved 2026-10-29", "genesis main transition uses the non-genesis comparison set; 266/266 genesis-main chunks agree (row L0-genesis-main-transition)"),
