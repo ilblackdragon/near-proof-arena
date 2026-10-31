@@ -259,10 +259,6 @@ def rescore(run_dir, out):
               "verdicts": dict(collections.Counter(r["verdict"] for r in got.values())),
               "reclassification": [{"before": a, "after": b, "rows": n}
                                    for (a, b), n in sorted(moves.items())],
-              "known_gaps": [{"case": r["case"], "classification": r["classification"],
-                              "reason": r["reason"], "nearcore": metas[r["case"]].get("nearcore"),
-                              "nearcore_schedule": metas[r["case"]].get("nearcore_schedule")}
-                             for r in records if r["classification"] == "race_exclusion_conservative"],
               "checked": compare.OBSERVABLES_CHECKED, "unavailable": compare.OBSERVABLES_UNAVAILABLE,
               "comparisons": records}
     out.mkdir(parents=True, exist_ok=True)

@@ -308,7 +308,7 @@ theorem pipeFn_noteRace (rid : Bytes) (idx : Nat) (hash : Bytes) (served : Bool)
     · simp only [Bool.false_and, Bool.false_eq_true, ↓reduceIte]
       exact ⟨hu, hr⟩
     · simp only [Bool.not_false, Bool.and_self, ↓reduceIte, Bool.true_and]
-      exact ⟨hu, fun _ => rfl⟩
+      exact ⟨hu, fun _ => trivial⟩
 
 theorem startList_raced (d : Bytes → Except String Rcpt) (o : Ovl) (l : List Rcpt) (p : Pipe) (b : Bool)
     (h : p.raced = b) : (startList d o p l).raced = b := by

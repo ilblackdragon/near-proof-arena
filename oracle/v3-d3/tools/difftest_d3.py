@@ -27,12 +27,6 @@ disagreement only when its own bucket says so:
   * `domain_exclusion_unasserted` — out_of_domain whose reason is absent, unknown, or licensed neither
                                   by the oracle's `d3_violations` nor by the independent decode. A
                                   failure (no unconditional pass).
-  * `race_exclusion_conservative` — the preparation-race exclusion on an in-domain
-                                  `e.code_deploy_served` case where nearcore's own forced schedules
-                                  show the same verdict at different failure points and the decode
-                                  finds a deploy-served call: the checker excludes a case nearcore
-                                  decides (a completeness gap, W08 §7). Not a verdict failure; always
-                                  reported in its own bucket.
   * `accept_above_g_alpha_agree` — with `g_alpha_accepts_compared` (the signed tier, whose hand-over
                                   path has no G_α: `D3.checkD3_cases`), an accept above G_α that
                                   nearcore also accepts. Pass; one that nearcore rejects stays
@@ -231,11 +225,11 @@ def run_checker(name, dirs, shards, td, timeout=None, exe=None, prefix=()):
 # (the pre-W08 wording) and the W08 preparation race.
 CODE_CACHE_REASONS = frozenset({"code_cache", "e.code_prep_race"})
 # Partition buckets that are not failures. Every other bucket is a disagreement and is in `bad`.
-# `race_exclusion_conservative` is a known completeness gap (step 5a), passed only under its
-# independent conditions and always reported separately.
+# (`race_exclusion_conservative`, W08's conservative race exclusion on a deploy-served case, was
+# dropped on 2026-10-31: since G3 the checker decides those cases, so a race exclusion on an
+# in-domain `e.code_deploy_served` case is a `domain_exclusion_where_in_domain` failure.)
 PASS_BUCKETS = ("domain_exclusion_asserted", "domain_exclusion_independently_asserted",
-                "verdict_compared_agree", "verdict_agree_outside_domain", "accept_above_g_alpha_agree",
-                "race_exclusion_conservative")
+                "verdict_compared_agree", "verdict_agree_outside_domain", "accept_above_g_alpha_agree")
 
 
 def boundary(reason):
@@ -412,26 +406,6 @@ def compare(label, dirs, metas, got, domain="baseline", widen=(), licenses=None,
         if v == "out_of_domain":
             ok, codes = exclusion_asserted(reason, remaining, licenses)
             row.update(exclusion_codes=sorted(codes), exclusion_asserted=ok)
-            # ---- 5a. a conservative race exclusion on a deterministic deploy-served case ------
-            # `e.code_deploy_served` is in domain (nearcore's verdict is the same under both forced
-            # preparation schedules), so the race exclusion there is a checker-vs-oracle domain
-            # disagreement: the checker excludes a case nearcore decides. It is not unexplained only
-            # when nearcore itself shows the schedule dependence the checker stops at: the oracle's
-            # forced eager and lazy runs (`nearcore_schedule`, oracle/v3-successor/src/cachejudge.rs)
-            # give the same verdict at different failure points (W08 §4: the `code.none` mutants
-            # whose failing call races while the verdict does not), and the independent decode finds
-            # a call whose code only an earlier in-chunk deploy serves. Counted in its own bucket and
-            # listed as a known completeness gap, never as an agreement.
-            if in_domain and "e.code_prep_race" in codes and "e.code_deploy_served" in viol:
-                sched = schedule_failure_point_races(m)
-                ind = independent(d, reason) if independent is not None else None
-                row.update(nearcore_schedule_failure_point_races=sched, independent=ind)
-                if sched and ind is not None and ind.get("licensed"):
-                    partition["race_exclusion_conservative"] += 1
-                    row.update(classification="race_exclusion_conservative", verdict_compared=False,
-                               verdict_agrees=None)
-                    records.append(row)
-                    continue
             if in_domain:
                 partition["domain_exclusion_where_in_domain"] += 1
                 row["classification"] = "domain_exclusion_where_in_domain"

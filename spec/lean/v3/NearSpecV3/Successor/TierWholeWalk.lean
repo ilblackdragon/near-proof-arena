@@ -182,7 +182,8 @@ theorem run_rec_mono {P : Env → Prop} {ga : Bool} {p p' : CodeWitnessPolicy} {
       (StorageExecution.run cfg' prims env t vu props incoming txs congestion ga p') := by
   unfold StorageExecution.run
   rw [← ho]
-  exact Refines.map _ (applyNewChunkD2_rec_mono hh prims env t vu props incoming txs congestion hP _ env)
+  exact Refines.map _ (MRef.bind (applyNewChunkD2_rec_mono hh prims env t vu props incoming txs congestion hP)
+    (fun _ => MRef.refl _) _ env)
 
 /-! ## Shells: monotone in the driver's main transition
 

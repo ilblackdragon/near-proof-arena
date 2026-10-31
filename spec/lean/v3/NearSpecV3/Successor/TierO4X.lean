@@ -230,7 +230,7 @@ theorem engineAgreeX_of_simX (cfg : Wasm.NearCfg) (P : Recording → Prop)
         obtain ⟨b, r', hy, rfl, _⟩ := h0
         rw [ns_run_eq, hy]
         cases hr : r'.pipe.raced
-        · left; simp only [Except.bind, hr, Bool.false_eq_true, ↓reduceIte, Except.map]
+        · left; simp only [Except.bind, hr, Bool.false_eq_true, ↓reduceIte, Except.map]; rfl
         · right; exact ⟨raceExclusion, esc_raceExclusion, by simp only [Except.bind, hr, ↓reduceIte, Except.map]⟩
       · right; exact ⟨s, hs, by rw [ns_run_eq]; rw [hy]; rfl⟩
 
