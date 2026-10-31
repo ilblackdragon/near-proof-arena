@@ -330,3 +330,13 @@ verdict differs from the default checker. Working files are under
 - `abl-g2/`, `abl-w2/`
 
 The ctl-v3 tree is `l0-validate/tree-g`.
+
+## Third pass (2026-10-31)
+
+The 18 rows listed above as still `implemented` are settled in [third-pass/](third-pass/README.md):
+7 are `validated` and 11 are `impossible-at-boundary`. No row is `implemented` any more.
+
+The pass also found and fixed a soundness bug: the gas-key function-call host was missing
+nearcore's `InvalidMethodName` UTF-8 check. Before the fix, Lean accepted 23 nearcore-rejected
+chunks. After the fix there are 0 disagreements, and the census, the fixtures, host-rows and the
+1-in-8 corpus sample do not move on either tier.

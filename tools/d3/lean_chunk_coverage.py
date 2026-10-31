@@ -374,7 +374,9 @@ def promote_row(repo, r):
     out = dict(r)
     out["status"] = "validated"
     out["evidence"] = (
-        (f"whole-chunk fixtures: {ex['nearcore_reject']} claim mutants rejected first by this guard "
+        (f"whole-chunk fixtures: {ex['nearcore_reject']} witness+claim mutants rejected first by this guard "
+         f"(judged by cold nearcore) " if fam == "d2-core" and "nearcore (cold)" in ex["source"] else
+         f"whole-chunk fixtures: {ex['nearcore_reject']} claim mutants rejected first by this guard "
          f"(claim-v3 discipline) " if fam == "d2-core" else
          f"whole-chunk fixtures: {ex['nearcore_accept']} nearcore-accepted and {ex['nearcore_reject']} "
          f"nearcore-rejected cases exercise it ") +

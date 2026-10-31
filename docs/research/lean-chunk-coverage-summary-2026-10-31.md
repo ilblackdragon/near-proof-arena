@@ -274,3 +274,44 @@ accepted by both sides.
    - genesis-main outputs are not blind-gradable, because the stored chunk extra is a claim fact.
 6. W13 (all-shard mainnet replay) and the frozen-package replay (item 13) are outside L0. They are
    the replay gates of plan §5.
+
+## L0 row validation, third pass (2026-10-31): the last 18 rows, and the gas-key soundness fix
+
+Evidence: [l0-row-validation/third-pass](../evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md).
+
+| | rows | implemented | validated | impossible-at-boundary |
+|---|---|---|---|---|
+| before (main, after the `current_contract_code` fix) | 225 | 18 | 171 | 36 |
+| after | 225 | **0** | 178 | 47 |
+
+**Soundness bug found and fixed.** `promise_batch_action_add_gas_key_with_function_call`
+(`Wasm/Host.lean`) did not check that each method name is UTF-8. nearcore does, and fails the call
+with `InvalidMethodName` (`receipt_manager.rs:478-508`). This was shown at chunk level with a fixture
+family of 4 seeds × 2 variants (18,122 cases, all judged by cold nearcore):
+- before the fix (`ee00c918…`), Lean **accepted 23 nearcore-rejected chunks**: headers carrying
+  Lean's divergent outcome root and gas;
+- it also rejected 732 nearcore-accepted chunks.
+
+The fix adds the same check as the plain add-key arm. With it (`0b0f01ec…`), 0 disagreements remain.
+- Nothing else moves, on either tier: the census, the 1,364 fixtures, host-rows and the 1-in-8
+  corpus sample (29,465).
+- `--tier signed` is not affected: it excludes the gas-key host (`e.wasm-α`).
+
+**Promoted to `validated` (7)**, each with nearcore-judged whole-chunk fixtures and a detecting
+control:
+- `L0-instr-float`, `L0-W-012`: float-contract mutant sets, 52/201 cases;
+- `L0-W-005`: a contract that fails preparation, 46/103;
+- `L0-W-006`: a contract that fails Wasmtime compilation, 74/159;
+- `L0-D2-020`: an oversized new transaction, header re-hashed;
+- `L0-D2-023` and `L0-D2-025`: a fabricated prev block. Removing either guard makes Lean accept a
+  nearcore-rejected chunk.
+
+**`impossible-at-boundary` (11)**:
+- `L0-D2-012`, `L0-D2-019`, `L0-same-layout`, `L0-split-gate`, `L0-guard-noResharding`: a
+  genesis-reaching PV86 segment has a static config, so it has one layout and no split gate.
+  Lean: `genesis_segment_same_layout`, `genesis_segment_no_split_gate`.
+- `L0-W-011`, `L0-W-013`, `L0-W-014`: Lean lemmas `run_inv`/`frame_ok`/`step_lookups`,
+  `popArgs_ok`/`realHasH_some`/`realGetH_some` and `lookup_errors`.
+  - `L0-W-014` also relies on a recorded assumption: nearcore never builds an empty trie extension.
+- `L0-D3-003`, `L0-D3-013`, `L0-D3-014`: source arguments.
+  - `L0-D3-013`'s reachable decode-error branch was the gas-key bug above, now fixed.

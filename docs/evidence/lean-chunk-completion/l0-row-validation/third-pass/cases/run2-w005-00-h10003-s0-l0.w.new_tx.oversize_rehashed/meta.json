@@ -1,0 +1,19 @@
+{
+  "base": "00-h10003-s0",
+  "case": "00-h10003-s0-l0.w.new_tx.oversize_rehashed",
+  "codes": [],
+  "d3_violations": [],
+  "expected_rel": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "base_fc_gas_burnt_for_function_call": 0,
+    "fc_gas_burnt_for_function_call": 0
+  },
+  "in_d2": true,
+  "in_d3": true,
+  "kind": "mutant",
+  "mutation": "l0.w.new_tx.oversize_rehashed",
+  "nearcore": "pre_validate: InvalidChunkStateWitness(\"new transaction 61zZ92vs5bp32CWu3ALwDTBPzExj5QowLbjYwFXV27m3 is invalid for protocol version 86: Size of serialized transaction 1572865 exceeded the limit 1572864\")",
+  "verdict_source": "nearcore(cold)"
+}
