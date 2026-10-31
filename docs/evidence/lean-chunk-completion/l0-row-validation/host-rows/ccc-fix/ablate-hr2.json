@@ -1,0 +1,867 @@
+{
+ "host:current_contract_code": {
+  "ablated": {
+   "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
+   "disagreements": 12,
+   "flipped": [
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/d3/00-h10007-s1",
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/ood/00-h10006-s3",
+    "/data/illia/nearproof-deps/l0-validate/hr/run812/d3/01-h10009-s4",
+    "/data/illia/nearproof-deps/l0-validate/hr/run812/ood/01-h10006-s0",
+    "/data/illia/nearproof-deps/l0-validate/hr/run813/d3/02-h10007-s4",
+    "/data/illia/nearproof-deps/l0-validate/hr/run813/ood/02-h10006-s0",
+    "/data/illia/nearproof-deps/l0-validate/hr/run814/d3/04-h10007-s4",
+    "/data/illia/nearproof-deps/l0-validate/hr/run814/ood/04-h10006-s0",
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10006-s3-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/ood/00-h10014-s1"
+   ],
+   "report": "/data/illia/nearproof-deps/l0-validate/hr/abl2/host_current_contract_code/ablated/report.json",
+   "status": "fail",
+   "verdicts": {
+    "reject": 16
+   }
+  },
+  "baseline": {
+   "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
+   "disagreements": 0,
+   "flipped": [],
+   "report": "/data/illia/nearproof-deps/l0-validate/hr/abl2/host_current_contract_code/baseline/report.json",
+   "status": "pass",
+   "verdicts": {
+    "accept": 12,
+    "reject": 4
+   }
+  },
+  "case_list": [
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/d3/00-h10007-s1",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/ood/00-h10006-s3",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/d3/01-h10009-s4",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/ood/01-h10006-s0",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/d3/02-h10007-s4",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/ood/02-h10006-s0",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/d3/04-h10007-s4",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/ood/04-h10006-s0",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10006-s3-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/ood/00-h10014-s1",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10006-s0-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/ood/01-h10014-s2",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10006-s3-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10006-s0-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10006-s0-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/mutants/04-h10006-s0-hdr.bandwidth_requests.add"
+  ],
+  "cases": 16,
+  "detected": true
+ },
+ "host:gas": {
+  "ablated": {
+   "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
+   "disagreements": 10,
+   "flipped": [
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/d3/00-h10013-s3",
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10013-s3-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/ood/00-h10015-s1",
+    "/data/illia/nearproof-deps/l0-validate/hr/run812/d3/01-h10013-s0",
+    "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10013-s0-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run812/ood/01-h10015-s4",
+    "/data/illia/nearproof-deps/l0-validate/hr/run813/d3/02-h10013-s0",
+    "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10013-s0-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run814/d3/04-h10013-s0",
+    "/data/illia/nearproof-deps/l0-validate/hr/run814/mutants/04-h10013-s0-code.duplicate"
+   ],
+   "report": "/data/illia/nearproof-deps/l0-validate/hr/abl2/host_gas/ablated/report.json",
+   "status": "fail",
+   "verdicts": {
+    "accept": 2,
+    "reject": 14
+   }
+  },
+  "baseline": {
+   "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
+   "disagreements": 0,
+   "flipped": [],
+   "report": "/data/illia/nearproof-deps/l0-validate/hr/abl2/host_gas/baseline/report.json",
+   "status": "pass",
+   "verdicts": {
+    "accept": 12,
+    "reject": 4
+   }
+  },
+  "case_list": [
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/d3/00-h10013-s3",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10013-s3-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/ood/00-h10015-s1",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/d3/01-h10013-s0",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10013-s0-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/ood/01-h10015-s4",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/d3/02-h10013-s0",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10013-s0-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/ood/02-h10015-s0",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/d3/04-h10013-s0",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/mutants/04-h10013-s0-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/ood/04-h10015-s0",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10013-s3-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10013-s0-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10013-s0-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/mutants/04-h10013-s0-hdr.bandwidth_requests.add"
+  ],
+  "cases": 16,
+  "detected": true
+ },
+ "host:promise_batch_action_add_gas_key_with_full_access": {
+  "ablated": {
+   "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
+   "disagreements": 12,
+   "flipped": [
+    "/data/illia/nearproof-deps/corpora/d3c10/ood/01-h10013-s2",
+    "/data/illia/nearproof-deps/corpora/d3c7/ood/00-h10006-s2",
+    "/data/illia/nearproof-deps/corpora/d3c8/ood/00-h10135-s2",
+    "/data/illia/nearproof-deps/corpora/d3c9/ood/00-h10121-s2",
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10015-s0-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/ood/00-h10015-s0",
+    "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10015-s3-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run812/ood/01-h10015-s3",
+    "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10015-s5-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run813/ood/02-h10015-s5"
+   ],
+   "report": "/data/illia/nearproof-deps/l0-validate/hr/abl2/host_promise_batch_action_add_gas_key_with_full_access/ablated/report.json",
+   "status": "fail",
+   "verdicts": {
+    "reject": 16
+   }
+  },
+  "baseline": {
+   "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
+   "disagreements": 0,
+   "flipped": [],
+   "report": "/data/illia/nearproof-deps/l0-validate/hr/abl2/host_promise_batch_action_add_gas_key_with_full_access/baseline/report.json",
+   "status": "pass",
+   "verdicts": {
+    "accept": 12,
+    "reject": 4
+   }
+  },
+  "case_list": [
+   "/data/illia/nearproof-deps/corpora/d3c10/ood/01-h10013-s2",
+   "/data/illia/nearproof-deps/corpora/d3c7/ood/00-h10006-s2",
+   "/data/illia/nearproof-deps/corpora/d3c8/ood/00-h10135-s2",
+   "/data/illia/nearproof-deps/corpora/d3c9/ood/00-h10121-s2",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10015-s0-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/ood/00-h10015-s0",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10015-s3-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/ood/01-h10015-s3",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10015-s5-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/ood/02-h10015-s5",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/mutants/04-h10015-s3-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/ood/04-h10015-s3",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10015-s0-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10015-s3-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10015-s5-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/mutants/04-h10015-s3-hdr.bandwidth_requests.add"
+  ],
+  "cases": 16,
+  "detected": true
+ },
+ "host:promise_batch_action_add_gas_key_with_function_call": {
+  "ablated": {
+   "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
+   "disagreements": 12,
+   "flipped": [
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10015-s0-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/ood/00-h10015-s0",
+    "/data/illia/nearproof-deps/l0-validate/hr/run812/ood/01-h10015-s3",
+    "/data/illia/nearproof-deps/l0-validate/hr/run813/ood/02-h10015-s5",
+    "/data/illia/nearproof-deps/l0-validate/hr/run814/ood/04-h10015-s3",
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10015-s0-code.extra_garbage",
+    "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10015-s3-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10015-s5-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run814/mutants/04-h10015-s3-code.duplicate",
+    "/data/illia/nearproof/docs/evidence/lean-chunk-completion/key-family-fixtures/cases/00-h10198-s2"
+   ],
+   "report": "/data/illia/nearproof-deps/l0-validate/hr/abl2/host_promise_batch_action_add_gas_key_with_function_call/ablated/report.json",
+   "status": "fail",
+   "verdicts": {
+    "reject": 16
+   }
+  },
+  "baseline": {
+   "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
+   "disagreements": 0,
+   "flipped": [],
+   "report": "/data/illia/nearproof-deps/l0-validate/hr/abl2/host_promise_batch_action_add_gas_key_with_function_call/baseline/report.json",
+   "status": "pass",
+   "verdicts": {
+    "accept": 12,
+    "reject": 4
+   }
+  },
+  "case_list": [
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10015-s0-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/ood/00-h10015-s0",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/ood/01-h10015-s3",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/ood/02-h10015-s5",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/ood/04-h10015-s3",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10015-s0-code.extra_garbage",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10015-s3-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10015-s5-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/mutants/04-h10015-s3-code.duplicate",
+   "/data/illia/nearproof/docs/evidence/lean-chunk-completion/key-family-fixtures/cases/00-h10198-s2",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10015-s5-code.extra_garbage",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/mutants/04-h10015-s3-code.extra_garbage",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10015-s0-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10015-s3-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10015-s5-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/mutants/04-h10015-s3-hdr.bandwidth_requests.add"
+  ],
+  "cases": 16,
+  "detected": true
+ },
+ "host:promise_batch_action_deploy_global_contract": {
+  "ablated": {
+   "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
+   "disagreements": 12,
+   "flipped": [
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10016-s2-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/ood/00-h10016-s2",
+    "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10017-s2-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run812/ood/01-h10017-s2",
+    "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10016-s2-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run813/ood/02-h10016-s2",
+    "/data/illia/nearproof-deps/l0-validate/hr/run814/mutants/04-h10016-s2-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run814/ood/04-h10016-s2",
+    "/data/illia/nearproof/docs/evidence/lean-chunk-completion/global-promise-fixtures/cases/caller-success",
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10016-s2-code.extra_garbage"
+   ],
+   "report": "/data/illia/nearproof-deps/l0-validate/hr/abl2/host_promise_batch_action_deploy_global_contract/ablated/report.json",
+   "status": "fail",
+   "verdicts": {
+    "reject": 16
+   }
+  },
+  "baseline": {
+   "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
+   "disagreements": 0,
+   "flipped": [],
+   "report": "/data/illia/nearproof-deps/l0-validate/hr/abl2/host_promise_batch_action_deploy_global_contract/baseline/report.json",
+   "status": "pass",
+   "verdicts": {
+    "accept": 12,
+    "reject": 4
+   }
+  },
+  "case_list": [
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10016-s2-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/ood/00-h10016-s2",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10017-s2-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/ood/01-h10017-s2",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10016-s2-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/ood/02-h10016-s2",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/mutants/04-h10016-s2-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/ood/04-h10016-s2",
+   "/data/illia/nearproof/docs/evidence/lean-chunk-completion/global-promise-fixtures/cases/caller-success",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10016-s2-code.extra_garbage",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/ood/00-h10021-s2",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10016-s2-code.extra_garbage",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10016-s2-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10017-s2-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10016-s2-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/mutants/04-h10016-s2-hdr.bandwidth_requests.add"
+  ],
+  "cases": 16,
+  "detected": true
+ },
+ "host:promise_batch_action_deploy_global_contract_by_account_id": {
+  "ablated": {
+   "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
+   "disagreements": 12,
+   "flipped": [
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10016-s2-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/ood/00-h10016-s2",
+    "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10017-s2-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run812/ood/01-h10017-s2",
+    "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10016-s2-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run813/ood/02-h10016-s2",
+    "/data/illia/nearproof-deps/l0-validate/hr/run814/mutants/04-h10016-s2-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run814/ood/04-h10016-s2",
+    "/data/illia/nearproof/docs/evidence/lean-chunk-completion/global-promise-fixtures/cases/caller-success",
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10016-s2-code.extra_garbage"
+   ],
+   "report": "/data/illia/nearproof-deps/l0-validate/hr/abl2/host_promise_batch_action_deploy_global_contract_by_account_id/ablated/report.json",
+   "status": "fail",
+   "verdicts": {
+    "reject": 16
+   }
+  },
+  "baseline": {
+   "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
+   "disagreements": 0,
+   "flipped": [],
+   "report": "/data/illia/nearproof-deps/l0-validate/hr/abl2/host_promise_batch_action_deploy_global_contract_by_account_id/baseline/report.json",
+   "status": "pass",
+   "verdicts": {
+    "accept": 12,
+    "reject": 4
+   }
+  },
+  "case_list": [
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10016-s2-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/ood/00-h10016-s2",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10017-s2-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/ood/01-h10017-s2",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10016-s2-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/ood/02-h10016-s2",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/mutants/04-h10016-s2-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/ood/04-h10016-s2",
+   "/data/illia/nearproof/docs/evidence/lean-chunk-completion/global-promise-fixtures/cases/caller-success",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10016-s2-code.extra_garbage",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/ood/00-h10021-s2",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10016-s2-code.extra_garbage",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10016-s2-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10017-s2-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10016-s2-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/mutants/04-h10016-s2-hdr.bandwidth_requests.add"
+  ],
+  "cases": 16,
+  "detected": true
+ },
+ "host:promise_batch_action_state_init": {
+  "ablated": {
+   "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
+   "disagreements": 12,
+   "flipped": [
+    "/data/illia/nearproof-deps/corpora/d3c10/ood/00-h10048-s2",
+    "/data/illia/nearproof-deps/corpora/d3c7/ood/00-h10006-s2",
+    "/data/illia/nearproof-deps/corpora/d3c8/ood/00-h10054-s2",
+    "/data/illia/nearproof-deps/corpora/d3c9/ood/00-h10012-s2",
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10016-s2-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/ood/00-h10016-s2",
+    "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10017-s2-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run812/ood/01-h10017-s2",
+    "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10016-s2-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run813/ood/02-h10016-s2"
+   ],
+   "report": "/data/illia/nearproof-deps/l0-validate/hr/abl2/host_promise_batch_action_state_init/ablated/report.json",
+   "status": "fail",
+   "verdicts": {
+    "reject": 16
+   }
+  },
+  "baseline": {
+   "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
+   "disagreements": 0,
+   "flipped": [],
+   "report": "/data/illia/nearproof-deps/l0-validate/hr/abl2/host_promise_batch_action_state_init/baseline/report.json",
+   "status": "pass",
+   "verdicts": {
+    "accept": 12,
+    "reject": 4
+   }
+  },
+  "case_list": [
+   "/data/illia/nearproof-deps/corpora/d3c10/ood/00-h10048-s2",
+   "/data/illia/nearproof-deps/corpora/d3c7/ood/00-h10006-s2",
+   "/data/illia/nearproof-deps/corpora/d3c8/ood/00-h10054-s2",
+   "/data/illia/nearproof-deps/corpora/d3c9/ood/00-h10012-s2",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10016-s2-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/ood/00-h10016-s2",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10017-s2-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/ood/01-h10017-s2",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10016-s2-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/ood/02-h10016-s2",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/mutants/04-h10016-s2-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/ood/04-h10016-s2",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10016-s2-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10017-s2-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10016-s2-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/mutants/04-h10016-s2-hdr.bandwidth_requests.add"
+  ],
+  "cases": 16,
+  "detected": true
+ },
+ "host:promise_batch_action_state_init_by_account_id": {
+  "ablated": {
+   "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
+   "disagreements": 12,
+   "flipped": [
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10016-s2-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/ood/00-h10016-s2",
+    "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10017-s2-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run812/ood/01-h10017-s2",
+    "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10016-s2-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run813/ood/02-h10016-s2",
+    "/data/illia/nearproof-deps/l0-validate/hr/run814/mutants/04-h10016-s2-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run814/ood/04-h10016-s2",
+    "/data/illia/nearproof/docs/evidence/lean-chunk-completion/global-promise-fixtures/cases/caller-success",
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10016-s2-code.extra_garbage"
+   ],
+   "report": "/data/illia/nearproof-deps/l0-validate/hr/abl2/host_promise_batch_action_state_init_by_account_id/ablated/report.json",
+   "status": "fail",
+   "verdicts": {
+    "reject": 16
+   }
+  },
+  "baseline": {
+   "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
+   "disagreements": 0,
+   "flipped": [],
+   "report": "/data/illia/nearproof-deps/l0-validate/hr/abl2/host_promise_batch_action_state_init_by_account_id/baseline/report.json",
+   "status": "pass",
+   "verdicts": {
+    "accept": 12,
+    "reject": 4
+   }
+  },
+  "case_list": [
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10016-s2-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/ood/00-h10016-s2",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10017-s2-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/ood/01-h10017-s2",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10016-s2-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/ood/02-h10016-s2",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/mutants/04-h10016-s2-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/ood/04-h10016-s2",
+   "/data/illia/nearproof/docs/evidence/lean-chunk-completion/global-promise-fixtures/cases/caller-success",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10016-s2-code.extra_garbage",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/ood/00-h10021-s2",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10016-s2-code.extra_garbage",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10016-s2-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10017-s2-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10016-s2-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/mutants/04-h10016-s2-hdr.bandwidth_requests.add"
+  ],
+  "cases": 16,
+  "detected": true
+ },
+ "host:promise_batch_action_transfer_to_gas_key": {
+  "ablated": {
+   "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
+   "disagreements": 12,
+   "flipped": [
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10017-s0-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/ood/00-h10017-s0",
+    "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10017-s3-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run812/ood/01-h10017-s3",
+    "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10017-s5-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run813/ood/02-h10017-s5",
+    "/data/illia/nearproof-deps/l0-validate/hr/run814/mutants/04-h10017-s3-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run814/ood/04-h10017-s3",
+    "/data/illia/nearproof/docs/evidence/lean-chunk-completion/key-family-fixtures/cases/00-h10202-s2",
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10017-s0-code.extra_garbage"
+   ],
+   "report": "/data/illia/nearproof-deps/l0-validate/hr/abl2/host_promise_batch_action_transfer_to_gas_key/ablated/report.json",
+   "status": "fail",
+   "verdicts": {
+    "reject": 16
+   }
+  },
+  "baseline": {
+   "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
+   "disagreements": 0,
+   "flipped": [],
+   "report": "/data/illia/nearproof-deps/l0-validate/hr/abl2/host_promise_batch_action_transfer_to_gas_key/baseline/report.json",
+   "status": "pass",
+   "verdicts": {
+    "accept": 12,
+    "reject": 4
+   }
+  },
+  "case_list": [
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10017-s0-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/ood/00-h10017-s0",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10017-s3-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/ood/01-h10017-s3",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10017-s5-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/ood/02-h10017-s5",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/mutants/04-h10017-s3-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/ood/04-h10017-s3",
+   "/data/illia/nearproof/docs/evidence/lean-chunk-completion/key-family-fixtures/cases/00-h10202-s2",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10017-s0-code.extra_garbage",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/ood/00-h10018-s0",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10017-s3-code.extra_garbage",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10017-s0-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10017-s3-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10017-s5-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/mutants/04-h10017-s3-hdr.bandwidth_requests.add"
+  ],
+  "cases": 16,
+  "detected": true
+ },
+ "host:promise_batch_action_use_global_contract_by_account_id": {
+  "ablated": {
+   "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
+   "disagreements": 12,
+   "flipped": [
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10016-s2-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/ood/00-h10016-s2",
+    "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10017-s2-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run812/ood/01-h10017-s2",
+    "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10016-s2-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run813/ood/02-h10016-s2",
+    "/data/illia/nearproof-deps/l0-validate/hr/run814/mutants/04-h10016-s2-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run814/ood/04-h10016-s2",
+    "/data/illia/nearproof/docs/evidence/lean-chunk-completion/global-promise-fixtures/cases/caller-success",
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10016-s2-code.extra_garbage"
+   ],
+   "report": "/data/illia/nearproof-deps/l0-validate/hr/abl2/host_promise_batch_action_use_global_contract_by_account_id/ablated/report.json",
+   "status": "fail",
+   "verdicts": {
+    "reject": 16
+   }
+  },
+  "baseline": {
+   "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
+   "disagreements": 0,
+   "flipped": [],
+   "report": "/data/illia/nearproof-deps/l0-validate/hr/abl2/host_promise_batch_action_use_global_contract_by_account_id/baseline/report.json",
+   "status": "pass",
+   "verdicts": {
+    "accept": 12,
+    "reject": 4
+   }
+  },
+  "case_list": [
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10016-s2-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/ood/00-h10016-s2",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10017-s2-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/ood/01-h10017-s2",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10016-s2-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/ood/02-h10016-s2",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/mutants/04-h10016-s2-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/ood/04-h10016-s2",
+   "/data/illia/nearproof/docs/evidence/lean-chunk-completion/global-promise-fixtures/cases/caller-success",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10016-s2-code.extra_garbage",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/ood/00-h10021-s2",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10016-s2-code.extra_garbage",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10016-s2-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10017-s2-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10016-s2-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/mutants/04-h10016-s2-hdr.bandwidth_requests.add"
+  ],
+  "cases": 16,
+  "detected": true
+ },
+ "host:promise_set_refund_to": {
+  "ablated": {
+   "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
+   "disagreements": 12,
+   "flipped": [
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/d3/00-h10010-s3",
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10008-s3-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/ood/00-h10008-s3",
+    "/data/illia/nearproof-deps/l0-validate/hr/run812/d3/01-h10010-s0",
+    "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10008-s0-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run812/ood/01-h10008-s0",
+    "/data/illia/nearproof-deps/l0-validate/hr/run813/d3/02-h10010-s0",
+    "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10008-s0-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run813/ood/02-h10008-s0",
+    "/data/illia/nearproof-deps/l0-validate/hr/run814/d3/04-h10010-s0"
+   ],
+   "report": "/data/illia/nearproof-deps/l0-validate/hr/abl2/host_promise_set_refund_to/ablated/report.json",
+   "status": "fail",
+   "verdicts": {
+    "reject": 16
+   }
+  },
+  "baseline": {
+   "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
+   "disagreements": 0,
+   "flipped": [],
+   "report": "/data/illia/nearproof-deps/l0-validate/hr/abl2/host_promise_set_refund_to/baseline/report.json",
+   "status": "pass",
+   "verdicts": {
+    "accept": 12,
+    "reject": 4
+   }
+  },
+  "case_list": [
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/d3/00-h10010-s3",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10008-s3-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/ood/00-h10008-s3",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/d3/01-h10010-s0",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10008-s0-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/ood/01-h10008-s0",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/d3/02-h10010-s0",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10008-s0-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/ood/02-h10008-s0",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/d3/04-h10010-s0",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/mutants/04-h10008-s0-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/ood/04-h10008-s0",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10008-s3-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10008-s0-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10008-s0-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/mutants/04-h10008-s0-hdr.bandwidth_requests.add"
+  ],
+  "cases": 16,
+  "detected": true
+ },
+ "host:refund_to_account_id": {
+  "ablated": {
+   "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
+   "disagreements": 12,
+   "flipped": [
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/d3/00-h10010-s3",
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10006-s3-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/ood/00-h10006-s3",
+    "/data/illia/nearproof-deps/l0-validate/hr/run812/d3/01-h10010-s0",
+    "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10006-s0-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run812/ood/01-h10006-s0",
+    "/data/illia/nearproof-deps/l0-validate/hr/run813/d3/02-h10023-s0",
+    "/data/illia/nearproof-deps/l0-validate/hr/run813/ood/02-h10006-s0",
+    "/data/illia/nearproof-deps/l0-validate/hr/run814/d3/04-h10023-s0",
+    "/data/illia/nearproof-deps/l0-validate/hr/run814/ood/04-h10006-s0"
+   ],
+   "report": "/data/illia/nearproof-deps/l0-validate/hr/abl2/host_refund_to_account_id/ablated/report.json",
+   "status": "fail",
+   "verdicts": {
+    "reject": 16
+   }
+  },
+  "baseline": {
+   "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
+   "disagreements": 0,
+   "flipped": [],
+   "report": "/data/illia/nearproof-deps/l0-validate/hr/abl2/host_refund_to_account_id/baseline/report.json",
+   "status": "pass",
+   "verdicts": {
+    "accept": 12,
+    "reject": 4
+   }
+  },
+  "case_list": [
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/d3/00-h10010-s3",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10006-s3-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/ood/00-h10006-s3",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/d3/01-h10010-s0",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10006-s0-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/ood/01-h10006-s0",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/d3/02-h10023-s0",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/ood/02-h10006-s0",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/d3/04-h10023-s0",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/ood/04-h10006-s0",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/d3/00-h10023-s3",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/d3/01-h10023-s0",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10006-s3-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10006-s0-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10006-s0-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/mutants/04-h10006-s0-hdr.bandwidth_requests.add"
+  ],
+  "cases": 16,
+  "detected": true
+ },
+ "host:set_state_init_data_entry": {
+  "ablated": {
+   "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
+   "disagreements": 12,
+   "flipped": [
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10016-s2-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/ood/00-h10016-s2",
+    "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10017-s2-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run812/ood/01-h10017-s2",
+    "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10016-s2-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run813/ood/02-h10016-s2",
+    "/data/illia/nearproof-deps/l0-validate/hr/run814/mutants/04-h10016-s2-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run814/ood/04-h10016-s2",
+    "/data/illia/nearproof/docs/evidence/lean-chunk-completion/global-promise-fixtures/cases/caller-success",
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10016-s2-code.extra_garbage"
+   ],
+   "report": "/data/illia/nearproof-deps/l0-validate/hr/abl2/host_set_state_init_data_entry/ablated/report.json",
+   "status": "fail",
+   "verdicts": {
+    "reject": 16
+   }
+  },
+  "baseline": {
+   "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
+   "disagreements": 0,
+   "flipped": [],
+   "report": "/data/illia/nearproof-deps/l0-validate/hr/abl2/host_set_state_init_data_entry/baseline/report.json",
+   "status": "pass",
+   "verdicts": {
+    "accept": 12,
+    "reject": 4
+   }
+  },
+  "case_list": [
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10016-s2-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/ood/00-h10016-s2",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10017-s2-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/ood/01-h10017-s2",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10016-s2-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/ood/02-h10016-s2",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/mutants/04-h10016-s2-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/ood/04-h10016-s2",
+   "/data/illia/nearproof/docs/evidence/lean-chunk-completion/global-promise-fixtures/cases/caller-success",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10016-s2-code.extra_garbage",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/ood/00-h10021-s2",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10016-s2-code.extra_garbage",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10016-s2-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10017-s2-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10016-s2-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/mutants/04-h10016-s2-hdr.bandwidth_requests.add"
+  ],
+  "cases": 16,
+  "detected": true
+ },
+ "host:storage_iter_next": {
+  "ablated": {
+   "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
+   "disagreements": 12,
+   "flipped": [
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/d3/00-h10013-s3",
+    "/data/illia/nearproof-deps/l0-validate/hr/run812/d3/01-h10013-s0",
+    "/data/illia/nearproof-deps/l0-validate/hr/run813/d3/02-h10013-s0",
+    "/data/illia/nearproof-deps/l0-validate/hr/run814/d3/04-h10013-s0",
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10013-s3-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10013-s0-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10013-s0-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run814/mutants/04-h10013-s0-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10013-s3-code.extra_garbage",
+    "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10013-s0-code.extra_garbage"
+   ],
+   "report": "/data/illia/nearproof-deps/l0-validate/hr/abl2/host_storage_iter_next/ablated/report.json",
+   "status": "fail",
+   "verdicts": {
+    "reject": 16
+   }
+  },
+  "baseline": {
+   "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
+   "disagreements": 0,
+   "flipped": [],
+   "report": "/data/illia/nearproof-deps/l0-validate/hr/abl2/host_storage_iter_next/baseline/report.json",
+   "status": "pass",
+   "verdicts": {
+    "accept": 12,
+    "reject": 4
+   }
+  },
+  "case_list": [
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/d3/00-h10013-s3",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/d3/01-h10013-s0",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/d3/02-h10013-s0",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/d3/04-h10013-s0",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10013-s3-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10013-s0-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10013-s0-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/mutants/04-h10013-s0-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10013-s3-code.extra_garbage",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10013-s0-code.extra_garbage",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10013-s0-code.extra_garbage",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/mutants/04-h10013-s0-code.extra_garbage",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10013-s3-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10013-s0-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10013-s0-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/mutants/04-h10013-s0-hdr.bandwidth_requests.add"
+  ],
+  "cases": 16,
+  "detected": true
+ },
+ "host:storage_iter_prefix": {
+  "ablated": {
+   "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
+   "disagreements": 12,
+   "flipped": [
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/d3/00-h10012-s3",
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10012-s3-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run812/d3/01-h10012-s0",
+    "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10012-s0-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run813/d3/02-h10012-s0",
+    "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10012-s0-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run814/d3/04-h10012-s0",
+    "/data/illia/nearproof-deps/l0-validate/hr/run814/mutants/04-h10012-s0-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/d3/00-h10016-s1",
+    "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10012-s0-code.extra_garbage"
+   ],
+   "report": "/data/illia/nearproof-deps/l0-validate/hr/abl2/host_storage_iter_prefix/ablated/report.json",
+   "status": "fail",
+   "verdicts": {
+    "reject": 16
+   }
+  },
+  "baseline": {
+   "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
+   "disagreements": 0,
+   "flipped": [],
+   "report": "/data/illia/nearproof-deps/l0-validate/hr/abl2/host_storage_iter_prefix/baseline/report.json",
+   "status": "pass",
+   "verdicts": {
+    "accept": 12,
+    "reject": 4
+   }
+  },
+  "case_list": [
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/d3/00-h10012-s3",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10012-s3-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/d3/01-h10012-s0",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10012-s0-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/d3/02-h10012-s0",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10012-s0-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/d3/04-h10012-s0",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/mutants/04-h10012-s0-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/d3/00-h10016-s1",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10012-s0-code.extra_garbage",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/d3/02-h10016-s4",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/mutants/04-h10012-s0-code.extra_garbage",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10012-s3-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10012-s0-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10012-s0-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/mutants/04-h10012-s0-hdr.bandwidth_requests.add"
+  ],
+  "cases": 16,
+  "detected": true
+ },
+ "host:storage_iter_range": {
+  "ablated": {
+   "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
+   "disagreements": 12,
+   "flipped": [
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/d3/00-h10012-s1",
+    "/data/illia/nearproof-deps/l0-validate/hr/run812/d3/01-h10012-s4",
+    "/data/illia/nearproof-deps/l0-validate/hr/run813/d3/02-h10012-s4",
+    "/data/illia/nearproof-deps/l0-validate/hr/run814/d3/04-h10012-s4",
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10012-s1-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10012-s4-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10012-s4-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run814/mutants/04-h10012-s4-code.duplicate",
+    "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10012-s1-code.extra_garbage",
+    "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10012-s4-code.extra_garbage"
+   ],
+   "report": "/data/illia/nearproof-deps/l0-validate/hr/abl2/host_storage_iter_range/ablated/report.json",
+   "status": "fail",
+   "verdicts": {
+    "reject": 16
+   }
+  },
+  "baseline": {
+   "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
+   "disagreements": 0,
+   "flipped": [],
+   "report": "/data/illia/nearproof-deps/l0-validate/hr/abl2/host_storage_iter_range/baseline/report.json",
+   "status": "pass",
+   "verdicts": {
+    "accept": 12,
+    "reject": 4
+   }
+  },
+  "case_list": [
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/d3/00-h10012-s1",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/d3/01-h10012-s4",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/d3/02-h10012-s4",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/d3/04-h10012-s4",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10012-s1-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10012-s4-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10012-s4-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/mutants/04-h10012-s4-code.duplicate",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10012-s1-code.extra_garbage",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10012-s4-code.extra_garbage",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10012-s4-code.extra_garbage",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/mutants/04-h10012-s4-code.extra_garbage",
+   "/data/illia/nearproof-deps/l0-validate/hr/run811/mutants/00-h10012-s1-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run812/mutants/01-h10012-s4-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run813/mutants/02-h10012-s4-hdr.bandwidth_requests.add",
+   "/data/illia/nearproof-deps/l0-validate/hr/run814/mutants/04-h10012-s4-hdr.bandwidth_requests.add"
+  ],
+  "cases": 16,
+  "detected": true
+ }
+}

@@ -77,6 +77,11 @@ on at least one case.
   0 Lean accepts of a nearcore reject). `l0_exercise.py map` now excludes disagreeing cases from
   the exercising evidence. `evidence --disagreement-cause` attributes them to their cause row, and
   `promote_row` refuses a row that causes disagreements.
+
+  **Fixed** ([host-rows/ccc-fix](host-rows/ccc-fix/README.md)). `CallCtx` now carries the
+  account's contract kind, and the arm returns 1, 2 or 3 as nearcore does. On the new checker
+  (`ee00c918…`) the 205 disagreements are 0, and the census, fixtures and a 1-in-8 corpus sample
+  do not move. `current_contract_code` is now `validated`: all 75 non-curve host rows are.
 - **Actions.** All 12 implemented tags are exercised, including Delegate (8) and DelegateV2 (14).
   Each has 76–4,771 nearcore-rejected exercising chunks, and every control flips 12 of 16 cases.
   All 12 are promoted.
@@ -92,7 +97,6 @@ on at least one case.
 
 | rows | reason | next step |
 |---|---|---|
-| host `current_contract_code` | exercised by the `host-rows` scenario (164 nearcore-accepted, 542 nearcore-rejected cases, control flips 12/16), but Lean rejects 205 nearcore-accepted cases: on a global-contract account nearcore returns 2 / 3, Lean returns 1 (completeness bug, [host-rows §3](host-rows/README.md)) | fix the Lean arm (carry the `AccountContract` kind into `CallCtx`), then re-run the host-rows population |
 | L0-D2-006, 007, 021, 022 | a deciding fixture exists (12 mutants each, rejected with the guard's reason), but the guard is verdict-redundant: without it, the empty segment, duplicate epoch, reversed or gapped segment is rejected by a later guard. No verdict-level control can detect its removal | a theorem that the later guard implies it would make the redundancy explicit |
 | other d2-core guards (D2-001…005, 009, 011–014, 019, 020, 023–026, 033, 038, 039, 057) | not targeted in this pass. Some are unreachable as a first failure: D2-009 is implied by D2-008, D2-023 is pre-empted by the `chunk_headers_root` check, D2-014's mutants fail at the encoded-root comparison. Some are throws, not `check` calls (D2-024, 026, 057). D2-005/011 are statement-scope (`c.pv86`) out-of-domain guards, and the comparator counts their exclusion of a PV85 claim as a disagreement | per guard: a directed mutant plus a `throw`-level hook in `l0_ctl_patch.py` |
 | d3-hook rows, wasm-prepare/-exec rows, `L0-instr-*`, domain guards, `L0-AF-fuel-certificate`, retired W rows | not addressed by this pass (their hooks are elsewhere in the successor path) | — |
@@ -143,8 +147,8 @@ remaining work. No new row has been promoted yet.
 
 **Next steps, in order:**
 1. *7 uncalled hosts.* **Done** ([host-rows](host-rows/README.md)): scenario `host-rows` in
-   `src/xfam.rs`, contract `contracts/hostrows.wat`, 4 seeds. 6 are promoted. `current_contract_code`
-   is blocked by a Lean completeness bug (global-contract accounts).
+   `src/xfam.rs`, contract `contracts/hostrows.wat`, 4 seeds. All 7 are promoted; `current_contract_code`
+   only after its Lean completeness fix ([host-rows/ccc-fix](host-rows/ccc-fix/README.md)).
 2. *9 hosts without a negative chunk.* **Done** ([host-rows](host-rows/README.md)). The same
    scenario calls `kgashost` and the global-promise `all-hosts-valid-receivers` contract, with full
    mutant sets, instead of regenerating the corpus chains. All 9 are promoted.

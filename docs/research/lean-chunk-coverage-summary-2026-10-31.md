@@ -152,6 +152,7 @@ Evidence package: [l0-row-validation](../evidence/lean-chunk-completion/l0-row-v
 | before this pass | 225 | 150 | 61 | 14 |
 | after | 225 | 72 | 139 | 14 |
 | after host-rows (below) | 225 | 57 | 154 | 14 |
+| after the `current_contract_code` fix (below) | 225 | 56 | 155 | 14 |
 
 Promoted (78):
 - **59 non-curve host arms.** Each has ≥ 1 nearcore-accepted and ≥ 1 nearcore-rejected exercising
@@ -163,8 +164,8 @@ Promoted (78):
 
 Left `implemented`, with the reason recorded in each row's `remaining_work`:
 - ~~**9 hosts without a negative chunk** and **7 hosts that no case calls**~~: see *Host-rows
-  update* below. 15 are now validated. `current_contract_code` stays `implemented` because of a
-  Lean completeness bug.
+  update* below. All 16 are now validated: 15 at once, and `current_contract_code` after its Lean
+  completeness fix.
 - **4 verdict-redundant guards** (D2-006, 007, 021, 022). Their deciding mutants exist, but a later
   guard rejects the same mutant, so no verdict-level control can detect the removal.
 - **20 d2-core guards not targeted.** These include throws (D2-024, 026, 057), guards pre-empted by
@@ -219,6 +220,31 @@ Rows:
   disagreements.
 
 Counts: implemented 72 → 57, validated 139 → 154.
+
+**`current_contract_code` fix (2026-10-31).** Evidence:
+[l0-row-validation/host-rows/ccc-fix](../evidence/lean-chunk-completion/l0-row-validation/host-rows/ccc-fix/README.md).
+
+The change, a completeness fix toward nearcore on the successor path (pre-approved):
+- `CallCtx` gains `accountContractTag`;
+- the successor engine sets it from the receiver's account contract, via `ctxContract`: local 1
+  with the hash, global 2 with the hash, by-account 3 with the account id's bytes;
+- the host arm returns it.
+
+The signed engines do not set the field, so their arm still returns 1, unchanged. The signed tier
+also excludes global contracts.
+
+Results:
+- The new checker's sha256 is `ee00c918…`. The full default build passes, with the allowed axioms
+  only and no `sorry`.
+- Host-rows population: 205 → 0 Lean rejects of nearcore-accepted cases, and 0 Lean accepts of
+  nearcore rejects before and after.
+- The census (both tiers), the 1,364 fixtures (both tiers) and the 1-in-8 corpus sample on
+  `allFeatures` do not move.
+- The freeze checker is the breakage control: it disagrees on the 205.
+- `current_contract_code` is validated: 369 nearcore-accepted and 542 nearcore-rejected cases,
+  and its control flips 12/16.
+
+Counts: implemented 57 → 56, validated 154 → 155.
 
 Finding along the way, not a soundness bug: a `t.tx_valid` flip is not a valid negative fixture.
 `tx_valid` is a claim input, judged as `nearcore(tx_valid=claim)`, and 4 of 87 flipped claims are
