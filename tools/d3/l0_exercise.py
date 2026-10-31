@@ -235,10 +235,9 @@ THROW_ROWS = {
     "invalid: segment has no new chunk": "L0-D2-026",
 }
 EVENT_TARGET = {"I int": "instr:int", "I float": "instr:float", "W load": "wasm:load",
-                "W compile": "wasm:compile", "W fuelcert": "wasm:fuelcert"}
+                "W compile": "wasm:compile"}
 OTHER_ROWS = {"instr:int": "L0-instr-integer", "instr:float": "L0-instr-float",
-              "wasm:load": "L0-W-009", "wasm:prep": "L0-W-005", "wasm:compile": "L0-W-006",
-              "wasm:fuelcert": "L0-AF-fuel-certificate"}
+              "wasm:load": "L0-W-009", "wasm:prep": "L0-W-005", "wasm:compile": "L0-W-006"}
 # rows whose evidence is another row's target (same site, two rows)
 ALIASES = {"L0-W-012": "instr:float"}
 

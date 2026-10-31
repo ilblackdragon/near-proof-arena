@@ -586,7 +586,9 @@ def successor_facts(repo):
         "ethResolve": "def resolveCode" in se and "Rci.resolve" in se,
         "prepRace": "out of domain (e.code_prep_race)" in ce,
         "codeResponse": "out of domain (w.code_response_size)" in rc,
-        "fuelCert": "w.fuel_certificate" in se,
+        "fuelCert": "if !fuelCertified" in se,
+        "fuelCertDead": "theorem fuelCertified_true" in rd("Wasm/FuelCertOK.lean")
+                        and "theorem vmCallGuarded_eq" in rd("Successor/FuelFinal.lean"),
         "globalIdentity": "global_code_identity" in rd("Successor/GlobalExecution.lean"),
     }
 
@@ -1201,6 +1203,22 @@ def inventory(repo, nearcore):
             "L1", "L0", "a module that fails the certificate (none known)",
             "not blocking by the 2026-10-31 decision; a general proof of CodeCertified would make the "
             "guard provably dead (workplan item 3 residual)",
+        ))
+    elif sf["fuelCertDead"]:
+        rows.append(row(
+            "L0-AF-fuel-certificate", "successor-guard",
+            "near-vm-runner gas accounting (every prepared function is gas-metered; finite-wasm)",
+            "NearSpecV3.Wasm.FuelCertOK.fuelCertified_true; "
+            "NearSpecV3.Successor.StorageExecution.vmCallGuarded_eq (the former vmCall guard)",
+            "impossible-at-boundary",
+            "none (the w.fuel_certificate check was removed from vmCall on 2026-10-31)",
+            "proved dead: fuelCertified_true (every module prepare accepts passes the certificate, for "
+            "0 < regular_op_cost <= linear_op_base_cost, which holds at PV86) and vmCallGuarded_eq "
+            "(the guarded VM call equals the current one); functionCall_fuel_sufficient now rests on "
+            "FuelGen.wasmFuel_sufficient with no certificate. Before/after on the census, the "
+            f"committed fixtures and a 1-in-8 corpus sample: 0 moves. Evidence: {EV}fuel-sufficiency/README.md",
+            "L1", "L0", "fuelCertified_true; guard before/after (0 moves)",
+            "none",
         ))
     if sf["globalIdentity"]:
         rows.append(row(

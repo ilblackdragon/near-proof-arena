@@ -1394,7 +1394,7 @@ def P1 (cfg : NearCfg) (bl : Bool) (st : Option PrepResult × Nat × Nat × Arra
 
 open Lean Elab Tactic Meta in
 /-- Abstract the first `forIn` in hypothesis `h` as `F`, with `hF : forIn … = F`. -/
-elab "gen_forIn " h:ident " as " x:ident hx:ident : tactic => withMainContext do
+elab "gen_forIn " h:ident " => " x:ident hx:ident : tactic => withMainContext do
   let ldecl ← getLocalDeclFromUserName h.getId
   let ty ← instantiateMVars ldecl.type
   let some e := ty.find? (fun e => e.isAppOf ``ForIn.forIn) | throwError "no forIn"
@@ -1417,7 +1417,7 @@ theorem prepare_good (cfg : NearCfg) (code : ByteArray) (bl : Bool) (p : Prepare
     split at h
     · cases h
     simp only [idb] at h
-    gen_forIn h as F hF
+    gen_forIn h => F hF
     rw [← Array.forIn_toList] at hF
     have key : P1 cfg bl F := by
       rw [← hF]
@@ -1438,7 +1438,7 @@ theorem prepare_good (cfg : NearCfg) (code : ByteArray) (bl : Bool) (p : Prepare
       exact absurd (heq.trans (congrArg some h)) (key.1 p)
     split at h
     · cases h
-    gen_forIn h as F_1 hF1
+    gen_forIn h => F_1 hF1
     rw [Std.Legacy.Range.forIn_eq_forIn_range'] at hF1
     have key2 : P2 F_1 := by
       rw [← hF1]
@@ -1451,7 +1451,7 @@ theorem prepare_good (cfg : NearCfg) (code : ByteArray) (bl : Bool) (p : Prepare
       exact absurd (heq.trans (congrArg some h)) (key2 p)
     split at h
     · cases h
-    gen_forIn h as F_2 hF2
+    gen_forIn h => F_2 hF2
     rw [Std.Legacy.Range.forIn_eq_forIn_range'] at hF2
     have key3 : P2 F_2 := by
       rw [← hF2]

@@ -65,8 +65,8 @@ def resolveColdCodeNS (sources : CodeSources) (timely preIs : Bool) (hash : Byte
         else .ok code
       | none => .error missingCode
 
-/-- The legacy hook's tail after code selection, with the recorder's fuel certificate (`vmCall`)
-and the legacy fresh `RealStore`. -/
+/-- The legacy hook's tail after code selection, with the recorder's VM call (`vmCall`) and the
+legacy fresh `RealStore`. -/
 def callTailNS (cfg : NearCfg) (c : ActCtx) (st : ActSt) (ar : AR) (method args : Bytes) (gas deposit : Nat)
     (acct : D2.Acct) (hh code : Bytes) : Except String (ActSt × AR) := do
   let env := c.env
@@ -556,7 +556,9 @@ open NearSpec NearSpecV3 NearSpecV3.D2
 The strings by which the recorder (and `NS`) may fail where the legacy engine decides. The second
 premise of the §14 theorem is that the storage-resolution verdict is none of them. -/
 
-/-- G2: the fuel certificate (`StorageExecution.vmCall`). -/
+/-- G2: the fuel certificate, formerly checked by `StorageExecution.vmCall`. Since 2026-10-31 no
+engine produces this string (`Wasm.FuelCertOK.fuelCertified_true`; the check was removed); it stays
+in `esc` so the premise reads the same. -/
 def escG2 : String := D3.oodE "w.fuel_certificate: a prepared function fails the fuel certificate"
 /-- G7: a global action with global actions off (`StorageExecution.applyGlobal`). -/
 def escG7 : String := "out of domain (w.shape): global action"

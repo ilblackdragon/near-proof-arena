@@ -268,11 +268,9 @@ theorem recRefine_floats (w : NearCfg) (P : Env → Prop) (ga : Bool) (p : CodeW
   · left
     refine ⟨?_, fun m ctx real => ?_⟩
     · unfold D3.contractOOD; rw [hp]
-    · have hc : fuelCertified w code = fuelCertified { w with floats := true } code := by
-        unfold fuelCertified; rw [hp]; rfl
-      show vmCall wasmFuel w code m ctx real = vmCall wasmFuel { w with floats := true } code m ctx real
+    · show vmCall wasmFuel w code m ctx real = vmCall wasmFuel { w with floats := true } code m ctx real
       unfold vmCall
-      rw [hc, Wasm.runCallWithLimits_floats w true code m ctx _ true false (some real) hp.symm]
+      rw [Wasm.runCallWithLimits_floats w true code m ctx _ true false (some real) hp.symm]
       rfl
   · right
     exact ⟨x, by unfold D3.contractOOD; rw [hp]⟩

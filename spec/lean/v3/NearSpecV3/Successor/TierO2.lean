@@ -9,7 +9,7 @@ set_option maxHeartbeats 4000000
 
 The curve-host selector is read by `runCall` (the harness-only import check, `real = none`) and by
 `dispatchArm` through the interpreter state. Everything else that takes the Wasm configuration
-(`prepare`, `fuelCertified`, `wasmFuel`, `contractOOD`, `step`) does not read it (`rfl`).
+(`prepare`, `wasmFuel`, `contractOOD`, `step`) does not read it (`rfl`).
 
 * `instantiate_curve`: instantiation commutes with the selector (`instLoops`, an `rfl` copy of its
   two segment loops, and `forIn_fst`).
@@ -373,14 +373,11 @@ theorem vmF_curve (w : NearCfg) :
   intro code m ctx real
   simp only []
   unfold vmCall
-  have h1 : fuelCertified { w with curveHosts := true } code = fuelCertified w code := rfl
   have h2 : wasmFuel { w with curveHosts := true } ctx.prepaidGas = wasmFuel w ctx.prepaidGas := rfl
-  rw [h1, h2]
-  split
-  · left; rfl
-  · rcases runCallWithLimits_curve w code m ctx (wasmFuel w ctx.prepaidGas) true false real with h | ⟨x, hx, h⟩
-    · left; rw [h]; rfl
-    · right; exact ⟨x, hx, by rw [h]⟩
+  rw [h2]
+  rcases runCallWithLimits_curve w code m ctx (wasmFuel w ctx.prepaidGas) true false real with h | ⟨x, hx, h⟩
+  · left; rw [h]; rfl
+  · right; exact ⟨x, hx, by rw [h]⟩
 
 theorem MRef_vm_step {β : Type} {X : String → Prop} {φ : St → St}
     {vm vm' : ByteArray → String → CallCtx → TTN.RealStore → Except String Run} (hvm : VmF X φ vm vm')
