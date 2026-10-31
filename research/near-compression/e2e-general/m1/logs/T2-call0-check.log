@@ -1,0 +1,29 @@
+TABLE BOUNDARY  width  10 rows      1 height      4 cells        40 constraints   0 interactions   6 degree 1
+TABLE ADD       width  30 rows      0 height      4 cells       120 constraints  20 interactions  14 degree 3
+TABLE BIT       width  39 rows      0 height      4 cells       156 constraints  19 interactions  18 degree 2
+TABLE MUL       width  45 rows      0 height      4 cells       180 constraints  26 interactions  30 degree 3
+TABLE SHIFT     width  82 rows      0 height      4 cells       328 constraints  69 interactions  32 degree 8
+TABLE CMP       width  44 rows      1 height      4 cells       176 constraints  38 interactions  16 degree 5
+TABLE CONST     width  13 rows     12 height     16 cells       208 constraints   4 interactions   4 degree 2
+TABLE STACK     width  30 rows      1 height      4 cells       120 constraints  13 interactions  13 degree 3
+TABLE CTRL      width  18 rows      1 height      4 cells        72 constraints   8 interactions   6 degree 4
+TABLE LOCAL     width  28 rows      4 height      4 cells       112 constraints  13 interactions  11 degree 4
+TABLE DIV       width  97 rows      0 height      4 cells       388 constraints 106 interactions  45 degree 6
+TABLE LOAD      width  58 rows      0 height      4 cells       232 constraints  22 interactions  42 degree 4
+TABLE STORE     width  61 rows      0 height      4 cells       244 constraints  15 interactions  47 degree 2
+TABLE CALL      width 218 rows      0 height      4 cells       872 constraints 224 interactions 114 degree 2
+TABLE RET       width  27 rows      0 height      4 cells       108 constraints   6 interactions  16 degree 4
+TABLE RANGE16   width   2 rows  65536 height  65536 cells    131072 constraints   3 interactions   1 degree 2
+TABLE BYTE      width  20 rows  65536 height  65536 cells   1310720 constraints  19 interactions   4 degree 2
+TABLE CODE      width   9 rows     32 height     32 cells       288 constraints   0 interactions   1 degree 1
+TABLE DRAIN     width  10 rows     11 height     16 cells       160 constraints   2 interactions   1 degree 3
+TABLE MEMINIT   width  12 rows     10 height     16 cells       192 constraints   8 interactions  10 degree 3
+TABLE DATA      width   3 rows      8 height      8 cells        24 constraints   0 interactions   1 degree 1
+TABLE FUNC      width   9 rows      4 height      4 cells        36 constraints   0 interactions   1 degree 1
+TABLE HOST      width  93 rows      6 height      8 cells       744 constraints  90 interactions  78 degree 2
+TABLE HOSTO     width  33 rows      6 height      8 cells       264 constraints   0 interactions   2 degree 1
+TABLE HOSTT     width   9 rows     64 height     64 cells       576 constraints   0 interactions   1 degree 1
+TABLE HOSTB     width  14 rows     32 height     32 cells       448 constraints  15 interactions  15 degree 3
+TABLE IF        width  14 rows      4 height      4 cells        56 constraints   2 interactions   6 degree 3
+STEPS 26 S_UNITS 25 CELLS_TOTAL 1447936 CELLS_ACTIVE 1444576
+CHECK OK result None

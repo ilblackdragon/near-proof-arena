@@ -1,0 +1,95 @@
+{
+ "case": "/data/illia/nearproof-deps/corpora/d3c9/d3/00-h10018-s0",
+ "verdict": "accept",
+ "reason": "ok",
+ "calls": [
+  {
+   "code_sha256": "8152bed25554d521d3fcdd919f4457b66e06b720906fdd40fd6fd0723ed36bf9",
+   "code_len": 345,
+   "method": "run",
+   "prepaid": 3000000000000,
+   "input": "68656c6c6f",
+   "account": "b's2b37.s2rc'",
+   "storage_usage_in": 527,
+   "aborted": null,
+   "burnt": 104421422859,
+   "used": 104421422859,
+   "loading_fee": 411252738,
+   "logs": [
+    "74696e79"
+   ],
+   "ret": "68656c6c6f",
+   "storage_usage_out": 573
+  },
+  {
+   "code_sha256": "fbc015a8eda217bda1c44d4dae59545937ae438699c2d4647baa2991ce691a11",
+   "code_len": 5603,
+   "method": "run",
+   "prepaid": 18000000000000,
+   "input": "190d0101666e00de0b0573336130330e0002",
+   "account": "b's2rc'",
+   "storage_usage_in": 6803,
+   "aborted": null,
+   "burnt": 449796300899,
+   "used": 672978863399,
+   "loading_fee": 6138765848,
+   "logs": [],
+   "ret": null,
+   "storage_usage_out": 6836
+  },
+  {
+   "code_sha256": "fbc015a8eda217bda1c44d4dae59545937ae438699c2d4647baa2991ce691a11",
+   "code_len": 5603,
+   "method": "cb",
+   "prepaid": 11000000000000,
+   "input": "1718",
+   "account": "b's2rc'",
+   "storage_usage_in": 6836,
+   "aborted": null,
+   "burnt": 41044643210,
+   "used": 41044643210,
+   "loading_fee": 6138765848,
+   "logs": [
+    "31"
+   ],
+   "ret": "",
+   "storage_usage_out": 6836
+  },
+  {
+   "code_sha256": "fbc015a8eda217bda1c44d4dae59545937ae438699c2d4647baa2991ce691a11",
+   "code_len": 5603,
+   "method": "run",
+   "prepaid": 103000000000000,
+   "input": "050a6c6f672032333520c3bc",
+   "account": "b's2rc'",
+   "storage_usage_in": 6836,
+   "aborted": null,
+   "burnt": 28180991609,
+   "used": 28180991609,
+   "loading_fee": 6138765848,
+   "logs": [
+    "6c6f672032333520c3bc"
+   ],
+   "ret": null,
+   "storage_usage_out": 6836
+  },
+  {
+   "code_sha256": "fbc015a8eda217bda1c44d4dae59545937ae438699c2d4647baa2991ce691a11",
+   "code_len": 5603,
+   "method": "run",
+   "prepaid": 22000000000000,
+   "input": "27080101640800720710d9c549dba085a2b12b9a02e240a6402e050a6c6f672033363020c3bc190e19031e10000b0573306130300e0002",
+   "account": "b's2rc'",
+   "storage_usage_in": 6836,
+   "aborted": null,
+   "burnt": 1246827739655,
+   "used": 1470010302155,
+   "loading_fee": 6138765848,
+   "logs": [
+    "6c6f672033363020c3bc"
+   ],
+   "ret": "d9c549dba085a2b12b9a02e240a6402e",
+   "storage_usage_out": 7280
+  }
+ ]
+}
