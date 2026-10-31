@@ -117,9 +117,12 @@ wasm blobs nearcore embeds and the three global hashes (`lib.rs:87-104`; localne
 `sha256(wallet_contract_localnet.wasm)`): **7/7 equal Lean**, the magic hashes are pairwise distinct
 and disjoint from the global ones (so `resolve`'s order is immaterial). Control: one flipped byte → 6/7.
 
-Not done: a whole-chunk fixture of an ETH-implicit account carrying a legacy magic-hash contract.
-Such accounts can only exist from before PV83, so a PV86 test chain needs them in genesis; the
-generator has no such scenario. The behaviour is covered by the proof and the pins, not by a chunk.
+Whole-chunk fixtures (2026-10-31): [eth-wallet-fixtures](../eth-wallet-fixtures/README.md). The
+generator's opt-in `eth-wallet` scenario seeds the four magic-hash variants in genesis and calls them
+through the global wallet, and in a predeploy variant before it exists. Results: 10,650 cases,
+`allFeatures` 0 disagreements with cold nearcore, and blind 908/908. With the redirect ablated, the
+checker disagrees on 609 rows, 22 of them accepts of a nearcore reject. Row `L0-D3-006` is
+`validated`.
 
 ## UQ-013 — admission contract for the trusted facts (DECISION NEEDED)
 

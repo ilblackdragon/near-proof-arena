@@ -1,0 +1,132 @@
+{
+ "nearcore": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993 (PV86)",
+ "base_commit": "0e7a77fd4c9b2ada113e88125413b454757fc6ac",
+ "oracle_binary_sha256": "dcb8f2a7050c566407069482273a65f0c8057e92d27d8e8ce3e9aeeac7dcb6a0",
+ "checker_default_sha256": "9b583e3a42e6bb50edf5ec8557fea7e30b9f0a01d72724f688aac15929b233f8",
+ "checker_control_sha256": "5a17e2c37871082e32e03f2b9b4f9c133d0e8920835da8d8cb54b2048bb2d2e1",
+ "control_patch": "control/ablate-eth-redirect.patch (applied to spec/lean/v3/NearSpecV3/Successor/StorageExecution.lean, built, reverted)",
+ "sources_sha256": {
+  "oracle/v3-successor/src/ethwallet.rs": "1b2ec490fe3535c2c8c0cd1c60ab00f559da422f60a2bef44568ff1977807f52",
+  "oracle/v3-successor/src/xfam.rs": "4c7e14c93b2daed86ca6b40bb06a944a8f140f480a1bf84694c550b944c5a3a5",
+  "oracle/v3-successor/src/d3gen.rs": "38dcdd2a6f6087d7b033a4ededd34d839b667485f482e69d6c9f16a77d9c5a4f",
+  "oracle/v3-successor/src/d3.rs": "4efc2b1e1f16f91f2d32a3522efd7d80f363a5b683ae93a4d6e602d17ac9c117",
+  "oracle/v3-successor/src/chaind3.rs": "49e37c693d8e519e3368e42b278a060a278f33bed8fe6310644ca5a661c4bee3",
+  "oracle/v3-successor/src/main.rs": "63fa6db9996e3ec2f68945005d3417f31351c999b31175ae13df03fc349aaf5a",
+  "oracle/v3-successor/Cargo.toml": "9c294f21a03c2635908e7998ddcafca7dea373bb2af9fdabd033dd192357beb9",
+  "oracle/v3-successor/Cargo.lock": "6bc6aac6565ef31c108879c050a6ada64f43aa6b30458c0e0b6993d6462acdd2",
+  "tools/d3/collect_xfam.py": "7a25af3c144f09ee24db7ce8c035b2ce07f7a38474c6703cd0ebb65d64bac1e0",
+  "tools/d3/summarize_eth_wallet.py": "e7a35075a0e492a0482f1693438d6c618b647ed9f33ac088f5885997b1fec7c7",
+  "tools/d3/replay_successor.py": "dc9731214c646e5c358c7b871ab12dc4eb4df5b1d18c59b1e0cca991cd974709"
+ },
+ "wallet_blobs_sha256": {
+  "global_contract_mainnet.wasm": "1daa835c4637f7ae3d924095ba3f0bf2829bcfa17b1068cd58bd853dcad7ceb5",
+  "wallet_contract_localnet.wasm": "d2884a900d4fa370e48f1e3d4865d4dc0dbd093c89f0e7baef2eddc142c49e8d",
+  "wallet_contract_mainnet.wasm": "4639a622f7322ef64ef936b88ec8f32916955fd9084b37469c0311145f8309c8",
+  "wallet_contract_testnet.wasm": "997359d254e648aefaf0876fcb774eca8b42eddf68368581524a57a0169a60ff",
+  "wallet_contract_testnet_pv70.wasm": "260f6d4224a7f35db6b76661a23ad3caafcc28d97064744a61c64529de1b6da8"
+ },
+ "baseline_identity": {
+  "command": "gen --domain d3 --seed 7 --chains 2 --blocks 40 --mutate-every 10 (no NEAR_SUCCESSOR_SCENARIO)",
+  "base_binary_sha256": "5f5f00a5758bd5602307fc9148db2f03154c57fdf3f3b54ce5d4ed2922fce179",
+  "files": 8545,
+  "diff": "empty (byte-identical)"
+ },
+ "runs": {
+  "ew701": {
+   "command": "NEAR_SUCCESSOR_SCENARIO=eth-wallet NEAR_XFAM_MUTATE_EVERY=4 $B gen --domain d3 --seed 701 --first-chain 0 --chains 1 --blocks 110 --mutate-every 0 --code-mutant-p 0 --ood-cap 100000 --drop-cap 12 --min-gas-price 100000000 --out ew701",
+   "chains": [
+    "D3Params { base: ChainParams { seed: 701002103, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 110, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 100000000 }"
+   ],
+   "honest": 383,
+   "cold_accepted": 383,
+   "mutants": 2179,
+   "xfam_json_sha256": {
+    "xfam-0.json": "7fd9828b49693e32ad54570d2ed49d90a05c9b4031fc26b820b820ce45ee791e"
+   }
+  },
+  "ew702": {
+   "command": "NEAR_SUCCESSOR_SCENARIO=eth-wallet NEAR_XFAM_MUTATE_EVERY=4 $B gen --domain d3 --seed 702 --first-chain 1 --chains 1 --blocks 110 --mutate-every 0 --code-mutant-p 0 --ood-cap 100000 --drop-cap 12 --min-gas-price 100000000 --out ew702",
+   "chains": [
+    "D3Params { base: ChainParams { seed: 702002107, n_shards: 5, seats: 100, gas_limit_tgas: 1000, epoch_length: 30, blocks: 110, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 100000000 }"
+   ],
+   "honest": 488,
+   "cold_accepted": 488,
+   "mutants": 2250,
+   "xfam_json_sha256": {
+    "xfam-1.json": "a0c090034e9dd7e7421c1f48398fd0c8464841bfff992fdf1dea44d7979719ad"
+   }
+  },
+  "ew703": {
+   "command": "NEAR_SUCCESSOR_SCENARIO=eth-wallet NEAR_XFAM_MUTATE_EVERY=4 $B gen --domain d3 --seed 703 --first-chain 2 --chains 1 --blocks 110 --mutate-every 0 --code-mutant-p 0 --ood-cap 100000 --drop-cap 12 --min-gas-price 0 --out ew703",
+   "chains": [
+    "D3Params { base: ChainParams { seed: 703002111, n_shards: 6, seats: 16, gas_limit_tgas: 1000, epoch_length: 30, blocks: 110, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "honest": 576,
+   "cold_accepted": 576,
+   "mutants": 2264,
+   "xfam_json_sha256": {
+    "xfam-2.json": "5e5b1ec5771be6b3d4530c3f098247eb65eacbfd54a5e2caec80516468246996"
+   }
+  },
+  "ew704": {
+   "command": "NEAR_SUCCESSOR_SCENARIO=eth-wallet NEAR_XFAM_MUTATE_EVERY=4 $B gen --domain d3 --seed 704 --first-chain 6 --chains 1 --blocks 110 --mutate-every 0 --code-mutant-p 0 --ood-cap 100000 --drop-cap 12 --min-gas-price 0 --out ew704",
+   "chains": [
+    "D3Params { base: ChainParams { seed: 704002118, n_shards: 4, seats: 16, gas_limit_tgas: 1000, epoch_length: 12, blocks: 110, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 0 }"
+   ],
+   "honest": 373,
+   "cold_accepted": 373,
+   "mutants": 2114,
+   "xfam_json_sha256": {
+    "xfam-6.json": "04391cea22c9b6b113441403e10b9d550c54451a573905f3229604eb529d37bd"
+   }
+  },
+  "ewp791": {
+   "command": "NEAR_SUCCESSOR_SCENARIO=eth-wallet NEAR_XFAM_MUTATE_EVERY=2 NEAR_XFAM_VARIANT=eth-wallet-predeploy $B gen --domain d3 --seed 791 --first-chain 0 --chains 1 --blocks 12 --mutate-every 0 --code-mutant-p 0 --ood-cap 100000 --drop-cap 12 --min-gas-price 100000000 --out ewp791",
+   "chains": [
+    "D3Params { base: ChainParams { seed: 791002373, n_shards: 4, seats: 8, gas_limit_tgas: 1000, epoch_length: 30, blocks: 12, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 100000000 }"
+   ],
+   "honest": 34,
+   "cold_accepted": 30,
+   "mutants": 173,
+   "xfam_json_sha256": {
+    "xfam-0.json": "6da79b6b3252369d02062b68dc719520e29a139d872a47d948b686a9a140bd5d"
+   }
+  },
+  "ewp792": {
+   "command": "NEAR_SUCCESSOR_SCENARIO=eth-wallet NEAR_XFAM_MUTATE_EVERY=2 NEAR_XFAM_VARIANT=eth-wallet-predeploy $B gen --domain d3 --seed 792 --first-chain 1 --chains 1 --blocks 12 --mutate-every 0 --code-mutant-p 0 --ood-cap 100000 --drop-cap 12 --min-gas-price 100000000 --out ewp792",
+   "chains": [
+    "D3Params { base: ChainParams { seed: 792002377, n_shards: 5, seats: 100, gas_limit_tgas: 1000, epoch_length: 30, blocks: 12, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 100000000 }"
+   ],
+   "honest": 49,
+   "cold_accepted": 45,
+   "mutants": 244,
+   "xfam_json_sha256": {
+    "xfam-1.json": "d0e49459a48b6893799a2d986b73341166659f77af533f50e8a559a5d6df60d8"
+   }
+  },
+  "ewp793": {
+   "command": "NEAR_SUCCESSOR_SCENARIO=eth-wallet NEAR_XFAM_MUTATE_EVERY=2 NEAR_XFAM_VARIANT=eth-wallet-predeploy $B gen --domain d3 --seed 793 --first-chain 2 --chains 1 --blocks 12 --mutate-every 0 --code-mutant-p 0 --ood-cap 100000 --drop-cap 12 --min-gas-price 100000000 --out ewp793",
+   "chains": [
+    "D3Params { base: ChainParams { seed: 793002381, n_shards: 6, seats: 16, gas_limit_tgas: 1000, epoch_length: 30, blocks: 12, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 100000000 }"
+   ],
+   "honest": 61,
+   "cold_accepted": 54,
+   "mutants": 311,
+   "xfam_json_sha256": {
+    "xfam-2.json": "914f3e76d7d62e403d43f2450022cb919f2be2451faf7133c7b3c03cfc535ca0"
+   }
+  },
+  "ewp794": {
+   "command": "NEAR_SUCCESSOR_SCENARIO=eth-wallet NEAR_XFAM_MUTATE_EVERY=2 NEAR_XFAM_VARIANT=eth-wallet-predeploy $B gen --domain d3 --seed 794 --first-chain 6 --chains 1 --blocks 12 --mutate-every 0 --code-mutant-p 0 --ood-cap 100000 --drop-cap 12 --min-gas-price 100000000 --out ewp794",
+   "chains": [
+    "D3Params { base: ChainParams { seed: 794002388, n_shards: 4, seats: 16, gas_limit_tgas: 1000, epoch_length: 12, blocks: 12, p_missing: 0.1, p_tx_shard: 0.5, p_burst: 0.03, p_fail: 0.0, p_implicit: 0.0, p_two: 0.0, long_skip: None }, max_txs: 4, p_contract: 0.04, p_adv: 0.3, drop_cap: 12, max_d3: 4, code_mutant_p: 0.0, min_gas_price: 100000000 }"
+   ],
+   "honest": 48,
+   "cold_accepted": 41,
+   "mutants": 184,
+   "xfam_json_sha256": {
+    "xfam-6.json": "beda2c9e91f33492ae1b37e16f7267e5b1e4bbeb3aa1b07a496fd210b2ddaa41"
+   }
+  }
+ }
+}

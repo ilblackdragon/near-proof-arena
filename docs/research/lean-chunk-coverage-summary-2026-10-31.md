@@ -44,6 +44,7 @@ promotions read.
 |---|---|---|---|---|---|---|
 | before (committed JSON) | 222 | 147 | 36 | 26 | 2 | 11 |
 | after | 225 | 150 | 61 | 0 | 0 | 14 |
+| after `L0-D3-006` (eth-wallet-fixtures) | 225 | 149 | 62 | 0 | 0 | 14 |
 
 Row changes:
 - −1: `L0-guard-contractInD3alpha`, a retired guard.
@@ -80,13 +81,13 @@ Every evidence directory below is under `docs/evidence/lean-chunk-completion/`.
 
 Reconciled to `implemented` rather than validated:
 
-- **`L0-D3-006` `e.eth_implicit_local`.** `allFeatures` decides it through `resolveCode`/`Rci.resolve`:
+- **`L0-D3-006` `e.eth_implicit_local`** (since promoted to `validated`, item 2 below). `allFeatures` decides it through `resolveCode`/`Rci.resolve`:
   - A magic hash redirects to the chain's global wallet.
   - `.legacyEthWallet` is proved unreachable at PV86.
   - The corpus claims agree with nearcore.
   - UQ-007 pins pass: 7/7 hashes, and a one-byte control fails.
 
-  It is **not** validated, for two reasons:
+  At the 2026-10-31 reconciliation it was **not** validated, for two reasons (both closed by item 2):
   - No whole-chunk fixture holds a magic-hash ETH-implicit account. Such accounts predate PV83, so a
     test chain would need them in genesis.
   - No whole-chunk breakage control exists for the redirect.
@@ -112,10 +113,24 @@ There are no `partial` or `missing` rows left.
    closed on 2026-10-27 by the W03 runtime-errors package (every construction site has a
    disposition; 33,930 rows, 0 disagreements; [runtime-errors](../evidence/lean-chunk-completion/runtime-errors/README.md)).
    The owner map and `UQ_DISPOSITION` now say so; no UQ remains open.
-2. **`L0-D3-006` is implemented but not validated.** It needs a magic-hash fixture and a breakage
-   control. The plan requires every reachable row to be "implemented and validated". The branch is
-   reachable on mainnet for pre-PV83 ETH-implicit accounts.
-3. **The 150 `implemented` rows.** Most are signed-era rows whose text predates the fixture families:
+2. ~~`L0-D3-006` is implemented but not validated.~~ **Validated** (2026-10-31,
+   [eth-wallet-fixtures](../evidence/lean-chunk-completion/eth-wallet-fixtures/README.md)). The
+   generator's opt-in `eth-wallet` scenario seeds genesis ETH-implicit accounts holding each of the
+   four legacy magic hashes, as pre-PV83 mainnet accounts have. It calls them through the chain's
+   global wallet: `rlp_execute` transfers, function calls through the wallet, and failing calls.
+   A predeploy variant calls them before the global wallet exists.
+   - Population: 8 seeds, 931 honest chunks and 9,719 mutants, all judged by cold nearcore.
+   - `allFeatures`: 0 accept/reject disagreements and 0 accepts of a nearcore reject. The only
+     exclusions are 7 named `e.code_prep_race` rows on baseline code mutants.
+   - Blind: 908/908 gradable honest chunks match.
+   - `signed`: 0 disagreements; it excludes every wallet chunk (`e.eth_implicit_local`).
+   - Control: a checker with the redirect ablated changes 609 wallet rows. It rejects 587
+     nearcore-valid chunks, and it accepts 22 nearcore-rejected chunks.
+
+   Finding: nearcore's own stateless validator rejects a producer chunk that calls a magic-hash
+   wallet before the global wallet exists (a partial-storage miss on the absent code). Lean rejects
+   those chunks too.
+3. **The 149 `implemented` rows** (150 before `L0-D3-006` was promoted). Most are signed-era rows whose text predates the fixture families:
    - 75 non-curve host arms, with text "not differentially tested in this lane";
    - 12 action tags, with text "no dedicated regression yet";
    - 31 `d2-core` guards and the D3 hook invariants.

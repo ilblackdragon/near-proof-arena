@@ -11,9 +11,9 @@
     "nearcore": "imports link at instantiation (wasmtime_runner/mod.rs:1127-1155); only a call runs External code"
   },
   "counts": {
-    "implemented": 150,
+    "implemented": 149,
     "impossible-at-boundary": 14,
-    "validated": 61
+    "validated": 62
   },
   "evidence": "static reconciliation of pinned nearcore git objects against Lean dispatch tables; no execution, differential testing or proof",
   "exclusion_classification": [
@@ -49,7 +49,7 @@
       "classification": "unimplemented",
       "exclusion": "e.eth_implicit_local",
       "justification": "Legacy ETH-wallet resolution is deterministic given `chain_id` (`runtime/runtime/src/contract_code.rs:56-76`, `eth_wallet_global_contract_hash`), not random. Lean conservatively excludes it (`D3/FunctionCall.lean:236-239`); 223 protocol-valid cases excluded.",
-      "now": "decided on allFeatures (row L0-D3-006, implemented, validation gap); signed tier excludes (210)",
+      "now": "decided on allFeatures (row L0-D3-006, validated: eth-wallet-fixtures); signed tier excludes (210)",
       "owner": "L4"
     },
     {
@@ -3149,18 +3149,18 @@
       "status": "implemented"
     },
     {
-      "acceptance_tests": "a PV86 chain whose genesis holds an ETH-implicit account with a legacy magic-hash contract, called in a whole chunk; breakage control: resolveCode without the wallet redirect",
+      "acceptance_tests": "a PV86 chain whose genesis holds ETH-implicit accounts with legacy magic-hash contracts, called in whole chunks (eth-wallet-fixtures); breakage control: resolveCode without the wallet redirect",
       "dependencies": "L4",
       "domain_guard": "allFeatures: decided (a magic hash redirects to the chain's global wallet; any other local contract stays local; .legacyEthWallet unreachable at PV86); signed tier (checkD3Core): e.eth_implicit_local",
-      "evidence": "allFeatures decides the corpus `e.eth_implicit_local` claims (pre-freeze replay of all 235,716 cases: 0 disagreements with cold nearcore; its only exclusions are 95 preparation-pipeline races); UQ-007 answered: legacyWallet_unreachable_pv86, ethWallet_kind_unreachable; 7/7 wallet hashes recomputed from nearcore's embedded wasm equal Lean's, control (one flipped byte) fails. Evidence: docs/evidence/lean-chunk-completion/open-uqs/README.md",
+      "evidence": "whole-chunk fixtures: eth-wallet-fixtures: genesis ETH-implicit accounts holding each of the four legacy wallet magic hashes (as pre-PV83 accounts do), called through the chain's global wallet (rlp_execute transfers and function calls through the wallet, failing calls) and, in a second scenario, before the global wallet exists; 8 seeds (701-704, 791-794), 931 honest chunks + 9,719 mutants = 10,650 cases, allFeatures 0 accept/reject disagreements with cold nearcore (7 named e.code_prep_race exclusions of baseline code mutants), blind 908/908 gradable honest chunks match; signed tier 0 disagreements (every wallet chunk excluded as e.eth_implicit_local). Breakage control: a checker built with the redirect ablated (control/ablate-eth-redirect.patch: a magic-hash ETH-implicit account treated as having no contract) changes 609 rows, all wallet cases: 587 nearcore-valid chunks rejected (post state root) and 22 nearcore-rejected pre-deployment chunks accepted. Lean: Successor/StorageExecution.lean resolveCode via D3.L4.Rci.resolve; UQ-007: legacyWallet_unreachable_pv86, ethWallet_kind_unreachable, 7/7 wallet hashes recomputed from nearcore's embedded wasm equal Lean's (one-byte control fails); the corpus e.eth_implicit_local claims (ordinary local contracts) agree with cold nearcore. Evidence: docs/evidence/lean-chunk-completion/eth-wallet-fixtures/README.md, docs/evidence/lean-chunk-completion/open-uqs/README.md | earlier signed-tier record: D3:236-239 conservatively OOD | 209 exact verdicts; the resolution is deterministic given chain_id (`eth_wallet_global_contract_hash`, lib.rs:89-105) | modelled: `Rci.resolve` (D3/GlobalContract.lean \u00a76) returns `.global (ethWalletHash chainId)` for a wallet magic hash, `.accountLocal h` otherwise; `ethWalletHash`/`walletMagicHash` recomputed from the four pinned res/*.wasm blobs and kept distinct | PROVEN BLOCKER: the delegate cannot lift this guard. `resolvedContract` only ever yields `.none`/`.local _` (`resolvedContract_local_stays_local`), and D3:236-239 rejects every `.local _` on an ETH-implicit receiver, so `guardPremise` survives the delegate (`resolveAccount_eth_local_premise_survives`). Lifting needs an edit to that guard (a `checkD3`-adjacent change), not a delegate | measured on all 539 d3c7-d3c10 OOD cases whose d3_violations contain e.eth_implicit_local or w.shape: the resolving successor `checkD3Global` returns the identical verdict and reason for all 539 (0 differences); 0 of 1,455 decoded accounts in those witnesses carry a wallet magic hash, so no corpus case exercises the redirect",
       "family": "d3-hook",
       "id": "L0-D3-006",
       "lean_path_symbol": "NearSpecV3.Successor.StorageExecution.resolveCode (D3.L4.Rci.resolve) on allFeatures; signed: D3/FunctionCall.lean:236-240",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "runtime/runtime/src/contract_code.rs:56-76 (LegacyEthWallet / EthImplicitGlobalContract); runtime/near-wallet-contract/src/lib.rs:37-52,89-124",
       "owner": "L4",
-      "remaining_work": "validation gap: no whole-chunk fixture of an ETH-implicit account holding a legacy magic-hash contract (such accounts predate PV83, so a PV86 test chain needs them in genesis), and no whole-chunk deliberate-breakage control for the redirect. The corpus claims hold ordinary local contracts (0 of 1,455 decoded accounts carry a magic hash). The signed tier keeps e.eth_implicit_local (210 census claims)",
-      "status": "implemented"
+      "remaining_work": "none on allFeatures. The signed tier keeps e.eth_implicit_local (210 census claims; every wallet chunk of the family is excluded there, never decided wrongly)",
+      "status": "validated"
     },
     {
       "acceptance_tests": "directed u128 overflow deposit",
@@ -3772,7 +3772,7 @@
     },
     {
       "disposition": "resolved 2026-10-29",
-      "disposition_detail": "LegacyEthWallet unreachable at PV86; 7/7 wallet hashes match; no whole-chunk magic-hash fixture (row L0-D3-006) (docs/research/lean-chunk-w00-owner-map.md \u00a73)",
+      "disposition_detail": "LegacyEthWallet unreachable at PV86; 7/7 wallet hashes match; whole-chunk magic-hash fixtures and breakage control in eth-wallet-fixtures (row L0-D3-006, validated) (docs/research/lean-chunk-w00-owner-map.md \u00a73)",
       "id": "UQ-007",
       "owner": "L4",
       "question": "Is the `LegacyEthWallet` branch still reachable at PV86 after `EthImplicitGlobalContract` (83), and which wallet hashes must be enumerated?",

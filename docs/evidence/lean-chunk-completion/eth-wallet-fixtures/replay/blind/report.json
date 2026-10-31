@@ -1,0 +1,58 @@
+{
+  "scope": "validator-generated fixtures; expected outputs from the nearcore-produced header",
+  "cases": 931,
+  "graded": 908,
+  "counts": {
+    "match": 908,
+    "nearcore_reject": 22,
+    "genesis": 1
+  },
+  "mismatch_percent": 0.0,
+  "verified_match_percent": 100.0,
+  "matched_cases_exercising": {
+    "balance_burnt": 631,
+    "bandwidth_requests": 4,
+    "congestion_buffered_gas": 249,
+    "congestion_receipt_bytes": 249,
+    "gas_used": 907,
+    "implicit_transitions": 116,
+    "proposals": 37
+  },
+  "field_diffs": {
+    "stateRoot": 1,
+    "outcomeRoot": 1,
+    "gasUsed": 1,
+    "balanceBurnt": 1,
+    "outgoingReceiptsRoot": 1,
+    "proposals": 1,
+    "txRoot": 1,
+    "encodedMerkleRoot": 1,
+    "encodedLength": 1,
+    "congestion": 1,
+    "bwRequests": 1
+  },
+  "reasons": {},
+  "compared_outputs": [
+    "stateRoot",
+    "outcomeRoot",
+    "gasUsed",
+    "balanceBurnt",
+    "outgoingReceiptsRoot",
+    "proposals",
+    "txRoot",
+    "encodedMerkleRoot",
+    "encodedLength",
+    "congestion",
+    "bwRequests"
+  ],
+  "identities": {
+    "lean_binary_sha256": "9b583e3a42e6bb50edf5ec8557fea7e30b9f0a01d72724f688aac15929b233f8",
+    "harness_sha256": "11c263d1d71d4716b026224db6d2afa1bedd677d5308d6cb84128ddbefbfc250",
+    "blind_inputs_sha256": "8464ecd8cb2114b3fcc7c378a45c46cdd96f175ea0900f95e9d78bb64232c590",
+    "tier": "allFeatures",
+    "cases_list_sha256": "287757ee90bed6b224cb2d6e417b2487236934726e971dcbddda3f695d10b385"
+  },
+  "changed_artifacts": [],
+  "elapsed_seconds": 937.4810982700437,
+  "pass": true
+}

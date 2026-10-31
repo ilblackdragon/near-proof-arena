@@ -1,0 +1,546 @@
+{
+ "controls": {
+  "ablated": {
+   "accepts_of_nearcore_rejects": 22,
+   "all": {
+    "accept/err": 22,
+    "accept/ok": 2229,
+    "out_of_domain/err": 6,
+    "out_of_domain/ok": 1,
+    "reject/err": 7805,
+    "reject/ok": 587
+   },
+   "changed": {
+    "accept->reject/ok": 587,
+    "reject->accept/err": 22
+   },
+   "changed_reasons": {
+    "": 22,
+    "invalid: InvalidOutcomesProof": 1,
+    "invalid: main transition post state root": 586
+   },
+   "disagreement_rows": [
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew701/ood/00-h10019-s3",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew701/ood/00-h10024-s3",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew701/ood/00-h10025-s3",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew701/ood/00-h10026-s3",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew701/ood/00-h10027-s3",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew701/ood/00-h10029-s3",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew701/ood/00-h10034-s3",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew701/ood/00-h10037-s3",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew701/ood/00-h10041-s3",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew701/ood/00-h10042-s3",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew701/ood/00-h10043-s3",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew701/ood/00-h10044-s3",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew701/ood/00-h10047-s3",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew701/ood/00-h10049-s3",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew701/ood/00-h10050-s3",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew701/ood/00-h10054-s3",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew701/ood/00-h10056-s3",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew701/ood/00-h10061-s3",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew701/ood/00-h10064-s3",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew701/ood/00-h10068-s3",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew701/ood/00-h10069-s3",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew701/ood/00-h10070-s3",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew701/ood/00-h10071-s3",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew701/ood/00-h10076-s3",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew701/ood/00-h10078-s3",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew701/ood/00-h10079-s3",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew701/ood/00-h10082-s3",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew701/ood/00-h10085-s3",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew701/ood/00-h10089-s3",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew701/ood/00-h10091-s3",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew701/ood/00-h10092-s3",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew701/ood/00-h10093-s3",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew701/ood/00-h10098-s3",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew701/ood/00-h10099-s3",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew701/ood/00-h10100-s3",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew701/ood/00-h10101-s3",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew701/ood/00-h10102-s3",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew702/ood/01-h10021-s0",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew702/ood/01-h10022-s0",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew702/ood/01-h10023-s0",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew702/ood/01-h10024-s0",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew702/ood/01-h10026-s0",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew702/ood/01-h10027-s0",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew702/ood/01-h10029-s0",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew702/ood/01-h10033-s0",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew702/ood/01-h10035-s0",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew702/ood/01-h10041-s0",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew702/ood/01-h10042-s0",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew702/ood/01-h10044-s0",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    },
+    {
+     "case": "/data/illia/nearproof-deps/ethw/runs/ew702/ood/01-h10045-s0",
+     "nearcore_ok": true,
+     "reason": "invalid: main transition post state root",
+     "verdict": "reject"
+    }
+   ],
+   "disagreements": 609,
+   "honest": {
+    "accept/err": 22,
+    "accept/ok": 765,
+    "reject/ok": 144
+   },
+   "mutant": {
+    "accept/ok": 1464,
+    "out_of_domain/err": 6,
+    "out_of_domain/ok": 1,
+    "reject/err": 7805,
+    "reject/ok": 443
+   },
+   "per_run": {
+    "ew701": {
+     "accept/ok": 480,
+     "out_of_domain/err": 3,
+     "out_of_domain/ok": 1,
+     "reject/err": 1744,
+     "reject/ok": 162
+    },
+    "ew702": {
+     "accept/ok": 541,
+     "reject/err": 1810,
+     "reject/ok": 128
+    },
+    "ew703": {
+     "accept/ok": 534,
+     "out_of_domain/err": 3,
+     "reject/err": 1816,
+     "reject/ok": 145
+    },
+    "ew704": {
+     "accept/ok": 465,
+     "reject/err": 1700,
+     "reject/ok": 152
+    },
+    "ewp791": {
+     "accept/err": 4,
+     "accept/ok": 44,
+     "reject/err": 137
+    },
+    "ewp792": {
+     "accept/err": 4,
+     "accept/ok": 55,
+     "reject/err": 197
+    },
+    "ewp793": {
+     "accept/err": 7,
+     "accept/ok": 66,
+     "reject/err": 253
+    },
+    "ewp794": {
+     "accept/err": 7,
+     "accept/ok": 44,
+     "reject/err": 148
+    }
+   },
+   "rows_changed_vs_default": 609,
+   "wallet": {
+    "accept/err": 22,
+    "out_of_domain/err": 3,
+    "out_of_domain/ok": 1,
+    "reject/err": 1692,
+    "reject/ok": 587
+   },
+   "wallet_honest": {
+    "accept/err": 22,
+    "reject/ok": 144
+   }
+  }
+ },
+ "tiers": {
+  "allFeatures": {
+   "accepts_of_nearcore_rejects": 0,
+   "all": {
+    "accept/ok": 2816,
+    "out_of_domain/err": 6,
+    "out_of_domain/ok": 1,
+    "reject/err": 7827
+   },
+   "disagreement_rows": [],
+   "disagreements": 0,
+   "honest": {
+    "accept/ok": 909,
+    "reject/err": 22
+   },
+   "mutant": {
+    "accept/ok": 1907,
+    "out_of_domain/err": 6,
+    "out_of_domain/ok": 1,
+    "reject/err": 7805
+   },
+   "per_run": {
+    "ew701": {
+     "accept/ok": 642,
+     "out_of_domain/err": 3,
+     "out_of_domain/ok": 1,
+     "reject/err": 1744
+    },
+    "ew702": {
+     "accept/ok": 669,
+     "reject/err": 1810
+    },
+    "ew703": {
+     "accept/ok": 679,
+     "out_of_domain/err": 3,
+     "reject/err": 1816
+    },
+    "ew704": {
+     "accept/ok": 617,
+     "reject/err": 1700
+    },
+    "ewp791": {
+     "accept/ok": 44,
+     "reject/err": 141
+    },
+    "ewp792": {
+     "accept/ok": 55,
+     "reject/err": 201
+    },
+    "ewp793": {
+     "accept/ok": 66,
+     "reject/err": 260
+    },
+    "ewp794": {
+     "accept/ok": 44,
+     "reject/err": 155
+    }
+   },
+   "wallet": {
+    "accept/ok": 587,
+    "out_of_domain/err": 3,
+    "out_of_domain/ok": 1,
+    "reject/err": 1714
+   },
+   "wallet_honest": {
+    "accept/ok": 144,
+    "reject/err": 22
+   }
+  },
+  "signed": {
+   "accepts_of_nearcore_rejects": 0,
+   "all": {
+    "accept/ok": 1721,
+    "out_of_domain/err": 1862,
+    "out_of_domain/ok": 1096,
+    "reject/err": 5971
+   },
+   "disagreement_rows": [],
+   "disagreements": 0,
+   "honest": {
+    "accept/ok": 629,
+    "out_of_domain/err": 22,
+    "out_of_domain/ok": 280
+   },
+   "mutant": {
+    "accept/ok": 1092,
+    "out_of_domain/err": 1840,
+    "out_of_domain/ok": 816,
+    "reject/err": 5971
+   },
+   "per_run": {
+    "ew701": {
+     "accept/ok": 386,
+     "out_of_domain/err": 405,
+     "out_of_domain/ok": 257,
+     "reject/err": 1342
+    },
+    "ew702": {
+     "accept/ok": 360,
+     "out_of_domain/err": 590,
+     "out_of_domain/ok": 309,
+     "reject/err": 1220
+    },
+    "ew703": {
+     "accept/ok": 422,
+     "out_of_domain/err": 395,
+     "out_of_domain/ok": 257,
+     "reject/err": 1424
+    },
+    "ew704": {
+     "accept/ok": 374,
+     "out_of_domain/err": 408,
+     "out_of_domain/ok": 243,
+     "reject/err": 1292
+    },
+    "ewp791": {
+     "accept/ok": 44,
+     "out_of_domain/err": 4,
+     "reject/err": 137
+    },
+    "ewp792": {
+     "accept/ok": 53,
+     "out_of_domain/err": 4,
+     "out_of_domain/ok": 2,
+     "reject/err": 197
+    },
+    "ewp793": {
+     "accept/ok": 65,
+     "out_of_domain/err": 7,
+     "out_of_domain/ok": 1,
+     "reject/err": 253
+    },
+    "ewp794": {
+     "accept/ok": 17,
+     "out_of_domain/err": 49,
+     "out_of_domain/ok": 27,
+     "reject/err": 106
+    }
+   },
+   "wallet": {
+    "out_of_domain/err": 1006,
+    "out_of_domain/ok": 588,
+    "reject/err": 711
+   },
+   "wallet_honest": {
+    "out_of_domain/err": 22,
+    "out_of_domain/ok": 144
+   }
+  }
+ }
+}
