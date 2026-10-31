@@ -1,0 +1,69 @@
+{
+ "R1_violations": [],
+ "R2_violations": [],
+ "R3_violations": [],
+ "missing_probe": [],
+ "bytes_differ": [],
+ "remaining_races": [
+  {
+   "case": "race1201/mutants/00-h10050-s2-code.drop.1",
+   "eager": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPa",
+   "lazy": "ok"
+  },
+  {
+   "case": "race1201/mutants/00-h10050-s2-code.flip.1",
+   "eager": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPa",
+   "lazy": "ok"
+  },
+  {
+   "case": "race1202/mutants/00-h10014-s1-code.drop.0",
+   "eager": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPa",
+   "lazy": "ok"
+  },
+  {
+   "case": "race1202/mutants/00-h10014-s1-code.flip.0",
+   "eager": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPa",
+   "lazy": "ok"
+  },
+  {
+   "case": "race1202/mutants/00-h10014-s1-code.truncate.0",
+   "eager": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPa",
+   "lazy": "ok"
+  },
+  {
+   "case": "race1202/mutants/00-h10060-s1-code.drop.0",
+   "eager": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPa",
+   "lazy": "ok"
+  },
+  {
+   "case": "race1202/mutants/00-h10060-s1-code.flip.0",
+   "eager": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPa",
+   "lazy": "ok"
+  },
+  {
+   "case": "race1202/mutants/00-h10060-s1-code.truncate.0",
+   "eager": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPa",
+   "lazy": "ok"
+  },
+  {
+   "case": "race1203/mutants/00-h10097-s1-code.drop.0",
+   "eager": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPa",
+   "lazy": "ok"
+  },
+  {
+   "case": "race1203/mutants/00-h10097-s1-code.flip.0",
+   "eager": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPa",
+   "lazy": "ok"
+  },
+  {
+   "case": "race1203/mutants/00-h10097-s1-code.truncate.0",
+   "eager": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPa",
+   "lazy": "ok"
+  }
+ ],
+ "newly_decided": {
+  "reject eager=err lazy=err": 41,
+  "accept eager=ok lazy=ok": 148
+ },
+ "cases": 3853
+}

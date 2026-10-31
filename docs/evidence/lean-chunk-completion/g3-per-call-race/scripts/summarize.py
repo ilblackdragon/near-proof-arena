@@ -2,7 +2,7 @@
 """summarize.py OUT.json : base (main, ee00c918) vs after (G3) on every population and tier."""
 import collections, hashlib, json, os, sys
 
-D = "/data/illia/nearproof-deps/g3-uncertain/rep"
+D = os.environ.get("REP", "/data/illia/nearproof-deps/g3-uncertain/rep")
 POPS = ["fixtures", "census", "race", "raceprobe", "w08", "ethw", "shard13", "corpus"]
 RACE = "out of domain (e.code_prep_race)"
 
