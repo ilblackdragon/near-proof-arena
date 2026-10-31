@@ -1,0 +1,101 @@
+{
+ "run_dir": "/data/illia/nearproof-deps/pq-e2e-zk/e2e/d1_00-h10006-s3",
+ "files": {
+  "FINAL.bundle": {
+   "bytes": 306839,
+   "sha256": "b9df728e7b8c0564d88eb3cbb689db492a9d56ad08328eee95bf131e33b92263"
+  },
+  "FINAL.proof": {
+   "bytes": 305891,
+   "sha256": "be619704f2ae1810190343ad1b7aa52569efcc1d9ea6ac53cef636bcb3f5842e"
+  },
+  "SETUP.json": {
+   "bytes": 3838347,
+   "sha256": "e66567696c0bb370e21f5e0fd93e676c4d591eb8a26b098c5f6d2eaf4655f6aa"
+  },
+  "SETUP.sha256": {
+   "bytes": 64,
+   "sha256": "d01348a4693ee9266491bf686d1c4c88b9f22955c27170f0b249234abfb3a62d"
+  },
+  "RESULT.json": {
+   "bytes": 344,
+   "sha256": "9773d8806b597bbdec74e8d3e7840bfefe19330f1d4e8c921863f1746349faee"
+  },
+  "BASE.proof": {
+   "bytes": 511990,
+   "sha256": "d586dc91bdf41b9d0e97a0abe8e04d3848f3d0ca8790c3a0a50cc23c24c9dfb2"
+  },
+  "BASE.u.json": {
+   "bytes": 2421,
+   "sha256": "11d5621fc9cea0435a618c84defb8b414a12b2f4443447ef42495609c3e145f6"
+  },
+  "hint.bin": {
+   "bytes": 16,
+   "sha256": "4f83b80ea6e2c9beb2b1327a96e22538b0db72d061dd1ae2ca93cfb569393c9b"
+  },
+  "RUN.json": {
+   "bytes": 1333,
+   "sha256": "96c2dac9a025959c2bd5f0b5b6831fed49c1f00a855b45eb9aef62fc7c21d800"
+  },
+  "STAGES.txt": {
+   "bytes": 192,
+   "sha256": "b085a05f7ae7ca4c24a946745ce4105c48f9cf24368840306ababfbaae75a14c"
+  },
+  "NEGATIVES.json": {
+   "bytes": 10805,
+   "sha256": "629a3fcf841964af34667d5f583d72c941947718fae7f217ae7c8f7274e1fbe4"
+  },
+  "base.log": {
+   "bytes": 2869,
+   "sha256": "82ff015c446120aa57b4ba885810144f49bd27648afbcc9555f010d141941450"
+  },
+  "chain.log": {
+   "bytes": 8063,
+   "sha256": "ca20a68ee1799bdb90f845fcdd7303993b2b3b86d184c76454921b99ef332188"
+  },
+  "verify.log": {
+   "bytes": 269,
+   "sha256": "ce867648e0f3bb67401deb566054cb10f23ed613ac61dd53f5d6b6c9b2357ea5"
+  },
+  "dump/claim.bin": {
+   "bytes": 4583,
+   "sha256": "0beeb38494a448ba40162c143bcded33f249b7d753495d957f845d34d9efe808"
+  },
+  "dump/pubs.bin": {
+   "bytes": 15680,
+   "sha256": "b3f162f77c10ee725bb1356fcae35ede2b494e099d4b67b0cb00b5294da04904"
+  },
+  "public/pubs.bin": {
+   "bytes": 15680,
+   "sha256": "b3f162f77c10ee725bb1356fcae35ede2b494e099d4b67b0cb00b5294da04904"
+  },
+  "tools/prover": {
+   "bytes": 105443936,
+   "sha256": "432919a1f64224b9cf0b52e998c93e9461e35d4662a269b39d451c28d87de33a"
+  },
+  "tools/statepublic": {
+   "bytes": 738816,
+   "sha256": "70d4bca0c0092ab17f05654ba500bd0fba0f5548c7880e80abd8af96bd23cd72"
+  },
+  "tools/statedump": {
+   "bytes": 2827480,
+   "sha256": "35511d36e393ff32b0a5d4c30dabcc86a64d59a7c0a15443b843a1d2e037a962"
+  },
+  "L1.proof": {
+   "bytes": 361923,
+   "sha256": "0eb2c3ecf9d556faffc212580558eb0d1c28889b29752fb54b5c17b91ba3f5ca"
+  },
+  "L2.proof": {
+   "bytes": 358185,
+   "sha256": "d0f382c106371f259c52a34b2fbddcdf32b43364436ac52a393b5f8d2a6a0af3"
+  },
+  "L3.proof": {
+   "bytes": 356505,
+   "sha256": "3bb81246cdf386384d398f5a2ad959352a4e73758d3fa29c2b37433fbb01ca39"
+  },
+  "L4.proof": {
+   "bytes": 356337,
+   "sha256": "128c97c81cdfdfb447deb7937bbb3fd4bc0e56d0006dc05fa124d9ae81ff91f3"
+  }
+ }
+}

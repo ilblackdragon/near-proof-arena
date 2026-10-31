@@ -1,0 +1,161 @@
+--- a/whir/Cargo.toml
++++ b/whir/Cargo.toml
+@@ -49,6 +49,7 @@
+ proptest.workspace = true
+ tracing-forest = { workspace = true, features = ["ansi", "smallvec"] }
+ tracing-subscriber = { workspace = true, features = ["std", "env-filter"] }
++sha2 = { workspace = true }
+ 
+ [[bench]]
+ name = "sumcheck"
+@@ -70,5 +71,9 @@
+ name = "whir"
+ required-features = []
+ 
++[[example]]
++name = "zk128"
++required-features = []
++
+ [lints]
+ workspace = true
+--- a/whir/examples/zk128.rs
++++ b/whir/examples/zk128.rs
+@@ -0,0 +1,138 @@
++//! nearproof e2e (2026-10-31): HVZK-WHIR proof-size overhead at the PQ track's security level,
++//! with the PQ track's Merkle hash (SHA-384 truncated to 42 bytes, U-10).
++//!
++//! usage: zk128 NUM_VARIABLES SECURITY LOG_INV_RATE POW_BITS ELL_ZK MASK_LOG_INV_RATE [johnson|capacity]
++use p3_challenger::DuplexChallenger;
++use p3_commit::MultilinearPcs;
++use p3_dft::Radix2DFTSmallBatch;
++use p3_field::extension::BinomialExtensionField;
++use p3_koala_bear::{KoalaBear, Poseidon2KoalaBear};
++use p3_merkle_tree::MerkleTreeMmcs;
++use p3_multilinear_util::point::Point;
++use p3_multilinear_util::poly::Poly;
++use p3_sumcheck::layout::{Layout, PrefixProver, Table};
++use p3_sumcheck::{OpeningBatch, OpeningProtocol, TableShape, TableSpec};
++use p3_field::{PrimeCharacteristicRing, PrimeField32};
++use p3_symmetric::{CryptographicHasher, PseudoCompressionFunction};
++use p3_whir::parameters::{FoldingFactor, ProtocolParameters, SecurityAssumption, WhirConfig};
++use p3_whir::pcs::prover::WhirProver;
++use p3_whir::pcs::zk::{HidingWhirPcs, ZkParameters, ZkWhirConfig};
++use rand::SeedableRng;
++use rand::rngs::{SmallRng, StdRng};
++use sha2::Digest;
++
++type F = KoalaBear;
++type EF = BinomialExtensionField<F, 8>;
++type Poseidon16 = Poseidon2KoalaBear<16>;
++type Challenger = DuplexChallenger<F, Poseidon16, 16, 8>;
++
++/// SHA-384 with an 11-element KoalaBear digest (11 x 31 = 341 bits, the analogue of the PQ
++/// track's 336-bit / 42-byte truncation; serialized as 11 field elements).
++#[derive(Clone, Copy, Debug, Default)]
++struct Sha384F;
++const W: usize = 11;
++fn sha_to_digest(h: sha2::Sha384) -> [F; W] {
++    let d = h.finalize();
++    core::array::from_fn(|i| {
++        F::from_u32(u32::from_le_bytes(d[4 * i..4 * i + 4].try_into().unwrap()) & 0x3fff_ffff)
++    })
++}
++impl CryptographicHasher<F, [F; W]> for Sha384F {
++    fn hash_iter<I: IntoIterator<Item = F>>(&self, input: I) -> [F; W] {
++        let mut h = sha2::Sha384::new();
++        for x in input {
++            h.update(x.as_canonical_u32().to_le_bytes());
++        }
++        sha_to_digest(h)
++    }
++}
++impl PseudoCompressionFunction<[F; W], 2> for Sha384F {
++    fn compress(&self, input: [[F; W]; 2]) -> [F; W] {
++        let mut h = sha2::Sha384::new();
++        h.update([1u8]);
++        for x in input.iter().flatten() {
++            h.update(x.as_canonical_u32().to_le_bytes());
++        }
++        sha_to_digest(h)
++    }
++}
++type Mmcs = MerkleTreeMmcs<F, F, Sha384F, Sha384F, 2, W>;
++type Dft = Radix2DFTSmallBatch<F>;
++type PlainPcs = WhirProver<EF, F, Dft, Mmcs, Challenger, PrefixProver<F, EF>>;
++type ZkPcs = HidingWhirPcs<EF, F, Dft, Mmcs, Challenger, StdRng>;
++
++fn mmcs() -> Mmcs {
++    Mmcs::new(Sha384F, Sha384F, 0)
++}
++fn challenger() -> Challenger {
++    let mut rng = SmallRng::seed_from_u64(2);
++    Challenger::new(Poseidon16::new_from_rng_128(&mut rng))
++}
++
++fn main() {
++    let a: Vec<String> = std::env::args().collect();
++    let n: usize = a[1].parse().unwrap();
++    let security_level: usize = a[2].parse().unwrap();
++    let log_inv_rate: usize = a[3].parse().unwrap();
++    let pow_bits: usize = a[4].parse().unwrap();
++    let ell_zk: usize = a[5].parse().unwrap();
++    let mask_log_inv_rate: usize = a[6].parse().unwrap();
++    let soundness_type = match a.get(7).map(String::as_str) {
++        Some("capacity") => SecurityAssumption::CapacityBound,
++        _ => SecurityAssumption::JohnsonBound,
++    };
++    let params = || ProtocolParameters {
++        security_level,
++        pow_bits,
++        round_log_inv_rates: Vec::new(),
++        folding_factor: FoldingFactor::Constant(4),
++        soundness_type,
++        starting_log_inv_rate: log_inv_rate,
++    };
++    // plain
++    let config = match WhirConfig::new_with_initial_claims(n, params(), 1) {
++        Ok(c) => c,
++        Err(e) => {
++            println!("ZK128 plain_config_error={e:?}");
++            return;
++        }
++    };
++    let pcs = PlainPcs::new(config, Dft::default(), mmcs());
++    let mut rng = SmallRng::seed_from_u64(3);
++    let table = Table::rand(&mut rng, 1, n);
++    let protocol = OpeningProtocol::new(vec![TableSpec::new(
++        TableShape::new(n, 1),
++        vec![OpeningBatch::new(vec![0], Vec::new())],
++    )]);
++    let mut ch = challenger();
++    let witness = PrefixProver::<F, EF>::new_witness(vec![table], 4);
++    let t = std::time::Instant::now();
++    let (_, data) = pcs.commit(witness, &mut ch).unwrap();
++    let plain_proof = pcs.open(data, protocol, &mut ch).unwrap();
++    let plain_ms = t.elapsed().as_secs_f64() * 1e3;
++    let plain = postcard::to_allocvec(&plain_proof).unwrap().len();
++    // zk
++    let zk = ZkParameters { ell_zk, mask_log_inv_rate };
++    let config = match ZkWhirConfig::<EF, F, Challenger>::new(n, params(), zk) {
++        Ok(c) => c,
++        Err(e) => {
++            println!("ZK128 n={n} sec={security_level} rate=2^-{log_inv_rate} pow={pow_bits} ell_zk={ell_zk} mask_rate=2^-{mask_log_inv_rate} plain_bytes={plain} zk_config_error={e:?}");
++            return;
++        }
++    };
++    let pcs = ZkPcs::new(config, Dft::default(), mmcs(), StdRng::seed_from_u64(4));
++    let mut rng = SmallRng::seed_from_u64(3);
++    let witness = Poly::<F>::rand(&mut rng, n);
++    let points = vec![Point::<EF>::rand(&mut rng, n)];
++    let mut ch = challenger();
++    let t = std::time::Instant::now();
++    let (_, data) = pcs.commit(witness, &mut ch).unwrap();
++    let zk_proof = pcs.open(data, points, &mut ch).unwrap();
++    let zk_ms = t.elapsed().as_secs_f64() * 1e3;
++    let zkb = postcard::to_allocvec(&zk_proof).unwrap().len();
++    println!(
++        "ZK128 n={n} sec={security_level} {soundness_type:?} rate=2^-{log_inv_rate} pow={pow_bits} ell_zk={ell_zk} mask_rate=2^-{mask_log_inv_rate} digest={} plain_bytes={plain} zk_bytes={zkb} delta_bytes={} plain_ms={plain_ms:.1} zk_ms={zk_ms:.1}",
++        "11F",
++        zkb as i64 - plain as i64
++    );
++}

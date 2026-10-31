@@ -12,6 +12,7 @@ root = pathlib.Path(__file__).resolve().parents[4]
 air = root / 'examples/np-udr-stark-v2/source/near-air-v3.json'
 B = pathlib.Path(os.environ.get('PROVER', run / 'tools/prover'))
 C = run / 'tools'
+REF = os.environ.get('REFERENCE_CHECKER', '/data/illia/nearproof/spec/lean/v3/.lake/build/bin/nearspec-v3-check')
 pin = (run / 'SETUP.sha256').read_text().strip()
 packet = (run / 'FINAL.bundle').read_bytes()
 outdir = run / 'negatives'
@@ -44,7 +45,14 @@ with tempfile.TemporaryDirectory(prefix='e2e-claims-', dir='/data/illia/nearproo
         i = int(len(cb) * frac)
         m = bytearray(cb); m[i] ^= 0x01
         p = d / f'claim-{i}.bin'; p.write_bytes(bytes(m))
-        verify(f'claim_byte_{i}_flipped', p, packet)
+        # The expected verdict is the reference relation's: the Lean checker on (mutated claim,
+        # original witness). A byte the relation does not bind leaves a true statement, which the
+        # proof must then accept; any other mutation must be rejected.
+        cdir = d / f'case-{i}'; cdir.mkdir()
+        shutil.copy(p, cdir / 'claim.bin'); shutil.copy(case / 'witness.bin', cdir / 'witness.bin')
+        ref = subprocess.run([REF, str(cdir)], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=600)
+        ref_accept = b'"verdict": "accept"' in ref.stdout
+        verify(f'claim_byte_{i}_flipped' + ('_ref_accepts' if ref_accept else ''), p, packet, expect_ok=ref_accept)
     shutil.copy(other / 'claim.bin', d / 'other.bin')
     verify('claim_of_other_chunk', d / 'other.bin', packet)
 
@@ -80,8 +88,11 @@ if wrong_witness:
     with tempfile.TemporaryDirectory(prefix='e2e-ww-', dir='/data/illia/nearproof-deps') as d:
         d = pathlib.Path(d)
         shutil.copytree(run / 'dump', d / 'dump')
+        # head row 10, column 20: a constrained cell (constraint 38 of `head` fails); see
+        # precheck_mutations.py for cells the AIR leaves free (e.g. last-active-row transition columns)
         t = d / 'dump' / 'head.bin'
-        m = bytearray(t.read_bytes()); m[len(m) // 2] ^= 0x01; t.write_bytes(bytes(m))
+        m = bytearray(t.read_bytes()); w = int.from_bytes(m[4:8], 'little'); off = 8 + 4 * (10 * w + 20)
+        m[off] ^= 0x01; t.write_bytes(bytes(m))
         k = root / 'research/near-compression/final-soundness'
         r = subprocess.run([str(B), 'base', str(air), str(d / 'dump'), str(d / 'out'),
                             str(k / 'calc/dkt_certs_o2.json'), str(k / 'lean/DKTCertsO2_big.keys')],

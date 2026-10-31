@@ -1,0 +1,3 @@
+ZK128 n=16 sec=100 CapacityBound rate=2^-2 pow=16 ell_zk=16 mask_rate=2^-5 digest=11F plain_bytes=44966 zk_bytes=149439 delta_bytes=104473 plain_ms=129.5 zk_ms=270.1
+ZK128 n=18 sec=100 CapacityBound rate=2^-2 pow=16 ell_zk=16 mask_rate=2^-5 digest=11F plain_bytes=52086 zk_bytes=156563 delta_bytes=104477 plain_ms=258.3 zk_ms=318.1
+ZK128 n=18 sec=128 JohnsonBound rate=2^-1 pow=0 ell_zk=3 mask_rate=2^-3 digest=11F plain_bytes=187534 zk_bytes=480858 delta_bytes=293324 plain_ms=165.9 zk_ms=221.7

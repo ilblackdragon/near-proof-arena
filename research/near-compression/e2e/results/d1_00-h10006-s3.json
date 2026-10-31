@@ -1,0 +1,113 @@
+{
+ "run": "d1_00-h10006-s3",
+ "case_inputs": {
+  "/data/illia/nearproof/.claude/worktrees/agent-a15258dbe0d009163/examples/np-udr-stark-v2/source/near-air-v3.json": "fa599b3b0c2dc786c295959ce92cfbbe73d74c4414b77979b436512a8ae3b452",
+  "/data/illia/nearproof-deps/corpora/d1run/d1/00-h10006-s3/claim.bin": "0beeb38494a448ba40162c143bcded33f249b7d753495d957f845d34d9efe808",
+  "/data/illia/nearproof-deps/corpora/d1run/d1/00-h10006-s3/witness.bin": "7c346980e8ecf438c3c79ed13c037842404ea4f244560bd4bbf4e05a2af6c35c",
+  "/data/illia/nearproof-deps/pq-e2e-zk/e2e/d1_00-h10006-s3/tools/prover": "432919a1f64224b9cf0b52e998c93e9461e35d4662a269b39d451c28d87de33a",
+  "/data/illia/nearproof-deps/pq-e2e-zk/e2e/d1_00-h10006-s3/tools/statepublic": "70d4bca0c0092ab17f05654ba500bd0fba0f5548c7880e80abd8af96bd23cd72",
+  "/data/illia/nearproof-deps/pq-e2e-zk/e2e/d1_00-h10006-s3/tools/statedump": "35511d36e393ff32b0a5d4c30dabcc86a64d59a7c0a15443b843a1d2e037a962",
+  "/data/illia/nearproof/.claude/worktrees/agent-a15258dbe0d009163/research/near-compression/native/pq-chunk-e2e/Cargo.lock": "25edf82c12736012c42a5db8f260e4e6f80d48460b9ca76e6b8f6ce52ed1b435"
+ },
+ "env": {
+  "NEARPROOF_CHAIN_GEOM": "ns19lb6",
+  "NEARPROOF_TAPE_EVAL": "1",
+  "RAYON_NUM_THREADS": "16",
+  "HEAVY_MEM": "32G"
+ },
+ "base_proof_bytes": 511990,
+ "levels": [
+  {
+   "level": "L1",
+   "program_rows": 230754,
+   "shapes": "[(1048576, 76), (2097152, 83), (128, 9), (65536, 5)]",
+   "proof_bytes": 361923,
+   "prove_s": 576.37
+  },
+  {
+   "level": "L2",
+   "program_rows": 143230,
+   "shapes": "[(1048576, 76), (2097152, 83), (128, 9), (65536, 5)]",
+   "proof_bytes": 358185,
+   "prove_s": 469.04
+  },
+  {
+   "level": "L3",
+   "program_rows": 142938,
+   "shapes": "[(1048576, 76), (2097152, 83), (128, 9), (65536, 5)]",
+   "proof_bytes": 356505,
+   "prove_s": 515.07
+  },
+  {
+   "level": "L4",
+   "program_rows": 142938,
+   "shapes": "[(1048576, 76), (2097152, 83), (128, 9), (65536, 5)]",
+   "proof_bytes": 356337,
+   "prove_s": 490.53
+  }
+ ],
+ "final_prove_s": 494.306522,
+ "result": {
+  "bundle_bytes": 306839,
+  "hint_bytes": 16,
+  "levels": 5,
+  "proof_bytes": 305891,
+  "scope": "D0a",
+  "security_established": false,
+  "setup_sha256": "e66567696c0bb370e21f5e0fd93e676c4d591eb8a26b098c5f6d2eaf4655f6aa",
+  "tape_eval": true,
+  "trusted_setup_bytes": 3838347,
+  "under_300000": false,
+  "zero_knowledge_established": false
+ },
+ "stages": {
+  "validate-base": {
+   "wall_s": 37.25,
+   "peak_rss_gib": 4.93
+  },
+  "chain": {
+   "wall_s": 2635.09,
+   "peak_rss_gib": 16.88
+  },
+  "verify": {
+   "wall_s": 0.29,
+   "peak_rss_gib": null
+  }
+ },
+ "verify_profile_ms": {
+  "total": "190.25",
+  "setup_read_pin": "2.76",
+  "setup_parse": "5.68",
+  "air_pin_bundle_read": "1.40",
+  "statepublic_subprocess": "36.37",
+  "expected_claim_tape": "101.66",
+  "proof_decode": "0.25",
+  "final_verify": "42.12"
+ },
+ "verify_ok": true,
+ "negatives": {
+  "untouched": "PASS (accepted)",
+  "claim_byte_91_flipped": "PASS (rejected)",
+  "claim_byte_1145_flipped": "PASS (rejected)",
+  "claim_byte_2291_flipped": "PASS (rejected)",
+  "claim_byte_3437_flipped": "PASS (rejected)",
+  "claim_byte_4491_flipped_ref_accepts": "PASS (accepted)",
+  "claim_of_other_chunk": "PASS (rejected)",
+  "hint_byte_flipped": "PASS (rejected)",
+  "base_point_u_flipped": "PASS (rejected)",
+  "base_point_u_last_flipped": "PASS (rejected)",
+  "proof_byte_0pct_flipped": "PASS (rejected)",
+  "proof_byte_10pct_flipped": "PASS (rejected)",
+  "proof_byte_33pct_flipped": "PASS (rejected)",
+  "proof_byte_50pct_flipped": "PASS (rejected)",
+  "proof_byte_66pct_flipped": "PASS (rejected)",
+  "proof_byte_90pct_flipped": "PASS (rejected)",
+  "proof_last_byte_flipped": "PASS (rejected)",
+  "trailing_byte": "PASS (rejected)",
+  "truncated_proof": "PASS (rejected)",
+  "truncated_to_hint": "PASS (rejected)",
+  "untrusted_setup_pin": "PASS (rejected)",
+  "wrong_witness_base_proof": "PASS (rejected)",
+  "wrong_witness_prover_precheck": "PASS (rejected)"
+ }
+}
