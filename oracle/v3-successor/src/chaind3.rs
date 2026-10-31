@@ -144,7 +144,11 @@ pub fn setup_d3(p: &ChainParams, min_gas_price: u128) -> Setup {
             let compiled = near_vm_runner::precompile_contract(&code, Arc::clone(&wasm_config), Some(cache)).expect("cache");
             // `runtime-errors` registers contracts that fail preparation on purpose (src/rterr.rs);
             // their cached compilation error is what nearcore itself would cache
-            if crate::xfam::kind() != Some(crate::xfam::Kind::RuntimeErrors) {
+            // likewise an injected `NEAR_SUCCESSOR_CONTRACT` (L0 row validation: contracts that fail
+            // preparation or Wasmtime compilation on purpose)
+            if crate::xfam::kind() != Some(crate::xfam::Kind::RuntimeErrors)
+                && std::env::var_os("NEAR_SUCCESSOR_CONTRACT").is_none()
+            {
                 compiled.expect("compile");
             }
         }

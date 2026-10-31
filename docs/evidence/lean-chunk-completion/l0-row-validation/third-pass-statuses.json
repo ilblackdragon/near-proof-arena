@@ -1,0 +1,110 @@
+{
+ "_doc": "Third-pass (2026-10-31) row entries, merged into rows.json by `tools/d3/l0_exercise.py statuses` after second-pass-statuses.json (they replace those rows' second-pass entries). Lemmas: spec/lean/v3/NearSpecV3/L0GuardSubsumption.lean. Evidence: third-pass/README.md.",
+ "L0-D2-012": {
+  "status": "impossible-at-boundary",
+  "reason": "on allFeatures this guard runs only in checkD2CoreGWith, i.e. only for claims whose segment contains the genesis block (Successor/Config.lean `segmentHasGenesis`; every other segment goes to checkReshardCore, which decides layout changes and recomputes the split gate). It runs after the epoch-protocol-version check (`c.pv86`, L0-D2-011), so when it is reached every epoch of the claim is PV86. A segment that reaches genesis is hash-linked from the genesis block to the prev block, so it references every epoch from the genesis epoch to the witness epoch, and all of them are PV86, the genesis epoch included. nearcore requires the genesis epoch's config to be static for every genesis protocol version other than 29 (chain/epoch-manager/src/genesis.rs:63-69), so config(86) is static on such a chain: every PV86 epoch keeps the genesis layout (next_next_shard_layout, lib.rs:679-745), and no block of the segment can carry a split gate, because nearcore computes one only under a dynamic config of the applied block's epoch (chain/chain/src/runtime/mod.rs:282-298, 597; the oracle's claim.rs:174-193 builds the claim's gate by the same rule). So an honest claim never fails it; a claim that does is false and is excluded, never accepted. On mainnet (genesis PV 29) a genesis-reaching segment fails `c.pv86` first",
+  "lean": [
+   "NearSpecV3.L0Guards.genesis_segment_same_layout"
+  ],
+  "surface": [
+   {
+    "file": "Successor/Config.lean",
+    "text": "if cfg.resharding && !segmentHasGenesis claimBytes then"
+   },
+   {
+    "file": "Successor/RuntimeCore.lean",
+    "text": "check (c.epochs.all (·.protocolVersion == 86)) \"out of domain (c.pv86): epoch protocol version\"\n  check (c.epochs.all (·.shardLayout == ep.shardLayout)) \"out of domain (c.same_layout): resharding\""
+   }
+  ],
+  "paths": [
+   "docs/evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md"
+  ],
+  "lean_path_symbol": "allFeatures: only on segments containing the genesis block (checkD2CoreGWith, Successor/RuntimeCore.lean:436); signed: ChunkValidationD2.lean:140"
+ },
+ "L0-same-layout": {
+  "status": "impossible-at-boundary",
+  "reason": "the guard of L0-D2-012: on allFeatures this guard runs only in checkD2CoreGWith, i.e. only for claims whose segment contains the genesis block (Successor/Config.lean `segmentHasGenesis`; every other segment goes to checkReshardCore, which decides layout changes and recomputes the split gate). It runs after the epoch-protocol-version check (`c.pv86`, L0-D2-011), so when it is reached every epoch of the claim is PV86. A segment that reaches genesis is hash-linked from the genesis block to the prev block, so it references every epoch from the genesis epoch to the witness epoch, and all of them are PV86, the genesis epoch included. nearcore requires the genesis epoch's config to be static for every genesis protocol version other than 29 (chain/epoch-manager/src/genesis.rs:63-69), so config(86) is static on such a chain: every PV86 epoch keeps the genesis layout (next_next_shard_layout, lib.rs:679-745), and no block of the segment can carry a split gate, because nearcore computes one only under a dynamic config of the applied block's epoch (chain/chain/src/runtime/mod.rs:282-298, 597; the oracle's claim.rs:174-193 builds the claim's gate by the same rule). So an honest claim never fails it; a claim that does is false and is excluded, never accepted. On mainnet (genesis PV 29) a genesis-reaching segment fails `c.pv86` first",
+  "lean": [
+   "NearSpecV3.L0Guards.genesis_segment_same_layout"
+  ],
+  "surface": [
+   {
+    "file": "Successor/Config.lean",
+    "text": "if cfg.resharding && !segmentHasGenesis claimBytes then"
+   },
+   {
+    "file": "Successor/RuntimeCore.lean",
+    "text": "check (c.epochs.all (·.protocolVersion == 86)) \"out of domain (c.pv86): epoch protocol version\"\n  check (c.epochs.all (·.shardLayout == ep.shardLayout)) \"out of domain (c.same_layout): resharding\""
+   }
+  ],
+  "paths": [
+   "docs/evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md"
+  ]
+ },
+ "L0-D2-019": {
+  "status": "impossible-at-boundary",
+  "reason": "on allFeatures this guard runs only in checkD2CoreGWith, i.e. only for claims whose segment contains the genesis block (Successor/Config.lean `segmentHasGenesis`; every other segment goes to checkReshardCore, which decides layout changes and recomputes the split gate). It runs after the epoch-protocol-version check (`c.pv86`, L0-D2-011), so when it is reached every epoch of the claim is PV86. A segment that reaches genesis is hash-linked from the genesis block to the prev block, so it references every epoch from the genesis epoch to the witness epoch, and all of them are PV86, the genesis epoch included. nearcore requires the genesis epoch's config to be static for every genesis protocol version other than 29 (chain/epoch-manager/src/genesis.rs:63-69), so config(86) is static on such a chain: every PV86 epoch keeps the genesis layout (next_next_shard_layout, lib.rs:679-745), and no block of the segment can carry a split gate, because nearcore computes one only under a dynamic config of the applied block's epoch (chain/chain/src/runtime/mod.rs:282-298, 597; the oracle's claim.rs:174-193 builds the claim's gate by the same rule). So an honest claim never fails it; a claim that does is false and is excluded, never accepted. On mainnet (genesis PV 29) a genesis-reaching segment fails `c.pv86` first",
+  "lean": [
+   "NearSpecV3.L0Guards.genesis_segment_no_split_gate"
+  ],
+  "surface": [
+   {
+    "file": "Successor/Config.lean",
+    "text": "if cfg.resharding && !segmentHasGenesis claimBytes then"
+   },
+   {
+    "file": "Successor/RuntimeCore.lean",
+    "text": "check (c.applyFacts.all fun f => f.splitGate.isNone) \"out of domain (c.no_split_gate)\""
+   }
+  ],
+  "paths": [
+   "docs/evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md"
+  ],
+  "lean_path_symbol": "allFeatures: only on segments containing the genesis block (checkD2CoreGWith, Successor/RuntimeCore.lean:455); signed: ChunkValidationD2.lean:156"
+ },
+ "L0-split-gate": {
+  "status": "impossible-at-boundary",
+  "reason": "the guard of L0-D2-019: on allFeatures this guard runs only in checkD2CoreGWith, i.e. only for claims whose segment contains the genesis block (Successor/Config.lean `segmentHasGenesis`; every other segment goes to checkReshardCore, which decides layout changes and recomputes the split gate). It runs after the epoch-protocol-version check (`c.pv86`, L0-D2-011), so when it is reached every epoch of the claim is PV86. A segment that reaches genesis is hash-linked from the genesis block to the prev block, so it references every epoch from the genesis epoch to the witness epoch, and all of them are PV86, the genesis epoch included. nearcore requires the genesis epoch's config to be static for every genesis protocol version other than 29 (chain/epoch-manager/src/genesis.rs:63-69), so config(86) is static on such a chain: every PV86 epoch keeps the genesis layout (next_next_shard_layout, lib.rs:679-745), and no block of the segment can carry a split gate, because nearcore computes one only under a dynamic config of the applied block's epoch (chain/chain/src/runtime/mod.rs:282-298, 597; the oracle's claim.rs:174-193 builds the claim's gate by the same rule). So an honest claim never fails it; a claim that does is false and is excluded, never accepted. On mainnet (genesis PV 29) a genesis-reaching segment fails `c.pv86` first",
+  "lean": [
+   "NearSpecV3.L0Guards.genesis_segment_no_split_gate"
+  ],
+  "surface": [
+   {
+    "file": "Successor/Config.lean",
+    "text": "if cfg.resharding && !segmentHasGenesis claimBytes then"
+   },
+   {
+    "file": "Successor/RuntimeCore.lean",
+    "text": "check (c.applyFacts.all fun f => f.splitGate.isNone) \"out of domain (c.no_split_gate)\""
+   }
+  ],
+  "paths": [
+   "docs/evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md"
+  ]
+ },
+ "L0-guard-noResharding": {
+  "status": "impossible-at-boundary",
+  "reason": "a description of the two guards of L0-D2-012 (c.same_layout) and L0-D2-019 (c.no_split_gate). On allFeatures both run only on genesis-containing segments, where neither can fail on an honest claim: on allFeatures this guard runs only in checkD2CoreGWith, i.e. only for claims whose segment contains the genesis block (Successor/Config.lean `segmentHasGenesis`; every other segment goes to checkReshardCore, which decides layout changes and recomputes the split gate). It runs after the epoch-protocol-version check (`c.pv86`, L0-D2-011), so when it is reached every epoch of the claim is PV86. A segment that reaches genesis is hash-linked from the genesis block to the prev block, so it references every epoch from the genesis epoch to the witness epoch, and all of them are PV86, the genesis epoch included. nearcore requires the genesis epoch's config to be static for every genesis protocol version other than 29 (chain/epoch-manager/src/genesis.rs:63-69), so config(86) is static on such a chain: every PV86 epoch keeps the genesis layout (next_next_shard_layout, lib.rs:679-745), and no block of the segment can carry a split gate, because nearcore computes one only under a dynamic config of the applied block's epoch (chain/chain/src/runtime/mod.rs:282-298, 597; the oracle's claim.rs:174-193 builds the claim's gate by the same rule). So an honest claim never fails it; a claim that does is false and is excluded, never accepted. On mainnet (genesis PV 29) a genesis-reaching segment fails `c.pv86` first",
+  "lean": [
+   "NearSpecV3.L0Guards.genesis_segment_same_layout",
+   "NearSpecV3.L0Guards.genesis_segment_no_split_gate"
+  ],
+  "surface": [
+   {
+    "file": "Successor/Config.lean",
+    "text": "if cfg.resharding && !segmentHasGenesis claimBytes then"
+   },
+   {
+    "file": "Successor/RuntimeCore.lean",
+    "text": "check (c.epochs.all (·.protocolVersion == 86)) \"out of domain (c.pv86): epoch protocol version\"\n  check (c.epochs.all (·.shardLayout == ep.shardLayout)) \"out of domain (c.same_layout): resharding\""
+   },
+   {
+    "file": "Successor/RuntimeCore.lean",
+    "text": "check (c.applyFacts.all fun f => f.splitGate.isNone) \"out of domain (c.no_split_gate)\""
+   }
+  ],
+  "paths": [
+   "docs/evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md"
+  ]
+ }
+}

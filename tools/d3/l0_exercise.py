@@ -104,8 +104,10 @@ def cmd_identity(a):
     return 1 if diff else 0
 
 
-def expected(case):
+def expected(case, exclude_sources=()):
     m = json.loads((Path(case) / "meta.json").read_text())
+    if m.get("verdict_source") in exclude_sources:
+        return None  # e.g. tx_valid flips / derived trusted facts: not a nearcore-judged negative
     return m.get("expected_rel")
 
 
@@ -113,7 +115,7 @@ def cmd_map(a):
     rows = collections.defaultdict(lambda: {"accept": [], "reject": [], "disagree": []})
     for p in a.trace:
         for r in load_jsonl(p):
-            e = expected(r["case"])
+            e = expected(r["case"], a.exclude_sources or ())
             if type(e) is not bool:
                 continue
             k = "accept" if e else "reject"
@@ -222,6 +224,11 @@ GUARD_ROWS = {
     "invalid: witness chunk header differs from the claim": "L0-D2-003",
     "invalid: epoch id": "L0-D2-004",
     "invalid: Reed-Solomon parameters": "L0-D2-014",
+    # third pass (2026-10-31): witness + claim mutants judged by cold nearcore
+    # (oracle/v3-successor/src/l0mut.rs, NEAR_L0_ROW_MUTANTS=1)
+    "invalid: new transaction exceeds max_transaction_size": "L0-D2-020",
+    "invalid: slot count": "L0-D2-023",
+    "invalid: height_included above block height (block_congestion_info panics)": "L0-D2-025",
 }
 THROW_ROWS = {
     "invalid: shard not in layout": "L0-D2-024",
@@ -392,6 +399,9 @@ def main():
     m = sp.add_parser("map")
     m.add_argument("--trace", type=Path, nargs="+", required=True)
     m.add_argument("--out", type=Path, required=True)
+    m.add_argument("--exclude-sources", nargs="*",
+                   help="meta.json verdict_source values whose cases are left out of the map "
+                        "(e.g. 'nearcore(cold,tx_valid=claim)' derived)")
     b = sp.add_parser("ablate")
     b.add_argument("--binary", type=Path, required=True)
     b.add_argument("--map", type=Path, required=True)
