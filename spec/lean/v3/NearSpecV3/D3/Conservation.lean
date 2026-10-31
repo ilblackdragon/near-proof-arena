@@ -297,6 +297,10 @@ They are also assumed no larger than `Lim.maxReceiptSize` (4 MiB): `validReceipt
 size clause, and a receipt with ~`2^32` output-data receivers, appended to an emitted receipt,
 wraps that receipt's `u32` count so its stored bytes decode to a different receipt. Every receipt
 the runtime creates passes `validReceipt true`, which includes the bound.
+The number of data receipts among them is bounded too (`≤ 38000`; the 26,888 corpus chunks have at
+most 10): a yield or postponed receipt rewritten in the chunk gains output-data receivers on each
+resume, and each resume costs one data input, so the bound caps the generations before the `u32`
+receiver count could wrap.
 
 The shard hypotheses say the chunk's inputs belong to the shard. `checkD2CoreObs` establishes the
 first (it filters the incoming receipts by `L.shardOf r.recv == H.shardId`,
@@ -313,6 +317,8 @@ def ChunkConservation : Prop :=
     (∀ v, t.find (nibbles (kAccount AccountId.system)) ≠ some (some v)) →
     (∀ r ∈ incoming ++ storedRcpts t,
       SysGasFree r ∧ validReceipt false r = true ∧ r.encode.length ≤ Lim.maxReceiptSize) →
+    ((incoming ++ storedRcpts t).filter fun r =>
+      match r.body with | .data _ _ _ => true | _ => false).length ≤ 38000 →
     (∀ r ∈ incoming, env.ctx.layout.shardOf r.recv = env.ctx.own) →
     (∀ tf ∈ txs, env.ctx.layout.shardOf tf.1.signer = env.ctx.own) →
     (∀ r ∈ incoming, CanonRcpt r) →
