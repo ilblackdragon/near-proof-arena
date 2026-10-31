@@ -19,13 +19,30 @@ disagreement only when its own bucket says so:
   * `domain_exclusion_asserted` — the checker says out_of_domain and its reason cites a domain code
                                   the oracle independently marks in `d3_violations` for that case.
                                   This is the only form of exclusion that passes.
-  * `domain_exclusion_unasserted` — out_of_domain whose reason is absent, unknown, or not licensed by
-                                  the oracle's `d3_violations`. A failure (no unconditional pass).
+  * `domain_exclusion_independently_asserted` — out_of_domain on an out-of-domain case whose reason
+                                  the oracle's labels do not license (its classifier predates the
+                                  restriction), but whose named predicate an independent Python decode
+                                  of claim.bin / witness.bin establishes (`oracle/tools/
+                                  independent_domain.py`, passed in as `independent`). Pass.
+  * `domain_exclusion_unasserted` — out_of_domain whose reason is absent, unknown, or licensed neither
+                                  by the oracle's `d3_violations` nor by the independent decode. A
+                                  failure (no unconditional pass).
+  * `race_exclusion_conservative` — the preparation-race exclusion on an in-domain
+                                  `e.code_deploy_served` case where nearcore's own forced schedules
+                                  show the same verdict at different failure points and the decode
+                                  finds a deploy-served call: the checker excludes a case nearcore
+                                  decides (a completeness gap, W08 §7). Not a verdict failure; always
+                                  reported in its own bucket.
+  * `accept_above_g_alpha_agree` — with `g_alpha_accepts_compared` (the signed tier, whose hand-over
+                                  path has no G_α: `D3.checkD3_cases`), an accept above G_α that
+                                  nearcore also accepts. Pass; one that nearcore rejects stays
+                                  `accept_above_g_alpha`.
   * `domain_exclusion_where_in_domain` — out_of_domain on a case the relation under test includes.
                                   A failure.
   * `accept_above_g_alpha`      — accept on a case the oracle puts above G_α. A failure.
   * `missing_code_cache_exclusion` — the oracle marks `e.code_cache` and the checker does not report
-                                  the compiled-contract-cache exclusion. A failure, unless the run
+                                  the compiled-contract-cache exclusion (the `code_cache` wording or,
+                                  since W08, `e.code_prep_race`). A failure, unless the run
                                   widens `e.code_cache`: then the verdict is compared with nearcore
                                   and the cache exclusion remains admissible (rolled-back deploys).
   * `verdict_compared_agree`    — accept/reject matches nearcore and the case is in domain. Pass.
@@ -210,6 +227,17 @@ def run_checker(name, dirs, shards, td, timeout=None, exe=None, prefix=()):
     return got
 
 
+# Reason codes that are the compiled-contract-cache exclusion: the classifier family `code_cache`
+# (the pre-W08 wording) and the W08 preparation race.
+CODE_CACHE_REASONS = frozenset({"code_cache", "e.code_prep_race"})
+# Partition buckets that are not failures. Every other bucket is a disagreement and is in `bad`.
+# `race_exclusion_conservative` is a known completeness gap (step 5a), passed only under its
+# independent conditions and always reported separately.
+PASS_BUCKETS = ("domain_exclusion_asserted", "domain_exclusion_independently_asserted",
+                "verdict_compared_agree", "verdict_agree_outside_domain", "accept_above_g_alpha_agree",
+                "race_exclusion_conservative")
+
+
 def boundary(reason):
     r = reason or ""
     if "code_cache" in r or "compiled-contract cache" in r:
@@ -249,12 +277,31 @@ def exclusion_asserted(reason, violations, licenses=None):
     return bool(licensed & set(violations)), codes
 
 
-def compare(label, dirs, metas, got, domain="baseline", widen=(), licenses=None):
+def schedule_failure_point_races(meta):
+    """True iff the oracle's forced preparation schedules (`nearcore_schedule`: `eager`, `lazy`,
+    each nearcore's own validator result) give the same verdict but different results, i.e. the
+    failure point depends on the schedule while the verdict does not. Missing data is False."""
+    s = meta.get("nearcore_schedule")
+    if not isinstance(s, dict):
+        return False
+    eager, lazy = s.get("eager"), s.get("lazy")
+    if not isinstance(eager, str) or not isinstance(lazy, str):
+        return False
+    return (eager == "ok") == (lazy == "ok") and eager != lazy
+
+
+def compare(label, dirs, metas, got, domain="baseline", widen=(), licenses=None, independent=None,
+            g_alpha_accepts_compared=False):
     """Classify every input exactly once.
 
     Returns (stats, bad, partition, records). `stats` keeps the historical per-(family,verdict,nearcore)
     histogram so existing log figures still map; `partition` is the exhaustive, mutually exclusive
-    classification whose sum is asserted equal to len(dirs)."""
+    classification whose sum is asserted equal to len(dirs).
+
+    `independent(case_dir, reason) -> {licensed, predicate, detail}` (oracle/tools/
+    independent_domain.py) licenses an exclusion the oracle's labels do not, from a Python decode of
+    the case; without it only the oracle's labels license. `g_alpha_accepts_compared` compares an
+    accept above G_alpha with nearcore instead of failing it (step 3; the signed tier)."""
     stats = collections.Counter()
     partition = collections.Counter()
     bad = []
@@ -306,6 +353,26 @@ def compare(label, dirs, metas, got, domain="baseline", widen=(), licenses=None)
         in_domain = ind3 or (bool(widened) and not remaining)
         row["in_domain_under_test"] = in_domain
         # ---- 3. a checker must never accept a case above G_alpha -----------------
+        # Except where the relation under test decides above G_alpha. The signed tier does on its
+        # hand-over path: `D3.checkD3_cases` (spec/lean/v3/NearSpecV3/D3/Signed.lean) proves
+        # `checkD3` is the legacy core (which keeps G_alpha) unless the core errs and `handover`
+        # fires, and then it is `signedRecorderCheck Wasm.pv86 none`, i.e. no gas cap (user decision
+        # 2026-10-30). Such an accept is then legitimate iff nearcore accepts too: compared, never
+        # passed unconditionally.
+        if v == "accept" and "e.g_alpha" in viol and "e.g_alpha" not in widen and g_alpha_accepts_compared:
+            agrees = near
+            row.update(verdict_compared=True, verdict_agrees=agrees, exclusion_asserted=None,
+                       in_domain_under_test=in_domain)
+            if agrees:
+                partition["accept_above_g_alpha_agree"] += 1
+                row["classification"] = "accept_above_g_alpha_agree"
+            else:
+                partition["accept_above_g_alpha"] += 1
+                row["classification"] = "accept_above_g_alpha"
+                bad.append((d, f"G_α: {label} accept above G_α, nearcore rejects", reason,
+                            m.get("nearcore")))
+            records.append(row)
+            continue
         if v == "accept" and "e.g_alpha" in viol and "e.g_alpha" not in widen:
             partition["accept_above_g_alpha"] += 1
             bad.append((d, f"G_\u03b1: oracle True, {label} accept", reason,
@@ -318,9 +385,15 @@ def compare(label, dirs, metas, got, domain="baseline", widen=(), licenses=None)
         # A successor that widens `e.code_cache` resolves in-chunk deploys through the deploy
         # tracker, so such a case is compared against nearcore; only a rolled-back deploy may still
         # carry the cache exclusion, which then counts as asserted.
+        # The cache exclusion is either the compiled-contract-cache wording (`code_cache`) or, since
+        # W08 (docs/evidence/lean-chunk-completion/w08-warm-cache), the preparation race
+        # `out of domain (e.code_prep_race)`. On the pre-W08 corpora the oracle's race label is
+        # `e.code_cache`; on the successor generator's corpora it is `e.code_prep_race` (step 5,
+        # through the licence table). `e.code_deploy_served` never licenses the race (step 5a).
         codes = reason_codes(reason)
+        cache_reason = bool(codes & CODE_CACHE_REASONS)
         if "e.code_cache" in viol and "e.code_cache" in widen and v == "out_of_domain" \
-                and "code_cache" in codes and not (set(viol) - widen):
+                and cache_reason and not (set(viol) - widen):
             partition["domain_exclusion_asserted"] += 1
             stats[("domain_exclusion", "asserted", label)] += 1
             row.update(classification="domain_exclusion_asserted", verdict_compared=False,
@@ -328,7 +401,7 @@ def compare(label, dirs, metas, got, domain="baseline", widen=(), licenses=None)
             records.append(row)
             continue
         if "e.code_cache" in viol and "e.code_cache" not in widen \
-                and not (v == "out_of_domain" and "code_cache" in codes):
+                and not (v == "out_of_domain" and cache_reason):
             partition["missing_code_cache_exclusion"] += 1
             bad.append((d, f"code cache: oracle True, {label} {v}", reason, m.get("nearcore")))
             row.update(classification="missing_code_cache_exclusion", verdict_compared=v != "out_of_domain",
@@ -339,12 +412,42 @@ def compare(label, dirs, metas, got, domain="baseline", widen=(), licenses=None)
         if v == "out_of_domain":
             ok, codes = exclusion_asserted(reason, remaining, licenses)
             row.update(exclusion_codes=sorted(codes), exclusion_asserted=ok)
+            # ---- 5a. a conservative race exclusion on a deterministic deploy-served case ------
+            # `e.code_deploy_served` is in domain (nearcore's verdict is the same under both forced
+            # preparation schedules), so the race exclusion there is a checker-vs-oracle domain
+            # disagreement: the checker excludes a case nearcore decides. It is not unexplained only
+            # when nearcore itself shows the schedule dependence the checker stops at: the oracle's
+            # forced eager and lazy runs (`nearcore_schedule`, oracle/v3-successor/src/cachejudge.rs)
+            # give the same verdict at different failure points (W08 §4: the `code.none` mutants
+            # whose failing call races while the verdict does not), and the independent decode finds
+            # a call whose code only an earlier in-chunk deploy serves. Counted in its own bucket and
+            # listed as a known completeness gap, never as an agreement.
+            if in_domain and "e.code_prep_race" in codes and "e.code_deploy_served" in viol:
+                sched = schedule_failure_point_races(m)
+                ind = independent(d, reason) if independent is not None else None
+                row.update(nearcore_schedule_failure_point_races=sched, independent=ind)
+                if sched and ind is not None and ind.get("licensed"):
+                    partition["race_exclusion_conservative"] += 1
+                    row.update(classification="race_exclusion_conservative", verdict_compared=False,
+                               verdict_agrees=None)
+                    records.append(row)
+                    continue
             if in_domain:
                 partition["domain_exclusion_where_in_domain"] += 1
                 row["classification"] = "domain_exclusion_where_in_domain"
                 bad.append((d, f"{label} out_of_domain on an in-domain case ({domain})", reason,
                             m.get("nearcore")))
+            elif not ok and independent is not None and \
+                    (ind := independent(d, reason)) is not None and ind.get("licensed"):
+                # ---- 5b. licensed by an independent decode of the case (oracle/tools/
+                # independent_domain.py): the corpus oracle predates the restriction, so the
+                # predicate the reason names is computed from claim.bin / witness.bin in Python.
+                partition["domain_exclusion_independently_asserted"] += 1
+                row.update(classification="domain_exclusion_independently_asserted", independent=ind)
+                stats[("domain_exclusion", "independently_asserted", label)] += 1
             elif not ok:
+                if independent is not None:
+                    row["independent"] = independent(d, reason)
                 partition["domain_exclusion_unasserted"] += 1
                 row["classification"] = "domain_exclusion_unasserted"
                 bad.append((d, f"{label} out_of_domain without an oracle-asserted reason: {sorted(codes)}",

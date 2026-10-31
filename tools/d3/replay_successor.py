@@ -97,13 +97,39 @@ def load_compare():
     return mod
 
 
+def load_independent():
+    spec = importlib.util.spec_from_file_location(
+        "independent_domain", REPO / "oracle/tools/independent_domain.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def compare_tier(compare, tier, metas, got):
+    """The comparison of one tier's verdicts with nearcore: the oracle's licences, the independent
+    decode for exclusions the oracle does not label, and on the signed tier the G_alpha-free
+    hand-over path (`D3.checkD3_cases`, spec/lean/v3/NearSpecV3/D3/Signed.lean)."""
+    independent = load_independent().classifier("signed" if tier == "signed" else "successor")
+    return compare.compare(
+        tier, list(metas), metas, got,
+        domain="baseline" if tier == "signed" else "successor", widen=TIERS[tier],
+        licenses=licenses(compare), independent=independent,
+        g_alpha_accepts_compared=tier == "signed")
+
+
+HARNESS_FILES = ("tools/d3/replay_successor.py", "oracle/v3-d3/tools/difftest_d3.py",
+                 "oracle/tools/independent_domain.py")
+
+
 def licenses(compare):
     """The pinned harness's exclusion licences plus the successor generator's code labels. The
     signed tier's cold-cache exclusion (`code_cache`) is licensed by either new label; the race
-    exclusion `e.code_prep_race` only by the race label."""
+    exclusion `e.code_prep_race` only by a race label: `e.code_prep_race` on the successor
+    generator's corpora, `e.code_cache` on the pre-W08 corpora, whose generator gave races that label
+    (docs/evidence/lean-chunk-completion/w08-warm-cache §3). Never by `e.code_deploy_served`."""
     table = dict(compare.EXCLUSION_LICENSES)
     table["code_cache"] = table["code_cache"] | {"e.code_deploy_served", "e.code_prep_race"}
-    table["e.code_prep_race"] = frozenset({"e.code_prep_race"})
+    table["e.code_prep_race"] = frozenset({"e.code_prep_race", "e.code_cache"})
     return table
 
 
@@ -127,8 +153,7 @@ def _replay(binary, tier, cases, out, batch=100, timeout=600, jobs=1):
     report = {"schema": "near-successor-replay-v1", "status": "running",
               "package": package, "inputs": inputs, "cases": len(cases),
               "comparison": "verdict-and-domain-only", "workers": jobs,
-              "harness_sources": {str(p.relative_to(REPO)): sha256(p) for p in (
-                  Path(__file__).resolve(), REPO / "oracle/v3-d3/tools/difftest_d3.py")}}
+              "harness_sources": {p: sha256(REPO / p) for p in HARNESS_FILES}}
     report_path = out / "report.json"
     def save():
         report_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
@@ -147,10 +172,7 @@ def _replay(binary, tier, cases, out, batch=100, timeout=600, jobs=1):
         ):
             raise ValueError("executable or input changed during replay")
         compare = load_compare()
-        _, bad, partition, records = compare.compare(
-            tier, list(metas), metas, got,
-            domain="baseline" if tier == "signed" else "successor", widen=TIERS[tier],
-            licenses=licenses(compare))
+        _, bad, partition, records = compare_tier(compare, tier, metas, got)
         if sum(partition.values()) != len(cases):
             raise ValueError("comparison does not account for every input")
         result_path = out / "results.jsonl"
@@ -185,16 +207,92 @@ def replay(binary, tier, cases, out, batch=100, timeout=600, jobs=1):
         raise
 
 
+def rescore(run_dir, out):
+    """Re-run the comparison over a finished run's stored verdicts, without executing the checker.
+
+    Reads `run_dir/report.json` and `run_dir/results.jsonl`; refuses unless the results file is the
+    one the report hashed and every input file (claim, witness, meta) still has the hash recorded
+    before the original execution, so the rescored report judges exactly the verdicts and inputs the
+    checker saw. Writes `out/report.json` (the original is not touched) with the new partition, the
+    per-case comparisons and the old -> new classification of every row."""
+    run_dir, out = Path(run_dir), Path(out)
+    if run_dir.resolve() == out.resolve():
+        raise ValueError("rescore writes a new report; --out must differ from the run directory")
+    old_path = run_dir / "report.json"
+    old = json.loads(old_path.read_text())
+    result_path = run_dir / "results.jsonl"
+    if not result_path.exists() or "output_sha256" not in old:
+        raise ValueError(f"{run_dir} has no stored verdicts (status {old.get('status')!r}, "
+                         f"failure {old.get('failure')!r}): nothing to rescore")
+    if sha256(result_path) != old["output_sha256"]:
+        raise ValueError("results.jsonl is not the file the run's report hashed")
+    tier = old["package"]["tier"]
+    if tier not in TIERS:
+        raise ValueError(f"unknown tier {tier!r}")
+    inputs = old["inputs"]
+    changed = [row["case"] for row in inputs for n, digest in row["files"].items()
+               if sha256(Path(row["case"]) / n) != digest]
+    if changed:
+        raise ValueError(f"{len(changed)} input(s) changed since the run, e.g. {changed[0]}")
+    cases = [row["case"] for row in inputs]
+    got = parse_rows(result_path.read_text(), cases, tier)
+    metas = {c: json.loads((Path(c) / "meta.json").read_text()) for c in cases}
+    for m in metas.values():
+        if type(m.get("expected_rel")) is not bool:
+            raise ValueError("missing boolean nearcore expectation")
+    compare = load_compare()
+    _, bad, partition, records = compare_tier(compare, tier, metas, got)
+    if sum(partition.values()) != len(cases):
+        raise ValueError("comparison does not account for every input")
+    before = {r["case"]: r["classification"] for r in old.get("comparisons", [])}
+    if set(before) != set(got):
+        raise ValueError("the run's report does not classify exactly its stored verdicts")
+    moves = collections.Counter((before[r["case"]], r["classification"]) for r in records)
+    report = {"schema": "near-successor-replay-v1", "mode": "rescore",
+              "status": "fail" if bad else "pass", "package": old["package"], "inputs": inputs,
+              "cases": len(cases), "comparison": "verdict-and-domain-only",
+              "rescored_from": {"report": str(old_path.resolve()), "report_sha256": sha256(old_path),
+                                "status": old.get("status"), "partition": old.get("partition"),
+                                "harness_sources": old.get("harness_sources")},
+              "harness_sources": {p: sha256(REPO / p) for p in HARNESS_FILES},
+              "disagreements": bad, "partition": dict(partition), "output_sha256": old["output_sha256"],
+              "verdicts": dict(collections.Counter(r["verdict"] for r in got.values())),
+              "reclassification": [{"before": a, "after": b, "rows": n}
+                                   for (a, b), n in sorted(moves.items())],
+              "known_gaps": [{"case": r["case"], "classification": r["classification"],
+                              "reason": r["reason"], "nearcore": metas[r["case"]].get("nearcore"),
+                              "nearcore_schedule": metas[r["case"]].get("nearcore_schedule")}
+                             for r in records if r["classification"] == "race_exclusion_conservative"],
+              "checked": compare.OBSERVABLES_CHECKED, "unavailable": compare.OBSERVABLES_UNAVAILABLE,
+              "comparisons": records}
+    out.mkdir(parents=True, exist_ok=True)
+    (out / "report.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
+    return report
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--binary", type=Path, default=REPO / "spec/lean/v3/.lake/build/bin/nearspec-v3-check-successor")
-    parser.add_argument("--tier", required=True, choices=TIERS)
-    parser.add_argument("--cases-file", required=True, type=Path, help="one case directory per line")
+    parser.add_argument("--tier", choices=TIERS)
+    parser.add_argument("--cases-file", type=Path, help="one case directory per line")
     parser.add_argument("--out", required=True, type=Path)
     parser.add_argument("--batch", type=int, default=100)
     parser.add_argument("--timeout", type=float, default=600)
     parser.add_argument("--jobs", type=int, default=1, help="bounded independent checker processes")
+    parser.add_argument("--rescore", type=Path, metavar="RUN_DIR",
+                        help="re-compare a finished run's results.jsonl (no checker execution) and "
+                             "write a new report to --out")
     args = parser.parse_args()
+    if args.rescore is not None:
+        try:
+            report = rescore(args.rescore, args.out)
+            print(json.dumps({k: report[k] for k in ("status", "cases", "verdicts", "partition")}))
+            return int(report["status"] != "pass")
+        except (OSError, ValueError, KeyError) as e:
+            print(f"FAIL: {e}", file=sys.stderr)
+            return 1
+    if args.tier is None or args.cases_file is None:
+        parser.error("--tier and --cases-file are required unless --rescore is given")
     try:
         cases = [line for line in args.cases_file.read_text().splitlines() if line]
         report = replay(args.binary, args.tier, cases, args.out, args.batch, args.timeout, args.jobs)

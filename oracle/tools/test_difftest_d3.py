@@ -485,5 +485,286 @@ class RealCorpora(unittest.TestCase):
                          115284 - 2548)
 
 
+# ---- Gate-B freeze rules (2026-10-31) ------------------------------------------------------------
+_rspec = importlib.util.spec_from_file_location("replay_successor_under_test",
+                                                REPO / "tools/d3/replay_successor.py")
+replay = importlib.util.module_from_spec(_rspec)
+_rspec.loader.exec_module(replay)
+
+RACE = ("out of domain (e.code_prep_race): contract preparation pipelined before the in-chunk "
+        "deploy that serves its code")
+CODE = ("e.code_cache", "e.code_deploy_served")
+SCHED_RACES = {"eager": "validate: StorageError(MissingTrieValue(... hash: A))",
+               "lazy": "validate: StorageError(MissingTrieValue(... hash: B))"}
+
+
+def stub(licensed, calls=None):
+    """An independent classifier that answers `licensed` and records what it was asked."""
+    def f(case, reason):
+        if calls is not None:
+            calls.append((case, reason))
+        return {"licensed": licensed, "predicate": "stub", "detail": "stub"}
+    return f
+
+
+def one(m, verdict, reason="", **kw):
+    """Compare a single case; returns (bad, partition, record)."""
+    kw.setdefault("licenses", replay.licenses(d3))
+    _, bad, part, recs = d3.compare("t", ["c"], {"c": m}, {"c": row("c", verdict, reason)}, **kw)
+    assert sum(part.values()) == 1
+    return bad, part, recs[0]
+
+
+def successor(m, verdict, reason="", **kw):
+    return one(m, verdict, reason, domain="successor", widen=CODE, **kw)
+
+
+class RaceExclusion(unittest.TestCase):
+    """Rule 1: `out of domain (e.code_prep_race)` is the cache exclusion, licensed only by a race
+    label: `e.code_cache` on the pre-W08 corpora, `e.code_prep_race` on the successor corpora."""
+
+    def test_race_reason_on_old_code_cache_label_is_asserted(self):
+        bad, part, rec = successor(meta(False, violations=["e.code_cache"], family="mutants"),
+                                   "out_of_domain", RACE)
+        self.assertEqual(bad, [])
+        self.assertEqual(rec["classification"], "domain_exclusion_asserted")
+
+    def test_race_reason_on_new_race_label_is_asserted(self):
+        bad, _, rec = successor(meta(False, violations=["e.code_prep_race"]), "out_of_domain", RACE)
+        self.assertEqual(bad, [])
+        self.assertEqual(rec["classification"], "domain_exclusion_asserted")
+
+    def test_race_reason_on_unwidened_code_cache_is_the_cache_exclusion(self):
+        bad, part, _ = one(meta(False, violations=["e.code_cache"]), "out_of_domain", RACE)
+        self.assertEqual(bad, [])
+        self.assertEqual(part["missing_code_cache_exclusion"], 0)
+
+    def test_other_reason_on_code_cache_case_still_fails(self):
+        for reason in ("out of domain (e.wasm-α): float type or operator in a function body",
+                       "out of domain (e.code_prep_racy): typo", ""):
+            with self.subTest(reason=reason):
+                bad, part, _ = successor(meta(False, violations=["e.code_cache"]), "out_of_domain", reason)
+                self.assertEqual(part["domain_exclusion_where_in_domain"], 1)
+                self.assertEqual(len(bad), 1)
+
+    def test_race_reason_with_another_unlicensed_violation_fails(self):
+        bad, part, _ = successor(meta(False, violations=["e.code_cache", "e.secp"]), "out_of_domain", RACE)
+        self.assertEqual(part["domain_exclusion_unasserted"], 1)
+        self.assertEqual(len(bad), 1)
+
+    def test_deploy_served_label_does_not_license_the_race_reason(self):
+        self.assertNotIn("e.code_deploy_served", replay.licenses(d3)["e.code_prep_race"])
+        bad, part, _ = one(meta(False, violations=["e.code_deploy_served"]), "out_of_domain", RACE)
+        self.assertEqual(part["domain_exclusion_unasserted"], 1)
+        self.assertEqual(len(bad), 1)
+
+    def test_race_reason_on_unlabelled_case_without_independent_fails(self):
+        bad, part, _ = successor(meta(True, violations=["w.shape"]), "out_of_domain", RACE)
+        self.assertEqual(part["domain_exclusion_unasserted"], 1)
+        self.assertEqual(len(bad), 1)
+
+
+class DeployServedRace(unittest.TestCase):
+    """Rule 1 (W08's conservative exclusions): the race exclusion on an in-domain
+    `e.code_deploy_served` case passes only as `race_exclusion_conservative`, and only when nearcore's
+    forced schedules give one verdict at two failure points and the decode finds a deploy-served call."""
+
+    def m(self, sched=SCHED_RACES):
+        return meta(False, violations=["e.code_deploy_served"], nearcore_schedule=sched)
+
+    def test_failure_point_race_with_independent_decode_is_conservative(self):
+        bad, part, rec = successor(self.m(), "out_of_domain", RACE, independent=stub(True))
+        self.assertEqual(bad, [])
+        self.assertEqual(rec["classification"], "race_exclusion_conservative")
+        self.assertTrue(rec["nearcore_schedule_failure_point_races"])
+        self.assertIn("race_exclusion_conservative", d3.PASS_BUCKETS)
+
+    def test_deterministic_schedules_fail(self):
+        same = {"eager": SCHED_RACES["eager"], "lazy": SCHED_RACES["eager"]}
+        for sched in (same, None, {"eager": "ok"}, {"eager": "ok", "lazy": SCHED_RACES["lazy"]},
+                      {"eager": "ok", "lazy": "ok"}):
+            with self.subTest(sched=sched):
+                bad, part, _ = successor(self.m(sched), "out_of_domain", RACE, independent=stub(True))
+                self.assertEqual(part["domain_exclusion_where_in_domain"], 1)
+                self.assertEqual(len(bad), 1)
+
+    def test_without_independent_decode_fails(self):
+        for ind in (None, stub(False)):
+            bad, part, _ = successor(self.m(), "out_of_domain", RACE, independent=ind)
+            self.assertEqual(part["domain_exclusion_where_in_domain"], 1)
+            self.assertEqual(len(bad), 1)
+
+    def test_other_reason_on_deploy_served_fails(self):
+        bad, part, _ = successor(self.m(), "out_of_domain", "out of domain (code_cache)",
+                                 independent=stub(True))
+        self.assertEqual(part["domain_exclusion_where_in_domain"], 1)
+        self.assertEqual(len(bad), 1)
+
+    def test_deploy_served_label_alone_never_licenses_the_race(self):
+        """`e.code_deploy_served` is compared, not excluded: a decided verdict is still compared."""
+        bad, part, _ = successor(self.m(), "reject", independent=stub(True))
+        self.assertEqual(part["verdict_compared_agree"], 1)
+        bad, part, _ = successor(self.m(), "accept", independent=stub(True))
+        self.assertEqual(part["verdict_compared_disagree"], 1)
+
+    def test_schedule_failure_point_races(self):
+        self.assertTrue(d3.schedule_failure_point_races({"nearcore_schedule": SCHED_RACES}))
+        self.assertFalse(d3.schedule_failure_point_races({}))
+        self.assertFalse(d3.schedule_failure_point_races({"nearcore_schedule": {"eager": "ok", "lazy": "x"}}))
+
+
+class IndependentLicence(unittest.TestCase):
+    """Rule 2: an exclusion the oracle does not label passes only when the independent decode
+    establishes the named predicate, and only on a case outside the domain under test."""
+
+    def test_licensed_by_independent_decode(self):
+        calls = []
+        bad, part, rec = one(meta(True, violations=[]), "out_of_domain",
+                             "out of domain (c.not_genesis)", independent=stub(True, calls))
+        self.assertEqual(bad, [])
+        self.assertEqual(rec["classification"], "domain_exclusion_independently_asserted")
+        self.assertEqual(calls, [("c", "out of domain (c.not_genesis)")])
+
+    def test_not_licensed_by_independent_decode_fails(self):
+        bad, part, rec = one(meta(True, violations=[]), "out_of_domain",
+                             "out of domain (c.not_genesis)", independent=stub(False))
+        self.assertEqual(part["domain_exclusion_unasserted"], 1)
+        self.assertEqual(len(bad), 1)
+        self.assertFalse(rec["independent"]["licensed"])
+
+    def test_independent_never_overrides_an_in_domain_case(self):
+        calls = []
+        bad, part, _ = one(meta(True, in_d3=True, violations=[]), "out_of_domain",
+                           "out of domain (c.not_genesis)", independent=stub(True, calls))
+        self.assertEqual(part["domain_exclusion_where_in_domain"], 1)
+        self.assertEqual(len(bad), 1)
+        self.assertEqual(calls, [])
+
+    def test_independent_not_consulted_when_oracle_licenses(self):
+        calls = []
+        bad, _, rec = one(meta(True, violations=["c.not_genesis"]), "out_of_domain",
+                          "out of domain (c.not_genesis)", independent=stub(False, calls))
+        self.assertEqual(bad, [])
+        self.assertEqual(rec["classification"], "domain_exclusion_asserted")
+        self.assertEqual(calls, [])
+
+    def test_real_classifier_on_committed_cases(self):
+        """The harness's own classifier, on committed fixtures with an empty `d3_violations`."""
+        ind = replay.load_independent()
+        ev = REPO / "docs/evidence/lean-chunk-completion"
+        mldsa = str(ev / "key-family-fixtures/cases/00-h10098-s0")
+        secp = str(ev / "key-family-fixtures/cases/00-h10007-s3")
+        m = meta(True, violations=[])
+        for case, reason, want in (
+                (mldsa, "out of domain (w.shape): ML-DSA-65 public key", "domain_exclusion_independently_asserted"),
+                (secp, "out of domain (w.shape): non-ED25519 transaction key", "domain_exclusion_independently_asserted"),
+                # wrong reason for the case: the predicate does not hold
+                (mldsa, "out of domain (w.shape): non-ED25519 transaction key", "domain_exclusion_unasserted"),
+                (secp, "out of domain (w.shape): ML-DSA-65 public key", "domain_exclusion_unasserted"),
+                (secp, "out of domain (c.not_genesis)", "domain_exclusion_unasserted")):
+            with self.subTest(case=case, reason=reason):
+                _, bad, part, recs = d3.compare("signed", [case], {case: m}, {case: row(case, "out_of_domain", reason)},
+                                                licenses=replay.licenses(d3), independent=ind.classifier("signed"))
+                self.assertEqual(recs[0]["classification"], want)
+                self.assertEqual(bool(bad), want == "domain_exclusion_unasserted")
+
+
+class SignedGAlpha(unittest.TestCase):
+    """Rule 3: the signed tier's hand-over path has no G_alpha (`D3.checkD3_cases`), so an accept
+    above G_alpha is compared with nearcore; without the flag it still fails."""
+
+    def test_agreeing_accept_passes(self):
+        for viol in (["e.g_alpha"], ["w.size", "e.g_alpha"]):
+            bad, part, rec = one(meta(True, violations=viol), "accept", g_alpha_accepts_compared=True)
+            self.assertEqual(bad, [])
+            self.assertEqual(rec["classification"], "accept_above_g_alpha_agree")
+            self.assertTrue(rec["verdict_agrees"])
+
+    def test_disagreeing_accept_fails(self):
+        bad, part, rec = one(meta(False, violations=["e.g_alpha"]), "accept", g_alpha_accepts_compared=True)
+        self.assertEqual(part["accept_above_g_alpha"], 1)
+        self.assertEqual(len(bad), 1)
+        self.assertFalse(rec["verdict_agrees"])
+
+    def test_without_the_flag_accept_above_g_alpha_still_fails(self):
+        bad, part, _ = one(meta(True, violations=["e.g_alpha"]), "accept")
+        self.assertEqual(part["accept_above_g_alpha"], 1)
+        self.assertEqual(len(bad), 1)
+
+    def test_replay_sets_the_flag_only_on_the_signed_tier(self):
+        m = {"c": meta(True, violations=["e.g_alpha"])}
+        got = {"c": row("c", "accept")}
+        _, bad, part, _ = replay.compare_tier(d3, "signed", m, got)
+        self.assertEqual((bad, dict(part)), ([], {"accept_above_g_alpha_agree": 1}))
+        _, bad, part, _ = replay.compare_tier(d3, "genesis", m, got)
+        self.assertEqual(part["accept_above_g_alpha"], 1)
+        self.assertEqual(len(bad), 1)
+
+
+class Rescore(unittest.TestCase):
+    """`replay_successor.py --rescore`: re-compares stored verdicts, bound to the inputs' hashes."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        root = Path(self.tmp.name)
+        self.case = root / "cases" / "c0"
+        self.case.mkdir(parents=True)
+        (self.case / "claim.bin").write_bytes(b"claim")
+        (self.case / "witness.bin").write_bytes(b"witness")
+        (self.case / "meta.json").write_text(json.dumps(meta(True, violations=["e.g_alpha"])))
+        self.run = root / "run"
+        self.run.mkdir()
+        res = self.run / "results.jsonl"
+        res.write_text(json.dumps({"case": str(self.case), "verdict": "accept", "reason": "",
+                                   "tier": "signed"}) + "\n")
+        inputs = [{"case": str(self.case), "files": {n: replay.sha256(self.case / n)
+                                                      for n in ("claim.bin", "witness.bin", "meta.json")}}]
+        self.report = {"status": "fail", "package": {"tier": "signed", "sha256": "x", "binary": "b"},
+                       "inputs": inputs, "output_sha256": replay.sha256(res),
+                       "partition": {"accept_above_g_alpha": 1},
+                       "comparisons": [{"case": str(self.case), "classification": "accept_above_g_alpha"}]}
+        (self.run / "report.json").write_text(json.dumps(self.report))
+        self.out = root / "out"
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_rescore_writes_a_new_report_with_the_reclassification(self):
+        rep = replay.rescore(self.run, self.out)
+        self.assertEqual(rep["status"], "pass")
+        self.assertEqual(rep["reclassification"],
+                         [{"before": "accept_above_g_alpha", "after": "accept_above_g_alpha_agree", "rows": 1}])
+        self.assertEqual(json.loads((self.run / "report.json").read_text())["status"], "fail")
+        self.assertEqual(json.loads((self.out / "report.json").read_text())["mode"], "rescore")
+
+    def test_rescore_refuses_a_changed_input(self):
+        (self.case / "witness.bin").write_bytes(b"other")
+        with self.assertRaises(ValueError):
+            replay.rescore(self.run, self.out)
+
+    def test_rescore_refuses_tampered_results(self):
+        (self.run / "results.jsonl").write_text(json.dumps({"case": str(self.case), "verdict": "reject",
+                                                            "reason": "", "tier": "signed"}) + "\n")
+        with self.assertRaises(ValueError):
+            replay.rescore(self.run, self.out)
+
+    def test_rescore_refuses_a_run_without_verdicts(self):
+        (self.run / "results.jsonl").unlink()
+        with self.assertRaises(ValueError):
+            replay.rescore(self.run, self.out)
+
+    def test_rescore_never_overwrites_the_run(self):
+        with self.assertRaises(ValueError):
+            replay.rescore(self.run, self.run)
+
+    def test_rescore_still_fails_a_real_disagreement(self):
+        (self.case / "meta.json").write_text(json.dumps(meta(False, violations=["e.g_alpha"])))
+        self.report["inputs"][0]["files"]["meta.json"] = replay.sha256(self.case / "meta.json")
+        (self.run / "report.json").write_text(json.dumps(self.report))
+        rep = replay.rescore(self.run, self.out)
+        self.assertEqual(rep["status"], "fail")
+        self.assertEqual(rep["partition"], {"accept_above_g_alpha": 1})
+
+
 if __name__ == "__main__":
     unittest.main()
