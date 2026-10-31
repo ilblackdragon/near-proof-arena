@@ -33,8 +33,9 @@ Gates A–C are defined in the [transition plan](LEAN_CHUNK_TRANSITION_PLAN.md);
   attribution (894,074 entries); d1run and d2corpus.v2 expected values re-captured cold.
 - **Proved** (only `propext`, `Classical.choice`, `Quot.sound`): tier lifts and genesis overlap,
   fuel monotonicity, **fuel sufficiency** for the successor `FunctionCall` hook
-  (`functionCall_fuel_sufficient`; `HostsOK` per arm; `CodeCertified` as the checked guard
-  `w.fuel_certificate`, which fires on no corpus module), the arcs fast path and the label memo,
+  (`functionCall_fuel_sufficient` on `FuelGen.wasmFuel_sufficient`, for every contract: `HostsOK`
+  per arm, the static facts from `prepare` itself; the former guard `w.fuel_certificate` is proved
+  dead, `fuelCertified_true`, and removed), the arcs fast path and the label memo,
   PV86 layout reachability, loading-before-execution order, **rungs and `WitnessLift`**
   (`RelRungDk := RelD3 ∧ InRungDk`, `D0 ⊂ D1 ⊂ D2 ⊂ D3` by projection, `witnessLift`; `D1 ⊄ D2` for the
   old checkers is kernel-proved), D2 ⊂ D3 for the checkers, split correctness (W11), float range (W04)
@@ -59,7 +60,7 @@ Gates A–C are defined in the [transition plan](LEAN_CHUNK_TRANSITION_PLAN.md);
 | # | Item | Residual, not blocking |
 |---|---|---|
 | 2 | Evaluator speed and memory ([eval-budget](../evidence/lean-chunk-completion/eval-budget/README.md)) | memory is still ~104 B per witness byte (`List UInt8`); the worst 64 MiB-witness chunk is projected, not measured |
-| 3 | Fuel sufficiency ([fuel-sufficiency](../evidence/lean-chunk-completion/fuel-sufficiency/README.md)) | a general proof of `CodeCertified` would make the `w.fuel_certificate` guard provably dead |
+| 3 | Fuel sufficiency ([fuel-sufficiency](../evidence/lean-chunk-completion/fuel-sufficiency/README.md)) | none for the successor budget (general proof 2026-10-31; guard removed, 0 moves on 30,028 cases). The theorem assumes `regular_op_cost ≤ linear_op_base_cost` (true at PV86); the signed tier is item 6b |
 | 4 | Size-limit fixtures ([size-limit-fixtures](../evidence/lean-chunk-completion/size-limit-fixtures/README.md)) | code-response family is one seed (64 MiB cases); no natural 48 MiB witness can be generated |
 | 6 | Signed-tier completeness, UQ-010 ([signed-completeness](../evidence/lean-chunk-completion/signed-completeness/README.md)) | remaining signed exclusions outside item 6 are recorded there (`e.g_alpha` on the core path, ML-DSA, curve hosts, …) |
 | 7 | Warm-cache coherence + UQ-001 ([w08-warm-cache](../evidence/lean-chunk-completion/w08-warm-cache/README.md)) | 27 conservative race exclusions where only nearcore's failure point races |
@@ -84,7 +85,8 @@ Gates A–C are defined in the [transition plan](LEAN_CHUNK_TRANSITION_PLAN.md);
   published challenge file changed. Regenerate its `tree_digest` at the freeze.
 - **UQ-013**: admission contract A1 — a proof is admitted only by a verifier that rebuilds the claim's
   trusted section from its own chain state and finds it byte-identical.
-- `w.fuel_certificate` is a kept out-of-domain reason (allFeatures). aarch64 is excluded by statement.
+- `w.fuel_certificate` is no longer an out-of-domain reason (2026-10-31): `fuelCertified_true` proves
+  it never fires and `vmCall` no longer checks it. aarch64 is excluded by statement.
 - ML-DSA-65 is implemented, not excluded. W13 runs on a sponsor-provided all-shard machine.
 - Kernel non-vacuity runs on demand, not in CI (`HEAVY_MEM=40G /data/illia/nearproof-deps/bin/heavy lake build NearSpecV3.Examples.RealCaseD3`, likewise `RealCaseD3Store`, `RealCaseD3Split`).
 - The witness may be the compressed bytes as distributed (`near-arena-cwitness-v3`); a cold code
