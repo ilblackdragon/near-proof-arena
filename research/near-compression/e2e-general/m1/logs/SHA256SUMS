@@ -1,0 +1,6 @@
+f6529be16afbca5d16c9429e90caf37f0bff35b9573679ee8e517cb6d25c5572  T2c0/proof.bin
+84dcdbeacd7989eff9d4a1e8042600cb34aeacf7dbcc4b283c563b9f691c0726  T2c0/air.json
+c3b16ef6871c3ba1c28bf715d0432cb88ade4e33b09c6fe885a4c30a82327c6e  T2c0/prep.json
+d7e118d73b95fafb12e68182fbd9e925f8b7dc48151beebbf2bbff91ce387a5e  T1c0/prep.json
+1660ed6826bf59590ca349a6f982a6deb9de033df52b7e2b8bb0d8cf83f9e00a  target/release/nearproof-wasm-base
+fb23cfb237c4ce4be12eefc4223aa6e87312c24392442e2440dd99ba0728fae0  /data/illia/nearproof/.claude/worktrees/agent-aed02d7a9717bd80f/research/near-compression/wasm-base-lean/.lake/build/bin/wasmbase-tool

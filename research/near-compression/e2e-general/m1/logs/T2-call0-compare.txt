@@ -1,0 +1,7 @@
+call: code 8152bed25554d521d3fcdd919f4457b66e06b720906fdd40fd6fd0723ed36bf9 method run prepaid 3000000000000 input 68656c6c6f
+MATCH    status  chunk=fin  spec/trace=fin
+DIFFER   burnt gas  chunk=104421422859  spec/trace=93021422859
+         (loading fee 411252738, spec Wasm gas 92610170121, steps 26)
+MATCH    logs  chunk=['74696e79']  spec/trace=['74696e79']
+DIFFER   return  chunk=68656c6c6f  spec/trace=0000000000
+MISMATCH

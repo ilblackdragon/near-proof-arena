@@ -1,0 +1,25 @@
+{
+ "case": "/data/illia/nearproof-deps/corpora/d3c8/d3/02-h10196-s3",
+ "verdict": "accept",
+ "reason": "ok",
+ "calls": [
+  {
+   "code_sha256": "8152bed25554d521d3fcdd919f4457b66e06b720906fdd40fd6fd0723ed36bf9",
+   "code_len": 345,
+   "method": "run",
+   "prepaid": 54000000000000,
+   "input": "616761696e",
+   "account": "b's5k210.s2a00'",
+   "storage_usage_in": 572,
+   "aborted": null,
+   "burnt": 121110620829,
+   "used": 121110620829,
+   "loading_fee": 411252738,
+   "logs": [
+    "74696e79"
+   ],
+   "ret": "616761696e",
+   "storage_usage_out": 573
+  }
+ ]
+}

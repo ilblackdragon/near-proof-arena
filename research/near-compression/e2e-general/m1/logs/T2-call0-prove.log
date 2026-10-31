@@ -1,0 +1,61 @@
+TABLE BOUNDARY  width  10 rows      1 height      4 cells        40 constraints   0 interactions   6 degree 1
+TABLE ADD       width  30 rows      0 height      4 cells       120 constraints  20 interactions  14 degree 3
+TABLE BIT       width  39 rows      0 height      4 cells       156 constraints  19 interactions  18 degree 2
+TABLE MUL       width  45 rows      0 height      4 cells       180 constraints  26 interactions  30 degree 3
+TABLE SHIFT     width  82 rows      0 height      4 cells       328 constraints  69 interactions  32 degree 8
+TABLE CMP       width  44 rows      1 height      4 cells       176 constraints  38 interactions  16 degree 5
+TABLE CONST     width  13 rows     12 height     16 cells       208 constraints   4 interactions   4 degree 2
+TABLE STACK     width  30 rows      1 height      4 cells       120 constraints  13 interactions  13 degree 3
+TABLE CTRL      width  18 rows      1 height      4 cells        72 constraints   8 interactions   6 degree 4
+TABLE LOCAL     width  28 rows      4 height      4 cells       112 constraints  13 interactions  11 degree 4
+TABLE DIV       width  97 rows      0 height      4 cells       388 constraints 106 interactions  45 degree 6
+TABLE LOAD      width  58 rows      0 height      4 cells       232 constraints  22 interactions  42 degree 4
+TABLE STORE     width  61 rows      0 height      4 cells       244 constraints  15 interactions  47 degree 2
+TABLE CALL      width 218 rows      0 height      4 cells       872 constraints 224 interactions 114 degree 2
+TABLE RET       width  27 rows      0 height      4 cells       108 constraints   6 interactions  16 degree 4
+TABLE RANGE16   width   2 rows  65536 height  65536 cells    131072 constraints   3 interactions   1 degree 2
+TABLE BYTE      width  20 rows  65536 height  65536 cells   1310720 constraints  19 interactions   4 degree 2
+TABLE CODE      width   9 rows     32 height     32 cells       288 constraints   0 interactions   1 degree 1
+TABLE DRAIN     width  10 rows     11 height     16 cells       160 constraints   2 interactions   1 degree 3
+TABLE MEMINIT   width  12 rows     10 height     16 cells       192 constraints   8 interactions  10 degree 3
+TABLE DATA      width   3 rows      8 height      8 cells        24 constraints   0 interactions   1 degree 1
+TABLE FUNC      width   9 rows      4 height      4 cells        36 constraints   0 interactions   1 degree 1
+TABLE HOST      width  93 rows      6 height      8 cells       744 constraints  90 interactions  78 degree 2
+TABLE HOSTO     width  33 rows      6 height      8 cells       264 constraints   0 interactions   2 degree 1
+TABLE HOSTT     width   9 rows     64 height     64 cells       576 constraints   0 interactions   1 degree 1
+TABLE HOSTB     width  14 rows     32 height     32 cells       448 constraints  15 interactions  15 degree 3
+TABLE IF        width  14 rows      4 height      4 cells        56 constraints   2 interactions   6 degree 3
+STEPS 26 S_UNITS 25 CELLS_TOTAL 1447936 CELLS_ACTIVE 1444576
+PARAMS n_stack 18 log_h 20 w_stack 8 degree 8 queries [536, 256, 83, 50] pow 24
+VK BOUNDARY  degree 1 constraints 0 interactions 6 dag_nodes 33
+VK ADD       degree 3 constraints 20 interactions 14 dag_nodes 127
+VK BIT       degree 2 constraints 19 interactions 18 dag_nodes 124
+VK MUL       degree 3 constraints 26 interactions 30 dag_nodes 216
+VK SHIFT     degree 8 constraints 69 interactions 32 dag_nodes 577
+VK CMP       degree 5 constraints 38 interactions 16 dag_nodes 270
+VK CONST     degree 2 constraints 4 interactions 4 dag_nodes 29
+VK STACK     degree 3 constraints 13 interactions 13 dag_nodes 100
+VK CTRL      degree 4 constraints 8 interactions 6 dag_nodes 87
+VK LOCAL     degree 4 constraints 13 interactions 11 dag_nodes 116
+VK DIV       degree 6 constraints 106 interactions 45 dag_nodes 604
+VK LOAD      degree 4 constraints 22 interactions 42 dag_nodes 294
+VK STORE     degree 2 constraints 15 interactions 47 dag_nodes 212
+VK CALL      degree 2 constraints 224 interactions 114 dag_nodes 1005
+VK RET       degree 4 constraints 6 interactions 16 dag_nodes 94
+VK RANGE16   degree 2 constraints 3 interactions 1 dag_nodes 15
+VK BYTE      degree 2 constraints 19 interactions 4 dag_nodes 242
+VK CODE      degree 1 constraints 0 interactions 1 dag_nodes 10
+VK DRAIN     degree 3 constraints 2 interactions 1 dag_nodes 21
+VK MEMINIT   degree 3 constraints 8 interactions 10 dag_nodes 60
+VK DATA      degree 1 constraints 0 interactions 1 dag_nodes 4
+VK FUNC      degree 1 constraints 0 interactions 1 dag_nodes 10
+VK HOST      degree 2 constraints 90 interactions 78 dag_nodes 383
+VK HOSTO     degree 1 constraints 0 interactions 2 dag_nodes 44
+VK HOSTT     degree 1 constraints 0 interactions 1 dag_nodes 10
+VK HOSTB     degree 3 constraints 15 interactions 15 dag_nodes 81
+VK IF        degree 3 constraints 2 interactions 6 dag_nodes 39
+SOUNDNESS total=268.2 logup=330.3 proximity=316.2 query=268.2
+PROOF total=1469458 gkr=28328 relations=61880 stacking=2332 whir=1376238
+STATEMENT code_root 1260c26b5cc5da81f11bb88dffb09e06cd92353a2843f88eb0cd07a73b631de10a0217a9251b7e130000000000009983 code_hash 8152bed25554d521d3fcdd919f4457b66e06b720906fdd40fd6fd0723ed36bf9 (V_d: recomputed root matches the proof's cached CODE commitment)
+TIME tracegen 0.132s keygen 0.002s prove 35.564s verify 0.0304s threads 12 peak_rss_kib 1368380
+PROVE OK steps 26 result None
