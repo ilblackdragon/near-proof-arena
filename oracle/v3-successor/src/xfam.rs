@@ -52,6 +52,8 @@ pub enum Kind {
     GasKeyTarget,
     RollbackRefund,
     RuntimeErrors,
+    /// `eth-wallet` (row L0-D3-006): legacy magic-hash ETH-implicit accounts from genesis.
+    EthWallet,
 }
 
 pub fn kind() -> Option<Kind> {
@@ -63,6 +65,7 @@ pub fn kind() -> Option<Kind> {
         Some(S::GasKeyTarget) => Some(Kind::GasKeyTarget),
         Some(S::RollbackRefund) => Some(Kind::RollbackRefund),
         Some(S::RuntimeErrors) => Some(Kind::RuntimeErrors),
+        Some(S::EthWallet) => Some(Kind::EthWallet),
         _ => None,
     }
 }
@@ -461,6 +464,15 @@ pub fn contracts() -> Vec<(&'static str, Vec<u8>)> {
             v.extend(crate::rterr::contracts().iter().cloned());
             v
         }
+        // the chain's global wallet (localnet build) and the four magic-byte blobs (the genesis
+        // code of the wallet accounts; the mainnet one is also the named control `s1ewmagic`'s,
+        // whose call nearcore records as a code access)
+        Some(Kind::EthWallet) => vec![("xfam", xfam_wasm().to_vec()),
+                                      ("ethwallet", crate::ethwallet::localnet_wallet().to_vec()),
+                                      ("ethmagic-mainnet", crate::ethwallet::magic_bytes("mainnet")),
+                                      ("ethmagic-testnet", crate::ethwallet::magic_bytes("testnet")),
+                                      ("ethmagic-oldtestnet", crate::ethwallet::magic_bytes("oldtestnet")),
+                                      ("ethmagic-localnet", crate::ethwallet::magic_bytes("localnet"))],
         Some(_) => vec![("xfam", xfam_wasm().to_vec())],
         None => vec![],
     }
@@ -479,6 +491,8 @@ fn accounts() -> Vec<(&'static str, bool)> {
         Some(Kind::GasKeyTarget) => vec![("s0gkt", false), ("s1gkc", true), ("s2gkr", false), ("s3gks", false)],
         Some(Kind::RollbackRefund) => vec![("s0rbg", false), ("s0rbu", false), ("s1rbs", false), ("s2rbt", true), ("s3rbt", true), ("s3xnote", true)],
         Some(Kind::RuntimeErrors) => RT_ACCOUNTS.iter().map(|(n, c)| (*n, c.is_some())).collect(),
+        // relayers (shards 1-3), the global-wallet deployer, a contract callee (`xfam`)
+        Some(Kind::EthWallet) => vec![("s1ewr", false), ("s2ewr", false), ("s3ewr", false), ("s3ewg", false), ("s2ewc", true)],
         None => vec![],
     }
 }
@@ -533,6 +547,46 @@ pub fn genesis_records(n_shards: usize) -> (Vec<StateRecord>, Balance) {
         }
         supply = supply.checked_add(amount).unwrap();
     }
+    if kind() == Some(Kind::EthWallet) {
+        let (extra, extra_supply) = eth_wallet_genesis();
+        records.extend(extra);
+        supply = supply.checked_add(extra_supply).unwrap();
+    }
+    (records, supply)
+}
+
+/// The `eth-wallet` genesis accounts (no access keys, like every account the pre-PV83 implicit
+/// transfer created):
+/// * `ew-<variant>` for the four legacy variants: contract = the variant's magic bytes, exactly as
+///   `action_implicit_account_creation_transfer` wrote them before PV83 (`actions.rs:251-270`);
+/// * `ew-plain`: ETH-implicit with an ordinary local contract (`xfam`), which stays local;
+/// * `ew-none`: ETH-implicit with no contract;
+/// * `s1ewmagic`: a *named* account holding the mainnet magic bytes, which stays local (not ETH).
+fn eth_wallet_genesis() -> (Vec<StateRecord>, Balance) {
+    use crate::ethwallet as ew;
+    let mut records = Vec::new();
+    let mut supply = Balance::ZERO;
+    let mut add = |id: AccountId, code: Option<Vec<u8>>, key: bool| {
+        let amount = Balance::from_near(100);
+        let contract = match &code {
+            Some(c) => AccountContract::Local(CryptoHash::hash_bytes(c)),
+            None => AccountContract::None,
+        };
+        records.push(StateRecord::Account { account_id: id.clone(), account: Account::new(amount, Balance::ZERO, contract, 0) });
+        if key {
+            records.push(StateRecord::access_key(id.clone(), &InMemorySigner::test_signer(&id).public_key(), AccessKey::full_access()));
+        }
+        if let Some(c) = code {
+            records.push(StateRecord::Contract { account_id: id, code: c });
+        }
+        supply = supply.checked_add(amount).unwrap();
+    };
+    for v in ew::VARIANTS {
+        add(ew::eth_account(v), Some(ew::magic_bytes(v)), false);
+    }
+    add(ew::eth_account("plain"), Some(xfam_wasm().to_vec()), false);
+    add(ew::eth_account("none"), None, false);
+    add(acct("s1ewmagic"), Some(ew::magic_bytes("mainnet")), true);
     (records, supply)
 }
 
@@ -1158,6 +1212,88 @@ fn runtime_errors() -> Vec<Step> {
     v
 }
 
+/// `eth-wallet` (row L0-D3-006). Offsets from 10004:
+/// * 0: `s3ewg` deploys the localnet wallet as a global contract by hash; transfers to the wallets;
+/// * 12 + 7k, k < `ROUNDS`: per wallet, one `rlp_execute` that returns a promise (a transfer, a
+///   function call through the wallet, a function call through the wallet that fails in the callee,
+///   or a plain Ethereum transfer to the next wallet), one failing call (wrong signer, wrong EVM
+///   chain id, malformed arguments, missing method, deposit on a non-payable method, a private
+///   callback called from outside), and a direct `get_nonce` (with a transfer in the same receipt
+///   on even rounds); plus the three controls. Relayers rotate over shards 1-3.
+/// Ethereum nonces are predicted per wallet: every promise-returning `rlp_execute` here increments
+/// it (`inner_rlp_execute`), the failing calls do not. A misprediction makes the wallet answer
+/// with an error value, which is still a valid (if less useful) case; the collector reports it.
+fn eth_wallet() -> Vec<Step> {
+    use crate::ethwallet::{self as ew, EthOp, EVM_CHAIN_ID};
+    const ROUNDS: u64 = 12;
+    let lab = |i: usize, s: &str| format!("successor.eth-wallet.{i:03}.{s}");
+    let wallets: Vec<(&str, String)> = ew::VARIANTS.iter().map(|v| (*v, ew::eth_account(v).to_string())).collect();
+    let plain = ew::eth_account("plain").to_string();
+    let none = ew::eth_account("none").to_string();
+    let relayers = ["s1ewr", "s2ewr", "s3ewr"];
+    let mut v: Vec<Step> = Vec::new();
+    let mut i = 0usize;
+    let mut push = |v: &mut Vec<Step>, off: u64, name: String, signer: &str, receiver: &str, actions: Vec<Action>| {
+        v.push(step(off, lab(i, &name), signer, receiver, actions, How::Main));
+        i += 1;
+    };
+    let get_nonce = |deposit: u128| fc("get_nonce", b"{}".to_vec(), 10, deposit);
+    // `NEAR_XFAM_VARIANT=eth-wallet-predeploy`: only calls on the wallets before the global wallet
+    // exists (the redirect target has no code). nearcore's own stateless validators reject the
+    // producer's chunk (a partial-storage miss on the absent global code), so the wallets' shard
+    // stalls; the default table therefore deploys first and never calls a wallet before that.
+    if variant().as_deref() == Some("eth-wallet-predeploy") {
+        for (k, (var, w)) in wallets.iter().enumerate() {
+            push(&mut v, 0, format!("pre-deploy.{var}.get_nonce"), relayers[k % 3], w, vec![get_nonce(0)]);
+        }
+        push(&mut v, 0, "pre-deploy.control.plain-local.noop".into(), "s1ewr", &plain, vec![fc("noop", vec![0], 10, 0)]);
+        push(&mut v, 0, "pre-deploy.control.no-code.call".into(), "s2ewr", &none, vec![get_nonce(0)]);
+        push(&mut v, 0, "pre-deploy.control.named-magic.call".into(), "s3ewr", "s1ewmagic", vec![get_nonce(0)]);
+        return v;
+    }
+    push(&mut v, 0, "deploy-global-wallet".into(), "s3ewg", "s3ewg",
+         vec![Action::DeployGlobalContract(DeployGlobalContractAction { code: ew::localnet_wallet().to_vec().into(), deploy_mode: GlobalContractDeployMode::CodeHash })]);
+    for (k, (var, w)) in wallets.iter().enumerate() {
+        push(&mut v, 0, format!("setup.{var}.transfer-in"), relayers[(k + 1) % 3], w, vec![tr(NEAR)]);
+    }
+    // phase B
+    let mut nonce = vec![0u64; wallets.len()];
+    for k in 0..ROUNDS {
+        let off = 12 + 7 * k;
+        let ku = k as usize;
+        for (j, (var, w)) in wallets.iter().enumerate() {
+            let r = relayers[(j + ku) % 3];
+            let r2 = relayers[(j + ku + 1) % 3];
+            let next = &wallets[(j + 1) % wallets.len()].1;
+            let (what, op) = match (ku + j) % 4 {
+                0 => ("rlp.transfer-named", EthOp::Transfer { receiver: acct("s2ewc"), wei: 10u128.pow(15) + k as u128, yocto: 7 }),
+                1 => ("rlp.call-noop", EthOp::FunctionCall { receiver: acct("s2ewc"), method: "noop".into(), args: vec![k as u8, j as u8], gas: 10u64.pow(13), wei: 0 }),
+                2 => ("rlp.call-fail", EthOp::FunctionCall { receiver: acct("s2ewc"), method: "fail".into(), args: vec![], gas: 10u64.pow(13), wei: 0 }),
+                _ => ("rlp.eoa-transfer-wallet", EthOp::Plain { receiver: next.parse().unwrap(), wei: 10u128.pow(12) }),
+            };
+            let n = nonce[j];
+            let args = ew::rlp_execute_args(var, var, &op, n, EVM_CHAIN_ID);
+            push(&mut v, off, format!("r{k:02}.{var}.{what}.n{n}"), r, w, vec![fc("rlp_execute", args, 150, 0)]);
+            nonce[j] += 1;
+            let (fname, fact) = match (ku + 2 * j) % 6 {
+                0 => ("fail.rlp-wrong-signer", fc("rlp_execute", ew::rlp_execute_args(var, "intruder", &op, nonce[j], EVM_CHAIN_ID), 150, 0)),
+                1 => ("fail.rlp-wrong-evm-chain", fc("rlp_execute", ew::rlp_execute_args(var, var, &op, nonce[j], 397), 150, 0)),
+                2 => ("fail.malformed-args", fc("rlp_execute", b"{\"target\":".to_vec(), 50, 0)),
+                3 => ("fail.missing-method", fc("no_such_method", vec![], 10, 0)),
+                4 => ("fail.deposit-non-payable", get_nonce(1)),
+                _ => ("fail.private-callback", fc("rlp_execute_callback", b"{}".to_vec(), 20, 0)),
+            };
+            push(&mut v, off, format!("r{k:02}.{var}.{fname}"), r2, w, vec![fact]);
+            let direct = if k % 2 == 0 { vec![tr(NEAR / 10), get_nonce(0)] } else { vec![get_nonce(0)] };
+            push(&mut v, off, format!("r{k:02}.{var}.direct.get_nonce"), relayers[(j + ku + 2) % 3], w, direct);
+        }
+        push(&mut v, off, format!("r{k:02}.control.plain-local.noop"), relayers[ku % 3], &plain, vec![fc("noop", vec![k as u8], 10, 0)]);
+        push(&mut v, off, format!("r{k:02}.control.no-code.call"), relayers[(ku + 1) % 3], &none, vec![get_nonce(0)]);
+        push(&mut v, off, format!("r{k:02}.control.named-magic.call"), relayers[(ku + 2) % 3], "s1ewmagic", vec![get_nonce(0)]);
+    }
+    v
+}
+
 // ---------------------------------------------------------------------------------------------
 // the driver
 // ---------------------------------------------------------------------------------------------
@@ -1183,11 +1319,12 @@ impl Driver {
             Some(Kind::RollbackRefund) if variant().as_deref() == Some("state-init-emit") => (10004, state_init_emit()),
             Some(Kind::RollbackRefund) => (10004, rollback_refund()),
             Some(Kind::RuntimeErrors) => (10004, runtime_errors()),
+            Some(Kind::EthWallet) => (10004, eth_wallet()),
             None => (u64::MAX, vec![]),
         };
         if let Some(v) = variant() {
-            assert!(matches!(kind(), Some(Kind::CurveCallbacks | Kind::RollbackRefund)), "NEAR_XFAM_VARIANT={v} needs its scenario");
-            assert!(matches!(v.as_str(), "curve-yield-timeout" | "state-init-emit"), "unknown NEAR_XFAM_VARIANT={v}");
+            assert!(matches!(kind(), Some(Kind::CurveCallbacks | Kind::RollbackRefund | Kind::EthWallet)), "NEAR_XFAM_VARIANT={v} needs its scenario");
+            assert!(matches!(v.as_str(), "curve-yield-timeout" | "state-init-emit" | "eth-wallet-predeploy"), "unknown NEAR_XFAM_VARIANT={v}");
         }
         Driver { start, steps, retry: vec![], submitted: vec![], used: HashMap::new() }
     }
@@ -1307,6 +1444,13 @@ fn shard_map(s: &Setup) -> serde_json::Value {
     for (n, _) in accounts() {
         m.insert(n.into(), json!(layout.account_id_to_shard_id(&acct(n)).to_string()));
     }
+    if kind() == Some(Kind::EthWallet) {
+        for t in crate::ethwallet::VARIANTS.iter().chain(["plain", "none"].iter()) {
+            let id = crate::ethwallet::eth_account(t);
+            m.insert(format!("ew-{t}:{id}"), json!(layout.account_id_to_shard_id(&id).to_string()));
+        }
+        m.insert("s1ewmagic".into(), json!(layout.account_id_to_shard_id(&acct("s1ewmagic")).to_string()));
+    }
     for i in 0..8 {
         m.insert(format!("s{i}"), json!(layout.account_id_to_shard_id(&acct(&format!("s{i}a00"))).to_string()));
     }
@@ -1354,7 +1498,7 @@ pub fn force_full_mutants(executed: &[serde_json::Value], tx_labels: &[String], 
         return (true, true);
     }
     let mine = |l: &String| l.starts_with("successor.") && !l.contains(".flood.");
-    let ran = executed.iter().any(|e| e["name"] == "xfam" || e["name"] == "xcurve"
+    let ran = executed.iter().any(|e| e["name"] == "xfam" || e["name"] == "xcurve" || e["name"] == "ethwallet" || e["name"].as_str().is_some_and(|n| n.starts_with("ethmagic"))
         || e["name"].as_str().is_some_and(crate::rterr::is_mine));
     let relevant = match k {
         Kind::GenesisTx => height <= 10004 || tx_labels.iter().any(mine),

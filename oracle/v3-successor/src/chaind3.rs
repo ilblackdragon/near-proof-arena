@@ -139,12 +139,18 @@ pub fn setup_d3(p: &ChainParams, min_gas_price: u128) -> Setup {
     let wasm_config = RuntimeConfigStore::new(None).get_config(PROTOCOL_VERSION).wasm_config.clone();
     for c in &env.clients {
         let cache = c.runtime_adapter.compiled_contract_cache();
-        for (_, code) in crate::d3contracts::all() {
+        for (name, code) in crate::d3contracts::all() {
+            // `eth-wallet`: the global wallet must not be compiled before its deployment (a warm
+            // cache would serve the pre-deployment calls); nearcore precompiles it on deployment
+            if name == "ethwallet" {
+                continue;
+            }
             let code = near_vm_runner::ContractCode::new(code, None);
             let compiled = near_vm_runner::precompile_contract(&code, Arc::clone(&wasm_config), Some(cache)).expect("cache");
             // `runtime-errors` registers contracts that fail preparation on purpose (src/rterr.rs);
             // their cached compilation error is what nearcore itself would cache
-            if crate::xfam::kind() != Some(crate::xfam::Kind::RuntimeErrors) {
+            // `eth-wallet` registers the magic bytes (not a Wasm module) for the same reason
+            if !matches!(crate::xfam::kind(), Some(crate::xfam::Kind::RuntimeErrors | crate::xfam::Kind::EthWallet)) {
                 compiled.expect("compile");
             }
         }

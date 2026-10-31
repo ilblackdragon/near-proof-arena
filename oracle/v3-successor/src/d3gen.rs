@@ -318,6 +318,11 @@ pub enum Scenario {
     /// `storage_remove`, `DeleteAccount`) that push the recorder's upper bound past the 4,000,000 B
     /// chunk soft limit while the witness's values stay below it.
     RemovalSoft,
+    /// `eth-wallet` (src/xfam.rs, src/ethwallet.rs, row L0-D3-006): ETH-implicit accounts whose
+    /// genesis contract is a legacy wallet magic hash (as pre-PV83 mainnet accounts have), called
+    /// directly and through the wallet (`rlp_execute`) before and after the chain's global wallet
+    /// is deployed, next to non-wallet controls.
+    EthWallet,
 }
 
 /// The opt-in successor scenario (`NEAR_SUCCESSOR_SCENARIO`); unset = the baseline workload.
@@ -359,6 +364,7 @@ pub fn scenario() -> Option<Scenario> {
         Ok(value) if value == "runtime-errors" => Some(Scenario::RuntimeErrors),
         Ok(value) if value == "pipeline-race" => Some(Scenario::PipelineRace),
         Ok(value) if value == "code-cache" => Some(Scenario::CodeCache),
+        Ok(value) if value == "eth-wallet" => Some(Scenario::EthWallet),
         other => panic!("unsupported NEAR_SUCCESSOR_SCENARIO: {other:?}"),
     }
 }

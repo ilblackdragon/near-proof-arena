@@ -224,6 +224,28 @@ family's defining condition fails, for example no yield receipt applied while th
 was non-empty. Evidence and the other commands:
 `docs/evidence/lean-chunk-completion/cross-family-fixtures/`.
 
+## Legacy ETH wallet scenario (`eth-wallet`, row L0-D3-006)
+
+`NEAR_SUCCESSOR_SCENARIO=eth-wallet` (`src/xfam.rs` `eth_wallet`, `src/ethwallet.rs`) adds these
+genesis accounts:
+
+* four ETH-implicit accounts whose contract is a legacy wallet magic hash (mainnet, testnet,
+  testnet pv70 and localnet magic bytes, as `actions.rs:251-270` wrote them before PV83, with no
+  access key);
+* an ETH-implicit account with local `xfam` code, and one with no code;
+* a named account holding the mainnet magic bytes;
+* relayers `s1ewr`/`s2ewr`/`s3ewr`, the deployer `s3ewg` and the callee `s2ewc` (`xfam`).
+
+`s3ewg` deploys the localnet wallet as a global contract by hash. Then, in 12 rounds, relayers call
+`rlp_execute` with EIP-2930 transactions signed by each wallet's key (EVM chain id 399): transfers,
+function calls through the wallet, and plain transfers to another wallet. The rounds also send
+failing calls and direct `get_nonce`, and call the controls. `NEAR_XFAM_VARIANT=eth-wallet-predeploy`
+instead calls the wallets with no global wallet deployed. nearcore's own validator rejects those
+chunks, and the shard stalls, so use about 12 blocks. The scenario skips `t.chain_id` mutants,
+because the redirect target depends on the chain id, and it does not warm the compiled cache with
+the wallet. `tools/d3/collect_xfam.py` checks the family facts (`check_eth_wallet`). Evidence:
+`docs/evidence/lean-chunk-completion/eth-wallet-fixtures/`.
+
 ## Codec normalization probes
 
 `codec-roundtrip KIND HEX` decodes and re-encodes actual pinned-nearcore types. Supported kinds:
