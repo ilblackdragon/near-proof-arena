@@ -270,6 +270,11 @@ and an account whose amount reaches `u128Max` is written with the V2 marker in i
 leave room for the 1-yocto promise subsidies minted during the chunk; real supply (~1.2·10³³ yocto,
 about `2^110`) is far below it. Both found by the deepseek-fv provers, kernel-checked.
 
+Revealed values sit at even nibble depth: `PTrie.wf` does not say so, and a value at an odd depth
+shares its byte key (`packNibbles` drops the odd nibble) with the value just above it, so `nearIn`
+counts that key twice while `iterKeys` and deletion treat it once (kernel-checked: `deleteAccount`
+then burns a doubled gas-key balance). Trie keys are bytes, so a real trie has no odd-depth value.
+
 `gasLimit < 2^64` (the header field is a `u64`, so it holds at the call site by decoding) bounds
 how many receipts a chunk processes, hence how many 1-yocto subsidies it can mint: an incoming
 receipt with `gasPrice = 0` makes the gas for minting value-free in the measure, and the
@@ -312,6 +317,7 @@ def ChunkConservation : Prop :=
     (lastProps : List (Bytes × Nat)) (incoming : List Rcpt) (txs : List (TxD2 × Bool))
     (ownCong : Congestion) (out : MainOutD2) (o : Ovl),
     t.wf = true →
+    (∀ (n : List Nat) (v : Bytes), (n, v) ∈ revealedT t [] → n.length % 2 = 0) →
     env.ctx.gasLimit < 2 ^ 64 →
     (∀ s ∈ env.ctx.layout.shardIds, s < 2 ^ 16) →
     (∀ v, t.find (nibbles (kAccount AccountId.system)) ≠ some (some v)) →
