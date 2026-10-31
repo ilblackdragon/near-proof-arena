@@ -1,0 +1,17 @@
+diff --git a/spec/lean/v3/NearSpecV3/Successor/StorageExecution.lean b/spec/lean/v3/NearSpecV3/Successor/StorageExecution.lean
+index 6c4ef3a2b..530e17f37 100644
+--- a/spec/lean/v3/NearSpecV3/Successor/StorageExecution.lean
++++ b/spec/lean/v3/NearSpecV3/Successor/StorageExecution.lean
+@@ -126,6 +126,12 @@ def ordinaryAction (c : ActCtx) (st : ActSt) (a : Act) : M (ActSt × AR) := do
+ /-- All four legacy magic hashes redirect at PV86, independently of the current chain.
+ The target global wallet hash is selected using the current authenticated chain id. -/
+ def resolveCode (c : ActCtx) (st : ActSt) (acct : D2.Acct) : M (Option Bytes × Bytes) := do
++  -- ETH-WALLET ABLATION (deliberate-breakage control build only, never committed to the tree):
++  -- the magic-hash redirect is broken; such an account is treated as having no contract.
++  if (match acct.contract with
++      | .local h => AccountId.isEthImplicit c.r.recv && (D3.L4.resolveWallet h).isSome
++      | _ => false) then
++    return (none, [])
+   match D3.L4.Rci.resolve c.env.chainId c.r.recv acct.contract with
+   | .none => pure (none, [])
+   | .accountLocal h id => pure (some h, kCode id)

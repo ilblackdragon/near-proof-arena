@@ -973,7 +973,8 @@ pub fn write_d3_case(x: D3Ctx, stats: &mut Stats, d3s: &mut D3Stats) {
             if m.name.starts_with("t.chain_id") {
                 // the chain id is read by the ETH-implicit wallet hash (D2) and by contracts
                 // importing `chain_id` (D3): such mutants are not judgeable by nearcore
-                if an2.eth_created || an3.chain_id_import {
+                // `eth-wallet`: the magic-hash redirect target is the chain id's global wallet (row L0-D3-006)
+                if an2.eth_created || an3.chain_id_import || crate::xfam::kind() == Some(crate::xfam::Kind::EthWallet) {
                     d3s.add("mutants_skipped.t.chain_id", 1);
                     continue;
                 }

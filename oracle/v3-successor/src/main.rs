@@ -87,6 +87,7 @@ mod chaind3;
 mod keys;
 mod scenarios;
 mod xfam;
+mod ethwallet;
 mod rterr;
 mod d3;
 mod d3contracts;

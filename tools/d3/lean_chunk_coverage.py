@@ -218,6 +218,26 @@ VALIDATION = {
         lean=("recorder drivers set sizeOk := true and model RecordedStorageCounter and "
               "main_storage_proof_size_soft_limit exactly; UQ-015 answered (bound sound)"),
     ),
+    "eth-wallet": dict(
+        paths=[EV + "eth-wallet-fixtures/README.md", EV + "open-uqs/README.md"],
+        fixtures=("eth-wallet-fixtures: genesis ETH-implicit accounts holding each of the four legacy "
+                  "wallet magic hashes (as pre-PV83 accounts do), called through the chain's global "
+                  "wallet (rlp_execute transfers and function calls through the wallet, failing "
+                  "calls) and, in a second scenario, before the global wallet exists; 8 seeds "
+                  "(701-704, 791-794), 931 honest chunks + 9,719 mutants = 10,650 cases, "
+                  "allFeatures 0 accept/reject disagreements with cold nearcore (7 named "
+                  "e.code_prep_race exclusions of baseline code mutants), blind 908/908 gradable "
+                  "honest chunks match; signed tier 0 disagreements (every wallet chunk excluded as "
+                  "e.eth_implicit_local)"),
+        control=("a checker built with the redirect ablated (control/ablate-eth-redirect.patch: a "
+                 "magic-hash ETH-implicit account treated as having no contract) changes 609 rows, all wallet cases: 587 "
+                 "nearcore-valid chunks rejected (post state root) and 22 nearcore-rejected "
+                 "pre-deployment chunks accepted"),
+        lean=("Successor/StorageExecution.lean resolveCode via D3.L4.Rci.resolve; UQ-007: "
+              "legacyWallet_unreachable_pv86, ethWallet_kind_unreachable, 7/7 wallet hashes recomputed "
+              "from nearcore's embedded wasm equal Lean's (one-byte control fails); the corpus "
+              "e.eth_implicit_local claims (ordinary local contracts) agree with cold nearcore"),
+    ),
 }
 
 
@@ -735,27 +755,18 @@ L0_RECONCILE = {
                        "prover-capacity restriction (847 census claims)",
     ), "gas-cap"),
     "L0-D3-006": (lambda f: f["ethResolve"], dict(
-        status="implemented",
+        status="validated",
         lean_path_symbol="NearSpecV3.Successor.StorageExecution.resolveCode (D3.L4.Rci.resolve) on allFeatures; "
                          "signed: D3/FunctionCall.lean:236-240",
         domain_guard="allFeatures: decided (a magic hash redirects to the chain's global wallet; any other local "
                      "contract stays local; .legacyEthWallet unreachable at PV86); signed tier (checkD3Core): "
                      "e.eth_implicit_local",
-        acceptance_tests="a PV86 chain whose genesis holds an ETH-implicit account with a legacy magic-hash "
-                         "contract, called in a whole chunk; breakage control: resolveCode without the "
-                         "wallet redirect",
-        evidence="allFeatures decides the corpus `e.eth_implicit_local` claims (pre-freeze replay of all "
-                 "235,716 cases: 0 disagreements with cold nearcore; its only exclusions are 95 "
-                 "preparation-pipeline races); UQ-007 answered: "
-                 "legacyWallet_unreachable_pv86, ethWallet_kind_unreachable; 7/7 wallet hashes recomputed from "
-                 "nearcore's embedded wasm equal Lean's, control (one flipped byte) fails. Evidence: "
-                 + EV + "open-uqs/README.md",
-        remaining_work="validation gap: no whole-chunk fixture of an ETH-implicit account holding a legacy "
-                       "magic-hash contract (such accounts predate PV83, so a PV86 test chain needs them in "
-                       "genesis), and no whole-chunk deliberate-breakage control for the redirect. The corpus "
-                       "claims hold ordinary local contracts (0 of 1,455 decoded accounts carry a magic hash). "
-                       "The signed tier keeps e.eth_implicit_local (210 census claims)",
-    ), None),
+        acceptance_tests="a PV86 chain whose genesis holds ETH-implicit accounts with legacy magic-hash "
+                         "contracts, called in whole chunks (eth-wallet-fixtures); breakage control: "
+                         "resolveCode without the wallet redirect",
+        remaining_work="none on allFeatures. The signed tier keeps e.eth_implicit_local (210 census claims; "
+                       "every wallet chunk of the family is excluded there, never decided wrongly)",
+    ), "eth-wallet"),
     "L0-D3-008": (lambda f: f["ethResolve"] and f["globalActions"], dict(
         status="validated",
         lean_path_symbol="NearSpecV3.Successor.StorageExecution.resolveCode (.global codeHash/accountId, "

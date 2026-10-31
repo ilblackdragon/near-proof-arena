@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Bind a cross-family scenario run (`oracle/v3-successor` `src/xfam.rs`, `NEAR_SUCCESSOR_SCENARIO`
 = yield-congestion | curve-callbacks | genesis-tx | gaskey-target | rollback-refund | runtime-errors
-| host-rows) to nearcore's
+| host-rows | eth-wallet) to nearcore's
 recorded outcomes and to its cases.
 
 Input: a run directory with `summary.json`, `xfam-<chain>.json` (every scenario transaction with
@@ -196,7 +196,7 @@ def check_family(scenario, steps, headers_rows, metas, sc_list):
     facts, problems = {}, []
     executed = [s for s in steps if s["executed"]]
     variant = next((sc.get("variant") for sc in sc_list if sc.get("variant")), None)
-    if variant:
+    if variant and scenario != "EthWallet":
         facts, problems = check_variant(variant, executed)
         facts["variant"] = variant
         facts["unexecuted_transactions"] = [s["label"] for s in steps if not s["executed"]]
@@ -296,6 +296,10 @@ def check_family(scenario, steps, headers_rows, metas, sc_list):
             if k not in per_step.get(name, []):
                 problems.append(f"host-rows: no `{name}` receipt with {k}")
         facts["cross_shard_steps"] = len([s for s in executed if s["signer_shard"] != s["receiver_shard"]])
+    elif scenario == "EthWallet":
+        f2, p2 = check_eth_wallet(executed, sc_list)
+        facts.update(f2)
+        problems += p2
     else:
         kinds = collections.Counter()
         for s in executed:
@@ -331,6 +335,95 @@ def hr_failure_kind(failure):
     return rt_failure_kind(failure)
 
 
+def check_eth_wallet(executed, sc_list):
+    """`eth-wallet` (row L0-D3-006): ETH-implicit accounts whose genesis contract is a legacy wallet
+    magic hash. From nearcore's outcomes only:
+    * every call on a wallet before the global wallet is deployed fails with `CodeDoesNotExist` (the
+      magic hash redirects to a global hash with no code yet), and the deployment succeeds;
+    * after it, calls on every one of the four magic variants execute the wallet code: at least one
+      `rlp_execute` per variant returns a promise whose action reaches its target (a transfer or a
+      function call through the wallet), and direct `get_nonce` calls return a value;
+    * the controls stay local: the ETH-implicit account with ordinary code runs it, the one without
+      code fails with `CodeDoesNotExist`, the named account holding magic bytes fails preparation.
+    `wallet_answers` counts the wallet's own `ExecuteResponse` values (success or its error text)."""
+    facts, problems = {}, []
+    wallets = {}
+    for sc in sc_list:
+        for k, sh in sc["shards"].items():
+            if k.startswith("ew-"):
+                tag, acc = k[3:].split(":")
+                wallets[acc] = tag
+    facts["eth_accounts"] = {v: k for k, v in sorted(wallets.items())}
+    kinds = collections.defaultdict(collections.Counter)
+    answers = collections.Counter()
+    reached = collections.Counter()
+    for s in executed:
+        lab = s["label"]
+        m = re.match(r"successor\.eth-wallet\.\d+\.(.*)$", lab)
+        if not m:
+            continue
+        name = m.group(1)
+        parts = name.split(".")
+        if name == "deploy-global-wallet":
+            cls = "deploy-global-wallet"
+        elif parts[0] == "pre-deploy":
+            cls = "pre-deploy." + parts[1] if parts[1] != "control" else name
+        elif parts[1] == "control":
+            cls = "control." + parts[2]
+        else:
+            cls = ".".join(p for p in parts[2:] if not re.fullmatch(r"n\d+", p))
+        first = next((r for r in s["receipts"] if r.get("executed", True) and r.get("executor") == s["receiver"]), None)
+        if first is None:
+            kinds[cls]["no-receipt"] += 1
+            continue
+        k = first["status"] if first["status"] != "failure" else rt_failure_kind(first["failure"])
+        if k == "failure" and "Deserialization" in str(first["failure"]):
+            k = "PrepareError(Deserialization)"
+        kinds[cls][k] += 1
+        if first["status"] == "value" and s["receiver"] in wallets:
+            try:
+                v = json.loads(bytes.fromhex(first["value"]).decode())
+            except Exception:
+                v = None
+            if isinstance(v, dict) and "success" in v:
+                answers["success" if v["success"] else "error: " + str(v.get("error"))[:60]] += 1
+        if first["status"] == "receipt" and s["receiver"] in wallets:
+            # the wallet's emitted action executed on its target
+            for r in s["receipts"]:
+                if r.get("executor") not in (None, s["receiver"]) and r.get("executor") in ("s2ewc",) + tuple(wallets):
+                    reached[(wallets[s["receiver"]], r["executor"] if r["executor"] == "s2ewc" else "wallet")] += 1
+                    break
+    facts["outcome_kinds"] = {c: dict(v) for c, v in sorted(kinds.items())}
+    facts["wallet_answers"] = dict(answers)
+    facts["wallet_actions_reached_target"] = {f"{a}->{b}": n for (a, b), n in sorted(reached.items())}
+    controls = (("control.plain-local", "value"), ("control.no-code", "CodeDoesNotExist"),
+                ("control.named-magic", "PrepareError(Deserialization)"))
+    predeploy = any(c.startswith("pre-deploy.") for c in kinds)
+    if predeploy:
+        # NEAR_XFAM_VARIANT=eth-wallet-predeploy: no deployment, no wallet code anywhere
+        # nearcore's own validators reject the first chunk that applies such a call, so the wallets'
+        # shard stalls: a receipt not executed by the end of the run is `no-receipt`
+        pre = {c: v for c, v in kinds.items() if c.startswith("pre-deploy.") and ".control." not in c}
+        if (len(pre) != 4 or any(set(v) - {"CodeDoesNotExist", "no-receipt"} for v in pre.values())
+                or not any(v.get("CodeDoesNotExist") for v in pre.values())):
+            problems.append(f"pre-deployment wallet calls did not fail with CodeDoesNotExist: {pre}")
+        controls = tuple(("pre-deploy." + c + (".noop" if "plain" in c else ".call"), w) for c, w in controls)
+        controls = tuple((c, w) for c, w in controls if set(kinds.get(c, {})) != {"no-receipt"})
+    else:
+        if set(kinds.get("deploy-global-wallet", {})) != {"value"}:
+            problems.append("the global wallet deployment did not succeed")
+        for tag in ("mainnet", "testnet", "oldtestnet", "localnet"):
+            if not any(a == tag for (a, _) in reached):
+                problems.append(f"no rlp_execute on the {tag} magic-hash wallet reached its target")
+        if not kinds.get("direct.get_nonce", {}).get("value"):
+            problems.append("no direct get_nonce on a magic-hash wallet returned a value")
+    for c, want in controls:
+        got = set(kinds.get(c, {}))
+        if got != {want}:
+            problems.append(f"{c}: expected only {want}, got {dict(kinds.get(c, {}))}")
+    return facts, problems
+
+
 def rt_failure_kind(failure):
     """The function-call failure kind in a failure's debug text: `LoadingError`, `LinkError`,
     `PrepareError(X)`, `HostError(X)`, `MethodNotFound`, …, or `failure` for anything else."""
@@ -362,7 +455,12 @@ def collect(run):
                honest_accepted_by_nearcore=summary["honest_accepted_by_nearcore"], mutants=summary["mutants"])
     problems = []
     if summary["honest_witnesses"] != summary["honest_accepted_by_nearcore"]:
-        problems.append("an honest witness was rejected by the cold validator")
+        # `eth-wallet-predeploy` (row L0-D3-006): nearcore's validator rejects the producer's chunk
+        # that calls a magic-hash wallet before the global wallet exists; recorded, not a failure
+        if any(json.loads(p.read_text()).get("variant") == "eth-wallet-predeploy" for p in run.glob("xfam-*.json")):
+            out["honest_rejected_by_nearcore_expected"] = summary["honest_witnesses"] - summary["honest_accepted_by_nearcore"]
+        else:
+            problems.append("an honest witness was rejected by the cold validator")
     steps, hdr_rows, scs, scenario = [], [], [], None
     for p in sorted(run.glob("xfam-*.json")):
         chain = int(re.fullmatch(r"xfam-(\d+)\.json", p.name).group(1))
@@ -389,8 +487,8 @@ def collect(run):
     for rel, m in metas.items():
         x = m.get("features", {}).get("xfam")
         labels = m.get("tx_labels", []) + m.get("new_tx_labels", [])
-        ran = any(e.get("name") in ("xfam", "xcurve", "hostrows", "kgashost", "hrall")
-                  or str(e.get("name", "")).startswith("rt")
+        ran = any(e.get("name") in ("xfam", "xcurve", "hostrows", "kgashost", "hrall", "ethwallet")
+                  or str(e.get("name", "")).startswith(("rt", "ethmagic"))
                   for e in m.get("executed_contracts", []))
         if scenario == "GenesisTx":
             if x and (x.get("b2_genesis") or int(re.search(r"-h(\d+)-", rel).group(1)) <= 10004):

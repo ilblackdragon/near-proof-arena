@@ -43,6 +43,8 @@ rand_chacha = "0.3.1"
 reed-solomon-erasure = { version = "6.0.0", features = ["simd-accel"] }
 serde_json = "1.0.68"
 sha2 = "0.10"
+# eth-wallet scenario (src/ethwallet.rs): keccak256, the version nearcore's lock resolves
+sha3 = "0.10"
 wat = "1.0.42"
 strum = "0.24"
 near-wallet-contract = { path = "../vendor/nearcore/runtime/near-wallet-contract" }

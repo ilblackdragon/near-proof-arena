@@ -2873,6 +2873,7 @@ dependencies = [
  "reed-solomon-erasure",
  "serde_json",
  "sha2",
+ "sha3",
  "strum",
  "wasmparser 0.236.1",
  "wat",
