@@ -1,0 +1,48 @@
+{
+  "cases": 372,
+  "adapter": [
+    "/data/illia/nearproof-deps/w13-cold/bin/neard",
+    "--home",
+    "/data/illia/nearproof-deps/w13-cold/pilot-home-view",
+    "view-state",
+    "state-witness",
+    "cold-validate"
+  ],
+  "table": {
+    "honest": {
+      "accept": 372
+    },
+    "no_code": {
+      "reject": 279
+    },
+    "claim_epoch": {
+      "facts_rejected": 372
+    },
+    "claim_tail": {
+      "facts_rejected": 372
+    },
+    "post_root": {
+      "reject": 372
+    }
+  },
+  "unexpected": [],
+  "expected": {
+    "honest": [
+      "accept"
+    ],
+    "no_code": [
+      "reject"
+    ],
+    "claim_epoch": [
+      "error",
+      "facts_rejected"
+    ],
+    "claim_tail": [
+      "error",
+      "facts_rejected"
+    ],
+    "post_root": [
+      "reject"
+    ]
+  }
+}

@@ -50,7 +50,7 @@ Gates A–C are defined in the [transition plan](LEAN_CHUNK_TRANSITION_PLAN.md);
 
 | # | Item | State / done when |
 |---|---|---|
-| 1 | **W13 all-shard mainnet replay** ([runbook](../../tools/mainnet-replay/ALL_SHARDS_RUNBOOK.md)) | waits on the sponsor machine; `make w13-gate` at 100% coverage, 0 mismatches / unsupported / missing / errors |
+| 1 | **W13 all-shard mainnet replay**. The cold native adapter, the finality/authentication boundary and the blind gate replay are built and dry-run on shard 13: 1,221/1,223 match, the 2 not-yet-final heights refused ([dry run](../evidence/lean-chunk-completion/mainnet-w13-gate-dryrun/README.md)). Left: the 1,000-block all-shard capture ([runbook](../../tools/mainnet-replay/ALL_SHARDS_RUNBOOK.md)) | waits on the sponsor machine; `make w13-gate` at 100% coverage, 0 mismatches / unsupported / missing / errors |
 | 5 | **Tier refinement** O2 (curve hosts), O3 (global actions), O4 (storage resolution), O6 (resharding on non-genesis segments) — O1, O5, O7 proved | in progress (three lanes, 2026-10-31); proofs build with the allowed axioms. Status: [tier-refinement-w12 §5](../evidence/lean-chunk-completion/tier-refinement-w12/README.md) |
 | 13 | **W14–W16**: freeze one package and replay everything on it (Gate B); restricted reference admission (Gate A); successor admission and release (Gate C) | Gate B after item 5; Gate A/C need signed admissions by the owner |
 
