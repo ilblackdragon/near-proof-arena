@@ -1,5 +1,10 @@
 # PQ tail architecture experiment
 
+> **Status (2026-10-31): unproven research direction.** Not a qualified NEAR chunk proof,
+> not a PQ128 claim, not linked to the Lean statement, and no accumulation/folding yet.
+> The headline 250 KB packets likely model below 128 bits. Merged to `main` only to preserve
+> the work. Read [EVALUATION-2026-10-31.md](EVALUATION-2026-10-31.md) before relying on any number here.
+
 Branch `lane/pq-tail-architecture`, base `8ac3de9f6`. Target: a recursively composable,
 post-quantum proof below **300,000 bytes**, with the final proof ready **within 1–2 seconds of the chunk**
 (user clarification), as well as sustained throughput matching chunk arrival. Neither recursion nor PQ security is
