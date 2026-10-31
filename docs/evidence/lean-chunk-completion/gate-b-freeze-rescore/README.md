@@ -98,6 +98,10 @@ failing bucket.
 
 ## Real checker-vs-oracle disagreement: 2 conservative race exclusions
 
+> **Resolved 2026-10-31** ([g3-per-call-race](../g3-per-call-race/README.md)): the checker decides
+> both (and the 12 pipeline-race fixture rows), and the harness's `race_exclusion_conservative`
+> bucket is gone. The text below describes the freeze.
+
 `w08-warm-cache/cases/cc802-00-h10004-s2-code.none` and `cc803-00-h10004-s2-code.none` are
 labelled `e.code_deploy_served`, so they are in domain for allFeatures. Nearcore rejects both, with
 the same verdict under both forced schedules. Only the failure point moves: eager gives

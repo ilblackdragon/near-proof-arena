@@ -271,9 +271,11 @@ only the race reason string, and on STRAT the complete policy changed only the 8
 
 ## 7. What is left open
 
-* Lean's race exclusion is wider than nearcore's verdict races: 27 `code.none` mutants (§4) where the
-  failure point races but the verdict does not. Deciding them needs the checker to continue past a
-  racing call to the next certain failure; not done.
+* ~~Lean's race exclusion is wider than nearcore's verdict races: 27 `code.none` mutants (§4) where the
+  failure point races but the verdict does not.~~ **Fixed 2026-10-31** ([g3-per-call-race](../g3-per-call-race/README.md)):
+  the checker continues past a racing call with the served code and reports the race only if the
+  chunk would otherwise be accepted; these mutants (30 with `full805`) are now rejected, as nearcore
+  does under both schedules.
 * The eager/lazy probe establishes a race by observing both extreme schedules with 400 ms delays; it
   is evidence, not a proof that no third schedule exists. On this family the two schedules agreed with
   Lean's `Pipeline` model on every verdict race (88/88 excluded by Lean).

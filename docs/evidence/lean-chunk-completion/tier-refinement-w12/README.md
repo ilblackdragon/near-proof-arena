@@ -1509,3 +1509,51 @@ The 956 `runtimeLimits` moves of nearcore-rejected chunks to `w.size` are a comp
 narrower legacy tier only (never an accept), the same shape as the earlier `withStorageExclusion`
 fix; the signed tier and `.storageResolution` reject all 956. Filled in by the integrator on
 2026-10-31 from `/data/illia/nearproof-deps/w12-o4b/ho/` (`*.ba.json`, `s13-*-direct.jsonl`).
+
+## 18. Update 2026-10-31: G3 fixed — the preparation race is decided per call
+
+Evidence: [g3-per-call-race](../g3-per-call-race/README.md). This is a definition change of the
+recorder engine (the signed hand-over runs it too; covered by the 2026-10-27 decision), so it comes
+with fixtures, a breakage control and corpus/census/fixture before/after tables there.
+
+### What changed in the engine
+
+* **Global-contract calls are scheduled exactly** (`Successor/Pipeline.lean`, `submitActions`).
+  `ReceiptPreparationPipeline::submit` resolves the receiver's contract with
+  `RuntimeContractIdentifier::resolve` (`contract_code.rs:38-84`) and submits a task for every call
+  that resolves, global or local; the receipt is then "interesting", which is what staggers the
+  later submissions (`schedule_contract_preparation`, `lib.rs:3256-3324`). The model now does the
+  same (`D3.L4.Rci.resolve` + `Rci.resolveCodeHash` on the overlay, the ETH-implicit wallet redirect
+  through the new `Pipe.chain`). Distribution receipts never reach `submit` from the scheduler, so
+  `block_global_contracts` stays empty. Until now a global call set the chunk-wide `uncertain` flag.
+* **A race is noted per executed call and decided at the end** (`Pipe.noteRace`, `Pipe.raced`,
+  `StorageExecution.raceCheck`). A call whose code only an in-chunk deploy serves
+  (`CodeSources.deployServed`) and whose preparation is not `deterministic` has two nearcore
+  outcomes: the worker missed the code (`MissingTrieValue`, chunk invalid) or the code was served.
+  The engine runs the served branch; `run` reports `out of domain (e.code_prep_race)` only if the
+  transition would otherwise succeed. A reject is a reject on every schedule. `resolveCodeBytes`
+  is now called with `timely = true`; its race arm and `complete_eq_cold` are unchanged
+  (`deployServed_iff_race`: the arm is exactly `deployServed`).
+* `uncertain` remains only for what the active codec cannot decode (an account, a stored or
+  delayed receipt). It no longer excludes anything by itself: it makes every later deploy-served call
+  racy, so it can only turn an accept into the race exclusion.
+
+### Proofs (no `sorry`; axioms `propext`, `Classical.choice`, `Quot.sound`)
+
+* `TierO3Pipe`: `PipeRel pL pU := pL = pU ∨ (pL.uncertain ∧ (pU.raced → pL.raced))`;
+  `PipeRel.det`, **`PipeRel.raced`**, **`pipeFn_noteRace`**, the `*_raced` family (the scheduler never
+  touches `raced`), and every `pipeFn_*` restated through `PipeFn.of_unc`. As planned in §11, the rest
+  of O3 needed no change except the call (`TierO3Rec`: the race note is a `modifyPipe` by
+  `pipeFn_noteRace`, the resolution is now equal on both sides) and the end of the run
+  (`MRX.raceCheck` in `TierO3Engine`, `run_resQ`/`run_global` in `TierO3Run`).
+* O4: `EngineObligations` gains `noRace` (G3 as a premise on the simulation invariant) and `init` is
+  quantified over the chain id; `engineAgree_of_obligations`, `engineAgreeL_of_simE` (with `hP`),
+  `raceCheck_run`; for `NS` (whose call now notes the race the same way), `ns_run_eq` and
+  `engineAgreeX_of_simX`: a noted race is the G3 escape at the end of the run. `TierO4NSSim`'s
+  `simx_functionCall`/`fcSimNS` take `PFrame P` for the race note.
+* `TierFlagsEq.run_eq_orig` (the frozen pre-refactor copy got the same call and `raceCheck`),
+  `TierWholeWalk.run_rec_mono` (`MRef.bind` with `raceCheck`), `complete_eq_cold`,
+  `D3.checkD3_cases`: unchanged statements, all re-checked by the full default build (425 jobs).
+
+G3 in the §10 table is therefore no longer an escape *at the call*: the recorder serves the code as
+the legacy engine does and continues; the escape is only the end-of-run exclusion of an accept.
