@@ -1,0 +1,393 @@
+//! NPMULT04 composite: NPMULT03 (receipt lists + account trie + ledger) +
+//! the in-circuit Wasm execution section (NPMWASM02 fixture) on the SAME
+//! LaBRADOR Session — the Phase-4 integration of the Wasm vertical slice.
+//! NOT full NEAR validity: both slices carry their stated bounds.
+#[path="support/wasm_exec.rs"] mod wasm;
+#[path="support/packed_concat.rs"] mod packed;
+use packed::concat;
+#[path="support/receipt_arithmetic.rs"] mod receipt;
+#[path="support/receipt_outcome.rs"] mod outcome;
+#[path="support/receipt_source_packed.rs"] mod source;
+#[path="support/tight_sha.rs"] mod tight_sha;
+#[path="support/receipt_account_ledger.rs"] mod ledger;
+#[path="support/receipt_account_trie.rs"] mod trie;
+#[path="support/receipt_multi_wire.rs"] mod wire;
+use binius_frontend::{CircuitBuilder,Wire};
+use binius_circuits::{fixed_byte_vec::ByteVec};
+use binius_core::word::Word;
+use labinius_binius::{Session,Opening,liop::Liop};
+use labinius::{Params,Modulus,Opening as PcsOpening,scheme::{SUITES,PublicParameters}};
+use std::time::Instant;
+fn balanced(b:&CircuitBuilder,parts:Vec<ByteVec>)->ByteVec{concat(b,&parts)}
+fn le(x:&[u8])->u64{u64::from_le_bytes(x.try_into().unwrap())}
+
+/// One list's slot wires plus the registers/matched state threaded through it.
+struct ListLayout {
+    ctx: Vec<Wire>,
+    root: Vec<Wire>,
+    slots: Vec<(Vec<Wire>, Vec<Wire>)>,
+}
+
+fn build_list(b:&CircuitBuilder,cap:usize,mode:u32,ledger:&ledger::Ledger,regs:&mut [ledger::U128;ledger::ACCOUNT_SLOTS],matched:&mut [Wire;ledger::ACCOUNT_SLOTS])->ListLayout{
+    let source_budget=if mode==0{12+347*cap}else{if cap<=1024{128*cap}else{136*cap}};
+    let zero=b.add_constant_64(0);
+    let ctx:Vec<_>=(0..5).map(|_|b.add_inout()).collect();
+    b.assert_false("count-cap",b.icmp_ugt(ctx[4],b.add_constant_64(cap as u64)));
+    let root:Vec<_>=(0..4).map(|_|b.add_inout()).collect();
+    let mut slots=vec![];
+    let mut parts=vec![];
+    for i in 0..cap {
+        let sb=b.subcircuit(format!("slot-{i}"));
+        let active=sb.icmp_ult(sb.add_constant_64(i as u64),ctx[4]);
+        let ins:Vec<_>=(0..53).map(|_|sb.add_witness()).collect();
+        for(at,j)in [(10,0),(11,1),(34,2)]{sb.assert_eq(format!("context-{j}"),ins[at],sb.select(active,ctx[j],zero));}
+        let x=outcome::Inputs{amounts:core::array::from_fn(|j|[ins[2*j],ins[2*j+1]]),predecessor_len:ins[12],predecessor:ins[13..21].try_into().unwrap(),receiver_len:ins[21],receiver:ins[22..30].try_into().unwrap(),rid:ins[30..34].try_into().unwrap(),height:ins[34]};
+        let extra=source::Extra{signer_len:ins[35],signer:ins[36..44].try_into().unwrap(),key_kind:ins[44],key:ins[45..53].try_into().unwrap()};
+        let bytes=source::serialize(&sb.subcircuit("source"),&x,&extra);
+        let len=sb.select(active,bytes.len_bytes,zero);
+        parts.push(ByteVec::new_with_len_range(bytes.data,len,0..=347));
+        let y=outcome::constrain(&sb.subcircuit("outcome"),&x);
+        let out:Vec<_>=(0..11).map(|_|sb.add_inout()).collect();
+        let refund=sb.icmp_ne(sb.bor(y.arithmetic.surplus[0],y.arithmetic.surplus[1]),zero);
+        let length=sb.iadd(ins[21],sb.select(refund,sb.add_constant_64(69),sb.add_constant_64(37))).0;
+        let values=core::iter::once(sb.add_constant_64(1)).chain(core::iter::once(sb.add_constant_64(i as u64))).chain(core::iter::once(length)).chain(x.rid).chain(y.digest);
+        for(j,value)in values.enumerate(){sb.assert_eq(format!("out-{j}"),out[j],sb.select(active,value,zero));}
+        // Account-ledger binding: registers thread across slots and lists.
+        ledger::bind(&sb.subcircuit("account-bind"),ledger,regs,matched,active,x.receiver_len,&x.receiver,&x.amounts[0],&x.amounts[2],&x.amounts[3],&y.arithmetic.after);
+        slots.push((ins,out));
+    }
+    println!("RECEIPT_LIST_PHASE slots-built");
+    let body=balanced(&b.subcircuit("body"),parts);
+    let header=ByteVec::new_const_len(b,vec![ctx[3],ctx[4]],12);
+    let list=concat(&b.subcircuit("list"),&[header,body]);
+    println!("RECEIPT_LIST_PHASE bytes-packed");
+    b.assert_false("source-byte-cap",b.icmp_ugt(list.len_bytes,b.add_constant_64(source_budget as u64)));
+    let bounded=ByteVec::new_with_len_range(list.data[..source_budget.div_ceil(8)].to_vec(),list.len_bytes,0..=source_budget);
+    let digest=tight_sha::sha256_tight(&b.subcircuit("list-hash"),&bounded,source_budget);
+    for i in 0..4{b.assert_eq(format!("root-{i}"),root[i],digest[i]);}
+    println!("RECEIPT_LIST_PHASE hash-built");
+    ListLayout{ctx,root,slots}
+}
+
+fn read_fixture(raw:&[u8])->Vec<Vec<u8>> {
+    assert_eq!(&raw[..8],b"NPMULF01");let count=u32::from_le_bytes(raw[8..12].try_into().unwrap()) as usize;let mut pos=12;let mut lists=vec![];
+    for _ in 0..count {let len=u64::from_le_bytes(raw[pos..pos+8].try_into().unwrap()) as usize;pos+=8;lists.push(raw[pos..pos+len].to_vec());pos+=len;}
+    assert_eq!(pos,raw.len());lists
+}
+
+/// Fixed-format account table fixture (NPMLEDG01), generated by the native
+/// exporter from the claim/witness. Trusted local input, like the list
+/// fixtures. Layout: magic(9) || pre_state_root(32) || 16 rows of
+/// active(8) || name_len(8) || name(64) || initial(72) || final(72).
+const LEDGER_HEADER: usize = 9+32;
+const LEDGER_ROW: usize = 8+8+64+72+72;
+const LEDGER_FIXTURE: usize = LEDGER_HEADER+ledger::ACCOUNT_SLOTS*LEDGER_ROW;
+
+struct AccountRow { active:u64,name_len:u64,name:[u64;8],balance:[u64;2],locked:[u64;2],storage:[u64;2],final_balance:[u64;2] }
+
+fn parse_ledger(path:&str)->(Vec<AccountRow>,[u8;32]) {
+    // Host-side parsing validates only what is needed to read rows safely.
+    // Semantic validity is the CIRCUIT's job (NEAR_EXPECT_REJECT fixtures).
+    let raw=std::fs::read(path).unwrap();
+    assert_eq!(raw.len(),LEDGER_FIXTURE,"account ledger fixture size");
+    assert_eq!(&raw[..9],b"NPMLEDG01");
+    let mut root=[0u8;32];root.copy_from_slice(&raw[9..41]);
+    let mut rows=vec![];
+    for r in 0..ledger::ACCOUNT_SLOTS {
+        let off=LEDGER_HEADER+r*LEDGER_ROW;
+        let le=|o:usize|u64::from_le_bytes(raw[off+o..off+o+8].try_into().unwrap());
+        let active=le(0);
+        let name_len=le(8);
+        let name_bytes=&raw[off+16..off+16+64];
+        let mut name=[0u64;8];
+        for(i,chunk)in name_bytes.chunks(8).enumerate(){let mut w=0u64;for(j,&b)in chunk.iter().enumerate(){w|=(b as u64)<<(8*j);}name[i]=w;}
+        let initial=&raw[off+80..off+80+72];
+        let final_value=&raw[off+152..off+152+72];
+        let u128le=|b:&[u8],o:usize|[u64::from_le_bytes(b[o..o+8].try_into().unwrap()),u64::from_le_bytes(b[o+8..o+16].try_into().unwrap())];
+        let u64le=|b:&[u8],o:usize|u64::from_le_bytes(b[o..o+8].try_into().unwrap());
+        rows.push(AccountRow{active,name_len,name,balance:u128le(initial,0),locked:u128le(initial,16),storage:[u64le(initial,64),0],final_balance:u128le(final_value,0)});
+    }
+    (rows,root)
+}
+
+/// Fixed-format trie witness fixture (NPMTRIE01) from the native exporter.
+/// Layout: magic(9) || root(32) || u16 chain_len(=5+1) || shared[5]:
+///   u16 node_len || node_ser
+/// || u16 account_count || rows: active(8) || initial(72) || leaf node_ser
+/// (leaf length = 1+4+hp_len+36+8).
+/// Rows appear in ACCOUNT ORDER; slots beyond account_count are all-zero.
+const TRIE_HEADER: usize = 9+32+2;
+
+#[derive(Default)]
+struct TrieFixture {
+    root: [u64;4],
+    shared: Vec<Vec<u8>>,       // node_ser bytes per shared node (roles fixed)
+    rows: Vec<TrieRow>,
+}
+#[derive(Default)]
+struct TrieRow { active: u64, initial: Vec<u8>, leaf: Vec<u8> }
+
+fn parse_trie(path:&str)->TrieFixture {
+    let raw=std::fs::read(path).unwrap();
+    assert_eq!(&raw[..9],b"NPMTRIE01","trie fixture magic");
+    let chain_len=u16::from_le_bytes(raw[41..43].try_into().unwrap()) as usize;
+    assert_eq!(chain_len,trie::NODES+1,"chain length profile");
+    let mut pos=TRIE_HEADER;
+    let mut shared=vec![];
+    for _ in 0..trie::NODES {
+        let nlen=u16::from_le_bytes(raw[pos..pos+2].try_into().unwrap()) as usize;pos+=2;
+        shared.push(raw[pos..pos+nlen].to_vec());pos+=nlen;
+    }
+    let count=u16::from_le_bytes(raw[pos..pos+2].try_into().unwrap()) as usize;pos+=2;
+    assert!(count<=ledger::ACCOUNT_SLOTS);
+    let mut rows=vec![];
+    for _ in 0..count {
+        let active=u64::from_le_bytes(raw[pos..pos+8].try_into().unwrap());pos+=8;
+        let initial=raw[pos..pos+72].to_vec();pos+=72;
+        let hp_len=u32::from_le_bytes(raw[pos+1..pos+5].try_into().unwrap()) as usize;
+        let leaf_len=1+4+hp_len+36+8;
+        let leaf=raw[pos..pos+leaf_len].to_vec();pos+=leaf_len;
+        rows.push(TrieRow{active,initial,leaf});
+    }
+    assert_eq!(pos,raw.len(),"trie fixture consumed");
+    let mut root=[0u64;4];
+    for j in 0..4 {root[j]=u64::from_be_bytes(raw[9+j*8..9+j*8+8].try_into().unwrap());}
+    TrieFixture{root,shared,rows}
+}
+
+fn main(){
+    let args:Vec<_>=std::env::args().skip(1).collect();
+    let caps:Vec<usize>=args[0].split(',').map(|s|s.parse().unwrap()).collect();
+    assert!(!caps.is_empty()&&caps.len()<=16&&caps.iter().all(|c|c.is_power_of_two()&&*c<=4096));
+    let mode:u32=match args[1].as_str(){"full"=>0,"compact"=>1,_=>panic!("unknown profile")};
+    let cap:usize=caps.iter().sum();
+    let ledger_path=std::env::var("NEAR_LEDGER").unwrap_or_else(|_|panic!("NEAR_LEDGER=<ledger fixture> is required"));
+    let trie_path=std::env::var("NEAR_TRIE").unwrap_or_else(|_|panic!("NEAR_TRIE=<trie witness fixture> is required"));
+    let (account_rows,_)=parse_ledger(&ledger_path);
+    let trie_fix=parse_trie(&trie_path);
+    let start=Instant::now();
+    let b=CircuitBuilder::new();
+    // Trie root words lead the public statement, then the account table.
+    let twit=trie::build(&b.subcircuit("account-trie"));
+    let led=ledger::build(&b.subcircuit("account-table"));
+    trie::constrain(&b.subcircuit("trie-constraints"),&led,&twit);
+    let mut regs=ledger::initial_registers(&led);
+    let mut matched=[b.add_constant_64(0);ledger::ACCOUNT_SLOTS];
+    let mut layouts=vec![];
+    for (i,&c) in caps.iter().enumerate(){
+        layouts.push(build_list(&b.subcircuit(format!("list-{i}")),c,mode,&led,&mut regs,&mut matched));
+    }
+    for i in 1..layouts.len(){for j in 0..4{b.assert_eq(format!("shared-context-{i}-{j}"),layouts[0].ctx[j],layouts[i].ctx[j]);}}
+    // ---- Wasm execution section (NPMWASM02 contract) ----
+    let wasm_cap:usize=std::env::var("NEAR_WASM_CAP").map(|s|s.parse().unwrap()).unwrap_or(64);
+    assert!(wasm_cap<=2048&&wasm_cap.is_power_of_two(),"wasm cap profile");
+    let wasm_exec=wasm::build(&b.subcircuit("wasm-exec"),wasm_cap);
+    wasm::constrain(&b.subcircuit("wasm-constraints"),&wasm_exec);
+    ledger::finalize(&b.subcircuit("account-finalize"),&led,&regs,&matched);
+    let c=b.build();
+    let circuit_s=start.elapsed().as_secs_f64();
+    let cs=c.constraint_system();
+    println!("RECEIPT_LIST_COUNTS public={} private={} constants={} and={} zero={}",cs.n_inout,cs.n_private,cs.n_const(),cs.n_and_constraints(),cs.n_zero_constraints());
+    let log=Liop::new(cs.clone()).log_witness_elems();
+    println!("RECEIPT_LIST_CIRCUIT cap={cap} mode={mode} lists={} log={log} circuit_s={circuit_s} accounts={}",caps.len(),account_rows.iter().filter(|r|r.active==1).count());
+    if std::env::var_os("NEAR_GEOMETRY_ONLY").is_some(){return;}
+    let suite=SUITES.iter().find(|s|s.witness_log_len as usize>=log).unwrap();
+    let params=Params::with_base(log as u32,suite.column_log_len_recursive.min((log as u32).saturating_sub(8)),Modulus::Q3889_FS_S,vec![Modulus::Q2917_Q_S,Modulus::Q4861_Q_S,Modulus::Q9721_FS_S,Modulus::Q12637_Q_S],PcsOpening::Recursive).unwrap();
+    let start=Instant::now();let pp=PublicParameters::from_seed(params.clone(),[0x76;32]);let setup=pp.recursion().unwrap();
+    let shape=(setup.key_u.rank(),setup.key_r.rank(),setup.ranks.len());drop(pp);
+    let mut session=Session::with_params(c.constraint_system().clone(),params,[0x76;32]);
+    println!("RECEIPT_LIST_SETUP setup_s={}",start.elapsed().as_secs_f64());
+    if let Ok(path)=std::env::var("NEAR_VERIFY_EXPORT"){
+        let raw=std::fs::read(path).unwrap();
+        let expected=std::fs::read(std::env::var("NEAR_EXPECTED_PUBLIC").unwrap()).unwrap();
+        assert_eq!(expected.len(),8*(4+ledger::TABLE_WORDS+9*caps.len()+11*cap));
+        let start=Instant::now();
+        let(public,mut proof)=unsafe{wire::decode(&raw,&expected,shape,&caps,mode,ledger::ACCOUNT_SLOTS)}.unwrap();
+        let decode_s=start.elapsed().as_secs_f64();
+        let t=Instant::now();
+        let vt=session.verify(&public,&proof).unwrap();
+        let verify_s=t.elapsed().as_secs_f64();
+        let seconds=start.elapsed().as_secs_f64();
+        println!("RECEIPT_VERIFY_PHASES decode_s={decode_s:.6} commitment_ms={:.3} reduce_ms={:.3} wiring_ms={:.3} switch_ms={:.3} decode_opening_ms={:.3} opening_ms={:.3} total_ms={:.3}",
+            vt.commitment, vt.reduce, vt.wiring, vt.switch, vt.decode, vt.opening, vt.total);
+        let mut altered=raw.clone();altered[12+4*caps.len()]^=1;assert!(unsafe{wire::decode(&altered,&expected,shape,&caps,mode,ledger::ACCOUNT_SLOTS)}.is_err());
+        let mut wrong=expected.clone();wrong[5*8]^=1;assert!(unsafe{wire::decode(&raw,&wrong,shape,&caps,mode,ledger::ACCOUNT_SLOTS)}.is_err());
+        let mut bad=public.clone();bad[5].0^=1;assert!(session.verify(&bad,&proof).is_err());
+        let at=proof.tape.len()/2;proof.tape[at]^=1;assert!(session.verify(&public,&proof).is_err());
+        println!("RECEIPT_LIST_VERIFY bytes={} seconds={seconds} no_witness_loaded=true backend_roundtrip=true negative_checks=4",raw.len());
+        return;
+    }
+    let wasm_path=std::env::var("NEAR_WASM").unwrap_or_else(|_|panic!("NEAR_WASM=<wasm fixture> is required"));
+    let wasm_raw=std::fs::read(&wasm_path).unwrap();
+    let wasm_fix=wasm::parse_fixture(&wasm_raw);
+    assert!(wasm_fix.n_steps<=wasm_cap,"wasm fixture exceeds the section's step bound");
+    for path in &args[2..]{
+        let start=Instant::now();
+        let all=read_fixture(&std::fs::read(path).unwrap());
+        assert_eq!(all.len(),caps.len());
+        let mut w=c.new_witness_filler();
+        let mut total=0;
+        // Trie root words (statement head), then the account table.
+        for j in 0..4{w[twit.root[j]]=Word(trie_fix.root[j]);}
+        for r in 0..ledger::ACCOUNT_SLOTS{
+            let x=&account_rows[r];
+            let data=vec![x.active,x.name_len,x.name[0],x.name[1],x.name[2],x.name[3],x.name[4],x.name[5],x.name[6],x.name[7],x.balance[0],x.balance[1],x.locked[0],x.locked[1],x.storage[0],x.storage[1],x.final_balance[0],x.final_balance[1]];
+            for(wire,value) in led.words[r*ledger::ROW_WORDS..(r+1)*ledger::ROW_WORDS].iter().zip(data){w[*wire]=Word(value);}
+        }
+        fill_trie(&mut w,&twit,&trie_fix);
+        for (li,raw) in all.iter().enumerate(){
+            let cap=caps[li];
+            let ListLayout{ctx,root,slots}=&layouts[li];
+            assert_eq!(&raw[..8],b"NPLST001");
+            let n=u32::from_le_bytes(raw[40..44].try_into().unwrap()) as usize;
+            assert!(n<=cap);
+            assert_eq!(raw.len(),76+504*n);
+            let context:Vec<_>=raw[8..40].chunks_exact(8).map(le).chain(core::iter::once(n as u64)).collect();
+            total+=n;
+            for(wire,value)in ctx.iter().zip(&context){w[*wire]=Word(*value);}
+            for(j,wire)in root.iter().enumerate(){w[*wire]=Word(u64::from_be_bytes(raw[44+j*8..52+j*8].try_into().unwrap()));}
+            for(i,(ins,out))in slots.iter().enumerate(){
+                let mut data=vec![0u64;53];
+                let mut result=vec![0u64;11];
+                if i<n{
+                    let words:Vec<_>=raw[76+i*504..76+(i+1)*504].chunks_exact(8).map(le).collect();
+                    data.copy_from_slice(&words[..53]);
+                    result[0]=1;result[1]=i as u64;
+                    result[2]=data[21]+if words[57]!=0||words[58]!=0{69}else{37};
+                    result[3..7].copy_from_slice(&data[30..34]);
+                    result[7..11].copy_from_slice(&words[59..63]);
+                }else{
+                    data[2]=1;data[12]=1;data[13]=b'p' as u64;data[21]=1;data[22]=b'r' as u64;data[35]=1;data[36]=b's' as u64;
+                }
+                for(wire,value)in ins.iter().zip(data){w[*wire]=Word(value);}
+                for(wire,value)in out.iter().zip(result){w[*wire]=Word(value);}
+            }
+        }
+        wasm::fill(&mut w,&wasm_exec,&wasm_fix);
+        let filled=c.populate_wire_witness(&mut w);
+        if std::env::var_os("NEAR_EXPECT_REJECT").is_some(){
+            assert!(filled.is_err(),"expected account-ledger/trie rejection");
+            let err=filled.err().unwrap();
+            println!("RECEIPT_LEDGER_REJECT path={path} error={err}");
+            continue;
+        }
+        filled.unwrap();
+        let w=w.into_value_vec();
+        let prepare_s=start.elapsed().as_secs_f64();
+        let t=Instant::now();
+        let(proof,timing,_)=session.prove(&w,None);
+        println!("RECEIPT_LIST_PROVER_MS pack={} commit={} bitand={} shift={} switch={} opening={} total={}",timing.pack,timing.commit,timing.bitand,timing.shift,timing.switch,timing.opening,timing.total);
+        let prove_s=t.elapsed().as_secs_f64();
+        if let Opening::Recursive{proof:opening,..}=&proof.opening{println!("RECEIPT_OPENING_STAGES {:?}",opening.timings());}
+        // NPMULT03: profile + trie root + account table in the public statement.
+        let mut packet=b"NPMULT04".to_vec();
+        packet.extend_from_slice(&(caps.len() as u32).to_le_bytes());
+        for c in &caps{packet.extend_from_slice(&(*c as u32).to_le_bytes());}
+        packet.extend_from_slice(&mode.to_le_bytes());
+        packet.extend_from_slice(&(ledger::ACCOUNT_SLOTS as u32).to_le_bytes());
+        packet.extend_from_slice(&(wasm_cap as u32).to_le_bytes());
+        let mut part=|x:&[u8]|{packet.extend_from_slice(&(x.len() as u64).to_le_bytes());packet.extend_from_slice(x);};
+        part(&w.inout().iter().flat_map(|w|w.0.to_le_bytes()).collect::<Vec<_>>());
+        part(&proof.tape);
+        part(&labinius::wire::pack_f162(&[proof.claimed_value]));
+        match &proof.opening{Opening::Recursive{left,proof:opening}=>{part(left.t_u().as_bytes());part(opening.t_r().as_bytes());part(&opening.norms().iter().flat_map(|x|x.to_le_bytes()).collect::<Vec<_>>());part(&opening.handle().export_bytes());},_=>panic!()};
+        if let Ok(dir)=std::env::var("NEAR_EXPORT_DIR"){std::fs::create_dir_all(&dir).unwrap();std::fs::write(format!("{dir}/{}.packet",std::path::Path::new(path).file_stem().unwrap().to_string_lossy()),&packet).unwrap();}
+        let ready_s=start.elapsed().as_secs_f64();
+        let t=Instant::now();session.verify(w.inout(),&proof).unwrap();let verify_s=t.elapsed().as_secs_f64();
+        let mut checks=vec![];let mut off=4;
+        for c in &caps{for j in [0usize,3,4,5,9,12,16]{checks.push(off+j);}off+=9+11*c;}
+        for at in checks{let mut bad=w.inout().to_vec();bad[at].0^=1;assert!(session.verify(&bad,&proof).is_err());}
+        // Trie-root mutation must reject.
+        let mut root_bad=w.inout().to_vec();root_bad[1].0^=1;assert!(session.verify(&root_bad,&proof).is_err());
+        // Account-table mutation checks.
+        let mut table_checks=vec![];
+        for r in 0..ledger::ACCOUNT_SLOTS{
+            for j in [0usize,1,2,10,12,14,16]{table_checks.push(4+r*ledger::ROW_WORDS+j);}
+        }
+        let mut table_rejected=0;
+        for at in table_checks{
+            let mut bad=w.inout().to_vec();bad[at].0^=1;
+            if session.verify(&bad,&proof).is_err(){table_rejected+=1;}
+        }
+        println!("RECEIPT_LIST_RESULT path={path} cap={cap} mode={mode} lists={} count={} bytes={} prepare_s={prepare_s} prove_s={prove_s} ready_s={ready_s} verify_s={verify_s} table_mutations_rejected={} root_mutation_rejected=true mutations={} wasm_steps={} wasm_cap={} full_near=false accounts={}",caps.len(),total,packet.len(),table_rejected,7*caps.len(),wasm_fix.n_steps,wasm_cap,account_rows.iter().filter(|r|r.active==1).count());
+    }
+}
+
+/// Fill trie witness wires from the fixture.
+fn fill_trie(w:&mut binius_frontend::WitnessFiller,twit:&trie::TrieWitness,fix:&TrieFixture){
+    use trie::*;
+    let be4=|h:&[u8]|-> [u64;4]{core::array::from_fn(|j|u64::from_be_bytes(h[j*8..j*8+8].try_into().unwrap()))};
+    // Branch roles by walk order: shared[0]=b0, [1]=b1, [2]=b2, [3]=ext, [4]=b3.
+    let parse_branch=|ser:&[u8]|->(u64,[[u64;4];16],u64){
+        let bitmap=u16::from_le_bytes([ser[1],ser[2]]) as u64;
+        let kids_bits:Vec<usize>=(0..16).filter(|&j|bitmap>>j&1==1).collect();
+        let mut kids=[[0u64;4];16];
+        for (rank,&j) in kids_bits.iter().enumerate(){
+            let h=&ser[3+32*rank..3+32*rank+32];
+            kids[j]=be4(h);
+        }
+        let mem=u64::from_le_bytes(ser[ser.len()-8..].try_into().unwrap());
+        (bitmap,kids,mem)
+    };
+    // shared[0..3] branches (zero wires when the table is empty — the
+    // has-accounts gate makes the constraints vacuous)
+    for (bi,si) in [(0usize,0usize),(1,1),(2,2),(3,4)]{
+        let ser=fix.shared.get(si).map(|s|s.as_slice()).unwrap_or(&[]);
+        let (bitmap,kids,mem)=if ser.is_empty(){
+            (0,[[0u64;4];16],0)
+        }else{
+            assert_eq!(ser[0],1u8,"branch role at shared {si}");
+            parse_branch(ser)
+        };
+        w[twit.branches[bi].bitmap]=Word(bitmap);
+        for j in 0..16{for k in 0..4{w[twit.branches[bi].kids[j][k]]=Word(kids[j][k]);}}
+        w[twit.branches[bi].mem]=Word(mem);
+    }
+    // ext at shared[3]
+    {
+        let ser=fix.shared.get(3).map(|s|s.as_slice()).unwrap_or(&[]);
+        if ser.is_empty(){
+            w[twit.ext.hp_len]=Word(0);
+            for q in 0..EXT_HP_MAX{w[twit.ext.hp[q]]=Word(0);}
+            for k in 0..4{w[twit.ext.child[k]]=Word(0);}
+            w[twit.ext.mem]=Word(0);
+        }else{
+            assert_eq!(ser[0],3u8,"ext role");
+            let hp_len=u32::from_le_bytes(ser[1..5].try_into().unwrap()) as u64;
+            w[twit.ext.hp_len]=Word(hp_len);
+            let hp=&ser[5..5+hp_len as usize];
+            for q in 0..EXT_HP_MAX{w[twit.ext.hp[q]]=Word(if (q as usize)<hp.len(){hp[q] as u64}else{0});}
+            let child=be4(&ser[5+hp.len()..5+hp.len()+32]);
+            for k in 0..4{w[twit.ext.child[k]]=Word(child[k]);}
+            w[twit.ext.mem]=Word(u64::from_le_bytes(ser[ser.len()-8..].try_into().unwrap()));
+        }
+    }
+    // rows
+    for r in 0..ledger::ACCOUNT_SLOTS{
+        let row=fix.rows.get(r);
+        let t=&twit.rows[r];
+        let mut hp_len=0u64;let mut hp=[0u64;LEAF_HP_MAX];let mut vref_len=0u64;
+        let mut vref_hash=[0u64;4];let mut mem=0u64;let mut code=[0u64;CODE_WORDS];
+        if let Some(x)=row{
+            if x.active==1&&x.leaf.len()>=41{
+                let leaf=&x.leaf;
+                hp_len=u32::from_le_bytes(leaf[1..5].try_into().unwrap()) as u64;
+                for q in 0..LEAF_HP_MAX{hp[q]=if (q as usize)<hp_len as usize{leaf[5+q] as u64}else{0};}
+                let vl=4+hp_len as usize;
+                vref_len=u32::from_le_bytes(leaf[5+hp_len as usize..5+hp_len as usize+4].try_into().unwrap()) as u64;
+                vref_hash=be4(&leaf[5+hp_len as usize+4..5+hp_len as usize+36]);
+                mem=u64::from_le_bytes(leaf[leaf.len()-8..].try_into().unwrap());
+                let _=vl;
+                // code words from the initial value bytes [32:64]
+                let init=&x.initial;
+                for c in 0..CODE_WORDS{code[c]=u64::from_le_bytes(init[32+8*c..40+8*c].try_into().unwrap());}
+            }
+        }
+        w[t.hp_len]=Word(hp_len);
+        for q in 0..LEAF_HP_MAX{w[t.hp[q]]=Word(hp[q]);}
+        w[t.vref_len]=Word(vref_len);
+        for k in 0..4{w[t.vref_hash[k]]=Word(vref_hash[k]);}
+        w[t.mem]=Word(mem);
+        for c in 0..CODE_WORDS{w[t.code[c]]=Word(code[c]);}
+    }
+}

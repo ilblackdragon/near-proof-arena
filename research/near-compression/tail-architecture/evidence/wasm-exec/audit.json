@@ -1,0 +1,97 @@
+{
+ "status": "WASM_FIXTURES_AUDITED_STEP_EXACT",
+ "fixtures": [
+  {
+   "fixture": "addchain131.bin",
+   "steps": 512,
+   "bytes": 351088,
+   "result": 1674728690,
+   "gas": 512
+  },
+  {
+   "fixture": "addchain19.bin",
+   "steps": 64,
+   "bytes": 47015,
+   "result": 1690364314,
+   "gas": 64
+  },
+  {
+   "fixture": "addchain5.bin",
+   "steps": 8,
+   "bytes": 9003,
+   "result": 1,
+   "gas": 8
+  },
+  {
+   "fixture": "addchain514.bin",
+   "steps": 2044,
+   "bytes": 1390910,
+   "result": 950532116,
+   "gas": 2044
+  },
+  {
+   "fixture": "ctrlbounded.bin",
+   "steps": 21,
+   "bytes": 17818,
+   "result": 12,
+   "gas": 21
+  },
+  {
+   "fixture": "memmix1.bin",
+   "steps": 35,
+   "bytes": 27315,
+   "result": 0,
+   "gas": 35
+  },
+  {
+   "fixture": "memmix42.bin",
+   "steps": 1060,
+   "bytes": 722591,
+   "result": 0,
+   "gas": 1060
+  },
+  {
+   "fixture": "memmix5.bin",
+   "steps": 135,
+   "bytes": 95145,
+   "result": 0,
+   "gas": 135
+  },
+  {
+   "fixture": "memmix80.bin",
+   "steps": 2010,
+   "bytes": 1367001,
+   "result": 0,
+   "gas": 2010
+  },
+  {
+   "fixture": "mix1.bin",
+   "steps": 42,
+   "bytes": 32073,
+   "result": 14705851091441950226,
+   "gas": 42
+  },
+  {
+   "fixture": "mix42.bin",
+   "steps": 1272,
+   "bytes": 865933,
+   "result": 3543985263498811439,
+   "gas": 1272
+  },
+  {
+   "fixture": "mix5.bin",
+   "steps": 162,
+   "bytes": 113427,
+   "result": 3260029417714806850,
+   "gas": 162
+  },
+  {
+   "fixture": "mix66.bin",
+   "steps": 1992,
+   "bytes": 1354045,
+   "result": 4716290643152286978,
+   "gas": 1992
+  }
+ ],
+ "mutants_rejected": 104
+}

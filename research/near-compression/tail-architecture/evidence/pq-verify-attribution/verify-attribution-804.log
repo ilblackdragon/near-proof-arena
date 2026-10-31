@@ -1,0 +1,63 @@
+RECEIPT_LIST_PHASE slots-built
+RECEIPT_LIST_PHASE bytes-packed
+RECEIPT_LIST_PHASE hash-built
+RECEIPT_LIST_PHASE slots-built
+RECEIPT_LIST_PHASE bytes-packed
+RECEIPT_LIST_PHASE hash-built
+RECEIPT_LIST_PHASE slots-built
+RECEIPT_LIST_PHASE bytes-packed
+RECEIPT_LIST_PHASE hash-built
+RECEIPT_LIST_COUNTS public=11935 private=10891022 constants=44542 and=4191295 zero=921597
+RECEIPT_LIST_CIRCUIT cap=1056 mode=1 lists=3 log=23 circuit_s=17.750147145 accounts=10
+RECEIPT_LIST_SETUP setup_s=3.688572576
+LABRADOR_PHASE kind=simple_reduce phase=commit r=31 n=9567 tail=0 ms=0.154495
+LABRADOR_PHASE kind=simple_reduce phase=project r=31 n=9567 tail=0 ms=45.184135
+LABRADOR_PHASE kind=simple_reduce phase=lifts r=31 n=9567 tail=0 ms=360.590935
+LABRADOR_PHASE kind=simple_reduce phase=aggregate r=31 n=9567 tail=0 ms=220.857620
+SIS_POLICY inner rank=25 width=9567 source=20319939987304 target=292281948973 bound=248136683914.40082 bits=142.305 finite=1 tail=0
+LABRADOR_PHASE kind=simple_reduce phase=amortize r=31 n=9567 tail=0 ms=23.736000
+LABRADOR_PHASE kind=verify_reduce phase=commit r=12 n=2392 tail=0 ms=0.027180
+LABRADOR_PHASE kind=verify_reduce phase=project r=12 n=2392 tail=0 ms=8.592844
+LABRADOR_PHASE kind=verify_reduce phase=lifts r=12 n=2392 tail=0 ms=37.671089
+LABRADOR_PHASE kind=verify_reduce phase=aggregate r=12 n=2392 tail=0 ms=8.921146
+SIS_POLICY inner rank=17 width=2392 source=292281948973 target=1795096771 bound=2439074549.1672535 bits=142.570 finite=1 tail=0
+LABRADOR_PHASE kind=verify_reduce phase=amortize r=12 n=2392 tail=0 ms=1.843929
+LABRADOR_PHASE kind=verify_reduce phase=refresh r=12 n=2392 tail=0 ms=0.704765
+LABRADOR_PHASE kind=verify_reduce phase=commit r=6 n=1196 tail=0 ms=0.009775
+LABRADOR_PHASE kind=verify_reduce phase=project r=6 n=1196 tail=0 ms=0.368357
+LABRADOR_PHASE kind=verify_reduce phase=lifts r=6 n=1196 tail=0 ms=7.550001
+LABRADOR_PHASE kind=verify_reduce phase=aggregate r=6 n=1196 tail=0 ms=1.850605
+SIS_POLICY inner rank=13 width=1196 source=1795096771 target=72926845 bound=124338346.49130574 bits=148.135 finite=1 tail=0
+LABRADOR_PHASE kind=verify_reduce phase=amortize r=6 n=1196 tail=0 ms=0.217438
+LABRADOR_PHASE kind=verify_reduce phase=refresh r=6 n=1196 tail=0 ms=0.353813
+LABRADOR_PHASE kind=verify_reduce phase=commit r=3 n=1196 tail=0 ms=0.006437
+LABRADOR_PHASE kind=verify_reduce phase=project r=3 n=1196 tail=0 ms=0.146866
+LABRADOR_PHASE kind=verify_reduce phase=lifts r=3 n=1196 tail=0 ms=2.845764
+LABRADOR_PHASE kind=verify_reduce phase=aggregate r=3 n=1196 tail=0 ms=0.433445
+SIS_POLICY inner rank=11 width=1196 source=72926845 target=13047113 bound=26700486.226210039 bits=149.195 finite=1 tail=0
+LABRADOR_PHASE kind=verify_reduce phase=amortize r=3 n=1196 tail=0 ms=0.082493
+LABRADOR_PHASE kind=verify_reduce phase=refresh r=3 n=1196 tail=0 ms=0.354528
+LABRADOR_PHASE kind=verify_reduce phase=commit r=5 n=598 tail=0 ms=0.006199
+LABRADOR_PHASE kind=verify_reduce phase=project r=5 n=598 tail=0 ms=0.096798
+LABRADOR_PHASE kind=verify_reduce phase=lifts r=5 n=598 tail=0 ms=2.394676
+LABRADOR_PHASE kind=verify_reduce phase=aggregate r=5 n=598 tail=0 ms=0.349760
+SIS_POLICY inner rank=10 width=598 source=13047113 target=999484058 bound=14163348.769864844 bits=145.220 finite=1 tail=0
+LABRADOR_PHASE kind=verify_reduce phase=amortize r=5 n=598 tail=0 ms=0.076294
+LABRADOR_PHASE kind=verify_reduce phase=refresh r=5 n=598 tail=0 ms=0.177860
+LABRADOR_PHASE kind=verify_reduce phase=commit r=4 n=299 tail=1 ms=0.034094
+LABRADOR_PHASE kind=verify_reduce phase=project r=4 n=299 tail=1 ms=0.039339
+LABRADOR_PHASE kind=verify_reduce phase=lifts r=4 n=299 tail=1 ms=0.954628
+LABRADOR_PHASE kind=verify_reduce phase=aggregate r=4 n=299 tail=1 ms=0.182152
+SIS_POLICY inner rank=12 width=299 source=999484058 target=65981973298 bound=57538782.505371526 bits=149.195 finite=1 tail=1
+LABRADOR_PHASE kind=verify_reduce phase=amortize r=4 n=299 tail=1 ms=0.039101
+LABRADOR_PHASE kind=verify_reduce phase=refresh r=4 n=299 tail=1 ms=0.088930
+LABRADOR_PHASE kind=verify_outer phase=norm r=4 n=299 tail=1 ms=0.001669
+LABRADOR_PHASE kind=verify_outer phase=reconstruct_z r=4 n=299 tail=1 ms=0.040770
+LABRADOR_PHASE kind=verify_outer phase=assemble_Az r=4 n=299 tail=1 ms=0.011206
+LABRADOR_PHASE kind=verify_outer phase=Az_mul r=4 n=299 tail=1 ms=0.045776
+LABRADOR_PHASE kind=verify_outer phase=phi_sprod r=4 n=299 tail=1 ms=0.015736
+LABRADOR_PHASE kind=verify_outer phase=end r=4 n=299 tail=1 ms=0.001192
+LABRADOR_BRIDGE check_ms=5.351 build_raw_ms=0.234 composite_ms=730.127
+OPENING_PHASES rebuild_ms=200.501 layout_ms=12.964 bound_ms=9.849 phi_ms=10.863 statement_ms=118.147 labrador_ms=735.755
+RECEIPT_VERIFY_PHASES decode_s=0.000056 commitment_ms=0.010 reduce_ms=3.121 wiring_ms=523.281 switch_ms=0.301 decode_opening_ms=0.000 opening_ms=952.397 total_ms=1479.176
+RECEIPT_LIST_VERIFY bytes=250126 seconds=1.479250715 no_witness_loaded=true backend_roundtrip=true negative_checks=4

@@ -1,0 +1,45 @@
+{
+ "status": "WASM_VERTICAL_SLICE_PROVEN_AND_INTEGRATED_NPMULT04",
+ "trust_boundary": "interpreter = host oracle; circuit = prover; NPMWASM02 = shared contract; code-walk (opcode-byte read + label walk) is the stated follow-up",
+ "phase1_commit": "a251aa1f9",
+ "phase2_commits": [
+  "bfd11c9a2",
+  "730f4919e"
+ ],
+ "phase3_commits": [
+  "cb98f8aaa",
+  "ade4113b8"
+ ],
+ "gates": {
+  "kat": "13/13 fixtures bit-exact (prove+verify)",
+  "in_circuit_battery": "13/13 applicable classes rejected at named constraints (addchain5, memmix1, ctrlbounded)",
+  "host_audit": "195 mutants rejected + byte-identical regeneration",
+  "composite": "NPMULT04 250,226 B / 7.2 s prove / 2.1-2.5 s verify / log 23 / RSS 13.25 GB"
+ },
+ "sha256": {
+  "WASM_SLICE_DEF.md": "747360f4810507d92bb7a723e7635b6c66c68a11b212e27d6b132dc7896bba11",
+  "WASM_LADDER.md": "e9a1e3e01f2afb05fe6090d548cb5a4f36ab90df3696b38fedd92f06c7cb5ba0",
+  "WASM_EXEC.md": "e1e5a3f1cc01b602dd25d309b187d720b8952596b58536412387ebe53e6f3e15",
+  "wasm_trace_export.py": "dc4ff624f1ea2052e857518a2825b529b4f7448ff6db93c6e1d115175b98bb9b",
+  "gen_wasm_fixtures.py": "df051cb52a386ee681cbe55dcfc0bea08a0fb217814e6ea984118fb084c03382",
+  "audit_wasm_trace.py": "5f0529bf65a5bd46ec2c35afcc57f691a65e5a499e6667c221076b7c8aa321b6",
+  "evidence/wasm-exec/phase4/near-receipt-wasm.rs": "08fe2760a966f22b58587ac9e728bb9360fedc77839b55ed494b4b296b94b6f7",
+  "evidence/wasm-exec/phase4/wasm_exec.rs": "a6b0f83e85e6ceb7e02c575156a19a413794bc2504317e6c6a22e91e44c75ea6",
+  "evidence/wasm-exec/phase4/composite.json": "f0f11e7b88092ffac522194129e61e84e311cfee558b495f440b6e910ba0cdc6",
+  "evidence/wasm-exec/phase3/ladder.json": "2f8e4db18778cbbecf544cecad96fe26e3b6caa85f95b4424ab04f685edc7985",
+  "evidence/wasm-exec/fixtures-v2/audit.json": "fb7203f2d83a7842e5ea3140bc66a61361073906ac7ce60733d4a412dc0b6083",
+  "evidence/wasm-exec/fixtures-v2/addchain131.bin": "5b8419cbf2a98ec7713925ceb780e760ab4bad459dad14fc95d042ba665a49f1",
+  "evidence/wasm-exec/fixtures-v2/addchain19.bin": "3cc48524db0ac86170a8f5f904f894d6c7f4608f1a3b6bef2c7f38bc15e1e62d",
+  "evidence/wasm-exec/fixtures-v2/addchain5.bin": "e1420b34005648797506f097a422d7cd3eb18d2ba8373a946fdd2d203212080c",
+  "evidence/wasm-exec/fixtures-v2/addchain514.bin": "968aa3b7ac9facde4abd53c12cded630c0793326d1d19cfce9ec49ee6d7517a5",
+  "evidence/wasm-exec/fixtures-v2/ctrlbounded.bin": "1df6e40db541e98841d8625417f664a4786a2ca51139ac6a1217731737669ecc",
+  "evidence/wasm-exec/fixtures-v2/memmix1.bin": "70e0d2db10eb6617be43e50574b2f89a206de960bfb957cb52fd627e2283d0f6",
+  "evidence/wasm-exec/fixtures-v2/memmix42.bin": "00b1eb6e1e6df251f98bb893e01d54de1064123f2d5f0c921f3b98471ebf6784",
+  "evidence/wasm-exec/fixtures-v2/memmix5.bin": "77ce709361130a0d07279ba788b2383587832c0b5e98400e60db4e4dc33af84e",
+  "evidence/wasm-exec/fixtures-v2/memmix80.bin": "f4909e70a3662ad816fd8a93fa04d240486e463eee49a7fcbfb01381c33f8099",
+  "evidence/wasm-exec/fixtures-v2/mix1.bin": "c73c45b590535599ac5159d5c46be4224ad50117ac7ce9d0d5bb7b8226848631",
+  "evidence/wasm-exec/fixtures-v2/mix42.bin": "add1c8530e59b516521fd7ef56b238699e44255d9dd8245cd6c393da972e42c5",
+  "evidence/wasm-exec/fixtures-v2/mix5.bin": "9039af819466fe5dfc87a402033d2a31f75fccdd95f9be4eb2045f7590cf27a3",
+  "evidence/wasm-exec/fixtures-v2/mix66.bin": "10fba6d0de38a0c2cb5397f46575c2dbdf33b4f0b3948957cc5f4731a1f440f2"
+ }
+}

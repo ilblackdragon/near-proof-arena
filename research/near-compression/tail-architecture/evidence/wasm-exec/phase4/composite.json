@@ -1,0 +1,60 @@
+{
+  "status": "PHASE4_NPMULT04_COMPOSITE_PROVEN",
+  "decision": "INTEGRATE (measured rule: Wasm slice 1452 AND/step < D0a 4792 AND/slot on the same PQ backend; WASM_LADDER.md)",
+  "composite": {
+    "packet_magic": "NPMULT04",
+    "sections": "receipt lists (caps 16,16,1024 compact; 711 receipts, 3 lists) + account trie (10 accounts) + account ledger + Wasm execution section (NPMWASM02 fixture)",
+    "wasm_fixture": "addchain19.bin (64 steps) at section cap 64",
+    "fixtures": {
+      "NEAR_LEDGER": "/tmp/opencode/00-h10036-s3.ledger",
+      "NEAR_TRIE": "/tmp/opencode/trie-36.bin",
+      "list": "multi-lists/00-h10036-s3.multi",
+      "NEAR_WASM": "evidence/wasm-exec/fixtures-v2/addchain19.bin"
+    },
+    "counts": {"public": 11947, "private": 11221725, "and": 4402980, "zero": 952895, "witness_log": 23},
+    "and_split": {"receipt_sections": 4191295, "wasm_section": 211685, "sum_check": 4402980},
+    "suite": "sizel (witness log 23) — NO suite-boundary crossing; the composite stays in the same suite as NPMULT03",
+    "observations": [
+      {
+        "obs": 1,
+        "load_label": "HIGH (~40-52/32 cores)",
+        "circuit_build_s": 1518.67,
+        "setup_s": 8.03,
+        "prove_s": 7.241,
+        "prover_ms": {"pack": 85.8, "commit": 1142.1, "bitand": 1987.6, "shift": 820.9, "switch": 342.2, "opening": 2831.9, "total": 7226.9},
+        "verify_s": 2.079,
+        "packet_bytes": 250226,
+        "rss_kb": 13250500,
+        "wasm_steps": 64,
+        "negative_checks": "table_mutations_rejected=112, root_mutation_rejected=true, digest mutation rejected"
+      },
+      {
+        "obs": 2,
+        "load_label": "HIGH (~40-52/32 cores)",
+        "circuit_build_s": 30.54,
+        "setup_s": 5.91,
+        "prove_s": 7.218,
+        "prover_ms": {"pack": 83.6, "commit": 989.8, "bitand": 2044.2, "shift": 783.2, "switch": 381.1, "opening": 2912.2, "total": 7208.0},
+        "verify_s": 2.542,
+        "packet_bytes": 250226,
+        "rss_kb": 13312912,
+        "wasm_steps": 64,
+        "negative_checks": "table_mutations_rejected=112, root_mutation_rejected=true, digest mutation rejected"
+      }
+    ],
+    "comparison": {
+      "npmult03_packet_bytes": 250126,
+      "npmult04_packet_bytes": 250226,
+      "delta_bytes": 100,
+      "why": "the recursive opening/commitment dominates the packet; the Wasm section rides the same commitment. The +100 B is the extra public words (wasm statement: n_steps/gas/result/code_len/8 digest words) and the wasm_cap header field.",
+      "targets": "250,226 B < 300 KB packet target; prove 7.2 s and verify 2.1-2.5 s are HIGH-load numbers (NPMULT03 measured 3.08/0.98 s at lower load) and remain CPU-bound; the 1-2 s / <200 ms targets need GPU opening + folded per-block verify (named levers, unchanged)"
+    }
+  },
+  "trust_boundary": "interpreter (refinterp.py-derived tracing variant) = host oracle; circuit = prover; NPMWASM02 fixtures = shared contract; the Wasm section's tag<->code byte + label-table walk is the stated code-walk follow-up (host-audited by regeneration + 195-mutant battery)",
+  "open": [
+    "code-walk rung: per-step opcode-byte read + label-table walk (binds the instruction sequence, closes trace rearrangement)",
+    "div/rem and host calls in-circuit",
+    "GPU opening + folded per-block verify for the 1-2 s / <200 ms targets",
+    "1-Pgas chunk composition (folding; the 2048-step dense-build wall breaks first)"
+  ]
+}

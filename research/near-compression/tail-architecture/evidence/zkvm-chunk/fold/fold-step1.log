@@ -1,0 +1,15 @@
+[2m2026-10-27T07:35:46.029689Z[0m [32m INFO[0m [2mnear_chunk_fold[0m[2m:[0m fold k=2 step=1
+[2m2026-10-27T07:35:46.029770Z[0m [32m INFO[0m [1mProgram::build_with_features[0m[2m:[0m [2mjolt_host::program[0m[2m:[0m 
+/data/illia/pq-tail-architecture-20261024/jolt-target/ci/jolt build -p near-chunk-guest --backtrace off --stack-size 65536 --heap-size 33554432 -- --release --target-dir /tmp/jolt-guest-targets/near-chunk-guest-near_chunk-compute-advice --features guest,compute_advice
+[2m2026-10-27T07:35:46.271660Z[0m [32m INFO[0m [1mProgram::build_with_features[0m[2m:[0m [2mjolt_host::program[0m[2m:[0m guest does not support compute_advice feature
+[2m2026-10-27T07:35:46.271722Z[0m [32m INFO[0m [1mProgram::build_with_features[0m[2m:[0m [2mjolt_host::program[0m[2m:[0m 
+/data/illia/pq-tail-architecture-20261024/jolt-target/ci/jolt build -p near-chunk-guest --backtrace off --stack-size 65536 --heap-size 33554432 -- --release --target-dir /tmp/jolt-guest-targets/near-chunk-guest-near_chunk --features guest
+[2m2026-10-27T07:35:46.826636Z[0m [32m INFO[0m [1mProgram::build_with_features[0m[2m:[0m [2mjolt_host::program[0m[2m:[0m Built guest binary with jolt: /tmp/jolt-guest-targets/near-chunk-guest-near_chunk/riscv64imac-unknown-none-elf/release/near-chunk-guest
+[2m2026-10-27T07:35:46.826682Z[0m [32m INFO[0m [2mnear_chunk_fold[0m[2m:[0m inner program built
+[2m2026-10-27T07:35:46.962682Z[0m [32m INFO[0m [1mDoryScheme::setup_prover[0m[2m:[0m [2mdory_pcs::setup[0m[2m:[0m Looking for saved setup at /home/illia/.cache/dory/dory_36.urs
+[2m2026-10-27T07:37:45.459336Z[0m [32m INFO[0m [1mDoryScheme::setup_prover[0m[2m:[0m [2mdory_pcs::setup[0m[2m:[0m Loaded setup for max_log_n=36
+[2m2026-10-27T07:38:29.415494Z[0m [32m INFO[0m [2mnear_chunk_fold[0m[2m:[0m inner preprocessing done
+[2m2026-10-27T07:41:48.151552Z[0m [32m INFO[0m [2mnear_chunk_fold[0m[2m:[0m inner proof 0: 198.720 s
+[2m2026-10-27T07:44:24.557644Z[0m [32m INFO[0m [2mnear_chunk_fold[0m[2m:[0m inner proof 1: 155.917 s
+[2m2026-10-27T07:44:25.105259Z[0m [32m INFO[0m [2mnear_chunk_fold[0m[2m:[0m FOLD_STEP1 k=2 inner_prove_s=[198.71982056, 155.916639009] fold_input_bytes=3011037
+[2m2026-10-27T07:44:25.116442Z[0m [32m INFO[0m [2mnear_chunk_fold[0m[2m:[0m FOLD_STEP1 state written: /tmp/opencode/fold-state/fold-input-k2.bin (framed: /tmp/opencode/fold-state/fold-framed-k2.bin, 3011041 B)
