@@ -1,0 +1,236 @@
+[
+ {
+  "case": "run-float-00-h10007-s3-code.duplicate",
+  "row": "L0-instr-float",
+  "source": "/data/illia/nearproof-deps/l0-validate/b4/run-float/mutants/00-h10007-s3-code.duplicate",
+  "mutation": "code.duplicate",
+  "expected_rel": true,
+  "verdict_source": "nearcore(cold)",
+  "nearcore": "ok"
+ },
+ {
+  "case": "run-float-00-h10007-s3",
+  "row": "L0-instr-float",
+  "source": "/data/illia/nearproof-deps/l0-validate/b4/run-float/ood/00-h10007-s3",
+  "mutation": null,
+  "expected_rel": true,
+  "verdict_source": null,
+  "nearcore": "ok"
+ },
+ {
+  "case": "run-float-00-h10007-s3-hdr.bandwidth_requests.add",
+  "row": "L0-instr-float",
+  "source": "/data/illia/nearproof-deps/l0-validate/b4/run-float/mutants/00-h10007-s3-hdr.bandwidth_requests.add",
+  "mutation": "hdr.bandwidth_requests.add",
+  "expected_rel": false,
+  "verdict_source": "nearcore(cold)",
+  "nearcore": "validate: InvalidBandwidthRequests(\"chunk extra: (is_some: true, len: 0) chunk header: (is_some: true, len: 1)\")"
+ },
+ {
+  "case": "run-float-00-h10007-s3-hdr.congestion.allowed_shard",
+  "row": "L0-instr-float",
+  "source": "/data/illia/nearproof-deps/l0-validate/b4/run-float/mutants/00-h10007-s3-hdr.congestion.allowed_shard",
+  "mutation": "hdr.congestion.allowed_shard",
+  "expected_rel": false,
+  "verdict_source": "nearcore(cold)",
+  "nearcore": "validate: InvalidCongestionInfo(\"Congestion Information validate error. extra: V1(CongestionInfoV1 { delayed_receipts_gas: 0, buffered_receipts_gas: 0, receipt_bytes: 0, allowed_shard: 0 }), header: V1(CongestionInfoV1 { delayed_receipts_gas: 0, buffered_receipts_gas: 0, receipt_bytes: 0, allowed_shard: 1 })\")"
+ },
+ {
+  "case": "run2-w005-00-h10011-s3",
+  "row": "L0-W-005",
+  "source": "/data/illia/nearproof-deps/l0-validate/b4/run2-w005/d3/00-h10011-s3",
+  "mutation": null,
+  "expected_rel": true,
+  "verdict_source": null,
+  "nearcore": "ok"
+ },
+ {
+  "case": "run2-w005-00-h10011-s3-code.duplicate",
+  "row": "L0-W-005",
+  "source": "/data/illia/nearproof-deps/l0-validate/b4/run2-w005/mutants/00-h10011-s3-code.duplicate",
+  "mutation": "code.duplicate",
+  "expected_rel": true,
+  "verdict_source": "nearcore(cold)",
+  "nearcore": "ok"
+ },
+ {
+  "case": "run2-w005-00-h10011-s3-code.drop.1",
+  "row": "L0-W-005",
+  "source": "/data/illia/nearproof-deps/l0-validate/b4/run2-w005/mutants/00-h10011-s3-code.drop.1",
+  "mutation": "code.drop.1",
+  "expected_rel": false,
+  "verdict_source": "nearcore(cold)",
+  "nearcore": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: GDBeTs6b5dm3G5xCuWjtRZALbkYpPaon6BFoHhVxP2yP }))"
+ },
+ {
+  "case": "run2-w005-00-h10011-s3-code.flip.1",
+  "row": "L0-W-005",
+  "source": "/data/illia/nearproof-deps/l0-validate/b4/run2-w005/mutants/00-h10011-s3-code.flip.1",
+  "mutation": "code.flip.1",
+  "expected_rel": false,
+  "verdict_source": "nearcore(cold)",
+  "nearcore": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: GDBeTs6b5dm3G5xCuWjtRZALbkYpPaon6BFoHhVxP2yP }))"
+ },
+ {
+  "case": "run2-w006-00-h10004-s3",
+  "row": "L0-W-006",
+  "source": "/data/illia/nearproof-deps/l0-validate/b4/run2-w006/d3/00-h10004-s3",
+  "mutation": null,
+  "expected_rel": true,
+  "verdict_source": null,
+  "nearcore": "ok"
+ },
+ {
+  "case": "run2-w006-00-h10004-s3-code.duplicate",
+  "row": "L0-W-006",
+  "source": "/data/illia/nearproof-deps/l0-validate/b4/run2-w006/mutants/00-h10004-s3-code.duplicate",
+  "mutation": "code.duplicate",
+  "expected_rel": true,
+  "verdict_source": "nearcore(cold)",
+  "nearcore": "ok"
+ },
+ {
+  "case": "run2-w006-00-h10004-s3-code.drop.1",
+  "row": "L0-W-006",
+  "source": "/data/illia/nearproof-deps/l0-validate/b4/run2-w006/mutants/00-h10004-s3-code.drop.1",
+  "mutation": "code.drop.1",
+  "expected_rel": false,
+  "verdict_source": "nearcore(cold)",
+  "nearcore": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt }))"
+ },
+ {
+  "case": "run2-w006-00-h10004-s3-code.flip.1",
+  "row": "L0-W-006",
+  "source": "/data/illia/nearproof-deps/l0-validate/b4/run2-w006/mutants/00-h10004-s3-code.flip.1",
+  "mutation": "code.flip.1",
+  "expected_rel": false,
+  "verdict_source": "nearcore(cold)",
+  "nearcore": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt }))"
+ },
+ {
+  "case": "run2-w005-00-h10003-s0-l0.w.new_tx.oversize_rehashed",
+  "row": "L0-D2-020",
+  "source": "/data/illia/nearproof-deps/l0-validate/b4/run2-w005/mutants/00-h10003-s0-l0.w.new_tx.oversize_rehashed",
+  "mutation": "l0.w.new_tx.oversize_rehashed",
+  "expected_rel": false,
+  "verdict_source": "nearcore(cold)",
+  "nearcore": "pre_validate: InvalidChunkStateWitness(\"new transaction 61zZ92vs5bp32CWu3ALwDTBPzExj5QowLbjYwFXV27m3 is invalid for protocol version 86: Size of serialized transaction 1572865 exceeded the limit 1572864\")"
+ },
+ {
+  "case": "run2-w005-00-h10003-s0-l0.w.new_tx.maxsize_rehashed",
+  "row": "L0-D2-020",
+  "source": "/data/illia/nearproof-deps/l0-validate/b4/run2-w005/mutants/00-h10003-s0-l0.w.new_tx.maxsize_rehashed",
+  "mutation": "l0.w.new_tx.maxsize_rehashed",
+  "expected_rel": true,
+  "verdict_source": "nearcore(cold)",
+  "nearcore": "ok"
+ },
+ {
+  "case": "run2-w005-00-h10004-s1-l0.c.prev_block_extra_slot",
+  "row": "L0-D2-023",
+  "source": "/data/illia/nearproof-deps/l0-validate/b4/run2-w005/mutants/00-h10004-s1-l0.c.prev_block_extra_slot",
+  "mutation": "l0.c.prev_block_extra_slot",
+  "expected_rel": false,
+  "verdict_source": "nearcore(cold)",
+  "nearcore": "actor: prev block: DBNotFoundErr(\"BLOCK: FVK4F8kZ89ETJhmB7ZdfLdqNQpb4begeNs8sXmFD1oRh\")"
+ },
+ {
+  "case": "run2-w005-00-h10003-s0-l0.c.prev_block_drop_slot",
+  "row": "L0-D2-023",
+  "source": "/data/illia/nearproof-deps/l0-validate/b4/run2-w005/mutants/00-h10003-s0-l0.c.prev_block_drop_slot",
+  "mutation": "l0.c.prev_block_drop_slot",
+  "expected_rel": false,
+  "verdict_source": "nearcore(cold)",
+  "nearcore": "actor: prev block: DBNotFoundErr(\"BLOCK: ExhBwrp5bza9zkKE4F8sgwFEWfsHWG3rxqZuDxvb8eBY\")"
+ },
+ {
+  "case": "run2-w005-00-h10003-s0-l0.c.prev_block_extra_slot",
+  "row": "L0-D2-023",
+  "source": "/data/illia/nearproof-deps/l0-validate/b4/run2-w005/mutants/00-h10003-s0-l0.c.prev_block_extra_slot",
+  "mutation": "l0.c.prev_block_extra_slot",
+  "expected_rel": false,
+  "verdict_source": "nearcore(cold)",
+  "nearcore": "actor: prev block: DBNotFoundErr(\"BLOCK: GKN3FSjyxN6jQBrmA5s6Q8dwj2QEdupEAHChhKhBYezj\")"
+ },
+ {
+  "case": "run2-w005-00-h10005-s2-l0.c.prev_block_hi_above",
+  "row": "L0-D2-025",
+  "source": "/data/illia/nearproof-deps/l0-validate/b4/run2-w005/mutants/00-h10005-s2-l0.c.prev_block_hi_above",
+  "mutation": "l0.c.prev_block_hi_above",
+  "expected_rel": false,
+  "verdict_source": "nearcore(cold)",
+  "nearcore": "actor: prev block: DBNotFoundErr(\"BLOCK: A6trvKHzJ9AWGSXqiojyDiVh85mwLKZowQ2rb1yeh877\")"
+ },
+ {
+  "case": "run2-w005-00-h10006-s0-l0.c.prev_block_hi_above",
+  "row": "L0-D2-025",
+  "source": "/data/illia/nearproof-deps/l0-validate/b4/run2-w005/mutants/00-h10006-s0-l0.c.prev_block_hi_above",
+  "mutation": "l0.c.prev_block_hi_above",
+  "expected_rel": false,
+  "verdict_source": "nearcore(cold)",
+  "nearcore": "actor: prev block: DBNotFoundErr(\"BLOCK: Bb6y4WLqmbyaW4PynoNJ9ejfA63bnwuJyKdc27Xwirip\")"
+ },
+ {
+  "case": "run2-w005-00-h10003-s0-l0.c.prev_block_hi_above",
+  "row": "L0-D2-025",
+  "source": "/data/illia/nearproof-deps/l0-validate/b4/run2-w005/mutants/00-h10003-s0-l0.c.prev_block_hi_above",
+  "mutation": "l0.c.prev_block_hi_above",
+  "expected_rel": false,
+  "verdict_source": "nearcore(cold)",
+  "nearcore": "actor: prev block: DBNotFoundErr(\"BLOCK: DeEycj4beLEEVjVW8s4QHN41zciuUxPGxyo4xiJjjFaY\")"
+ },
+ {
+  "case": "run2-w005-00-h10003-s1-l0.c.prev_block_hi_above",
+  "row": "L0-D2-025",
+  "source": "/data/illia/nearproof-deps/l0-validate/b4/run2-w005/mutants/00-h10003-s1-l0.c.prev_block_hi_above",
+  "mutation": "l0.c.prev_block_hi_above",
+  "expected_rel": false,
+  "verdict_source": "nearcore(cold)",
+  "nearcore": "actor: prev block: DBNotFoundErr(\"BLOCK: DH16HrJTqfgFJrWxfAwr8Qs943Kn4os6BQ84Zb3nb5zF\")"
+ },
+ {
+  "case": "p2-cont-31-00-h10008-s3",
+  "row": "gas-key-InvalidMethodName",
+  "source": "/data/illia/nearproof-deps/l0-validate/b4/gk/p2-cont-31/ood/00-h10008-s3",
+  "mutation": null,
+  "expected_rel": true,
+  "verdict_source": null,
+  "nearcore": "ok"
+ },
+ {
+  "case": "p1-ret-31-00-h10008-s3",
+  "row": "gas-key-InvalidMethodName",
+  "source": "/data/illia/nearproof-deps/l0-validate/b4/gk/p1-ret-31/ood/00-h10008-s3",
+  "mutation": null,
+  "expected_rel": true,
+  "verdict_source": null,
+  "nearcore": "ok"
+ },
+ {
+  "case": "p2-cont-31-00-h10008-s3-l0.hdr.lean_outputs",
+  "row": "gas-key-InvalidMethodName",
+  "source": "/data/illia/nearproof-deps/l0-validate/b4/gk/p2-cont-31/mutants/00-h10008-s3-l0.hdr.lean_outputs",
+  "mutation": "l0.hdr.lean_outputs",
+  "expected_rel": false,
+  "verdict_source": "nearcore(cold)",
+  "nearcore": "validate: InvalidOutcomesProof"
+ },
+ {
+  "case": "p2-cont-31-00-h10010-s3-l0.hdr.lean_outputs",
+  "row": "gas-key-InvalidMethodName",
+  "source": "/data/illia/nearproof-deps/l0-validate/b4/gk/p2-cont-31/mutants/00-h10010-s3-l0.hdr.lean_outputs",
+  "mutation": "l0.hdr.lean_outputs",
+  "expected_rel": false,
+  "verdict_source": "nearcore(cold)",
+  "nearcore": "validate: InvalidOutcomesProof"
+ },
+ {
+  "case": "p2-cont-31-00-h10011-s3-l0.hdr.lean_outputs",
+  "row": "gas-key-InvalidMethodName",
+  "source": "/data/illia/nearproof-deps/l0-validate/b4/gk/p2-cont-31/mutants/00-h10011-s3-l0.hdr.lean_outputs",
+  "mutation": "l0.hdr.lean_outputs",
+  "expected_rel": false,
+  "verdict_source": "nearcore(cold)",
+  "nearcore": "validate: InvalidOutcomesProof"
+ }
+]

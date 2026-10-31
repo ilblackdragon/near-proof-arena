@@ -1196,6 +1196,10 @@ def hostCall (name : String) : Option (HM Unit) :=
     payActionPerByteH F.addFunctionCallKeyByte nb sir
     payGasKeyAddH sir (receiptReceiver (← get) r).utf8ByteSize pl a[3]
     if !pkValid pk then hErr "InvalidPublicKey"
+    -- real `ReceiptManager::append_action_add_gas_key_with_function_call`
+    -- (`receipt_manager.rs:478-508`): each method name must be UTF-8, after the fees and the key
+    if (← get).real.isSome && names.any (fun n => (String.fromUTF8? n).isNone) then
+      hErr "InvalidMethodName"
     let enc := if (← get).globalActions then
       some (r, addGasKeyRaw pk (gasKeyFcPerm a[3] (if allowance == 0 then none else some allowance)
         receiver.toUTF8 names)) else none

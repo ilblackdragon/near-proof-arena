@@ -1,0 +1,38 @@
+{
+ "name": "gk-allFeatures",
+ "cases": 18122,
+ "missing_before": 0,
+ "verdict_counts": {
+  "after: agree (lean accept, nearcore accept)": 4296,
+  "after: agree (lean reject, nearcore reject)": 13814,
+  "after: out_of_domain": 12,
+  "before: DISAGREE (lean accept, nearcore reject)": 23,
+  "before: DISAGREE (lean reject, nearcore accept)": 732,
+  "before: agree (lean accept, nearcore accept)": 3564,
+  "before: agree (lean reject, nearcore reject)": 13791,
+  "before: out_of_domain": 12
+ },
+ "moved": {
+  "reject -> reject (nearcore reject)": 919,
+  "reject -> accept (nearcore accept)": 732,
+  "accept -> reject (nearcore reject)": 23
+ },
+ "moved_examples": {
+  "reject -> reject (nearcore reject)": [
+   "/data/illia/nearproof-deps/l0-validate/b4/gk/p1-ret-31/mutants/00-h10008-s3-code.drop.1",
+   "decode: invalid UTF-8 (method_name)",
+   "invalid: MissingTrieValue (contract code)"
+  ],
+  "reject -> accept (nearcore accept)": [
+   "/data/illia/nearproof-deps/l0-validate/b4/gk/p1-ret-31/mutants/00-h10008-s3-code.duplicate",
+   "decode: invalid UTF-8 (method_name)",
+   ""
+  ],
+  "accept -> reject (nearcore reject)": [
+   "/data/illia/nearproof-deps/l0-validate/b4/gk/p2-cont-31/mutants/00-h10008-s3-l0.hdr.lean_outputs",
+   "",
+   "invalid: InvalidOutcomesProof"
+  ]
+ },
+ "lean_accept_nearcore_reject_after": 0
+}

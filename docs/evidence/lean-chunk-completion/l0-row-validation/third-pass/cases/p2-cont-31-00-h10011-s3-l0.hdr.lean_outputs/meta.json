@@ -1,0 +1,32 @@
+{
+  "base": "00-h10011-s3",
+  "case": "00-h10011-s3-l0.hdr.lean_outputs",
+  "codes": [
+    {
+      "hash": "7Qy3gvze5XXsyQKujd9kgqArfvzFTqkKQDU5UHWFCzsx",
+      "len": 330,
+      "name": "d3float"
+    },
+    {
+      "hash": "HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt",
+      "len": 5603,
+      "name": "d3rich"
+    }
+  ],
+  "d3_violations": [
+    "e.ood_host"
+  ],
+  "expected_rel": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "base_fc_gas_burnt_for_function_call": 3072528526540,
+    "fc_gas_burnt_for_function_call": 3072528526540
+  },
+  "in_d2": false,
+  "in_d3": false,
+  "kind": "mutant",
+  "mutation": "l0.hdr.lean_outputs",
+  "nearcore": "validate: InvalidOutcomesProof",
+  "verdict_source": "nearcore(cold)"
+}

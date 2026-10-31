@@ -1,6 +1,8 @@
 import NearSpecV3.Successor.TierO6
 import NearSpecV3.Logged.TrieHash
 import NearSpecV3.Successor.LayoutReach
+import NearSpecV3.Wasm.FuelHost
+import NearSpecV3.Wasm.FuelSufficiency
 
 /-! # L0 row validation: masked and dead d2-core guards (Gate-B, `allFeatures`)
 
@@ -271,3 +273,341 @@ theorem genesis_segment_no_split_gate {L G : Type} (ch : Chain L) (gate : Nat �
 end GenesisSegment
 
 end NearSpecV3.L0Guards
+
+/-! ## L0-W-011: on certified code the fuel-certificate invariant holds at every state, so no frame names a missing function or a pc outside its code (`frame_ok`, `run_inv`); with prepare's gas-table size check (`GasSized`) every step finds its instruction and gas (`step_lookups`). (third pass, 2026-10-31) -/
+
+section
+open NearSpecV3.Wasm
+
+namespace NearSpecV3.Wasm.L0W011
+
+/-- Generic: an `Id` loop over a list whose body always yields and keeps `P` at members. -/
+theorem loop_bind {σ β : Type} (P : σ → Prop) (Q : β → Prop) :
+    ∀ (l : List Nat) (body : Nat → σ → Id (ForInStep σ)) (st : σ) (k : σ → Id β),
+      (∀ i ∈ l, ∀ t, P t → ∃ t', body i t = pure (.yield t') ∧ P t') → P st →
+      (∀ t, P t → Q (k t)) → Q (forIn l st body >>= k)
+  | [], _, st, k, _, h, hk => hk st h
+  | x :: xs, body, st, k, hb, h, hk => by
+    simp only [List.forIn_cons]
+    obtain ⟨t', ht, hp⟩ := hb x List.mem_cons_self st h
+    rw [ht]
+    exact loop_bind P Q xs body t' k (fun i hi t htp => hb i (List.mem_cons_of_mem _ hi) t htp) hp hk
+
+theorem getD_set!_ne (a : Array Bool) (i j : Nat) (v : Bool) (h : i ≠ j) :
+    (a.set! i v).getD j false = a.getD j false := by
+  simp only [Array.getD_eq_getD_getElem?, Array.set!_eq_setIfInBounds,
+    Array.getElem?_setIfInBounds_ne h]
+
+/-- A position the built certificate marks live is a code position. -/
+theorem buildLblLive_live (pf : PFunc) (j : Nat) (h : (buildLblLive pf).2.getD j false = true) :
+    j < pf.code.size := by
+  apply Classical.byContradiction
+  intro hj
+  have hj : pf.code.size ≤ j := by omega
+  have hfalse : (buildLblLive pf).2.getD j false = false := by
+    unfold buildLblLive
+    simp only [Id.run, Std.Legacy.Range.forIn_eq_forIn_range']
+    apply loop_bind (P := fun st : Array (List (Nat × Bool)) × Array Bool × List (Nat × Bool) × Bool × List Bool =>
+        st.2.1.getD j false = false) (Q := fun r : Array (List (Nat × Bool)) × Array Bool => r.2.getD j false = false)
+    · intro i hi t ht
+      have hilt : i < pf.code.size := by
+        rw [List.mem_range'_1] at hi; simp at hi; omega
+      have hne : i ≠ j := by omega
+      split <;> (try split) <;> (try split) <;>
+        exact ⟨_, rfl, by simp only; rw [getD_set!_ne _ _ _ _ hne]; exact ht⟩
+    · simp only [Array.getD_eq_getD_getElem?, Array.getElem?_replicate]
+      split <;> rfl
+    · intro t ht; exact ht
+  rw [hfalse] at h
+  exact Bool.false_ne_true h
+
+/-- The certificate family the checker uses (`prepCertOK_certified`). -/
+def cdOf (cfg : NearCfg) (p : Prepared) : Nat → FCert := fun k => buildCert cfg (p.funcs[k]?.getD default)
+
+/-- Every frame satisfying the fuel-certificate invariant names a defined function and sits at a
+code position: `step`'s `bad frame` and `pc out of range` arms are not taken. With `GasSized`
+(checked by `prepare`, `Prepare.lean:492-495`) the `gas table shorter` arm is not taken either. -/
+theorem frame_ok (cfg : NearCfg) (p : Prepared) (f : Frame) (h : FrameInv (cdOf cfg p) f) :
+    ∃ pf, p.funcs[f.fn]? = some pf ∧ f.pc < pf.code.size := by
+  have hl := h.1
+  simp only [cdOf, buildCert, FCert.lv] at hl
+  have hlt := buildLblLive_live _ _ hl
+  cases hk : p.funcs[f.fn]? with
+  | none =>
+    rw [hk] at hlt
+    simp only [Option.getD_none] at hlt
+    exact absurd hlt (Nat.not_lt_zero _)
+  | some pf =>
+    rw [hk] at hlt
+    exact ⟨pf, rfl, hlt⟩
+
+def GasSized (p : Prepared) : Prop := ∀ (k : Nat) (pf : PFunc), p.funcs[k]? = some pf → pf.gas.size = pf.code.size
+
+/-- At a state satisfying the invariant, `step` reaches an instruction and its gas entry. -/
+theorem step_lookups (cfg : NearCfg) (p : Prepared) (hg : GasSized p) (s : St) (f : Frame)
+    (fs : List Frame) (hf : s.frames = f :: fs) (hinv : Inv (cdOf cfg p) s) :
+    ∃ pf i o, p.funcs[f.fn]? = some pf ∧ pf.code[f.pc]? = some i ∧ pf.gas[f.pc]? = some o := by
+  obtain ⟨pf, hpf, hpc⟩ := frame_ok cfg p f (hinv f (by rw [hf]; exact List.mem_cons_self))
+  have hgs := hg _ _ hpf
+  refine ⟨pf, pf.code[f.pc], pf.gas[f.pc]'(by omega), hpf, ?_, ?_⟩
+  · exact Array.getElem?_eq_getElem hpc
+  · exact Array.getElem?_eq_getElem (by omega)
+
+/-- Hence `step` from such a state never returns any of the three `unmodeled` invariant arms:
+its result is `fin` (no frame), or the instruction's own result. -/
+theorem step_not_invariant (cfg : NearCfg) (p : Prepared) (hg : GasSized p) (s : St)
+    (hinv : Inv (cdOf cfg p) s) :
+    s.frames = [] ∨ ∃ f fs pf i o, s.frames = f :: fs ∧ p.funcs[f.fn]? = some pf ∧
+      pf.code[f.pc]? = some i ∧ pf.gas[f.pc]? = some o ∧
+      step cfg p s = (match o with
+        | none => exec cfg p s f pf i
+        | some (k, fee) =>
+          match charge s fee (if k = .linear then topCount s else 0) with
+          | .cont s => exec cfg p s f pf i
+          | r => r) := by
+  cases hf : s.frames with
+  | nil => exact .inl rfl
+  | cons f fs =>
+    obtain ⟨pf, i, o, h1, h2, h3⟩ := step_lookups cfg p hg s f fs hf hinv
+    refine .inr ⟨f, fs, pf, i, o, rfl, h1, h2, h3, ?_⟩
+    simp only [step, hf, h1, h2, h3]
+    cases o <;> rfl
+
+/-- Every state a run visits satisfies the invariant: the run's result is fuel exhaustion or the
+result of `step` at an invariant state. -/
+theorem run_inv (cfg : NearCfg) (p : Prepared) (hcert : Certified cfg p (cdOf cfg p))
+    (hr : 0 < cfg.regularOpCost) :
+    ∀ (n : Nat) (s : St), Inv (cdOf cfg p) s →
+      run cfg p n s = .unmodeled "fuel exhausted" ∨
+      ∃ t, Inv (cdOf cfg p) t ∧ run cfg p n s = step cfg p t ∧ ∀ u, step cfg p t ≠ .cont u
+  | 0, _, _ => .inl rfl
+  | n + 1, s, hi => by
+    simp only [run]
+    cases hs : step cfg p s with
+    | cont s' =>
+      obtain ⟨hi', -, -⟩ := step_dec hcert hostsOK hr hi hs
+      exact run_inv cfg p hcert hr n s' hi'
+    | fin t => exact .inr ⟨s, hi, hs.symm, by rw [hs]; intro u h; cases h⟩
+    | abort t e => exact .inr ⟨s, hi, hs.symm, by rw [hs]; intro u h; cases h⟩
+    | unmodeled w => exact .inr ⟨s, hi, hs.symm, by rw [hs]; intro u h; cases h⟩
+
+theorem certified_of_prepCertOK (cfg : NearCfg) (p : Prepared) (h : prepCertOK cfg p = true) :
+    Certified cfg p (cdOf cfg p) := prepCertOK_certified cfg p h
+
+end NearSpecV3.Wasm.L0W011
+
+end
+
+/-! ## L0-W-013: `popArgs n` always returns `n` values, so the host-call arity throw is dead. (third pass, 2026-10-31) -/
+
+section
+open NearSpecV3.Wasm
+
+namespace NearSpecV3.Wasm.L0W013
+
+/-- The pop loop of `popArgs`, run on any list: it never fails and pushes one value per element. -/
+theorem popLoop (l : List Nat) : ∀ (out : Array Nat) (s : St),
+    ∃ out' s', (forIn (m := EStateM String St) l out (fun _ r => do
+        let (v, s) := popN (← get)
+        set s
+        pure (ForInStep.yield (r.push v)))).run s = .ok out' s' ∧ out'.size = out.size + l.length := by
+  induction l with
+  | nil => intro out s; exact ⟨out, s, rfl, by simp⟩
+  | cons x xs ih =>
+    intro out s
+    obtain ⟨out', s', h, hs⟩ := ih (out.push (popN s).1) (popN s).2
+    refine ⟨out', s', ?_, ?_⟩
+    · simp only [List.forIn_cons]
+      exact h
+    · simp at hs ⊢; omega
+
+/-- `popArgs n` never reports `unmodeled host-call arity`: it always returns `n` values. -/
+theorem popArgs_ok (n : Nat) (s : St) : ∃ v s', (popArgs n).run s = .ok v s' := by
+  unfold popArgs
+  simp only [Std.Legacy.Range.forIn_eq_forIn_range']
+  obtain ⟨out', s', h, hs⟩ := popLoop (List.range' 0 [:n].size) #[] s
+  simp only [List.length_range', Array.size_empty, Nat.zero_add] at hs
+  have hsz : out'.reverse.size = n := by simp [hs]
+  refine ⟨⟨out'.reverse, hsz⟩, s', ?_⟩
+  simp only [EStateM.run, bind, EStateM.bind] at h ⊢
+  split
+  · rename_i a s2 heq
+    have e := h.symm.trans heq
+    cases e
+    simp only [hsz, dite_true]
+    rfl
+  · rename_i e s2 heq
+    have e := h.symm.trans heq
+    cases e
+
+end NearSpecV3.Wasm.L0W013
+
+end
+
+/-! ## L0-W-013: with a real store the accessors take their store branch on the unchanged state. (third pass, 2026-10-31) -/
+
+section
+open NearSpecV3.Wasm
+
+namespace NearSpecV3.Wasm.L0W013
+
+/-- With a trie-backed store present, `realHasH` takes the store branch (the `unmodeled: real store`
+throw is not taken) and leaves the state unchanged. -/
+theorem realHasH_some (k : ByteArray) (s : St) (r : TTN.RealStore) (hr : s.real = some r) :
+    (realHasH k).run s =
+      (match r.overlay.get? k with
+        | some v => .ok v.isSome s
+        | none =>
+          match TTN.lookup r.store r.root k with
+          | .error e => .error e s
+          | .ok l => .ok l.value.isSome s) := by
+  simp only [realHasH, EStateM.run, bind, EStateM.bind, get, getThe, MonadStateOf.get,
+    EStateM.get, hr]
+  cases h1 : r.overlay.get? k with
+  | some v => rfl
+  | none =>
+    cases h2 : TTN.lookup r.store r.root k with
+    | error e => rfl
+    | ok l => rfl
+
+theorem realGetH_some (k : ByteArray) (s : St) (r : TTN.RealStore) (hr : s.real = some r) :
+    (realGetH k).run s =
+      (match r.overlay.get? k with
+        | some v => .ok v s
+        | none =>
+          match TTN.lookup r.store r.root k with
+          | .error e => .error e s
+          | .ok l => match l.value with
+            | none => .ok none s
+            | some (_, vh) => match r.store vh with
+              | some v => .ok (some v) s
+              | none => .error TTN.errMissing s) := by
+  simp only [realGetH, EStateM.run, bind, EStateM.bind, get, getThe, MonadStateOf.get,
+    EStateM.get, hr]
+  cases h1 : r.overlay.get? k with
+  | some v => rfl
+  | none =>
+    cases h2 : TTN.lookup r.store r.root k with
+    | error e => rfl
+    | ok l =>
+      cases h3 : l.value with
+      | none => simp only [h3]; rfl
+      | some p =>
+        obtain ⟨n, vh⟩ := p
+        cases h4 : r.store vh with
+        | none => simp only [h3, h4]; rfl
+        | some v => simp only [h3, h4]; rfl
+
+end NearSpecV3.Wasm.L0W013
+
+end
+
+/-! ## L0-W-014: on a trie whose reachable extensions have non-empty keys, `lookup` fails only with MissingTrieValue or a node-decoding error, never on its fuel (`lookup_errors`). (third pass, 2026-10-31) -/
+
+section
+open NearSpecV3.Wasm
+
+namespace NearSpecV3.Wasm.L0W014
+open NearSpecV3.Wasm.TTN
+
+/-- `G` is a set of node hashes closed under the child pointers a lookup follows, and no node in
+it is an extension with an empty nibble path. Instantiated with "reachable from the state root":
+nearcore never builds an empty extension (`insert_delete.rs` creates extensions only from a
+non-empty common prefix or remainder; `squash.rs` only lengthens them). Values and code blobs
+in the same store are not constrained (a lookup never decodes them as nodes). -/
+def NoEmptyExt (st : TTN.Store) (G : ByteArray → Prop) : Prop :=
+  ∀ h b, G h → st h = some b →
+    (∀ k c, decodeNode b = some (.ext k c) → k ≠ [] ∧ G c) ∧
+    (∀ v kids (n : Nat) c, decodeNode b = some (.branch v kids) → kids[n]? = some (some c) → G c)
+
+theorem isPrefixN_length : ∀ (k key : List Nat), isPrefixN k key = true → k.length ≤ key.length
+  | [], _, _ => Nat.zero_le _
+  | _ :: _, [], h => by simp [isPrefixN] at h
+  | a :: as, b :: bs, h => by
+    simp only [isPrefixN, Bool.and_eq_true] at h
+    have := isPrefixN_length as bs h.2
+    simp; omega
+
+/-- With fuel above the key's nibble count, a lookup's only errors are the two storage errors:
+never `unmodeled: lookup fuel`. -/
+theorem lookupFrom_errors (st : TTN.Store) (G : ByteArray → Prop) (hne : NoEmptyExt st G) :
+    ∀ (fuel : Nat) (h : ByteArray) (key : List Nat) (acc : List ByteArray) (e : String),
+      G h → key.length < fuel → lookupFrom st fuel h key acc = .error e →
+      e = errMissing ∨ e = "StorageInconsistentState(node decoding)"
+  | 0, _, _, _, _, _, hl, _ => absurd hl (Nat.not_lt_zero _)
+  | fuel + 1, h, key, acc, e, hg, hl, he => by
+    simp only [lookupFrom] at he
+    cases hs : st h with
+    | none => rw [hs] at he; cases he; exact .inl rfl
+    | some bytes =>
+      rw [hs] at he
+      simp only at he
+      cases hd : decodeNode bytes with
+      | none => rw [hd] at he; cases he; exact .inr rfl
+      | some n =>
+        rw [hd] at he
+        cases n with
+        | leaf k len vh => cases he
+        | ext k c =>
+          simp only at he
+          split at he
+          · rename_i hp
+            obtain ⟨hk, hgc⟩ := (hne h bytes hg hs).1 k c hd
+            have hkl := isPrefixN_length k key hp
+            have hpos : 0 < k.length := List.length_pos_iff.mpr hk
+            exact lookupFrom_errors st G hne fuel c (key.drop k.length) _ e hgc
+              (by simp only [List.length_drop]; omega) he
+          · cases he
+        | branch v kids =>
+          simp only at he
+          cases key with
+          | nil => cases he
+          | cons n rest =>
+            simp only at he
+            split at he
+            · rename_i c hc
+              exact lookupFrom_errors st G hne fuel _ rest _ e ((hne h bytes hg hs).2 v kids n c hd hc)
+                (by simp at hl; omega) he
+            · cases he
+
+theorem loop_length (bs : ByteArray) : ∀ (k i : Nat) (r : List UInt8), bs.size - i = k →
+    (ByteArray.toList.loop bs i r).length = r.length + (bs.size - i)
+  | 0, i, r, hk => by
+    rw [ByteArray.toList.loop.eq_1]
+    have : ¬ i < bs.size := by omega
+    simp [this]; omega
+  | k + 1, i, r, hk => by
+    rw [ByteArray.toList.loop.eq_1]
+    have : i < bs.size := by omega
+    simp only [this, ite_true]
+    rw [loop_length bs k (i + 1) _ (by omega)]
+    simp; omega
+
+theorem toList_length (d : ByteArray) : d.toList.length = d.size := by
+  unfold ByteArray.toList
+  rw [loop_length d _ 0 [] rfl]
+  simp
+
+theorem replicate_two_sum (n : Nat) : (List.replicate n 2).sum = 2 * n := by
+  induction n with
+  | zero => rfl
+  | succ n ih => rw [List.replicate_succ, List.sum_cons, ih]; omega
+
+theorem nibblesOf_length (d : ByteArray) : (nibblesOf d).length = 2 * d.size := by
+  unfold nibblesOf
+  rw [List.length_flatMap]
+  simp only [List.length_cons, List.length_nil]
+  rw [List.map_const', replicate_two_sum, toList_length]
+
+/-- `TTN.lookup` never reports `unmodeled: lookup fuel` on a store without empty extensions. -/
+theorem lookup_errors (st : TTN.Store) (G : ByteArray → Prop) (hne : NoEmptyExt st G)
+    (root key : ByteArray) (hroot : G root) (e : String) (h : lookup st root key = .error e) :
+    e = errMissing ∨ e = "StorageInconsistentState(node decoding)" := by
+  unfold lookup at h
+  split at h
+  · cases h
+  · exact lookupFrom_errors st G hne _ root _ [] e hroot (by rw [nibblesOf_length]; omega) h
+
+end NearSpecV3.Wasm.L0W014
+
+end

@@ -428,9 +428,25 @@
    ]
   },
   "L0-D2-012": {
-   "lean_path_symbol": "allFeatures: only on segments containing the genesis block (checkD2CoreGWith, Successor/RuntimeCore.lean:436); other segments go to checkReshardCore, which has no such guard; signed: ChunkValidationD2.lean:140",
-   "remaining": "on allFeatures the guard is live only for segments that contain the genesis block (Successor/ReshardCore.lean:45, 430). None of the 266 genesis-main corpus chunks triggers it. Needed: a pinned-source argument that a segment reaching genesis cannot span a shard-layout change (then impossible-at-boundary), or a fixture",
-   "status": "implemented"
+   "lean": [
+    "NearSpecV3.L0Guards.genesis_segment_same_layout"
+   ],
+   "lean_path_symbol": "allFeatures: only on segments containing the genesis block (checkD2CoreGWith, Successor/RuntimeCore.lean:436); signed: ChunkValidationD2.lean:140",
+   "paths": [
+    "docs/evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md"
+   ],
+   "reason": "on allFeatures this guard runs only in checkD2CoreGWith, i.e. only for claims whose segment contains the genesis block (Successor/Config.lean `segmentHasGenesis`; every other segment goes to checkReshardCore, which decides layout changes and recomputes the split gate). It runs after the epoch-protocol-version check (`c.pv86`, L0-D2-011), so when it is reached every epoch of the claim is PV86. A segment that reaches genesis is hash-linked from the genesis block to the prev block, so it references every epoch from the genesis epoch to the witness epoch, and all of them are PV86, the genesis epoch included. nearcore requires the genesis epoch's config to be static for every genesis protocol version other than 29 (chain/epoch-manager/src/genesis.rs:63-69), so config(86) is static on such a chain: every PV86 epoch keeps the genesis layout (next_next_shard_layout, lib.rs:679-745), and no block of the segment can carry a split gate, because nearcore computes one only under a dynamic config of the applied block's epoch (chain/chain/src/runtime/mod.rs:282-298, 597; the oracle's claim.rs:174-193 builds the claim's gate by the same rule). So an honest claim never fails it; a claim that does is false and is excluded, never accepted. On mainnet (genesis PV 29) a genesis-reaching segment fails `c.pv86` first",
+   "status": "impossible-at-boundary",
+   "surface": [
+    {
+     "file": "Successor/Config.lean",
+     "text": "if cfg.resharding && !segmentHasGenesis claimBytes then"
+    },
+    {
+     "file": "Successor/RuntimeCore.lean",
+     "text": "check (c.epochs.all (\u00b7.protocolVersion == 86)) \"out of domain (c.pv86): epoch protocol version\"\n  check (c.epochs.all (\u00b7.shardLayout == ep.shardLayout)) \"out of domain (c.same_layout): resharding\""
+    }
+   ]
   },
   "L0-D2-013": {
    "lean_path_symbol": "Successor/ReshardCore.lean:250-255 (each epoch layout; `\u2264 64` lifted by layoutUnbounded); genesis segments: Successor/RuntimeCore.lean:438-441; signed: ChunkValidationD2.lean:142",
@@ -563,14 +579,67 @@
    "target": "guard:invalid: epoch_start_after flag"
   },
   "L0-D2-019": {
-   "lean_path_symbol": "allFeatures: only on segments containing the genesis block (checkD2CoreGWith, Successor/RuntimeCore.lean:455); other segments recompute the split gate (Successor/TrieSplit, checkReshardCoreObs); signed: ChunkValidationD2.lean:156",
-   "remaining": "live on allFeatures only for genesis-containing segments (as L0-D2-012); none of the 266 genesis-main corpus chunks carries a split gate. Needed: a pinned-source argument that no block of a genesis-reaching segment opens the dynamic-resharding gate, or a fixture",
-   "status": "implemented"
+   "lean": [
+    "NearSpecV3.L0Guards.genesis_segment_no_split_gate"
+   ],
+   "lean_path_symbol": "allFeatures: only on segments containing the genesis block (checkD2CoreGWith, Successor/RuntimeCore.lean:455); signed: ChunkValidationD2.lean:156",
+   "paths": [
+    "docs/evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md"
+   ],
+   "reason": "on allFeatures this guard runs only in checkD2CoreGWith, i.e. only for claims whose segment contains the genesis block (Successor/Config.lean `segmentHasGenesis`; every other segment goes to checkReshardCore, which decides layout changes and recomputes the split gate). It runs after the epoch-protocol-version check (`c.pv86`, L0-D2-011), so when it is reached every epoch of the claim is PV86. A segment that reaches genesis is hash-linked from the genesis block to the prev block, so it references every epoch from the genesis epoch to the witness epoch, and all of them are PV86, the genesis epoch included. nearcore requires the genesis epoch's config to be static for every genesis protocol version other than 29 (chain/epoch-manager/src/genesis.rs:63-69), so config(86) is static on such a chain: every PV86 epoch keeps the genesis layout (next_next_shard_layout, lib.rs:679-745), and no block of the segment can carry a split gate, because nearcore computes one only under a dynamic config of the applied block's epoch (chain/chain/src/runtime/mod.rs:282-298, 597; the oracle's claim.rs:174-193 builds the claim's gate by the same rule). So an honest claim never fails it; a claim that does is false and is excluded, never accepted. On mainnet (genesis PV 29) a genesis-reaching segment fails `c.pv86` first",
+   "status": "impossible-at-boundary",
+   "surface": [
+    {
+     "file": "Successor/Config.lean",
+     "text": "if cfg.resharding && !segmentHasGenesis claimBytes then"
+    },
+    {
+     "file": "Successor/RuntimeCore.lean",
+     "text": "check (c.applyFacts.all fun f => f.splitGate.isNone) \"out of domain (c.no_split_gate)\""
+    }
+   ]
   },
   "L0-D2-020": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "accept": 12
+    },
+    "baseline": "pass",
+    "binary_sha256": "689dbfb4133fadb14310cadb28dcc3a3dde93ab796229cdaac6ff329b1b44900",
+    "case_list": [
+     "run2-w005/mutants/00-h10003-s0-l0.w.new_tx.oversize_rehashed",
+     "run2-w006/mutants/00-h10003-s0-l0.w.new_tx.oversize_rehashed",
+     "run2-w005/mutants/00-h10003-s1-l0.w.new_tx.oversize_rehashed",
+     "run2-w006/mutants/00-h10003-s1-l0.w.new_tx.oversize_rehashed",
+     "run2-w005/mutants/00-h10004-s1-l0.w.new_tx.oversize_rehashed",
+     "run2-w006/mutants/00-h10003-s3-l0.w.new_tx.oversize_rehashed",
+     "run2-w005/mutants/00-h10005-s1-l0.w.new_tx.oversize_rehashed",
+     "run2-w006/mutants/00-h10004-s0-l0.w.new_tx.oversize_rehashed",
+     "run2-w005/mutants/00-h10005-s2-l0.w.new_tx.oversize_rehashed",
+     "run2-w006/mutants/00-h10004-s1-l0.w.new_tx.oversize_rehashed",
+     "run2-w005/mutants/00-h10006-s0-l0.w.new_tx.oversize_rehashed",
+     "run2-w006/mutants/00-h10004-s2-l0.w.new_tx.oversize_rehashed"
+    ],
+    "cases": 12,
+    "target": "guard:invalid: new transaction exceeds max_transaction_size",
+    "what": "the failing check passes"
+   },
+   "exercising": {
+    "examples": [
+     "run2-w005/mutants/00-h10003-s0-l0.w.new_tx.oversize_rehashed",
+     "run2-w005/mutants/00-h10003-s1-l0.w.new_tx.oversize_rehashed"
+    ],
+    "nearcore_accept": 0,
+    "nearcore_reject": 68,
+    "source": "witness+claim mutants l0.w.new_tx.oversize_rehashed (oracle/v3-successor/src/l0mut.rs): one more new transaction of borsh size max_transaction_size + 1, header re-hashed; nearcore (cold) rejects with TransactionSizeExceeded; the l0.w.new_tx.maxsize_rehashed boundary mutants (exactly the limit) are accepted by both"
+   },
    "lean_path_symbol": "Successor/ReshardCore.lean:269; genesis segments: Successor/RuntimeCore.lean:456; signed: ChunkValidationD2.lean:158",
-   "remaining": "an oversized new transaction is not generatable as an honest chunk (the producer drops it; gate-b-caps README); the exact-size boundary is kernel-tested (TestGateBCaps.lean). A whole-chunk fixture needs a witness mutant (new_transactions with an oversized transaction, tx_root rehashed in claim and witness, like the corpus w.new_tx.*_rehashed classes) judged by cold nearcore",
-   "status": "implemented"
+   "paths": [
+    "docs/evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md"
+   ],
+   "remaining": "none on allFeatures",
+   "target": "guard:invalid: new transaction exceeds max_transaction_size"
   },
   "L0-D2-021": {
    "control": {
@@ -649,9 +718,47 @@
    "target": "guard:invalid: segment is not hash-linked"
   },
   "L0-D2-023": {
+   "control": {
+    "ablated_disagreements": 1,
+    "ablated_verdicts": {
+     "accept": 1,
+     "reject": 11
+    },
+    "baseline": "pass",
+    "binary_sha256": "689dbfb4133fadb14310cadb28dcc3a3dde93ab796229cdaac6ff329b1b44900",
+    "case_list": [
+     "run2-w005/mutants/00-h10003-s0-l0.c.prev_block_drop_slot",
+     "run2-w006/mutants/00-h10003-s0-l0.c.prev_block_drop_slot",
+     "run2-w005/mutants/00-h10003-s0-l0.c.prev_block_extra_slot",
+     "run2-w006/mutants/00-h10003-s0-l0.c.prev_block_extra_slot",
+     "run2-w005/mutants/00-h10003-s1-l0.c.prev_block_drop_slot",
+     "run2-w006/mutants/00-h10003-s1-l0.c.prev_block_drop_slot",
+     "run2-w005/mutants/00-h10003-s1-l0.c.prev_block_extra_slot",
+     "run2-w006/mutants/00-h10003-s1-l0.c.prev_block_extra_slot",
+     "run2-w005/mutants/00-h10004-s1-l0.c.prev_block_drop_slot",
+     "run2-w006/mutants/00-h10003-s3-l0.c.prev_block_drop_slot",
+     "run2-w005/mutants/00-h10004-s1-l0.c.prev_block_extra_slot",
+     "run2-w006/mutants/00-h10003-s3-l0.c.prev_block_extra_slot"
+    ],
+    "cases": 12,
+    "target": "guard:invalid: slot count",
+    "what": "the failing check passes"
+   },
+   "exercising": {
+    "examples": [
+     "run2-w005/mutants/00-h10003-s0-l0.c.prev_block_drop_slot",
+     "run2-w005/mutants/00-h10003-s0-l0.c.prev_block_extra_slot"
+    ],
+    "nearcore_accept": 0,
+    "nearcore_reject": 121,
+    "source": "witness+claim mutants l0.c.prev_block_extra_slot / l0.c.prev_block_drop_slot (oracle/v3-successor/src/l0mut.rs): the prev block re-hashed with one more / one fewer chunk slot and named by the chunk header in claim and witness; nearcore (cold) rejects (prev block not found)"
+   },
    "lean_path_symbol": "Successor/ReshardCore.lean:139 (walkSegment, per-block layout); genesis segments: Successor/RuntimeCore.lean:461; signed: ChunkValidationD2.lean:163",
-   "remaining": "no claim-only mutant can make it the first failure: a slot change fails chunk_headers_root (decodeBlk), and a consistent header change moves the block hash, so L0-D2-021/022 fail first. A deciding fixture needs a fabricated block chain whose hash the claim and witness chunk headers both name (prev_block_hash rewritten in both), judged by cold nearcore",
-   "status": "implemented"
+   "paths": [
+    "docs/evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md"
+   ],
+   "remaining": "none on allFeatures",
+   "target": "guard:invalid: slot count"
   },
   "L0-D2-024": {
    "control": {
@@ -682,9 +789,47 @@
    "target": "throw:invalid: shard not in layout"
   },
   "L0-D2-025": {
+   "control": {
+    "ablated_disagreements": 3,
+    "ablated_verdicts": {
+     "accept": 3,
+     "reject": 9
+    },
+    "baseline": "pass",
+    "binary_sha256": "689dbfb4133fadb14310cadb28dcc3a3dde93ab796229cdaac6ff329b1b44900",
+    "case_list": [
+     "run2-w005/mutants/00-h10003-s0-l0.c.prev_block_hi_above",
+     "run2-w006/mutants/00-h10003-s0-l0.c.prev_block_hi_above",
+     "run2-w005/mutants/00-h10003-s1-l0.c.prev_block_hi_above",
+     "run2-w006/mutants/00-h10003-s1-l0.c.prev_block_hi_above",
+     "run2-w005/mutants/00-h10004-s1-l0.c.prev_block_hi_above",
+     "run2-w006/mutants/00-h10003-s3-l0.c.prev_block_hi_above",
+     "run2-w005/mutants/00-h10005-s1-l0.c.prev_block_hi_above",
+     "run2-w006/mutants/00-h10004-s0-l0.c.prev_block_hi_above",
+     "run2-w005/mutants/00-h10005-s2-l0.c.prev_block_hi_above",
+     "run2-w006/mutants/00-h10004-s1-l0.c.prev_block_hi_above",
+     "run2-w005/mutants/00-h10006-s0-l0.c.prev_block_hi_above",
+     "run2-w006/mutants/00-h10004-s2-l0.c.prev_block_hi_above"
+    ],
+    "cases": 12,
+    "target": "guard:invalid: height_included above block height (block_congestion_info panics)",
+    "what": "the failing check passes"
+   },
+   "exercising": {
+    "examples": [
+     "run2-w005/mutants/00-h10003-s0-l0.c.prev_block_hi_above",
+     "run2-w005/mutants/00-h10003-s1-l0.c.prev_block_hi_above"
+    ],
+    "nearcore_accept": 0,
+    "nearcore_reject": 68,
+    "source": "witness+claim mutants l0.c.prev_block_hi_above (oracle/v3-successor/src/l0mut.rs): another shard's slot of the prev block gets height_included = height + 1, block re-hashed and named by the chunk header; nearcore (cold) rejects (prev block not found)"
+   },
    "lean_path_symbol": "Successor/ReshardCore.lean:278-279; genesis segments: Successor/RuntimeCore.lean:468-469; signed: ChunkValidationD2.lean:169-171",
-   "remaining": "as L0-D2-023: height_included is bound by chunk_headers_root, so a deciding fixture needs a fabricated block chain named by both chunk headers, judged by cold nearcore",
-   "status": "implemented"
+   "paths": [
+    "docs/evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md"
+   ],
+   "remaining": "none on allFeatures",
+   "target": "guard:invalid: height_included above block height (block_congestion_info panics)"
   },
   "L0-D2-026": {
    "control": {
@@ -933,9 +1078,18 @@
    "target": "guard:decode: Not all bytes read"
   },
   "L0-D3-003": {
-   "lean_path_symbol": "Successor.StorageExecution.applyAction (catch: an `unmodeled` error becomes D3.oodE), StorageExecution.lean:309-310; signed: D3/FunctionCall.lean:71",
-   "remaining": "exclusion wrapper; on allFeatures it fires on 0 of the 235,716 corpus cases (the only exclusions are e.code_prep_race). Its triggers are rows L0-D3-013, L0-D3-014, L0-W-011, L0-W-013, L0-W-014 (L0-D3-012 is dead), so it is settled when they are",
-   "status": "implemented"
+   "lean_path_symbol": "Successor.StorageExecution.applyAction (catch: an `unmodeled` error becomes D3.oodE), StorageExecution.lean:310; signed: D3/FunctionCall.lean:71",
+   "paths": [
+    "docs/evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md"
+   ],
+   "reason": "no `unmodeled` error thrown inside functionCallRecordedF reaches the catch: the non-FunctionCall throw (line 157) is dead by applyAction's `.fcall` pattern (line 302); Wasm-side `unmodeled` results are lines that lineOutcome maps to oodE before the catch; the D3.manager / distribute throws (action-log index, YR/CR shapes, printed numbers, receipt and dependency indices) are dead by the host log formats (every CR entry is pushed with a receiver, numbers are printed Nats, hex is hexStr, every receipt index is a CR/YC log index the manager has already mapped); the yield data-id throw is L0-D3-012 (dead); the yield-receipt-without-data-id throw (line 258) is dead because only yieldCreate sets `yield := true`, always with `inputs := [did]`; the finishActsGlobal re-encoding throw is L0-D3-013 (dead). Source argument (third-pass/README.md section 4), not a Lean proof",
+   "status": "impossible-at-boundary",
+   "surface": [
+    {
+     "file": "Successor/StorageExecution.lean",
+     "text": "catch e => throw (if e.startsWith \"unmodeled\" then oodE e else e)"
+    }
+   ]
   },
   "L0-D3-004": {
    "lean_path_symbol": "Successor.StorageExecution.functionCallRecordedF (StorageExecution.lean:157); signed: D3/FunctionCall.lean:232",
@@ -981,14 +1135,32 @@
    "status": "impossible-at-boundary"
   },
   "L0-D3-013": {
-   "lean_path_symbol": "allFeatures: Successor finishActsGlobal (Successor/PromiseActions.lean) via StorageExecution.functionCallRecordedF line 264; signed: D3/FunctionCall.lean:218-219",
-   "remaining": "exclusion path (action re-encoding / shape); 0 of 235,716 corpus cases reach it on allFeatures. Needed: a codec round-trip proof for the manager's actions (decode \u2218 encode), which would make it dead",
-   "status": "implemented"
+   "lean_path_symbol": "allFeatures: Successor finishActsGlobal (Successor/PromiseActions.lean:39-40) via StorageExecution.functionCallRecordedF line 264; signed: D3/FunctionCall.lean:218-219",
+   "paths": [
+    "docs/evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md"
+   ],
+   "reason": "the `unmodeled: global action re-encoding` exclusion is unreachable: every action encoding the manager or a raw host arm emits (CA, DC, FC, TR, ST, AF, AC, DK, DA; raw tags 5, 9, 10, 11, 12) is read back exactly by pActGlobal (gas < 2^64 by distribute, deposits u128 by getU128H, public keys validated by pkValid with pPkGlobal's sizes, account ids by validAccountId, the same rule set as AccountId.valid). Its other branch rethrows a decode error, which is not an exclusion; the one reachable instance found, a non-UTF-8 method name from promise_batch_action_add_gas_key_with_function_call, was a Lean bug (Lean accepted a nearcore-rejected chunk) and is fixed: the arm now fails with InvalidMethodName as nearcore does (receipt_manager.rs:478-508), checked on the gas-key fixture family (third-pass/README.md section 1). Source argument, not a Lean proof",
+   "status": "impossible-at-boundary",
+   "surface": [
+    {
+     "file": "Wasm/Host.lean",
+     "text": "names.any (fun n => (String.fromUTF8? n).isNone) then\n      hErr \"InvalidMethodName\""
+    }
+   ]
   },
   "L0-D3-014": {
    "lean_path_symbol": "allFeatures: Successor.StorageExecution.functionCallRecordedF line 275 (promise_return index not in the manager's map); signed: D3/FunctionCall.lean:356",
-   "remaining": "exclusion path; 0 of 235,716 corpus cases reach it. Needed: a proof that every promise index the VM returns (promise_return validates it) has a manager entry",
-   "status": "implemented"
+   "paths": [
+    "docs/evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md"
+   ],
+   "reason": "promise_return (Wasm/Host.lean promise_return arm) sets `ret := .inr r` only for a `.receipt r` promise; every `.receipt r` is pushed right after pushAction returns r for a `CR(\u2026)>acct` entry or a yieldCreate entry, those entries are never rewritten (the only in-place edits touch state-init entries; managerGlobal normalises only rawAction entries, which CR/YC entries lack), and D3.manager inserts every CR and yieldCreate index into its map (D3/FunctionCall.lean:128-152); if the manager throws, line 275 is not reached. Source argument, not a Lean proof",
+   "status": "impossible-at-boundary",
+   "surface": [
+    {
+     "file": "Successor/StorageExecution.lean",
+     "text": "| none => throw (oodE \"promise_return of a non-receipt log index\")"
+    }
+   ]
   },
   "L0-D3-015": {
    "lean_path_symbol": "Successor.StorageExecution.functionCallRecordedF line 259; signed: D3/FunctionCall.lean:339-341",
@@ -1047,35 +1219,99 @@
   },
   "L0-W-005": {
    "control": {
-    "ablated_disagreements": 1,
+    "ablated_disagreements": 12,
     "ablated_verdicts": {
-     "reject": 1
+     "reject": 16
     },
     "baseline": "pass",
     "binary_sha256": "689dbfb4133fadb14310cadb28dcc3a3dde93ab796229cdaac6ff329b1b44900",
     "case_list": [
-     "tars/runtime-errors/re601-00-h10045-s2"
+     "run2-w005/d3/00-h10011-s3",
+     "run2-w005/mutants/00-h10011-s3-code.duplicate",
+     "run2-w005/d3/00-h10012-s3",
+     "run2-w005/mutants/00-h10011-s3-code.extra_garbage",
+     "run2-w005/d3/00-h10013-s3",
+     "run2-w005/mutants/00-h10011-s3-code.extra_unneeded",
+     "run2-w005/mutants/00-h10011-s3-code.reorder",
+     "run2-w005/mutants/00-h10011-s3-hdr.height_created",
+     "run2-w005/mutants/00-h10011-s3-hdr.height_included(unchecked)",
+     "run2-w005/mutants/00-h10011-s3-l0.w.new_tx.maxsize_rehashed",
+     "run2-w005/mutants/00-h10011-s3-t.minimum_stake(unused_in_D0)",
+     "run2-w005/mutants/00-h10011-s3-w.base_state.extra_junk",
+     "run2-w005/mutants/00-h10011-s3-code.drop.1",
+     "run2-w005/mutants/00-h10011-s3-code.flip.1",
+     "run2-w005/mutants/00-h10011-s3-hdr.bandwidth_requests.add",
+     "run2-w005/mutants/00-h10011-s3-hdr.congestion.allowed_shard"
     ],
-    "cases": 1,
+    "cases": 16,
     "target": "wasm:prep",
     "what": "the site charges 1 extra gas (load: the contract-loading charge; prep/compile: the failed call burns 1 gas instead of 0) or, for the fuel certificate, reports failure"
    },
    "exercising": {
     "examples": [
-     "tars/runtime-errors/re601-00-h10045-s2"
+     "run2-w005/d3/00-h10011-s3",
+     "run2-w005/d3/00-h10012-s3",
+     "run2-w005/mutants/00-h10011-s3-code.drop.1",
+     "run2-w005/mutants/00-h10011-s3-code.flip.1"
     ],
-    "nearcore_accept": 1,
-    "nearcore_reject": 0,
-    "source": "observation trace of the second-pass control build over the fixture families and a 4,000-case corpus subsample; verdicts identical to the default checker"
+    "nearcore_accept": 46,
+    "nearcore_reject": 103,
+    "source": "third pass: injected contract w005 (env.memory import, PrepareError(Memory)), seeds 17/18 with NEAR_L0_ROW_MUTANTS, every case mutated; judged by cold nearcore; tx_valid flips and derived mutants excluded"
    },
    "lean_path_symbol": "allFeatures: Wasm.prepare prepFail sites via Wasm.runCallFast (`.prepErr v`, compiled `@[csimp]` form of runCall) and StorageExecution.vmCall; Prepare.lean:178-390",
-   "remaining": "one nearcore-accepted chunk exercises it (runtime-errors re601-00-h10045-s2, PrepareError(Memory)) and its control detects (`wasm:prep`), but no nearcore-rejected chunk calls a contract that fails preparation. Needed: the mutant set of that chain (and further PrepareError variants) from oracle/v3-successor, then trace/map/evidence",
+   "paths": [
+    "docs/evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md"
+   ],
+   "remaining": "none on allFeatures",
    "target": "wasm:prep"
   },
   "L0-W-006": {
+   "control": {
+    "ablated_disagreements": 12,
+    "ablated_verdicts": {
+     "reject": 16
+    },
+    "baseline": "pass",
+    "binary_sha256": "689dbfb4133fadb14310cadb28dcc3a3dde93ab796229cdaac6ff329b1b44900",
+    "case_list": [
+     "run2-w006/d3/00-h10004-s3",
+     "run2-w006/mutants/00-h10004-s3-code.duplicate",
+     "run2-w006/d3/00-h10012-s3",
+     "run2-w006/mutants/00-h10004-s3-code.extra_garbage",
+     "run2-w006/d3/00-h10013-s3",
+     "run2-w006/mutants/00-h10004-s3-code.extra_unneeded",
+     "run2-w006/d3/00-h10015-s3",
+     "run2-w006/mutants/00-h10004-s3-code.reorder",
+     "run2-w006/d3/00-h10017-s3",
+     "run2-w006/mutants/00-h10004-s3-hdr.height_created",
+     "run2-w006/mutants/00-h10004-s3-hdr.height_included(unchecked)",
+     "run2-w006/mutants/00-h10004-s3-l0.w.new_tx.maxsize_rehashed",
+     "run2-w006/mutants/00-h10004-s3-code.drop.1",
+     "run2-w006/mutants/00-h10004-s3-code.flip.1",
+     "run2-w006/mutants/00-h10004-s3-hdr.bandwidth_requests.add",
+     "run2-w006/mutants/00-h10004-s3-hdr.congestion.allowed_shard"
+    ],
+    "cases": 16,
+    "target": "wasm:compile",
+    "what": "the site charges 1 extra gas (load: the contract-loading charge; prep/compile: the failed call burns 1 gas instead of 0) or, for the fuel certificate, reports failure"
+   },
+   "exercising": {
+    "examples": [
+     "run2-w006/d3/00-h10004-s3",
+     "run2-w006/d3/00-h10012-s3",
+     "run2-w006/mutants/00-h10004-s3-code.drop.1",
+     "run2-w006/mutants/00-h10004-s3-code.flip.1"
+    ],
+    "nearcore_accept": 74,
+    "nearcore_reject": 159,
+    "source": "third pass: injected contract w006 (49,999 locals: passes NEAR preparation, fails Wasmtime compilation, nearcore WasmtimeCompileError function[3]), every case mutated; judged by cold nearcore; tx_valid flips and derived mutants excluded"
+   },
    "lean_path_symbol": "allFeatures: Wasm.prepare compileErr via Wasm.runCallFast (`.compileErr k`); Prepare.lean:455-472",
-   "remaining": "no case of the second-pass populations (fixture families, a 4,000-case corpus subsample, runtime-errors) calls a contract whose compilation fails (`W compile` never fires). The trace and ablation hooks exist (`wasm:compile`). Needed: an oracle/v3-successor scenario contract over the H1 bound (params + locals 50,000) called in a whole chunk, judged cold, with its mutant set",
-   "status": "implemented"
+   "paths": [
+    "docs/evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md"
+   ],
+   "remaining": "none on allFeatures",
+   "target": "wasm:compile"
   },
   "L0-W-009": {
    "control": {
@@ -1130,58 +1366,104 @@
    "target": "wasm:load"
   },
   "L0-W-011": {
+   "lean": [
+    "NearSpecV3.Wasm.L0W011.run_inv",
+    "NearSpecV3.Wasm.L0W011.frame_ok",
+    "NearSpecV3.Wasm.L0W011.step_lookups",
+    "NearSpecV3.Wasm.L0W011.buildLblLive_live"
+   ],
    "lean_path_symbol": "allFeatures: Wasm.exec / step / callEntryFast `unmodeled` invariants (Exec.lean, Arcs.lean), surfaced as e.wasm-\u03b1 by applyAction",
-   "remaining": "internal invariants (bad frame, pc out of range, gas table shorter than the code, float load/store of a non-memory opcode); 0 of 235,716 corpus cases reach one. Needed: a preservation proof from Validate.lean's typing (then dead)",
-   "status": "implemented"
+   "paths": [
+    "docs/evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md"
+   ],
+   "reason": "vmCall runs only fuel-certified code (StorageExecution.lean:151); on certified code the certificate invariant holds at every state of the run (run_inv, from entry_ok/step_dec), and a state satisfying it has a frame naming a defined function at a pc inside its code (frame_ok, buildLblLive_live), so the bad-frame and pc-out-of-range arms are dead; prepare returns `.unmodeled` (excluded before the call by contractOOD) unless every gas table has the code's size, and with that (GasSized) every step finds its instruction and gas (step_lookups); the decoder builds float load/store only with load/store opcodes (Decode.lean:261-264), so their non-memory-opcode arm is dead. The compiled path is equal by @[csimp] (Arcs.lean). The other `exec` invariant arms (unmatched block/else labels, unknown function/type indices) rest on Validate.lean's typing and are argued, not proved",
+   "status": "impossible-at-boundary"
   },
   "L0-W-012": {
    "control": {
     "ablated_disagreements": 12,
     "ablated_verdicts": {
-     "reject": 12
+     "reject": 16
     },
     "baseline": "pass",
     "binary_sha256": "689dbfb4133fadb14310cadb28dcc3a3dde93ab796229cdaac6ff329b1b44900",
     "case_list": [
-     "d3c10/ood/00-h10142-s3",
-     "d3c7/ood/02-h10050-s0",
-     "d3c8/ood/02-h10030-s0",
-     "d3c9/ood/01-h10183-s0",
-     "gdb812/ood/01-h10008-s0",
-     "float-chunks-224/cases/float-17-success",
-     "float-input-chunks-1284/cases/float-dynamic-17-success",
-     "float-input-mutants-350/cases/2",
-     "global-cache-fixtures/cases/00-h10007-s3",
-     "yield-fixtures/cases/y1729-01-h10013-s0",
-     "d3c10/ood/02-h10166-s0",
-     "d3c7/ood/05-h10139-s0"
+     "run-float/mutants/00-h10007-s3-code.duplicate",
+     "run-float/ood/00-h10007-s3",
+     "run-float/mutants/00-h10007-s3-code.extra_garbage",
+     "run-float/ood/00-h10009-s3",
+     "run-float/mutants/00-h10007-s3-code.extra_unneeded",
+     "run-float/ood/00-h10012-s3",
+     "run-float/mutants/00-h10007-s3-code.reorder",
+     "run-float/ood/00-h10013-s3",
+     "run-float/mutants/00-h10007-s3-hdr.height_created",
+     "run-float/mutants/00-h10007-s3-hdr.height_included(unchecked)",
+     "run-float/mutants/00-h10007-s3-t.minimum_stake(unused_in_D0)",
+     "run-float/mutants/00-h10007-s3-w.base_state.extra_junk",
+     "run-float/mutants/00-h10007-s3-hdr.bandwidth_requests.add",
+     "run-float/mutants/00-h10007-s3-hdr.congestion.allowed_shard",
+     "run-float/mutants/00-h10007-s3-hdr.congestion.delayed_gas",
+     "run-float/mutants/00-h10007-s3-hdr.congestion.receipt_bytes"
     ],
-    "cases": 12,
+    "cases": 16,
     "target": "instr:float",
     "what": "each executed instruction of the family first charges 1 extra gas"
    },
    "exercising": {
     "examples": [
-     "d3c10/ood/00-h10142-s3",
-     "d3c10/ood/02-h10166-s0"
+     "run-float/mutants/00-h10007-s3-code.duplicate",
+     "run-float/mutants/00-h10007-s3-code.extra_garbage",
+     "run-float/mutants/00-h10007-s3-hdr.bandwidth_requests.add",
+     "run-float/mutants/00-h10007-s3-hdr.congestion.allowed_shard"
     ],
-    "nearcore_accept": 39,
-    "nearcore_reject": 0,
-    "source": "observation trace of the second-pass control build over the fixture families and a 4,000-case corpus subsample; verdicts identical to the default checker"
+    "nearcore_accept": 52,
+    "nearcore_reject": 201,
+    "source": "third pass: the versioned generator with the dynamic float contract float-17-success (NEAR_SUCCESSOR_CONTRACT), seed 17, every case mutated; 2,557 cases judged by cold nearcore; t.tx_valid flips and derived trusted-fact mutants excluded; trace identical to the default checker"
    },
    "lean_path_symbol": "allFeatures: Wasm.exec `.float` arm \u2192 execFloat \u2192 evalFloatOp (Exec.lean:459; reached through execOrig/callEntryFast); Validate.lean:270,293; FiniteWasm.lean:132",
-   "remaining": "no nearcore-rejected chunk executes a float instruction once the tx_valid flips are excluded (a t.tx_valid flip is not a valid negative, see the rows-left table); 39 nearcore-accepted chunks exercise it and the family control detects (`instr:float`). Needed: mutant sets of the float chains (d3c9/d3c10 float contracts, oracle/wasm-d3 chunk_float) from the corpus generator, then trace/map/evidence",
+   "paths": [
+    "docs/evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md"
+   ],
+   "remaining": "none on allFeatures",
    "target": "instr:float"
   },
   "L0-W-013": {
+   "lean": [
+    "NearSpecV3.Wasm.L0W013.popArgs_ok",
+    "NearSpecV3.Wasm.L0W013.realHasH_some",
+    "NearSpecV3.Wasm.L0W013.realGetH_some"
+   ],
    "lean_path_symbol": "allFeatures: Wasm/Host.lean popArgs and the real-store accessors (Host.lean:406,423,437) under callHost",
-   "remaining": "exclusion path: arity is fixed by link (import signatures are checked against the host table) and allFeatures always passes a real store (vmCall: some real); 0 of 235,716 corpus cases reach it. Needed: a proof of both facts (then dead)",
-   "status": "implemented"
+   "paths": [
+    "docs/evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md"
+   ],
+   "reason": "popArgs always yields exactly n values (popArgs_ok), so the arity throw is dead; every realGetH/realHasH call is dominated by a `real.isSome` test on an unchanged state (realHasH_some, realGetH_some: with a real store they take the store branch without changing the state), and allFeatures always passes `some real` (vmCall), which no transition clears",
+   "status": "impossible-at-boundary",
+   "surface": [
+    {
+     "file": "Wasm/Host.lean",
+     "text": "throw \"unmodeled host-call arity\""
+    }
+   ]
   },
   "L0-W-014": {
-   "lean_path_symbol": "allFeatures: Wasm/TrieStore.lean:97 (lookup fuel) and ChunkStorage.lean:76 (real store lost)",
-   "remaining": "exclusion path; 0 of 235,716 corpus cases reach it; the lookup fuel exceeds the deepest key path (gate-b-caps: revealFuel bound). Needed: the same bound stated for TrieStore's fuel (then dead)",
-   "status": "implemented"
+   "lean": [
+    "NearSpecV3.Wasm.L0W014.lookup_errors",
+    "NearSpecV3.Wasm.L0W014.lookupFrom_errors",
+    "NearSpecV3.Wasm.L0W014.nibblesOf_length"
+   ],
+   "lean_path_symbol": "allFeatures: Wasm/TrieStore.lean:116 (lookup fuel); Successor/ChunkStorage.lean:77 is in replayChunk, a difftest harness outside allFeatures",
+   "paths": [
+    "docs/evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md"
+   ],
+   "reason": "the lookup fuel 4|key|+4 exceeds the path length 2|key|+1 when every followed extension has a non-empty key: for such a trie lookup fails only with MissingTrieValue or a node-decoding error (lookup_errors). nearcore never builds an empty extension (insert_delete.rs:123-275 builds extensions from a non-empty prefix or remainder; squash.rs:29-170 only lengthens them; assumption recorded, argued from source), and SHA-256 binds the witness nodes to the root. A forged root over hand-made empty-extension chains reaches the exclusion, which never accepts. ChunkStorage.lean:77 is not imported by allFeatures",
+   "status": "impossible-at-boundary",
+   "surface": [
+    {
+     "file": "Wasm/TrieStore.lean",
+     "text": ".error \"unmodeled: lookup fuel\""
+    }
+   ]
   },
   "L0-W-016": {
    "reason": "retired (UQ-010, 2026-10-29): `noResharding` is a description of the legacy core's two guards, not a check of any checker; on allFeatures those guards remain only on genesis-containing segments (rows L0-D2-012, L0-D2-019), so this row decides nothing",
@@ -1741,9 +2023,30 @@
    ]
   },
   "L0-guard-noResharding": {
+   "lean": [
+    "NearSpecV3.L0Guards.genesis_segment_same_layout",
+    "NearSpecV3.L0Guards.genesis_segment_no_split_gate"
+   ],
    "lean_path_symbol": "ReshardingD3.lean:80 (description); on allFeatures its two guards remain only in checkD2CoreGWith (genesis-containing segments), Successor/RuntimeCore.lean:436,455",
-   "remaining": "as rows L0-D2-012 / L0-D2-019: live on allFeatures only for genesis-containing segments",
-   "status": "implemented"
+   "paths": [
+    "docs/evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md"
+   ],
+   "reason": "a description of the two guards of L0-D2-012 (c.same_layout) and L0-D2-019 (c.no_split_gate). On allFeatures both run only on genesis-containing segments, where neither can fail on an honest claim: on allFeatures this guard runs only in checkD2CoreGWith, i.e. only for claims whose segment contains the genesis block (Successor/Config.lean `segmentHasGenesis`; every other segment goes to checkReshardCore, which decides layout changes and recomputes the split gate). It runs after the epoch-protocol-version check (`c.pv86`, L0-D2-011), so when it is reached every epoch of the claim is PV86. A segment that reaches genesis is hash-linked from the genesis block to the prev block, so it references every epoch from the genesis epoch to the witness epoch, and all of them are PV86, the genesis epoch included. nearcore requires the genesis epoch's config to be static for every genesis protocol version other than 29 (chain/epoch-manager/src/genesis.rs:63-69), so config(86) is static on such a chain: every PV86 epoch keeps the genesis layout (next_next_shard_layout, lib.rs:679-745), and no block of the segment can carry a split gate, because nearcore computes one only under a dynamic config of the applied block's epoch (chain/chain/src/runtime/mod.rs:282-298, 597; the oracle's claim.rs:174-193 builds the claim's gate by the same rule). So an honest claim never fails it; a claim that does is false and is excluded, never accepted. On mainnet (genesis PV 29) a genesis-reaching segment fails `c.pv86` first",
+   "status": "impossible-at-boundary",
+   "surface": [
+    {
+     "file": "Successor/Config.lean",
+     "text": "if cfg.resharding && !segmentHasGenesis claimBytes then"
+    },
+    {
+     "file": "Successor/RuntimeCore.lean",
+     "text": "check (c.epochs.all (\u00b7.protocolVersion == 86)) \"out of domain (c.pv86): epoch protocol version\"\n  check (c.epochs.all (\u00b7.shardLayout == ep.shardLayout)) \"out of domain (c.same_layout): resharding\""
+    },
+    {
+     "file": "Successor/RuntimeCore.lean",
+     "text": "check (c.applyFacts.all fun f => f.splitGate.isNone) \"out of domain (c.no_split_gate)\""
+    }
+   ]
   },
   "L0-host-abort": {
    "control": {
@@ -5054,39 +5357,48 @@
    "control": {
     "ablated_disagreements": 12,
     "ablated_verdicts": {
-     "reject": 12
+     "reject": 16
     },
     "baseline": "pass",
     "binary_sha256": "689dbfb4133fadb14310cadb28dcc3a3dde93ab796229cdaac6ff329b1b44900",
     "case_list": [
-     "d3c10/ood/00-h10142-s3",
-     "d3c7/ood/02-h10050-s0",
-     "d3c8/ood/02-h10030-s0",
-     "d3c9/ood/01-h10183-s0",
-     "gdb812/ood/01-h10008-s0",
-     "float-chunks-224/cases/float-17-success",
-     "float-input-chunks-1284/cases/float-dynamic-17-success",
-     "float-input-mutants-350/cases/2",
-     "global-cache-fixtures/cases/00-h10007-s3",
-     "yield-fixtures/cases/y1729-01-h10013-s0",
-     "d3c10/ood/02-h10166-s0",
-     "d3c7/ood/05-h10139-s0"
+     "run-float/mutants/00-h10007-s3-code.duplicate",
+     "run-float/ood/00-h10007-s3",
+     "run-float/mutants/00-h10007-s3-code.extra_garbage",
+     "run-float/ood/00-h10009-s3",
+     "run-float/mutants/00-h10007-s3-code.extra_unneeded",
+     "run-float/ood/00-h10012-s3",
+     "run-float/mutants/00-h10007-s3-code.reorder",
+     "run-float/ood/00-h10013-s3",
+     "run-float/mutants/00-h10007-s3-hdr.height_created",
+     "run-float/mutants/00-h10007-s3-hdr.height_included(unchecked)",
+     "run-float/mutants/00-h10007-s3-t.minimum_stake(unused_in_D0)",
+     "run-float/mutants/00-h10007-s3-w.base_state.extra_junk",
+     "run-float/mutants/00-h10007-s3-hdr.bandwidth_requests.add",
+     "run-float/mutants/00-h10007-s3-hdr.congestion.allowed_shard",
+     "run-float/mutants/00-h10007-s3-hdr.congestion.delayed_gas",
+     "run-float/mutants/00-h10007-s3-hdr.congestion.receipt_bytes"
     ],
-    "cases": 12,
+    "cases": 16,
     "target": "instr:float",
     "what": "each executed instruction of the family first charges 1 extra gas"
    },
    "exercising": {
     "examples": [
-     "d3c10/ood/00-h10142-s3",
-     "d3c10/ood/02-h10166-s0"
+     "run-float/mutants/00-h10007-s3-code.duplicate",
+     "run-float/mutants/00-h10007-s3-code.extra_garbage",
+     "run-float/mutants/00-h10007-s3-hdr.bandwidth_requests.add",
+     "run-float/mutants/00-h10007-s3-hdr.congestion.allowed_shard"
     ],
-    "nearcore_accept": 39,
-    "nearcore_reject": 0,
-    "source": "observation trace of the second-pass control build over the fixture families and a 4,000-case corpus subsample; verdicts identical to the default checker"
+    "nearcore_accept": 52,
+    "nearcore_reject": 201,
+    "source": "third pass: the versioned generator with the dynamic float contract float-17-success (NEAR_SUCCESSOR_CONTRACT), seed 17, every case mutated; 2,557 cases judged by cold nearcore; t.tx_valid flips and derived trusted-fact mutants excluded; trace identical to the default checker"
    },
    "lean_path_symbol": "allFeatures: Wasm.exec `.float op` \u2192 execFloat \u2192 evalFloatOp, float load/store/const arms (Exec.lean:459-482)",
-   "remaining": "no nearcore-rejected chunk executes a float instruction once the tx_valid flips are excluded (a t.tx_valid flip is not a valid negative, see the rows-left table); 39 nearcore-accepted chunks exercise it and the family control detects (`instr:float`). Needed: mutant sets of the float chains (d3c9/d3c10 float contracts, oracle/wasm-d3 chunk_float) from the corpus generator, then trace/map/evidence",
+   "paths": [
+    "docs/evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md"
+   ],
+   "remaining": "none on allFeatures",
    "target": "instr:float"
   },
   "L0-instr-integer": {
@@ -5142,14 +5454,46 @@
    "target": "instr:int"
   },
   "L0-same-layout": {
+   "lean": [
+    "NearSpecV3.L0Guards.genesis_segment_same_layout"
+   ],
    "lean_path_symbol": "allFeatures: checkD2CoreGWith only (genesis-containing segments), Successor/RuntimeCore.lean:436",
-   "remaining": "the remaining-work text 'legacy-core guard only' is inaccurate for allFeatures: genesis-containing segments keep it (Successor/ReshardCore.lean:45). See L0-D2-012",
-   "status": "implemented"
+   "paths": [
+    "docs/evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md"
+   ],
+   "reason": "the guard of L0-D2-012: on allFeatures this guard runs only in checkD2CoreGWith, i.e. only for claims whose segment contains the genesis block (Successor/Config.lean `segmentHasGenesis`; every other segment goes to checkReshardCore, which decides layout changes and recomputes the split gate). It runs after the epoch-protocol-version check (`c.pv86`, L0-D2-011), so when it is reached every epoch of the claim is PV86. A segment that reaches genesis is hash-linked from the genesis block to the prev block, so it references every epoch from the genesis epoch to the witness epoch, and all of them are PV86, the genesis epoch included. nearcore requires the genesis epoch's config to be static for every genesis protocol version other than 29 (chain/epoch-manager/src/genesis.rs:63-69), so config(86) is static on such a chain: every PV86 epoch keeps the genesis layout (next_next_shard_layout, lib.rs:679-745), and no block of the segment can carry a split gate, because nearcore computes one only under a dynamic config of the applied block's epoch (chain/chain/src/runtime/mod.rs:282-298, 597; the oracle's claim.rs:174-193 builds the claim's gate by the same rule). So an honest claim never fails it; a claim that does is false and is excluded, never accepted. On mainnet (genesis PV 29) a genesis-reaching segment fails `c.pv86` first",
+   "status": "impossible-at-boundary",
+   "surface": [
+    {
+     "file": "Successor/Config.lean",
+     "text": "if cfg.resharding && !segmentHasGenesis claimBytes then"
+    },
+    {
+     "file": "Successor/RuntimeCore.lean",
+     "text": "check (c.epochs.all (\u00b7.protocolVersion == 86)) \"out of domain (c.pv86): epoch protocol version\"\n  check (c.epochs.all (\u00b7.shardLayout == ep.shardLayout)) \"out of domain (c.same_layout): resharding\""
+    }
+   ]
   },
   "L0-split-gate": {
+   "lean": [
+    "NearSpecV3.L0Guards.genesis_segment_no_split_gate"
+   ],
    "lean_path_symbol": "allFeatures: checkD2CoreGWith only (genesis-containing segments), Successor/RuntimeCore.lean:455",
-   "remaining": "as L0-same-layout: genesis-containing segments keep it on allFeatures. See L0-D2-019",
-   "status": "implemented"
+   "paths": [
+    "docs/evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md"
+   ],
+   "reason": "the guard of L0-D2-019: on allFeatures this guard runs only in checkD2CoreGWith, i.e. only for claims whose segment contains the genesis block (Successor/Config.lean `segmentHasGenesis`; every other segment goes to checkReshardCore, which decides layout changes and recomputes the split gate). It runs after the epoch-protocol-version check (`c.pv86`, L0-D2-011), so when it is reached every epoch of the claim is PV86. A segment that reaches genesis is hash-linked from the genesis block to the prev block, so it references every epoch from the genesis epoch to the witness epoch, and all of them are PV86, the genesis epoch included. nearcore requires the genesis epoch's config to be static for every genesis protocol version other than 29 (chain/epoch-manager/src/genesis.rs:63-69), so config(86) is static on such a chain: every PV86 epoch keeps the genesis layout (next_next_shard_layout, lib.rs:679-745), and no block of the segment can carry a split gate, because nearcore computes one only under a dynamic config of the applied block's epoch (chain/chain/src/runtime/mod.rs:282-298, 597; the oracle's claim.rs:174-193 builds the claim's gate by the same rule). So an honest claim never fails it; a claim that does is false and is excluded, never accepted. On mainnet (genesis PV 29) a genesis-reaching segment fails `c.pv86` first",
+   "status": "impossible-at-boundary",
+   "surface": [
+    {
+     "file": "Successor/Config.lean",
+     "text": "if cfg.resharding && !segmentHasGenesis claimBytes then"
+    },
+    {
+     "file": "Successor/RuntimeCore.lean",
+     "text": "check (c.applyFacts.all fun f => f.splitGate.isNone) \"out of domain (c.no_split_gate)\""
+    }
+   ]
   }
  },
  "schema": "l0-row-validation-v1"

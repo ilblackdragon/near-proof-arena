@@ -1,0 +1,14 @@
+{
+ "name": "census-signed",
+ "cases": 3138,
+ "missing_before": 0,
+ "verdict_counts": {
+  "after: agree (lean accept, nearcore accept)": 735,
+  "after: out_of_domain": 2403,
+  "before: agree (lean accept, nearcore accept)": 735,
+  "before: out_of_domain": 2403
+ },
+ "moved": {},
+ "moved_examples": {},
+ "lean_accept_nearcore_reject_after": 0
+}

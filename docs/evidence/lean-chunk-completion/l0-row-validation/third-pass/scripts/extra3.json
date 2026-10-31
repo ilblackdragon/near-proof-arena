@@ -1,0 +1,14 @@
+{
+ "instr:float": {"paths": ["docs/evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md"],
+   "exercising": {"source": "third pass: the versioned generator with the dynamic float contract float-17-success (NEAR_SUCCESSOR_CONTRACT), seed 17, every case mutated; 2,557 cases judged by cold nearcore; t.tx_valid flips and derived trusted-fact mutants excluded; trace identical to the default checker"}},
+ "wasm:prep": {"paths": ["docs/evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md"],
+   "exercising": {"source": "third pass: injected contract w005 (env.memory import, PrepareError(Memory)), seeds 17/18 with NEAR_L0_ROW_MUTANTS, every case mutated; judged by cold nearcore; tx_valid flips and derived mutants excluded"}},
+ "wasm:compile": {"paths": ["docs/evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md"],
+   "exercising": {"source": "third pass: injected contract w006 (49,999 locals: passes NEAR preparation, fails Wasmtime compilation, nearcore WasmtimeCompileError function[3]), every case mutated; judged by cold nearcore; tx_valid flips and derived mutants excluded"}},
+ "guard:invalid: new transaction exceeds max_transaction_size": {"paths": ["docs/evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md"],
+   "exercising": {"source": "witness+claim mutants l0.w.new_tx.oversize_rehashed (oracle/v3-successor/src/l0mut.rs): one more new transaction of borsh size max_transaction_size + 1, header re-hashed; nearcore (cold) rejects with TransactionSizeExceeded; the l0.w.new_tx.maxsize_rehashed boundary mutants (exactly the limit) are accepted by both"}},
+ "guard:invalid: slot count": {"paths": ["docs/evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md"],
+   "exercising": {"source": "witness+claim mutants l0.c.prev_block_extra_slot / l0.c.prev_block_drop_slot (oracle/v3-successor/src/l0mut.rs): the prev block re-hashed with one more / one fewer chunk slot and named by the chunk header in claim and witness; nearcore (cold) rejects (prev block not found)"}},
+ "guard:invalid: height_included above block height (block_congestion_info panics)": {"paths": ["docs/evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md"],
+   "exercising": {"source": "witness+claim mutants l0.c.prev_block_hi_above (oracle/v3-successor/src/l0mut.rs): another shard's slot of the prev block gets height_included = height + 1, block re-hashed and named by the chunk header; nearcore (cold) rejects (prev block not found)"}}
+}

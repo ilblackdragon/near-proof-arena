@@ -1,0 +1,16 @@
+{
+ "name": "corpus8-signed",
+ "cases": 29465,
+ "missing_before": 0,
+ "verdict_counts": {
+  "after: agree (lean accept, nearcore accept)": 9278,
+  "after: agree (lean reject, nearcore reject)": 19849,
+  "after: out_of_domain": 338,
+  "before: agree (lean accept, nearcore accept)": 9278,
+  "before: agree (lean reject, nearcore reject)": 19849,
+  "before: out_of_domain": 338
+ },
+ "moved": {},
+ "moved_examples": {},
+ "lean_accept_nearcore_reject_after": 0
+}
