@@ -1,4 +1,5 @@
 import NearSpecV3.Wasm.FuelCert
+import NearSpecV3.Wasm.FuelHostDefs
 /-!
 # Fuel sufficiency (W02, obligations O-W1b … O-W4)
 
@@ -65,12 +66,6 @@ def Inv (cd : Nat → FCert) (s : St) : Prop := ∀ f ∈ s.frames, FrameInv cd 
 def Certified (cfg : NearCfg) (p : Prepared) (cd : Nat → FCert) : Prop :=
   ∀ k pf, p.funcs[k]? = some pf → certOK cfg pf (cd k) = true
 
-/-- Host functions keep the call frames and never give gas back. -/
-def HostMono (s s' : St) : Prop :=
-  s'.frames = s.frames ∧ s'.gas.remaining ≤ s.gas.remaining ∧ s'.gas.prepaid = s.gas.prepaid
-
-def HostsOK : Prop := ∀ (s : St) (name : String) (h : HM Unit) (u : Unit) (s' : St),
-  dispatchArm s name = some h → h.run s = .ok u s' → HostMono s s'
 
 /-! ## Facts about the certificate -/
 
@@ -151,12 +146,6 @@ end cert
 
 section machine
 
-/-- `s'` has the frames and the gas of `s`. -/
-def Keeps (s s' : St) : Prop := s'.frames = s.frames ∧ s'.gas = s.gas
-
-theorem Keeps.refl (s : St) : Keeps s s := ⟨rfl, rfl⟩
-theorem Keeps.trans {a b c : St} (h1 : Keeps a b) (h2 : Keeps b c) : Keeps a c :=
-  ⟨h2.1.trans h1.1, h2.2.trans h1.2⟩
 
 theorem list_loop_keeps (f : Nat → St → St) (hf : ∀ i s, Keeps s (f i s)) :
     ∀ (l : List Nat) (s : St), Keeps s (Id.run (forIn l s (fun i s => pure (ForInStep.yield (f i s)))))
@@ -166,9 +155,6 @@ theorem list_loop_keeps (f : Nat → St → St) (hf : ∀ i s, Keeps s (f i s)) 
     exact (hf x s).trans (list_loop_keeps f hf xs _)
 
 theorem keeps_pushV (s : St) (v : Val) : Keeps s (pushV s v) := ⟨rfl, rfl⟩
-theorem keeps_popV (s : St) : Keeps s (popV s).2 := ⟨rfl, rfl⟩
-theorem keeps_popN (s : St) : Keeps s (popN s).2 := by
-  unfold popN; split <;> rename_i h <;> rw [← (Prod.ext_iff.mp h).2] <;> exact keeps_popV s
 theorem keeps_popRef (s : St) : Keeps s (popRef s).2 := by
   unfold popRef; split <;> rename_i h <;> rw [← (Prod.ext_iff.mp h).2] <;> exact keeps_popV s
 theorem keeps_pushI32 (s : St) (v : Nat) : Keeps s (pushI32 s v) := ⟨rfl, rfl⟩
@@ -227,21 +213,7 @@ theorem list_loop'_keeps : ∀ (l : List Nat) (f : (i : Nat) → i ∈ l → St 
     simp only [List.forIn'_cons]
     exact (hf x _ s).trans (list_loop'_keeps xs _ (fun i h t => hf i _ t) _)
 
-theorem list_loop'_keeps2 : ∀ (l : List Nat) (body : (i : Nat) → i ∈ l → St → Id (ForInStep St))
-    (_ : ∀ i h s, ∃ t, body i h s = .yield t ∧ Keeps s t) (s : St), Keeps s (Id.run (forIn' l s body))
-  | [], _, _, s => Keeps.refl s
-  | x :: xs, body, hb, s => by
-    simp only [List.forIn'_cons]
-    obtain ⟨t, ht, hk⟩ := hb x (List.mem_cons_self) s
-    rw [ht]
-    exact hk.trans (list_loop'_keeps2 xs _ (fun i h t => hb i _ t) _)
 
-theorem keeps_writeBytes (s : St) (a : Nat) (d : ByteArray) : Keeps s (writeBytes s a d) := by
-  unfold writeBytes
-  simp only [Std.Legacy.Range.forIn'_eq_forIn'_range']
-  apply list_loop'_keeps2
-  intro i h t
-  exact ⟨_, rfl, rfl, rfl⟩
 
 theorem memCopy_keeps (s : St) d src n s1 (h : memCopy s d src n = .cont s1) : Keeps s s1 := by
   unfold memCopy at h; split at h

@@ -3,6 +3,7 @@ import NearSpecV3.Logged.TrieHash
 import NearSpecV3.Successor.LayoutReach
 import NearSpecV3.Wasm.FuelHost
 import NearSpecV3.Wasm.FuelSufficiency
+import NearSpecV3.Wasm.FuelCertOK
 
 /-! # L0 row validation: masked and dead d2-core guards (Gate-B, `allFeatures`)
 
@@ -298,28 +299,11 @@ theorem getD_set!_ne (a : Array Bool) (i j : Nat) (v : Bool) (h : i ≠ j) :
   simp only [Array.getD_eq_getD_getElem?, Array.set!_eq_setIfInBounds,
     Array.getElem?_setIfInBounds_ne h]
 
-/-- A position the built certificate marks live is a code position. -/
-theorem buildLblLive_live (pf : PFunc) (j : Nat) (h : (buildLblLive pf).2.getD j false = true) :
-    j < pf.code.size := by
-  apply Classical.byContradiction
-  intro hj
-  have hj : pf.code.size ≤ j := by omega
-  have hfalse : (buildLblLive pf).2.getD j false = false := by
-    unfold buildLblLive
-    simp only [Id.run, Std.Legacy.Range.forIn_eq_forIn_range']
-    apply loop_bind (P := fun st : Array (List (Nat × Bool)) × Array Bool × List (Nat × Bool) × Bool × List Bool =>
-        st.2.1.getD j false = false) (Q := fun r : Array (List (Nat × Bool)) × Array Bool => r.2.getD j false = false)
-    · intro i hi t ht
-      have hilt : i < pf.code.size := by
-        rw [List.mem_range'_1] at hi; simp at hi; omega
-      have hne : i ≠ j := by omega
-      split <;> (try split) <;> (try split) <;>
-        exact ⟨_, rfl, by simp only; rw [getD_set!_ne _ _ _ _ hne]; exact ht⟩
-    · simp only [Array.getD_eq_getD_getElem?, Array.getElem?_replicate]
-      split <;> rfl
-    · intro t ht; exact ht
-  rw [hfalse] at h
-  exact Bool.false_ne_true h
+/-- A position the built certificate marks live is a code position (the liveness array has one
+entry per instruction, `FuelCertOK.buildLive_lt`). -/
+theorem buildCert_live (cfg : NearCfg) (pf : PFunc) (j : Nat) (h : (buildCert cfg pf).lv j = true) :
+    j < pf.code.size :=
+  FuelCertOK.buildLive_lt pf _ j h
 
 /-- The certificate family the checker uses (`prepCertOK_certified`). -/
 def cdOf (cfg : NearCfg) (p : Prepared) : Nat → FCert := fun k => buildCert cfg (p.funcs[k]?.getD default)
@@ -329,9 +313,7 @@ code position: `step`'s `bad frame` and `pc out of range` arms are not taken. Wi
 (checked by `prepare`, `Prepare.lean:492-495`) the `gas table shorter` arm is not taken either. -/
 theorem frame_ok (cfg : NearCfg) (p : Prepared) (f : Frame) (h : FrameInv (cdOf cfg p) f) :
     ∃ pf, p.funcs[f.fn]? = some pf ∧ f.pc < pf.code.size := by
-  have hl := h.1
-  simp only [cdOf, buildCert, FCert.lv] at hl
-  have hlt := buildLblLive_live _ _ hl
+  have hlt := buildCert_live cfg _ _ h.1
   cases hk : p.funcs[f.fn]? with
   | none =>
     rw [hk] at hlt

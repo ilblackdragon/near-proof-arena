@@ -1,4 +1,156 @@
-# Fuel sufficiency theorem (W02, workplan item 3, 2026-10-30)
+# Fuel sufficiency theorem (W02, workplan item 3, 2026-10-30, general proof 2026-10-31)
+
+## Status after round 3 (2026-10-31): general proof, guard retired
+
+`wasmFuel` is proved sufficient for **every** contract, without the `CodeCertified` hypothesis, and
+the `w.fuel_certificate` guard is gone from the checker. Axioms everywhere: `propext`,
+`Classical.choice`, `Quot.sound` (`axioms.txt`). No `sorry`. Every module below is a default build
+target (`lakefile.toml`); the full default `lake build` is green (437 jobs).
+
+**Final theorem** (`Successor/FuelFinal.lean`):
+
+```lean
+theorem functionCall_fuel_sufficient (fl : Flags) (cfg : NearCfg) (hr : 0 < cfg.regularOpCost)
+    (hl : cfg.regularOpCost ≤ cfg.linearOpBaseCost) (F : NearCfg → Nat → Nat)
+    (hF : ∀ g, wasmFuel cfg g ≤ F cfg g) :
+    functionCallRecordedF fl F cfg = functionCallRecorded fl cfg
+```
+
+`functionCall_fuel_sufficient_pv86` discharges `hr`/`hl` at PV86 (822,756 ≤ 26,328,192). The new
+hypothesis `hl` is the only assumption beyond round 2's.
+
+**General VM theorem** (`Wasm/FuelGeneral.lean`, namespace `Wasm.FuelGen`):
+
+```lean
+theorem wasmFuel_sufficient {cfg : NearCfg} (hr : 0 < cfg.regularOpCost)
+    (hl : cfg.regularOpCost ≤ cfg.linearOpBaseCost) (code : ByteArray) (method : String)
+    (ctx : CallCtx) (k : Nat) (full : Bool) (real : Option TTN.RealStore) :
+    runCallWithLimits cfg code method ctx (wasmFuel cfg ctx.prepaidGas + k) true full real =
+      runCallWithLimits cfg code method ctx (wasmFuel cfg ctx.prepaidGas) true full real
+```
+
+It rests on `prepare_fnOK` (every function `prepare` outputs satisfies `FnOK`: the nesting `NestOK`
+at `openAt`, finite-wasm's table charging every group before it runs `WC`, and at most
+`2·max_blocks_per_function + 1` free instructions), built from `FuelNest` (`validateBody_wellNested`,
+`prepare_funcs`, `nestOK_of_wellNested`, `freeCount_le_of_wellNested`) and `FuelGas*` (`wc_gasTable`,
+the O-W4 static half), and on main's `hostsOK` for the host arms.
+
+**Guard deadness** (`Wasm/FuelCertOK.lean`, `Successor/FuelFinal.lean`):
+
+```lean
+theorem certOK_of_static (cfg : NearCfg) (pf : PFunc) (hw : WellNested pf.code)
+    (hn : NestOK pf (openAt pf.code)) (hwc : WC cfg pf (openAt pf.code))
+    (hfree : freeCount pf.code ≤ 2 * cfg.maxBlocksPerFunction + 1) :
+    certOK cfg pf (buildCert cfg pf) = true                      -- FnOK → certOK
+theorem fuelCertified_true {cfg : NearCfg} (hr : 0 < cfg.regularOpCost)
+    (hl : cfg.regularOpCost ≤ cfg.linearOpBaseCost) (code : ByteArray) :
+    fuelCertified cfg code = true
+theorem vmCallGuarded_eq (cfg : NearCfg) (hr : 0 < cfg.regularOpCost)
+    (hl : cfg.regularOpCost ≤ cfg.linearOpBaseCost) (fuelOf : NearCfg → Nat → Nat) :
+    vmCallGuarded fuelOf cfg = vmCall fuelOf cfg
+```
+
+`vmCallGuarded` is the round-2 `vmCall` verbatim (certificate first, `w.fuel_certificate` on
+failure). `certOK_of_static` matches the certificate with the static facts: `free` is the suffix
+count of free instructions, `rest` is `req`, the label stack is `labelsOf (openAt ·)`, and liveness is
+sound (a live position is `Live`) and closed under the successors `moveOK` checks.
+
+### Provenance and integration
+
+The proof is branch `worktree-agent-a16ff044a4ee5abb2` (`a250d3b58`…`a5a4263fa`, with the
+`aa6deac1` FuelNest and `a413fb1c` `wc_gasTable` branches), brought onto main under these names:
+
+| branch module | on main | change |
+|---|---|---|
+| `FuelDefs`, `FuelNest`, `FuelGas`, `FuelGasFin/Inv/Opt/Scan/Sem` | same names | `FuelDefs` imports `FuelCert` and `FuelHostDefs` and drops its duplicate `fallsThrough` and its `HostOK` |
+| `FuelSuff`, `FuelCall` | same names, namespace `Wasm.FuelGen` | their names clashed with main's `FuelSufficiency` (`Inv`, `run_stable`, `runCallWithLimits_stable`, …); they take main's `HostsOK` |
+| `FuelSufficiency` | `Wasm/FuelGeneral.lean`, namespace `Wasm.FuelGen` | uses main's `hostsOK` |
+| `FuelHost`, `FuelHostBase` | **dropped** | duplicate of main's `FuelHost`/`hostsOK` |
+
+Reusing main's `hostsOK`: the branch's `HostOK` asked a host arm not to lower `gas.used`; main's
+`HostsOK` (`HostMono`) asks it not to raise `gas.remaining`. `FuelSuff.callHost_cont` uses only the
+latter (the omega step now reads `remaining`), so the weaker, already proved statement suffices.
+`HostMono`, `HostsOK` and the four `Keeps` facts `FuelHost` needs moved to a new
+`Wasm/FuelHostDefs.lean`, so `FuelHost` no longer imports the certificate proof. `FuelNest`'s
+`gen_forIn h => x hx` helper syntax replaced `gen_forIn h as x hx`, which had made `as` a token and
+broke `a :: as` patterns in `L0GuardSubsumption`.
+
+### Builder change (`Wasm/FuelCert.lean`)
+
+`certOK` (the check) is unchanged; the builder `buildCert` is not trusted and was rewritten:
+
+* liveness is now **reachability**: the least set containing the entry and closed under the
+  successors `moveOK` checks (`succsAt`), computed by forward passes until stable (at most
+  `code.size + 1` passes, `liveIter_fix`). Round 2 used finite-wasm's unreachability flag
+  (`GF.poly`). That flag marks live code that no execution reaches (for example the code after
+  `block … unreachable … end` when no branch targets the block), so `certOK` then also checked
+  finite-wasm's fees there. `WC` only speaks about `Live` positions, so that stronger check is not
+  derivable from `FnOK`; it is true on every measured module (round-2 census) but not proved.
+* labels are recorded at every position `0 … n` (round 2: `0 … n-1`); `free`/`rest` are the same
+  values as tail-recursive `fillBack` passes.
+
+So `fuelCertified_true` and `vmCallGuarded_eq` are about the current builder. The **removed** guard
+in the round-2 checker used the old builder; that it never fired is the measurement below (the
+round-2 census over every distinct corpus module plus the replay), not a theorem.
+
+### Relation change: guard removed
+
+`vmCall` (`Successor/StorageExecution.lean`) is now `.ok (runCallWithLimits …)`; the
+`w.fuel_certificate` out-of-domain reason no longer exists (`escG2` stays in the O4 escape set,
+unproduced). Tier proofs `TierO2.vmF_curve`, `TierO3Call.vmF_global`/`vmCall_lowQ`,
+`TierWholeWalk.recRefine_floats` and `TierO4NSSim.tail_rel` lost their certificate case. The L0
+control patch (`tools/d3/l0_ctl_patch.py`) no longer instruments `vmCall` (`wasm:fuelcert` retired).
+
+Before/after. Before = main `e575746aa` checker `nearspec-v3-check-successor` (the control, with the
+guard), sha256 `0b0f01ec382faf1efb70839954c130677d171198331f44c15d043f38e6fe8833`. After = this
+branch, sha256 `461a7cd9718a7af496586ef8f491f2af0baef0e74c4998f7bcd74f8c0f1cef55`. Input: a seeded
+(`random.Random(20261031)`, `r3-mksample.py`) 1-in-8 sample of every corpus population (all 224
+warm originals) plus the 338 evidence-fixture cases of round 2: 30,028 cases (`r3-sample-cases.txt.gz`),
+tier `allFeatures`.
+
+| population | cases | accept (before → after) | reject | out of domain | `w.fuel_certificate` before | moved |
+|---|---|---|---|---|---|---|
+| d1run | 6,631 | 1,828 → 1,828 | 4,803 → 4,803 | 0 → 0 | 0 | 0 |
+| d2corpus.v2 | 8,423 | 2,382 → 2,382 | 6,041 → 6,041 | 0 → 0 | 0 | 0 |
+| d2corpus.v2-warm-originals | 224 | 0 → 0 | 224 → 224 | 0 → 0 | 0 | 0 |
+| d3c10 | 2,069 | 790 → 790 | 1,279 → 1,279 | 0 → 0 | 0 | 0 |
+| d3c7 | 4,156 | 1,597 → 1,597 | 2,558 → 2,558 | 1 → 1 | 0 | 0 |
+| d3c8 | 6,187 | 2,327 → 2,327 | 3,853 → 3,853 | 7 → 7 | 0 | 0 |
+| d3c9 | 2,000 | 761 → 761 | 1,238 → 1,238 | 1 → 1 | 0 | 0 |
+| evidence fixtures | 338 | 164 → 164 | 174 → 174 | 0 → 0 | 0 | 0 |
+| **total** | **30,028** | | | | **0** | **0** |
+
+Verdicts and reasons are identical row for row (`r3-before-after.txt`, `r3-rows-before.jsonl.gz`,
+`r3-rows-after.jsonl.gz`, `compare-r3.py`). With the round-2 census (every distinct module of all
+236,871 corpus witnesses passes the old certificate, below), no corpus case can move.
+
+Coverage: `L0-AF-fuel-certificate` is `impossible-at-boundary` with `fuelCertified_true` and
+`vmCallGuarded_eq` as evidence (`tools/d3/lean_chunk_coverage.py`; `--check` passes). `L0-W-011`
+cites `buildCert_live` (formerly `buildLblLive_live`).
+
+Not re-run: the `nearspec-v3-fuel-cert` census tool (`oracle/wasm-d3/lean/FuelCert.lean`) uses
+`buildCert`, so a rebuild of it now checks the reachability certificate; the census tables below are
+the round-2 measurement with the old builder.
+
+## Reproduce (round 3)
+
+```
+cd spec/lean/v3 && lake build NearSpecV3.Successor.FuelFinal   # FuelGeneral, FuelCertOK; prints the axioms
+python3 docs/evidence/lean-chunk-completion/fuel-sufficiency/r3-mksample.py cases.txt
+python3 docs/evidence/lean-chunk-completion/fuel-sufficiency/runck.py BEFORE cases.txt before.jsonl allFeatures 8
+python3 docs/evidence/lean-chunk-completion/fuel-sufficiency/runck.py AFTER cases.txt after.jsonl allFeatures 8
+python3 docs/evidence/lean-chunk-completion/fuel-sufficiency/compare-r3.py before.jsonl after.jsonl
+```
+
+(`r3-mksample.py` reads the fixture case list from round 2's `guard-sample-cases.txt`; those
+directories are the extracted evidence tarballs.)
+
+---
+
+Rounds 1 and 2 follow unchanged as the record. Where they say `vmCall` runs `fuelCertified`, or
+that `CodeCertified` is open, round 3 supersedes them.
+
+## Round 1–2 preamble (2026-10-30)
 
 Lean: `spec/lean/v3/NearSpecV3/Wasm/FuelSufficiency.lean`. It is a default build target
 (`lakefile.toml` `defaultTargets`), so CI compiles it. There is no `sorry`. The axiom audit
@@ -10,7 +162,7 @@ successor budget `wasmFuel`, which is what `--tier allFeatures` uses (`Successor
 `fuel := wasmFuel cfg gas` with `prepaidGas := gas`). The signed `D3.functionCall` keeps
 `legacyFuel` and is **not** covered; its worst-case-loop exclusion is workplan item 6b.
 
-## Status after round 2 (2026-10-30): item 3 closed
+## Status after round 2 (2026-10-30): item 3 closed (superseded by round 3)
 
 **Final theorem** (`NearSpecV3.Successor.StorageExecution.functionCall_fuel_sufficient`,
 `spec/lean/v3/NearSpecV3/Successor/FuelFinal.lean`, a default build target):

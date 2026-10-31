@@ -297,24 +297,19 @@ theorem vmF_global (w : NearCfg) (hg : w.globalActions = false) :
   intro code m ctx real
   simp only []
   unfold vmCall
-  have h1 : fuelCertified { w with globalActions := true } code = fuelCertified w code := rfl
   have h2 : wasmFuel { w with globalActions := true } ctx.prepaidGas = wasmFuel w ctx.prepaidGas := rfl
-  rw [h1, h2]
-  split
-  · left; rfl
-  · rcases runCallWithLimits_global w hg code m ctx (wasmFuel w ctx.prepaidGas) true false real with h | ⟨x, hx, h⟩
-    · left; rw [h]; rfl
-    · right; exact ⟨x, hx, by rw [h]⟩
+  rw [h2]
+  rcases runCallWithLimits_global w hg code m ctx (wasmFuel w ctx.prepaidGas) true false real with h | ⟨x, hx, h⟩
+  · left; rw [h]; rfl
+  · right; exact ⟨x, hx, by rw [h]⟩
 
 /-- The final state of a recorded call's run with the flag off satisfies `LowQ`. -/
 theorem vmCall_lowQ (w : NearCfg) (hg : w.globalActions = false) (code : ByteArray) (m : String)
     (ctx : CallCtx) (real : TTN.RealStore) (s : St) (e : Option String)
     (h : vmCall wasmFuel w code m ctx real = .ok (.done s e)) : LowQ s := by
   unfold vmCall at h
-  split at h
-  · cases h
-  · injection h with h
-    exact runCallWithLimits_lowQ w hg code m ctx _ true false real s e h
+  injection h with h
+  exact runCallWithLimits_lowQ w hg code m ctx _ true false real s e h
 
 theorem contractOOD_ga (w : NearCfg) (b : Bool) :
     D3.contractOOD { w with globalActions := b } = D3.contractOOD w := rfl
