@@ -98,7 +98,8 @@ class AssertExclusion(unittest.TestCase):
         self.assertTrue(d["licensed"])
         self.assertEqual(d["predicate"], "mldsa65_public_key_in_tx_or_receipt")
         self.assertTrue(I.assert_exclusion(str(GENESIS), I.R_NOT_GENESIS, "signed")["licensed"])
-        self.assertTrue(I.assert_exclusion(str(RACE), I.R_PREP_RACE, "successor")["licensed"])
+        # since G3 the successor tiers are licensed for no reason: a race needs the oracle's label
+        self.assertFalse(I.assert_exclusion(str(RACE), I.R_PREP_RACE, "successor")["licensed"])
 
     def test_wrong_reason_for_the_case_is_not_licensed(self):
         # an ML-DSA case excluded as "non-ED25519 transaction key", a non-genesis case as not_genesis
