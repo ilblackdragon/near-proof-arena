@@ -289,6 +289,11 @@ system receipt (incoming, or at rest in the trie) carries a gas price, for the s
 receipts the chunk itself creates are system receipts only as refunds, with `gasPrice = 0`. Found
 by the deepseek-fv lead, with a kernel-evaluated WASM run.
 
+Receipts at rest are also assumed valid (`validReceipt false`, the runtime's own predicate): a
+stored postponed or yield receipt is executed without re-validation, and an `addKey` action with a
+nonzero gas balance — which `validReceipt` forbids — would create that balance from nothing. Every
+real stored receipt was validated when it was received. Found by the deepseek-fv provers.
+
 The shard hypotheses say the chunk's inputs belong to the shard. `checkD2CoreObs` establishes the
 first (it filters the incoming receipts by `L.shardOf r.recv == H.shardId`,
 `ChunkValidationD2.lean:213`); the second is the chunk producer's invariant and is not checked by
@@ -302,7 +307,7 @@ def ChunkConservation : Prop :=
     env.ctx.gasLimit < 2 ^ 64 →
     (∀ s ∈ env.ctx.layout.shardIds, s < 2 ^ 16) →
     (∀ v, t.find (nibbles (kAccount AccountId.system)) ≠ some (some v)) →
-    (∀ r ∈ incoming ++ storedRcpts t, SysGasFree r) →
+    (∀ r ∈ incoming ++ storedRcpts t, SysGasFree r ∧ validReceipt false r = true) →
     (∀ r ∈ incoming, env.ctx.layout.shardOf r.recv = env.ctx.own) →
     (∀ tf ∈ txs, env.ctx.layout.shardOf tf.1.signer = env.ctx.own) →
     (∀ r ∈ incoming, CanonRcpt r) →
