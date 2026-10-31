@@ -2,4 +2,7 @@ ZK128 n=16 sec=100 CapacityBound rate=2^-2 pow=16 ell_zk=16 mask_rate=2^-5 diges
 ZK128 n=18 sec=100 CapacityBound rate=2^-2 pow=16 ell_zk=16 mask_rate=2^-5 digest=11F plain_bytes=52086 zk_bytes=156563 delta_bytes=104477 plain_ms=258.3 zk_ms=318.1
 ZK128 n=18 sec=128 JohnsonBound rate=2^-1 pow=0 ell_zk=3 mask_rate=2^-3 digest=11F plain_bytes=187534 zk_bytes=480858 delta_bytes=293324 plain_ms=165.9 zk_ms=221.7
 ZK128 n=18 sec=128 JohnsonBound rate=2^-6 pow=30 ell_zk=16 mask_rate=2^-5 digest=11F plain_bytes=71512 zk_bytes=293598 delta_bytes=222086 plain_ms=1675818.1 zk_ms=968437.6
-# earlier single run (scripts in zk128_sweep.sh form): ZK128 n=20 sec=128 JohnsonBound rate=2^-6 pow=20 ell_zk=16 mask_rate=2^-5 digest=11F plain_bytes=99847 zk_bytes=412254 delta_bytes=312407 plain_ms=20138.7 zk_ms=24537.2
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+ZK128 n=18 sec=128 JohnsonBound rate=2^-6 pow=30 ell_zk=3 mask_rate=2^-3 digest=11F plain_bytes=71512 zk_bytes=323626 delta_bytes=252114 plain_ms=1397162.0 zk_ms=139121.2
+# earlier single run (same binary): ZK128 n=20 sec=128 JohnsonBound rate=2^-6 pow=20 ell_zk=16 mask_rate=2^-5 digest=11F plain_bytes=99847 zk_bytes=412254 delta_bytes=312407 plain_ms=20138.7 zk_ms=24537.2
+# n=16 rate 2^-6 rows: one panicked (backtrace note above), one did not finish within the 3600 s timeout; not used.
