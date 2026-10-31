@@ -1,5 +1,5 @@
 {
- "_doc": "Second-pass (2026-10-30) row entries merged into rows.json by `tools/d3/l0_exercise.py statuses`. `status` is impossible-at-boundary, validated-by-subsumption or implemented (with the reason in `remaining`); entries with only `lean_path_symbol` re-point a row at its allFeatures site. Lemmas: spec/lean/v3/NearSpecV3/L0GuardSubsumption.lean. Line numbers are at commit 4f07a7fdf+.",
+ "_doc": "Second-pass (2026-10-30) row entries merged into rows.json by `tools/d3/l0_exercise.py statuses`. `status` is impossible-at-boundary, validated-by-subsumption or implemented (with the reason in `remaining`); entries with only `lean_path_symbol` re-point a row at its allFeatures site. Lemmas: spec/lean/v3/NearSpecV3/L0GuardSubsumption.lean. Line numbers are at commit 4f07a7fdf+. Rows settled by the third pass are in third-pass-statuses.json.",
  "L0-D2-001": {
   "status": "impossible-at-boundary",
   "lean_path_symbol": "not evaluated on allFeatures: Successor/Config.lean checkSuccessor calls checkReshardCore / checkD2CoreGWith with allowCodes = true (guard sites ReshardCore.lean:225, RuntimeCore.lean:412); signed/D2: ChunkValidationD2.lean:119",
@@ -90,11 +90,6 @@
    "NearSpecV3.L0Guards.epoch_in_table_of_referenced"
   ]
  },
- "L0-D2-012": {
-  "status": "implemented",
-  "lean_path_symbol": "allFeatures: only on segments containing the genesis block (checkD2CoreGWith, Successor/RuntimeCore.lean:436); other segments go to checkReshardCore, which has no such guard; signed: ChunkValidationD2.lean:140",
-  "remaining": "on allFeatures the guard is live only for segments that contain the genesis block (Successor/ReshardCore.lean:45, 430). None of the 266 genesis-main corpus chunks triggers it. Needed: a pinned-source argument that a segment reaching genesis cannot span a shard-layout change (then impossible-at-boundary), or a fixture"
- },
  "L0-D2-013": {
   "status": "impossible-at-boundary",
   "lean_path_symbol": "Successor/ReshardCore.lean:250-255 (each epoch layout; `≤ 64` lifted by layoutUnbounded); genesis segments: Successor/RuntimeCore.lean:438-441; signed: ChunkValidationD2.lean:142",
@@ -117,26 +112,6 @@
   "why": "the parameters feed only the encoded-merkle-root recomputation at the end of the walk (encodedMerkleRoot c.rsDataParts c.rsTotalParts), which rejects parameters it cannot encode with the same message and otherwise yields a root that L0-D2-056 compares with the header",
   "argument": "rsGenesisParamsOk is the D2/D0 restatement of ReedSolomonWrapper::new's parameter rule; its only consumer is encodedMerkleRoot (ReshardCore.lean:399-404), checked by L0-D2-056 (validated)"
  },
- "L0-D2-019": {
-  "status": "implemented",
-  "lean_path_symbol": "allFeatures: only on segments containing the genesis block (checkD2CoreGWith, Successor/RuntimeCore.lean:455); other segments recompute the split gate (Successor/TrieSplit, checkReshardCoreObs); signed: ChunkValidationD2.lean:156",
-  "remaining": "live on allFeatures only for genesis-containing segments (as L0-D2-012); none of the 266 genesis-main corpus chunks carries a split gate. Needed: a pinned-source argument that no block of a genesis-reaching segment opens the dynamic-resharding gate, or a fixture"
- },
- "L0-D2-020": {
-  "status": "implemented",
-  "lean_path_symbol": "Successor/ReshardCore.lean:269; genesis segments: Successor/RuntimeCore.lean:456; signed: ChunkValidationD2.lean:158",
-  "remaining": "an oversized new transaction is not generatable as an honest chunk (the producer drops it; gate-b-caps README); the exact-size boundary is kernel-tested (TestGateBCaps.lean). A whole-chunk fixture needs a witness mutant (new_transactions with an oversized transaction, tx_root rehashed in claim and witness, like the corpus w.new_tx.*_rehashed classes) judged by cold nearcore"
- },
- "L0-D2-023": {
-  "status": "implemented",
-  "lean_path_symbol": "Successor/ReshardCore.lean:139 (walkSegment, per-block layout); genesis segments: Successor/RuntimeCore.lean:461; signed: ChunkValidationD2.lean:163",
-  "remaining": "no claim-only mutant can make it the first failure: a slot change fails chunk_headers_root (decodeBlk), and a consistent header change moves the block hash, so L0-D2-021/022 fail first. A deciding fixture needs a fabricated block chain whose hash the claim and witness chunk headers both name (prev_block_hash rewritten in both), judged by cold nearcore"
- },
- "L0-D2-025": {
-  "status": "implemented",
-  "lean_path_symbol": "Successor/ReshardCore.lean:278-279; genesis segments: Successor/RuntimeCore.lean:468-469; signed: ChunkValidationD2.lean:169-171",
-  "remaining": "as L0-D2-023: height_included is bound by chunk_headers_root, so a deciding fixture needs a fabricated block chain named by both chunk headers, judged by cold nearcore"
- },
  "L0-D2-033": {
   "status": "impossible-at-boundary",
   "lean_path_symbol": "Successor/ReshardCore.lean:318; signed: ChunkValidationD2.lean:210",
@@ -157,11 +132,6 @@
   "lean": [
    "NearSpecV3.L0Guards.base_state_hashes"
   ]
- },
- "L0-D3-003": {
-  "status": "implemented",
-  "lean_path_symbol": "Successor.StorageExecution.applyAction (catch: an `unmodeled` error becomes D3.oodE), StorageExecution.lean:309-310; signed: D3/FunctionCall.lean:71",
-  "remaining": "exclusion wrapper; on allFeatures it fires on 0 of the 235,716 corpus cases (the only exclusions are e.code_prep_race). Its triggers are rows L0-D3-013, L0-D3-014, L0-W-011, L0-W-013, L0-W-014 (L0-D3-012 is dead), so it is settled when they are"
  },
  "L0-D3-004": {
   "status": "impossible-at-boundary",
@@ -205,16 +175,6 @@
   "paths": [
    "tools/d3/check_action_log_tags.py"
   ]
- },
- "L0-D3-013": {
-  "status": "implemented",
-  "lean_path_symbol": "allFeatures: Successor finishActsGlobal (Successor/PromiseActions.lean) via StorageExecution.functionCallRecordedF line 264; signed: D3/FunctionCall.lean:218-219",
-  "remaining": "exclusion path (action re-encoding / shape); 0 of 235,716 corpus cases reach it on allFeatures. Needed: a codec round-trip proof for the manager's actions (decode ∘ encode), which would make it dead"
- },
- "L0-D3-014": {
-  "status": "implemented",
-  "lean_path_symbol": "allFeatures: Successor.StorageExecution.functionCallRecordedF line 275 (promise_return index not in the manager's map); signed: D3/FunctionCall.lean:356",
-  "remaining": "exclusion path; 0 of 235,716 corpus cases reach it. Needed: a proof that every promise index the VM returns (promise_return validates it) has a manager entry"
  },
  "L0-D3-015": {
   "status": "impossible-at-boundary",
@@ -271,36 +231,8 @@
    }
   ]
  },
- "L0-W-005": {
-  "lean_path_symbol": "allFeatures: Wasm.prepare prepFail sites via Wasm.runCallFast (`.prepErr v`, compiled `@[csimp]` form of runCall) and StorageExecution.vmCall; Prepare.lean:178-390",
-  "remaining": "one nearcore-accepted chunk exercises it (runtime-errors re601-00-h10045-s2, PrepareError(Memory)) and its control detects (`wasm:prep`), but no nearcore-rejected chunk calls a contract that fails preparation. Needed: the mutant set of that chain (and further PrepareError variants) from oracle/v3-successor, then trace/map/evidence"
- },
- "L0-W-006": {
-  "status": "implemented",
-  "lean_path_symbol": "allFeatures: Wasm.prepare compileErr via Wasm.runCallFast (`.compileErr k`); Prepare.lean:455-472",
-  "remaining": "no case of the second-pass populations (fixture families, a 4,000-case corpus subsample, runtime-errors) calls a contract whose compilation fails (`W compile` never fires). The trace and ablation hooks exist (`wasm:compile`). Needed: an oracle/v3-successor scenario contract over the H1 bound (params + locals 50,000) called in a whole chunk, judged cold, with its mutant set"
- },
  "L0-W-009": {
   "lean_path_symbol": "allFeatures: Wasm.runCallFast contract-loading charge (Wasm/Arcs.lean, payPer contractLoadingBytes + payBase contractLoadingBase; runCall_eq_fast); Exec.lean:622-626"
- },
- "L0-W-011": {
-  "status": "implemented",
-  "lean_path_symbol": "allFeatures: Wasm.exec / step / callEntryFast `unmodeled` invariants (Exec.lean, Arcs.lean), surfaced as e.wasm-α by applyAction",
-  "remaining": "internal invariants (bad frame, pc out of range, gas table shorter than the code, float load/store of a non-memory opcode); 0 of 235,716 corpus cases reach one. Needed: a preservation proof from Validate.lean's typing (then dead)"
- },
- "L0-W-012": {
-  "lean_path_symbol": "allFeatures: Wasm.exec `.float` arm → execFloat → evalFloatOp (Exec.lean:459; reached through execOrig/callEntryFast); Validate.lean:270,293; FiniteWasm.lean:132",
-  "remaining": "no nearcore-rejected chunk executes a float instruction once the tx_valid flips are excluded (a t.tx_valid flip is not a valid negative, see the rows-left table); 39 nearcore-accepted chunks exercise it and the family control detects (`instr:float`). Needed: mutant sets of the float chains (d3c9/d3c10 float contracts, oracle/wasm-d3 chunk_float) from the corpus generator, then trace/map/evidence"
- },
- "L0-W-013": {
-  "status": "implemented",
-  "lean_path_symbol": "allFeatures: Wasm/Host.lean popArgs and the real-store accessors (Host.lean:406,423,437) under callHost",
-  "remaining": "exclusion path: arity is fixed by link (import signatures are checked against the host table) and allFeatures always passes a real store (vmCall: some real); 0 of 235,716 corpus cases reach it. Needed: a proof of both facts (then dead)"
- },
- "L0-W-014": {
-  "status": "implemented",
-  "lean_path_symbol": "allFeatures: Wasm/TrieStore.lean:97 (lookup fuel) and ChunkStorage.lean:76 (real store lost)",
-  "remaining": "exclusion path; 0 of 235,716 corpus cases reach it; the lookup fuel exceeds the deepest key path (gate-b-caps: revealFuel bound). Needed: the same bound stated for TrieStore's fuel (then dead)"
  },
  "L0-W-016": {
   "status": "impossible-at-boundary",
@@ -343,21 +275,6 @@
    }
   ]
  },
- "L0-guard-noResharding": {
-  "status": "implemented",
-  "lean_path_symbol": "ReshardingD3.lean:80 (description); on allFeatures its two guards remain only in checkD2CoreGWith (genesis-containing segments), Successor/RuntimeCore.lean:436,455",
-  "remaining": "as rows L0-D2-012 / L0-D2-019: live on allFeatures only for genesis-containing segments"
- },
- "L0-same-layout": {
-  "status": "implemented",
-  "lean_path_symbol": "allFeatures: checkD2CoreGWith only (genesis-containing segments), Successor/RuntimeCore.lean:436",
-  "remaining": "the remaining-work text 'legacy-core guard only' is inaccurate for allFeatures: genesis-containing segments keep it (Successor/ReshardCore.lean:45). See L0-D2-012"
- },
- "L0-split-gate": {
-  "status": "implemented",
-  "lean_path_symbol": "allFeatures: checkD2CoreGWith only (genesis-containing segments), Successor/RuntimeCore.lean:455",
-  "remaining": "as L0-same-layout: genesis-containing segments keep it on allFeatures. See L0-D2-019"
- },
  "L0-AF-fuel-certificate": {
   "lean_path_symbol": "NearSpecV3.Successor.StorageExecution.vmCall (fuelCertified before runCallWithLimits; Wasm/FuelCert.lean)",
   "remaining": "the certificate is evaluated and passes on every exercised call; the exclusion itself never fires. A general proof of CodeCertified would make it provably dead (workplan item 3 residual)"
@@ -385,9 +302,5 @@
  },
  "L0-instr-integer": {
   "lean_path_symbol": "allFeatures: Wasm.exec `.num op` → execNum (Exec.lean:455, reached through execOrig/callEntryFast); decoder: Decode.isIntNumOp"
- },
- "L0-instr-float": {
-  "lean_path_symbol": "allFeatures: Wasm.exec `.float op` → execFloat → evalFloatOp, float load/store/const arms (Exec.lean:459-482)",
-  "remaining": "no nearcore-rejected chunk executes a float instruction once the tx_valid flips are excluded (a t.tx_valid flip is not a valid negative, see the rows-left table); 39 nearcore-accepted chunks exercise it and the family control detects (`instr:float`). Needed: mutant sets of the float chains (d3c9/d3c10 float contracts, oracle/wasm-d3 chunk_float) from the corpus generator, then trace/map/evidence"
  }
 }
