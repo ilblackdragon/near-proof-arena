@@ -1,0 +1,16 @@
+{
+ "name": "fixtures-signed",
+ "cases": 1364,
+ "missing_before": 0,
+ "verdict_counts": {
+  "after: agree (lean accept, nearcore accept)": 434,
+  "after: agree (lean reject, nearcore reject)": 421,
+  "after: out_of_domain": 509,
+  "before: agree (lean accept, nearcore accept)": 434,
+  "before: agree (lean reject, nearcore reject)": 421,
+  "before: out_of_domain": 509
+ },
+ "moved": {},
+ "moved_examples": {},
+ "lean_accept_nearcore_reject_after": 0
+}

@@ -1,0 +1,19 @@
+{
+  "base": "00-h10003-s0",
+  "case": "00-h10003-s0-l0.c.prev_block_extra_slot",
+  "codes": [],
+  "d3_violations": [],
+  "expected_rel": false,
+  "expected_rel_d2": false,
+  "expected_rel_d3": false,
+  "features": {
+    "base_fc_gas_burnt_for_function_call": 0,
+    "fc_gas_burnt_for_function_call": 0
+  },
+  "in_d2": true,
+  "in_d3": true,
+  "kind": "mutant",
+  "mutation": "l0.c.prev_block_extra_slot",
+  "nearcore": "actor: prev block: DBNotFoundErr(\"BLOCK: GKN3FSjyxN6jQBrmA5s6Q8dwj2QEdupEAHChhKhBYezj\")",
+  "verdict_source": "nearcore(cold)"
+}

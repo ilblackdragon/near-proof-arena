@@ -910,7 +910,8 @@ pub fn write_d3_case(x: D3Ctx, stats: &mut Stats, d3s: &mut D3Stats) {
         let scenario = crate::d3gen::scenario();
         // The keys scenario does the same for its key shapes (secp256k1 / ML-DSA keys, gas keys).
         let global_scenario = matches!(scenario, Some(crate::d3gen::Scenario::GlobalCache | crate::d3gen::Scenario::Keys | crate::d3gen::Scenario::Mldsa | crate::d3gen::Scenario::PipelineRace));
-        // Opt-in curve traffic likewise mutates its `e.ood_host` chunks (independently judged).
+        // Opt-in curve traffic likewise mutates its `e.ood_host` chunks (independently judged), and
+        // so does the opt-in L0 row validation (NEAR_L0_ROW_MUTANTS: e.g. gas-key host fixtures).
         let curve_scenario = scenario == Some(crate::d3gen::Scenario::CurveHosts);
         // The yield / storage-limits scenarios mutate every sampled chunk: their shapes (yield
         // hosts, large proofs) are what the fixtures are for.
@@ -921,7 +922,7 @@ pub fn write_d3_case(x: D3Ctx, stats: &mut Stats, d3s: &mut D3Stats) {
         if !any_scenario && viol3.iter().any(|v| {
             !matches!(*v, "e.float" | "e.g_alpha")
                 && !(global_scenario && *v == "w.shape")
-                && !(curve_scenario && *v == "e.ood_host")
+                && !((curve_scenario || crate::l0mut::enabled()) && *v == "e.ood_host")
         }) {
             return;
         }
@@ -990,6 +991,7 @@ pub fn write_d3_case(x: D3Ctx, stats: &mut Stats, d3s: &mut D3Stats) {
         if crate::l0mut::enabled() {
             ms.extend(crate::l0mut::mutants(client, &built.claim, sw).into_iter().map(|m| (m, None, None, codes.to_vec())));
         }
+        ms.extend(crate::l0mut::override_mutants(&name, &built.claim, sw).into_iter().map(|m| (m, None, None, codes.to_vec())));
         if b2_genesis {
             for (m, derived) in crate::xfam::genesis_mutants(&built.claim, sw) {
                 ms.push((m, None, derived, codes.to_vec()));

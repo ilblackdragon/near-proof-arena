@@ -327,8 +327,10 @@ def cmd_evidence(a):
     # per-target additions (`--extra FILE`: {target: {"paths": [...], "disagreement_reason": ...}})
     for p in a.extra or []:
         for t, add in json.loads(p.read_text()).items():
-            rid = row_of(t)
-            if rid in rows:
+            # the target's row and every alias row of that target (e.g. L0-W-012 -> instr:float)
+            for rid in [row_of(t)] + [r for r, at in ALIASES.items() if at == t]:
+                if rid not in rows:
+                    continue
                 for k, v in add.items():
                     if isinstance(v, dict) and isinstance(rows[rid].get(k), dict):
                         rows[rid][k].update(v)

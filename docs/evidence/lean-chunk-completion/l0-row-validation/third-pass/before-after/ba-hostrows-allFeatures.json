@@ -1,0 +1,14 @@
+{
+ "name": "hostrows-allFeatures",
+ "cases": 11437,
+ "missing_before": 0,
+ "verdict_counts": {
+  "after: agree (lean accept, nearcore accept)": 3116,
+  "after: agree (lean reject, nearcore reject)": 8321,
+  "before: agree (lean accept, nearcore accept)": 3116,
+  "before: agree (lean reject, nearcore reject)": 8321
+ },
+ "moved": {},
+ "moved_examples": {},
+ "lean_accept_nearcore_reject_after": 0
+}

@@ -1,0 +1,16 @@
+{
+ "name": "hostrows-signed",
+ "cases": 11437,
+ "missing_before": 0,
+ "verdict_counts": {
+  "after: agree (lean accept, nearcore accept)": 1615,
+  "after: agree (lean reject, nearcore reject)": 4766,
+  "after: out_of_domain": 5056,
+  "before: agree (lean accept, nearcore accept)": 1615,
+  "before: agree (lean reject, nearcore reject)": 4766,
+  "before: out_of_domain": 5056
+ },
+ "moved": {},
+ "moved_examples": {},
+ "lean_accept_nearcore_reject_after": 0
+}

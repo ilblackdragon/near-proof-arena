@@ -197,3 +197,38 @@ pub fn mutants(client: &Client, claim: &Claim, w: &ChunkStateWitness) -> Vec<Mut
     }
     out
 }
+
+/// Opt-in (`NEAR_L0_HDR_OVERRIDES=FILE`, JSON `{case: {stateRoot, outcomeRoot, gasUsed,
+/// balanceBurnt, outgoingReceiptsRoot}}`, the Lean checker's `--blind` outputs for that honest
+/// case): the mutant `l0.hdr.lean_outputs`, whose endorsed chunk header (claim and witness) and
+/// main-transition post-state root carry those values instead of nearcore's. It is judged by the
+/// cold validator like every other mutant. Used to show at chunk level that a divergence of the
+/// main transition lets Lean accept a chunk that nearcore rejects.
+pub fn override_mutants(name: &str, claim: &Claim, w: &ChunkStateWitness) -> Vec<Mutant> {
+    use std::sync::OnceLock;
+    static OV: OnceLock<Option<serde_json::Value>> = OnceLock::new();
+    let ov = OV.get_or_init(|| {
+        std::env::var_os("NEAR_L0_HDR_OVERRIDES").map(|p| {
+            serde_json::from_slice(&std::fs::read(p).expect("read NEAR_L0_HDR_OVERRIDES")).expect("overrides json")
+        })
+    });
+    let Some(e) = ov.as_ref().and_then(|o| o.get(name)) else { return vec![] };
+    let h32 = |k: &str| -> Option<[u8; 32]> { hex::decode(e.get(k)?.as_str()?).ok()?.try_into().ok() };
+    let n = |k: &str| -> Option<u128> { e.get(k)?.as_str()?.parse().ok() };
+    let (Some(sr), Some(or), Some(gu), Some(bb), Some(rr)) =
+        (h32("stateRoot"), h32("outcomeRoot"), n("gasUsed"), n("balanceBurnt"), h32("outgoingReceiptsRoot"))
+    else {
+        return vec![];
+    };
+    let mut inner = claim.chunk_inner.clone();
+    inner[33..65].copy_from_slice(&sr);
+    inner[65..97].copy_from_slice(&or);
+    inner[153..161].copy_from_slice(&(gu as u64).to_le_bytes());
+    inner[169..185].copy_from_slice(&bb.to_le_bytes());
+    inner[185..217].copy_from_slice(&rr);
+    let Some(mut w2) = with_inner(w, &inner) else { return vec![] };
+    v2(&mut w2).main_state_transition.post_state_root = CryptoHash(sr);
+    let mut c = claim.clone();
+    c.chunk_inner = inner;
+    vec![Mutant { name: "l0.hdr.lean_outputs".into(), claim: c, witness: borsh::to_vec(&w2).unwrap(), judge: Judge::Nearcore }]
+}

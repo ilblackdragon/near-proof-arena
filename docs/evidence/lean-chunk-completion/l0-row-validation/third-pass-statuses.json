@@ -39,7 +39,8 @@
   ],
   "paths": [
    "docs/evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md"
-  ]
+  ],
+  "lean_path_symbol": "allFeatures: checkD2CoreGWith only (genesis-containing segments), Successor/RuntimeCore.lean:436"
  },
  "L0-D2-019": {
   "status": "impossible-at-boundary",
@@ -80,7 +81,8 @@
   ],
   "paths": [
    "docs/evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md"
-  ]
+  ],
+  "lean_path_symbol": "allFeatures: checkD2CoreGWith only (genesis-containing segments), Successor/RuntimeCore.lean:455"
  },
  "L0-guard-noResharding": {
   "status": "impossible-at-boundary",
@@ -105,6 +107,150 @@
   ],
   "paths": [
    "docs/evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md"
+  ],
+  "lean_path_symbol": "ReshardingD3.lean:80 (description); on allFeatures its two guards remain only in checkD2CoreGWith (genesis-containing segments), Successor/RuntimeCore.lean:436,455"
+ },
+ "L0-D3-003": {
+  "status": "impossible-at-boundary",
+  "paths": [
+   "docs/evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md"
+  ],
+  "lean_path_symbol": "Successor.StorageExecution.applyAction (catch: an `unmodeled` error becomes D3.oodE), StorageExecution.lean:310; signed: D3/FunctionCall.lean:71",
+  "reason": "no `unmodeled` error thrown inside functionCallRecordedF reaches the catch: the non-FunctionCall throw (line 157) is dead by applyAction's `.fcall` pattern (line 302); Wasm-side `unmodeled` results are lines that lineOutcome maps to oodE before the catch; the D3.manager / distribute throws (action-log index, YR/CR shapes, printed numbers, receipt and dependency indices) are dead by the host log formats (every CR entry is pushed with a receiver, numbers are printed Nats, hex is hexStr, every receipt index is a CR/YC log index the manager has already mapped); the yield data-id throw is L0-D3-012 (dead); the yield-receipt-without-data-id throw (line 258) is dead because only yieldCreate sets `yield := true`, always with `inputs := [did]`; the finishActsGlobal re-encoding throw is L0-D3-013 (dead). Source argument (third-pass/README.md section 4), not a Lean proof",
+  "surface": [
+   {
+    "file": "Successor/StorageExecution.lean",
+    "text": "catch e => throw (if e.startsWith \"unmodeled\" then oodE e else e)"
+   }
   ]
+ },
+ "L0-D3-013": {
+  "status": "impossible-at-boundary",
+  "paths": [
+   "docs/evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md"
+  ],
+  "lean_path_symbol": "allFeatures: Successor finishActsGlobal (Successor/PromiseActions.lean:39-40) via StorageExecution.functionCallRecordedF line 264; signed: D3/FunctionCall.lean:218-219",
+  "reason": "the `unmodeled: global action re-encoding` exclusion is unreachable: every action encoding the manager or a raw host arm emits (CA, DC, FC, TR, ST, AF, AC, DK, DA; raw tags 5, 9, 10, 11, 12) is read back exactly by pActGlobal (gas < 2^64 by distribute, deposits u128 by getU128H, public keys validated by pkValid with pPkGlobal's sizes, account ids by validAccountId, the same rule set as AccountId.valid). Its other branch rethrows a decode error, which is not an exclusion; the one reachable instance found, a non-UTF-8 method name from promise_batch_action_add_gas_key_with_function_call, was a Lean bug (Lean accepted a nearcore-rejected chunk) and is fixed: the arm now fails with InvalidMethodName as nearcore does (receipt_manager.rs:478-508), checked on the gas-key fixture family (third-pass/README.md section 1). Source argument, not a Lean proof",
+  "surface": [
+   {
+    "file": "Wasm/Host.lean",
+    "text": "names.any (fun n => (String.fromUTF8? n).isNone) then\n      hErr \"InvalidMethodName\""
+   }
+  ]
+ },
+ "L0-D3-014": {
+  "status": "impossible-at-boundary",
+  "paths": [
+   "docs/evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md"
+  ],
+  "lean_path_symbol": "allFeatures: Successor.StorageExecution.functionCallRecordedF line 275 (promise_return index not in the manager's map); signed: D3/FunctionCall.lean:356",
+  "reason": "promise_return (Wasm/Host.lean promise_return arm) sets `ret := .inr r` only for a `.receipt r` promise; every `.receipt r` is pushed right after pushAction returns r for a `CR(…)>acct` entry or a yieldCreate entry, those entries are never rewritten (the only in-place edits touch state-init entries; managerGlobal normalises only rawAction entries, which CR/YC entries lack), and D3.manager inserts every CR and yieldCreate index into its map (D3/FunctionCall.lean:128-152); if the manager throws, line 275 is not reached. Source argument, not a Lean proof",
+  "surface": [
+   {
+    "file": "Successor/StorageExecution.lean",
+    "text": "| none => throw (oodE \"promise_return of a non-receipt log index\")"
+   }
+  ]
+ },
+ "L0-W-011": {
+  "status": "impossible-at-boundary",
+  "paths": [
+   "docs/evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md"
+  ],
+  "lean": [
+   "NearSpecV3.Wasm.L0W011.run_inv",
+   "NearSpecV3.Wasm.L0W011.frame_ok",
+   "NearSpecV3.Wasm.L0W011.step_lookups",
+   "NearSpecV3.Wasm.L0W011.buildLblLive_live"
+  ],
+  "reason": "vmCall runs only fuel-certified code (StorageExecution.lean:151); on certified code the certificate invariant holds at every state of the run (run_inv, from entry_ok/step_dec), and a state satisfying it has a frame naming a defined function at a pc inside its code (frame_ok, buildLblLive_live), so the bad-frame and pc-out-of-range arms are dead; prepare returns `.unmodeled` (excluded before the call by contractOOD) unless every gas table has the code's size, and with that (GasSized) every step finds its instruction and gas (step_lookups); the decoder builds float load/store only with load/store opcodes (Decode.lean:261-264), so their non-memory-opcode arm is dead. The compiled path is equal by @[csimp] (Arcs.lean). The other `exec` invariant arms (unmatched block/else labels, unknown function/type indices) rest on Validate.lean's typing and are argued, not proved",
+  "lean_path_symbol": "allFeatures: Wasm.exec / step / callEntryFast `unmodeled` invariants (Exec.lean, Arcs.lean), surfaced as e.wasm-α by applyAction"
+ },
+ "L0-W-013": {
+  "status": "impossible-at-boundary",
+  "paths": [
+   "docs/evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md"
+  ],
+  "lean": [
+   "NearSpecV3.Wasm.L0W013.popArgs_ok",
+   "NearSpecV3.Wasm.L0W013.realHasH_some",
+   "NearSpecV3.Wasm.L0W013.realGetH_some"
+  ],
+  "reason": "popArgs always yields exactly n values (popArgs_ok), so the arity throw is dead; every realGetH/realHasH call is dominated by a `real.isSome` test on an unchanged state (realHasH_some, realGetH_some: with a real store they take the store branch without changing the state), and allFeatures always passes `some real` (vmCall), which no transition clears",
+  "surface": [
+   {
+    "file": "Wasm/Host.lean",
+    "text": "throw \"unmodeled host-call arity\""
+   }
+  ],
+  "lean_path_symbol": "allFeatures: Wasm/Host.lean popArgs and the real-store accessors (Host.lean:406,423,437) under callHost"
+ },
+ "L0-W-014": {
+  "status": "impossible-at-boundary",
+  "paths": [
+   "docs/evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md"
+  ],
+  "lean_path_symbol": "allFeatures: Wasm/TrieStore.lean:116 (lookup fuel); Successor/ChunkStorage.lean:77 is in replayChunk, a difftest harness outside allFeatures",
+  "lean": [
+   "NearSpecV3.Wasm.L0W014.lookup_errors",
+   "NearSpecV3.Wasm.L0W014.lookupFrom_errors",
+   "NearSpecV3.Wasm.L0W014.nibblesOf_length"
+  ],
+  "reason": "the lookup fuel 4|key|+4 exceeds the path length 2|key|+1 when every followed extension has a non-empty key: for such a trie lookup fails only with MissingTrieValue or a node-decoding error (lookup_errors). nearcore never builds an empty extension (insert_delete.rs:123-275 builds extensions from a non-empty prefix or remainder; squash.rs:29-170 only lengthens them; assumption recorded, argued from source), and SHA-256 binds the witness nodes to the root. A forged root over hand-made empty-extension chains reaches the exclusion, which never accepts. ChunkStorage.lean:77 is not imported by allFeatures",
+  "surface": [
+   {
+    "file": "Wasm/TrieStore.lean",
+    "text": ".error \"unmodeled: lookup fuel\""
+   }
+  ]
+ },
+ "L0-D2-020": {
+  "lean_path_symbol": "Successor/ReshardCore.lean:269; genesis segments: Successor/RuntimeCore.lean:456; signed: ChunkValidationD2.lean:158",
+  "paths": [
+   "docs/evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md"
+  ],
+  "remaining": "none on allFeatures"
+ },
+ "L0-D2-023": {
+  "lean_path_symbol": "Successor/ReshardCore.lean:139 (walkSegment, per-block layout); genesis segments: Successor/RuntimeCore.lean:461; signed: ChunkValidationD2.lean:163",
+  "paths": [
+   "docs/evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md"
+  ],
+  "remaining": "none on allFeatures"
+ },
+ "L0-D2-025": {
+  "lean_path_symbol": "Successor/ReshardCore.lean:278-279; genesis segments: Successor/RuntimeCore.lean:468-469; signed: ChunkValidationD2.lean:169-171",
+  "paths": [
+   "docs/evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md"
+  ],
+  "remaining": "none on allFeatures"
+ },
+ "L0-instr-float": {
+  "lean_path_symbol": "allFeatures: Wasm.exec `.float op` → execFloat → evalFloatOp, float load/store/const arms (Exec.lean:459-482)",
+  "paths": [
+   "docs/evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md"
+  ],
+  "remaining": "none on allFeatures"
+ },
+ "L0-W-012": {
+  "lean_path_symbol": "allFeatures: Wasm.exec `.float` arm → execFloat → evalFloatOp (Exec.lean:459; reached through execOrig/callEntryFast); Validate.lean:270,293; FiniteWasm.lean:132",
+  "paths": [
+   "docs/evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md"
+  ],
+  "remaining": "none on allFeatures"
+ },
+ "L0-W-005": {
+  "lean_path_symbol": "allFeatures: Wasm.prepare prepFail sites via Wasm.runCallFast (`.prepErr v`, compiled `@[csimp]` form of runCall) and StorageExecution.vmCall; Prepare.lean:178-390",
+  "paths": [
+   "docs/evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md"
+  ],
+  "remaining": "none on allFeatures"
+ },
+ "L0-W-006": {
+  "lean_path_symbol": "allFeatures: Wasm.prepare compileErr via Wasm.runCallFast (`.compileErr k`); Prepare.lean:455-472",
+  "paths": [
+   "docs/evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md"
+  ],
+  "remaining": "none on allFeatures"
  }
 }
