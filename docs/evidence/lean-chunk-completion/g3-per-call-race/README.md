@@ -112,7 +112,7 @@ accepts of a nearcore reject after: **0 in every row**.
 | pipeline-race family (4 seeds) | allFeatures | 3,853 | 2,440 / 1,213 / 200 / 0 | 2,588 / 1,254 / 11 / 0 | race → accept 148 (ok), race → reject 41 (err) | fail (188) → pass |
 | W08 `code-cache` family (all seeds) | allFeatures | 4,730 | 2,759 / 1,844 / 127 / 0 | 2,759 / 1,874 / 97 / 0 | race → reject 30 (err) | fail (30) → pass |
 | eth-wallet | allFeatures | 10,650 | 2,816 / 7,827 / 7 / 0 | 2,816 / 7,829 / 5 / 0 | race → reject 2 (err) | fail (2) → pass |
-| mainnet shard 13 | allFeatures | 1,223 | SHARD13_AF | | | (no `meta.json`) |
+| mainnet shard 13 | allFeatures | 1,223 | 1,223 / 0 / 0 / 0 | same | 0 | (no `meta.json`) |
 | committed fixtures | signed | 1,364 | 434 / 421 / 0 / 509 | same | 0 | pass → pass ¹ |
 | gap census | signed | 3,138 | 735 / 0 / 0 / 2,403 | same | 0 | pass → pass ¹ |
 | pipeline-race family | signed | 3,853 | 2,039 / 1,103 / 0 / 711 | same | 0 | fail (7) → fail (7) ¹ ² |
