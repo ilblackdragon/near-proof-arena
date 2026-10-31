@@ -986,6 +986,10 @@ pub fn write_d3_case(x: D3Ctx, stats: &mut Stats, d3s: &mut D3Stats) {
         }
         ms.extend(crate::d1::mutants(client, &built.claim, sw, rng).into_iter().map(|(m, f)| (m, f, None, codes.to_vec())));
         ms.extend(header_mutants(&built.claim, sw, rng).into_iter().map(|m| (m, None, None, codes.to_vec())));
+        // opt-in L0 row-validation witness + claim mutants (src/l0mut.rs); no RNG use
+        if crate::l0mut::enabled() {
+            ms.extend(crate::l0mut::mutants(client, &built.claim, sw).into_iter().map(|m| (m, None, None, codes.to_vec())));
+        }
         if b2_genesis {
             for (m, derived) in crate::xfam::genesis_mutants(&built.claim, sw) {
                 ms.push((m, None, derived, codes.to_vec()));
