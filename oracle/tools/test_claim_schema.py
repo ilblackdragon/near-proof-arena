@@ -15,9 +15,14 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools/d3"))
 import claim_schema as cs  # noqa: E402
 
-CASES = sorted({str(Path(p).parent) for p in glob.glob(
+ALL_CASES = sorted({str(Path(p).parent) for p in glob.glob(
     str(ROOT / "docs/evidence/lean-chunk-completion/**/claim.bin"), recursive=True)
     if (Path(p).parent / "witness.bin").exists()})
+# The L0 guard mutants (docs/evidence/lean-chunk-completion/l0-row-validation/guard-mutants) whose
+# mutation deliberately breaks the claim's structure: they must fail the schema gate, not pass it.
+SCHEMA_MUTATIONS = ("-l0.c.empty_segment", "-l0.c.epoch_dup", "-l0.c.esa_extra_flag", "-l0.c.esa_flag2")
+SCHEMA_MUTANTS = [d for d in ALL_CASES if "/guard-mutants/" in d and d.endswith(SCHEMA_MUTATIONS)]
+CASES = [d for d in ALL_CASES if d not in SCHEMA_MUTANTS]
 
 
 class SchemaGate(unittest.TestCase):
@@ -38,6 +43,12 @@ class SchemaGate(unittest.TestCase):
                 self.assertNotEqual(env, data)
                 self.assertEqual(cs.check_file(env, want)["rule"], "explicit")
                 self.assertEqual(cs.to_legacy(env), data)
+
+    def test_schema_breaking_guard_mutants_rejected(self):
+        self.assertEqual(len(SCHEMA_MUTANTS), 48)
+        for d in SCHEMA_MUTANTS:
+            with self.subTest(case=d), self.assertRaises(cs.SchemaError):
+                cs.check_file((Path(d) / "claim.bin").read_bytes(), "claim")
 
     def test_malformed_rejected(self):
         d = Path(CASES[0])
