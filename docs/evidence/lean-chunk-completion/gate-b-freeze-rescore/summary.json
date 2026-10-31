@@ -1,0 +1,389 @@
+{
+ "census-allFeatures": {
+  "after": "pass",
+  "before": "pass",
+  "cases": 3138,
+  "groups": [],
+  "known_gaps": [],
+  "partition_after": {
+   "verdict_agree_outside_domain": 1945,
+   "verdict_compared_agree": 1193
+  },
+  "partition_before": {
+   "verdict_agree_outside_domain": 1945,
+   "verdict_compared_agree": 1193
+  },
+  "reclassification": [
+   {
+    "after": "verdict_agree_outside_domain",
+    "before": "verdict_agree_outside_domain",
+    "rows": 1945
+   },
+   {
+    "after": "verdict_compared_agree",
+    "before": "verdict_compared_agree",
+    "rows": 1193
+   }
+  ],
+  "report_sha256": "d14f8bfb00d91254867c7b6d8264be133fe49e0542789667ef2c0f8cde6d1f7c"
+ },
+ "census-signed": {
+  "after": "pass",
+  "before": "pass",
+  "cases": 3138,
+  "groups": [],
+  "known_gaps": [],
+  "partition_after": {
+   "domain_exclusion_asserted": 2403,
+   "verdict_agree_outside_domain": 735
+  },
+  "partition_before": {
+   "domain_exclusion_asserted": 2403,
+   "verdict_agree_outside_domain": 735
+  },
+  "reclassification": [
+   {
+    "after": "domain_exclusion_asserted",
+    "before": "domain_exclusion_asserted",
+    "rows": 2403
+   },
+   {
+    "after": "verdict_agree_outside_domain",
+    "before": "verdict_agree_outside_domain",
+    "rows": 735
+   }
+  ],
+  "report_sha256": "5893fbcb1998fcdced2b10ef2139640205c9eb6e0164d0909a4c5f90f9cac19a"
+ },
+ "corpus-cases-allFeatures": {
+  "after": "pass",
+  "before": "fail",
+  "cases": 235716,
+  "groups": [],
+  "known_gaps": [],
+  "partition_after": {
+   "domain_exclusion_asserted": 95,
+   "verdict_agree_outside_domain": 122377,
+   "verdict_compared_agree": 113244
+  },
+  "partition_before": {
+   "domain_exclusion_where_in_domain": 95,
+   "verdict_agree_outside_domain": 122377,
+   "verdict_compared_agree": 113244
+  },
+  "reclassification": [
+   {
+    "after": "domain_exclusion_asserted",
+    "before": "domain_exclusion_where_in_domain",
+    "rows": 95
+   },
+   {
+    "after": "verdict_agree_outside_domain",
+    "before": "verdict_agree_outside_domain",
+    "rows": 122377
+   },
+   {
+    "after": "verdict_compared_agree",
+    "before": "verdict_compared_agree",
+    "rows": 113244
+   }
+  ],
+  "report_sha256": "9dab3c7c0ca078b0e4a33c663649c45686f7bcf571d0a150247fe83737f4307a"
+ },
+ "corpus-cases-signed": {
+  "after": "pass",
+  "before": "fail",
+  "cases": 235716,
+  "groups": [
+   {
+    "classification": "domain_exclusion_independently_asserted",
+    "d3_violations": [],
+    "nearcore_accepts": true,
+    "predicate": "b2_is_genesis",
+    "reason": "out of domain (c.not_genesis)",
+    "rows": 128
+   },
+   {
+    "classification": "domain_exclusion_independently_asserted",
+    "d3_violations": [],
+    "nearcore_accepts": true,
+    "predicate": "segment_longer_than_32",
+    "reason": "out of domain (c.segment)",
+    "rows": 4
+   },
+   {
+    "classification": "domain_exclusion_independently_asserted",
+    "d3_violations": [],
+    "nearcore_accepts": true,
+    "predicate": "prestate_code_absent_but_deployed_in_chunk",
+    "reason": "out of domain (e.wasm-\u03b1): pre-state contract served only by the in-chu",
+    "rows": 3
+   },
+   {
+    "classification": "domain_exclusion_independently_asserted",
+    "d3_violations": [],
+    "nearcore_accepts": true,
+    "predicate": "mldsa65_public_key_in_tx_or_receipt",
+    "reason": "out of domain (w.shape): ML-DSA-65 public key",
+    "rows": 48
+   },
+   {
+    "classification": "domain_exclusion_independently_asserted",
+    "d3_violations": [],
+    "nearcore_accepts": true,
+    "predicate": "transaction_key_not_ed25519",
+    "reason": "out of domain (w.shape): non-ED25519 transaction key",
+    "rows": 62
+   }
+  ],
+  "known_gaps": [],
+  "partition_after": {
+   "domain_exclusion_asserted": 2513,
+   "domain_exclusion_independently_asserted": 245,
+   "verdict_agree_outside_domain": 120922,
+   "verdict_compared_agree": 112036
+  },
+  "partition_before": {
+   "domain_exclusion_asserted": 2513,
+   "domain_exclusion_unasserted": 245,
+   "verdict_agree_outside_domain": 120922,
+   "verdict_compared_agree": 112036
+  },
+  "reclassification": [
+   {
+    "after": "domain_exclusion_asserted",
+    "before": "domain_exclusion_asserted",
+    "rows": 2513
+   },
+   {
+    "after": "domain_exclusion_independently_asserted",
+    "before": "domain_exclusion_unasserted",
+    "rows": 245
+   },
+   {
+    "after": "verdict_agree_outside_domain",
+    "before": "verdict_agree_outside_domain",
+    "rows": 120922
+   },
+   {
+    "after": "verdict_compared_agree",
+    "before": "verdict_compared_agree",
+    "rows": 112036
+   }
+  ],
+  "report_sha256": "10d77fe5f2120152610ae5412a0e091afe6c35fe1e6219ebf7ec719318960e6f"
+ },
+ "fixtures-final-allFeatures": {
+  "after": "pass",
+  "before": "fail",
+  "cases": 1364,
+  "groups": [
+   {
+    "classification": "domain_exclusion_independently_asserted",
+    "d3_violations": [
+     "w.shape"
+    ],
+    "nearcore_accepts": false,
+    "predicate": "call_served_by_earlier_in_chunk_deploy",
+    "reason": "out of domain (e.code_prep_race): contract preparation pipelined befor",
+    "rows": 3
+   },
+   {
+    "classification": "domain_exclusion_independently_asserted",
+    "d3_violations": [
+     "w.shape"
+    ],
+    "nearcore_accepts": true,
+    "predicate": "call_served_by_earlier_in_chunk_deploy",
+    "reason": "out of domain (e.code_prep_race): contract preparation pipelined befor",
+    "rows": 6
+   },
+   {
+    "classification": "domain_exclusion_independently_asserted",
+    "d3_violations": [
+     "w.shape",
+     "e.g_alpha"
+    ],
+    "nearcore_accepts": false,
+    "predicate": "call_served_by_earlier_in_chunk_deploy",
+    "reason": "out of domain (e.code_prep_race): contract preparation pipelined befor",
+    "rows": 1
+   },
+   {
+    "classification": "domain_exclusion_independently_asserted",
+    "d3_violations": [
+     "w.shape",
+     "e.g_alpha"
+    ],
+    "nearcore_accepts": true,
+    "predicate": "call_served_by_earlier_in_chunk_deploy",
+    "reason": "out of domain (e.code_prep_race): contract preparation pipelined befor",
+    "rows": 2
+   },
+   {
+    "classification": "race_exclusion_conservative",
+    "d3_violations": [
+     "e.code_deploy_served"
+    ],
+    "nearcore_accepts": false,
+    "predicate": "call_served_by_earlier_in_chunk_deploy",
+    "reason": "out of domain (e.code_prep_race): contract preparation pipelined befor",
+    "rows": 2
+   }
+  ],
+  "known_gaps": [
+   {
+    "case": "/data/illia/nearproof/docs/evidence/lean-chunk-completion/w08-warm-cache/cases/cc802-00-h10004-s2-code.none",
+    "classification": "race_exclusion_conservative",
+    "nearcore": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: 9hpmrvGmyjG7UZ6N3TEwUo6BWjfLW7TPtFagcTKWK9gc }))",
+    "nearcore_schedule": {
+     "eager": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: 9hpmrvGmyjG7UZ6N3TEwUo6BWjfLW7TPtFagcTKWK9gc }))",
+     "lazy": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: 4yinLE3cY6uVvQtfaaUBsXTrt2G1TovT2vjW7wbXLBt4 }))"
+    },
+    "reason": "out of domain (e.code_prep_race): contract preparation pipelined before the in-chunk deploy that serves its code"
+   },
+   {
+    "case": "/data/illia/nearproof/docs/evidence/lean-chunk-completion/w08-warm-cache/cases/cc803-00-h10004-s2-code.none",
+    "classification": "race_exclusion_conservative",
+    "nearcore": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: 9hpmrvGmyjG7UZ6N3TEwUo6BWjfLW7TPtFagcTKWK9gc }))",
+    "nearcore_schedule": {
+     "eager": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: 9hpmrvGmyjG7UZ6N3TEwUo6BWjfLW7TPtFagcTKWK9gc }))",
+     "lazy": "validate: StorageError(MissingTrieValue(MissingTrieValue { context: TrieMemoryPartialStorage, hash: HwjDLf7XFzuJikcUxJNAfMG2y3RrHoBFV5R28pHoztSt }))"
+    },
+    "reason": "out of domain (e.code_prep_race): contract preparation pipelined before the in-chunk deploy that serves its code"
+   }
+  ],
+  "partition_after": {
+   "domain_exclusion_asserted": 4,
+   "domain_exclusion_independently_asserted": 12,
+   "race_exclusion_conservative": 2,
+   "verdict_agree_outside_domain": 450,
+   "verdict_compared_agree": 896
+  },
+  "partition_before": {
+   "domain_exclusion_asserted": 4,
+   "domain_exclusion_unasserted": 12,
+   "domain_exclusion_where_in_domain": 2,
+   "verdict_agree_outside_domain": 450,
+   "verdict_compared_agree": 896
+  },
+  "reclassification": [
+   {
+    "after": "domain_exclusion_asserted",
+    "before": "domain_exclusion_asserted",
+    "rows": 4
+   },
+   {
+    "after": "domain_exclusion_independently_asserted",
+    "before": "domain_exclusion_unasserted",
+    "rows": 12
+   },
+   {
+    "after": "race_exclusion_conservative",
+    "before": "domain_exclusion_where_in_domain",
+    "rows": 2
+   },
+   {
+    "after": "verdict_agree_outside_domain",
+    "before": "verdict_agree_outside_domain",
+    "rows": 450
+   },
+   {
+    "after": "verdict_compared_agree",
+    "before": "verdict_compared_agree",
+    "rows": 896
+   }
+  ],
+  "report_sha256": "84b1ee412ccb0faa9916dbb8f0df256fe0ba7fa7e2f8aa5b79086e11e8888900"
+ },
+ "fixtures-final-signed": {
+  "after": "pass",
+  "before": "fail",
+  "cases": 1364,
+  "groups": [
+   {
+    "classification": "accept_above_g_alpha_agree",
+    "d3_violations": [
+     "e.g_alpha"
+    ],
+    "nearcore_accepts": true,
+    "predicate": null,
+    "reason": "",
+    "rows": 96
+   },
+   {
+    "classification": "accept_above_g_alpha_agree",
+    "d3_violations": [
+     "w.size",
+     "e.g_alpha"
+    ],
+    "nearcore_accepts": true,
+    "predicate": null,
+    "reason": "",
+    "rows": 104
+   },
+   {
+    "classification": "domain_exclusion_independently_asserted",
+    "d3_violations": [],
+    "nearcore_accepts": true,
+    "predicate": "global_contract_distribution_receipt",
+    "reason": "out of domain (w.shape): GlobalContractDistribution receipt",
+    "rows": 2
+   },
+   {
+    "classification": "domain_exclusion_independently_asserted",
+    "d3_violations": [
+     "w.size",
+     "e.g_alpha"
+    ],
+    "nearcore_accepts": true,
+    "predicate": "state_witness_larger_than_8MiB",
+    "reason": "out of domain (w.size): witness larger than 8 MiB",
+    "rows": 2
+   }
+  ],
+  "known_gaps": [],
+  "partition_after": {
+   "accept_above_g_alpha_agree": 200,
+   "domain_exclusion_asserted": 505,
+   "domain_exclusion_independently_asserted": 4,
+   "verdict_agree_outside_domain": 289,
+   "verdict_compared_agree": 366
+  },
+  "partition_before": {
+   "accept_above_g_alpha": 200,
+   "domain_exclusion_asserted": 505,
+   "domain_exclusion_unasserted": 4,
+   "verdict_agree_outside_domain": 289,
+   "verdict_compared_agree": 366
+  },
+  "reclassification": [
+   {
+    "after": "accept_above_g_alpha_agree",
+    "before": "accept_above_g_alpha",
+    "rows": 200
+   },
+   {
+    "after": "domain_exclusion_asserted",
+    "before": "domain_exclusion_asserted",
+    "rows": 505
+   },
+   {
+    "after": "domain_exclusion_independently_asserted",
+    "before": "domain_exclusion_unasserted",
+    "rows": 4
+   },
+   {
+    "after": "verdict_agree_outside_domain",
+    "before": "verdict_agree_outside_domain",
+    "rows": 289
+   },
+   {
+    "after": "verdict_compared_agree",
+    "before": "verdict_compared_agree",
+    "rows": 366
+   }
+  ],
+  "report_sha256": "927e22bd152b91f1339efd0f8cb6c72c5bbe80a6f7e14893c1db232c5780e642"
+ }
+}
