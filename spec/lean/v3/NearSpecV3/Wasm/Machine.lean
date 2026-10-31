@@ -264,9 +264,14 @@ structure CallCtx where
   chainId : String := "test"
   /-- `External::validator_stake` (yocto); absent = 0 -/
   validators : Array (String × Nat) := #[]
-  /-- `VMContext.account_contract` for `current_contract_code`: `some h` = `Local(h)`; `none` =
-  `AccountContract::None` (the harness context). Global identifiers are out of D3α. -/
+  /-- `VMContext.account_contract` for `current_contract_code`: `none` = `AccountContract::None`
+  (the harness context); `some x` = the register value (the code hash for `Local` / `Global`, the
+  account id's bytes for `GlobalByAccount`) with `accountContractTag` the return value. -/
   accountContract : Option ByteArray := none
+  /-- `current_contract_code`'s return value when `accountContract = some _`
+  (`logic.rs:4000-4030`): 1 `Local`, 2 `Global`, 3 `GlobalByAccount`. The signed tier (D3α, no
+  global contracts) leaves the default 1. -/
+  accountContractTag : Nat := 1
   /-- real `External` (RuntimeD3): the action hash `ah` (data ids `sha256(ah ‖ u64 h ‖ u64 n)`,
   `ext.rs:303-311`); `none` = the harness's mock ids `sha256(u64 n)` -/
   actionHash : Option ByteArray := none

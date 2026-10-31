@@ -18,10 +18,13 @@ first pass). Generator: `oracle/v3-successor`, with the new opt-in scenario `hos
 (`src/xfam.rs` `host_rows`, contract `contracts/hostrows.wat`). Binary sha256 `f35cc41f…`.
 
 **Result.**
-- 15 of the 16 rows are promoted to `validated`.
-- `current_contract_code` stays `implemented` because of a **Lean completeness bug** (§3):
-  - Lean rejects 205 nearcore-accepted cases, 16 of them honest chunks;
-  - Lean accepts no nearcore-rejected case (0 soundness disagreements).
+- 15 of the 16 rows were promoted to `validated` by this package.
+- `current_contract_code` was held back by a **Lean completeness bug** (§3):
+  - Lean rejected 205 nearcore-accepted cases, 16 of them honest chunks;
+  - Lean accepted no nearcore-rejected case (0 soundness disagreements).
+- **Update:** the bug is fixed and the row is validated
+  ([ccc-fix/README.md](ccc-fix/README.md)). On the new checker (`ee00c918…`) the 205
+  disagreements are 0. §2–§4 below record the population as found, on the freeze checker.
 
 ## 1. Scenario
 
@@ -77,7 +80,7 @@ No Lean accept of a nearcore reject. All 205 disagreements are Lean rejects (`in
 transition post state root`) of nearcore-accepted cases: 16 honest chunks plus mutants of them
 that nearcore still accepts. `current_contract_code` fires in every one (`summary.json`).
 
-## 3. Bug: `current_contract_code` on a global-contract account (completeness)
+## 3. Bug: `current_contract_code` on a global-contract account (completeness; fixed in [ccc-fix](ccc-fix/README.md))
 
 nearcore (`runtime/near-vm-runner/src/logic/logic.rs:4000-4030`) returns the following, by the
 account's `AccountContract`:

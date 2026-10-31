@@ -1,0 +1,110 @@
+{
+ "before": "gateb-freeze-2368b8713/checker sha256 9b583e3a42e6bb50edf5ec8557fea7e30b9f0a01d72724f688aac15929b233f8 (host-rows: ../replay/default-results.jsonl.gz)",
+ "after": "nearspec-v3-check-successor sha256 ee00c9183a1650c6fcb210796e98788310ef61ae1870a720d30d2b0440c57a29",
+ "corpus_sample": "every 8th line (awk NR % 8 == 1) of gateb-freeze-2368b8713/corpus-cases.txt (235,716 lines): 29,465 cases",
+ "populations": [
+  {
+   "name": "host-rows",
+   "cases": 11437,
+   "missing_before": 0,
+   "verdict_counts": {
+    "after: agree (lean accept, nearcore accept)": 3116,
+    "after: agree (lean reject, nearcore reject)": 8321,
+    "before: DISAGREE (lean reject, nearcore accept)": 205,
+    "before: agree (lean accept, nearcore accept)": 2911,
+    "before: agree (lean reject, nearcore reject)": 8321
+   },
+   "moved": {
+    "reject -> accept (nearcore accept)": 205,
+    "reject -> reject (nearcore reject)": 261
+   },
+   "moved_examples": {
+    "reject -> accept (nearcore accept)": [
+     "run811/mutants/00-h10015-s2-code.duplicate",
+     "invalid: main transition post state root",
+     ""
+    ],
+    "reject -> reject (nearcore reject)": [
+     "run811/mutants/00-h10015-s2-hdr.bandwidth_requests.add",
+     "invalid: main transition post state root",
+     "invalid: InvalidBandwidthRequests"
+    ]
+   },
+   "lean_accept_nearcore_reject_after": 0
+  },
+  {
+   "name": "census-allFeatures",
+   "cases": 3138,
+   "missing_before": 0,
+   "verdict_counts": {
+    "after: agree (lean accept, nearcore accept)": 3138,
+    "before: agree (lean accept, nearcore accept)": 3138
+   },
+   "moved": {},
+   "moved_examples": {},
+   "lean_accept_nearcore_reject_after": 0
+  },
+  {
+   "name": "census-signed",
+   "cases": 3138,
+   "missing_before": 0,
+   "verdict_counts": {
+    "after: agree (lean accept, nearcore accept)": 735,
+    "after: out_of_domain": 2403,
+    "before: agree (lean accept, nearcore accept)": 735,
+    "before: out_of_domain": 2403
+   },
+   "moved": {},
+   "moved_examples": {},
+   "lean_accept_nearcore_reject_after": 0
+  },
+  {
+   "name": "fixtures-allFeatures",
+   "cases": 1364,
+   "missing_before": 0,
+   "verdict_counts": {
+    "after: agree (lean accept, nearcore accept)": 819,
+    "after: agree (lean reject, nearcore reject)": 527,
+    "after: out_of_domain": 18,
+    "before: agree (lean accept, nearcore accept)": 819,
+    "before: agree (lean reject, nearcore reject)": 527,
+    "before: out_of_domain": 18
+   },
+   "moved": {},
+   "moved_examples": {},
+   "lean_accept_nearcore_reject_after": 0
+  },
+  {
+   "name": "fixtures-signed",
+   "cases": 1364,
+   "missing_before": 0,
+   "verdict_counts": {
+    "after: agree (lean accept, nearcore accept)": 434,
+    "after: agree (lean reject, nearcore reject)": 421,
+    "after: out_of_domain": 509,
+    "before: agree (lean accept, nearcore accept)": 434,
+    "before: agree (lean reject, nearcore reject)": 421,
+    "before: out_of_domain": 509
+   },
+   "moved": {},
+   "moved_examples": {},
+   "lean_accept_nearcore_reject_after": 0
+  },
+  {
+   "name": "corpus8-allFeatures",
+   "cases": 29465,
+   "missing_before": 0,
+   "verdict_counts": {
+    "after: agree (lean accept, nearcore accept)": 9602,
+    "after: agree (lean reject, nearcore reject)": 19853,
+    "after: out_of_domain": 10,
+    "before: agree (lean accept, nearcore accept)": 9602,
+    "before: agree (lean reject, nearcore reject)": 19853,
+    "before: out_of_domain": 10
+   },
+   "moved": {},
+   "moved_examples": {},
+   "lean_accept_nearcore_reject_after": 0
+  }
+ ]
+}

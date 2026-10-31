@@ -128,7 +128,8 @@ def functionCallRecordedF (fuelOf : NearCfg → Nat → Nat) (cfg : NearCfg) (c 
     receivers := if isLast then (a.outputs.map fun (_, r) => strOf r).toArray else #[],
     chainId := strOf env.chainId,
     validators := (env.validators.map fun (v, s) => (strOf v, s)).toArray,
-    accountContract := some (toBA hh) }
+    accountContract := (NearSpecV3.Successor.StorageExecution.ctxContract acct.contract).1,
+    accountContractTag := (NearSpecV3.Successor.StorageExecution.ctxContract acct.contract).2 }
   -- trie-backed External over the merged witness values (§4.2, d3-trie-accounting.md)
   let pfx := TTN.contractDataPrefix ctx.currentAccount
   let ovl : TTN.BMap (Option ByteArray) :=

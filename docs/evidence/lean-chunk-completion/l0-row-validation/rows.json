@@ -4,9 +4,17 @@
    "path": "nearspec-v3-ctl-successor built from tools/d3/l0_ctl_patch.py over spec/lean at 0e7a77fd4",
    "sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911"
   },
+  "control_ccc_fix": {
+   "path": "nearspec-v3-ctl-successor built from tools/d3/l0_ctl_patch.py over spec/lean with the current_contract_code fix (host-rows/ccc-fix)",
+   "sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20"
+  },
   "default": {
    "path": "gateb-freeze-2368b8713/checker (nearspec-v3-check-successor, spec/lean identical to this commit)",
    "sha256": "9b583e3a42e6bb50edf5ec8557fea7e30b9f0a01d72724f688aac15929b233f8"
+  },
+  "default_ccc_fix": {
+   "path": "nearspec-v3-check-successor with the current_contract_code fix",
+   "sha256": "ee00c9183a1650c6fcb210796e98788310ef61ae1870a720d30d2b0440c57a29"
   }
  },
  "default_replay": {
@@ -32,6 +40,17 @@
    "verdicts": {
     "accept": 2911,
     "reject": 8526
+   }
+  },
+  "host_rows_after_ccc_fix": {
+   "cases": 11437,
+   "lean_accept_nearcore_reject": 0,
+   "lean_reject_nearcore_accept": 0,
+   "output_sha256": "e5d6490d62d7f8043e3a08965ec3bd3b408f22f8e0989d4d1a77fa7256158206",
+   "status": "pass",
+   "verdicts": {
+    "accept": 3116,
+    "reject": 8321
    }
   },
   "sample": {
@@ -73,6 +92,7 @@
  "identity": {
   "guard_mutants": "132/132 identical",
   "host_rows": "11,437/11,437 identical verdict and reason (control build with NEARSPEC_TRACE=1 vs default)",
+  "host_rows_ccc_fix": "11,437/11,437 identical verdict and reason (fixed control build with NEARSPEC_TRACE=1 vs fixed default checker)",
   "sample": "51,164/51,164 identical verdict and reason (control build with NEARSPEC_TRACE=1 vs default)",
   "supplement": "2,218/2,218 identical"
  },
@@ -2074,7 +2094,7 @@
      "reject": 16
     },
     "baseline": "pass",
-    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
     "case_list": [
      "run811/d3/00-h10007-s1",
      "run811/ood/00-h10006-s3",
@@ -2086,8 +2106,8 @@
      "run814/ood/04-h10006-s0",
      "run811/mutants/00-h10006-s3-code.duplicate",
      "run811/ood/00-h10014-s1",
-     "run813/mutants/02-h10006-s0-code.duplicate",
-     "run813/ood/02-h10014-s4",
+     "run812/mutants/01-h10006-s0-code.duplicate",
+     "run812/ood/01-h10014-s2",
      "run811/mutants/00-h10006-s3-hdr.bandwidth_requests.add",
      "run812/mutants/01-h10006-s0-hdr.bandwidth_requests.add",
      "run813/mutants/02-h10006-s0-hdr.bandwidth_requests.add",
@@ -2097,31 +2117,22 @@
     "target": "host:current_contract_code",
     "what": "the arm burns 1 extra gas before it runs"
    },
-   "disagreement_reason": "on an account whose contract is global (AccountContract::Global / GlobalByAccount) nearcore returns 2 / 3 with the code hash / the account id (logic.rs:4000-4030); Lean always returns 1 with the code hash (Wasm/Host.lean:726-730, ctx.accountContract := some hash in Successor/StorageExecution.lean:202), so the post-state differs and Lean rejects the valid chunk. Not a soundness bug: no Lean accept of a nearcore reject",
    "exercising": {
-    "disagreement_cause": "host:current_contract_code",
-    "disagreement_examples": [
-     "run811/mutants/00-h10015-s2-code.duplicate",
-     "run811/mutants/00-h10015-s2-code.extra_garbage",
-     "run811/mutants/00-h10015-s2-code.extra_unneeded",
-     "run811/mutants/00-h10015-s2-hdr.height_created"
-    ],
-    "disagreements": 205,
-    "disagreements_caused": 205,
     "examples": [
      "run811/d3/00-h10007-s1",
      "run811/mutants/00-h10006-s3-code.duplicate",
      "run811/mutants/00-h10006-s3-hdr.bandwidth_requests.add",
      "run811/mutants/00-h10006-s3-hdr.congestion.allowed_shard"
     ],
-    "nearcore_accept": 164,
+    "nearcore_accept": 369,
     "nearcore_reject": 542,
-    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
+    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore), host-rows traced with the control build of the current_contract_code fix (ctl 055cc374); verdicts identical to the default checker; disagreeing cases excluded"
    },
    "paths": [
     "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
     "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
-    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/ccc-fix/README.md"
    ],
    "target": "host:current_contract_code"
   },
@@ -2219,7 +2230,7 @@
      "reject": 14
     },
     "baseline": "pass",
-    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
     "case_list": [
      "run811/d3/00-h10013-s3",
      "run811/mutants/00-h10013-s3-code.duplicate",
@@ -2251,12 +2262,13 @@
     ],
     "nearcore_accept": 298,
     "nearcore_reject": 446,
-    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
+    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore), host-rows traced with the control build of the current_contract_code fix (ctl 055cc374); verdicts identical to the default checker; disagreeing cases excluded"
    },
    "paths": [
     "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
     "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
-    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/ccc-fix/README.md"
    ],
    "target": "host:gas"
   },
@@ -2699,7 +2711,7 @@
      "reject": 16
     },
     "baseline": "pass",
-    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
     "case_list": [
      "d3c10/ood/01-h10013-s2",
      "d3c7/ood/00-h10006-s2",
@@ -2723,31 +2735,21 @@
     "what": "the arm burns 1 extra gas before it runs"
    },
    "exercising": {
-    "disagreement_cause": [
-     "host:current_contract_code"
-    ],
-    "disagreement_examples": [
-     "run811/mutants/00-h10020-s0-code.duplicate",
-     "run811/mutants/00-h10020-s0-code.extra_garbage",
-     "run811/mutants/00-h10020-s0-code.extra_unneeded",
-     "run811/mutants/00-h10020-s0-code.reorder"
-    ],
-    "disagreements": 39,
-    "disagreements_caused": 0,
     "examples": [
      "d3c10/ood/01-h10013-s2",
      "d3c10/ood/01-h10097-s2",
      "run811/mutants/00-h10015-s0-hdr.bandwidth_requests.add",
      "run811/mutants/00-h10015-s0-hdr.congestion.allowed_shard"
     ],
-    "nearcore_accept": 252,
+    "nearcore_accept": 291,
     "nearcore_reject": 307,
-    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
+    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore), host-rows traced with the control build of the current_contract_code fix (ctl 055cc374); verdicts identical to the default checker; disagreeing cases excluded"
    },
    "paths": [
     "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
     "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
-    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/ccc-fix/README.md"
    ],
    "target": "host:promise_batch_action_add_gas_key_with_full_access"
   },
@@ -2758,7 +2760,7 @@
      "reject": 16
     },
     "baseline": "pass",
-    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
     "case_list": [
      "run811/mutants/00-h10015-s0-code.duplicate",
      "run811/ood/00-h10015-s0",
@@ -2790,12 +2792,13 @@
     ],
     "nearcore_accept": 49,
     "nearcore_reject": 75,
-    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
+    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore), host-rows traced with the control build of the current_contract_code fix (ctl 055cc374); verdicts identical to the default checker; disagreeing cases excluded"
    },
    "paths": [
     "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
     "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
-    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/ccc-fix/README.md"
    ],
    "target": "host:promise_batch_action_add_gas_key_with_function_call"
   },
@@ -3064,7 +3067,7 @@
      "reject": 16
     },
     "baseline": "pass",
-    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
     "case_list": [
      "run811/mutants/00-h10016-s2-code.duplicate",
      "run811/ood/00-h10016-s2",
@@ -3096,12 +3099,13 @@
     ],
     "nearcore_accept": 106,
     "nearcore_reject": 152,
-    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
+    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore), host-rows traced with the control build of the current_contract_code fix (ctl 055cc374); verdicts identical to the default checker; disagreeing cases excluded"
    },
    "paths": [
     "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
     "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
-    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/ccc-fix/README.md"
    ],
    "target": "host:promise_batch_action_deploy_global_contract"
   },
@@ -3112,7 +3116,7 @@
      "reject": 16
     },
     "baseline": "pass",
-    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
     "case_list": [
      "run811/mutants/00-h10016-s2-code.duplicate",
      "run811/ood/00-h10016-s2",
@@ -3144,12 +3148,13 @@
     ],
     "nearcore_accept": 106,
     "nearcore_reject": 152,
-    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
+    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore), host-rows traced with the control build of the current_contract_code fix (ctl 055cc374); verdicts identical to the default checker; disagreeing cases excluded"
    },
    "paths": [
     "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
     "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
-    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/ccc-fix/README.md"
    ],
    "target": "host:promise_batch_action_deploy_global_contract_by_account_id"
   },
@@ -3289,7 +3294,7 @@
      "reject": 16
     },
     "baseline": "pass",
-    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
     "case_list": [
      "d3c10/ood/00-h10048-s2",
      "d3c7/ood/00-h10006-s2",
@@ -3321,12 +3326,13 @@
     ],
     "nearcore_accept": 233,
     "nearcore_reject": 221,
-    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
+    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore), host-rows traced with the control build of the current_contract_code fix (ctl 055cc374); verdicts identical to the default checker; disagreeing cases excluded"
    },
    "paths": [
     "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
     "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
-    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/ccc-fix/README.md"
    ],
    "target": "host:promise_batch_action_state_init"
   },
@@ -3337,7 +3343,7 @@
      "reject": 16
     },
     "baseline": "pass",
-    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
     "case_list": [
      "run811/mutants/00-h10016-s2-code.duplicate",
      "run811/ood/00-h10016-s2",
@@ -3369,12 +3375,13 @@
     ],
     "nearcore_accept": 106,
     "nearcore_reject": 152,
-    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
+    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore), host-rows traced with the control build of the current_contract_code fix (ctl 055cc374); verdicts identical to the default checker; disagreeing cases excluded"
    },
    "paths": [
     "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
     "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
-    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/ccc-fix/README.md"
    ],
    "target": "host:promise_batch_action_state_init_by_account_id"
   },
@@ -3428,7 +3435,7 @@
      "reject": 16
     },
     "baseline": "pass",
-    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
     "case_list": [
      "run811/mutants/00-h10017-s0-code.duplicate",
      "run811/ood/00-h10017-s0",
@@ -3460,12 +3467,13 @@
     ],
     "nearcore_accept": 172,
     "nearcore_reject": 231,
-    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
+    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore), host-rows traced with the control build of the current_contract_code fix (ctl 055cc374); verdicts identical to the default checker; disagreeing cases excluded"
    },
    "paths": [
     "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
     "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
-    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/ccc-fix/README.md"
    ],
    "target": "host:promise_batch_action_transfer_to_gas_key"
   },
@@ -3519,7 +3527,7 @@
      "reject": 16
     },
     "baseline": "pass",
-    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
     "case_list": [
      "run811/mutants/00-h10016-s2-code.duplicate",
      "run811/ood/00-h10016-s2",
@@ -3551,12 +3559,13 @@
     ],
     "nearcore_accept": 106,
     "nearcore_reject": 152,
-    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
+    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore), host-rows traced with the control build of the current_contract_code fix (ctl 055cc374); verdicts identical to the default checker; disagreeing cases excluded"
    },
    "paths": [
     "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
     "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
-    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/ccc-fix/README.md"
    ],
    "target": "host:promise_batch_action_use_global_contract_by_account_id"
   },
@@ -3825,7 +3834,7 @@
      "reject": 16
     },
     "baseline": "pass",
-    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
     "case_list": [
      "run811/d3/00-h10010-s3",
      "run811/mutants/00-h10008-s3-code.duplicate",
@@ -3849,31 +3858,21 @@
     "what": "the arm burns 1 extra gas before it runs"
    },
    "exercising": {
-    "disagreement_cause": [
-     "host:current_contract_code"
-    ],
-    "disagreement_examples": [
-     "run811/mutants/00-h10022-s1-code.duplicate",
-     "run811/mutants/00-h10022-s1-code.extra_garbage",
-     "run811/mutants/00-h10022-s1-code.extra_unneeded",
-     "run811/mutants/00-h10022-s1-hdr.height_created"
-    ],
-    "disagreements": 48,
-    "disagreements_caused": 0,
     "examples": [
      "run811/d3/00-h10010-s3",
      "run811/d3/00-h10011-s3",
      "run811/mutants/00-h10008-s3-hdr.bandwidth_requests.add",
      "run811/mutants/00-h10008-s3-hdr.congestion.allowed_shard"
     ],
-    "nearcore_accept": 364,
+    "nearcore_accept": 412,
     "nearcore_reject": 592,
-    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
+    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore), host-rows traced with the control build of the current_contract_code fix (ctl 055cc374); verdicts identical to the default checker; disagreeing cases excluded"
    },
    "paths": [
     "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
     "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
-    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/ccc-fix/README.md"
    ],
    "target": "host:promise_set_refund_to"
   },
@@ -4167,7 +4166,7 @@
      "reject": 16
     },
     "baseline": "pass",
-    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
     "case_list": [
      "run811/d3/00-h10010-s3",
      "run811/mutants/00-h10006-s3-code.duplicate",
@@ -4199,12 +4198,13 @@
     ],
     "nearcore_accept": 220,
     "nearcore_reject": 318,
-    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
+    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore), host-rows traced with the control build of the current_contract_code fix (ctl 055cc374); verdicts identical to the default checker; disagreeing cases excluded"
    },
    "paths": [
     "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
     "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
-    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/ccc-fix/README.md"
    ],
    "target": "host:refund_to_account_id"
   },
@@ -4301,7 +4301,7 @@
      "reject": 16
     },
     "baseline": "pass",
-    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
     "case_list": [
      "run811/mutants/00-h10016-s2-code.duplicate",
      "run811/ood/00-h10016-s2",
@@ -4333,12 +4333,13 @@
     ],
     "nearcore_accept": 106,
     "nearcore_reject": 152,
-    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
+    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore), host-rows traced with the control build of the current_contract_code fix (ctl 055cc374); verdicts identical to the default checker; disagreeing cases excluded"
    },
    "paths": [
     "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
     "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
-    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/ccc-fix/README.md"
    ],
    "target": "host:set_state_init_data_entry"
   },
@@ -4522,7 +4523,7 @@
      "reject": 16
     },
     "baseline": "pass",
-    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
     "case_list": [
      "run811/d3/00-h10013-s3",
      "run812/d3/01-h10013-s0",
@@ -4554,12 +4555,13 @@
     ],
     "nearcore_accept": 48,
     "nearcore_reject": 72,
-    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
+    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore), host-rows traced with the control build of the current_contract_code fix (ctl 055cc374); verdicts identical to the default checker; disagreeing cases excluded"
    },
    "paths": [
     "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
     "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
-    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/ccc-fix/README.md"
    ],
    "target": "host:storage_iter_next"
   },
@@ -4570,7 +4572,7 @@
      "reject": 16
     },
     "baseline": "pass",
-    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
     "case_list": [
      "run811/d3/00-h10012-s3",
      "run811/mutants/00-h10012-s3-code.duplicate",
@@ -4602,12 +4604,13 @@
     ],
     "nearcore_accept": 104,
     "nearcore_reject": 144,
-    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
+    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore), host-rows traced with the control build of the current_contract_code fix (ctl 055cc374); verdicts identical to the default checker; disagreeing cases excluded"
    },
    "paths": [
     "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
     "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
-    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/ccc-fix/README.md"
    ],
    "target": "host:storage_iter_prefix"
   },
@@ -4618,7 +4621,7 @@
      "reject": 16
     },
     "baseline": "pass",
-    "binary_sha256": "162385572cc872b376bb4b9407989fc9fa96612fe6ba345962b5bc398bb56911",
+    "binary_sha256": "055cc374b213a5c6874d881a398d0a04c95114bed85ce2abed868932633b4c20",
     "case_list": [
      "run811/d3/00-h10012-s1",
      "run812/d3/01-h10012-s4",
@@ -4650,12 +4653,13 @@
     ],
     "nearcore_accept": 56,
     "nearcore_reject": 72,
-    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
+    "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore), host-rows traced with the control build of the current_contract_code fix (ctl 055cc374); verdicts identical to the default checker; disagreeing cases excluded"
    },
    "paths": [
     "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
     "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
-    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json",
+    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/ccc-fix/README.md"
    ],
    "target": "host:storage_iter_range"
   },

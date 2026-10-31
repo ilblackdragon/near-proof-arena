@@ -1,5 +1,6 @@
 import NearSpecV3.Successor.TierO6
 import NearSpecV3.Logged.TrieHash
+import NearSpecV3.Successor.LayoutReach
 
 /-! # L0 row validation: masked and dead d2-core guards (Gate-B, `allFeatures`)
 
@@ -19,6 +20,15 @@ lemmas in the rows' evidence; it checks that each named lemma is declared in thi
   satisfies `BandwidthSchedulerParams::calculate`'s assertions for every shard count.
 * `L0-D2-039` (`main base_state does not hash to prev_state_root`) never fails: a trie revealed from a
   hash-addressed store hashes to the root it was revealed from (`Logged.hashOf_revealAll`).
+* `L0-D2-012` / `L0-same-layout` (`c.same_layout`) and `L0-D2-019` / `L0-split-gate`
+  (`c.no_split_gate`), and their description `L0-guard-noResharding`, are evaluated on `allFeatures`
+  only for segments that contain the genesis block (`checkD2CoreGWith`). They run after the
+  epoch-protocol-version check (`c.pv86`, `L0-D2-011`), so every epoch of the claim is PV86 when they
+  run. On nearcore's epoch model (`Successor.LayoutReach.Chain`), a chain whose genesis epoch is
+  PV86 has a *static* `config(86)` (`genesis.rs:64-69`), so every PV86 epoch keeps the genesis
+  layout (`genesis_segment_same_layout`) and no block of such an epoch carries a split gate
+  (`genesis_segment_no_split_gate`): nearcore computes one only under a dynamic config
+  (`runtime/mod.rs:597`, oracle `claim.rs:176`).
 -/
 
 namespace NearSpecV3.L0Guards
@@ -228,5 +238,36 @@ theorem scheduler_params_pv86 (n : Nat) :
 theorem base_state_hashes (merged : List Bytes) (fuel : Nat) (root : Bytes) :
     (revealAll (mkHStore merged) fuel root).hashOf = root :=
   Logged.hashOf_revealAll (Logged.HInv_mkHStore merged) fuel root
+
+/-! ## Resharding guards on genesis segments (L0-D2-012, L0-D2-019) -/
+
+section GenesisSegment
+open NearSpecV3.Successor.LayoutReach
+
+/-- Any two epochs `i, j ≤ w` of a chain whose epochs `0..w` are all PV86 have the same layout: the
+honest epoch table of a genesis segment satisfies `c.same_layout`. -/
+theorem genesis_segment_same_layout {L : Type} (ch : Chain L) (w : Nat)
+    (hpv : ∀ i, i ≤ w → ch.pv i = 86) (i j : Nat) (hi : i ≤ w) (hj : j ≤ w) :
+    ch.layout i = ch.layout j := by
+  rw [genesis_segment_one_layout ch w hpv i hi, genesis_segment_one_layout ch w hpv j hj]
+
+/-- `gate i` is the split gate of a block of epoch `i`. nearcore (and the oracle's claim) computes
+one only when `config(pv i)` is dynamic (`hg`). If epochs `0..w` are PV86, `config(86)` is the
+genesis epoch's static config, so no block of those epochs has a gate: the honest `apply_facts` of
+a genesis segment satisfy `c.no_split_gate`. -/
+theorem genesis_segment_no_split_gate {L G : Type} (ch : Chain L) (gate : Nat → Option G)
+    (hg : ∀ i g, gate i = some g → ch.cfg (ch.pv i) = .dynamic) (w : Nat)
+    (hpv : ∀ i, i ≤ w → ch.pv i = 86) : ∀ i, i ≤ w → gate i = none := by
+  intro i hi
+  have hs : ch.cfg 86 = .static (ch.layout 0) := by
+    have := ch.genesis0; rwa [hpv 0 (Nat.zero_le _)] at this
+  cases h : gate i with
+  | none => rfl
+  | some g =>
+    have hd := hg i g h
+    rw [hpv i hi, hs] at hd
+    cases hd
+
+end GenesisSegment
 
 end NearSpecV3.L0Guards

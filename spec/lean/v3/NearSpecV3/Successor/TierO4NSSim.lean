@@ -73,7 +73,8 @@ def callTailLeg (cfg : NearCfg) (c : ActCtx) (st : ActSt) (ar : AR) (method args
     receivers := if isLast then (a.outputs.map fun (_, r) => strOf r).toArray else #[],
     chainId := strOf env.chainId,
     validators := (env.validators.map fun (v, s) => (strOf v, s)).toArray,
-    accountContract := some (toBA hh) }
+    accountContract := (NearSpecV3.Successor.StorageExecution.ctxContract acct.contract).1,
+    accountContractTag := (NearSpecV3.Successor.StorageExecution.ctxContract acct.contract).2 }
   let pfx := TTN.contractDataPrefix ctx.currentAccount
   let ovl : TTN.BMap (Option ByteArray) :=
     (st.o.committed ++ st.o.prosp).foldl (fun m (k, v) =>
