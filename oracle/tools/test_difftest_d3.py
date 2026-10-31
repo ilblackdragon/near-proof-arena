@@ -565,19 +565,19 @@ class RaceExclusion(unittest.TestCase):
 
 
 class DeployServedRace(unittest.TestCase):
-    """Rule 1 (W08's conservative exclusions): the race exclusion on an in-domain
-    `e.code_deploy_served` case passes only as `race_exclusion_conservative`, and only when nearcore's
-    forced schedules give one verdict at two failure points and the decode finds a deploy-served call."""
+    """Rule 1 since G3 (2026-10-31): the checker decides W08's deploy-served cases, so the race
+    exclusion on an in-domain `e.code_deploy_served` case is a failure, whatever nearcore's forced
+    schedules and the decode say (the `race_exclusion_conservative` bucket is gone)."""
 
     def m(self, sched=SCHED_RACES):
         return meta(False, violations=["e.code_deploy_served"], nearcore_schedule=sched)
 
-    def test_failure_point_race_with_independent_decode_is_conservative(self):
+    def test_failure_point_race_is_no_longer_a_pass(self):
         bad, part, rec = successor(self.m(), "out_of_domain", RACE, independent=stub(True))
-        self.assertEqual(bad, [])
-        self.assertEqual(rec["classification"], "race_exclusion_conservative")
-        self.assertTrue(rec["nearcore_schedule_failure_point_races"])
-        self.assertIn("race_exclusion_conservative", d3.PASS_BUCKETS)
+        self.assertEqual(part["domain_exclusion_where_in_domain"], 1)
+        self.assertEqual(len(bad), 1)
+        self.assertEqual(rec["classification"], "domain_exclusion_where_in_domain")
+        self.assertNotIn("race_exclusion_conservative", d3.PASS_BUCKETS)
 
     def test_deterministic_schedules_fail(self):
         same = {"eager": SCHED_RACES["eager"], "lazy": SCHED_RACES["eager"]}

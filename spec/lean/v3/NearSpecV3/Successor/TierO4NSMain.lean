@@ -292,7 +292,7 @@ theorem fwdSimX (e : Env) : FwdSimX e := by
 /-- **`EngineAgreeX` holds**: the legacy engine is simulated by `NS` up to the escapes, on every
 shell input. No premise. -/
 theorem engineAgreeX (cfg : Wasm.NearCfg) : EngineAgreeX cfg := by
-  refine engineAgreeX_of_simX cfg PT trivial fun merged p e vu ps rs txs cg he => ?_
+  refine engineAgreeX_of_simX cfg PT (fun _ => trivial) fun merged p e vu ps rs txs cg he => ?_
   have hs : HInv e.store := by rw [he]; exact HInv_mkHStore merged
   exact simx_applyNewChunkD2 cfg hs p vu ps rs txs cg (fwdSimX e)
 

@@ -541,7 +541,9 @@ read, (d) keeps the soft limit unexceeded (finding G1), together with the forwar
 V2 layouts: `fwdSim_v2`; V3 layouts: finding G4) and the per-receipt simulation (`PWISim`). -/
 structure EngineObligations (cfg : Wasm.NearCfg) (e : Env) where
   P : Recording → Prop
-  init : P { observe := cfg.observeDetail }
+  init : ∀ chain : Bytes, P { observe := cfg.observeDetail, pipe := { chain } }
+  /-- G3 as a premise: the invariant excludes a noted preparation race (`StorageExecution.raceCheck`). -/
+  noRace : ∀ r, P r → r.pipe.raced = false
   frame : PFrame P
   reads : ∀ r keys, P r → P { r with recorder := recordReads e keys r.recorder }
   soft : ∀ r, P r → r.recorder.size ≤ r.softLimit
@@ -562,7 +564,7 @@ theorem engineAgree_of_obligations (cfg : Wasm.NearCfg)
     (fun fuel rs rsO h => sim_processDelayed cfg O.frame O.reads O.soft O.pwi fuel rs rsO h)
     (fun rs rsO l h => sim_processIncoming cfg O.frame O.reads O.soft O.pwi rs rsO l h)
     (fun next fuel acc accO h => sim_yieldLoop O.frame O.reads O.soft next fuel acc accO h)
-  have h0 := hsim _ O.init
+  have h0 := hsim _ (O.init e.chainId)
   unfold SimAt at h0
   refine ⟨fun err hx hne _ => ?_, fun out hx _ => ?_⟩
   · cases hl : D2.applyNewChunkD2 (D3.d3Hooks cfg) p e (T e) vu ps rs txs cg with
@@ -573,15 +575,17 @@ theorem engineAgree_of_obligations (cfg : Wasm.NearCfg)
       rcases h0 with h0 | h0
       · rw [hne] at h0; cases h0
       · unfold StorageExecution.run
-        rw [h0]; rfl
+        rw [raceCheck_run, h0]; rfl
   · cases hl : D2.applyNewChunkD2 (D3.d3Hooks cfg) p e (T e) vu ps rs txs cg with
     | error err' => rw [hl] at hx; cases hx
     | ok a =>
       rw [hl] at hx h0
       cases hx
-      obtain ⟨b, r', hy, rfl, _⟩ := h0
+      obtain ⟨b, r', hy, rfl, hr'⟩ := h0
       unfold StorageExecution.run
-      rw [hy]; rfl
+      rw [raceCheck_run, hy]
+      simp only [Except.bind, O.noRace _ hr', Bool.false_eq_true, ↓reduceIte, Except.map]
+      rfl
 
 #print axioms engineAgree_of_obligations
 #print axioms sim_applyNewChunkD2

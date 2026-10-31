@@ -183,7 +183,20 @@ theorem MRX.logged {X : String → Prop} (hX : ∀ e, isExclusion e = true → X
 theorem MRQ.logged {E : Env → Prop} {α : Type} {x y : LM α} (h : LR x y) :
     MR E (StorageExecution.logged x) (StorageExecution.logged y) := MRX.logged (fun _ h => h) h
 
+/-- The end-of-run race decision (`StorageExecution.raceCheck`): the lower run excludes, or neither
+run noted a race (`PipeRel.raced`). -/
+theorem MRX.raceCheck {X : String → Prop} {E : Env → Prop} {Q : MainOutD2 → Prop}
+    (hX : X raceExclusion) (out : MainOutD2) (hq : Q out) :
+    MRX X E Q (StorageExecution.raceCheck out) (StorageExecution.raceCheck out) := by
+  unfold StorageExecution.raceCheck
+  refine MRX.get_bind fun rL rU hr => ?_
+  cases hL : rL.pipe.raced
+  · rw [PipeRel.raced hr.2 hL]
+    exact MRX.pure _ hq
+  · exact MRX.throw_ex _ hX _
+
 #print axioms MRX.bind
+#print axioms MRX.raceCheck
 #print axioms MRX.logged
 #print axioms MRX.modifyPipe
 

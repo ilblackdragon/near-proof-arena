@@ -1,5 +1,12 @@
 # completeCodeGlobal pipeline-race arm (W12, 2026-10-30)
 
+> **2026-10-31, G3 fixed ([g3-per-call-race](../g3-per-call-race/README.md)).** Lean's pipeline model
+> now schedules a global-contract call exactly as `ReceiptPreparationPipeline::submit` does, so this
+> family no longer reaches the race arm through `uncertain`. All 4 seeds were regenerated with
+> nearcore's forced eager/lazy schedules on every case: on the 3,853 cases the 189 former race
+> exclusions are decided and agree with nearcore under both schedules; the 11 that remain are code
+> mutants on which nearcore's verdict differs between the schedules.
+
 > **Superseded by the W08 merge (main `459a66c8a`).** W08 replaced `resolveCompleteCode` with the
 > cold validator's policy (`complete_eq_cold`). Its race arm sends untimely code to
 > `out of domain (e.code_prep_race)`, and its evidence is the `code-cache` family in

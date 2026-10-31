@@ -57,12 +57,23 @@ theorem stepF_unc (ga : Bool) (env : Env) (rs : RS) (p : Pipe) (h : p.uncertain 
     · exact h
   · exact h
 
-theorem pipeFn_step (env : Env) (rs : RS) : PipeFn (stepF false env rs) (stepF true env rs) := by
-  refine PipeFn.of_unc (fun p h => stepF_unc false env rs p h) fun p => ?_
+theorem stepF_raced (ga : Bool) (env : Env) (rs : RS) (p : Pipe) (b : Bool) (h : p.raced = b) :
+    (stepF ga env rs p).raced = b := by
   unfold stepF
   split
   · split
-    · exact pipeFn_sched _ _ (decLe_storedRcpt _) _ _ decLe_stored _ _ _ _ _ _ p p (PipeRel.refl p)
+    · exact schedFn_raced _ _ _ _ _ _ _ _ p b h
+    · exact h
+  · exact h
+
+theorem pipeFn_step (env : Env) (rs : RS) : PipeFn (stepF false env rs) (stepF true env rs) := by
+  refine PipeFn.of_unc (fun p h => stepF_unc false env rs p h) (fun p b h => stepF_raced false env rs p b h)
+    (fun p b h => stepF_raced true env rs p b h) fun p => ?_
+  unfold stepF
+  split
+  · split
+    · exact (pipeFn_sched _ _ (decLe_storedRcpt _) _ _ decLe_stored _ _ _ _ _ _ p p (PipeRel.refl p)).elim
+        Or.inl fun h => Or.inr h.1
     · exact Or.inl rfl
   · exact Or.inl rfl
 
@@ -188,12 +199,14 @@ theorem run_resQ (prims : Prims) (env : Env) (hwf : env.ctx.layout.WF) (t : PTri
     (vu : Option ValidatorUpdateFacts) (props : List (Bytes × Nat)) (incoming : List Rcpt)
     (txs : List (TxD2 × Bool)) (cong : Congestion) :
     ResQ Exc (fun out : MainOutD2 => ND out.outgoing)
-      ((StorageExecution.applyNewChunkD2 ⟨false, p⟩ w prims env t vu props incoming txs cong).run
-        { observe := w.observeDetail } env)
+      ((StorageExecution.applyNewChunkD2 ⟨false, p⟩ w prims env t vu props incoming txs cong
+          >>= StorageExecution.raceCheck).run
+        { observe := w.observeDetail, pipe := { chain := env.chainId } } env)
       ((StorageExecution.applyNewChunkD2 ⟨true, p⟩ { w with globalActions := true } prims env t vu props incoming txs
-        cong).run { observe := w.observeDetail } env) :=
-  applyNewChunkD2_rr (E := fun _ => True) w hg p prims env hwf t vu props incoming txs cong _ _ env
-    (RecRel.refl _) trivial
+          cong >>= StorageExecution.raceCheck).run
+        { observe := w.observeDetail, pipe := { chain := env.chainId } } env) :=
+  MRX.bind (applyNewChunkD2_rr (E := fun _ => True) w hg p prims env hwf t vu props incoming txs cong)
+    (fun out h => MRX.raceCheck raceExclusion_isExclusion out h) _ _ env (RecRel.refl _) trivial
 
 /-- **O3, the engine.** On a well-formed layout, the recorder engine with global actions off is
 refined by the engine with them on (configuration and flag both switched). -/

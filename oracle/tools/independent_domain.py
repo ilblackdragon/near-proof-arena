@@ -67,13 +67,15 @@ PREDICATES = {
 # checks `!B2.isGenesis`), `c.segment` and the 8 MiB bound (the hand-over driver's lift flags are
 # false), the `w.shape` ML-DSA / global-contract shapes (no global actions, `D2/Types.lean`), the
 # non-ED25519 transaction key (`D2/TxD2.lean`) and the cold-cache code rule (`D3/FunctionCall.lean`).
-# The successor tiers (`tools/d3/replay_successor.py`) are licensed here only for the preparation
-# race, the named exclusion every whole-state tier shares (`Successor/CodeResolution.lean`); every
-# other successor exclusion stays licensed by the oracle's own labels.
+# The successor tiers (`tools/d3/replay_successor.py`) are licensed here for nothing. Until G3
+# (2026-10-31, docs/evidence/lean-chunk-completion/g3-per-call-race) they were licensed for the
+# preparation race on the decoded structural precondition (`call_served_by_earlier_in_chunk_deploy`),
+# which covered the race exclusions Lean's chunk-wide `uncertain` flag produced; now every remaining
+# race exclusion must carry the oracle's race label, which nearcore's forced schedules establish.
 TIER_EXCLUSIONS = {
     "signed": frozenset({R_NOT_GENESIS, R_SEGMENT, R_WSIZE_8MIB, R_NON_ED25519_TX, R_MLDSA_KEY,
                          R_GCD, R_CACHE_SERVED}),
-    "successor": frozenset({R_PREP_RACE}),
+    "successor": frozenset(),
 }
 
 

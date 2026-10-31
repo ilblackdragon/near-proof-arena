@@ -330,10 +330,30 @@ theorem foldlM {γ α β : Type} {e : Env} {P : Recording → Prop} {φ : α →
 
 end SimE
 
+open StorageExecution in
+/-- `raceCheck` after a program, as an `Except` computation. -/
+theorem raceCheck_run (x : M MainOutD2) (r : Recording) (e : Env) :
+    (x >>= StorageExecution.raceCheck).run r e =
+      (x.run r e).bind fun q => if q.2.pipe.raced = true then .error raceExclusion else .ok q := by
+  show (StateT.bind x StorageExecution.raceCheck) r e = _
+  simp only [StateT.bind, bind, ReaderT.bind, Except.bind, StateT.run]
+  cases x r e with
+  | error err => rfl
+  | ok q =>
+    obtain ⟨a, s⟩ := q
+    dsimp only
+    unfold StorageExecution.raceCheck
+    show (if s.pipe.raced = true then (throw raceExclusion : M MainOutD2) else pure a) s e = _
+    cases h : s.pipe.raced <;> rfl
+
 /-- The top-level bridge: a simulation of the whole main transition from the initial recorder state
-gives the engine obligation (`EngineAgreeL`, hence `EngineAgree` by `engineAgree_of_logged`). -/
+gives the engine obligation (`EngineAgreeL`, hence `EngineAgree` by `engineAgree_of_logged`). Since
+2026-10-31 (G3) the recorder decides a noted preparation race at the end of the run
+(`StorageExecution.raceCheck`), so the invariant `P` must also exclude a noted race (`hP`): that is
+the form G3 takes as a premise. -/
 theorem engineAgreeL_of_simE (cfg : Wasm.NearCfg) (P : StorageExecution.Recording → Prop)
-    (hinit : P { observe := cfg.observeDetail })
+    (hinit : ∀ chain : Bytes, P { observe := cfg.observeDetail, pipe := { chain } })
+    (hP : ∀ r, P r → r.pipe.raced = false)
     (h : ∀ (merged : List Bytes) (p : Prims) (e : Env) (vu : Option ValidatorUpdateFacts)
       (ps : List (Bytes × Nat)) (rs : List Rcpt) (txs : List (TxD2 × Bool)) (cg : Congestion),
       e.store = mkHStore merged →
@@ -342,7 +362,7 @@ theorem engineAgreeL_of_simE (cfg : Wasm.NearCfg) (P : StorageExecution.Recordin
           (revealAll e.store revealFuel e.preRoot) vu ps rs txs cg)) :
     EngineAgreeL cfg := by
   intro merged p e vu ps rs txs cg he
-  have hs := h merged p e vu ps rs txs cg he _ hinit
+  have hs := h merged p e vu ps rs txs cg he _ (hinit e.chainId)
   have hmap : ∀ {β γ : Type} (f : β → γ) (y : StorageExecution.M β) (r : StorageExecution.Recording),
       (f <$> y).run r e = (y.run r e).map fun q => (f q.1, q.2) := by
     intro β γ f y r
@@ -358,24 +378,32 @@ theorem engineAgreeL_of_simE (cfg : Wasm.NearCfg) (P : StorageExecution.Recordin
       rcases hs with hs | hs
       · rw [hne] at hs; cases hs
       · unfold StorageExecution.run
+        rw [raceCheck_run]
         cases hy : (StorageExecution.applyNewChunkD2 { globalActions := false, codePolicy := .coldPartial } cfg p e
-          (revealAll e.store revealFuel e.preRoot) vu ps rs txs cg).run { observe := cfg.observeDetail } e with
+          (revealAll e.store revealFuel e.preRoot) vu ps rs txs cg).run
+            { observe := cfg.observeDetail, pipe := { chain := e.chainId } } e with
         | ok q => rw [hy] at hs; cases hs
-        | error err'' => rw [hy] at hs; cases hs; rfl
+        | error err'' =>
+          rw [hy] at hs; cases hs
+          rfl
   · cases hl : Logged.LM.ev e.store e.preRoot (applyNewChunkD2L (D3.d3HooksL cfg) p e vu ps rs txs cg) with
     | error err' => rw [hl] at hx; cases hx
     | ok a =>
       rw [hl] at hx hs
       cases hx
-      obtain ⟨r', hy, _⟩ := hs
+      obtain ⟨r', hy, hr'⟩ := hs
       unfold StorageExecution.run
+      rw [raceCheck_run]
       cases hy' : (StorageExecution.applyNewChunkD2 { globalActions := false, codePolicy := .coldPartial } cfg p e
-          (revealAll e.store revealFuel e.preRoot) vu ps rs txs cg).run { observe := cfg.observeDetail } e with
+          (revealAll e.store revealFuel e.preRoot) vu ps rs txs cg).run
+            { observe := cfg.observeDetail, pipe := { chain := e.chainId } } e with
       | error err'' => rw [hy'] at hy; cases hy
       | ok q =>
         rw [hy'] at hy
         simp only [Except.map, Except.ok.injEq, Prod.mk.injEq] at hy
-        simp only [Except.map, hy.1]
+        have hq : q.2.pipe.raced = false := by
+          first | (rw [hy.2]; exact hP _ hr') | (rw [← hy.2]; exact hP _ hr')
+        simp only [Except.bind, hq, Bool.false_eq_true, ↓reduceIte, Except.map, hy.1]
 
 #print axioms engineAgreeL_of_simE
 #print axioms SimE.bind

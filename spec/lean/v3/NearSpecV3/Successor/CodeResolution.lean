@@ -131,6 +131,15 @@ def resolveCompleteCode (sources : CodeSources) (_pre : PrestateCode) (timely : 
       | some code => if timely then .ok code else .error raceExclusion
       | none => .error missingCode
 
+/-- Only an in-chunk deploy (committed or rolled back, not the call's own receipt) holds the code:
+the case whose preparation can race (`Pipeline.Pipe.noteRace`). Exactly the case in which
+`resolveColdCode`/`resolveCompleteCode` return `raceExclusion` at `timely = false`
+(`deployServed_iff_race`). -/
+def CodeSources.deployServed (sources : CodeSources) (hash : Bytes) : Bool :=
+  (sources.witness hash).isNone &&
+  (sources.current.find? (fun code => sha256 code == hash)).isNone &&
+  ((sources.committed ++ sources.attempted).find? (fun code => sha256 code == hash)).isSome
+
 def resolveCodeBytes (policy : CodeWitnessPolicy) (sources : CodeSources)
     (pre : PrestateCode) (hash : Bytes) (timely : Bool := true) : Except String Bytes :=
   match policy with
@@ -165,5 +174,29 @@ theorem complete_unauthenticated (sources : CodeSources) (pre : PrestateCode) (h
     (timely : Bool) (found : sources.witness hash = some code) (bad : sha256 code ≠ hash) :
     resolveCodeBytes .complete sources pre hash timely = .error unauthenticatedCodeWitness := by
   simp [resolveCodeBytes, resolveCompleteCode, found, bad]
+
+/-- At `timely = true` neither policy ever reports the race. -/
+theorem resolveCodeBytes_timely_ne_race (policy : CodeWitnessPolicy) (sources : CodeSources)
+    (pre : PrestateCode) (hash : Bytes) :
+    resolveCodeBytes policy sources pre hash true ≠ .error raceExclusion := by
+  cases policy <;> simp only [resolveCodeBytes, resolveColdCode, resolveCompleteCode] <;>
+  cases hw : sources.witness hash <;>
+  cases hc : sources.current.find? (fun code => sha256 code == hash) <;>
+  cases hd : (sources.committed ++ sources.attempted).find? (fun code => sha256 code == hash) <;>
+  simp only [hw, hc, hd] <;> (try split) <;> simp_all [missingCode, raceExclusion, unauthenticatedCodeWitness]
+
+/-- The race arm of both policies is exactly `deployServed`, and off it `timely` is irrelevant. -/
+theorem deployServed_iff_race (policy : CodeWitnessPolicy) (sources : CodeSources)
+    (pre : PrestateCode) (hash : Bytes) :
+    (resolveCodeBytes policy sources pre hash false = .error raceExclusion ↔
+      sources.deployServed hash = true) ∧
+    (sources.deployServed hash = false →
+      resolveCodeBytes policy sources pre hash false = resolveCodeBytes policy sources pre hash true) := by
+  cases policy <;> simp only [resolveCodeBytes, resolveColdCode, resolveCompleteCode,
+    CodeSources.deployServed] <;>
+  cases hw : sources.witness hash <;>
+  cases hc : sources.current.find? (fun code => sha256 code == hash) <;>
+  cases hd : (sources.committed ++ sources.attempted).find? (fun code => sha256 code == hash) <;>
+  simp only [hw, hc, hd] <;> (try split) <;> simp_all [missingCode, raceExclusion, unauthenticatedCodeWitness]
 
 end NearSpecV3.Successor
