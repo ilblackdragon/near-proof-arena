@@ -293,6 +293,10 @@ Receipts at rest are also assumed valid (`validReceipt false`, the runtime's own
 stored postponed or yield receipt is executed without re-validation, and an `addKey` action with a
 nonzero gas balance — which `validReceipt` forbids — would create that balance from nothing. Every
 real stored receipt was validated when it was received. Found by the deepseek-fv provers.
+They are also assumed no larger than `Lim.maxReceiptSize` (4 MiB): `validReceipt false` skips the
+size clause, and a receipt with ~`2^32` output-data receivers, appended to an emitted receipt,
+wraps that receipt's `u32` count so its stored bytes decode to a different receipt. Every receipt
+the runtime creates passes `validReceipt true`, which includes the bound.
 
 The shard hypotheses say the chunk's inputs belong to the shard. `checkD2CoreObs` establishes the
 first (it filters the incoming receipts by `L.shardOf r.recv == H.shardId`,
@@ -307,7 +311,8 @@ def ChunkConservation : Prop :=
     env.ctx.gasLimit < 2 ^ 64 →
     (∀ s ∈ env.ctx.layout.shardIds, s < 2 ^ 16) →
     (∀ v, t.find (nibbles (kAccount AccountId.system)) ≠ some (some v)) →
-    (∀ r ∈ incoming ++ storedRcpts t, SysGasFree r ∧ validReceipt false r = true) →
+    (∀ r ∈ incoming ++ storedRcpts t,
+      SysGasFree r ∧ validReceipt false r = true ∧ r.encode.length ≤ Lim.maxReceiptSize) →
     (∀ r ∈ incoming, env.ctx.layout.shardOf r.recv = env.ctx.own) →
     (∀ tf ∈ txs, env.ctx.layout.shardOf tf.1.signer = env.ctx.own) →
     (∀ r ∈ incoming, CanonRcpt r) →
