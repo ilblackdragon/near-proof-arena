@@ -1,0 +1,5 @@
+STAGE dump wall_s=12.454210403
+STAGE public wall_s=.114298021
+STAGE base wall_s=473.079161534
+STAGE chain wall_s=2936.373578211
+STAGE verify wall_s=.196746734

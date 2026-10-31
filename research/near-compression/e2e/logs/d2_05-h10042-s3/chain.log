@@ -1,0 +1,192 @@
+TAPE_EVAL_OK u_len=19 openings=1
+NV_PHASE before_dag 32907
+NV_DAG air=0 nodes=13847 rows_so_far=48730
+NV_DAG air=2 nodes=1833 rows_so_far=51971
+NV_DAG air=4 nodes=163 rows_so_far=52900
+NV_DAG air=6 nodes=335 rows_so_far=53524
+NV_DAG air=7 nodes=2734 rows_so_far=57798
+NV_DAG air=25 nodes=48 rows_so_far=58462
+NV_DAG air=1 nodes=13847 rows_so_far=74457
+NV_DAG air=11 nodes=866 rows_so_far=76282
+NV_DAG air=20 nodes=500 rows_so_far=77501
+NV_DAG air=5 nodes=390 rows_so_far=78319
+NV_DAG air=16 nodes=3091 rows_so_far=83719
+NV_DAG air=22 nodes=664 rows_so_far=85255
+NV_DAG air=15 nodes=195 rows_so_far=85748
+NV_DAG air=19 nodes=17 rows_so_far=85807
+NV_DAG air=23 nodes=628 rows_so_far=86799
+NV_DAG air=24 nodes=296 rows_so_far=87486
+NV_DAG air=3 nodes=389 rows_so_far=88005
+NV_DAG air=12 nodes=1003 rows_so_far=90139
+NV_DAG air=14 nodes=148 rows_so_far=90661
+NV_DAG air=13 nodes=428 rows_so_far=91399
+NV_DAG air=17 nodes=121 rows_so_far=91882
+NV_DAG air=18 nodes=58 rows_so_far=92199
+NV_DAG air=8 nodes=3409 rows_so_far=96425
+NV_DAG air=9 nodes=1006 rows_so_far=98079
+NV_DAG air=10 nodes=418 rows_so_far=98785
+NV_DAG air=21 nodes=373 rows_so_far=99525
+NV_PHASE after_dag 99787
+NV_PHASE after_stacking 161926
+NV_QCOST round=0 queries=44 rows=18245 per_query=415 nbits=25 k=2 merkle_nodes=2553
+NV_QCOST round=1 queries=35 rows=12781 per_query=365 nbits=23 k=4 merkle_nodes=3498
+NV_QCOST round=2 queries=27 rows=9855 per_query=365 nbits=23 k=4 merkle_nodes=4227
+NV_QCOST round=3 queries=23 rows=8395 per_query=365 nbits=23 k=4 merkle_nodes=4848
+NV_PHASE end 224861
+L1_VERIFIED rows=224862 shapes=[(1048576, 76), (2097152, 83), (128, 9), (65536, 5)] bytes=363141 seconds=516.30
+NV_PHASE before_dag 31313
+NV_DAG air=1 nodes=5848 rows_so_far=37589
+NV_DAG air=0 nodes=4650 rows_so_far=44269
+NV_DAG air=3 nodes=32 rows_so_far=45567
+NV_DAG air=2 nodes=1234 rows_so_far=46881
+NV_PHASE after_dag 46963
+NV_PHASE after_stacking 57617
+NV_QCOST round=0 queries=48 rows=25277 per_query=527 nbits=25 k=2 merkle_nodes=2784
+NV_QCOST round=1 queries=38 rows=13877 per_query=365 nbits=23 k=4 merkle_nodes=3810
+NV_QCOST round=2 queries=29 rows=10585 per_query=365 nbits=23 k=4 merkle_nodes=4593
+NV_QCOST round=3 queries=23 rows=8395 per_query=365 nbits=23 k=4 merkle_nodes=5214
+NV_PHASE end 139786
+L2_ANCHOR M=1 bind=false floor=Some([284432, 1072760, 128, 65536])
+NV_PHASE before_dag 31313
+NV_DAG air=1 nodes=5848 rows_so_far=37589
+NV_DAG air=0 nodes=4650 rows_so_far=44269
+NV_DAG air=3 nodes=32 rows_so_far=45567
+NV_DAG air=2 nodes=1234 rows_so_far=46881
+NV_PHASE after_dag 46963
+NV_PHASE after_stacking 57617
+NV_QCOST round=0 queries=48 rows=25277 per_query=527 nbits=25 k=2 merkle_nodes=2784
+NV_QCOST round=1 queries=38 rows=13877 per_query=365 nbits=23 k=4 merkle_nodes=3810
+NV_QCOST round=2 queries=29 rows=10585 per_query=365 nbits=23 k=4 merkle_nodes=4593
+NV_QCOST round=3 queries=23 rows=8395 per_query=365 nbits=23 k=4 merkle_nodes=5214
+NV_PHASE end 139786
+L2_VERIFIED rows=139786 shapes=[(1048576, 76), (2097152, 83), (128, 9), (65536, 5)] bytes=358101 seconds=429.07
+NV_PHASE before_dag 31313
+NV_DAG air=1 nodes=5848 rows_so_far=37589
+NV_DAG air=0 nodes=4650 rows_so_far=44269
+NV_DAG air=3 nodes=32 rows_so_far=45567
+NV_DAG air=2 nodes=1234 rows_so_far=46881
+NV_PHASE after_dag 46963
+NV_PHASE after_stacking 61744
+NV_QCOST round=0 queries=48 rows=24701 per_query=515 nbits=25 k=2 merkle_nodes=2784
+NV_QCOST round=1 queries=38 rows=13877 per_query=365 nbits=23 k=4 merkle_nodes=3810
+NV_QCOST round=2 queries=29 rows=10585 per_query=365 nbits=23 k=4 merkle_nodes=4593
+NV_QCOST round=3 queries=23 rows=8395 per_query=365 nbits=23 k=4 merkle_nodes=5214
+NV_PHASE end 143316
+NV_PHASE before_dag 31313
+NV_DAG air=1 nodes=5848 rows_so_far=37589
+NV_DAG air=0 nodes=4650 rows_so_far=44269
+NV_DAG air=3 nodes=32 rows_so_far=45567
+NV_DAG air=2 nodes=1234 rows_so_far=46881
+NV_PHASE after_dag 46963
+NV_PHASE after_stacking 61744
+NV_QCOST round=0 queries=48 rows=24701 per_query=515 nbits=25 k=2 merkle_nodes=2784
+NV_QCOST round=1 queries=38 rows=13877 per_query=365 nbits=23 k=4 merkle_nodes=3810
+NV_QCOST round=2 queries=29 rows=10585 per_query=365 nbits=23 k=4 merkle_nodes=4593
+NV_QCOST round=3 queries=23 rows=8395 per_query=365 nbits=23 k=4 merkle_nodes=5214
+NV_PHASE end 143316
+L3_ANCHOR M=2 bind=false floor=Some([289916, 1074060, 128, 65536])
+NV_PHASE before_dag 31313
+NV_DAG air=1 nodes=5848 rows_so_far=37589
+NV_DAG air=0 nodes=4650 rows_so_far=44269
+NV_DAG air=3 nodes=32 rows_so_far=45567
+NV_DAG air=2 nodes=1234 rows_so_far=46881
+NV_PHASE after_dag 46963
+NV_PHASE after_stacking 61744
+NV_QCOST round=0 queries=48 rows=24701 per_query=515 nbits=25 k=2 merkle_nodes=2784
+NV_QCOST round=1 queries=38 rows=13877 per_query=365 nbits=23 k=4 merkle_nodes=3810
+NV_QCOST round=2 queries=29 rows=10585 per_query=365 nbits=23 k=4 merkle_nodes=4593
+NV_QCOST round=3 queries=23 rows=8395 per_query=365 nbits=23 k=4 merkle_nodes=5214
+NV_PHASE end 143316
+L3_VERIFIED rows=143316 shapes=[(1048576, 76), (2097152, 83), (128, 9), (65536, 5)] bytes=356967 seconds=425.26
+NV_PHASE before_dag 31313
+NV_DAG air=1 nodes=5848 rows_so_far=37589
+NV_DAG air=0 nodes=4650 rows_so_far=44269
+NV_DAG air=3 nodes=32 rows_so_far=45567
+NV_DAG air=2 nodes=1234 rows_so_far=46881
+NV_PHASE after_dag 46963
+NV_PHASE after_stacking 61917
+NV_QCOST round=0 queries=48 rows=24701 per_query=515 nbits=25 k=2 merkle_nodes=2784
+NV_QCOST round=1 queries=38 rows=13877 per_query=365 nbits=23 k=4 merkle_nodes=3810
+NV_QCOST round=2 queries=29 rows=10585 per_query=365 nbits=23 k=4 merkle_nodes=4593
+NV_QCOST round=3 queries=23 rows=8395 per_query=365 nbits=23 k=4 merkle_nodes=5214
+NV_PHASE end 143489
+NV_PHASE before_dag 31313
+NV_DAG air=1 nodes=5848 rows_so_far=37589
+NV_DAG air=0 nodes=4650 rows_so_far=44269
+NV_DAG air=3 nodes=32 rows_so_far=45567
+NV_DAG air=2 nodes=1234 rows_so_far=46881
+NV_PHASE after_dag 46963
+NV_PHASE after_stacking 61917
+NV_QCOST round=0 queries=48 rows=24701 per_query=515 nbits=25 k=2 merkle_nodes=2784
+NV_QCOST round=1 queries=38 rows=13877 per_query=365 nbits=23 k=4 merkle_nodes=3810
+NV_QCOST round=2 queries=29 rows=10585 per_query=365 nbits=23 k=4 merkle_nodes=4593
+NV_QCOST round=3 queries=23 rows=8395 per_query=365 nbits=23 k=4 merkle_nodes=5214
+NV_PHASE end 143489
+L4_ANCHOR M=3 bind=false floor=Some([289916, 1074060, 128, 65536])
+NV_PHASE before_dag 31313
+NV_DAG air=1 nodes=5848 rows_so_far=37589
+NV_DAG air=0 nodes=4650 rows_so_far=44269
+NV_DAG air=3 nodes=32 rows_so_far=45567
+NV_DAG air=2 nodes=1234 rows_so_far=46881
+NV_PHASE after_dag 46963
+NV_PHASE after_stacking 61917
+NV_QCOST round=0 queries=48 rows=24701 per_query=515 nbits=25 k=2 merkle_nodes=2784
+NV_QCOST round=1 queries=38 rows=13877 per_query=365 nbits=23 k=4 merkle_nodes=3810
+NV_QCOST round=2 queries=29 rows=10585 per_query=365 nbits=23 k=4 merkle_nodes=4593
+NV_QCOST round=3 queries=23 rows=8395 per_query=365 nbits=23 k=4 merkle_nodes=5214
+NV_PHASE end 143489
+L4_VERIFIED rows=143490 shapes=[(1048576, 76), (2097152, 83), (128, 9), (65536, 5)] bytes=357219 seconds=496.10
+NV_PHASE before_dag 31313
+NV_DAG air=1 nodes=5848 rows_so_far=37589
+NV_DAG air=0 nodes=4650 rows_so_far=44269
+NV_DAG air=3 nodes=32 rows_so_far=45567
+NV_DAG air=2 nodes=1234 rows_so_far=46881
+NV_PHASE after_dag 46963
+NV_PHASE after_stacking 61917
+NV_QCOST round=0 queries=48 rows=24701 per_query=515 nbits=25 k=2 merkle_nodes=2784
+NV_QCOST round=1 queries=38 rows=13877 per_query=365 nbits=23 k=4 merkle_nodes=3810
+NV_QCOST round=2 queries=29 rows=10585 per_query=365 nbits=23 k=4 merkle_nodes=4593
+NV_QCOST round=3 queries=23 rows=8395 per_query=365 nbits=23 k=4 merkle_nodes=5214
+NV_PHASE end 143489
+NV_PHASE before_dag 31313
+NV_DAG air=1 nodes=5848 rows_so_far=37589
+NV_DAG air=0 nodes=4650 rows_so_far=44269
+NV_DAG air=3 nodes=32 rows_so_far=45567
+NV_DAG air=2 nodes=1234 rows_so_far=46881
+NV_PHASE after_dag 46963
+NV_PHASE after_stacking 61917
+NV_QCOST round=0 queries=48 rows=24701 per_query=515 nbits=25 k=2 merkle_nodes=2784
+NV_QCOST round=1 queries=38 rows=13877 per_query=365 nbits=23 k=4 merkle_nodes=3810
+NV_QCOST round=2 queries=29 rows=10585 per_query=365 nbits=23 k=4 merkle_nodes=4593
+NV_QCOST round=3 queries=23 rows=8395 per_query=365 nbits=23 k=4 merkle_nodes=5214
+NV_PHASE end 143489
+L5_ANCHOR M=3 bind=true floor=Some([289916, 1074060, 128, 65536])
+NV_PHASE before_dag 31313
+NV_DAG air=1 nodes=5848 rows_so_far=37589
+NV_DAG air=0 nodes=4650 rows_so_far=44269
+NV_DAG air=3 nodes=32 rows_so_far=45567
+NV_DAG air=2 nodes=1234 rows_so_far=46881
+NV_PHASE after_dag 46963
+NV_PHASE after_stacking 61917
+NV_QCOST round=0 queries=48 rows=24701 per_query=515 nbits=25 k=2 merkle_nodes=2784
+NV_QCOST round=1 queries=38 rows=13877 per_query=365 nbits=23 k=4 merkle_nodes=3810
+NV_QCOST round=2 queries=29 rows=10585 per_query=365 nbits=23 k=4 merkle_nodes=4593
+NV_QCOST round=3 queries=23 rows=8395 per_query=365 nbits=23 k=4 merkle_nodes=5214
+NV_PHASE end 143489
+L5_VERIFIED rows=143490 shapes=[(1048576, 76), (2097152, 83), (128, 9), (65536, 5)] bytes=358563 seconds=525.66
+FINAL_PHASE start
+NV_PHASE before_dag 31313
+NV_DAG air=1 nodes=5848 rows_so_far=37589
+NV_DAG air=0 nodes=4650 rows_so_far=44269
+NV_DAG air=3 nodes=32 rows_so_far=45567
+NV_DAG air=2 nodes=1234 rows_so_far=46881
+NV_PHASE after_dag 46963
+NV_PHASE after_stacking 61917
+NV_QCOST round=0 queries=48 rows=24701 per_query=515 nbits=25 k=2 merkle_nodes=2784
+NV_QCOST round=1 queries=38 rows=13877 per_query=365 nbits=23 k=4 merkle_nodes=3810
+NV_QCOST round=2 queries=29 rows=10585 per_query=365 nbits=23 k=4 merkle_nodes=4593
+NV_QCOST round=3 queries=23 rows=8395 per_query=365 nbits=23 k=4 merkle_nodes=5214
+NV_PHASE end 143489
+FINAL_PHASE proved_and_verified seconds=465.239972
+NEGATIVE_CONTROLS_OK changed_tape_root changed_program
+FINAL_VERIFIED {"bundle_bytes":307427,"hint_bytes":16,"levels":6,"proof_bytes":306479,"scope":"D0a","security_established":false,"setup_sha256":"8966620ac0f219492e18c49954384232ecf7764ce0c20adefa0cb6a43cda60e5","tape_eval":true,"trusted_setup_bytes":3849911,"under_300000":false,"zero_knowledge_established":false}

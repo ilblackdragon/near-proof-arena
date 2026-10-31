@@ -67,7 +67,28 @@ The per-component failure terms have not been computed; that is part of the obli
 `results/zk128-sweep.txt`, from `whir/examples/zk128.rs` (patch `patches/plonky3-zk128-example.patch`
 against Plonky3 `3acc8b7`), KoalaBear^8, SHA-384 Merkle with an 11-element (341-bit) digest — the
 closest serializable analogue of the PQ track's 42-byte truncation — one committed column.
-See README §ZK for the table. The 128-bit Johnson-bound octic configuration that panicked in
+
+| n (vars) | target | regime | rate | grinding | ell_zk / mask rate | plain B | HVZK B | **ZK delta** |
+|---:|---:|---|---:|---:|---|---:|---:|---:|
+| 16 | 100 | capacity | 1/4 | 16 | 16 / 1/32 | 44,966 | 149,439 | +104,473 |
+| 18 | 100 | capacity | 1/4 | 16 | 16 / 1/32 | 52,086 | 156,563 | +104,477 |
+| 18 | 128 | Johnson | 1/2 | 0 | 3 / 1/8 | 187,534 | 480,858 | +293,324 |
+| 18 | 128 | Johnson | 1/64 | 30 | 16 / 1/32 | 71,512 | 293,598 | **+222,086** |
+| 20 | 128 | Johnson | 1/64 | 20 | 16 / 1/32 | 99,847 | 412,254 | **+312,407** |
+
+Readings:
+* The 100-bit point reproduces `bench/RESULTS.md`'s *additive, size-independent* overhead; with
+  341-bit digests instead of 8-element Poseidon2 digests it is 104 KB instead of 72.6 KB.
+* **At the PQ track's level (128-bit Johnson, rate 1/64) the overhead is 222–312 KB, not the
+  model's 92.9 KB.** The mask oracles are spot-checked without grinding at the full security level
+  (`mask_queries = queries(λ + log(2·rounds+2), mask rate)`), so they do not get the z-bit discount
+  the main oracle gets, and Johnson-regime bits per query are about half of capacity's.
+* Applied to this run's 306–307 KB non-ZK packets, a ZK final layer would be ≈ 530–620 KB, over
+  the ~400 KB the owner accepted. Levers, none measured here: grinding on mask spot checks (a
+  Plonky3 change), a lower-rate mask code, fewer WHIR rounds in the wrap (fewer mask oracles), or a
+  ZK layer over a smaller (compressed) inner proof.
+* Prover time: 1.03–1.6× at 100-bit; the 128-bit rows' single-core times are dominated by grinding
+  and are not comparable. The 128-bit Johnson-bound octic configuration that panicked in
 `bench/RESULTS.md` constructs and proves at this Plonky3 revision (`zk128 18 128 1 0 3 3`), so the
 "crash" is resolved upstream; the remaining ZK overhead number is the one in the table.
 
