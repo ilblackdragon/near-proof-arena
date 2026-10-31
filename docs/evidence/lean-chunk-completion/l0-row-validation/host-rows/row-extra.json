@@ -1,163 +1,178 @@
 {
  "host:current_contract_code": {
-  "disagreement_reason": "on an account whose contract is global (AccountContract::Global / GlobalByAccount) nearcore returns 2 / 3 with the code hash / the account id (logic.rs:4000-4030); Lean always returns 1 with the code hash (Wasm/Host.lean:726-730, ctx.accountContract := some hash in Successor/StorageExecution.lean:202), so the post-state differs and Lean rejects the valid chunk. Not a soundness bug: no Lean accept of a nearcore reject",
   "exercising": {
-   "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
+   "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore), host-rows traced with the control build of the current_contract_code fix (ctl 055cc374); verdicts identical to the default checker; disagreeing cases excluded"
   },
   "paths": [
    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
-   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json",
+   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/ccc-fix/README.md"
   ]
  },
  "host:gas": {
   "exercising": {
-   "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
+   "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore), host-rows traced with the control build of the current_contract_code fix (ctl 055cc374); verdicts identical to the default checker; disagreeing cases excluded"
   },
   "paths": [
    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
-   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json",
+   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/ccc-fix/README.md"
   ]
  },
  "host:promise_batch_action_add_gas_key_with_full_access": {
   "exercising": {
-   "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
+   "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore), host-rows traced with the control build of the current_contract_code fix (ctl 055cc374); verdicts identical to the default checker; disagreeing cases excluded"
   },
   "paths": [
    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
-   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json",
+   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/ccc-fix/README.md"
   ]
  },
  "host:promise_batch_action_add_gas_key_with_function_call": {
   "exercising": {
-   "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
+   "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore), host-rows traced with the control build of the current_contract_code fix (ctl 055cc374); verdicts identical to the default checker; disagreeing cases excluded"
   },
   "paths": [
    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
-   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json",
+   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/ccc-fix/README.md"
   ]
  },
  "host:promise_batch_action_deploy_global_contract": {
   "exercising": {
-   "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
+   "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore), host-rows traced with the control build of the current_contract_code fix (ctl 055cc374); verdicts identical to the default checker; disagreeing cases excluded"
   },
   "paths": [
    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
-   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json",
+   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/ccc-fix/README.md"
   ]
  },
  "host:promise_batch_action_deploy_global_contract_by_account_id": {
   "exercising": {
-   "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
+   "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore), host-rows traced with the control build of the current_contract_code fix (ctl 055cc374); verdicts identical to the default checker; disagreeing cases excluded"
   },
   "paths": [
    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
-   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json",
+   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/ccc-fix/README.md"
   ]
  },
  "host:promise_batch_action_state_init": {
   "exercising": {
-   "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
+   "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore), host-rows traced with the control build of the current_contract_code fix (ctl 055cc374); verdicts identical to the default checker; disagreeing cases excluded"
   },
   "paths": [
    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
-   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json",
+   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/ccc-fix/README.md"
   ]
  },
  "host:promise_batch_action_state_init_by_account_id": {
   "exercising": {
-   "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
+   "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore), host-rows traced with the control build of the current_contract_code fix (ctl 055cc374); verdicts identical to the default checker; disagreeing cases excluded"
   },
   "paths": [
    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
-   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json",
+   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/ccc-fix/README.md"
   ]
  },
  "host:promise_batch_action_transfer_to_gas_key": {
   "exercising": {
-   "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
+   "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore), host-rows traced with the control build of the current_contract_code fix (ctl 055cc374); verdicts identical to the default checker; disagreeing cases excluded"
   },
   "paths": [
    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
-   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json",
+   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/ccc-fix/README.md"
   ]
  },
  "host:promise_batch_action_use_global_contract_by_account_id": {
   "exercising": {
-   "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
+   "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore), host-rows traced with the control build of the current_contract_code fix (ctl 055cc374); verdicts identical to the default checker; disagreeing cases excluded"
   },
   "paths": [
    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
-   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json",
+   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/ccc-fix/README.md"
   ]
  },
  "host:promise_set_refund_to": {
   "exercising": {
-   "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
+   "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore), host-rows traced with the control build of the current_contract_code fix (ctl 055cc374); verdicts identical to the default checker; disagreeing cases excluded"
   },
   "paths": [
    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
-   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json",
+   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/ccc-fix/README.md"
   ]
  },
  "host:refund_to_account_id": {
   "exercising": {
-   "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
+   "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore), host-rows traced with the control build of the current_contract_code fix (ctl 055cc374); verdicts identical to the default checker; disagreeing cases excluded"
   },
   "paths": [
    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
-   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json",
+   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/ccc-fix/README.md"
   ]
  },
  "host:set_state_init_data_entry": {
   "exercising": {
-   "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
+   "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore), host-rows traced with the control build of the current_contract_code fix (ctl 055cc374); verdicts identical to the default checker; disagreeing cases excluded"
   },
   "paths": [
    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
-   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json",
+   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/ccc-fix/README.md"
   ]
  },
  "host:storage_iter_next": {
   "exercising": {
-   "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
+   "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore), host-rows traced with the control build of the current_contract_code fix (ctl 055cc374); verdicts identical to the default checker; disagreeing cases excluded"
   },
   "paths": [
    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
-   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json",
+   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/ccc-fix/README.md"
   ]
  },
  "host:storage_iter_prefix": {
   "exercising": {
-   "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
+   "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore), host-rows traced with the control build of the current_contract_code fix (ctl 055cc374); verdicts identical to the default checker; disagreeing cases excluded"
   },
   "paths": [
    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
-   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json",
+   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/ccc-fix/README.md"
   ]
  },
  "host:storage_iter_range": {
   "exercising": {
-   "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore); verdicts identical to the default checker; disagreeing cases excluded"
+   "source": "observation trace of the control build over the first-pass populations plus the host-rows scenario (oracle/v3-successor, 4 seeds, 11,437 cases, every one judged by cold pinned nearcore), host-rows traced with the control build of the current_contract_code fix (ctl 055cc374); verdicts identical to the default checker; disagreeing cases excluded"
   },
   "paths": [
    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/README.md",
    "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/cases.tar.gz",
-   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json"
+   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/replay/ablate-hr.json",
+   "docs/evidence/lean-chunk-completion/l0-row-validation/host-rows/ccc-fix/README.md"
   ]
  }
 }

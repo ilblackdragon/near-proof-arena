@@ -727,7 +727,7 @@ def hostCall (name : String) : Option (HM Unit) :=
     let a ← popArgs 1; payBaseH C.base
     match (← get).ctx.accountContract with
     | none => pushRet 0   -- AccountContract::None (the harness context)
-    | some h => regSetH a[0] h; pushRet 1   -- AccountContract::Local(h)
+    | some h => regSetH a[0] h; pushRet (← get).ctx.accountContractTag   -- Local 1 / Global 2 / GlobalByAccount 3
   | "validator_stake" => some do
     let a ← popArgs 3
     payBaseH C.base

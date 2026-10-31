@@ -139,6 +139,15 @@ def resolveCode (c : ActCtx) (st : ActSt) (acct : D2.Acct) : M (Option Bytes × 
 
 open NearSpecV3.D3
 
+/-- `VMContext.account_contract` (`function_call.rs:275`: the receiver's current
+`account.contract()`, before any code resolution or legacy-wallet redirect) as
+`current_contract_code` reports it (`logic.rs:4000-4030`): the register value and the return value. -/
+def ctxContract : D2.Contract → Option ByteArray × Nat
+  | .none => (none, 0)
+  | .local h => (some (toBA h), 1)
+  | .global h => (some (toBA h), 2)
+  | .byAccount id => (some (toBA id), 3)
+
 /-- The VM call of a `FunctionCall` action under the step budget `fuelOf cfg ctx.prepaidGas`.
 
 W02: the call first runs the fuel certificate (`Wasm/FuelCert.lean`). `Wasm.wasmFuel_sufficient`
@@ -199,7 +208,8 @@ def functionCallRecordedF (fl : Flags) (fuelOf : NearCfg → Nat → Nat) (cfg :
     receivers := if isLast then (a.outputs.map fun (_, r) => strOf r).toArray else #[],
     chainId := strOf env.chainId,
     validators := (env.validators.map fun (v, s) => (strOf v, s)).toArray,
-    accountContract := some (toBA hh) }
+    accountContract := (ctxContract acct.contract).1,
+    accountContractTag := (ctxContract acct.contract).2 }
   -- trie-backed External over the merged witness values (§4.2, d3-trie-accounting.md)
   let pfx := TTN.contractDataPrefix ctx.currentAccount
   let ovl : TTN.BMap (Option ByteArray) :=
