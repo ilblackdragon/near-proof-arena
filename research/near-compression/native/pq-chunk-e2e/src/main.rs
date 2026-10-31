@@ -52,6 +52,26 @@ fn read_vk(path: &Path) -> MultiStarkVerifyingKey<SC> {
     envelope.vk.inner.params.whir.domain_odd_factor = envelope.domain_odd_factor;
     envelope.vk
 }
+type Ef = openvm_recursion_circuit::sha384::config::EF;
+fn tape_eval() -> bool {
+    openvm_recursion_circuit::nv::circuit::tape_eval_lever()
+}
+fn ef_words(x: Ef) -> [u32; 12] {
+    use p3_field::PrimeField32;
+    openvm_recursion_circuit::nv::builder::coeffs(x).map(|c| c.as_canonical_u32())
+}
+fn ef_of_words(w: [u32; 12]) -> Ef {
+    assert!(w.iter().all(|&x| x < 0x7800_0001), "noncanonical extension coefficient");
+    openvm_recursion_circuit::nv::builder::ef_from(w.map(p3_field::PrimeCharacteristicRing::from_u32))
+}
+/// The base proof's stacking point, recorded by its native verification on this thread.
+fn base_point(vk: &MultiStarkVerifyingKey<SC>, p: &Proof<SC>) -> Vec<Ef> {
+    let _ = openvm_stark_backend::verifier::take_last_stacking_point::<Ef>();
+    Sha384CpuEngine::new(vk.inner.params.clone())
+        .verify(vk, p)
+        .expect("base reverify");
+    openvm_stark_backend::verifier::take_last_stacking_point::<Ef>().expect("stacking point")
+}
 fn hash(bytes: &[u8]) -> String {
     format!("{:x}", Sha256::digest(bytes))
 }
@@ -202,6 +222,9 @@ fn init() {
             ("NEARPROOF_TSTAR", "1"),
             ("NEARPROOF_CPU_FAST", "1"),
             ("NEARPROOF_STREAM_COMMIT", "1"),
+            // e2e: bind the base's cached TAPE by its openings at the stacking point (L1 circuit),
+            // so the verifier evaluates the public TAPE instead of recomputing its commitment.
+            ("NEARPROOF_TAPE_EVAL", "1"),
         ] {
             if std::env::var_os(k).is_none() {
                 std::env::set_var(k, v);
@@ -261,17 +284,37 @@ fn chain(
     let (mut vk, mut p) = load_base(out);
     state::chunk_bridge::check_base_key(air, public, &vk);
     let base_params = vk.inner.params.clone();
-    let claim = state::chunk_bridge::expected_claim(air, public, base_params.clone());
-    assert_eq!(p.public_values, claim.public_values, "base public values");
+    let root_claim = state::chunk_bridge::expected_claim(air, public, base_params.clone());
+    assert_eq!(p.public_values, root_claim.public_values, "base public values");
     assert_eq!(
         p.trace_vdata
             .iter()
             .flatten()
             .flat_map(|v| v.cached_commitments.clone())
             .collect::<Vec<_>>(),
-        claim.cached_roots,
+        root_claim.cached_roots,
         "base TAPE root"
     );
+    // The statement the chain carries: with tape-eval, the TAPE enters through its openings at
+    // the base stacking point (checked here against the base proof's own openings).
+    let base_u = base_point(&vk, &p);
+    let claim = if tape_eval() {
+        let c = state::chunk_bridge::expected_claim_at(air, public, base_params.clone(), &base_u);
+        let ys = &c.tape_point.as_ref().unwrap().1;
+        assert!(
+            p.stacking_proof.stacking_openings.iter().any(|o| o == ys),
+            "public TAPE evaluation differs from the base proof's TAPE opening"
+        );
+        std::fs::write(
+            out.join("BASE.u.json"),
+            serde_json::to_vec(&base_u.iter().map(|&x| ef_words(x)).collect::<Vec<_>>()).unwrap(),
+        )
+        .unwrap();
+        println!("TAPE_EVAL_OK u_len={} openings={}", base_u.len(), ys.len());
+        c
+    } else {
+        root_claim
+    };
     let parent = Sha384CpuEngine::new(profile::params(false, certs, exclusions));
     let final_engine = Sha384CpuEngine::new_final(profile::params(true, certs, exclusions));
     let mut circ = NvCircuit::new(vk.inner.params.k_whir(), 18, 1);
@@ -381,7 +424,7 @@ fn chain(
     let fw: Vec<_> = b.instrs.iter().map(|i| i.words()).collect();
     assert_eq!(fw, words, "FINAL program differs from child");
     let setup = Setup {
-        version: 1,
+        version: if tape_eval() { 2 } else { 1 },
         domain_odd_factor: 15,
         air_sha256: hash(&std::fs::read(air).unwrap()),
         base_params,
@@ -398,7 +441,10 @@ fn chain(
         .expect("final statement + pinned program");
     // Verify that the actual final artifact cannot be relabelled with a different statement.
     let mut wrong = claim.clone();
-    wrong.cached_roots[0][0] ^= 1;
+    match wrong.tape_point.as_mut() {
+        Some((u, _)) => u[0] += <Ef as p3_field::PrimeCharacteristicRing>::ONE,
+        None => wrong.cached_roots[0][0] ^= 1,
+    }
     assert!(vd::verify_final_claim(&vd, &final_engine, &wrong, &fp, false).is_err());
     let mut bad_setup = vd.clone();
     bad_setup.program[0][0] ^= 1;
@@ -411,12 +457,21 @@ fn chain(
     std::fs::write(out.join("SETUP.sha256"), &pin).unwrap();
     let proof_bytes = save_proof(&out.join("FINAL.proof"), &fp);
     let hint = std::fs::read(out.join("hint.bin")).unwrap();
-    let mut packet = b"NPQCH01\0".to_vec();
+    let mut packet = if tape_eval() { b"NPQCH02\0".to_vec() } else { b"NPQCH01\0".to_vec() };
     packet.extend_from_slice(&(hint.len() as u64).to_le_bytes());
     packet.extend_from_slice(&hint);
+    if tape_eval() {
+        // v2: the base stacking point (public Fiat-Shamir randomness; bound by the statement)
+        packet.extend_from_slice(&(base_u.len() as u32).to_le_bytes());
+        for &x in &base_u {
+            for w in ef_words(x) {
+                packet.extend_from_slice(&w.to_le_bytes());
+            }
+        }
+    }
     fp.encode(&mut packet).unwrap();
     std::fs::write(out.join("FINAL.bundle"), &packet).unwrap();
-    let result = serde_json::json!({"scope":"D0a","trusted_setup_bytes":setup_size,"security_established":false,"zero_knowledge_established":false,"proof_bytes":proof_bytes,"hint_bytes":hint.len(),"bundle_bytes":packet.len(),"under_300000":packet.len()<300000,"setup_sha256":pin,"levels":levels+1});
+    let result = serde_json::json!({"scope":"D0a","trusted_setup_bytes":setup_size,"security_established":false,"zero_knowledge_established":false,"proof_bytes":proof_bytes,"hint_bytes":hint.len(),"bundle_bytes":packet.len(),"under_300000":packet.len()<300000,"setup_sha256":pin,"levels":levels+1,"tape_eval":tape_eval()});
     std::fs::write(
         out.join("RESULT.json"),
         serde_json::to_vec_pretty(&result).unwrap(),
@@ -424,30 +479,65 @@ fn chain(
     .unwrap();
     println!("FINAL_VERIFIED {result}");
 }
+/// Bundle framing: (hint length, base stacking point for v2, offset of the encoded proof).
+/// v1 = magic | u64 hint length | hint | proof; v2 adds u32 m | m x 12 u32 (the base point) before
+/// the proof.
+fn bundle_parts(packet: &[u8], v2: bool, base_n_stack: usize) -> (usize, Option<Vec<Ef>>, usize) {
+    assert!(
+        packet.len() >= 16 && &packet[..8] == if v2 { b"NPQCH02\0" } else { b"NPQCH01\0" },
+        "bundle framing"
+    );
+    let n = usize::try_from(u64::from_le_bytes(packet[8..16].try_into().unwrap())).unwrap();
+    assert!(n <= packet.len() - 16, "truncated hint");
+    let mut body = 16 + n;
+    let base_u: Option<Vec<Ef>> = v2.then(|| {
+        assert!(packet.len() >= body + 4, "truncated stacking point");
+        let m = u32::from_le_bytes(packet[body..body + 4].try_into().unwrap()) as usize;
+        assert_eq!(m, base_n_stack + 1, "stacking point length");
+        body += 4;
+        assert!(packet.len() >= body + 48 * m, "truncated stacking point");
+        let u = (0..m)
+            .map(|i| {
+                let o = body + 48 * i;
+                ef_of_words(core::array::from_fn(|k| {
+                    u32::from_le_bytes(packet[o + 4 * k..o + 4 * k + 4].try_into().unwrap())
+                }))
+            })
+            .collect();
+        body += 48 * m;
+        u
+    });
+    (n, base_u, body)
+}
 fn verify(air: &str, claim_path: &str, helper: &str, setup_path: &str, pin: &str, bundle: &str) {
+    let t_all = std::time::Instant::now();
+    let mut lap = t_all;
+    let mut phases: Vec<(&str, f64)> = vec![];
+    let mut mark = |name: &'static str, phases: &mut Vec<(&str, f64)>| {
+        phases.push((name, lap.elapsed().as_secs_f64() * 1e3));
+        lap = std::time::Instant::now();
+    };
     let setup_bytes = std::fs::read(setup_path).unwrap();
     assert_eq!(
         hash(&setup_bytes),
         pin,
         "untrusted setup: hash differs from operator's pin"
     );
+    mark("setup_read_pin", &mut phases);
     let mut setup: Setup = serde_json::from_slice(&setup_bytes).unwrap();
+    mark("setup_parse", &mut phases);
     assert_eq!(setup.domain_odd_factor, 15);
     setup.base_params.whir.domain_odd_factor = setup.domain_odd_factor;
     setup.final_vk.inner.params.whir.domain_odd_factor = setup.domain_odd_factor;
-    assert_eq!(setup.version, 1);
+    assert!(setup.version == 1 || setup.version == 2, "setup version");
     assert_eq!(
         hash(&std::fs::read(air).unwrap()),
         setup.air_sha256,
         "AIR differs from pinned setup"
     );
     let packet = std::fs::read(bundle).unwrap();
-    assert!(
-        packet.len() >= 16 && &packet[..8] == b"NPQCH01\0",
-        "bundle framing"
-    );
-    let n = usize::try_from(u64::from_le_bytes(packet[8..16].try_into().unwrap())).unwrap();
-    assert!(n <= packet.len() - 16, "truncated hint");
+    let (n, base_u, body) = bundle_parts(&packet, setup.version == 2, setup.base_params.n_stack);
+    mark("air_pin_bundle_read", &mut phases);
     let dir = tempfile::tempdir().unwrap();
     let hint = dir.path().join("hint.bin");
     std::fs::write(&hint, &packet[16..16 + n]).unwrap();
@@ -462,9 +552,14 @@ fn verify(air: &str, claim_path: &str, helper: &str, setup_path: &str, pin: &str
             .success(),
         "claim/hint rejected"
     );
-    let expected =
-        state::chunk_bridge::expected_claim(air, public.to_str().unwrap(), setup.base_params);
-    let fp = decode_proof(&packet[16 + n..]);
+    mark("statepublic_subprocess", &mut phases);
+    let expected = match &base_u {
+        Some(u) => state::chunk_bridge::expected_claim_at(air, public.to_str().unwrap(), setup.base_params, u),
+        None => state::chunk_bridge::expected_claim(air, public.to_str().unwrap(), setup.base_params),
+    };
+    mark("expected_claim_tape", &mut phases);
+    let fp = decode_proof(&packet[body..]);
+    mark("proof_decode", &mut phases);
     let engine = Sha384CpuEngine::new_final(setup.final_vk.inner.params.clone());
     vd::verify_final_claim(
         &VdSetup {
@@ -478,10 +573,81 @@ fn verify(air: &str, claim_path: &str, helper: &str, setup_path: &str, pin: &str
         false,
     )
     .expect("final verifier");
+    mark("final_verify", &mut phases);
+    let total = t_all.elapsed().as_secs_f64() * 1e3;
+    println!(
+        "VERIFY_PROFILE_MS total={total:.2} {}",
+        phases.iter().map(|(k, v)| format!("{k}={v:.2}")).collect::<Vec<_>>().join(" ")
+    );
     println!(
         "INDEPENDENT_VERIFY_OK bundle_bytes={} under_300000={}",
         packet.len(),
         packet.len() < 300000
+    );
+}
+/// Split timing of the verifier's stages on already-prepared public inputs (median of `reps`).
+/// Measurement only; `verify` is the acceptance path.
+fn verify_bench(air: &str, public: &str, setup_path: &str, bundle: &str, reps: usize) {
+    let mut setup: Setup = serde_json::from_slice(&std::fs::read(setup_path).unwrap()).unwrap();
+    setup.base_params.whir.domain_odd_factor = setup.domain_odd_factor;
+    setup.final_vk.inner.params.whir.domain_odd_factor = setup.domain_odd_factor;
+    let packet = std::fs::read(bundle).unwrap();
+    let (_, base_u, body) = bundle_parts(&packet, setup.version == 2, setup.base_params.n_stack);
+    let med = |mut v: Vec<f64>| {
+        v.sort_by(|a, b| a.partial_cmp(b).unwrap());
+        v[v.len() / 2]
+    };
+    let time = |f: &mut dyn FnMut()| {
+        let t = std::time::Instant::now();
+        f();
+        t.elapsed().as_secs_f64() * 1e3
+    };
+    let (mut tc, mut td, mut tv, mut tp) = (vec![], vec![], vec![], vec![]);
+    let mut claim = None;
+    for _ in 0..reps {
+        tc.push(time(&mut || {
+            claim = Some(match &base_u {
+                Some(u) => state::chunk_bridge::expected_claim_at(air, public, setup.base_params.clone(), u),
+                None => state::chunk_bridge::expected_claim(air, public, setup.base_params.clone()),
+            })
+        }));
+    }
+    let claim = claim.unwrap();
+    let mut fp = None;
+    for _ in 0..reps {
+        td.push(time(&mut || fp = Some(decode_proof(&packet[body..]))));
+    }
+    let fp = fp.unwrap();
+    let engine = Sha384CpuEngine::new_final(setup.final_vk.inner.params.clone());
+    let vd = VdSetup {
+        vk_final: setup.final_vk.clone(),
+        program: setup.program.clone(),
+        level: setup.level,
+    };
+    for _ in 0..reps {
+        tv.push(time(&mut || {
+            engine.verify(&setup.final_vk, &fp).expect("final proof")
+        }));
+    }
+    for _ in 0..reps {
+        tp.push(time(&mut || {
+            vd::check_final_program(&vd, &fp).expect("program")
+        }));
+    }
+    let mut tf = vec![];
+    for _ in 0..reps {
+        tf.push(time(&mut || {
+            vd::verify_final_claim(&vd, &engine, &claim, &fp, false).expect("final claim")
+        }));
+    }
+    println!(
+        "VERIFY_BENCH_MS threads={} reps={reps} expected_claim={:.2} decode={:.3} engine_verify={:.2} program_check_replay={:.2} verify_final_claim={:.2}",
+        std::env::var("RAYON_NUM_THREADS").unwrap_or_default(),
+        med(tc),
+        med(td),
+        med(tv),
+        med(tp),
+        med(tf)
     );
 }
 fn main() {
@@ -515,6 +681,33 @@ fn main() {
             true,
         ),
         Some("verify") if a.len() == 8 => verify(&a[2], &a[3], &a[4], &a[5], &a[6], &a[7]),
+        Some("soundness") if a.len() >= 3 => {
+            // Per-component soundness bits of each named vk (BASE/L*.vk.json or SETUP.json).
+            for path in &a[2..] {
+                let vk = if path.ends_with("SETUP.json") {
+                    let mut s: Setup = serde_json::from_slice(&std::fs::read(path).unwrap()).unwrap();
+                    s.final_vk.inner.params.whir.domain_odd_factor = s.domain_odd_factor;
+                    s.final_vk
+                } else {
+                    read_vk(Path::new(path))
+                };
+                let c = openvm_stark_backend::soundness::SoundnessCalculator::calculate_from_vk(&vk);
+                let w = &c.whir_details;
+                println!(
+                    "SOUNDNESS_BITS file={path} n_stack={} log_blowup={} queries={:?} logup={:.1} gkr_sumcheck={:.1} gkr_batching={:.1} zerocheck={:.1} constraint_batching={:.1} stacked_reduction={:.1} whir={:.1} total={:.1} whir_query={:.1} whir_proximity={:.1} whir_sumcheck={:.1} whir_fold={:.1} whir_ood={:.1} whir_gamma={:.1} whir_shift={:.1} whir_mu={:.1}",
+                    vk.inner.params.n_stack,
+                    vk.inner.params.log_blowup,
+                    vk.inner.params.whir.rounds.iter().map(|r| r.num_queries).collect::<Vec<_>>(),
+                    c.logup_bits, c.gkr_sumcheck_bits, c.gkr_batching_bits, c.zerocheck_sumcheck_bits,
+                    c.constraint_batching_bits, c.stacked_reduction_bits, c.whir_bits, c.total_bits,
+                    w.query_bits, w.proximity_gaps_bits, w.sumcheck_bits, w.fold_rbr_bits, w.ood_rbr_bits,
+                    w.gamma_batching_bits, w.shift_rbr_bits, w.mu_batching_bits
+                );
+            }
+        }
+        Some("verify-bench") if a.len() == 7 => {
+            verify_bench(&a[2], &a[3], &a[4], &a[5], a[6].parse().unwrap())
+        }
         Some("proof-sections") if a.len() == 3 => {
             let p = read_proof(Path::new(&a[2]));
             println!("PROOF_SECTIONS {}", proof_sections(&p));

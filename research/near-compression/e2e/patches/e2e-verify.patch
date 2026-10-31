@@ -1,0 +1,297 @@
+--- a/stark-backend-unified/crates/stark-backend/src/verifier/mod.rs
++++ b/stark-backend-unified/crates/stark-backend/src/verifier/mod.rs
+@@ -59,6 +59,29 @@
+ mod transcript_extractor;
+ pub mod whir;
+ 
++thread_local! {
++    /// [e2e tape-eval] The stacking point `u_prism` of the last proof verified on this thread
++    /// (a `Vec<SC::EF>`). Observation only: verification never reads it.
++    pub static LAST_STACKING_POINT: core::cell::RefCell<Option<Box<dyn core::any::Any>>> =
++        const { core::cell::RefCell::new(None) };
++}
++
++thread_local! {
++    /// [e2e verify] The batch (zerocheck) point `r` of the last proof verified on this thread.
++    pub static LAST_ZEROCHECK_POINT: core::cell::RefCell<Option<Box<dyn core::any::Any>>> =
++        const { core::cell::RefCell::new(None) };
++}
++
++/// [e2e verify] Take the batch point recorded by the last `verify` on this thread.
++pub fn take_last_zerocheck_point<EF: 'static + Clone>() -> Option<Vec<EF>> {
++    LAST_ZEROCHECK_POINT.with(|c| c.borrow_mut().take()).and_then(|b| b.downcast::<Vec<EF>>().ok().map(|v| *v))
++}
++
++/// [e2e tape-eval] Take the stacking point recorded by the last `verify` on this thread.
++pub fn take_last_stacking_point<EF: 'static + Clone>() -> Option<Vec<EF>> {
++    LAST_STACKING_POINT.with(|c| c.borrow_mut().take()).and_then(|b| b.downcast::<Vec<EF>>().ok().map(|v| *v))
++}
++
+ pub fn verify<SC: StarkProtocolConfig, TS: FiatShamirTranscript<SC>>(
+     config: &SC,
+     mvk: &MultiStarkVerifyingKey<SC>,
+@@ -188,6 +211,8 @@
+         &omega_skip_pows,
+     )?;
+ 
++    // [e2e verify] record the batch point r for callers that check openings at it.
++    LAST_ZEROCHECK_POINT.with(|c| *c.borrow_mut() = Some(Box::new(r.clone())));
+     // Per commit, per matrix, per column: rotated opening present (opening masks).
+     let masks_per_trace = trace_id_to_air_id
+         .iter()
+@@ -223,6 +248,8 @@
+         &omega_skip_pows,
+     )?;
+ 
++    // [e2e tape-eval] record the stacking point for callers that bind cached openings at it.
++    LAST_STACKING_POINT.with(|c| *c.borrow_mut() = Some(Box::new(u_prism.clone())));
+     let (&u0, u_rest) = u_prism.split_first().unwrap();
+     let u_cube = u0
+         .exp_powers_of_2()
+--- a/openvm-sha384/crates/recursion/src/nv/circuit.rs
++++ b/openvm-sha384/crates/recursion/src/nv/circuit.rs
+@@ -286,11 +286,41 @@
+     /// The base proof's cached commitments in the order the NV program chains them (AIR order,
+     /// then each AIR's cached mains in proof order).  Empty = the pre-P4 statement.
+     pub cached_roots: Vec<Digest>,
++    /// [e2e tape-eval] When set, the cached commitments enter the statement through their stacked
++    /// openings at the base proof's stacking point `u` (`(u, openings)`), not through their roots:
++    /// the digest is `node(G1, tape_eval_digest(u, openings))` and `cached_roots` is ignored.
++    pub tape_point: Option<(Vec<crate::sha384::config::EF>, Vec<crate::sha384::config::EF>)>,
++}
++
++/// Leading cell of the tape-eval statement message (ASCII "TAPE" reduced into BabyBear), which
++/// domain-separates it from the G1 statement message under the same SHA tag.
++pub const TAPE_EVAL_MARKER: u32 = 0x5441_5045 % 0x7800_0001;
++
++/// The tape-eval lever (`NEARPROOF_TAPE_EVAL=1`), read once.
++pub fn tape_eval_lever() -> bool {
++    static L: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
++    *L.get_or_init(|| std::env::var("NEARPROOF_TAPE_EVAL").map(|v| v == "1").unwrap_or(false))
++}
++
++/// The base-field cells hashed for the tape-eval statement part: marker, |u|, |openings|, then the
++/// 12 coefficients of every u_i and every opening.
++pub fn tape_eval_cells(u: &[crate::sha384::config::EF], ys: &[crate::sha384::config::EF]) -> Vec<F> {
++    let mut cells = vec![F::from_u32(TAPE_EVAL_MARKER), F::from_usize(u.len()), F::from_usize(ys.len())];
++    for &x in u.iter().chain(ys) {
++        cells.extend(super::builder::coeffs(x));
++    }
++    cells
++}
++
++/// SHA-384 (tag 8, digest width per the levers) of `tape_eval_cells`.
++pub fn tape_eval_digest(u: &[crate::sha384::config::EF], ys: &[crate::sha384::config::EF]) -> Digest {
++    use crate::sha384::config::{digest_from_bytes, felt_bytes, hash_parts, truncate_digest, TAG_STATEMENT};
++    digest_from_bytes(truncate_digest(hash_parts(TAG_STATEMENT, &[&felt_bytes(&tape_eval_cells(u, ys))])))
+ }
+ 
+ impl StatementClaim {
+     pub fn new(public_values: Vec<Vec<F>>) -> Self {
+-        Self { public_values, cached_roots: vec![] }
++        Self { public_values, cached_roots: vec![], tape_point: None }
+     }
+ 
+     /// The statement digest the chain exposes: the G1 digest over the public values, then each
+@@ -298,6 +328,9 @@
+     pub fn digest(&self) -> Digest {
+         use openvm_stark_backend::hasher::MerkleHasher;
+         let mut d = crate::sha384::config::statement_digest(&self.public_values);
++        if let Some((u, ys)) = &self.tape_point {
++            return crate::sha384::config::ShaHasher.compress(d, tape_eval_digest(u, ys));
++        }
+         for r in &self.cached_roots {
+             d = crate::sha384::config::ShaHasher.compress(d, *r);
+         }
+--- a/openvm-sha384/crates/recursion/src/nv/verifier.rs
++++ b/openvm-sha384/crates/recursion/src/nv/verifier.rs
+@@ -512,6 +512,8 @@
+         );
+     }
+ 
++    // [e2e tape-eval] G1 digest waiting for the cached openings (L1 only).
++    let mut deferred_statement: Option<DigestCells> = None;
+     // ---- zerocheck + logup (batch_constraints.rs) ----
+     let gkr = &proof.gkr_proof;
+     let bp = &proof.batch_constraint_proof;
+@@ -964,10 +966,16 @@
+         // rather than appended as more statement bytes: an NV leaf job hashes one block, and the
+         // app statement message is already close to 128 bytes.  With no cached commitment the
+         // chain is empty, so the statement is the G1 one unchanged (inert for the G2 gate).
+-        for root in &cached_cells {
+-            dc = b.node(&dc, root);
++        if super::circuit::tape_eval_lever() && !cached_cells.is_empty() {
++            // [e2e tape-eval] the cached commitments are bound after the stacked reduction,
++            // through their openings at the transcript-derived stacking point (below).
++            deferred_statement = Some(dc);
++        } else {
++            for root in &cached_cells {
++                dc = b.node(&dc, root);
++            }
++            b.pv_digest(&dc);
+         }
+-        b.pv_digest(&dc);
+     }
+     eprintln!("NV_PHASE before_dag {}", b.instrs.len());
+     // per-trace constraint and interaction evaluation
+@@ -1312,6 +1320,46 @@
+         roots.extend(extra_commits[a].iter().copied());
+     }
+     assert_eq!(roots.len(), layouts.len());
++    if let Some(dc0) = deferred_statement.take() {
++        // [e2e tape-eval] P4 by evaluation: the statement covers (u, the cached commitments'
++        // stacked openings at u). u is squeezed after every cached root was observed in the
++        // preamble, and WHIR below proves the openings against those roots, so a cached table
++        // other than the claimed one survives only if its stacked polynomial agrees with the
++        // claimed one at a random point. The verifier then evaluates the public table at u
++        // instead of recomputing its commitment.
++        let mut offs = vec![0usize];
++        for w in &widths {
++            offs.push(offs.last().unwrap() + w);
++        }
++        let mut ys: Vec<V> = vec![];
++        for cc in &cached_cells {
++            let k = roots
++                .iter()
++                .position(|r| r.lo.addr == cc.lo.addr && r.hi.addr == cc.hi.addr)
++                .expect("cached root among the WHIR roots");
++            ys.extend_from_slice(&stack_open[offs[k]..offs[k + 1]]);
++        }
++        let head = [
++            b.c(F::from_u32(super::circuit::TAPE_EVAL_MARKER)),
++            b.c(F::from_usize(u.len())),
++            b.c(F::from_usize(ys.len())),
++        ];
++        let nunits = head.len() + 12 * (u.len() + ys.len());
++        let job = b.job_start(crate::sha384::config::TAG_STATEMENT, 4 * nunits);
++        for (i, &x) in head.iter().enumerate() {
++            b.unit1(x, job, 2 + i as u32);
++        }
++        let mut idx = 2 + head.len() as u32;
++        for &x in u.iter().chain(&ys) {
++            b.unit12(x, job, idx);
++            idx += 12;
++        }
++        let uv: Vec<EF> = u.iter().map(|v| v.val).collect();
++        let yv: Vec<EF> = ys.iter().map(|v| v.val).collect();
++        let dt = b.dig(job, super::circuit::tape_eval_digest(&uv, &yv));
++        let dc = b.node(&dc0, &dt);
++        b.pv_digest(&dc);
++    }
+     whir(b, vk, proof, &stack_open, &widths, &roots, &u_cube, &mut pow_id);
+     eprintln!("NV_PHASE end {}", b.instrs.len());
+ }
+--- a/openvm-sha384/crates/recursion/src/nv/vd.rs
++++ b/openvm-sha384/crates/recursion/src/nv/vd.rs
+@@ -38,10 +38,30 @@
+ /// The final proof's batch point r and its NvAir openings, re-derived natively under the final
+ /// domain (the preamble of `verifier::verify`, then `verify_zerocheck_and_logup`).
+ fn final_point_and_openings(vk: &MultiStarkVerifyingKey<SC>, proof: &Proof<SC>) -> Result<(Vec<EF>, usize, Vec<(EF, EF)>), String> {
++    final_point_and_openings_at(vk, proof, None)
++}
++
++/// As `final_point_and_openings`; with `r_known` (the batch point the native verifier just derived
++/// for this same proof) the transcript replay and the second zerocheck verification are skipped.
++fn final_point_and_openings_at(vk: &MultiStarkVerifyingKey<SC>, proof: &Proof<SC>, r_known: Option<Vec<EF>>) -> Result<(Vec<EF>, usize, Vec<(EF, EF)>), String> {
+     use std::cmp::Reverse;
+     let mvk = &vk.inner;
+     let l_skip = mvk.params.l_skip;
+     let num_airs = mvk.per_air.len();
++    if let Some(r) = r_known {
++        for avk in &mvk.per_air {
++            if avk.preprocessed_data.is_some() || !avk.params.width.cached_mains.is_empty() {
++                return Err("final vk has preprocessed/cached traces".into());
++            }
++        }
++        let mut tid: Vec<usize> = (0..num_airs).collect();
++        tid.sort_by_key(|&a| (Reverse(proof.trace_vdata[a].as_ref().map_or(0, |t| t.log_height)), a));
++        let ti = tid.iter().position(|&a| a == 0).unwrap();
++        let n = proof.trace_vdata[0].as_ref().ok_or("final proof: AIR absent")?.log_height as isize - l_skip as isize;
++        let mask = mvk.per_air[0].params.opening_masks()[0].clone();
++        let open = openvm_stark_backend::proof::column_openings_by_mask(&proof.batch_constraint_proof.column_openings[ti][0], &mask);
++        return Ok((r, n as usize, open));
++    }
+     let mut t = ShaTranscript::new_layer(true);
+     t.observe_commit(vk.pre_hash);
+     t.observe_commit(proof.common_main_commit);
+@@ -90,24 +110,43 @@
+     let tp = super::uair::tau_pows();
+     let omega = F::two_adic_generator(l_skip);
+     let lv: Vec<EF> = (0..1usize << l_skip).map(|i| eq_uni(l_skip, r[0], EF::from(omega.exp_u64(i as u64)))).collect();
++    // [e2e verify] Only the 2^m hypercube points below the program length carry words; above
++    // them eq factors as prod (1 - r_i). Per point, the 2^l_skip x 4 (row, word) weights
++    // lv[i] tau^j are folded into 16 precomputed constants, so the inner sum is base-field
++    // scaled; one extension product per point remains.
++    let points = program.len().div_ceil(1 << l_skip);
++    let m = (usize::BITS - points.saturating_sub(1).leading_zeros()) as usize;
++    let m = m.min(n);
+     let mut eq = vec![EF::ONE];
+-    for &ri in &r[1..=n] {
++    for &ri in &r[1..=m] {
+         let mut next = Vec::with_capacity(2 * eq.len());
+         next.extend(eq.iter().map(|&e| e * (EF::ONE - ri)));
+         next.extend(eq.iter().map(|&e| e * ri));
+         eq = next;
+     }
++    let tail: EF = r[m + 1..=n].iter().map(|&ri| EF::ONE - ri).product();
++    let c: Vec<EF> = (0..1usize << l_skip).flat_map(|i| (0..4).map(move |j| (i, j))).map(|(i, j)| lv[i] * tp[j]).collect();
+     let mut acc = EF::ZERO;
+-    for (y, w) in program.iter().enumerate() {
+-        let p: EF = (0..4).map(|j| tp[j] * F::from_u32(w[j])).sum();
+-        acc += lv[y & ((1 << l_skip) - 1)] * eq[y >> l_skip] * p;
++    for (x, chunk) in program.chunks(1 << l_skip).enumerate() {
++        let mut q = EF::ZERO;
++        for (i, w) in chunk.iter().enumerate() {
++            for j in 0..4 {
++                q += c[4 * i + j] * F::from_u32(w[j]);
++            }
++        }
++        acc += eq[x] * q;
+     }
+-    acc
++    acc * tail
+ }
+ 
+ /// Native check that the final proof's NvAir program columns open to the pinned program.
+ pub fn check_final_program(setup: &VdSetup, proof: &Proof<SC>) -> Result<(), String> {
+-    let (r, n, open) = final_point_and_openings(&setup.vk_final, proof)?;
++    check_final_program_at(setup, proof, None)
++}
++
++/// `check_final_program` reusing the batch point of the verification just performed.
++pub fn check_final_program_at(setup: &VdSetup, proof: &Proof<SC>, r_known: Option<Vec<EF>>) -> Result<(), String> {
++    let (r, n, open) = final_point_and_openings_at(&setup.vk_final, proof, r_known)?;
+     let l_skip = setup.vk_final.inner.params.l_skip;
+     if setup.program.len() > 1usize << (l_skip + n) {
+         return Err("program longer than the NvAir trace".into());
+@@ -136,7 +175,10 @@
+ /// chain only carries a root the base proof actually committed to, so this is what turns "the
+ /// base proof verified" into "the base proof verified *for this TAPE table*".
+ pub fn verify_final_claim(setup: &VdSetup, engine_final: &Sha384CpuEngine, claim: &super::circuit::StatementClaim, proof: &Proof<SC>, skip_program: bool) -> Result<(), String> {
++    let _ = openvm_stark_backend::verifier::take_last_zerocheck_point::<EF>();
+     engine_final.verify(&setup.vk_final, proof).map_err(|e| format!("final proof: {e:?}"))?;
++    // the batch point the verification above derived for this proof (same thread, just now)
++    let r_known = openvm_stark_backend::verifier::take_last_zerocheck_point::<EF>();
+     let pvs = &proof.public_values[0];
+     if pvs.len() != super::uair::NV_NUM_PVS {
+         return Err("final public values".into());
+@@ -146,7 +188,7 @@
+     }
+     check_height_caps(&setup.vk_final, proof)?;
+     if !skip_program {
+-        check_final_program(setup, proof)?;
++        check_final_program_at(setup, proof, r_known)?;
+     }
+     if !super::circuit::check_statement_claim(pvs, claim) {
+         return Err("statement digest differs from the claim".into());
+--- a/openvm-sha384/crates/recursion/src/nv/tests.rs
++++ b/openvm-sha384/crates/recursion/src/nv/tests.rs
+@@ -1606,7 +1606,7 @@
+     let (vk0, p0) = fx.keygen_and_prove(&child_engine);
+     child_engine.verify(&vk0, &p0).unwrap();
+     let tape_root = p0.trace_vdata[0].as_ref().unwrap().cached_commitments[0];
+-    let claim = StatementClaim { public_values: p0.public_values.clone(), cached_roots: vec![tape_root] };
++    let claim = StatementClaim { public_values: p0.public_values.clone(), cached_roots: vec![tape_root], tape_point: None };
+     let d_p4 = claim.digest();
+     let d_pv_only = crate::sha384::config::statement_digest(&p0.public_values);
+     assert_ne!(d_p4, d_pv_only, "the TAPE root must change the statement digest");
