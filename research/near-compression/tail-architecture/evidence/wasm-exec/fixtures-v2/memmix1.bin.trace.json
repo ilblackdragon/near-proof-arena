@@ -1,0 +1,786 @@
+{
+ "name": "memmix1",
+ "n_steps": 35,
+ "total_gas": 35,
+ "result": 0,
+ "result_kind": 1,
+ "steps": [
+  {
+   "pc": 0,
+   "op": "i32.const",
+   "tag": 45,
+   "a": 0,
+   "b": 0,
+   "out": 0,
+   "c": 0,
+   "gas": 1,
+   "mem_addr": 0,
+   "mem_word": 0,
+   "code_off": 38,
+   "stack": [
+    0
+   ],
+   "locals": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "pc": 1,
+   "op": "local.set",
+   "tag": 50,
+   "a": 3,
+   "b": 0,
+   "out": 0,
+   "c": 0,
+   "gas": 1,
+   "mem_addr": 0,
+   "mem_word": 0,
+   "code_off": 40,
+   "stack": [],
+   "locals": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "pc": 2,
+   "op": "local.get",
+   "tag": 49,
+   "a": 3,
+   "b": 0,
+   "out": 0,
+   "c": 0,
+   "gas": 1,
+   "mem_addr": 0,
+   "mem_word": 0,
+   "code_off": 42,
+   "stack": [
+    0
+   ],
+   "locals": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "pc": 3,
+   "op": "i32.const",
+   "tag": 45,
+   "a": 0,
+   "b": 0,
+   "out": 0,
+   "c": 0,
+   "gas": 1,
+   "mem_addr": 0,
+   "mem_word": 0,
+   "code_off": 44,
+   "stack": [
+    0,
+    0
+   ],
+   "locals": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "pc": 4,
+   "op": "i32.add",
+   "tag": 12,
+   "a": 0,
+   "b": 0,
+   "out": 0,
+   "c": 0,
+   "gas": 1,
+   "mem_addr": 0,
+   "mem_word": 0,
+   "code_off": 46,
+   "stack": [
+    0
+   ],
+   "locals": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "pc": 5,
+   "op": "local.get",
+   "tag": 49,
+   "a": 0,
+   "b": 0,
+   "out": 0,
+   "c": 0,
+   "gas": 1,
+   "mem_addr": 0,
+   "mem_word": 0,
+   "code_off": 47,
+   "stack": [
+    0,
+    0
+   ],
+   "locals": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "pc": 6,
+   "op": "i64.const",
+   "tag": 46,
+   "a": 11400714819323198485,
+   "b": 0,
+   "out": 11400714819323198485,
+   "c": 0,
+   "gas": 1,
+   "mem_addr": 0,
+   "mem_word": 0,
+   "code_off": 49,
+   "stack": [
+    0,
+    0,
+    11400714819323198485
+   ],
+   "locals": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "pc": 7,
+   "op": "i64.mul",
+   "tag": 36,
+   "a": 0,
+   "b": 11400714819323198485,
+   "out": 0,
+   "c": 0,
+   "gas": 1,
+   "mem_addr": 0,
+   "mem_word": 0,
+   "code_off": 60,
+   "stack": [
+    0,
+    0
+   ],
+   "locals": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "pc": 8,
+   "op": "i64.const",
+   "tag": 46,
+   "a": 0,
+   "b": 0,
+   "out": 0,
+   "c": 0,
+   "gas": 1,
+   "mem_addr": 0,
+   "mem_word": 0,
+   "code_off": 61,
+   "stack": [
+    0,
+    0,
+    0
+   ],
+   "locals": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "pc": 9,
+   "op": "i64.rotl",
+   "tag": 43,
+   "a": 0,
+   "b": 0,
+   "out": 0,
+   "c": 0,
+   "gas": 1,
+   "mem_addr": 0,
+   "mem_word": 0,
+   "code_off": 63,
+   "stack": [
+    0,
+    0
+   ],
+   "locals": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "pc": 10,
+   "op": "i64.store",
+   "tag": 66,
+   "a": 0,
+   "b": 0,
+   "out": 0,
+   "c": 0,
+   "gas": 1,
+   "mem_addr": 0,
+   "mem_word": 0,
+   "code_off": 64,
+   "stack": [],
+   "locals": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "pc": 11,
+   "op": "local.get",
+   "tag": 49,
+   "a": 3,
+   "b": 0,
+   "out": 0,
+   "c": 0,
+   "gas": 1,
+   "mem_addr": 0,
+   "mem_word": 0,
+   "code_off": 67,
+   "stack": [
+    0
+   ],
+   "locals": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "pc": 12,
+   "op": "i32.const",
+   "tag": 45,
+   "a": 0,
+   "b": 0,
+   "out": 0,
+   "c": 0,
+   "gas": 1,
+   "mem_addr": 0,
+   "mem_word": 0,
+   "code_off": 69,
+   "stack": [
+    0,
+    0
+   ],
+   "locals": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "pc": 13,
+   "op": "i32.add",
+   "tag": 12,
+   "a": 0,
+   "b": 0,
+   "out": 0,
+   "c": 0,
+   "gas": 1,
+   "mem_addr": 0,
+   "mem_word": 0,
+   "code_off": 71,
+   "stack": [
+    0
+   ],
+   "locals": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "pc": 14,
+   "op": "i64.load",
+   "tag": 62,
+   "a": 0,
+   "b": 0,
+   "out": 0,
+   "c": 0,
+   "gas": 1,
+   "mem_addr": 0,
+   "mem_word": 0,
+   "code_off": 72,
+   "stack": [
+    0
+   ],
+   "locals": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "pc": 15,
+   "op": "local.set",
+   "tag": 50,
+   "a": 0,
+   "b": 0,
+   "out": 0,
+   "c": 0,
+   "gas": 1,
+   "mem_addr": 0,
+   "mem_word": 0,
+   "code_off": 75,
+   "stack": [],
+   "locals": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "pc": 16,
+   "op": "local.get",
+   "tag": 49,
+   "a": 3,
+   "b": 0,
+   "out": 0,
+   "c": 0,
+   "gas": 1,
+   "mem_addr": 0,
+   "mem_word": 0,
+   "code_off": 77,
+   "stack": [
+    0
+   ],
+   "locals": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "pc": 17,
+   "op": "i32.const",
+   "tag": 45,
+   "a": 0,
+   "b": 0,
+   "out": 0,
+   "c": 0,
+   "gas": 1,
+   "mem_addr": 0,
+   "mem_word": 0,
+   "code_off": 79,
+   "stack": [
+    0,
+    0
+   ],
+   "locals": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "pc": 18,
+   "op": "i32.add",
+   "tag": 12,
+   "a": 0,
+   "b": 0,
+   "out": 0,
+   "c": 0,
+   "gas": 1,
+   "mem_addr": 0,
+   "mem_word": 0,
+   "code_off": 81,
+   "stack": [
+    0
+   ],
+   "locals": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "pc": 19,
+   "op": "local.get",
+   "tag": 49,
+   "a": 0,
+   "b": 0,
+   "out": 0,
+   "c": 0,
+   "gas": 1,
+   "mem_addr": 0,
+   "mem_word": 0,
+   "code_off": 82,
+   "stack": [
+    0,
+    0
+   ],
+   "locals": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "pc": 20,
+   "op": "i64.store32",
+   "tag": 68,
+   "a": 0,
+   "b": 0,
+   "out": 0,
+   "c": 0,
+   "gas": 1,
+   "mem_addr": 0,
+   "mem_word": 0,
+   "code_off": 84,
+   "stack": [],
+   "locals": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "pc": 21,
+   "op": "local.get",
+   "tag": 49,
+   "a": 3,
+   "b": 0,
+   "out": 0,
+   "c": 0,
+   "gas": 1,
+   "mem_addr": 0,
+   "mem_word": 0,
+   "code_off": 87,
+   "stack": [
+    0
+   ],
+   "locals": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "pc": 22,
+   "op": "i32.const",
+   "tag": 45,
+   "a": 0,
+   "b": 0,
+   "out": 0,
+   "c": 0,
+   "gas": 1,
+   "mem_addr": 0,
+   "mem_word": 0,
+   "code_off": 89,
+   "stack": [
+    0,
+    0
+   ],
+   "locals": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "pc": 23,
+   "op": "i32.add",
+   "tag": 12,
+   "a": 0,
+   "b": 0,
+   "out": 0,
+   "c": 0,
+   "gas": 1,
+   "mem_addr": 0,
+   "mem_word": 0,
+   "code_off": 91,
+   "stack": [
+    0
+   ],
+   "locals": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "pc": 24,
+   "op": "i64.load32_u",
+   "tag": 64,
+   "a": 0,
+   "b": 0,
+   "out": 0,
+   "c": 0,
+   "gas": 1,
+   "mem_addr": 0,
+   "mem_word": 0,
+   "code_off": 92,
+   "stack": [
+    0
+   ],
+   "locals": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "pc": 25,
+   "op": "local.tee",
+   "tag": 51,
+   "a": 2,
+   "b": 0,
+   "out": 0,
+   "c": 0,
+   "gas": 1,
+   "mem_addr": 0,
+   "mem_word": 0,
+   "code_off": 95,
+   "stack": [
+    0
+   ],
+   "locals": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "pc": 26,
+   "op": "drop",
+   "tag": 47,
+   "a": 0,
+   "b": 0,
+   "out": 0,
+   "c": 0,
+   "gas": 1,
+   "mem_addr": 0,
+   "mem_word": 0,
+   "code_off": 97,
+   "stack": [],
+   "locals": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "pc": 27,
+   "op": "local.get",
+   "tag": 49,
+   "a": 0,
+   "b": 0,
+   "out": 0,
+   "c": 0,
+   "gas": 1,
+   "mem_addr": 0,
+   "mem_word": 0,
+   "code_off": 98,
+   "stack": [
+    0
+   ],
+   "locals": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "pc": 28,
+   "op": "local.get",
+   "tag": 49,
+   "a": 0,
+   "b": 0,
+   "out": 0,
+   "c": 0,
+   "gas": 1,
+   "mem_addr": 0,
+   "mem_word": 0,
+   "code_off": 100,
+   "stack": [
+    0,
+    0
+   ],
+   "locals": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "pc": 29,
+   "op": "i64.const",
+   "tag": 46,
+   "a": 17,
+   "b": 0,
+   "out": 17,
+   "c": 0,
+   "gas": 1,
+   "mem_addr": 0,
+   "mem_word": 0,
+   "code_off": 102,
+   "stack": [
+    0,
+    0,
+    17
+   ],
+   "locals": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "pc": 30,
+   "op": "i64.rotr",
+   "tag": 44,
+   "a": 0,
+   "b": 17,
+   "out": 0,
+   "c": 0,
+   "gas": 1,
+   "mem_addr": 0,
+   "mem_word": 0,
+   "code_off": 104,
+   "stack": [
+    0,
+    0
+   ],
+   "locals": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "pc": 31,
+   "op": "i64.xor",
+   "tag": 39,
+   "a": 0,
+   "b": 0,
+   "out": 0,
+   "c": 0,
+   "gas": 1,
+   "mem_addr": 0,
+   "mem_word": 0,
+   "code_off": 105,
+   "stack": [
+    0
+   ],
+   "locals": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "pc": 32,
+   "op": "local.get",
+   "tag": 49,
+   "a": 2,
+   "b": 0,
+   "out": 0,
+   "c": 0,
+   "gas": 1,
+   "mem_addr": 0,
+   "mem_word": 0,
+   "code_off": 106,
+   "stack": [
+    0,
+    0
+   ],
+   "locals": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "pc": 33,
+   "op": "i64.xor",
+   "tag": 39,
+   "a": 0,
+   "b": 0,
+   "out": 0,
+   "c": 0,
+   "gas": 1,
+   "mem_addr": 0,
+   "mem_word": 0,
+   "code_off": 108,
+   "stack": [
+    0
+   ],
+   "locals": [
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "pc": 34,
+   "op": "end",
+   "tag": 59,
+   "a": 0,
+   "b": 0,
+   "out": 0,
+   "c": 0,
+   "gas": 1,
+   "mem_addr": 0,
+   "mem_word": 0,
+   "code_off": 109,
+   "stack": [
+    0
+   ],
+   "locals": [
+    0,
+    0,
+    0,
+    0
+   ]
+  }
+ ]
+}

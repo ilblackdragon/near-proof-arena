@@ -8,7 +8,6 @@ import NearSpecV3.Successor.GlobalExecution
 import NearSpecV3.Successor.QueueExecution
 import NearSpecV3.Successor.PromiseActions
 import NearSpecV3.Wasm.Fuel
-import NearSpecV3.Wasm.FuelCert
 import NearSpecV3.Successor.FailureKinds
 
 /-! Chunk-scoped protocol recorder over the existing read-logging D2 operations.
@@ -150,15 +149,14 @@ def ctxContract : D2.Contract → Option ByteArray × Nat
 
 /-- The VM call of a `FunctionCall` action under the step budget `fuelOf cfg ctx.prepaidGas`.
 
-W02: the call first runs the fuel certificate (`Wasm/FuelCert.lean`). `Wasm.wasmFuel_sufficient`
-proves the budget `wasmFuel` never decides an outcome for a certified contract; a contract whose
-prepared functions fail the certificate is out of domain (`w.fuel_certificate`) instead of being
-run under a budget not proved sufficient. No measured contract fails it (evidence
-`fuel-sufficiency/`). -/
+W02: `Wasm.FuelGen.wasmFuel_sufficient` (`Wasm/FuelGeneral.lean`) proves that the budget `wasmFuel`
+never decides an outcome, for every contract. Until 2026-10-31 this call first ran the fuel
+certificate (`Wasm/FuelCert.lean`) and reported the contract out of domain when a prepared function
+failed it. `Wasm.FuelCertOK.fuelCertified_true` proves the certificate never fails, so the check
+was removed (`Successor/FuelFinal.lean`, `vmCallGuarded_eq`; evidence `fuel-sufficiency/`). -/
 def vmCall (fuelOf : NearCfg → Nat → Nat) (cfg : NearCfg) (code : ByteArray) (method : String)
     (ctx : CallCtx) (real : TTN.RealStore) : Except String Run :=
-  if !fuelCertified cfg code then .error (oodE "w.fuel_certificate: a prepared function fails the fuel certificate")
-  else .ok (runCallWithLimits cfg code method ctx (fuelOf cfg ctx.prepaidGas) true false (some real))
+  .ok (runCallWithLimits cfg code method ctx (fuelOf cfg ctx.prepaidGas) true false (some real))
 
 /-- `functionCallRecorded` with the step budget as a parameter; the checker uses `wasmFuel`. -/
 def functionCallRecordedF (fl : Flags) (fuelOf : NearCfg → Nat → Nat) (cfg : NearCfg) (c : ActCtx) (st : ActSt)

@@ -1,0 +1,52 @@
+{
+  "status": "PQ_VERIFY_PHASE_ATTRIBUTION_NO_SPEEDUP_CLAIM",
+  "base_lane_commit": "e2e0f92f7",
+  "packet": "00-h10035-s3 NPMULT03, 250,126 B, committed at 669eb99c0",
+  "configuration": "serial RAYON_NUM_THREADS=1, taskset CPU8, CI-equivalent release build, one observation per phase line (41 LABRADOR_PHASE marks in the archived run)",
+  "top_level_ms": {
+    "wiring": 520.3,
+    "opening": 946.6,
+    "reduce": 3.1,
+    "commitment": 0.01,
+    "switch": 0.3,
+    "packet_decode": 0.055,
+    "total": 1470.4
+  },
+  "opening_split_ms": {
+    "rebuild": 199.0,
+    "rebuild_layout": 13.1,
+    "rebuild_bound": 9.7,
+    "rebuild_phi": 10.8,
+    "rebuild_statement": 115.9,
+    "bridge_check": 5.3,
+    "bridge_build_raw": 0.2,
+    "c_composite": 725.7
+  },
+  "c_composite_split_ms": {
+    "simple_reduce_round0_r31_n9567": 647,
+    "simple_reduce_lifts": 358.4,
+    "simple_reduce_aggregate": 220.8,
+    "simple_reduce_project": 44.0,
+    "simple_reduce_amortize": 23.5,
+    "later_rounds_reduce_total": 80,
+    "later_rounds_lifts": 57.6,
+    "final_verify_r4_n299": 0.12
+  },
+  "headline_finding": "The serial bottleneck is NOT the IOP sumcheck (3.1 ms). It is C poly-matrix lifts+aggregate (579 ms, same op families the prover already parallelizes via np_pairs/np_jl pthread workers), Rust constraint-wiring replay (520 ms, data-parallel across constraints), and Rust statement build (116 ms, parallelizable rows).",
+  "parallel_bound_estimate": "4-way ideal: ~35 ms serial residue + (579+520+117)/4 \u2248 340 ms; 16-way ideal \u2248 100 ms. Estimates only \u2014 parallel verify kernels NOT implemented; 16-thread numbers must be measured.",
+  "invariant": "No security parameter, rank, norm, or transcript change; instrumentation reads clocks between existing phases only. The committed packet verifies fresh with all four codec negative checks in the instrumented run (see archived log).",
+  "open": [
+    "parallel verify kernels (C lifts/aggregate; Rust wiring; statement rows)",
+    "folding for per-block aggregate verify economics",
+    "prove-side parallelism for the 1-2 s target",
+    "GPU unmeasured",
+    "composed PQ security unproved"
+  ],
+  "evidence_sha256": {
+    "dachshund.c": "d926d13f13afc5bad5cc1ec9ec8dfd2daf126720f1490bb930dfc88a9f6679a6",
+    "labrador.c": "748b159be29366939d3d30e23b6bb87aedc09a3532022562efd8560f97458e1d",
+    "lib-with-verify-timings.rs": "e33bcb5c6fa6ebe156840683a486bd38730444be5196c1cc9abee379e2109e27",
+    "mod-with-bridge-marks.rs": "33f8953141cba51df24624eb28a6e5abb16fb369bbba4705d44f57e488741b28",
+    "verify-attribution-804.log": "f7c202ef2605504ce9838741d96d1b4e5cba01f25b72b628c3d479900ac9e549"
+  }
+}

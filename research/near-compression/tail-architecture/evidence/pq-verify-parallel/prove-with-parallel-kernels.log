@@ -1,0 +1,46 @@
+RECEIPT_LIST_PHASE slots-built
+RECEIPT_LIST_PHASE bytes-packed
+RECEIPT_LIST_PHASE hash-built
+RECEIPT_LIST_PHASE slots-built
+RECEIPT_LIST_PHASE bytes-packed
+RECEIPT_LIST_PHASE hash-built
+RECEIPT_LIST_PHASE slots-built
+RECEIPT_LIST_PHASE bytes-packed
+RECEIPT_LIST_PHASE hash-built
+RECEIPT_LIST_COUNTS public=11935 private=10891022 constants=44542 and=4191295 zero=921597
+RECEIPT_LIST_CIRCUIT cap=1056 mode=1 lists=3 log=23 circuit_s=17.773198986 accounts=10
+RECEIPT_LIST_SETUP setup_s=2.716001287
+RECEIPT_LIST_PROVER_MS pack=38.142506 commit=248.938668 bitand=804.702448 shift=280.312339 switch=208.462615 opening=1534.20279 total=3122.675133
+RECEIPT_OPENING_STAGES OpeningTimings { fold: 70.516396ms, encoding: 53.216063ms, witness: 3.909089ms, t_r: 6.275708ms, masks: 48.863039ms, phi: 11.100197ms, statement: 124.926854ms, labrador: 1.18544598s }
+SIS_POLICY inner rank=25 width=9567 source=20319939987304 target=292281948973 bound=248136683914.40082 bits=142.305 finite=1 tail=0
+SIS_POLICY inner rank=17 width=2392 source=292281948973 target=1795096771 bound=2439074549.1672535 bits=142.570 finite=1 tail=0
+SIS_POLICY inner rank=13 width=1196 source=1795096771 target=72926845 bound=124338346.49130574 bits=148.135 finite=1 tail=0
+SIS_POLICY inner rank=11 width=1196 source=72926845 target=13047113 bound=26700486.226210039 bits=149.195 finite=1 tail=0
+SIS_POLICY inner rank=10 width=598 source=13047113 target=999484058 bound=14163348.769864844 bits=145.220 finite=1 tail=0
+SIS_POLICY inner rank=12 width=299 source=999484058 target=65981973298 bound=57538782.505371526 bits=149.195 finite=1 tail=1
+LABRADOR_BRIDGE check_ms=5.508 build_raw_ms=0.279 composite_ms=542.171
+OPENING_PHASES rebuild_ms=201.321 layout_ms=6.798 bound_ms=9.934 phi_ms=10.916 statement_ms=123.220 labrador_ms=548.003
+RECEIPT_LIST_RESULT path=multi-lists/00-h10035-s3.multi cap=1056 mode=1 lists=3 count=814 bytes=250126 prepare_s=0.05306041 prove_s=3.12801978 ready_s=3.181298861 verify_s=0.963442457 table_mutations_rejected=112 root_mutation_rejected=true mutations=21 full_near=false accounts=10
+	Command being timed: "target/release/near-receipt-multi 16,16,1024 compact multi-lists/00-h10035-s3.multi"
+	User time (seconds): 25.56
+	System time (seconds): 6.88
+	Percent of CPU this job got: 114%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:28.32
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 13207120
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 9577674
+	Voluntary context switches: 1245
+	Involuntary context switches: 1688
+	Swaps: 0
+	File system inputs: 816
+	File system outputs: 520
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

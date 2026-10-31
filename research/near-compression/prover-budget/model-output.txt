@@ -1,0 +1,218 @@
+== H200 SXM derived rates (100 % of INT32 peak; multiply by eff for sustained) ==
+  int32_peak_ops_s             1.67e+13 /s
+  mont31_mul_s                 2.79e+12 /s
+  goldilocks_mul_s             9.29e+11 /s
+  gf128_mul_s                  5.58e+10 /s
+  sha512_comp_s                5.35e+09 /s
+  sha256_comp_s                1.60e+10 /s
+  poseidon2_16_s               2.88e+09 /s
+  ntt_elem_s_2^24_compute      1.39e+11 /s
+  ntt_elem_s_2^24_bw           2.00e+11 /s
+  sustained INT32 at eff=0.35: 5.85e+12 ops/s/GPU
+  arch a: ops/committed cell 763 (commit part 545); ops/fraction 4410
+  arch b: ops/committed cell 932 (commit part 545); ops/fraction 8400
+  arch c: ops/AND 9793
+
+== Workload: per-unit cost and cost per gas (arch a units: work INT32 ops) ==
+  unit                                                   gas/unit  max/Pgas      main     frac   AND-eq ops/gas a vs wasm
+  contract loading byte (SHA-256 + PREP)                 1.09e+06  9.18e+08       212       20     49.4      0.41    1.70
+  ripemd160 block (64 B), measured AIR                    6.8e+08  1.47e+06  1.29e+05      160      960     0.255    1.05
+  wasm op: unaligned i32.load chain                      8.23e+05  1.22e+09        32       19 2.18e+03     0.242    1.00
+  wasm op: i64.div_u chain (2 ops/row)                   8.23e+05  1.22e+09        30     18.5 2.18e+03     0.234    0.97
+  wasm op: i64.mul chain (2 ops/row)                     8.23e+05  1.22e+09        22     14.5 2.18e+03     0.181    0.75
+  wasm op: call of empty function                        8.23e+05  1.22e+09        30       12 1.45e+03     0.169    0.70
+  ML-DSA-65 verify (175 Keccak-f + 22k mod-q mul)           1e+11     1e+04  1.12e+07  6.6e+04 3.29e+05     0.155    0.64
+  storage_write: touched trie node (18 blocks)           2.28e+09  4.39e+05  1.92e+05  1.1e+04 1.08e+04     0.152    0.63
+  storage_read: touched trie node (9 blocks)             2.28e+09  4.39e+05  9.61e+04 5.51e+03  5.4e+03    0.0762    0.31
+  keccak512 block (72 B)                                 2.64e+09  3.79e+05  6.32e+04        0      624     0.032    0.13
+  keccak256 block (136 B)                                2.92e+09  3.42e+05  6.32e+04        0      624    0.0289    0.12
+  log byte (hashed into outcome)                         1.32e+07  7.58e+07       167     9.56     9.38    0.0228    0.09
+  memory.copy byte (linear op unit)                      8.23e+05  1.22e+09      2.44     1.69        4    0.0208    0.09
+  ed25519_verify (5,800 Fp255 mul + SHA-512)             2.11e+11  4.75e+03  6.09e+05  3.9e+05 1.86e+06    0.0191    0.08
+  bls12381 map_fp2_to_g2 element (16,000 mul)               9e+11  1.11e+03   2.3e+06 1.58e+06 1.15e+07    0.0179    0.07
+  ecrecover (6,500 Fp256 mul)                            2.79e+11  3.59e+03  6.24e+05 4.36e+05 2.08e+06    0.0158    0.07
+  sha256 block (64 B)                                    1.54e+09  6.48e+05  1.07e+04      612      600    0.0125    0.05
+  bls12381 p2_decompress element (2,000 mul)             1.65e+11  6.06e+03  2.88e+05 1.98e+05 1.44e+06    0.0122    0.05
+  storage_write value byte (hashed)                       3.1e+07  3.22e+07       167     9.56     9.38   0.00972    0.04
+  bls12381 p1_decompress element (600 mul)                8.1e+10  1.23e+04  8.64e+04 5.94e+04 4.32e+05   0.00746    0.03
+  bls12381 map_fp_to_g1 element (1,700 mul)              2.52e+11  3.97e+03  2.45e+05 1.68e+05 1.22e+06   0.00679    0.03
+  alt_bn128 g1_multiexp element (3,175 mul)               3.2e+11  3.12e+03  3.05e+05 2.13e+05 1.02e+06   0.00674    0.03
+  read_register->memory byte                             2.82e+06  3.54e+08      2.44     1.69        4   0.00607    0.03
+  bls12381 g2_multiexp element (9,300 mul)                  2e+12       501  1.34e+06 9.21e+05  6.7e+06   0.00469    0.02
+  p256_verify (6,500 Fp256 mul)                           1.3e+12       769  6.24e+05 4.36e+05 2.08e+06    0.0034    0.01
+  bls12381 g1_multiexp element (3,100 mul)                9.3e+11  1.08e+03  4.46e+05 3.07e+05 2.23e+06   0.00336    0.01
+  bls12381 p2_sum element (36 mul)                        1.5e+10  6.67e+04  5.18e+03 3.56e+03 2.59e+04   0.00242    0.01
+  bls12381 pairing element (5,000 mul)                   2.13e+12       469   7.2e+05 4.95e+05  3.6e+06   0.00236    0.01
+  bls12381 p1_sum element (12 mul)                          6e+09  1.67e+05  1.73e+03 1.19e+03 8.64e+03   0.00201    0.01
+  alt_bn128 g1_sum element (11 mul)                         5e+09     2e+05  1.06e+03      737 3.52e+03   0.00149    0.01
+  alt_bn128 pairing element (10,000 mul)                  5.1e+12       196   9.6e+05  6.7e+05  3.2e+06   0.00133    0.01
+  promise/receipt creation (5 SHA blocks + 50 rows)      3.08e+11  3.25e+03  5.54e+04 3.81e+03  3.5e+03  0.000342    0.00
+
+  adversarial plan, arch a: total 2.89e+14 INT32 ops (49.4 GPU-s at eff)
+    witness hashing + parsing (gas-free, 64 MiB)               gas      0.0 Tgas  ops 2.33e+13
+    contract loading byte (SHA-256 + PREP)                     gas     73.1 Tgas  ops 3.00e+13
+    ripemd160 block (64 B), measured AIR                       gas    926.9 Tgas  ops 2.36e+14
+
+  adversarial plan, arch b: total 2.56e+14 INT32 ops (43.8 GPU-s at eff)
+    witness hashing + parsing (gas-free, 64 MiB)               gas      0.0 Tgas  ops 1.85e+13
+    contract loading byte (SHA-256 + PREP)                     gas     73.1 Tgas  ops 2.45e+13
+    wasm op: unaligned i32.load chain                          gas    926.9 Tgas  ops 2.13e+14
+
+  adversarial plan, arch c: total 2.59e+16 INT32 ops (4.43e+03 GPU-s at eff)
+    witness hashing + parsing (gas-free, 64 MiB)               gas      0.0 Tgas  ops 8.79e+12
+    wasm op: unaligned i32.load chain                          gas   1000.0 Tgas  ops 2.59e+16
+
+== Verdict table (latency after last receipt; budget 3.0 s on 8 H200) ==
+  arch case    Tgas   GPU-s   base   agg  wrap   segs depth  t_seg          nodes t_wrap   crit backlog    LAT GB/GPU   size B  verify
+  a    adv   1000.0  128.45  51.28 73.11  4.06    137     3  0.374 3.75/1.55/0.16  0.876   6.72   14.98  16.02     64   392867    6.3ms
+  a    real    18.4    3.03   0.35  0.71  1.97      1     0  0.355           0.18  0.440   0.97    0.36   0.98    107   392867    5.3ms
+  b    adv   1000.0   84.82  43.96 38.50  2.36     47     2  0.935      6.06/0.51  0.522   8.03    9.52  10.56     75   392867    6.4ms
+  b    real    18.4    1.87   0.22  0.55  1.10      1     0  0.218           0.14  0.260   0.62    0.21   0.62     48   392867    5.3ms
+  c    adv   1000.0 4649.73 4429.42 220.13  0.18   3532     3  1.254 0.99/0.58/0.13  0.068   3.02  580.14 580.33     75   392867    6.8ms
+  c    real    18.4    2.38   1.76  0.52  0.11     11     2  0.160      0.13/0.04  0.053   0.38    0.28   0.38     12   392867    5.8ms
+  designs chosen (grid search, HBM <= 90 %):
+    a 1000.0 Tgas: {'seg_log_rows': 24, 'lb_base': 1, 'lb_node': 2, 'fan_in': 8, 'pre_wrap': 0}  node comps [263456, 131573, 47578]
+    a   18.4 Tgas: {'seg_log_rows': 24, 'lb_base': 2, 'lb_node': 4, 'fan_in': 2, 'pre_wrap': 1}  node comps [15272]
+    b 1000.0 Tgas: {'seg_log_rows': 23, 'lb_base': 1, 'lb_node': 2, 'fan_in': 8, 'pre_wrap': 0}  node comps [252918, 98679]
+    b   18.4 Tgas: {'seg_log_rows': 22, 'lb_base': 2, 'lb_node': 4, 'fan_in': 2, 'pre_wrap': 1}  node comps [14097]
+    c 1000.0 Tgas: {'seg_log_rows': 24, 'lb_base': 1, 'lb_node': 2, 'fan_in': 16, 'pre_wrap': 0}  node comps [526912, 300737, 254922]
+    c   18.4 Tgas: {'seg_log_rows': 21, 'lb_base': 2, 'lb_node': 3, 'fan_in': 8, 'pre_wrap': 0}  node comps [108078, 23430]
+
+== Feasibility frontier ==
+  arch a: worst-case chunk feasible up to    82.6 Tgas; realistic-mix up to  1000.0 Tgas; 1 Pgas worst case needs eff >= 1.48 of INT32 peak -- impossible
+  arch b: worst-case chunk feasible up to   104.7 Tgas; realistic-mix up to  1000.0 Tgas; 1 Pgas worst case needs eff >= 1.01 of INT32 peak -- impossible
+  arch c: worst-case chunk feasible up to     4.8 Tgas; realistic-mix up to   283.9 Tgas; 1 Pgas worst case needs eff >= 5.00 (search ceiling) of INT32 peak -- impossible
+  worst-case Tgas feasible in budget, by efficiency and GPU count (archs a / b):
+     8 H200  eff 0.20:   21.0 /   51.3   eff 0.35:   82.6 /  104.7   eff 0.60:  219.6 /  310.8
+    16 H200  eff 0.20:   46.0 /  104.7   eff 0.35:  220.3 /  317.8   eff 0.60:  639.6 / 1000.0
+    32 H200  eff 0.20:   99.6 /  211.2   eff 0.35:  678.5 /  637.4   eff 0.60: 1000.0 / 1000.0
+  proof: 392867 B vs cap 300000 (non-ZK wrap 299967 + ZK 92900)
+  verify (protocol model): 6.3 ms; measured implementation 1.46 s (32 threads)
+  queries per round (proven=1): lb1 610, lb2 272, lb3 175, lb4 129, lb5 102, lb6 85, lb7 72
+  ZK: wrap prover x1.5, +92900 B; alternatives: salted-leaf masking ~15 KB (A), Poseidon2 recursion digests -> 336743 B
+  bytes to remove to meet the cap with SHA-384 + HVZK-WHIR: 92867 B (23.6 %)
+
+== Main-stack node on GPU (MR geometry: 254.1 M cells, 87.1 M interactions, lb 6, 2^21) ==
+  4.72e+12 ops -> 0.81 s on one H200 at eff 0.35 (CPU measured 700.5-903.5 s); depth-8 binary tree critical path 6.7 s
+  same node at lb 4 (rate 1/16): 0.30 s
+
+== Sensitivity, arch a, 1 Pgas adversarial latency (base 16.02 s) ==
+  eff                           0.2 ->  28.79 s |        0.6 ->   8.92 s | swing 19.87
+  bfly_ops                        7 ->  13.69 s |         14 ->  19.11 s | swing  5.42
+  hash                       sha384 ->  16.02 s |     hybrid ->  20.57 s | swing  4.55
+  hbm_gb                         80 ->  16.02 s |        282 ->  11.81 s | swing  4.20
+  E_a                             8 ->  12.54 s |         12 ->  15.87 s | swing  3.33
+  rec_field_overhead            0.0 ->  15.03 s |        0.5 ->  18.25 s | swing  3.22
+  sha512_ops                   2500 ->  15.07 s |       4500 ->  18.03 s | swing  2.96
+  proven                          1 ->  16.02 s |          0 ->  14.27 s | swing  1.75
+  exec_s_per_pgas               0.5 ->  16.56 s |        2.0 ->  14.94 s | swing  1.62
+  constraints_per_cell          0.4 ->  15.43 s |        1.2 ->  16.82 s | swing  1.40
+  wrap_split_eff                0.3 ->  16.99 s |        0.9 ->  15.61 s | swing  1.38
+  witness_bytes            16777216 ->  15.16 s |   67108864 ->  16.02 s | swing  0.85
+
+== Sensitivity, arch b, 1 Pgas adversarial latency (base 10.56 s) ==
+  eff                           0.2 ->  19.24 s |        0.6 ->   5.73 s | swing 13.51
+  hbm_gb                         80 ->  14.76 s |        282 ->   7.99 s | swing  6.77
+  bfly_ops                        7 ->   7.87 s |         14 ->  11.23 s | swing  3.36
+  rec_field_overhead            0.0 ->  10.01 s |        0.5 ->  12.82 s | swing  2.81
+  rec_cells_per_comp          15000 ->   9.30 s |      45000 ->  11.97 s | swing  2.66
+  exec_s_per_pgas               0.5 ->  11.10 s |        2.0 ->   9.48 s | swing  1.62
+  wrap_split_eff                0.3 ->  11.34 s |        0.9 ->   9.94 s | swing  1.41
+  hash                       sha384 ->  10.56 s |     hybrid ->  11.79 s | swing  1.23
+  witness_bytes            16777216 ->   9.38 s |   67108864 ->  10.56 s | swing  1.18
+  code_bytes                      0 ->   9.51 s |   67108864 ->  10.56 s | swing  1.05
+  proven                          1 ->  10.56 s |          0 ->   9.63 s | swing  0.93
+  constraints_per_cell          0.4 ->  10.24 s |        1.2 ->  11.10 s | swing  0.86
+
+== Sensitivity, arch c, 1 Pgas adversarial latency (base 580.33 s) ==
+  gf128_ops                      60 -> 168.95 s |       1200 -> 2123.01 s | swing 1954.06
+  eff                           0.2 -> 1016.35 s |        0.6 -> 338.10 s | swing 678.24
+  bin_and_gf128                  10 -> 243.42 s |         40 -> 775.38 s | swing 531.96
+  hash                       sha384 -> 580.33 s |     hybrid -> 797.87 s | swing 217.54
+  hbm_gb                         80 -> 605.66 s |        282 -> 567.12 s | swing 38.55
+  sha512_ops                   2500 -> 571.24 s |       4500 -> 600.24 s | swing 29.00
+  rec_field_overhead            0.0 -> 577.82 s |        0.5 -> 590.45 s | swing 12.63
+  proven                          1 -> 580.33 s |          0 -> 575.73 s | swing  4.61
+  seg_width                      80 -> 581.39 s |        320 -> 579.27 s | swing  2.12
+  exec_s_per_pgas               0.5 -> 580.87 s |        2.0 -> 579.25 s | swing  1.62
+  stream_util                   0.6 -> 580.69 s |        1.0 -> 580.21 s | swing  0.48
+  wrap_split_eff                0.3 -> 580.47 s |        0.9 -> 580.29 s | swing  0.18
+
+== V3-PERF-DESIGN shared-transcript design (tools/perf-design/model.py) at 8 GPUs ==
+   8 H200: GPU-s 62.8, after execution 7.85 s, memory 589 GB/GPU (HBM 141 GB), proof 844 KB (FRI)
+  32 H200: GPU-s 43.3, after execution 1.78 s, memory 78 GB/GPU (HBM 141 GB), proof 844 KB (FRI)
+  8 H200, <= 3.0 s after execution: eff >= 0.75 (memory 589 GB/GPU)
+
+== Parameters ==
+  gas                    1000000000000000.0  [spec] chunk gas (1 Pgas = PV86 max_gas_burnt and mainnet chunk gas limit)
+  n_gpu                               8  [owner] H200 SXM GPUs, one HGX node
+  budget_s                          3.0  [owner] proof ready <= budget after the chunk's last receipt is applied
+  verify_budget_s                   0.2  [owner] verifier wall time on a CPU
+  size_cap                       300000  [owner] proof bytes
+  exec_s_per_pgas                   1.0  [A] native execution 1 Tgas ~ 1 ms (NEAR gas calibration target)
+  exec_slowdown                     1.2  [A] native run with checkpoint/trace recording (V3-PERF-DESIGN P)
+  stream_util                       0.9  [A] fraction of GPU time usable for segment proving while execution runs
+  sync_s                           0.03  [A] per tree level: transcript/root exchange, kernel launch, PCIe/NVLink hop
+  seg_log_rows                       22  [A] rows per segment proof (2^k); the last segment is on the critical path
+  fan_in                              8  [A] children per aggregation node
+  pre_wrap                            0  [design] 1 = insert a 1-child compression layer at lb_node before the wrap
+  seg_width                         160  [A] committed cells per trace row of a segment (sets segment count)
+  row_width                          40  [A] main cells per chip row (for per-row aux/quotient columns, arch a)
+  regular_op                     822756  [spec] wasm regular_op_cost (PV86)
+  code_bytes                   67108864  [spec/MR] distinct cold code per chunk <= 64 MiB contract-code response (size-limit fixtures)
+  witness_bytes                67108864  [spec] decoded state witness <= 64 MiB (48 MiB encoded); hashed + parsed in-circuit
+  witness_scales                      1  [A] below 1 Pgas the adversarial witness scales with gas (floor 4 MiB = storage-proof soft limit)
+  witness_parse_m                    16  [A] main cells per witness byte for borsh/trie-node parsing (PREP decoder class)
+  witness_parse_f                     3  [A] bus fractions per witness byte
+  wasm_share_real                 0.034  [MR] WASM-operator share of function-call gas, corpora (V3-PERF-DESIGN P)
+  real_gas               18450000000000.0  [M] shard-13 mainnet p99 chunk gas, 1,223 chunks (bench/RESULTS.md; max 115 Tgas)
+  E_a                                10  [D] extension degree, arch (a): |K| >= 2^290 for 260-bit rbr rounds (V3-D3A-STUDY 11.2)
+  E_b                                 8  [MR] extension degree, arch (b): the main PQ stack runs BabyBear^8 (Ext8 layouts)
+  d_quot                              2  [D] quotient chunks at constraint degree 3 (arch a)
+  constraints_per_cell              0.7  [MR/A] constraint terms per committed cell (V3-PERF-DESIGN)
+  rbr_bits                          260  [D] per-round PQ target for proven bounds (t^2 eps loss, t = 2^64; V3-D3A-STUDY 11.2)
+  z_grind                            32  [U-10] grinding bits per query phase (Grover: buys z/2)
+  proven                              1  [U-6] 1 = Johnson-regime proven bits/query (0.5 lb - 0.1); 0 = capacity conjecture (lb)
+  lb_base                             1  [design] base segment rate 2^-lb (rate 1/2)
+  lb_node                             4  [design] aggregation-node rate 2^-lb (rate 1/16); main stack nodes run lb 6
+  lb_wrap                             6  [MR] final ZK wrap rate (main stack final layer lb 6, 143 queries)
+  whir_q_anchor                     143  [MR] WHIR queries of a production node at lb 6 (pq-agg depth law, [46,41,31,25])
+  whir_comps_anchor                4956  [MR] in-circuit SHA-384 compressions to verify one such child (9,911 per 2-child node, L3_0)
+  pcs_a                            whir  [design] arch (a) PCS: 'whir' (univariate WHIR) or 'fri'
+  fri_factor                        2.0  [D] FRI/WHIR ratio of verifier hashing and proof bytes (V3-D3A-STUDY 11.4: 0.71-0.88 MB vs 0.3-0.5 MB)
+  path_share                        0.6  [A] share of wrap proof bytes that are Merkle digests (for the Poseidon2 alternative)
+  sm                                132  [C] H200 SXM SMs (GH100, same die config as H100 SXM)
+  clk_ghz                          1.98  [C] boost clock GHz
+  int32_per_sm_clk                   64  [C] CUDA C++ Programming Guide throughput table, cc 9.0: 32-bit IMAD/IADD/LOP3 = 64/clk/SM
+  hbm_gb                            141  [C] HBM3e capacity per GPU
+  hbm_tbs                           4.8  [C] HBM bandwidth TB/s
+  nvlink_gbs                        450  [C] NVLink 4 per direction GB/s (900 GB/s bidirectional)
+  eff                              0.35  [A] sustained fraction of INT32 peak over all prover kernels (V3-PERF-DESIGN baseline)
+  sha512_ops                       3127  [D/C] INT32 ops per SHA-512 compression = peak / hashcat H100 SHA2-512 5.35 GH/s
+  sha256_ops                       1045  [D/C] INT32 ops per SHA-256 compression = peak / hashcat H100 SHA2-256 16.0 GH/s
+  p2_ops                           5800  [D] INT32 ops per Poseidon2-BabyBear-16 permutation (772 Montgomery muls x6 + 1,184 adds)
+  hash                           sha384  [U-7] 'sha384' (decided, U-7); 'poseidon2' or 'hybrid' (SHA-384 base, Poseidon2 recursion) need an owner decision
+  mont_ops                            6  [D] INT32 ops per 31-bit Montgomery multiplication (IMAD lo/hi, m, m*p hi, sub, select)
+  bfly_ops                           10  [D] INT32 ops per radix-2 NTT butterfly (1 Montgomery mul + add/sub with reduction)
+  gf128_ops                         300  [A] INT32 ops per GF(2^128) multiplication on GPU (no carry-less multiply; tower over GF(2^16) tables). CPU: reference/CLMUL = 94x (M)
+  bin_and_gf128                      29  [D/M] GF(2^128)-mult equivalents per AND constraint in the Binius64 PIOP: 0.53 us/AND (MR, LaBinius stages) / 18.2 ns per GF(2^128) mul (M)
+  bin_words_per_and                1.79  [MR] committed 64-bit words per AND constraint (Wasm ladder 5.35M words / 2.99M AND)
+  bin_ntt_ops_word                  200  [A] additive-NTT INT32 ops per committed 64-bit word at rate 1/2 (bitsliced GF(2^8) stages)
+  bin_wasm_and                     1452  [MR] AND constraints per Wasm step (NPMWASM02 slice, WASM_LADDER.md)
+  bin_wasm_worst                    1.5  [A] worst-op factor over the slice mean (i64 mul/div via MUL constraints; div not in slice)
+  bin_mul_and                         8  [A] AND-equivalents per Binius64 64x64 MUL constraint
+  bin_sha512_and                    900  [D] AND constraints per SHA-512 compression (1 per 64-bit add, Ch, Maj; 80 rounds + schedule)
+  rec_cells_per_comp              29049  [MR] node committed cells per in-circuit SHA-384 compression (L2_0: 254,084,224 / 8,747)
+  rec_fracs_per_comp               9958  [MR] node interactions per compression (L2_0: 87,097,600 / 8,747)
+  p2_perms_per_comp                1.75  [A] Poseidon2 permutations replacing one SHA-384 compression in a verifier (path node = 1, 128-B leaf = 4)
+  p2_rec_cells                      600  [A] committed cells per in-circuit Poseidon2-16 permutation (Plonky3 poseidon2-air class)
+  rec_field_overhead                0.1  [A] in-circuit field/sumcheck/DEEP work on top of hashing in a verifier circuit
+  wrap_bytes                     299967  [MR] non-ZK final layer verifying one 2^20 child (D0a packet, opt-baseline-8)
+  zk_bytes                        92900  [D/M] ZK additive bytes: HVZK-WHIR +72.6 KB at 100-bit (M, Plonky3 zk_overhead) x 128/100
+  zk_time_factor                    1.5  [M] HVZK-WHIR / plain prover time 1.28-1.72x (M, 2^16-2^18)
+  wrap_gpus                           8  [A] GPUs that share the final wrap (NVLink within the node)
+  wrap_split_eff                    0.6  [A] parallel efficiency of splitting one proof across wrap_gpus
+  cpu_sha512_ns                     134  [M] SHA-512 compression on one Zen 5 core (openssl 953 MB/s)
+  cpu_ext_mul_ns                    7.9  [MR] Plonky3 BabyBear^8 multiplication (V3-PERF-DESIGN clean.log)
+  verify_ext_mults             300000.0  [A] extension multiplications in the wrap verifier (OOD constraint eval, sumcheck, WHIR folds)
+  verify_impl_s                    1.46  [MR] measured verify of the 299,967 B packet, 32 threads (7.65 s on 1 core)

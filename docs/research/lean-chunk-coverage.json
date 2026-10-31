@@ -11,8 +11,8 @@
     "nearcore": "imports link at instantiation (wasmtime_runner/mod.rs:1127-1155); only a call runs External code"
   },
   "counts": {
-    "impossible-at-boundary": 47,
-    "validated": 178
+    "impossible-at-boundary": 48,
+    "validated": 177
   },
   "evidence": "static reconciliation of pinned nearcore git objects against Lean dispatch tables; no execution, differential testing or proof",
   "exclusion_classification": [
@@ -2238,18 +2238,18 @@
       "status": "impossible-at-boundary"
     },
     {
-      "acceptance_tests": "a module that fails the certificate (none known)",
+      "acceptance_tests": "fuelCertified_true; guard before/after (0 moves)",
       "dependencies": "L0",
-      "domain_guard": "allFeatures: out of domain (w.fuel_certificate) when a prepared function fails the certificate",
-      "evidence": "whole-chunk fixtures: 1788 nearcore-accepted and 102 nearcore-rejected cases exercise it (observation trace of the second-pass control build over the fixture families and a 4,000-case corpus subsample; verdicts identical to the default checker; e.g. d2corpus.v2/ood/00-h10006-s0, d2corpus.v2/ood/03-h10006-s1, d3c10/mutants/00-h10139-s0-hdr.prev_outcome_root), 0 verdict disagreements. Breakage control: `NEARSPEC_ABLATE=wasm:fuelcert` (the site charges 1 extra gas (load: the contract-loading charge; prep/compile: the failed call burns 1 gas instead of 0) or, for the fuel certificate, reports failure) in the control build: 23 of 24 replayed exercising cases disagree with the expected verdict (unablated: 24/24 agree). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: kept out-of-domain reason by decision (workplan, decisions in force): it makes functionCall_fuel_sufficient's CodeCertified hypothesis a checked condition; it fires on no corpus module. Evidence: docs/evidence/lean-chunk-completion/fuel-sufficiency/README.md",
+      "domain_guard": "none (the w.fuel_certificate check was removed from vmCall on 2026-10-31)",
+      "evidence": "proved dead: fuelCertified_true (every module prepare accepts passes the certificate, for 0 < regular_op_cost <= linear_op_base_cost, which holds at PV86) and vmCallGuarded_eq (the guarded VM call equals the current one); functionCall_fuel_sufficient now rests on FuelGen.wasmFuel_sufficient with no certificate. Before/after on the census, the committed fixtures and a 1-in-8 corpus sample: 0 moves. Evidence: docs/evidence/lean-chunk-completion/fuel-sufficiency/README.md",
       "family": "successor-guard",
       "id": "L0-AF-fuel-certificate",
       "lean_path_symbol": "NearSpecV3.Successor.StorageExecution.vmCall (fuelCertified before runCallWithLimits; Wasm/FuelCert.lean)",
       "nearcore_commit": "44f7ae6cd7ef08bab604e20a473bf77e35d4c993",
       "nearcore_path_symbol": "near-vm-runner gas accounting (every prepared function is gas-metered; finite-wasm)",
       "owner": "L1",
-      "remaining_work": "the certificate is evaluated and passes on every exercised call; the exclusion itself never fires. A general proof of CodeCertified would make it provably dead (workplan item 3 residual)",
-      "status": "validated"
+      "remaining_work": "none",
+      "status": "impossible-at-boundary"
     },
     {
       "acceptance_tests": "dist-identity mutants",
@@ -3417,7 +3417,7 @@
       "acceptance_tests": "never hit in 115,284 cases",
       "dependencies": "",
       "domain_guard": "unmodeled WASM invariants",
-      "evidence": "L0 row validation, second pass (2026-10-30): vmCall runs only fuel-certified code (StorageExecution.lean:151); on certified code the certificate invariant holds at every state of the run (run_inv, from entry_ok/step_dec), and a state satisfying it has a frame naming a defined function at a pc inside its code (frame_ok, buildLblLive_live), so the bad-frame and pc-out-of-range arms are dead; prepare returns `.unmodeled` (excluded before the call by contractOOD) unless every gas table has the code's size, and with that (GasSized) every step finds its instruction and gas (step_lookups); the decoder builds float load/store only with load/store opcodes (Decode.lean:261-264), so their non-memory-opcode arm is dead. The compiled path is equal by @[csimp] (Arcs.lean). The other `exec` invariant arms (unmatched block/else labels, unknown function/type indices) rest on Validate.lean's typing and are argued, not proved. Lean: NearSpecV3.Wasm.L0W011.run_inv, NearSpecV3.Wasm.L0W011.frame_ok, NearSpecV3.Wasm.L0W011.step_lookups, NearSpecV3.Wasm.L0W011.buildLblLive_live (spec/lean/v3/NearSpecV3/L0GuardSubsumption.lean). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: Exec.lean:14,18,39,51,75,82,169,186,190,210,324,338,341,344,352",
+      "evidence": "L0 row validation, second pass (2026-10-30): every prepared module is fuel-certified (FuelCertOK.fuelCertified_true; until 2026-10-31 vmCall also checked it); on certified code the certificate invariant holds at every state of the run (run_inv, from entry_ok/step_dec), and a state satisfying it has a frame naming a defined function at a pc inside its code (frame_ok, buildCert_live), so the bad-frame and pc-out-of-range arms are dead; prepare returns `.unmodeled` (excluded before the call by contractOOD) unless every gas table has the code's size, and with that (GasSized) every step finds its instruction and gas (step_lookups); the decoder builds float load/store only with load/store opcodes (Decode.lean:261-264), so their non-memory-opcode arm is dead. The compiled path is equal by @[csimp] (Arcs.lean). The other `exec` invariant arms (unmatched block/else labels, unknown function/type indices) rest on Validate.lean's typing and are argued, not proved. Lean: NearSpecV3.Wasm.L0W011.run_inv, NearSpecV3.Wasm.L0W011.frame_ok, NearSpecV3.Wasm.L0W011.step_lookups, NearSpecV3.Wasm.L0W011.buildCert_live (spec/lean/v3/NearSpecV3/L0GuardSubsumption.lean). Evidence: docs/evidence/lean-chunk-completion/l0-row-validation/README.md, docs/evidence/lean-chunk-completion/l0-row-validation/rows.json | earlier record: Exec.lean:14,18,39,51,75,82,169,186,190,210,324,338,341,344,352",
       "family": "wasm-exec",
       "id": "L0-W-011",
       "lean_path_symbol": "allFeatures: Wasm.exec / step / callEntryFast `unmodeled` invariants (Exec.lean, Arcs.lean), surfaced as e.wasm-\u03b1 by applyAction",

@@ -3,9 +3,9 @@ import NearSpecV3.Wasm.Fuel
 # The W02 fuel certificate: definitions and builder
 
 The static data and the decidable checks that `Wasm/FuelSufficiency.lean` proves sufficient for the
-successor step budget `wasmFuel`, and the guard `fuelCertified` the successor checker runs on every
-contract it executes (`Successor/StorageExecution.lean`). Definitions only; no proofs here, so the
-checker does not depend on the proof module.
+successor step budget `wasmFuel`, and the per-contract check `fuelCertified`. Definitions only. The
+checker no longer runs the check: `Wasm/FuelCertOK.lean` proves that it passes on every contract
+(`fuelCertified_true`), and `Wasm/FuelGeneral.lean` proves fuel sufficiency without it.
 -/
 namespace NearSpecV3.Wasm
 /-! ## Static data -/
@@ -103,75 +103,116 @@ def certOK (cfg : NearCfg) (pf : PFunc) (c : FCert) : Bool :=
 /-! ## Building the certificate
 
 The builder is ordinary code: nothing about it is trusted, because `certOK` re-checks everything
-the proofs use. `free` and `rest` are backward passes; the label stack is the forward pass of
-`matchBlocks`' open-block stack (targets from `endOf`); liveness is finite-wasm's own
-unreachability flag (`GF.poly`: set after `br`/`br_table`/`return`/`unreachable`, inherited by a
-new frame, restored at `end`, reset to the outer frame's at `else`). -/
+the fuel proofs use. `free` and `rest` are backward passes. The label stack is the forward pass of
+`matchBlocks`' open-block stack (targets from `endOf`), recorded at every position `0 … n`.
+Liveness is reachability: the least set of positions that contains the entry and is closed under
+the control-flow successors `moveOK` checks (`succsAt`), computed by repeated forward passes until
+nothing changes. (Before 2026-10-31 liveness was finite-wasm's unreachability flag `GF.poly`. That
+flag marks live some code no execution reaches, for example the code after
+`block … unreachable … end` when no branch targets the block, so `certOK` had to check finite-wasm's
+fees there too. Reachability is what `Wasm/FuelCertOK.lean` needs to prove that every function
+`prepare` accepts passes `certOK`.) -/
 
-def buildFree (code : Array Instr) : Array Nat := Id.run do
-  let n := code.size
-  let mut out := Array.replicate (n + 1) 0
-  for k in [0:n] do
-    let i := n - 1 - k
-    out := out.set! i (out[i + 1]! + freeBit code[i]!)
-  out
+/-- Fill positions `k-1, …, 0` of `a`, right to left: position `j` gets `f j a`, which may read the
+positions above `j` (already filled). Tail-recursive. -/
+def fillBack (f : Nat → Array Nat → Nat) : Nat → Array Nat → Array Nat
+  | 0, a => a
+  | k + 1, a => fillBack f k (a.set! k (f k a))
 
-def buildRest (code : Array Instr) (tbl : Array (Option (IK × Fee))) : Array Nat := Id.run do
-  let n := code.size
-  let mut out := Array.replicate (n + 1) 0
-  for k in [0:n] do
-    let i := n - 1 - k
-    let ins := code[i]!
-    let v := match tbl[i]? with
-      | some (some _) => 0
-      | _ => costBit ins + (if fallsThrough ins then out[i + 1]! else 0)
-    out := out.set! i v
-  out
+def buildFree (code : Array Instr) : Array Nat :=
+  fillBack (fun i a => a[i + 1]! + freeBit code[i]!) code.size (Array.replicate (code.size + 1) 0)
 
-def buildLblLive (pf : PFunc) : Array (List (Nat × Bool)) × Array Bool := Id.run do
-  let code := pf.code
-  let n := code.size
-  let mut lbl : Array (List (Nat × Bool)) := Array.replicate (n + 1) []
-  let mut live : Array Bool := Array.replicate (n + 1) false
-  let mut L : List (Nat × Bool) := [(n, false)]
-  let mut poly := false
-  let mut saved : List Bool := []
-  for i in [0:n] do
-    lbl := lbl.set! i L
-    live := live.set! i (!poly)
-    match code[i]! with
-    | .block _ | .if_ _ =>
-      L := ((pf.endOf[i]?.getD 0) + 1, false) :: L
-      saved := poly :: saved
-    | .loop _ =>
-      L := (i + 1, true) :: L
-      saved := poly :: saved
-    | .else_ => poly := saved.headD false
-    | .end_ =>
-      match L with
-      | _ :: ls@(_ :: _) => L := ls
-      | _ => pure ()
-      match saved with
-      | b :: bs =>
-        poly := b
-        saved := bs
-      | [] => pure ()
-    | .br _ | .brTable _ _ | .ret | .unreachable => poly := true
-    | _ => pure ()
-  (lbl, live)
+def buildRest (code : Array Instr) (tbl : Array (Option (IK × Fee))) : Array Nat :=
+  fillBack (fun i a => match tbl[i]? with
+    | some (some _) => 0
+    | _ => costBit code[i]! + (if fallsThrough code[i]! then a[i + 1]! else 0))
+    code.size (Array.replicate (code.size + 1) 0)
+
+/-- One step of the label stack (the interpreter's `enter`/`exec` label pushes and pops). -/
+def lblStep (pf : PFunc) (L : List (Nat × Bool)) (i : Nat) : Instr → List (Nat × Bool)
+  | .block _ | .if_ _ => ((pf.endOf[i]?.getD 0) + 1, false) :: L
+  | .loop _ => (i + 1, true) :: L
+  | .end_ => match L with
+    | _ :: ls@(_ :: _) => ls
+    | _ => L
+  | _ => L
+
+/-- The label stacks at positions `i, i+1, …, i + l.length`, appended to `acc` (`L` is the stack at
+`i`). Tail-recursive. -/
+def lblFrom (pf : PFunc) : Nat → List Instr → List (Nat × Bool) → Array (List (Nat × Bool)) →
+    Array (List (Nat × Bool))
+  | _, [], L, acc => acc.push L
+  | i, ins :: rest, L, acc => lblFrom pf (i + 1) rest (lblStep pf L i ins) (acc.push L)
+
+def buildLbl (pf : PFunc) : Array (List (Nat × Bool)) :=
+  lblFrom pf 0 pf.code.toList [(pf.code.size, false)] #[]
+
+/-- The target of a branch to depth `l` with label stack `lb`, unless it leaves the function. -/
+def brT (lb : List (Nat × Bool)) (l : Nat) : List Nat :=
+  if l + 1 < lb.length then
+    match lb[l]? with
+    | some (t, _) => [t]
+    | none => []
+  else []
+
+def isEndI : Instr → Bool
+  | .end_ => true
+  | _ => false
+
+/-- The jump successors `moveOK` checks at `i` (label stack `lb`). -/
+def jumpsAt (pf : PFunc) (lb : List (Nat × Bool)) (i : Nat) : Instr → List Nat
+  | .if_ _ => match pf.endOf[i]?, pf.elseOf[i]? with
+    | some e, some el => [if el ≠ e then el + 1 else e + 1]
+    | _, _ => []
+  | .else_ => match lb with
+    | (t, _) :: _ => [t]
+    | [] => []
+  | .br l | .brIf l => brT lb l
+  | .brTable ls d => (ls.toList ++ [d]).flatMap (brT lb)
+  | _ => []
+
+/-- All control-flow successors `moveOK` checks at `i`: the fall-through one (not after the
+function's own `end`) and the jumps. -/
+def succsAt (pf : PFunc) (lb : List (Nat × Bool)) (i : Nat) (ins : Instr) : List Nat :=
+  (if fallsThrough ins && (!isEndI ins || decide (2 ≤ lb.length)) then [i + 1] else []) ++
+    jumpsAt pf lb i ins
+
+def markAll (a : Array Bool) (qs : List Nat) : Array Bool :=
+  qs.foldl (fun a q => a.setIfInBounds q true) a
+
+/-- One forward pass: every live position marks its successors live. -/
+def liveRound (pf : PFunc) (lbl : Array (List (Nat × Bool))) (a : Array Bool) : Array Bool :=
+  (List.range pf.code.size).foldl (fun a i =>
+    if a.getD i false then
+      match pf.code[i]? with
+      | some ins => markAll a (succsAt pf (lbl.getD i []) i ins)
+      | none => a
+    else a) a
+
+def liveIter (pf : PFunc) (lbl : Array (List (Nat × Bool))) : Nat → Array Bool → Array Bool
+  | 0, a => a
+  | k + 1, a =>
+    let b := liveRound pf lbl a
+    if b = a then a else liveIter pf lbl k b
+
+/-- Reachable positions. `code.size + 1` passes always suffice: each pass that changes the array
+marks one more of the `code.size` positions (`Wasm/FuelCertOK.lean`, `liveIter_fix`). -/
+def buildLive (pf : PFunc) (lbl : Array (List (Nat × Bool))) : Array Bool :=
+  liveIter pf lbl (pf.code.size + 1) ((Array.replicate pf.code.size false).setIfInBounds 0 true)
 
 def buildCert (_cfg : NearCfg) (pf : PFunc) : FCert :=
-  let (lbl, live) := buildLblLive pf
-  { live := live, lbl := lbl, rest := buildRest pf.code pf.gas, free := buildFree pf.code }
+  let lbl := buildLbl pf
+  { live := buildLive pf lbl, lbl := lbl, rest := buildRest pf.code pf.gas, free := buildFree pf.code }
 
 /-- The decidable per-module check. -/
 def prepCertOK (cfg : NearCfg) (p : Prepared) : Bool :=
   p.funcs.all (fun pf => certOK cfg pf (buildCert cfg pf))
 
 
-/-- The successor's per-contract guard: every function of the prepared module passes its
-certificate. A contract that `prepare` rejects is not affected (the call reports the preparation
-outcome itself). -/
+/-- Every function of the prepared module passes its certificate. A contract that `prepare` rejects
+is not affected. `Wasm/FuelCertOK.lean` proves this is `true` for every contract
+(`fuelCertified_true`); until 2026-10-31 the successor checker ran it as a guard before every VM
+call (`w.fuel_certificate`). -/
 def fuelCertified (cfg : NearCfg) (code : ByteArray) : Bool :=
   match prepare cfg code true with
   | .ok p => prepCertOK cfg p

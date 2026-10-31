@@ -1,5 +1,5 @@
 import Lean
-import NearSpecV3.Wasm.FuelSufficiency
+import NearSpecV3.Wasm.FuelHostDefs
 
 /-!
 # Every host arm is fuel-monotone (`hostsOK`)

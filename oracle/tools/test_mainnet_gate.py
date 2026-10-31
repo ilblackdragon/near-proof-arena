@@ -6,6 +6,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import unittest.mock
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -40,6 +41,64 @@ class GateTests(unittest.TestCase):
         self.assertIsNone(redirected.get_header('Authorization'))
         with self.assertRaises(ValueError):
             g.ArchiveRedirect().redirect_request(req, None, 302, '', {}, 'http://a.example/block')
+
+    def test_rate_limit_retries_with_backoff_then_fails_closed(self):
+        err = lambda: g.urllib.error.HTTPError('https://a/1', 429, 'Too Many Requests',
+                                               {'Retry-After': '0'}, None)
+        class Ok:
+            def __enter__(self): return self
+            def __exit__(self, *a): return False
+            def read(self, n): return b'{}'
+        slept = []
+        opener = unittest.mock.MagicMock()
+        opener.open.side_effect = [err(), err(), Ok()]
+        with patch.object(g.urllib.request, 'build_opener', return_value=opener):
+            self.assertEqual(g.open_with_retry('req', 1, sleep=slept.append), b'{}')
+        self.assertEqual(slept, [2, 4])     # Retry-After: 0 never shortens the backoff
+        opener.open.side_effect = [err() for _ in range(3)]
+        with patch.object(g.urllib.request, 'build_opener', return_value=opener), \
+             self.assertRaises(g.urllib.error.HTTPError):
+            g.open_with_retry('req', 1, attempts=3, sleep=lambda d: None)
+        opener.open.side_effect = [g.urllib.error.HTTPError('https://a/1', 404, 'nf', {}, None)]
+        with patch.object(g.urllib.request, 'build_opener', return_value=opener), \
+             self.assertRaises(g.urllib.error.HTTPError):
+            g.open_with_retry('req', 1, sleep=lambda d: self.fail('404 must not be retried'))
+
+    def test_archive_sources_and_block_extraction(self):
+        g.validate_archive_url('jsonrpc+https://archival-rpc.mainnet.fastnear.com')
+        for bad in ['jsonrpc+https://h/{height}', 'jsonrpc+http://h', 'http://h/{height}', 'https://h/x']:
+            with self.subTest(bad=bad), self.assertRaises(ValueError):
+                g.validate_archive_url(bad)
+        view = {'header': {'height': 1}, 'chunks': []}
+        self.assertIs(g.block_of({'block': view}), view)
+        self.assertIs(g.block_of({'jsonrpc': '2.0', 'result': view}), view)
+        for doc in [{'error': {'name': 'HANDLER_ERROR'}}, None, {'result': {'chunks': []}}]:
+            with self.subTest(doc=doc), self.assertRaises(ValueError):
+                g.block_of(doc)
+
+    def test_resume_refetches_only_errors_and_never_overwrites(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp)
+            calls = []
+            def fetch(height, out_dir, url, timeout, key):
+                calls.append(height)
+                if height == 11 and len(calls) < 4:
+                    raise ValueError('HTTP Error 429')
+                p = out_dir / 'blocks' / f'{height}.json'
+                p.parent.mkdir(parents=True, exist_ok=True)
+                p.write_text('{}')
+                return {}, {'path': f'blocks/{height}.json', 'sha256': g.digest(p)}
+            with patch.object(g, 'fetch_block', side_effect=fetch):
+                m = g.capture(10, 3, out, 'https://h/{height}')
+                self.assertEqual([e['height'] for e in m['acquisition_errors']], [11])
+                with self.assertRaisesRegex(ValueError, 'already exists'):
+                    g.capture(10, 3, out, 'https://h/{height}')
+                with self.assertRaisesRegex(ValueError, 'same window'):
+                    g.capture(10, 4, out, 'https://h/{height}', resume=True)
+                m = g.capture(10, 3, out, 'https://h/{height}', resume=True)
+            self.assertEqual(calls, [10, 11, 12, 11])
+            self.assertEqual([b['height'] for b in m['blocks']], [10, 11, 12])
+            self.assertEqual(m['acquisition_errors'], [])
 
     def test_zero_comparisons_is_not_zero_mismatch(self):
         r = g.summarize([{'status': 'missing_witness'}], 1, 1000, 1000, [])
@@ -109,9 +168,17 @@ class GateTests(unittest.TestCase):
     def test_native_receipt_binds_inputs_and_chain(self):
         entry = dict(block_hash='block', chunk_hash='chunk')
         hashes = {'claim.bin': 'c', 'witness.bin': 'w'}
+        fin = dict(final=True, canonical=True, included_block_hash='block')
+        cold = dict(policy='cold', entries_before=0)
         row = dict(chain_id='mainnet', nearcore_commit=g.PIN, block_hash='block', chunk_hash='chunk',
-                   claim_sha256='c', witness_sha256='w', facts_verified=True, verdict='accept')
-        for change in [{}, {'witness_sha256': 'wrong'}, {'nearcore_commit': 'wrong'}, {'facts_verified': 1}, {'verdict': 'oops'}]:
+                   claim_sha256='c', witness_sha256='w', facts_verified=True, verdict='accept',
+                   finality=fin, cache=cold)
+        for change in [{}, {'witness_sha256': 'wrong'}, {'nearcore_commit': 'wrong'}, {'facts_verified': 1},
+                       {'verdict': 'oops'}, {'finality': None}, {'finality': fin | {'final': False}},
+                       {'finality': fin | {'canonical': False}},
+                       {'finality': fin | {'included_block_hash': 'fork'}},
+                       {'cache': None}, {'cache': cold | {'policy': 'warm'}},
+                       {'cache': cold | {'entries_before': 3}}]:
             with patch.object(g.subprocess, 'run', return_value=subprocess.CompletedProcess([], 0, json.dumps(row | change))):
                 if change:
                     with self.assertRaises(ValueError):g.native_check(['native'], Path('case'), entry, hashes, 1)
@@ -160,13 +227,13 @@ class GateTests(unittest.TestCase):
                 (case / 'claim.bin').write_bytes(b'claim')
                 (case / 'witness.bin').write_bytes(b'witness')
                 g.write(case / 'context-blocks.json', [])
-            def lean(command, cases, timeout, tier):
-                h = int(cases[0].name.split('-')[0][1:])
+            def lean(binary, tier, case, blind_dir, timeout):
+                h = int(case.name.split('-')[0][1:])
                 if h == 13:raise subprocess.TimeoutExpired([], 1)
-                return {str(cases[0]): dict(verdict={10: 'accept', 11: 'reject', 12: 'out_of_domain'}[h], reason='test')}
+                return {10: 'match', 11: 'mismatch', 12: 'unsupported'}[h], {}
             with patch.object(g, 'anchor_case', return_value={}), \
                  patch.object(g, 'native_check', return_value={'verdict': 'accept'}), \
-                 patch.object(g, 'run_batch', side_effect=lean):
+                 patch.object(g, 'lean_blind', side_effect=lean):
                 r = g.replay(root, sys.executable, 'curveHosts', [sys.executable], root / 'out')
             self.assertEqual(r['counts'], {'match': 1, 'mismatch': 1, 'unsupported': 1, 'error': 1, 'missing_witness': 1})
             self.assertEqual(r['mismatch_percent'], 50)
@@ -181,7 +248,7 @@ class GateTests(unittest.TestCase):
             g.write(case / 'context-blocks.json', [])
             with patch.object(g, 'anchor_case', return_value={}), \
                  patch.object(g, 'native_check', return_value={'verdict': 'reject'}), \
-                 patch.object(g, 'run_batch') as lean:
+                 patch.object(g, 'lean_blind') as lean:
                 r = g.replay(root, sys.executable, 'curveHosts', [sys.executable], root / 'out')
                 lean.assert_not_called()
             self.assertEqual(r['counts'], {'native_reject': 1})
@@ -195,13 +262,39 @@ class GateTests(unittest.TestCase):
             g.write(case / 'context-blocks.json', [])
             def mutate(*args):
                 (case / 'witness.bin').write_bytes(b'changed')
-                return {str(case): {'verdict': 'accept', 'reason': ''}}
+                return 'match', {}
             with patch.object(g, 'anchor_case', return_value={}), \
                  patch.object(g, 'native_check', return_value={'verdict': 'accept'}), \
-                 patch.object(g, 'run_batch', side_effect=mutate):
+                 patch.object(g, 'lean_blind', side_effect=mutate):
                 r = g.replay(root, sys.executable, 'curveHosts', [sys.executable], root / 'out')
             self.assertTrue(any('artifact changed' in e for e in r['errors']))
             self.assertEqual(r['status'], 'fail')
+
+    def test_blind_output_mismatch_and_leak_count_as_mismatches(self):
+        rows = [{'status': s, 'shard_id': i % 2} for i, s in
+                enumerate(['match', 'output_mismatch', 'blind_leak', 'mismatch', 'missing_witness'])]
+        r = g.summarize(rows, 5, 1000, 1000, [])
+        self.assertEqual(r['compared_chunks'], 4)
+        self.assertEqual(r['mismatch_percent'], 75)
+        self.assertEqual(r['per_shard'], {'0': {'match': 1, 'blind_leak': 1, 'missing_witness': 1},
+                                          '1': {'output_mismatch': 1, 'mismatch': 1}})
+        self.assertEqual(r['status'], 'fail')
+
+    def test_blind_status_classification(self):
+        lean = lambda verdict, outputs=None: {'verdict': verdict, 'outputs': outputs}
+        expected = {k: 'x' for k in g.blind_inputs.COMPARED}
+        cases = [
+            (lean('accept', expected), lean('reject'), 'match'),
+            (lean('accept', expected | {'stateRoot': 'y'}), lean('reject'), 'output_mismatch'),
+            (lean('accept', expected), lean('accept'), 'blind_leak'),
+            (lean('reject'), lean('reject'), 'mismatch'),
+            (lean('out_of_domain'), lean('reject'), 'unsupported'),
+        ]
+        for blind, control, status in cases:
+            with self.subTest(status=status), \
+                 patch.object(g.blind_inputs, 'blind_case', return_value=(expected, {'implicit_transitions': 0})), \
+                 patch.object(g, 'lean_run', side_effect=[blind, control]):
+                self.assertEqual(g.lean_blind('bin', 'allFeatures', Path('c'), Path('b'), 1)[0], status)
 
     def test_pack_witness_preserves_raw_and_verifies_code(self):
         with tempfile.TemporaryDirectory() as tmp:

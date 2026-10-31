@@ -1370,13 +1370,13 @@
     "NearSpecV3.Wasm.L0W011.run_inv",
     "NearSpecV3.Wasm.L0W011.frame_ok",
     "NearSpecV3.Wasm.L0W011.step_lookups",
-    "NearSpecV3.Wasm.L0W011.buildLblLive_live"
+    "NearSpecV3.Wasm.L0W011.buildCert_live"
    ],
    "lean_path_symbol": "allFeatures: Wasm.exec / step / callEntryFast `unmodeled` invariants (Exec.lean, Arcs.lean), surfaced as e.wasm-\u03b1 by applyAction",
    "paths": [
     "docs/evidence/lean-chunk-completion/l0-row-validation/third-pass/README.md"
    ],
-   "reason": "vmCall runs only fuel-certified code (StorageExecution.lean:151); on certified code the certificate invariant holds at every state of the run (run_inv, from entry_ok/step_dec), and a state satisfying it has a frame naming a defined function at a pc inside its code (frame_ok, buildLblLive_live), so the bad-frame and pc-out-of-range arms are dead; prepare returns `.unmodeled` (excluded before the call by contractOOD) unless every gas table has the code's size, and with that (GasSized) every step finds its instruction and gas (step_lookups); the decoder builds float load/store only with load/store opcodes (Decode.lean:261-264), so their non-memory-opcode arm is dead. The compiled path is equal by @[csimp] (Arcs.lean). The other `exec` invariant arms (unmatched block/else labels, unknown function/type indices) rest on Validate.lean's typing and are argued, not proved",
+   "reason": "every prepared module is fuel-certified (FuelCertOK.fuelCertified_true; until 2026-10-31 vmCall also checked it); on certified code the certificate invariant holds at every state of the run (run_inv, from entry_ok/step_dec), and a state satisfying it has a frame naming a defined function at a pc inside its code (frame_ok, buildCert_live), so the bad-frame and pc-out-of-range arms are dead; prepare returns `.unmodeled` (excluded before the call by contractOOD) unless every gas table has the code's size, and with that (GasSized) every step finds its instruction and gas (step_lookups); the decoder builds float load/store only with load/store opcodes (Decode.lean:261-264), so their non-memory-opcode arm is dead. The compiled path is equal by @[csimp] (Arcs.lean). The other `exec` invariant arms (unmatched block/else labels, unknown function/type indices) rest on Validate.lean's typing and are argued, not proved",
    "status": "impossible-at-boundary"
   },
   "L0-W-012": {

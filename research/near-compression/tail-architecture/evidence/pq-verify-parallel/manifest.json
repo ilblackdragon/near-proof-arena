@@ -1,0 +1,94 @@
+{
+  "status": "PARALLEL_PQ_VERIFY_KERNELS_LANDED_0_905S_AT_8T_NOT_YET_200MS",
+  "base_lane_commit": "aa60ec335",
+  "packet": "00-h10035-s3 NPMULT03, 250,126 B (proves fresh with the parallel kernels: ready_s=3.181, RSS 13,207,120 KiB)",
+  "kernel": {
+    "file": "np_vmul.h",
+    "pattern": "np_pairs/np_jl pthread-worker family; caller holds the existing whole lock; 16-polx block splits; per-element independence (scalar-by-vector pointwise), no shared mutable state (polyvec_poly_pointwise is pure; the lazy sprod_chunk cache is NOT on this path)",
+    "wiring": "reduce_lift_aggregate_zqcnst phi scaling (ost->r*ost->n elements, both mul and mul_add arms), gated npe>=1024, env LABRADOR_VMUL_THREADS (falls back to LABRADOR_JL_THREADS)",
+    "bug_found_and_fixed": "first version passed the vector operand unoffset (x instead of x+start) \u2014 caught by the C verify's own 'Linear garbage polynomials wrong' rejection, then proven fixed via a standalone parity harness (test_npv_mul.c: serial vs 4-worker byte-identical over 296,577 elements, both variants) and by the full packet verifying at every gate bisection (100000, 10000, 1024)"
+  },
+  "measurements_serial_vs_parallel": {
+    "serial_RAYON1_CPU8": {
+      "total_ms": 1483.2,
+      "wiring_ms": 517.4,
+      "opening_ms": 962.4,
+      "c_simple_reduce_lifts_ms": 358.4
+    },
+    "vmul4_jl1_RAYON1": {
+      "total_ms": 1427.1
+    },
+    "vmul4_jl4_RAYON1": {
+      "total_ms": 1305.7,
+      "c_simple_reduce_lifts_ms": 226.1,
+      "opening_ms": 787.9
+    },
+    "vmul8_jl8_RAYON8_16hw": {
+      "total_ms": 904.9,
+      "wiring_ms": 131.7,
+      "opening_ms": 769.9
+    },
+    "notes": "single observations; RAYON_NUM_THREADS=8 parallelizes the Rust wiring replay (constraint evaluation) which was already data-parallel; JL threads were already available in the verify path via collaps_jlproj_raw"
+  },
+  "validation": {
+    "standalone_parity": "np_vmul serial vs 4 workers byte-identical on 296,577 elements (mul and mul_add)",
+    "fresh_prove_with_kernels": "ready_s=3.181, packet 250,126 B, all 112 table + root mutations reject, 21 public mutations reject",
+    "cross_verify": "packet proven with parallel kernels fresh-verifies with all 4 codec negative checks (1.293 s at 4t)",
+    "gates": "kernel disabled (VMUL=1) passes; every gate bisection passes; no parameter/rank/norm/transcript change"
+  },
+  "remaining_to_200ms": [
+    "aggregate_sparsecnst (225 ms in round 0): deferral/coverage-sorted accumulator \u2014 needs a destination-run-parallel design that preserves per-destination accumulation order (the pairs-kernel lesson); NOT implemented",
+    "Rust statement rebuild 200 ms serial (layout/bound/phi/statement-build rows)",
+    "C project 44 ms + amortize 24 ms + later-round residue",
+    "folding: per-block aggregate verify is the validator-relevant number once per-chunk is fast"
+  ],
+  "open": [
+    "composed PQ security unproved",
+    "GPU unmeasured",
+    "prove-side: same kernels already parallel; opening phase remains the 1-2 s blocker"
+  ],
+  "evidence_sha256": {
+    "chihuahua.c": "e9a24a8fe00d7fa1c3fe42724afea179e7f7bdabe70fc2b065d2153eb13f342a",
+    "chihuahua.h": "04d7f712b81c1ab640df9e87a028d25047d9d11f6d35ffbd9483ad6854e8f01e",
+    "cross-verify.log": "923f6b60cf71d3e9580a5da805d1a31848468f3d2c2c19181cb6bbd21a1507fa",
+    "labrador-before-verify-profile.c": "a77f3c33f940bbe8dbc6f390b2d7358e313bab7a37fc66a08fc5ed510b2dface",
+    "labrador.c": "fe84696836516ef7997f66b8fd80a4478e0f9784e20f6a6d60d8f9f2cf090cfc",
+    "np_shortmac.h": "c1b8fd98ec945571b56ed6672822e56ff3c017e555d3eabeb6dfbd83ccdc4b33",
+    "np_vmul.h": "b9cfc35a07b2d28694b2ef1106a3882d6978c81f91f15256b30e52a5255e6cda",
+    "prove-with-parallel-kernels.log": "395fadc52c039eadc71928ccee8842f9753c1c60c5eff3641ca7282e8bf1274d",
+    "sm-cross-verify.log": "dd2eac562b90b95ccc238bd0c9b01d8f517cc98621967ff4c895a1514c111af4",
+    "sm-final-verify.log": "fa53626ffb880591d34218b0d5bc848866d6050c5eadf04e7191df34b7999a85",
+    "smpar-prof.log": "02279c01a777902a643d57ef3f4b1ebd01162b4cf4043dc6358d128f5ac8173e",
+    "smpar1.log": "abcbf6922cfb388709f031e1668db31eaac9f7be6cbe0e4d9c4258ef9164a1fc",
+    "t5.c": "544c8036ab43c745c75e995208c3b3c08794f822e77c35cc571b8ca62781a8a2",
+    "test_npv_mul.c": "14724f2792d6b3578761040068acd69cc2f47ac586d55ebb18bc0e78ba615770",
+    "test_npv_shortmac.c": "05da35493da4e3a4fd698057ebc365cb2dd2d03753471f41e186da2b17180350",
+    "verify-4thread-phases.log": "4020bb086ac62e33e9766f5414c7c4202efe8b46b17765f5cdbc1b0374dc72fb",
+    "verify-8thread.log": "242e407284356bba17ae68f2af7ea8b6f34037d29ed3bdc3800f5477ba813c60",
+    "verify-serial-baseline.log": "a83e6bc49a7a09830a4c0d9c14e3a0ffc02229a307646c5baffcb8d1d2a61c9e",
+    "verify-vmul4-jl1.log": "9f8dade54768a8a92a1e87547810024ae763f7e9f1f44fc597760546d9b5cfba",
+    "verify-vmul4-jl4.log": "5b1be794234daa73287a42d0ea0975d63f09e8e3dec201150c01607125289b81"
+  },
+  "aggregate_kernel": {
+    "file": "np_shortmac.h",
+    "pattern": "destination-region split with PRIVATE per-worker int32 accumulators; every shortent processed CLIPPED to the worker's region in the caller's sorted order \u2014 per-element accumulation order is exactly serial; boundary-spanning entries contribute disjoint slices to adjacent workers; int32 headroom bound unchanged (clipping cannot increase per-element coverage); conversion buffer heap-aligned (worker stacks are not 64B-aligned for _mm512_load_si512)",
+    "wiring": "aggregate_sparsecnst's serial accumulate+convert block, serial fallback intact; env LABRADOR_SM_THREADS (falls back to LABRADOR_VMUL_THREADS); shortent/shortmac/shortent_cmp/DPWSSD moved to chihuahua.h as shared static-inline",
+    "bugs_found_and_fixed": [
+      "job struct declared phi_add as int32_t* \u2014 C pointer arithmetic indexed 4-byte steps into polx arrays, corrupting memory; caught by segfault + gdb address math, fixed to polx*",
+      "worker conversion buffer polx t[32] on the pthread stack \u2014 not 64-byte aligned for _mm512_load_si512; heap-allocated",
+      "local variable named N collided with data.h's #define N 64 macro"
+    ],
+    "parity": "test_npv_shortmac.c: 150 synthetic entries, boundary-crossing, overlapping runs, odd wid, coverage gaps \u2014 serial vs 4-worker byte-identical"
+  },
+  "aggregate_measurements": {
+    "sub_attribution_ms": {
+      "per_constraint": 43.2,
+      "ent_runs": 1.0,
+      "short_macro": 78.3,
+      "simple_aggregate_side": 104
+    },
+    "sm4_phase": "short_macro 78 -> 60 ms at SM=4 (the kernel works)",
+    "load_warning": "The box was under heavy external load during final timing (load average 17.5, multiple checker-tm processes at 100% CPU from another lane); back-to-back runs still show the parallel set ~13% faster than serial under equal load (2475-2538 serial vs 2168-2177 parallel total). Absolute numbers must be re-measured on a quiet machine; the 0.905 s 8+8t figure predates the SM kernel and the load.",
+    "validation": "verify passes with all 4 codec negatives; prove with kernels ready 4.44 s under load (250,126 B, 112 table + root mutations reject); cross-verify passes; forged-repeat-balance and trie-bad-root still reject under SM=4"
+  }
+}

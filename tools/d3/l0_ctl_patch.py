@@ -28,12 +28,13 @@ Runtime switches (read once at start-up):
                    load/store/const) instruction first charges 1 extra gas;
   - `wasm:load`    a call's contract-loading charge is 1 gas higher;
   - `wasm:prep` / `wasm:compile`  a PrepareError / WasmtimeCompileError call failure burns
-                   1 gas instead of 0;
-  - `wasm:fuelcert` the fuel certificate reports failure (every call becomes `w.fuel_certificate`).
+                   1 gas instead of 0.
+(`wasm:fuelcert` is retired: `vmCall` no longer runs the fuel certificate since 2026-10-31,
+`Wasm.FuelCertOK.fuelCertified_true`.)
 
 Trace lines added in the second pass (`NEARSPEC_TRACE=1`), at most once per case each:
-`I int`, `I float` (an instruction of that family executed), `W load` (a contract-loading charge),
-`W fuelcert` (a certificate evaluated and passed); and per occurrence `W prep:<variant>`,
+`I int`, `I float` (an instruction of that family executed), `W load` (a contract-loading charge);
+and per occurrence `W prep:<variant>`,
 `W compile` (a preparation / compilation failure of a called contract).
 
 Usage: python3 tools/d3/l0_ctl_patch.py TREE   (TREE contains spec/lean and formal-core)
@@ -239,12 +240,6 @@ RUNCALL_SUBS = [
      '        if Ctl.ablate == "wasm:load" then (burn gs 1).1 else gs\n      match link p with'),
 ]
 
-VMCALL_SUBS = [
-    ('  if !fuelCertified cfg code then',
-     '  if !(Ctl.once "W fuelcert" fun _ => fuelCertified cfg code && Ctl.ablate != "wasm:fuelcert") then'),
-]
-
-
 def sub(text, old, new, what):
     if text.count(old) != 1:
         raise SystemExit(f"patch drift: {what} does not occur exactly once")
@@ -304,9 +299,6 @@ def main():
     # compiled code calls `runCallFast` (`@[csimp] runCall_eq_fast`), so the hook goes there
     p = ns / "Wasm/Arcs.lean"
     p.write_text(ctl_copy(p.read_text(), "runCallFast", RUNCALL_SUBS))
-    p = ns / "Successor/StorageExecution.lean"
-    t = p.read_text()
-    p.write_text(ctl_copy(t, "vmCall", VMCALL_SUBS))
 
     m = (v3 / "MainSuccessor.lean").read_text()
     m = m.replace("import NearSpecV3.Successor.TierO4NS\n", "import NearSpecV3.Ctl\n")

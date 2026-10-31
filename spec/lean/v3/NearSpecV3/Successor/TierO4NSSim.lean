@@ -257,7 +257,8 @@ theorem code_rel (c : ActCtx) (st : ActSt) (hh : Bytes) (timely : Bool) :
               exact Or.inr (Or.inr ⟨_, esc_att, rfl⟩)
           | none => exact Or.inl rfl
 
-/-- **The VM tail (G2).** The legacy tail and `callTailNS` agree, or `NS` fails the certificate. -/
+/-- **The VM tail (G2).** The legacy tail and `callTailNS` agree. (G2, the fuel certificate, was
+removed from `vmCall` on 2026-10-31: `Wasm.FuelCertOK.fuelCertified_true`.) -/
 theorem tail_rel (cfg : NearCfg) (c : ActCtx) (st : ActSt) (ar : AR) (m args : Bytes) (g d : Nat)
     (acct : D2.Acct) (hh code : Bytes) :
     RelE (callTailLeg cfg c st ar m args g d acct hh code)
@@ -267,13 +268,8 @@ theorem tail_rel (cfg : NearCfg) (c : ActCtx) (st : ActSt) (ar : AR) (m args : B
   cases hood : contractOOD cfg (toBA code) with
   | some why => exact Or.inl rfl
   | none =>
-    simp only []
-    cases hc : fuelCertified cfg (toBA code)
-    · refine Or.inr (Or.inr ⟨escG2, esc_escG2, ?_⟩)
-      simp only [StorageExecution.vmCall, hc, Bool.not_false, ↓reduceIte]
-      rfl
-    · simp only [StorageExecution.vmCall, hc, Bool.not_true, Bool.false_eq_true, ↓reduceIte]
-      exact Or.inl rfl
+    simp only [StorageExecution.vmCall]
+    exact Or.inl rfl
 
 /-- **G5 is unreachable** (module comment): a local contract of a non-ETH-implicit account resolves
 to itself. -/

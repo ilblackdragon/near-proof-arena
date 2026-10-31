@@ -86,8 +86,10 @@ class Predicates(unittest.TestCase):
         self.assertTrue(holds(I.segment_longer_than_32, GENESIS) is False)
 
     def test_lenient_decoding_is_restored(self):
+        # compare with the value before the call: other test modules may set N.LENIENT globally
+        before = I.N.LENIENT
         holds(I.mldsa65_public_key_in_tx_or_receipt, MLDSA)
-        self.assertFalse(I.N.LENIENT)
+        self.assertEqual(I.N.LENIENT, before)
 
 
 class AssertExclusion(unittest.TestCase):
