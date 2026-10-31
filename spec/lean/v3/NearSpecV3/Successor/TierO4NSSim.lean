@@ -298,7 +298,7 @@ theorem SimX.esc_run {α β : Type} {φ : β → α} {x : Except String α} {y :
 
 /-- The hook at the identity value map: both sides run on the state with the revealed trie. -/
 theorem simx_functionCall (cfg : NearCfg) (c : ActCtx) (st0 : ActSt) (res : AR) (m args : Bytes) (g d : Nat)
-    (hc : c.env = e) :
+    (hc : c.env = e) (hP : PFrame P) :
     SimX e P id (D3.functionCall cfg c (st0.wt (T e)) res (.fcall m args g d))
       (StorageExecutionNS.functionCallNS cfg c st0 res (.fcall m args g d)) := by
   subst hc
@@ -332,7 +332,8 @@ theorem simx_functionCall (cfg : NearCfg) (c : ActCtx) (st0 : ActSt) (res : AR) 
           rw [hres, pure_bind]
           dsimp only
           refine SimX.get_all fun r0 => ?_
-          refine SimX.bind_id (SimX.liftE_rel (code_rel c _ h _)) fun code => ?_
+          refine SimX.book hP (Book.modifyPipe _) ?_
+          refine SimX.bind_id (SimX.liftE_rel (code_rel c _ h true)) fun code => ?_
           exact SimX.liftE_rel (tail_rel cfg c _ res m args g d _ h code)
       · simp only [isLocalC, heth, Bool.and_self, ↓reduceIte]
         exact SimX.excl' _ (by ood_tac)
@@ -413,12 +414,12 @@ theorem simx_hook {x : Except String (ActSt × AR)} {y : M (ActSt × AR)}
 
 /-- **`FCSim` for `NS`.** -/
 theorem fcSimNS (cfg : NearCfg) (c : ActCtx) (st : ActSt) (res : AR) (m args : Bytes) (g d : Nat)
-    (hc : c.env = e) :
+    (hc : c.env = e) (hP : PFrame P) :
     SimX e P (fun p => (p.1.wt (T e), p.2)) (D3.functionCallD3 cfg c (st.wt (T e)) res (.fcall m args g d))
       (try StorageExecutionNS.functionCallNS cfg c st res (.fcall m args g d)
        catch err => throw (if err.startsWith "unmodeled" then oodE err else err) : M (ActSt × AR)) := by
   rw [functionCallD3_eq]
-  refine simx_hook (simx_functionCall cfg c st res m args g d hc) fun a ha => ?_
+  refine simx_hook (simx_functionCall cfg c st res m args g d hc hP) fun a ha => ?_
   have hR := HooksR_d3 (s := e.store) (root := e.preRoot) cfg c st res (.fcall m args g d)
   rw [actCtx_ws hc] at hR
   unfold R at hR
@@ -459,7 +460,7 @@ theorem actSimNS (cfg : NearCfg) (c : ActCtx) (st : ActSt) (act : Act) (hc : c.e
       dsimp only
       refine SimX.ite _ (fun _ => SimX.of (Sim.pure rfl)) (fun _ => ?_)
       refine SimX.ite _ (fun _ => SimX.of (Sim.pure rfl)) (fun _ => ?_)
-      exact fcSimNS cfg c st _ m args g d hc
+      exact fcSimNS cfg c st _ m args g d hc pt_frame
     | deployGlobal x =>
       unfold StorageExecutionNS.applyAction; exact SimX.esc_run _ esc_escG7 fun _ => rfl
     | useGlobal x =>

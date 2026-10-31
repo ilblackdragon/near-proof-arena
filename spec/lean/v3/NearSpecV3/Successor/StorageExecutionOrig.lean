@@ -107,8 +107,8 @@ def functionCallRecordedF (fuelOf : NearCfg → Nat → Nat) (cfg : NearCfg) (c 
   let sources : CodeSources := {
     witness := env.codeOf, current := st.deploys,
     committed := c.deployed ++ recording.materialized, attempted := c.attempted }
-  let timely := recording.pipe.deterministic c.r.rid c.idx hh
-  let code ← liftE (resolveCodeBytes recording.codePolicy sources pre hh timely)
+  modifyPipe (Pipeline.Pipe.noteRace c.r.rid c.idx hh (sources.deployServed hh))
+  let code ← liftE (resolveCodeBytes recording.codePolicy sources pre hh)
   let codeB := toBA code
   if let some why := contractOOD cfg codeB then throw (oodE why)
   -- VMContext (§3)
@@ -694,12 +694,16 @@ def applyNewChunkD2 (hooks : NearCfg) (prims : Prims) (env : Env) (t : PTrie)
 
 /-- Execute the recorder-aware main transition. Limits are protocol constants; the initial
 recorder is empty regardless of unused values included in the witness. -/
+def raceCheck (out : MainOutD2) : M MainOutD2 := do
+  let s ← get
+  if s.pipe.raced then throw raceExclusion else pure out
+
 def run (cfg : NearCfg) (prims : Prims) (env : Env) (t : PTrie)
     (vu : Option ValidatorUpdateFacts) (props : List (Bytes × Nat))
     (incoming : List Rcpt) (txs : List (TxD2 × Bool)) (congestion : Congestion)
     (globalActions : Bool := false) (codePolicy : CodeWitnessPolicy := .coldPartial) :
     Except String MainOutD2 :=
-  ((applyNewChunkD2 cfg prims env t vu props incoming txs congestion).run
-    { globalActions, codePolicy, observe := cfg.observeDetail } env).map Prod.fst
+  ((applyNewChunkD2 cfg prims env t vu props incoming txs congestion >>= raceCheck).run
+    { globalActions, codePolicy, observe := cfg.observeDetail, pipe := { chain := env.chainId } } env).map Prod.fst
 
 end NearSpecV3.Successor.StorageExecution.Orig

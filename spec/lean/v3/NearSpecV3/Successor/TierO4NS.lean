@@ -164,8 +164,8 @@ def functionCallNS (cfg : NearCfg) (c : ActCtx) (st0 : ActSt) (ar : AR) (b : Bas
     let recording ← get
     let sources : CodeSources := { witness := c.env.codeOf, current := st.deploys,
                                    committed := c.deployed, attempted := c.attempted }
-    let timely := recording.pipe.deterministic c.r.rid c.idx hh
-    let code ← liftE (resolveColdCodeNS sources timely (preHashOf st.o c.r.recv == some hh) hh)
+    modifyPipe (Pipeline.Pipe.noteRace c.r.rid c.idx hh (sources.deployServed hh))
+    let code ← liftE (resolveColdCodeNS sources true (preHashOf st.o c.r.recv == some hh) hh)
     liftE (callTailNS cfg c st ar method args gas deposit acct hh code)
 
 def applyAction (cfg : NearCfg) (c : ActCtx) (st : ActSt) (a : Act) : M (ActSt × AR) := do
@@ -526,8 +526,8 @@ def run (cfg : NearCfg) (prims : Prims) (env : Env) (t : PTrie)
     (vu : Option ValidatorUpdateFacts) (props : List (Bytes × Nat))
     (incoming : List Rcpt) (txs : List (TxD2 × Bool)) (congestion : Congestion) :
     Except String MainOutD2 :=
-  ((applyNewChunkD2 cfg prims env t vu props incoming txs congestion).run
-    { observe := cfg.observeDetail } env).map Prod.fst
+  ((applyNewChunkD2 cfg prims env t vu props incoming txs congestion >>= raceCheck).run
+    { observe := cfg.observeDetail, pipe := { chain := env.chainId } } env).map Prod.fst
 
 end NearSpecV3.Successor.StorageExecutionNS
 

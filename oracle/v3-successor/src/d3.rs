@@ -863,6 +863,14 @@ pub fn write_d3_case(x: D3Ctx, stats: &mut Stats, d3s: &mut D3Stats) {
         let rs = (built.claim.rs_data_parts, built.claim.rs_total_parts);
         meta["nearcore_probe"] = crate::cachejudge::cache_probe(p, ci, client, wb, codes, rs);
     }
+    if let Some(p) = probe.filter(|_| crate::cachejudge::schedule_probe_all()) {
+        // G3 (2026-10-31): the forced eager/lazy schedules on every honest case, so a checker that
+        // decides a chunk it used to exclude as a race is compared with both extreme schedules
+        let rs = (built.claim.rs_data_parts, built.claim.rs_total_parts);
+        let e = p.judge(crate::cachejudge::Mode::Eager, ci, client, wb, codes, rs);
+        let l = p.judge(crate::cachejudge::Mode::Lazy, ci, client, wb, codes, rs);
+        meta["nearcore_schedule"] = json!({"eager": vstr(&e), "lazy": vstr(&l)});
+    }
     let meta = meta;
     // coverage counters
     d3s.add("honest_with_function_calls", (an3.features.get("n_function_calls").cloned().unwrap_or_default().as_u64().unwrap_or(0) > 0) as u64);
@@ -1010,7 +1018,7 @@ pub fn write_d3_case(x: D3Ctx, stats: &mut Stats, d3s: &mut D3Stats) {
         //                          preparation schedules (src/cachejudge.rs): a thread race;
         //   `e.code_deploy_served` the deploy serves the call under both schedules: deterministic.
         let m_cc = code_cache_dependent(&an3.state_calls, vals, &cs);
-        let sched = match (probe, m_cc, &m.judge, &flags, derived) {
+        let sched = match (probe, m_cc || crate::cachejudge::schedule_probe_all(), &m.judge, &flags, derived) {
             (Some(p), true, Judge::Nearcore, None, None) => {
                 let e = p.judge(crate::cachejudge::Mode::Eager, ci, client, &m.witness, &cs, rs(&m.claim));
                 let l = p.judge(crate::cachejudge::Mode::Lazy, ci, client, &m.witness, &cs, rs(&m.claim));
@@ -1018,7 +1026,7 @@ pub fn write_d3_case(x: D3Ctx, stats: &mut Stats, d3s: &mut D3Stats) {
             }
             _ => None,
         };
-        let race = sched.as_ref().is_some_and(|(e, l)| e.is_ok() != l.is_ok());
+        let race = m_cc && sched.as_ref().is_some_and(|(e, l)| e.is_ok() != l.is_ok());
         let mut m_viol = viol3.clone();
         if m_cc { m_viol.push(if race { "e.code_prep_race" } else { "e.code_deploy_served" }); }
         let m_in_d3 = m_viol.is_empty();

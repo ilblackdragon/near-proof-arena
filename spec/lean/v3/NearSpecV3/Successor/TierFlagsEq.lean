@@ -359,6 +359,12 @@ theorem Sim.modifyPipe (f : Pipeline.Pipe → Pipeline.Pipe) :
 
 macro_rules | `(tactic| sim_close) => `(tactic| with_reducible exact Sim.modifyPipe _)
 
+theorem Sim.raceCheck (out : MainOutD2) :
+    Sim fl (Orig.raceCheck out) (StorageExecution.raceCheck out) := by
+  unfold Orig.raceCheck StorageExecution.raceCheck
+  orig_matchers
+  sim_walk
+
 theorem Sim.setVmErr (e : String) :
     Sim fl (Orig.setVmErr e) (StorageExecution.setVmErr e) := by
   unfold Orig.setVmErr StorageExecution.setVmErr
@@ -721,13 +727,16 @@ theorem run_eq_orig (cfg : NearCfg) (prims : Prims) (env : Env) (t : PTrie)
     run cfg prims env t vu props incoming txs congestion globalActions codePolicy =
       Orig.run cfg prims env t vu props incoming txs congestion globalActions codePolicy := by
   unfold run Orig.run
-  have h := Sim.applyNewChunkD2 (fl := { globalActions, codePolicy }) cfg prims env t vu props incoming
-    txs congestion { observe := cfg.observeDetail } env
+  have h := Sim.bind (fl := { globalActions, codePolicy })
+    (Sim.applyNewChunkD2 cfg prims env t vu props incoming txs congestion) (fun out => Sim.raceCheck out)
+    { observe := cfg.observeDetail, pipe := { chain := env.chainId } } env
   simp only [StateT.run]
-  rw [show ({ globalActions, codePolicy, observe := cfg.observeDetail } : Orig.RecordingO) =
-    Recording.withF { observe := cfg.observeDetail } { globalActions, codePolicy } from rfl, h]
-  cases applyNewChunkD2 { globalActions, codePolicy } cfg prims env t vu props incoming txs congestion
-    { observe := cfg.observeDetail } env <;> rfl
+  rw [show ({ globalActions, codePolicy, observe := cfg.observeDetail, pipe := { chain := env.chainId } } :
+      Orig.RecordingO) =
+    Recording.withF { observe := cfg.observeDetail, pipe := { chain := env.chainId } }
+      { globalActions, codePolicy } from rfl, h]
+  cases (applyNewChunkD2 { globalActions, codePolicy } cfg prims env t vu props incoming txs congestion
+    >>= raceCheck) { observe := cfg.observeDetail, pipe := { chain := env.chainId } } env <;> rfl
 
 #print axioms run_eq_orig
 

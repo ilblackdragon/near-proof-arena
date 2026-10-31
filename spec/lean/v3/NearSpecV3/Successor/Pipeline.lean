@@ -1,4 +1,5 @@
 import NearSpecV3.D2.Receipts
+import NearSpecV3.D3.GlobalContract
 import NearSpecV3.Successor.Routing
 
 /-!
@@ -24,9 +25,28 @@ deterministic (task submitted after the deploy's receipt finished, or never subm
 
 Lookups here are nearcore's `NO_SIDE_EFFECTS` reads (`get_pure`): they read the overlay and the
 revealed pre-state, record nothing, and a value the witness does not reveal is an error that
-skips the receipt, exactly as it does in the validator. Shapes this module does not model (a call
-on a global contract identity, a stored receipt it cannot decode) set `uncertain`; a resolution
-that depends on timing after that is out of domain.
+skips the receipt, exactly as it does in the validator.
+
+**Global-contract calls are scheduled exactly** (G3, 2026-10-31). `submit` resolves the receiver's
+contract with `RuntimeContractIdentifier::resolve` (`contract_code.rs:38-84`): a local hash, the
+ETH-implicit wallet redirect, a global code hash (no read) or a global account identifier, whose
+code hash is the `value_hash` of its `GlobalContractCode` slot (`get_ref`, `NO_SIDE_EFFECTS`); a
+resolution error skips the action (`let Ok(identifier) … else continue`). Every resolved call is a
+task and makes the receipt "interesting", which is what staggers later submissions. Distribution
+receipts never reach `submit` from the scheduler (`handle_receipt` returns `false` for them,
+`lib.rs:3317`), so `block_global_contracts` is always empty there. Until 2026-10-31 a global call
+set `uncertain` instead, which made every later deploy-served call of the chunk a race exclusion.
+
+What the module still cannot schedule — an account or a stored receipt that the active codec does
+not decode — sets `uncertain`: from then on Lean does not know which receipts are "interesting", so
+no deploy-served call is `deterministic`.
+
+**A race is recorded per call, not decided at the call** (`Pipe.noteRace`, `raced`). A call whose
+code only an in-chunk deploy serves and whose preparation may have been submitted before that
+deploy ran has exactly two nearcore outcomes: the worker missed (`MissingTrieValue`, the chunk is
+invalid) or it was served. The engine therefore runs the served branch and remembers the race; at
+the end a run that would accept is the race exclusion, and a run that rejects is a reject on every
+schedule (W08 §4, §7: the `code.none` mutants whose failure point races but whose verdict does not).
 -/
 namespace NearSpecV3.Successor.Pipeline
 open NearSpec NearSpecV3 NearSpecV3.D2
@@ -54,6 +74,10 @@ structure Pipe where
   /-- The current list phase: the lookahead not yet scanned and `next_schedule_after`. -/
   look : List Rcpt := []
   next : Option Nat := none
+  /-- The chain id, for the ETH-implicit wallet redirect of `RuntimeContractIdentifier::resolve`. -/
+  chain : Bytes := []
+  /-- Some executed call was served by an in-chunk deploy its preparation may have raced. -/
+  raced : Bool := false
   deriving Repr
 
 /-- `get_pure`: `none` when the witness does not reveal the value (an `Err` in nearcore). -/
@@ -82,15 +106,17 @@ def submitActions (o : Ovl) (rid recv : Bytes) :
           | _ => (p, none)
       match acct with
       | none => submitActions o rid recv p (some none) (i + 1) any rest
-      | some x => match x.contract with
-        | .none => submitActions o rid recv p (some (some x)) (i + 1) any rest
-        | .local h =>
+      | some x =>
+        -- `RuntimeContractIdentifier::resolve` with `NO_SIDE_EFFECTS`; an error or no contract
+        -- skips the action (`pipelining.rs:197-235`)
+        match D3.L4.Rci.resolveCodeHash o (D3.L4.Rci.resolve p.chain recv x.contract) with
+        | .ok (some h) =>
           if p.tasks.any (fun t => t.rid == rid && t.idx == i) then
             submitActions o rid recv p (some (some x)) (i + 1) any rest
           else
             let p := { p with tasks := p.tasks ++ [⟨rid, i, h, p.clock⟩] }
             submitActions o rid recv p (some (some x)) (i + 1) true rest
-        | _ => submitActions o rid recv { p with uncertain := true } (some (some x)) (i + 1) any rest
+        | _ => submitActions o rid recv p (some (some x)) (i + 1) any rest
     | _ => submitActions o rid recv p acct (i + 1) any rest
 
 def submitRcpt (o : Ovl) (p : Pipe) (r : Rcpt) : Pipe × Bool :=
@@ -177,5 +203,11 @@ def Pipe.deterministic (p : Pipe) (rid : Bytes) (idx : Nat) (hash : Bytes) : Boo
   match p.tasks.find? (fun t => t.rid == rid && t.idx == idx && t.code == hash) with
   | none => true
   | some t => p.deploys.any fun (h, s) => h == hash && s < t.submitted
+
+/-- Note an executed call `(rid, idx)` of code `hash`; `served` says that only an in-chunk deploy
+holds the code (`CodeSources.deployServed`). The call races when that is so and its preparation
+timing is not `deterministic`. -/
+def Pipe.noteRace (rid : Bytes) (idx : Nat) (hash : Bytes) (served : Bool) (p : Pipe) : Pipe :=
+  if served && !p.deterministic rid idx hash then { p with raced := true } else p
 
 end NearSpecV3.Successor.Pipeline

@@ -194,6 +194,13 @@ pub fn warm_enabled() -> bool {
         || std::env::var("NEAR_CACHE_PROBE_WARM").is_ok_and(|v| v == "1")
 }
 
+/// The forced eager and lazy schedules on every nearcore-judged case, not only on deploy-served code
+/// mutants (`NEAR_SCHEDULE_PROBE_ALL=1`; two extra judgments per case). Used by the G3 evidence
+/// (docs/evidence/lean-chunk-completion/g3-per-call-race).
+pub fn schedule_probe_all() -> bool {
+    std::env::var("NEAR_SCHEDULE_PROBE_ALL").is_ok_and(|v| v == "1")
+}
+
 /// `{"warm": verdict, "poisoned": verdict}` of the same bytes the cold judge saw.
 pub fn cache_probe(p: &CacheJudge, ci: usize, client: &Client, bytes: &[u8], codes: &[Vec<u8>], rs: (u16, u16)) -> serde_json::Value {
     let s = |r: Result<(), String>| r.map(|_| "ok".to_string()).unwrap_or_else(|e| e);

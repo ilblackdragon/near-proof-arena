@@ -13,8 +13,8 @@ set_option maxHeartbeats 4000000
   `MRX.tryCatch_unmodeled`: `applyAction`'s handler turns them into exclusions.
 * **`functionCallRecorded_global`**: the recorded call at `globalActions` false (configuration `w`)
   against true (`{ w with globalActions := true }`), up to `XU`, with no distribution receipt among
-  the new receipts. The steps that differ: the pipeline's `timely` (`liftE_timely`: the lower pipe is
-  the upper one or uncertain, `PipeRel.det`; untimely code is the race exclusion), the VM
+  the new receipts. The steps that differ: the pipeline's per-call race note (`pipeFn_noteRace`: the
+  lower pipe is the upper one, or uncertain and noting every race the upper one notes), the VM
   (`vm_step` from `vmF_global` and `vmCall_lowQ`), the action log (`managerGlobal_eq_manager` on the
   lower run's raw-free log), `finishActs` against `finishActsGlobal` (`liftE_finishActs`: equal, or the
   lower fails with a `w.shape`/`e.wasm-α` exclusion or `unmodeled: action re-encoding`).
@@ -311,7 +311,7 @@ theorem liftE_finishActs {E : Env → Prop} (m : D3.MR) :
   MRX.liftE_ref (fun a h => ⟨finishActsGlobal_of_finishActs m a h, trivial⟩)
     fun e h => Or.inl (finishActs_err m e h)
 
-macro_rules | `(tactic| mrx_close) => `(tactic| lower_has resOf; exact liftE_timely _ _ _ _ _ _ (PipeRel.det ‹_› _ _ _))
+macro_rules | `(tactic| mrx_close) => `(tactic| lower_head modifyPipe; exact MRX.modifyPipe (pipeFn_noteRace _ _ _ _))
 macro_rules | `(tactic| mrx_close) => `(tactic| with_reducible exact liftE_finishActs _)
 
 theorem resOf_ga (p : CodeWitnessPolicy) (c : ActCtx) : resOf ⟨true, p⟩ c = resOf ⟨false, p⟩ c := rfl

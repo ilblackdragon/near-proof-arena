@@ -48,8 +48,11 @@ def functionCallRecordedWith (ga : Bool)
   -- complete-code policy consults it.
   let recording ← get
   let pre := prestateCode st.o.trie codeKey
-  let timely := recording.pipe.deterministic c.r.rid c.idx hh
-  let code ← liftE (res st.deploys (c.deployed ++ recording.materialized) c.attempted pre hh timely)
+  let sources : CodeSources := {
+    witness := env.codeOf, current := st.deploys,
+    committed := c.deployed ++ recording.materialized, attempted := c.attempted }
+  modifyPipe (Pipeline.Pipe.noteRace c.r.rid c.idx hh (sources.deployServed hh))
+  let code ← liftE (res st.deploys (c.deployed ++ recording.materialized) c.attempted pre hh true)
   let codeB := toBA code
   if let some why := ood codeB then throw (oodE why)
   -- VMContext (§3)

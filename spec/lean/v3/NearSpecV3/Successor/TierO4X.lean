@@ -182,9 +182,22 @@ def EngineAgreeX (cfg : Wasm.NearCfg) : Prop :=
       ((applyNewChunkD2 (D3.d3Hooks cfg) p e (revealAll e.store revealFuel e.preRoot) vu ps rs txs cg).map obsClear)
       ((StorageExecutionNS.run cfg p e (revealAll e.store revealFuel e.preRoot) vu ps rs txs cg).map obsClear)
 
-/-- **Bridge.** A `SimX` of the main transition from the initial recorder state gives `EngineAgreeX`. -/
+theorem esc_raceExclusion : esc raceExclusion = true := by simp [esc]
+
+/-- `NS.run` through its end-of-run race decision (`raceCheck_run`). -/
+theorem ns_run_eq (cfg : Wasm.NearCfg) (p : Prims) (e : Env) (t : PTrie) (vu : Option ValidatorUpdateFacts)
+    (ps : List (Bytes × Nat)) (rs : List Rcpt) (txs : List (TxD2 × Bool)) (cg : Congestion) :
+    StorageExecutionNS.run cfg p e t vu ps rs txs cg =
+      (((StorageExecutionNS.applyNewChunkD2 cfg p e t vu ps rs txs cg).run
+          { observe := cfg.observeDetail, pipe := { chain := e.chainId } } e).bind
+        fun q => if q.2.pipe.raced = true then .error raceExclusion else .ok q).map Prod.fst := by
+  unfold StorageExecutionNS.run
+  exact congrArg _ (raceCheck_run _ _ _)
+
+/-- **Bridge.** A `SimX` of the main transition from the initial recorder state gives `EngineAgreeX`.
+A preparation race noted on the way (`raced`) is the G3 escape at the end of the run. -/
 theorem engineAgreeX_of_simX (cfg : Wasm.NearCfg) (P : Recording → Prop)
-    (hinit : P { observe := cfg.observeDetail })
+    (hinit : ∀ chain : Bytes, P { observe := cfg.observeDetail, pipe := { chain } })
     (h : ∀ (merged : List Bytes) (p : Prims) (e : Env) (vu : Option ValidatorUpdateFacts)
       (ps : List (Bytes × Nat)) (rs : List Rcpt) (txs : List (TxD2 × Bool)) (cg : Congestion),
       e.store = mkHStore merged →
@@ -192,7 +205,7 @@ theorem engineAgreeX_of_simX (cfg : Wasm.NearCfg) (P : Recording → Prop)
         (StorageExecutionNS.applyNewChunkD2 cfg p e (T e) vu ps rs txs cg)) :
     EngineAgreeX cfg := by
   intro merged p e vu ps rs txs cg he
-  have h0 := h merged p e vu ps rs txs cg he _ hinit
+  have h0 := h merged p e vu ps rs txs cg he _ (hinit e.chainId)
   refine ⟨fun err hx hne _ => ?_, fun out hx _ => ?_⟩
   · cases hl : D2.applyNewChunkD2 (D3.d3Hooks cfg) p e (T e) vu ps rs txs cg with
     | ok a => rw [hl] at hx; cases hx
@@ -204,8 +217,8 @@ theorem engineAgreeX_of_simX (cfg : Wasm.NearCfg) (P : Recording → Prop)
         rw [hl] at h0
         rcases h0 with h0 | h0
         · rw [hne] at h0; cases h0
-        · left; unfold StorageExecutionNS.run; rw [h0]; rfl
-      · right; exact ⟨s, hs, by unfold StorageExecutionNS.run; rw [hy]; rfl⟩
+        · left; rw [ns_run_eq]; rw [h0]; rfl
+      · right; exact ⟨s, hs, by rw [ns_run_eq]; rw [hy]; rfl⟩
   · cases hl : D2.applyNewChunkD2 (D3.d3Hooks cfg) p e (T e) vu ps rs txs cg with
     | error err' => rw [hl] at hx; cases hx
     | ok a =>
@@ -215,8 +228,11 @@ theorem engineAgreeX_of_simX (cfg : Wasm.NearCfg) (P : Recording → Prop)
       · unfold SimAt at h0
         rw [hl] at h0
         obtain ⟨b, r', hy, rfl, _⟩ := h0
-        left; unfold StorageExecutionNS.run; rw [hy]; rfl
-      · right; exact ⟨s, hs, by unfold StorageExecutionNS.run; rw [hy]; rfl⟩
+        rw [ns_run_eq, hy]
+        cases hr : r'.pipe.raced
+        · left; simp only [Except.bind, hr, Bool.false_eq_true, ↓reduceIte, Except.map]
+        · right; exact ⟨raceExclusion, esc_raceExclusion, by simp only [Except.bind, hr, ↓reduceIte, Except.map]⟩
+      · right; exact ⟨s, hs, by rw [ns_run_eq]; rw [hy]; rfl⟩
 
 /-! ## `RefinesX` and the shell walk -/
 
