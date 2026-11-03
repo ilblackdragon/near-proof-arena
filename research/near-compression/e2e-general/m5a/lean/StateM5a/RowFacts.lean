@@ -32,12 +32,18 @@ structure BrStore (σ : Store) (tr : Trace Fp) (pub : List Fp) (r : Nat) : Prop 
   old : OldOK σ (brIn tr pub r) (brOld tr pub r)
   new : ev tr 2 r pub (Br.c "gnew") = 1 → NewOK σ (brOut tr pub r) (brNew tr pub r)
   ranges : BrRanges tr pub r
-  /-- `oDL`: the `MATQ`/`MATR` answer (`BusSplit.mat_reqresp`; responders `SN.oLM`). -/
-  mat : ev tr 2 r pub (Br.c "oDL") = 1 →
+  /-- `oDL` / `oUN`: the `MATQ`/`MATR` answer (`BusSplit.mat_reqresp`; responders `SN.oLM`). -/
+  mat : ev tr 2 r pub (Br.c "oDL") = 1 ∨ ev tr 2 r pub (Br.c "oUN") = 1 →
     MatRel σ (keyOf tr) (ev tr 2 r pub (Br.c "kid2")) (ev tr 2 r pub (Br.c "st2")) (ev tr 2 r pub (Br.c "lvlen"))
       (bytesOf (((List.range 16).map fun i => Br.c "lvh" i).map (E tr 2 r pub)))
       (refOf (E tr 2 r pub (Br.c "nhf")) ((pack2 fun b => Br.c "nh" b).map (E tr 2 r pub)))
       (le4 (((List.range 4).map fun k => Br.c "nm" k).map (E tr 2 r pub)))
+  /-- `oD1`: the `SIBQ`/`SIBA` answer (`BusSplit.sib_reqresp`; responders `SN.oLS`). -/
+  sib : ev tr 2 r pub (Br.c "oD1") = 1 →
+    SibRel σ (keyOf tr) (ev tr 2 r pub (Br.c "d") + 1)
+      (refOf (E tr 2 r pub Br.isnSib) ((pack2 Br.chSib).map (E tr 2 r pub)))
+      (ev tr 2 r pub (Br.c "kid2")) (ev tr 2 r pub (Br.c "lvlen"))
+      (bytesOf (((List.range 16).map fun i => Br.c "lvh" i).map (E tr 2 r pub)))
 
 theorem br_mem_dm {e : Expr}
     (he : e ∈ memChain (Br.c "oDH" + Br.c "oDL") (memLimbs Br.T "dm") Br.M []
@@ -96,6 +102,27 @@ theorem br_mono (hc : ∀ e ∈ Br.table.constraints, e.eval tr 2 r pub = 0)
 
 end
 
+/-- Keys of the `KEY` table are nibble strings of length `≤ 2^21`. -/
+theorem keyOf_bounds {tr : Trace Fp} {pub : List Fp} {D : Nat} {extra : List Table} {nb np : Nat}
+    (hH : Holds (fullAir D extra nb np) pub tr) (K : Nat) :
+    (∀ y ∈ keyOf tr K, y < 16) ∧ (keyOf tr K).length ≤ 2 ^ 21 := by
+  have h1 : 1 < (fullAir D extra nb np).tables.length := by simp [fullAir, m5aAir]
+  have hc : ∀ r, r < tr.height 1 → ∀ e ∈ Key.table.constraints, e.eval tr 1 r pub = 0 :=
+    fun r hr => hH.constr 1 h1 r hr
+  have hlog : tr.log 1 ≤ 20 := (hH.logBound 1 h1).2
+  refine ⟨fun y hy => ?_, ?_⟩
+  · obtain ⟨i, hi⟩ := List.mem_iff_getElem?.1 hy
+    exact KeyOrder.keyOf_lt hc hi
+  · have hl : (keyOf tr K).length = 2 * (keyRows tr K).length := by
+      unfold keyOf
+      induction keyRows tr K with
+      | nil => rfl
+      | cons a l ih => simp only [List.flatMap_cons, List.length_append, List.length_cons, ih]; simp; omega
+    have h2 : (keyRows tr K).length ≤ tr.height 1 := by
+      unfold keyRows; exact Nat.le_trans (List.length_filter_le _ _) (by simp)
+    have h3 : tr.height 1 ≤ 2 ^ 20 := Nat.pow_le_pow_right (by decide) hlog
+    omega
+
 /-- **`BrRowFacts` from `Holds` and the store / range part.** -/
 theorem brRowFacts_of {tr : Trace Fp} {pub : List Fp} {σ : Store} {D : Nat} {extra : List Table} {nb np : Nat}
     (hH : Holds (fullAir D extra nb np) pub tr)
@@ -108,7 +135,9 @@ theorem brRowFacts_of {tr : Trace Fp} {pub : List Fp} {σ : Store} {D : Nat} {ex
   have h2 : (fullAir D extra nb np).tables[2]! = Br.table := by
     rw [WsDecode.full_get 2 (by decide)]; rfl
   refine ⟨hS.old, hS.new, hS.ranges, fun h => (KeyLookups.br_nib hH hN hr (ev_one_eval h)).1,
-    fun h => KeyLookups.br_klen hH hL hr (ev_one_eval h), fun h => ?_, fun h => ?_, fun h t ht => ?_, hS.mat⟩
+    fun h => KeyLookups.br_klen hH hL hr (ev_one_eval h), fun h => ?_, fun h => ?_, fun h t ht => ?_, hS.mat,
+    fun h => (KeyLookups.br_nib hH hN hr (ev_one_eval h)).2, keyOf_bounds hH,
+    fun h => (KeyLookups.br_nib_sib hH hN hr (ev_one_eval h)).1, hS.sib⟩
   · have := DepthBound.br_depth hH hN r hr h; omega
   · brfacts hc hg
     have hg' : ev tr 2 r pub (Br.c "oDH" + Br.c "oDL") = 1 := by
@@ -125,12 +154,10 @@ theorem hloc_br_air {tr : Trace Fp} {pub : List Fp} (σ : Store) (D : Nat) (extr
     (hN : ∀ T ∈ extra, sendsOn T.interactions B_NIB = false)
     (hL : ∀ T ∈ extra, sendsOn T.interactions B_KLEN = false)
     (hxr : ∀ T ∈ extra, ∀ i ∈ T.interactions, i.bus ≠ B_RNG)
-    (hS : ∀ r, r < tr.height 2 → ev tr 2 r pub Br.gold = 1 → BrStore σ tr pub r)
-    (hbrRest : ∀ r, r < tr.height 2 → ev tr 2 r pub Br.gold = 1 → ∀ o ∈ walkOps, o ∉ brCovered →
-      ev tr 2 r pub (Br.c o) = 1 → LocalOK (Sem σ (keyOf tr)) (brRow tr pub r)) :
+    (hS : ∀ r, r < tr.height 2 → ev tr 2 r pub Br.gold = 1 → BrStore σ tr pub r) :
     ∀ x ∈ rowsOf cDc brW tr 2 pub, LocalOK (Sem σ (keyOf tr)) x :=
   hloc_br σ (keyOf tr) D extra nb np hH
-    (fun r hr hg => brRowFacts_of hH hN hL hxr hr hg (hS r hr hg)) hbrRest
+    (fun r hr hg => brRowFacts_of hH hN hL hxr hr hg (hS r hr hg))
 
 /-- **`hloc` for the concrete decoder on the AIR** (`keyOf := KeyDecode.keyOf tr`). -/
 theorem hloc_air {tr : Trace Fp} {pub : List Fp} (σ : Store) (D : Nat) (extra : List Table) (nb np : Nat)
@@ -139,14 +166,12 @@ theorem hloc_air {tr : Trace Fp} {pub : List Fp} (σ : Store) (D : Nat) (extra :
     (hL : ∀ T ∈ extra, sendsOn T.interactions B_KLEN = false)
     (hxr : ∀ T ∈ extra, ∀ i ∈ T.interactions, i.bus ≠ B_RNG)
     (hS : ∀ r, r < tr.height 2 → ev tr 2 r pub Br.gold = 1 → BrStore σ tr pub r)
-    (hbrRest : ∀ r, r < tr.height 2 → ev tr 2 r pub Br.gold = 1 → ∀ o ∈ walkOps, o ∉ brCovered →
-      ev tr 2 r pub (Br.c o) = 1 → LocalOK (Sem σ (keyOf tr)) (brRow tr pub r))
     (hsn : ∀ x ∈ rowsOf cDc snW tr 3 pub, LocalOK (Sem σ (keyOf tr)) x) :
     ∀ x ∈ walkRows cDc tr pub, LocalOK (SemS σ (keyOf tr)) x := by
   intro x hx
   rw [localOK_semS_iff]
   rcases List.mem_append.1 hx with hx | hx
-  · exact hloc_br_air σ D extra nb np hH hN hL hxr hS hbrRest x hx
+  · exact hloc_br_air σ D extra nb np hH hN hL hxr hS x hx
   · exact hsn x hx
 
 open StateM5a.Tape StateM5a.FinalOrder StateM5a.Sha512If NearSpecV3.D2 in
@@ -161,8 +186,6 @@ theorem air_final_sorted_cDc {tr : Trace Fp} {pub : List Fp} (σ : Store) (D : N
       sendsOn T.interactions B_KCR = false)
     (hn : n < 2013265921) (hprev : prev.length = 32) (hpost : post.length = 32)
     (hS : ∀ r, r < tr.height 2 → ev tr 2 r pub Br.gold = 1 → BrStore σ tr pub r)
-    (hbrRest : ∀ r, r < tr.height 2 → ev tr 2 r pub Br.gold = 1 → ∀ o ∈ walkOps, o ∉ brCovered →
-      ev tr 2 r pub (Br.c o) = 1 → LocalOK (Sem σ (keyOf tr)) (brRow tr pub r))
     (hsn : ∀ x ∈ rowsOf cDc snW tr 3 pub, LocalOK (Sem σ (keyOf tr)) x)
     (cs : List (Bytes × Option Bytes)) (hlen : cs.length = n) (hcs : FinalChanges tr pub cs)
     (committed : List (Bytes × Option Bytes)) (hcomm : committed.Perm cs)
@@ -170,7 +193,7 @@ theorem air_final_sorted_cDc {tr : Trace Fp} {pub : List Fp} (σ : Store) (D : N
     ∃ T', applyChanges (some T) (sortKV committed) = some (some T') ∧ rootHash (some T') = post :=
   air_final_sorted σ cDc cDc_std D writes prev post n rest nb np hP hr hrN hn hprev hpost
     (hloc_air σ D _ nb np hP.hH (fun T hT => (hP.hsil T hT).1) (fun T hT => (hP.hsil T hT).2.1)
-      (fun T hT i hi => (hP.hx T hT i hi).2.2.2.1) hS hbrRest hsn)
+      (fun T hT i hi => (hP.hx T hT i hi).2.2.2.1) hS hsn)
     cs hlen hcs committed hcomm T hT0 hF
 
 end StateM5a.RowFacts

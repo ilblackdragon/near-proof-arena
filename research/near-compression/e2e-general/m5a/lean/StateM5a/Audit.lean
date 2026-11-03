@@ -491,3 +491,7 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.RowBrV2.localOK_oDV
 #print axioms StateM5a.RowBrL.localOK_oDL
 #print axioms StateM5a.RowBrV.br_nvlen
+#print axioms StateM5a.RowBrUN.localOK_oUN
+#print axioms StateM5a.RowBrD1.localOK_oD1
+#print axioms StateM5a.RowHloc.walkOps_covered
+#print axioms StateM5a.RowFacts.keyOf_bounds
