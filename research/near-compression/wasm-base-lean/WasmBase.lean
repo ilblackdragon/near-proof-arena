@@ -170,6 +170,7 @@ import WasmBase.Main.SegGrowStep
 import WasmBase.Main.SegExecQ
 import WasmBase.Main.SegGrowCode
 import WasmBase.Main.SegGrowRow
+import WasmBase.M3Ctx
 import WasmBase.Main.SegChainSigma
 import WasmBase.Main.HostTwoRun
 import WasmBase.Main.HostTwoRunArms
