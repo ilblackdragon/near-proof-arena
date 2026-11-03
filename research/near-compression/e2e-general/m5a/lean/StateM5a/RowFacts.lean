@@ -32,6 +32,12 @@ structure BrStore (σ : Store) (tr : Trace Fp) (pub : List Fp) (r : Nat) : Prop 
   old : OldOK σ (brIn tr pub r) (brOld tr pub r)
   new : ev tr 2 r pub (Br.c "gnew") = 1 → NewOK σ (brOut tr pub r) (brNew tr pub r)
   ranges : BrRanges tr pub r
+  /-- `oDL`: the `MATQ`/`MATR` answer (`BusSplit.mat_reqresp`; responders `SN.oLM`). -/
+  mat : ev tr 2 r pub (Br.c "oDL") = 1 →
+    MatRel σ (keyOf tr) (ev tr 2 r pub (Br.c "kid2")) (ev tr 2 r pub (Br.c "st2")) (ev tr 2 r pub (Br.c "lvlen"))
+      (bytesOf (((List.range 16).map fun i => Br.c "lvh" i).map (E tr 2 r pub)))
+      (refOf (E tr 2 r pub (Br.c "nhf")) ((pack2 fun b => Br.c "nh" b).map (E tr 2 r pub)))
+      (le4 (((List.range 4).map fun k => Br.c "nm" k).map (E tr 2 r pub)))
 
 theorem br_mem_dm {e : Expr}
     (he : e ∈ memChain (Br.c "oDH" + Br.c "oDL") (memLimbs Br.T "dm") Br.M []
@@ -39,6 +45,9 @@ theorem br_mem_dm {e : Expr}
   unfold Br.constraints; exact List.mem_append_left _ (List.mem_append_right _ he)
 
 theorem br_mem_rng_dm : ∀ b, b < 8 → memD (rcv B_RNG (Br.c "oDH" + Br.c "oDL") [Br.c "dm" b]) Br.interactions = true := by
+  decide
+
+theorem br_mem_rng_nvl : ∀ t, t < 4 → memD (rcv B_RNG (Br.c "oUV") [Br.c "nvl" t]) Br.interactions = true := by
   decide
 
 section
@@ -96,17 +105,19 @@ theorem brRowFacts_of {tr : Trace Fp} {pub : List Fp} {σ : Store} {D : Nat} {ex
     {r : Nat} (hr : r < tr.height 2) (hg : ev tr 2 r pub Br.gold = 1) (hS : BrStore σ tr pub r) :
     BrRowFacts σ (keyOf tr) tr pub r := by
   have hc := tbl_br D extra nb np hH r (List.mem_range.2 hr)
+  have h2 : (fullAir D extra nb np).tables[2]! = Br.table := by
+    rw [WsDecode.full_get 2 (by decide)]; rfl
   refine ⟨hS.old, hS.new, hS.ranges, fun h => (KeyLookups.br_nib hH hN hr (ev_one_eval h)).1,
-    fun h => KeyLookups.br_klen hH hL hr (ev_one_eval h), fun h => ?_, fun h => ?_⟩
+    fun h => KeyLookups.br_klen hH hL hr (ev_one_eval h), fun h => ?_, fun h => ?_, fun h t ht => ?_, hS.mat⟩
   · have := DepthBound.br_depth hH hN r hr h; omega
   · brfacts hc hg
     have hg' : ev tr 2 r pub (Br.c "oDH" + Br.c "oDL") = 1 := by
       rw [ev_hadd, Nat.mod_eq_of_lt (by omega)]; omega
     refine br_mono hc hg' hS.ranges (fun b hb => ?_)
-    have h2 : (fullAir D extra nb np).tables[2]! = Br.table := by
-      rw [WsDecode.full_get 2 (by decide)]; rfl
     exact WsDecode3.rng_rcv hH hxr (t := 2) (by simp [fullAir, m5aAir])
       (by rw [h2]; exact memD_mem (br_mem_rng_dm b hb)) hr (ev_one_eval hg')
+  · exact WsDecode3.rng_rcv hH hxr (t := 2) (by simp [fullAir, m5aAir])
+      (by rw [h2]; exact memD_mem (br_mem_rng_nvl t ht)) hr (ev_one_eval h)
 
 /-- **`hloc` for the decoded `BR` rows on the AIR**, with `keyOf := KeyDecode.keyOf tr`. -/
 theorem hloc_br_air {tr : Trace Fp} {pub : List Fp} (σ : Store) (D : Nat) (extra : List Table) (nb np : Nat)

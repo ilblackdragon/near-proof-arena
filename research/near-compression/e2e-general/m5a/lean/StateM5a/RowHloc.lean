@@ -1,4 +1,5 @@
-import StateM5a.RowBrK
+import StateM5a.RowBrL
+import StateM5a.RowBrV2
 
 /-!
 # StateM5a.RowHloc — `hloc` for the decoded walk rows, and the assembly with the concrete decoder
@@ -20,7 +21,7 @@ namespace StateM5a.RowHloc
 open ZkFormal.Air ZkFormal.Algebra ZkFormal.Sha.Sound StateM5a.Bus StateM5a.DecodeBus StateM5a.Traffic
 open StateM5a.DecodeWalk StateM5a.DecodeM5a StateM5a.Store StateM5a.BusWalk NearSpec StateM5a.RowDec
 open StateM5a.FieldRows StateM5a.RowBr StateM5a.RowBrMsg StateM5a.RowBrF StateM5a.RowBrD StateM5a.RowBrN
-open StateM5a.RowBrU StateM5a.RowBrK
+open StateM5a.RowBrU StateM5a.RowBrK StateM5a.RowBrL StateM5a.RowBrV StateM5a.RowBrV2
 
 local notation "P" => 2013265921
 
@@ -34,12 +35,20 @@ structure BrRowFacts (σ : Store) (keyOf : Nat → List Nat) (tr : Trace Fp) (pu
     (keyOf (ev tr 2 r pub (Br.c "kid")))[ev tr 2 r pub (Br.c "d")]? = some (ev tr 2 r pub Br.nib)
   klen : ev tr 2 r pub Br.gEnd = 1 → (keyOf (ev tr 2 r pub (Br.c "kid"))).length = ev tr 2 r pub (Br.c "d")
   depth : (Br.c "gdn").eval tr 2 r pub = 1 → ev tr 2 r pub (Br.c "d") + 1 < P
-  /-- `oDH`: the child's old memory is at most the branch's (`RowBrK`, module note). -/
-  mono : ev tr 2 r pub (Br.c "oDH") = 1 →
+  /-- `oDH` / `oDL`: the child's old memory is at most the branch's (`RowFacts.br_mono`). -/
+  mono : ev tr 2 r pub (Br.c "oDH") = 1 ∨ ev tr 2 r pub (Br.c "oDL") = 1 →
     le4 (((List.range 4).map fun k => Br.c "om" k).map (E tr 2 r pub)) ≤ brMem tr pub r
+  /-- `oUV`: the written length's bytes are bytes (`RNG`). -/
+  nvl : ev tr 2 r pub (Br.c "oUV") = 1 → ∀ t, t < 4 → ev tr 2 r pub (Br.c "nvl" t) < 256
+  /-- `oDL`: the `MATQ`/`MATR` answer (`BusSplit.mat_reqresp`, responders `SN.oLM`). -/
+  mat : ev tr 2 r pub (Br.c "oDL") = 1 →
+    MatRel σ keyOf (ev tr 2 r pub (Br.c "kid2")) (ev tr 2 r pub (Br.c "st2")) (ev tr 2 r pub (Br.c "lvlen"))
+      (bytesOf (((List.range 16).map fun i => Br.c "lvh" i).map (E tr 2 r pub)))
+      (refOf (E tr 2 r pub (Br.c "nhf")) ((pack2 fun b => Br.c "nh" b).map (E tr 2 r pub)))
+      (le4 (((List.range 4).map fun k => Br.c "nm" k).map (E tr 2 r pub)))
 
 /-- The `BR` ops whose `LocalOK` is proved here. -/
-def brCovered : List String := ["oFD", "oFA", "oFV", "oDA", "oDS", "oDZ", "oUD", "oDH", "oDN"]
+def brCovered : List String := ["oFD", "oFA", "oFV", "oDA", "oDS", "oDZ", "oUD", "oDH", "oDN", "oDL", "oUV", "oDV"]
 
 section
 variable {tr : Trace Fp} {pub : List Fp} {r : Nat}
@@ -55,34 +64,44 @@ theorem nib_mult (hc : ∀ e ∈ Br.table.constraints, e.eval tr 2 r pub = 0)
 
 theorem gEnd_val (hc : ∀ e ∈ Br.table.constraints, e.eval tr 2 r pub = 0)
     (hg : ev tr 2 r pub Br.gold = 1) {o : String} (h1 : ev tr 2 r pub (Br.c o) = 1)
-    (ho : o = "oFD" ∨ o = "oFA" ∨ o = "oDA" ∨ o = "oDS" ∨ o = "oUD" ∨ o = "oDH" ∨ o = "oDN") : ev tr 2 r pub Br.gEnd = 0 := by
+    (ho : o = "oFD" ∨ o = "oFA" ∨ o = "oDA" ∨ o = "oDS" ∨ o = "oUD" ∨ o = "oDH" ∨ o = "oDN" ∨ o = "oDL") : ev tr 2 r pub Br.gEnd = 0 := by
   brfacts hc hg
   have eFV : (Br.c "oFV").eval tr 2 r pub = 0 := by
-    rcases ho with rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> exact f0
+    rcases ho with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> exact f0
   have eUV : (Br.c "oUV").eval tr 2 r pub = 0 := by
-    rcases ho with rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> exact f0
+    rcases ho with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> exact f0
   have eDV : (Br.c "oDV").eval tr 2 r pub = 0 := by
-    rcases ho with rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> exact f0
+    rcases ho with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> exact f0
   have eDZ : (Br.c "oDZ").eval tr 2 r pub = 0 := by
-    rcases ho with rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> exact f0
+    rcases ho with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> exact f0
   exact ev_of_eval (by evg; grind)
 
 theorem gEnd_one (hc : ∀ e ∈ Br.table.constraints, e.eval tr 2 r pub = 0)
     (hg : ev tr 2 r pub Br.gold = 1) {o : String} (h1 : ev tr 2 r pub (Br.c o) = 1)
-    (ho : o = "oFV" ∨ o = "oDZ") : ev tr 2 r pub Br.gEnd = 1 := by
+    (ho : o = "oFV" ∨ o = "oDZ" ∨ o = "oUV" ∨ o = "oDV") : ev tr 2 r pub Br.gEnd = 1 := by
   brfacts hc hg
-  have eFV : (Br.c "oFV").eval tr 2 r pub = if o = "oFV" then 1 else 0 := by
-    rcases ho with rfl | rfl
-    · exact f1
-    · exact f0
-  have eDZ : (Br.c "oDZ").eval tr 2 r pub = if o = "oDZ" then 1 else 0 := by
-    rcases ho with rfl | rfl
-    · exact f0
-    · exact f1
-  have eUV : (Br.c "oUV").eval tr 2 r pub = 0 := by rcases ho with rfl | rfl <;> exact f0
-  have eDV : (Br.c "oDV").eval tr 2 r pub = 0 := by rcases ho with rfl | rfl <;> exact f0
   apply eval_one_ev
-  rcases ho with rfl | rfl <;> simp only [if_true, if_false] at eFV eDZ <;> evg <;> grind
+  rcases ho with rfl | rfl | rfl | rfl
+  · have a : (Br.c "oFV").eval tr 2 r pub = 1 := f1
+    have b : (Br.c "oDZ").eval tr 2 r pub = 0 := f0
+    have c : (Br.c "oUV").eval tr 2 r pub = 0 := f0
+    have d : (Br.c "oDV").eval tr 2 r pub = 0 := f0
+    evg; grind
+  · have a : (Br.c "oFV").eval tr 2 r pub = 0 := f0
+    have b : (Br.c "oDZ").eval tr 2 r pub = 1 := f1
+    have c : (Br.c "oUV").eval tr 2 r pub = 0 := f0
+    have d : (Br.c "oDV").eval tr 2 r pub = 0 := f0
+    evg; grind
+  · have a : (Br.c "oFV").eval tr 2 r pub = 0 := f0
+    have b : (Br.c "oDZ").eval tr 2 r pub = 0 := f0
+    have c : (Br.c "oUV").eval tr 2 r pub = 1 := f1
+    have d : (Br.c "oDV").eval tr 2 r pub = 0 := f0
+    evg; grind
+  · have a : (Br.c "oFV").eval tr 2 r pub = 0 := f0
+    have b : (Br.c "oDZ").eval tr 2 r pub = 0 := f0
+    have c : (Br.c "oUV").eval tr 2 r pub = 0 := f0
+    have d : (Br.c "oDV").eval tr 2 r pub = 1 := f1
+    evg; grind
 
 /-- **One active `BR` row running a covered op is `LocalOK`.** -/
 theorem localOK_br_row {σ : Store} {keyOf : Nat → List Nat}
@@ -91,7 +110,7 @@ theorem localOK_br_row {σ : Store} {keyOf : Nat → List Nat}
     {o : String} (ho : o ∈ brCovered) (h1 : ev tr 2 r pub (Br.c o) = 1) :
     LocalOK (Sem σ keyOf) (brRow tr pub r) := by
   simp only [brCovered, List.mem_cons, List.not_mem_nil, or_false] at ho
-  rcases ho with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl
+  rcases ho with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl
   · exact localOK_oFD hc hg h1 (hF.nib (nib_mult hc hg (gEnd_val hc hg h1 (by simp))))
       (hF.depth (by brfacts hc hg; exact f1)) hF.old
   · exact localOK_oFA hc hg h1 (hF.nib (nib_mult hc hg (gEnd_val hc hg h1 (by simp)))) hF.old
@@ -104,9 +123,16 @@ theorem localOK_br_row {σ : Store} {keyOf : Nat → List Nat}
   · exact localOK_oUD hc hg h1 (hF.nib (nib_mult hc hg (gEnd_val hc hg h1 (by simp))))
       (hF.depth (by brfacts hc hg; exact f1)) hF.old (hF.new (by brfacts hc hg; omega)) hF.ranges
   · exact localOK_oDH hc hg h1 (hF.nib (nib_mult hc hg (gEnd_val hc hg h1 (by simp))))
-      (hF.depth (by brfacts hc hg; exact f1)) hF.old (hF.new (by brfacts hc hg; omega)) hF.ranges (hF.mono h1)
+      (hF.depth (by brfacts hc hg; exact f1)) hF.old (hF.new (by brfacts hc hg; omega)) hF.ranges (hF.mono (Or.inl h1))
   · exact localOK_oDN hc hg h1 (hF.nib (nib_mult hc hg (gEnd_val hc hg h1 (by simp))))
       (hF.depth (by brfacts hc hg; exact f1)) hF.old (hF.new (by brfacts hc hg; omega)) hF.ranges
+  · exact localOK_oDL hc hg h1 (hF.nib (nib_mult hc hg (gEnd_val hc hg h1 (by simp))))
+      (hF.depth (by brfacts hc hg; exact f1)) hF.old (hF.new (by brfacts hc hg; omega)) hF.ranges
+      (hF.mono (Or.inr h1)) (hF.mat h1)
+  · exact localOK_oUV hc hg h1 (hF.klen (gEnd_one hc hg h1 (by simp))) hF.old
+      (hF.new (by brfacts hc hg; omega)) hF.ranges (hF.nvl h1)
+  · exact localOK_oDV hc hg h1 (hF.klen (gEnd_one hc hg h1 (by simp))) hF.old
+      (hF.new (by brfacts hc hg; omega)) hF.ranges
 
 end
 
