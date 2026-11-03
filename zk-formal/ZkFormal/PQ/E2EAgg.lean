@@ -42,8 +42,11 @@ acceptance is a definition here, not an assumption; what is assumed about it is 
 ## What remains (stated precisely)
 
 * `NvFaithful A.Pin A.D (aggNodeV …)` and `NvFaithful A.PinW A.DW (aggWrapV …)`: an accepting
-  node (wrap) trace means the native node (wrap) program accepts. Five of six sub-obligations
-  open (`NvFaithful.lean`), unchanged.
+  node (wrap) trace means the native node (wrap) program accepts. *M11d (`E2ENode.lean`)*: the
+  composition (sub-obligation 6) is proved for both programs, after amending its statement in
+  `NvFaithful.lean`. Both reduce to `NodeExec`/`WrapExec`: the NvAir executes the program's hash
+  jobs, inner verifiers, tape and asserts. `LeafHolds` is proved (`leafHolds_circ`), and
+  `RangeBinding` is reduced to collision resistance (`rangeBinding_of`).
 * `ExtractWG`: the WHIR / LogUp-GKR straight-line extractor (below), with the event `BE.Any`.
   Its probability bound is a QROM statement and is not a Lean theorem (no measure theory in this
   library); the bound it must meet is recorded in `BadEvents`.
@@ -126,7 +129,9 @@ theorem nodeOK_agg {α Dg Proof Params : Type} [DecidableEq α] (Acc : Stmt α �
 (each a `Prop`; the QROM bounds they must meet are the soundness budget, not Lean theorems):
 
 * `hashColl` — the adversary's SHA-384 queries (Merkle nodes, transcript, 42-B truncation)
-  contain a collision; at `Q` queries the event has probability `≤ Q²/2^337` for 42-B digests;
+  contain a collision. At `Q` queries the event has probability `≤ Q²/2^337` for 42-B digests
+  classically, and `O(Q³/2^336)` in the QROM (Zhandry), which is `2^-144` at `Q = 2^64`. The 128-bit
+  claim needs the QROM figure (`docs/zk-formal/E2E-SOUNDNESS-BUDGET.md`);
 * `whirBad` — some WHIR challenge (folding randomness, OOD point, the ×15 query sampler) falls in
   the proximity-gap bad set of its round, the round-by-round error `ε_WHIR` of the pinned
   parameters (`WhirConfig`, O-2 table), times `Q`;

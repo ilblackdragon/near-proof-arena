@@ -35,6 +35,15 @@ file takes the **interface route**, and says so:
   step, by `Bridge.nat_inj_of_lt` — the same argument the classical PQ state port uses.  The other
   five are *stated and open*; they involve the Rust circuit and the native verifier, neither of
   which has a Lean model.
+* *Update 2026-11-03 (lane E, M11d).* `NvCompositionAt` now assumes `HoldsLogUp`. Without that
+  premise it was refutable (`nvCompositionOld_false`). For the pinned aggregation node and wrap
+  programs the composition (6) is proved in `E2ENode.lean` (`node_composition`,
+  `nvComposition_node`, `wrap_composition`). Sub-obligations 1–4 remain open there as `NodeExec` /
+  `WrapExec`: the NvAir executes the program. A caution on this file's generic parameters: `sha`,
+  `digestOf`, `limbsOK`, `circuitSample` and `arithOK` are free, so 1, 2 and 4 are trivially
+  satisfiable by degenerate choices (`digestOf := fun _ => sha`, `arithOK := True`, and so on).
+  The obligations only have content at parameters tied to the program, as `E2ENode.lean` ties
+  them.
 
 Nothing in this file is named `faithful` and assumed.  `NvFaithful` is only ever the *conclusion* of
 a theorem whose hypotheses are the seating sub-obligations; `nvFaithful_of_obligations` is the only
@@ -258,7 +267,18 @@ inner verifier accepts the canonical execution on the decoded statement, proof a
 This is the step FAITHFUL.md calls "composition" and it is the one the paper's Lemma 7.1 needs but
 does not have: it says that the five components are *the right ones*, i.e. that a native verifier
 fed these openings and these challenges is the verifier whose semantics (F1) asserts.  Stated as a
-hypothesis, because neither the verifier nor its checks have a Lean model. -/
+hypothesis, because neither the verifier nor its checks have a Lean model.
+
+**Amended 2026-11-03 (lane E, M11d): the composition now assumes `HoldsLogUp`.** The 2026-10-21
+form lacked this premise. Each of the other five per-trace obligations is an implication out of
+`HoldsLogUp`. So at a trace that does *not* satisfy the AIR, all five hold vacuously, and the old
+composition required the verifier to accept that trace's decode anyway (`nvCompositionOld_forces`).
+The aggregation node rejects children that do not chain, and so does any verifier that rejects the
+decode of some non-satisfying trace. For all of them the old obligation was **false**
+(`nvCompositionOld_false`), so `nvFaithful_of_obligations` had an unsatisfiable hypothesis. With
+the premise, the composition says what was intended: on satisfying traces, the five components are
+the acceptance condition. In that form it is provable for the pinned aggregation programs
+(`E2ENode.lean`). -/
 def NvCompositionAt (Pin : NvPinned) {Stmt Proof Params : Type}
     (D : NvDecode Stmt Proof Params) (V : NvVerifier Stmt Proof Params)
     (sha : ShaSpec) (digestOf : Trace Fp → List Nat → List Nat) (limbsOK : Trace Fp → Prop)
@@ -266,6 +286,7 @@ def NvCompositionAt (Pin : NvPinned) {Stmt Proof Params : Type}
     (tInit : List Fp) (programOf : Trace Fp → List Nat) (pinnedProgram : List Nat)
     (tapeOf : Trace Fp → List Fp) (stmtVec : Stmt → List Fp)
     (arithOK : Trace Fp → Stmt → Proof → Params → Prop) (tr : Trace Fp) (pub : List Fp) : Prop :=
+  HoldsLogUp Pin.air pub tr →
   NvShaGlueAt Pin sha digestOf limbsOK tr pub →
   NvTranscriptAt Pin circuitSample nativeSample tInit tr pub →
   NvProgramTapeAt Pin programOf pinnedProgram tapeOf D stmtVec tr pub →
@@ -355,7 +376,7 @@ theorem nvFaithful_of_obligations (Pin : NvPinned) {Stmt Proof Params : Type}
     NvFaithful Pin D V := by
   intro tr pub h
   exact ⟨V.run (D.stmt pub) (D.proof tr) (D.params tr),
-    hCOMP tr pub (hSHA tr pub) (hTR tr pub) (hPROG tr pub) (hARITH tr pub) (hLOGUP tr pub)⟩
+    hCOMP tr pub h (hSHA tr pub) (hTR tr pub) (hPROG tr pub) (hARITH tr pub) (hLOGUP tr pub)⟩
 
 /-- **The same composition with the LogUp obligation discharged.**  Only the five obligations about
 the Rust circuit and the native verifier remain as hypotheses; the LogUp step is
@@ -378,6 +399,62 @@ theorem nvFaithful_of_five (Pin : NvPinned) {Stmt Proof Params : Type}
   nvFaithful_of_obligations Pin D V sha digestOf limbsOK circuitSample nativeSample tInit
     programOf pinnedProgram tapeOf stmtVec arithOK hSHA hTR hPROG hARITH (nvLogUp Pin) hCOMP
 
+/-! ## Why the composition must assume `HoldsLogUp` (the 2026-10-21 form)
+
+`NvCompositionOldAt` is the composition as first stated: the five per-trace obligations imply
+acceptance, with no `HoldsLogUp` premise. `nvCompositionOld_forces` shows that it forces acceptance
+on every trace that does **not** satisfy the AIR, because the five premises are implications out of
+`HoldsLogUp` and hold vacuously there. So any verifier that rejects the decode of one
+non-satisfying trace refutes the old obligation (`nvCompositionOld_false`). -/
+
+/-- The composition as stated on 2026-10-21 (no `HoldsLogUp` premise). -/
+def NvCompositionOldAt (Pin : NvPinned) {Stmt Proof Params : Type}
+    (D : NvDecode Stmt Proof Params) (V : NvVerifier Stmt Proof Params)
+    (sha : ShaSpec) (digestOf : Trace Fp → List Nat → List Nat) (limbsOK : Trace Fp → Prop)
+    (circuitSample : Trace Fp → Nat → List Fp) (nativeSample : List Fp → Nat → List Fp)
+    (tInit : List Fp) (programOf : Trace Fp → List Nat) (pinnedProgram : List Nat)
+    (tapeOf : Trace Fp → List Fp) (stmtVec : Stmt → List Fp)
+    (arithOK : Trace Fp → Stmt → Proof → Params → Prop) (tr : Trace Fp) (pub : List Fp) : Prop :=
+  NvShaGlueAt Pin sha digestOf limbsOK tr pub →
+  NvTranscriptAt Pin circuitSample nativeSample tInit tr pub →
+  NvProgramTapeAt Pin programOf pinnedProgram tapeOf D stmtVec tr pub →
+  NvVerifierArithAt Pin D V arithOK tr pub →
+  NvLogUpAt Pin tr pub →
+  V.accepts (D.stmt pub) (D.proof tr) (D.params tr) (V.run (D.stmt pub) (D.proof tr) (D.params tr))
+
+/-- **The old composition forces acceptance off the AIR.** -/
+theorem nvCompositionOld_forces (Pin : NvPinned) {Stmt Proof Params : Type}
+    (D : NvDecode Stmt Proof Params) (V : NvVerifier Stmt Proof Params)
+    (sha : ShaSpec) (digestOf : Trace Fp → List Nat → List Nat) (limbsOK : Trace Fp → Prop)
+    (circuitSample : Trace Fp → Nat → List Fp) (nativeSample : List Fp → Nat → List Fp)
+    (tInit : List Fp) (programOf : Trace Fp → List Nat) (pinnedProgram : List Nat)
+    (tapeOf : Trace Fp → List Fp) (stmtVec : Stmt → List Fp)
+    (arithOK : Trace Fp → Stmt → Proof → Params → Prop) (tr : Trace Fp) (pub : List Fp)
+    (hOld : NvCompositionOldAt Pin D V sha digestOf limbsOK circuitSample nativeSample tInit
+      programOf pinnedProgram tapeOf stmtVec arithOK tr pub)
+    (hNot : ¬ HoldsLogUp Pin.air pub tr) :
+    V.accepts (D.stmt pub) (D.proof tr) (D.params tr)
+      (V.run (D.stmt pub) (D.proof tr) (D.params tr)) :=
+  hOld (fun h => absurd h hNot) (fun h => absurd h hNot) (fun h => absurd h hNot)
+    (fun h => absurd h hNot) (fun h => absurd h hNot)
+
+/-- **The old composition is false** for any verifier that rejects the decode of some trace off
+the AIR, whatever the other parameters are. -/
+theorem nvCompositionOld_false (Pin : NvPinned) {Stmt Proof Params : Type}
+    (D : NvDecode Stmt Proof Params) (V : NvVerifier Stmt Proof Params)
+    (sha : ShaSpec) (digestOf : Trace Fp → List Nat → List Nat) (limbsOK : Trace Fp → Prop)
+    (circuitSample : Trace Fp → Nat → List Fp) (nativeSample : List Fp → Nat → List Fp)
+    (tInit : List Fp) (programOf : Trace Fp → List Nat) (pinnedProgram : List Nat)
+    (tapeOf : Trace Fp → List Fp) (stmtVec : Stmt → List Fp)
+    (arithOK : Trace Fp → Stmt → Proof → Params → Prop) (tr : Trace Fp) (pub : List Fp)
+    (hNot : ¬ HoldsLogUp Pin.air pub tr)
+    (hRej : ¬ V.accepts (D.stmt pub) (D.proof tr) (D.params tr)
+      (V.run (D.stmt pub) (D.proof tr) (D.params tr))) :
+    ¬ ∀ tr pub, NvCompositionOldAt Pin D V sha digestOf limbsOK circuitSample nativeSample tInit
+      programOf pinnedProgram tapeOf stmtVec arithOK tr pub :=
+  fun h => hRej (nvCompositionOld_forces Pin D V sha digestOf limbsOK circuitSample nativeSample
+    tInit programOf pinnedProgram tapeOf stmtVec arithOK tr pub (h tr pub) hNot)
+
 /-! ## Axiom guards
 
 Everything asserted above is a definition, a proved theorem, or a hypothesis of a theorem.  The two
@@ -389,5 +466,7 @@ proved results (`nvLogUpInt_proved`, `holding_of_holdsLogUp` and its consumers) 
 #print axioms nvLogUp
 #print axioms nvFaithful_of_obligations
 #print axioms nvFaithful_of_five
+#print axioms nvCompositionOld_forces
+#print axioms nvCompositionOld_false
 
 end ZkFormal.PQ.Nv

@@ -71,7 +71,7 @@ charged separately with the full Q; hash collisions are charged once.
      at a 128-bit rbr target would give about 2^0 in the QROM (Q²·2^−128) and 2^−64 in the ROM.
      The wrap must be held to the same 268-bit rbr target as every other vk.
   2. **The Lean docstring of `hashColl` states the classical bound Q²/2^337.** The 128-bit QROM
-     claim needs the cubic bound Q³/2^336 = 2^−144. The docstring should say so.
+     claim needs the cubic bound Q³/2^336 = 2^−144. The docstring now says so (fixed in M11d).
   3. **M8 production nodes are not pinned yet** ("rate 1/4–1/16, fan-in 8, ≤ 3 levels",
      `E2E-GENERAL-CHUNK-PLAN.md:423`). They must keep the 268-bit rbr target with a vk-bound O-2
      table, as the measured depth-2/3 nodes do.
