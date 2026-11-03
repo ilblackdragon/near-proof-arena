@@ -1,0 +1,10 @@
+segprove-refill-mp: 	Elapsed (wall clock) time (h:mm:ss or m:ss): 2:44.00
+segprove-refill-mp: 	Maximum resident set size (kbytes): 1336616
+segprove-bench-s1s4-mp: 	Elapsed (wall clock) time (h:mm:ss or m:ss): 19:23.45
+segprove-bench-s1s4-mp: 	Maximum resident set size (kbytes): 17234740
+segtamper2-refill-mp-s0: 	Elapsed (wall clock) time (h:mm:ss or m:ss): 2:25.59
+segtamper2-refill-mp-s0: 	Maximum resident set size (kbytes): 1545696
+segtamper2-refill-mp-s2: 	Elapsed (wall clock) time (h:mm:ss or m:ss): 2:52.10
+segtamper2-refill-mp-s2: 	Maximum resident set size (kbytes): 1587240
+segprove-bench-s1-m4base: 	Elapsed (wall clock) time (h:mm:ss or m:ss): 10:13.94
+segprove-bench-s1-m4base: 	Maximum resident set size (kbytes): 19424372
