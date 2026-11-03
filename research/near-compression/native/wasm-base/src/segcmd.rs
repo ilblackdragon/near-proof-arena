@@ -457,6 +457,72 @@ fn tampers(spec: &AirSpec, s: &SegInst, segs: &[SegInst], which: usize) -> Vec<C
             out.push(("HOST gas register segb limb+1".into(), m, s.pubs.clone(), s.comps.clone(), s.pubs.clone()));
         }
     }
+    // (h) the call-key bus (E2E M4c, LINK): HOSTB / REG-C rows whose `(ts, hid)` is no HOST row's
+    if spec.tables[ti("HOST")].cols.iter().any(|c| c == "nk") {
+        out.extend(tampers_key(spec, s));
+    }
+    out
+}
+
+/// Tampers of the call-key bus (`Seg.busHKey`).  Each forges a HOSTB / REG-C call key that no active
+/// HOST row offers, in a way the other buses and constraints do not see (the M4c CORE counterexamples
+/// to `HostBLinked.linked` / `RegCLinked`), or forges HOST's multiplicity `nk`.
+fn tampers_key(spec: &AirSpec, s: &SegInst) -> Vec<Case> {
+    let mut out: Vec<Case> = vec![];
+    let ti = |n: &str| spec.index(n);
+    let col = |n: &str, c: &str| spec.tables[ti(n)].col(c);
+    let one = F::ONE;
+    let rows = |m: &Vec<RowMajorMatrix<F>>, t: &str| m[ti(t)].values.len() / m[ti(t)].width;
+    let get = |m: &Vec<RowMajorMatrix<F>>, t: &str, r: usize, c: &str| m[ti(t)].values[r * m[ti(t)].width + col(t, c)];
+    let put = |m: &mut Vec<RowMajorMatrix<F>>, t: &str, r: usize, c: &str, v: F| {
+        let (i, cc) = (ti(t), col(t, c));
+        let w = m[i].width;
+        m[i].values[r * w + cc] = v;
+    };
+    // a HOST call whose key is looked up
+    let hk = (0..rows(&s.mats, "HOST")).find(|&r| get(&s.mats, "HOST", r, "act") == one && get(&s.mats, "HOST", r, "nk") != F::ZERO);
+    if let Some(r) = hk {
+        let (ts, hid) = (get(&s.mats, "HOST", r, "ts"), get(&s.mats, "HOST", r, "hid"));
+        // (h1) relabel the call's hid (+1000) on HOSTB and/or REG-C rows: bus 210 between them and
+        // every group constraint stay consistent; only the key lookup has no HOST row to land on
+        for (name, tabs) in [("HOSTB+REG-C call key relabelled (hid+1000)", vec!["HOSTB", "REG"]),
+            ("HOSTB call key relabelled (hid+1000)", vec!["HOSTB"]), ("REG-C call key relabelled (hid+1000)", vec!["REG"])] {
+            let mut m = s.mats.clone();
+            let mut n = 0;
+            for t in tabs.iter() {
+                for q in 0..rows(&m, t) {
+                    if get(&m, t, q, "act") == one && get(&m, t, q, "ts") == ts && get(&m, t, q, "hid") == hid {
+                        put(&mut m, t, q, "hid", hid + F::from_u32(1000));
+                        n += 1;
+                    }
+                }
+            }
+            if n > 0 {
+                out.push((format!("{name}, {n} rows"), m, s.pubs.clone(), s.comps.clone(), s.pubs.clone()));
+            }
+        }
+        // (h2) HOST offers its key once more / once less than it is looked up
+        for (name, d) in [("HOST nk+1", one), ("HOST nk-1", -one)] {
+            let mut m = s.mats.clone();
+            put(&mut m, "HOST", r, "nk", get(&s.mats, "HOST", r, "nk") + d);
+            out.push((name.into(), m, s.pubs.clone(), s.comps.clone(), s.pubs.clone()));
+        }
+    }
+    // (h3) a foreign HOSTB response group in a padding row: `dir = 1`, `reg = 0`, one byte, its own
+    // group; its bus-210 pair cancels, no CH traffic, the BYTE/R16 multiplicities are recounted
+    let hb = ti("HOSTB");
+    if let Some(r) = (0..rows(&s.mats, "HOSTB")).rev().find(|&r| get(&s.mats, "HOSTB", r, "act") == F::ZERO) {
+        let mut m = s.mats.clone();
+        let w = m[hb].width;
+        for x in m[hb].values[r * w..(r + 1) * w].iter_mut() {
+            *x = F::ZERO;
+        }
+        for (c, v) in [("act", 1u32), ("dir", 1), ("f", 1), ("blen", 1), ("ts", 7), ("hid", 999)] {
+            put(&mut m, "HOSTB", r, c, F::from_u32(v));
+        }
+        seg::recount(spec, &mut m, &s.pubs);
+        out.push(("HOSTB foreign response group (ts 7, hid 999) in a padding row".into(), m, s.pubs.clone(), s.comps.clone(), s.pubs.clone()));
+    }
     out
 }
 
