@@ -1,7 +1,26 @@
 import WasmBase.Main.SegMemPath
+import WasmBase.Main.SegMemFrame
 
 /-!
 # WasmBase.Main.SegMemRoot — the memory-root conjunct of segment soundness (E2E M4c, sub-lane MEM)
+
+Stated in `SegIface`'s terms (`MemGeom`, `MembIn`, `MemRootIn`, `MemRootOut`), for `wasmBaseSegAir`:
+
+* `mp_chain`: MPATH's root chain (`rch_chain`) in bytes: the touched blocks, in `kb` order, are
+  single-leaf updates of the tree (`write_access_pd`); without a SHA-384 collision every block's old
+  leaf is the starting tree's leaf at its index, and `memOut` is the root of the starting tree with
+  every touched leaf replaced by its new leaf.  Consistency of repeated indices comes from MEMB
+  (`mp_cons_ro`: same index ⇒ same MEMB block, distinct `blk`; read-only ⇒ new leaf = old leaf).
+* **`seg_membIn`** (item 1): `MemGeom pub s0 → MemRootIn pub s0 → MembIn tr pub s0 ∨ Sha384Coll`
+  (no execution; the leaf is SHA-384 of MEMB's `bi` bytes, `memb_leaf_in`).
+* **`seg_memRootOut`** (item 3): with the frame (`hpg`, `hfr`, from `SegMemFrame.seg_mem_frame`) and
+  the out-boundary's memory part (`hout`, `membOut_of_bnd`): `MemRootOut pub sN ∧ MemGeom pub sN`, or
+  a collision; includes the no-touched-block case.
+* **`seg_mem_sound`** (item 4): packaged under `seg_sound`'s execution premises.
+
+Named premises: `MemGeom pub s0` (the public depth/`nblk` are the in-state's: the previous
+segment's out-geometry, or the initial memory's), `HostPagesRely` (M6, `SegMemFrame`), `CutiNoMem`
+(CUTI produces no space-3 message: its rows are the previous segment's `cutView`).
 -/
 
 namespace WasmBase
@@ -695,6 +714,201 @@ theorem seg_membIn {chip : List IfMsg} (hC : SegSha.ChipIf SegSha.compressW (was
 
 end inside
 
+/-! ## 5. The out-side: the out-root is the out-state's memory root -/
+
+theorem membBytes_length (tr : Trace) (b : Nat) (pre : String) : (SegSha.membBytes tr b pre).length = 1024 := by
+  simp [SegSha.membBytes]
+
+theorem blkBytes_length (s : St) (b : Nat) : (WasmView.blkBytes s b).length = 1024 := by
+  simp [WasmView.blkBytes]
+
+theorem nblk_depth_eq {s s' : St} (h : s'.pages.size = s.pages.size) :
+    WasmView.nblkOf s' = WasmView.nblkOf s ∧ WasmView.memDepth s' = WasmView.memDepth s := by
+  simp [WasmView.nblkOf, WasmView.memDepth, h]
+
+section outside
+variable {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsX (wasmBaseSegAir nloc ngl) pub tr)
+include H
+
+/-- A read-only block's out bytes are its in bytes (`ro·(bo − bi) = 0`). -/
+theorem memb_ro_bytes {b : Nat} (hr8 : 9 * b + 8 < tr.height 19) (ha8 : mbN tr (9 * b + 8) 0 = 1)
+    (hro : mbN tr (9 * b + 8) 11 = 1) : SegSha.membBytes tr b "bo" = SegSha.membBytes tr b "bi" := by
+  unfold SegSha.membBytes
+  apply List.map_congr_left; intro j hj
+  have hj' := List.mem_range.mp hj
+  have hk : j / 128 < 8 := by omega
+  have hi : j % 128 < 128 := Nat.mod_lt _ (by decide)
+  have hr : 9 * b + j / 128 < tr.height 19 := by omega
+  have ro1 : mbN tr (9 * b + j / 128) 11 = 1 := (SegSha.memb_ro_const H hr8 ha8 (j / 128) (by omega)).trans hro
+  have hmem : Memb.c "ro" * (Memb.c s!"bo{j % 128}" - Memb.c s!"bi{j % 128}") ∈ Memb.constraints := by
+    unfold Memb.constraints
+    refine List.mem_append_left _ (List.mem_append_left _ (List.mem_append_left _ (List.mem_append_left _
+      (List.mem_append_left _ (List.mem_append_right _ ?_)))))
+    exact List.mem_map.mpr ⟨j % 128, List.mem_range.mpr hi, rfl⟩
+  have h := memb_C H hr _ hmem
+  simp only [Expr.eval_mul', Expr.eval_sub', memb_c_eval, mb_ix.2.2, ro1, cast_one] at h
+  have h' : ((mbN tr (9 * b + j / 128) (ix Memb.cols s!"bo{j % 128}") : Nat) : F) =
+      ((mbN tr (9 * b + j / 128) (ix Memb.cols s!"bi{j % 128}") : Nat) : F) := by grind
+  rw [natEq h' (rowNat_lt _ _ _ _) (rowNat_lt _ _ _ _)]
+
+/-- **Item 3: the out-root is the out-state's memory root.**  From the in-side facts (`MemGeom`,
+`MemRootIn` at `s0`), the memory frame of the segment (`hpg`: same page count; `hfr`: every address
+without a MEMB production keeps its byte — `seg_mem_frame`), and the out-boundary's memory part
+(`hout`: MEMB's consumed bytes are `sN`'s bytes — from `BndC` at the out cut, `membOut_of_bnd`):
+the public out-root is `memRootOf sN` and the geometry is `sN`'s, or SHA-384 has a collision.  The
+new root uses the same siblings with the new leaves (`mp_chain`); untouched blocks are unchanged.
+This covers the no-touched-block case (`memOut = memIn`). -/
+theorem seg_memRootOut {chip : List IfMsg}
+    (hC : SegSha.ChipIf SegSha.compressW (wasmBaseSegAir nloc ngl) pub tr chip)
+    {s0 sN : St} (hG : MemGeom pub s0) (hR : MemRootIn pub s0) (hpg : sN.pages.size = s0.pages.size)
+    (hfr : ∀ a, (∀ x ∈ (part Memb.table tr pub 19 busStk true).map decMsg, x.slot ≠ a) →
+      readByte sN a = readByte s0 a)
+    (hout : ∀ a v tp, (⟨3, a, 0, v, 0, 0, 0, tp⟩ : Msg) ∈ (part Memb.table tr pub 19 busStk false).map decMsg →
+      (readByte sN a).toNat = v) :
+    (MemRootOut pub sN ∧ MemGeom pub sN) ∨ Sha384Coll := by
+  by_cases hn : Sha384Coll
+  · exact .inr hn
+  obtain ⟨hnb, hdp⟩ := nblk_depth_eq hpg
+  have hGN : MemGeom pub sN := ⟨by rw [hdp]; exact hG.1, by rw [hnb]; exact hG.2⟩
+  obtain ⟨-, mf, hcan, hrt⟩ := chain_s0 H hC hG hR hn
+  have hc := mp_cons_ro H hC hG.1 (memDepth_pos s0)
+  have cc : ∀ r i, bc tr r i = ((mbN tr r i : Nat) : F) := fun r i => cell_cast tr 19 r i
+  have hT : Tset tr (WasmView.memDepth s0) (WasmView.memLeaves s0) (fun r0 => ∃ r, MpBlock tr r0 r) =
+      WasmView.memLeaves sN := by
+    apply List.ext_getElem?; intro i
+    rw [memLeaves_get sN i, hnb, hdp]
+    by_cases ht : ∃ r0, (∃ r, MpBlock tr r0 r) ∧ natOf (WasmView.memDepth s0) (mpBits tr r0) = i
+    · obtain ⟨r0, ⟨r, hB⟩, hb⟩ := ht
+      have hi : i < 2 ^ WasmView.memDepth s0 := by rw [← hb]; exact natOf_lt _ _
+      rw [Tset_pos hi ⟨r, hB⟩ hb (fun r0' ⟨r', hB'⟩ hb' => (hc.1 r0' r' r0 r hB' hB (hb'.trans hb.symm)).2)]
+      obtain ⟨b, hr8, ha8, e5, e4, -, e30⟩ := mp_leaf H (by have := hB.1; have := hB.2.1; omega) hB.2.2.2.1
+      have hD17 := depth_le_of_block H hG hr8 ha8
+      rw [natOf_blk H hC hB hG.1 (memDepth_pos s0) hD17 e5] at hb
+      subst hb
+      have hlt := (memb_blk_lt H hr8 ha8).2.1
+      rw [hG.2] at hlt
+      rw [if_pos hlt, e30]
+      -- the out bytes of the block are `sN`'s
+      have hbo : ∀ q, q < 8 → ∀ i', i' < 128 →
+          mbN tr (9 * b + q) (142 + i') = (readByte sN (1024 * mbN tr (9 * b + 8) 10 + 128 * q + i')).toNat := by
+        intro q hq i' hi'
+        obtain ⟨tp, hm⟩ := memb_cons_mem H hr8 ha8 hq hi'
+        exact (hout _ _ _ hm).symm
+      have hbytes : SegSha.membBytes tr b "bo" = WasmView.blkBytes sN (mbN tr (9 * b + 8) 10) := by
+        apply List.ext_getElem?; intro j
+        by_cases hj : j < 1024
+        · rw [membBytes_get _ _ _ hj, blkBytes_get _ _ hj, SegSha.mb_ix_bo _ (Nat.mod_lt _ (by decide)),
+            hbo (j / 128) (by omega) (j % 128) (Nat.mod_lt _ (by decide)), UInt8.ofNat_toNat]
+          congr 2; omega
+        · rw [List.getElem?_eq_none (by rw [membBytes_length]; omega),
+            List.getElem?_eq_none (by rw [blkBytes_length]; omega)]
+      congr 1
+      rw [← hbytes]
+      have hro01 := (mp_block_bytes H hC hB hG.1 (memDepth_pos s0)).2.2.2.2.2.2.2.2.2
+      rcases hro01 with h0 | h1
+      · rw [h0, cc] at e4
+        have hro : mbN tr (9 * b + 8) 11 = 0 := natEq (R := 0) e4.symm (rowNat_lt _ _ _ _) (by rw [P_val]; decide)
+        obtain ⟨d, hl, hw, e, eb⟩ := SegSha.memb_leaf_out H hC hr8 ha8 hro (fun q hq i' hi' => by
+          rw [hbo q hq i' hi']; exact UInt8.toNat_lt _)
+        exact (show Canon (bdig tr (9 * b + 8) 534) _ from ⟨d, hl, hw, e, eb⟩).bytes
+      · have e4' := e4; rw [h1] at e4'
+        rw [memb_ro_leaf H hr8 ha8 e4'.symm, leaf_in_bytes H hC hr8 ha8]
+        rw [cc] at e4'
+        have hro : mbN tr (9 * b + 8) 11 = 1 := natEq (R := 1) e4'.symm (rowNat_lt _ _ _ _) (by rw [P_val]; decide)
+        rw [memb_ro_bytes H hr8 ha8 hro]
+    · rw [Tset_neg (WasmView.memLeaves_length s0) (fun r0 hq hb => ht ⟨r0, hq, hb⟩), memLeaves_get s0 i]
+      by_cases hlt : i < WasmView.nblkOf s0
+      · rw [if_pos hlt, if_pos hlt]
+        congr 2
+        apply List.ext_getElem?; intro j
+        by_cases hj : j < 1024
+        · rw [blkBytes_get _ _ hj, blkBytes_get _ _ hj]
+          congr 1
+          refine (hfr _ fun x hx he => ?_).symm
+          obtain ⟨b, k, i', hk, hi', hr8, ha8, rfl⟩ := memb_prod_form H hx
+          obtain ⟨r0, r, hB, e5, -⟩ := memb_mp H hr8 ha8
+          have hD17 := depth_le_of_block H hG hr8 ha8
+          have hblk := natOf_blk H hC hB hG.1 (memDepth_pos s0) hD17 e5
+          simp only at he
+          exact ht ⟨r0, ⟨r, hB⟩, by rw [hblk]; omega⟩
+        · rw [List.getElem?_eq_none (by rw [blkBytes_length]; omega),
+            List.getElem?_eq_none (by rw [blkBytes_length]; omega)]
+      · rw [if_neg hlt, if_neg hlt]
+  have hroot := root_memLeaves sN
+  rw [← hT, hdp, hrt] at hroot
+  exact .inl ⟨by rw [MemRootOut, ← Option.some.inj hroot]; exact hcan, hGN⟩
+
+end outside
+
+/-! ## 6. Packaged: the memory-root conjunct of a cut segment -/
+
+/-- CUTI produces no memory (space-3) message (named premise: CUTI's rows are the previous
+segment's `cutView`, which has no space-3 entry). -/
+def CutiNoMem (tr : Trace) (pub : List F) : Prop :=
+  ∀ x ∈ (part Cut.In.table tr pub 30 busStk true).map decMsg, x.space ≠ 3
+
+/-- An address without a MEMB production has no space-3 message in `initS` (SEGB's is space 7). -/
+theorem initS_free {tr : Trace} {pub : List F} (hcu : CutiNoMem tr pub) {a : Nat}
+    (hm : ∀ x ∈ (part Memb.table tr pub 19 busStk true).map decMsg, x.slot ≠ a) :
+    ∀ x ∈ initS tr pub, x.space = 3 → x.slot ≠ a := by
+  intro x hx h3
+  simp only [initS, List.mem_append] at hx
+  rcases hx with hx | hx | hx
+  · exact absurd h3 (hcu x hx)
+  · exact hm x hx
+  · obtain ⟨r, -, m, hm', rfl⟩ := mem_part_dec.mp hx
+    have := rowMsgs_space segb_send_space (by rw [P_val]; decide) hm'
+    rw [this] at h3; exact absurd h3 (by decide)
+
+/-- **The out-boundary's memory part**: MEMB's consumed bytes are bytes of the out-state. -/
+theorem membOut_of_bnd {X : Ctx} {sg : Nat → Nat × Nat} {sN : St} {t S : Nat} {m : List F}
+    {tr : Trace} {pub : List F} (h : Bnd X sg sN t S m (finS tr pub)) :
+    ∀ a v tp, (⟨3, a, 0, v, 0, 0, 0, tp⟩ : Msg) ∈ (part Memb.table tr pub 19 busStk false).map decMsg →
+      (readByte sN a).toNat = v := by
+  intro a v tp hx
+  obtain ⟨k, pc, sb, cid, -, E, f, tps, tpl, -, -, -, R⟩ := h
+  have hl : (⟨3, a, 0, v, 0, 0, 0, tp⟩ : Msg) ∈ finS tr pub :=
+    List.mem_append_right _ (List.mem_append_left _ hx)
+  have hE := R.env_msg (x := encB a v tp) hl (by simp) (by simp [Env.lsp]; omega)
+  exact (heap_read R.heap hE).1
+
+/-- **`seg_mem_sound`: the memory-root conjunct of a cut segment.**  Under `seg_sound`'s execution
+premises, the chip contract, `HostPagesRely` (M6), `CutiNoMem`, the in-boundary relation and the
+public geometry/in-root of `s0`: MEMB's in-side bytes are `s0`'s (`MembIn`, item 1 — no execution
+needed, so it can feed the memory part of `h0`), and for the out-state `sN` of the segment related
+to the out-boundary, the public out-root is `sN`'s memory root and the geometry is `sN`'s — or
+SHA-384 has a collision. -/
+theorem seg_mem_sound (X : M2Ctx) {nloc ngl : Nat} {pub : List F} {tr : Trace}
+    (H : HoldsX (wasmBaseSegAir nloc ngl) pub tr) {chip : List IfMsg}
+    (hC : SegSha.ChipIf SegSha.compressW (wasmBaseSegAir nloc ngl) pub tr chip)
+    (hcode : CodeOK X.toCtx tr) (hfunc : FuncOK X.toCtx tr)
+    (hb : HostBLinked tr pub) (hg : RegCLinked tr pub)
+    {sg : Nat → Nat × Nat} (hkeep : SegKeepM2 tr pub sg) (hhold : HoldRowS X.toCtx tr pub sg)
+    (hpr : HostPagesRely X.toCtx tr pub) (hcu : CutiNoMem tr pub)
+    (hst0 : pub.getD Boundary.pubStatus 0 = 0)
+    (hlen : (actListM2 tr pub).length < 2 ^ 28) (htin : (pub.getD pubTIn 0).toNat < 2 ^ 28)
+    (hfeeN : (pub.getD pubSIn 0).toNat +
+      ((pub.getD pubTOut 0).toNat - (pub.getD pubTIn 0).toNat + 1) * (X.toCtx.maxFee + 1) < P)
+    (hstepgas : ∀ t S g : Nat, X.toCtx.R * (S - (sg t).1) + g = (sg t).2 →
+      X.toCtx.R * (S + X.toCtx.maxFee - (sg t).1) ≤ (sg t).2)
+    (hg64 : X.toCtx.g0 < 2 ^ 64)
+    (hinit : (initS tr pub).Nodup)
+    {s0 : St} (hG : MemGeom pub s0) (hR : MemRootIn pub s0)
+    (h0 : Bnd X.toCtx sg s0 (pub.getD pubTIn 0).toNat (pub.getD pubSIn 0).toNat (segM0 tr pub) (initS tr pub)) :
+    (MembIn tr pub s0 ∨ Sha384Coll) ∧
+    ∀ sN, NearSpecV3.Wasm.seg X.toCtx.cfg X.toCtx.p (actListM2 tr pub).length s0 = .cont sN →
+      ∀ {tN SN : Nat} {mN : List F}, Bnd X.toCtx sg sN tN SN mN (finS tr pub) →
+      (MemRootOut pub sN ∧ MemGeom pub sN) ∨ Sha384Coll := by
+  refine ⟨seg_membIn H hC hG hR, fun sN hseg tN SN mN hN => ?_⟩
+  obtain ⟨hpg, hfr⟩ := seg_mem_frame X H hcode hfunc hb hg hkeep hhold hpr hst0 hlen htin hfeeN hstepgas hg64
+    hinit h0 sN hseg
+  exact seg_memRootOut H hC hG hR hpg (fun a ha => hfr a (initS_free hcu ha)) (membOut_of_bnd hN)
+
 end MemRoot
+
+#print axioms MemRoot.mp_chain
+#print axioms MemRoot.seg_membIn
+#print axioms MemRoot.seg_memRootOut
+#print axioms MemRoot.seg_mem_sound
 
 end WasmBase
