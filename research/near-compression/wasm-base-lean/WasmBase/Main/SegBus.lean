@@ -773,7 +773,156 @@ theorem seg_hch {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsX (wasmBa
   exact seg_ch_assemble _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
     hbus (seg_host_ch_send H) (seg_host_ch_recv H) pBt pBf pRt pRf gRt gRf aT aF cT cF
 
+/-! ## The boundary blocks: what they contain
+
+* `finS` is exactly `FinSplit`'s shape (CUTO's consumptions of active rows, memory = space 3, the gas
+  register = space 7, DROP's consumptions of active non-tomb rows): `seg_finSplit`; every active CUTO
+  row's message is in it: `seg_cuto_in_fin`.  These are the hypotheses `FinSplit`/`hin` of
+  `seg_sound_cut_pub`, now theorems.
+* every message of `initS` is produced at `t_in` (`seg_initS_tp`). -/
+
+theorem mem_part_dec {T : Table} {tr : Trace} {pub : List F} {t b : Nat} {s : Bool} {x : Msg} :
+    x ∈ (part T tr pub t b s).map decMsg ↔
+      ∃ r, r < tr.height t ∧ ∃ m ∈ rowMsgs T tr pub t r b s, x = decMsg m := by
+  unfold part
+  simp only [List.mem_map, List.mem_flatMap, List.mem_range]
+  constructor
+  · rintro ⟨m, ⟨r, hr, hm⟩, rfl⟩; exact ⟨r, hr, m, hm, rfl⟩
+  · rintro ⟨r, hr, m, hm, rfl⟩; exact ⟨m, ⟨r, hr, hm⟩, rfl⟩
+
+theorem rowMsgs_one {T : Table} {tr : Trace} {pub : List F} {t r b : Nat} {s : Bool} {i0 : Inter}
+    (hf : T.inters.filter (fun i => i.bus = b ∧ i.send = s) = [i0]) :
+    rowMsgs T tr pub t r b s =
+      if (i0.count.eval (tr.row pub t r)).toNat = 1 then [i0.msg.map (·.eval (tr.row pub t r))] else [] := by
+  rw [rowMsgs_eq, hf]
+  simp only [List.filterMap_cons, List.filterMap_nil]
+  by_cases h : (i0.count.eval (tr.row pub t r)).toNat = 1 <;> simp [h]
+
+/-- Every message of `rowMsgs` comes from a filtered interaction. -/
+theorem mem_rowMsgs {T : Table} {tr : Trace} {pub : List F} {t r b : Nat} {s : Bool} {m : List F}
+    (hm : m ∈ rowMsgs T tr pub t r b s) :
+    ∃ i ∈ T.inters.filter (fun i => i.bus = b ∧ i.send = s), m = i.msg.map (·.eval (tr.row pub t r)) := by
+  rw [rowMsgs_eq] at hm
+  obtain ⟨i, hi, he⟩ := List.mem_filterMap.mp hm
+  split at he
+  · cases he; exact ⟨i, hi, rfl⟩
+  · cases he
+
+/-- A message whose space expression is the constant `k` decodes to space `k`. -/
+theorem rowMsgs_space {T : Table} {tr : Trace} {pub : List F} {t r b : Nat} {s : Bool} {k : Nat}
+    (h : ∀ i ∈ T.inters.filter (fun i => i.bus = b ∧ i.send = s), i.msg.head? = some (Expr.c k)) (hk : k < P)
+    {m : List F} (hm : m ∈ rowMsgs T tr pub t r b s) : (decMsg m).space = k := by
+  obtain ⟨i, hi, rfl⟩ := mem_rowMsgs hm
+  have h0 := h i hi
+  cases hmsg : i.msg with
+  | nil => rw [hmsg] at h0; cases h0
+  | cons e es =>
+    rw [hmsg] at h0
+    simp only [List.head?_cons, Option.some.injEq] at h0
+    subst h0
+    simp only [decMsg, List.map_cons, List.getD_cons_zero, Expr.eval]
+    exact Fp.toNat_cast_of_lt hk
+
+/-- A message whose producer-time expression is the public `t_in` decodes to producer time `t_in`. -/
+theorem rowMsgs_tp {T : Table} {tr : Trace} {pub : List F} {t r b : Nat} {s : Bool}
+    (h : ∀ i ∈ T.inters.filter (fun i => i.bus = b ∧ i.send = s), i.msg[7]? = some (pv pubTIn))
+    {m : List F} (hm : m ∈ rowMsgs T tr pub t r b s) : (decMsg m).tp = (pub.getD pubTIn 0).toNat := by
+  obtain ⟨i, hi, rfl⟩ := mem_rowMsgs hm
+  have h0 := h i hi
+  simp only [decMsg, List.getD_eq_getElem?_getD, List.getElem?_map, h0, Option.map_some, Option.getD_some,
+    pv, Expr.eval, Trace.row]
+
+theorem memb_recv_space : ∀ i ∈ Memb.table.inters.filter (fun i => i.bus = busStk ∧ i.send = false),
+    i.msg.head? = some (Expr.c 3) := by decide +kernel
+theorem segb_recv_space : ∀ i ∈ Segb.table.inters.filter (fun i => i.bus = busStk ∧ i.send = false),
+    i.msg.head? = some (Expr.c 7) := by decide +kernel
+theorem cuti_send_tp : ∀ i ∈ Cut.In.table.inters.filter (fun i => i.bus = busStk ∧ i.send = true),
+    i.msg[7]? = some (pv pubTIn) := by decide +kernel
+theorem memb_send_tp : ∀ i ∈ Memb.table.inters.filter (fun i => i.bus = busStk ∧ i.send = true),
+    i.msg[7]? = some (pv pubTIn) := by decide +kernel
+theorem segb_send_tp : ∀ i ∈ Segb.table.inters.filter (fun i => i.bus = busStk ∧ i.send = true),
+    i.msg[7]? = some (pv pubTIn) := by decide +kernel
+
+theorem cuto_recv_filter : Cut.Out.table.inters.filter (fun i => i.bus = busStk ∧ i.send = false) =
+    [chRecv (Cut.Out.c "space") (Cut.Out.c "slot") (Cut.Out.F 2)
+      [Cut.Out.F 3, Cut.Out.F 4, Cut.Out.c "x2", Cut.Out.F 6] (Cut.Out.c "tp") (Cut.Out.c "act")] := by
+  decide +kernel
+
+theorem drop_recv_filter : Drop.table.inters.filter (fun i => i.bus = busStk ∧ i.send = false) =
+    [chRecv (16 + Drop.c "c") (Drop.c "slot") (Drop.c "tag")
+      [Drop.c "x0", Drop.c "x1", Drop.c "x2", Drop.c "x3"] (Drop.c "tp") (Drop.c "act" * (1 - Drop.c "isT"))] := by
+  decide +kernel
+
+theorem cuto_act_eval (tr : Trace) (pub : List F) (r : Nat) :
+    ((Cut.Out.c "act").eval (tr.row pub 31 r)).toNat = rowNat tr 31 r 0 := by
+  have : ix Cut.Out.cols "act" = 0 := by decide
+  simp only [Cut.Out.c, Cut.c, this, v, Expr.eval, Trace.row, rowNat]
+
+/-- The `initS` messages are produced at `t_in`. -/
+theorem seg_initS_tp (tr : Trace) (pub : List F) : ∀ x ∈ initS tr pub, x.tp = (pub.getD pubTIn 0).toNat := by
+  intro x hx
+  simp only [initS, List.mem_append] at hx
+  rcases hx with hx | hx | hx <;> obtain ⟨r, -, m, hm, rfl⟩ := mem_part_dec.mp hx
+  · exact rowMsgs_tp cuti_send_tp hm
+  · exact rowMsgs_tp memb_send_tp hm
+  · exact rowMsgs_tp segb_send_tp hm
+
+section
+variable {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsX (wasmBaseSegAir nloc ngl) pub tr)
+include H
+
+omit H in
+/-- **Every active CUTO row's consumed message is in the out-boundary block** (`hin`). -/
+theorem seg_cuto_in_fin : ∀ r, r < tr.height 31 → rowNat tr 31 r 0 = 1 → cutoMsg tr pub r ∈ finS tr pub := by
+  intro r hr ha
+  refine List.mem_append_left _ (mem_part_dec.mpr ⟨r, hr, _, ?_, cutoMsg_recv tr pub r⟩)
+  have hc := cuto_act_eval tr pub r
+  rw [ha] at hc
+  rw [rowMsgs_one cuto_recv_filter]
+  split
+  · exact List.mem_singleton_self _
+  · rename_i h; exact absurd hc h
+
+/-- **The out-boundary block has `FinSplit`'s shape.** -/
+theorem seg_finSplit : FinSplit tr pub (finS tr pub) := by
+  intro x hx
+  simp only [finS, List.mem_append] at hx
+  rcases hx with hx | hx | hx | hx <;> obtain ⟨r, hr, m, hm, rfl⟩ := mem_part_dec.mp hx
+  · rw [rowMsgs_one cuto_recv_filter] at hm
+    split at hm
+    · rename_i hc
+      have e := cuto_act_eval tr pub r
+      change ((Cut.Out.c "act").eval (tr.row pub 31 r)).toNat = 1 at hc
+      rw [e] at hc
+      simp only [List.mem_singleton] at hm
+      exact Or.inl ⟨r, hr, hc, by rw [hm]; rfl⟩
+    · cases hm
+  · exact Or.inr (Or.inl (rowMsgs_space memb_recv_space (by rw [P_val]; decide) hm))
+  · exact Or.inr (Or.inr (Or.inl (rowMsgs_space segb_recv_space (by rw [P_val]; decide) hm)))
+  · rw [rowMsgs_one drop_recv_filter] at hm
+    split at hm
+    · rename_i hc
+      simp only [List.mem_singleton] at hm
+      obtain ⟨b0, b1, -, -⟩ := drop_row H hr
+      obtain ⟨i0, i1, -, -⟩ := drop_ix
+      have e : ((Drop.c "act" * (1 - Drop.c "isT")).eval (tr.row pub 18 r)) =
+          ((rowNat tr 18 r 0 : Nat) : F) * (1 - ((rowNat tr 18 r 1 : Nat) : F)) := by
+        simp only [Drop.c, i0, i1, v, Expr.eval, Trace.row, rowNat, Fp.cast_toNat]; rfl
+      have hc' : (((rowNat tr 18 r 0 : Nat) : F) * (1 - ((rowNat tr 18 r 1 : Nat) : F))).toNat = 1 := by
+        rw [← e]; exact hc
+      have hP := P_val
+      refine Or.inr (Or.inr (Or.inr ⟨r, hr, ?_, ?_, by rw [hm]; rfl⟩)) <;>
+        rcases (by omega : rowNat tr 18 r 0 = 0 ∨ rowNat tr 18 r 0 = 1) with h0 | h0 <;>
+        rcases (by omega : rowNat tr 18 r 1 = 0 ∨ rowNat tr 18 r 1 = 1) with h1 | h1 <;>
+        rw [h0, h1] at hc' <;> first | omega | (exfalso; revert hc'; decide)
+    · cases hm
+
+end
+
 #print axioms seg_occ_bits
 #print axioms seg_hst
 #print axioms seg_hch
+#print axioms seg_finSplit
+#print axioms seg_cuto_in_fin
+#print axioms seg_initS_tp
 end WasmBase
