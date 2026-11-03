@@ -12,6 +12,7 @@ import StateM5a.RowBrF
 import StateM5a.RowHloc
 import StateM5a.RowFacts
 import StateM5a.VerAssembly
+import StateM5a.RowSnAll
 import StateM5a.StepsT2
 import StateM5a.Walk
 import StateM5a.SerInj
@@ -210,10 +211,6 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.BusWalk.stepRows_of_sem
 #print axioms StateM5a.BusWalk.bus_batched_changes
 -- M5a-3: branch-value chain constructors (soundness through the extended matches)
-#print axioms StateM5a.Walk.uchain_sound
-#print axioms StateM5a.Walk.dchain_sound
-#print axioms StateM5a.Walk.uchain_witness
-#print axioms StateM5a.Refine.dchain_witness
 -- M5a-3: the squash after a value delete (spec steps)
 #print axioms StateM5a.StepsBV.br_del_value_one
 #print axioms StateM5a.StepsBV.br_del_value_one_leaf
@@ -527,3 +524,16 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.BrSib.br_row_unique
 #print axioms StateM5a.BrSib.br_sib
 #print axioms StateM5a.BrMat.br_mat
+#print axioms StateM5a.RowSn.sn_flags'
+#print axioms StateM5a.RowSnMsg.sn_uout
+#print axioms StateM5a.RowSnF.sn_key_prefix
+#print axioms StateM5a.RowSnF.localOK_oLF
+#print axioms StateM5a.RowSnF.localOK_oEF
+#print axioms StateM5a.RowSnM.sn_jm
+#print axioms StateM5a.RowSnM.sn_mismatch
+#print axioms StateM5a.RowSnM.localOK_oLA
+#print axioms StateM5a.RowSnM.localOK_oEA
+#print axioms StateM5a.RowSnM.localOK_oLZ
+#print axioms StateM5a.RowSnM.localOK_oEZ
+#print axioms StateM5a.RowSnD.localOK_oLD
+#print axioms StateM5a.RowSnAll.hloc_sn
