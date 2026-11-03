@@ -184,3 +184,25 @@ HOSTO `g_after` change verifies (the oracle is free until M6).
   MEMINIT rows timed at the grow for the new pages; both change base tables 11, 12, 19.
 * `call_indirect` (cached TABLE), bulk memory, kill rows for discarding branches, floats: not used
   by the corpus (§1); needed for T3.
+
+## Update: R16 send bound
+
+`WasmBase/Main/RegSendM2.lean` closes the first "named open" item of §5 (standard axioms only, no
+`sorry`):
+
+* **`ifreg_hsend_r16`**, **`m2_hsend_r16`**: from `Holds (wasmBaseIfRegAir …)` /
+  `Holds (wasmBaseM2Air …)` and `PubOK X nloc ngl pub`,
+  `∀ o ∈ occs A tr pub, o.1 = busR16 → o.2.1 = true → o.2.2.2 ≤ 1`.
+  Tables 0–21 go through `occ_bits_of` (as in `RegSend`); tables ≥ 22 go through one decidable check
+  (`R16Ok`: every R16 send count is syntactically a product / `1 − ·` of `bool`-constrained
+  expressions of that table, `bitE_sound`), `decide`d against the actual interaction lists of HOST',
+  HOSTO, HOSTT, HOSTB, IF, REG', REG-C, CONV and UNREACH.
+* The walk without `hsend`: `ifreg_/m2_reg_gap_lt` (`gap < 2^16`), `ifreg_/m2_reg_pos_lt_len`
+  (`pos < len`), `ifreg_/m2_regLenAgree_group` (`Register.RegLenAgree` for a group, same remaining
+  hypotheses as `regLenAgree_group_of_holds`: group start, `rid ≤ 99`, `pos < 2^24`, active length row).
+* **`ifreg_regw_mtp_lt_ts`**, **`m2_regw_mtp_lt_ts`**: on a REG'/REG-C byte row (`kind = 0`) with
+  `wr = 1`, `mtp < ts`, given `ts < 2^29` and `mtp < 2^29` as explicit domain hypotheses
+  (`regw_time_lt` through the R16 lookup of the row's `timeChk`; generic form `regw_mtp_lt_tsG`).
+
+Still open from §5: the domain bounds `ts, mtp < 2^29` are hypotheses (not derived from the AIR),
+the M2 `Ctx`/row dispatch, and forcing a clear before a refill.
