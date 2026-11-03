@@ -145,7 +145,7 @@
          if sorted.iter().all(|(_, _, t)| t.is_none()) {
              return Self::new(l_skip, log_stacked_height, sorted.into_iter().map(|(w, h, _)| (w, h)).collect());
          }
-@@ -414,6 +455,84 @@
+@@ -414,6 +455,73 @@
          })
      }
  
@@ -192,27 +192,18 @@
 +            }
 +        }
 +        entries.sort_by_key(|(_, _, s)| std::cmp::Reverse(s.log_height));
-+        // First-fit decreasing with splitting: a slice that fits no open column is halved (both
-+        // halves stay aligned to their size: src_row and the column fill pointer are multiples of
-+        // it) when some open column has room for a half; otherwise it opens a column. Without the
-+        // split, two 2^(h-1) slices could never share a column of capacity 2^h - R.
-+        let mut queue: std::collections::VecDeque<(usize, usize, StackedSlice)> = entries.into();
-+        let mut placed = Vec::with_capacity(queue.len());
++        // First-fit decreasing (no splitting: halving a slice so two 2^(h-1) slices can share a
++        // column of capacity 2^h - R would save ~30 FINAL columns, but the split layout fails the
++        // stacking reduction's final-sum check; open item, see e2e/ZK-ARGUMENT.md §6).
 +        let mut fill: Vec<usize> = Vec::new();
-+        while let Some((m, j, mut s)) = queue.pop_front() {
++        for (_, _, s) in entries.iter_mut() {
 +            let len = s.len(l_skip);
++            if len > cap {
++                return Err(StackedPcsError::LayoutHeightExceeded { log_height: s.log_height, log_stacked_height });
++            }
 +            let c = match fill.iter().position(|&f| f + len <= cap) {
 +                Some(c) => c,
 +                None => {
-+                    let half = len / 2;
-+                    if s.log_height > l_skip && fill.iter().any(|&f| f + half <= cap) || len > cap {
-+                        assert!(s.log_height > l_skip, "zk layout: unsplittable slice exceeds capacity");
-+                        let (e, off) = (s.log_height - 1, s.src_row);
-+                        let mk = |o| StackedSlice { col_idx: 0, row_idx: 0, log_height: e, src_row: o, col_log_height: s.col_log_height() };
-+                        queue.push_front((m, j, mk(off + (1 << e))));
-+                        queue.push_front((m, j, mk(off)));
-+                        continue;
-+                    }
 +                    fill.push(0);
 +                    fill.len() - 1
 +                }
@@ -221,16 +212,14 @@
 +            s.col_idx = c;
 +            s.row_idx = fill[c];
 +            fill[c] += len;
-+            placed.push((m, j, s));
 +        }
-+        let entries = placed;
 +        Ok(Self { l_skip, height, width: fill.len() + mask_cols, sorted_cols: entries, mat_starts })
 +    }
 +
      /// Raw unsafe constructor
      pub fn from_raw_parts(
          l_skip: usize,
-@@ -549,6 +668,57 @@
+@@ -549,6 +657,57 @@
      traces: &[&ColMajorMatrix<F>],
      tight: bool,
  ) -> Result<(ColMajorMatrix<F>, StackedLayout), StackedPcsError> {
@@ -288,7 +277,7 @@
      let floor: Option<Vec<usize>> = if tight {
          // match each trace to an unused floor entry with its (width, log_height), in any order
          TIGHT_FLOOR.lock().unwrap().as_ref().and_then(|f| {
-@@ -583,9 +753,9 @@
+@@ -583,9 +742,9 @@
          .zip(traces)
          .map(|((_, _, th), t)| th.unwrap_or(t.height().max(1 << l_skip)) * t.width())
          .sum();
