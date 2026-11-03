@@ -1,3 +1,7 @@
+import StateM5a.KeyLookups
+import StateM5a.Tape
+import StateM5a.DepthBound
+import StateM5a.KeyDecode
 import StateM5a.Steps
 import StateM5a.StepsT2
 import StateM5a.Walk
@@ -387,3 +391,30 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.WsDecode3.wsl_leaf
 #print axioms StateM5a.WsDecode3.ws_decoded
 #print axioms StateM5a.WsDecode3.ws_decoded_final
+#print axioms StateM5a.KeyDecode.key_inv
+#print axioms StateM5a.KeyDecode.keyOf_eq_nibbles
+#print axioms StateM5a.KeyDecode.key_row_get
+#print axioms StateM5a.KeyDecode.key_row_len
+#print axioms StateM5a.KeyDecode.nib_recv
+#print axioms StateM5a.KeyDecode.klen_recv
+#print axioms StateM5a.KeyDecode.nib_of_rcv
+#print axioms StateM5a.KeyDecode.klen_of_rcv
+#print axioms StateM5a.DepthBound.br_depth
+#print axioms StateM5a.DepthBound.sn_depth
+#print axioms StateM5a.DepthBound.walk_deeper'
+#print axioms StateM5a.DepthBound.walk_shape'
+#print axioms StateM5a.DepthBound.air_batched_changes'
+#print axioms StateM5a.DepthBound.air_batched_changesS'
+#print axioms StateM5a.Tape.limbBytes_pairs
+#print axioms StateM5a.Tape.stdDec_std
+#print axioms StateM5a.Tape.busList_tch
+#print axioms StateM5a.Tape.wsb_j
+#print axioms StateM5a.Tape.tch_perm
+#print axioms StateM5a.Tape.root_of_row
+#print axioms StateM5a.Tape.air_final
+#print axioms StateM5a.KeyLookups.br_nib
+#print axioms StateM5a.KeyLookups.sn_nib
+#print axioms StateM5a.KeyLookups.sn_nib2
+#print axioms StateM5a.KeyLookups.sn_klen_leaf
+#print axioms StateM5a.KeyLookups.snc_nibA
+#print axioms StateM5a.KeyLookups.kcmp_nib_xb
