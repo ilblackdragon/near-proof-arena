@@ -1319,6 +1319,87 @@ theorem step_brUpVal {σ : Store} {K : List Nat} {x : Bytes} {d : Nat} {a : Ref}
   · simp only [PTrie.wf, Bool.and_eq_true, decide_eq_true_eq, slotOk] at hNw ⊢
     exact ⟨⟨hxl, hNw.1.2⟩, hnm ▸ hnb⟩
 
+/-! ## A new leaf in an empty slot (`BR.oUN` + `MATQ`/`MATR` + `SN.oLM`) -/
+
+theorem kids_wf_len : ∀ {ks : Kids} {n : Nat}, Kids.wf ks n = true → kidsLen ks = n
+  | .nil, n, h => by simp only [Kids.wf, beq_iff_eq] at h; subst h; rfl
+  | .none r, n, h => by
+    simp only [Kids.wf, Bool.and_eq_true, bne_iff_ne, ne_eq] at h
+    simp only [kidsLen]; rw [kids_wf_len h.2]; omega
+  | .some c r, n, h => by
+    simp only [Kids.wf, Bool.and_eq_true, bne_iff_ne, ne_eq] at h
+    simp only [kidsLen]; rw [kids_wf_len h.2]; omega
+
+/-- Filling an empty slot with a collapse of a new ref's expansion. -/
+theorem kcl_put_empty {σ : Store} : ∀ {rcs : RKids} {ks : Kids} {n : Nat} {c' : Ref} {t : PTrie},
+    KCl σ rcs ks → n < kidsLen ks → (∃ P, Exp σ (.inl c') (.inl P) ∧ Cl (.inl P) (.inl t)) →
+      KCl σ (rcs.put n (some c')) (Kids.put ks n (some t))
+  | _, _, _, _, _, .nil, hn, _ => by simp [kidsLen] at hn
+  | _, _, 0, _, _, .none r ks hk, _, hc => .some _ _ _ _ hc hk
+  | _, _, 0, _, _, .some _ r _ ks _ hk, _, hc => .some _ _ _ _ hc hk
+  | _, _, n + 1, _, _, .none r ks hk, hn, hc => by
+    simp only [kidsLen] at hn
+    exact .none _ _ (kcl_put_empty hk (by omega) hc)
+  | _, _, n + 1, _, _, .some c r t₀ ks h₀ hk, hn, hc => by
+    simp only [kidsLen] at hn
+    exact .some _ _ _ _ h₀ (kcl_put_empty hk (by omega) hc)
+
+theorem kids_wf_put_empty : ∀ {ks : Kids} {n i : Nat} {t : PTrie}, Kids.wf ks n = true →
+    i < n → t.wf = true → Kids.wf (Kids.put ks i (some t)) n = true
+  | .nil, n, i, _, hw, hi, _ => by simp only [Kids.wf, beq_iff_eq] at hw; omega
+  | .none r, _, 0, _, hw, _, ht => by
+    simp only [Kids.wf, Bool.and_eq_true] at hw
+    simp only [Kids.put, Kids.wf, Bool.and_eq_true]; exact ⟨⟨hw.1, ht⟩, hw.2⟩
+  | .some c' r, _, 0, _, hw, _, ht => by
+    simp only [Kids.wf, Bool.and_eq_true] at hw
+    simp only [Kids.put, Kids.wf, Bool.and_eq_true]; exact ⟨⟨hw.1.1, ht⟩, hw.2⟩
+  | .none r, n, i + 1, _, hw, hi, ht => by
+    simp only [Kids.wf, Bool.and_eq_true] at hw
+    simp only [Kids.put, Kids.wf, Bool.and_eq_true]
+    exact ⟨hw.1, kids_wf_put_empty hw.2 (by omega) ht⟩
+  | .some c' r, n, i + 1, _, hw, hi, ht => by
+    simp only [Kids.wf, Bool.and_eq_true] at hw
+    simp only [Kids.put, Kids.wf, Bool.and_eq_true]
+    exact ⟨hw.1, kids_wf_put_empty hw.2 (by omega) ht⟩
+
+/-- What a materializing row (`SN.oLM`) establishes between a `MATQ` request
+`(kid2, st2, len, vh)` and its `MATR` answer `(ref, mem)`: the leaf `K_kid2[st2..] ↦ (len, vh)`
+with its spec memory is published under `ref`.  `Traffic.reqresp` carries it to the requester. -/
+def MatRel (σ : Store) (keyOf : Nat → List Nat) (kid2 st2 len : Nat) (vh : Bytes) (ref : Ref)
+    (mem : Nat) : Prop :=
+  mem = leafMem ((keyOf kid2).drop st2) len ∧
+    NewOK σ ref (.leaf ((keyOf kid2).drop st2) (.ref len vh) (leafMem ((keyOf kid2).drop st2) len))
+
+/-- **`BR.oUN`** (upsert into an empty slot `n` = nibble `d`): the walk's new leaf
+`K[d+1..] ↦ (|x|, sha256 x)` is materialized (`MATQ(w, d+1, kid, d+1, |x|, sha256 x)`, answered on
+`MATR` by an `SN.oLM` row: `MatRel`); the new branch holds its ref in slot `n`, memory
+`m + leafMem` (`< 2^64`).  Row bounds: the new leaf is well-formed (key nibbles, lengths). -/
+theorem step_brNew {σ : Store} {keyOf : Nat → List Nat} {K : List Nat} {x : Bytes} {d : Nat}
+    {a lref : Ref} {res : Res} {kid : Nat} {v : Option Slot} {rcs : RKids} {m n lmem : Nat}
+    (hold : OldOK σ a (.branch v rcs m)) (hat : rcs.at n = none) (hn : n < 16) (hKk : keyOf kid = K)
+    (hK : K.drop d = n :: K.drop (d + 1))
+    (hmat : MatRel σ keyOf kid (d + 1) x.length (sha256 x) lref lmem)
+    (hnew : NewOK σ res.ref (.branch v (rcs.put n (some lref)) (m + lmem)))
+    (hom : res.om = m) (hnm : res.nm = m + lmem) (hnb : res.nm < 18446744073709551616)
+    (hlw : (newLeaf (K.drop (d + 1)) x).wf = true) : SemU σ K x d a res := by
+  intro P hP hPw
+  obtain ⟨N, ⟨ks, rfl, hks⟩, hNw, hrv⟩ := in_view_wf hold hP hPw
+  simp only [PTrie.wf, Bool.and_eq_true] at hNw
+  have hlen := kids_wf_len hNw.1.2
+  obtain ⟨hlm, hlnew⟩ := hmat
+  rw [hKk] at hlm hlnew
+  obtain ⟨Pl, hPl, hcll⟩ := out_view hlnew (N := newLeaf (K.drop (d + 1)) x) (Or.inr ⟨x, rfl, rfl⟩)
+  have hcl := kcl_put_empty (kcl_of_exp hks) (by rw [hlen]; exact hn) ⟨Pl, hPl, hcll⟩
+  obtain ⟨P', hP', hcl'⟩ := out_view hnew (N := .branch v (Kids.put ks n (some (newLeaf (K.drop (d + 1)) x)))
+    (m + lmem)) ⟨_, Or.inl rfl, hcl⟩
+  have hu := UChain.brNew v ks m n (K.drop (d + 1)) x (kexp_at_none hks hat) (by rw [hlen]; exact hn)
+  rw [← hK, Nat.sub_zero, ← hlm] at hu
+  refine ⟨_, _, P', hrv _ (.refl _), hu, hP', hcl', by simp [PTrie.mem?, hom], ?_, ?_⟩
+  · show m + lmem = res.nm
+    rw [hnm]
+  · simp only [PTrie.wf, Bool.and_eq_true, decide_eq_true_eq]
+    exact ⟨⟨hNw.1.1, kids_wf_put_empty hNw.1.2 hn hlw⟩, hnm ▸ hnb⟩
+
 /-! ## All changes: the induction on the root chain -/
 
 /-- One committed change's rows, on the expansion `P` of the change's input ref: reveal, run the
