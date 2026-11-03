@@ -6,6 +6,7 @@ import WasmBase.HostCheck
 import WasmBase.IfCheck
 import WasmBase.M2Check
 import WasmBase.M2Air
+import WasmBase.SegAir
 import WasmBase.M2RegAbsent
 import WasmBase.ShaAir
 import WasmBase.ShaSound
