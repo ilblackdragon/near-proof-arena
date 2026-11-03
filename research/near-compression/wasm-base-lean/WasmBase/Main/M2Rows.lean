@@ -602,6 +602,144 @@ theorem unreach_row_step_m2 (X : M2Ctx) {nloc ngl : Nat} {pub : List F} {tr : Tr
   rw [hfeq] at hle hlt ⊢
   exact ⟨X.step_unreach_spec hfr hk hfn hpcf hins hfee hle hlt, hc, hp, hh⟩
 
+/-! ## `RowFacts2` for CONV and UNREACH rows, over `M2Ctx.toCtx`
+
+With the context split (`Ctx.hM : ModFacts`), the M2 context is a `Ctx` (`M2Ctx.toCtx`), so the
+base `RowFacts2`/`RelW` apply to it, and the CONV/UNREACH rows get their full row facts: the spec
+part is `step_conv` (successor facts from `M2Ctx.conv_succ`, i.e. from the M2 checker) and the
+`unreachable` abort. -/
+
+@[simp] theorem toCtx_offOf (X : M2Ctx) (k : Nat) : X.toCtx.offOf k = X.offOf k := rfl
+@[simp] theorem toCtx_pfOf (X : M2Ctx) (k : Nat) : X.toCtx.pfOf k = X.pfOf k := rfl
+@[simp] theorem toCtx_ckOf (X : M2Ctx) (k : Nat) : X.toCtx.ckOf k = X.ckOf k := rfl
+@[simp] theorem toCtx_nf (X : M2Ctx) : X.toCtx.nf = X.nf := rfl
+@[simp] theorem toCtx_maxFee (X : M2Ctx) : X.toCtx.maxFee = X.maxFee := rfl
+@[simp] theorem toCtx_cfg (X : M2Ctx) : X.toCtx.cfg = X.cfg := rfl
+@[simp] theorem toCtx_p (X : M2Ctx) : X.toCtx.p = X.p := rfl
+@[simp] theorem toCtx_R (X : M2Ctx) : X.toCtx.R = X.R := rfl
+@[simp] theorem toCtx_M (X : M2Ctx) : X.toCtx.M = X.M := rfl
+
+/-- **`RowFacts2` of an active CONV row** of a `Holds (wasmBaseM2Air …)` trace, for the M2
+context. -/
+theorem conv_rowfacts_m2 (X : M2Ctx) {nloc ngl : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseM2Air nloc ngl) pub tr) (hcode : CodeOKM2 X tr)
+    (hsendF : ∀ o ∈ occs (wasmBaseM2Air nloc ngl) tr pub, o.1 = busFetch → o.2.1 = true → o.2.2.2 ≤ 1)
+    (hsend : ∀ o ∈ occs (wasmBaseM2Air nloc ngl) tr pub, o.1 = busR16 → o.2.1 = true → o.2.2.2 ≤ 1)
+    {r : Nat} (hr : r < tr.height 28) (hact : (Conv.act.eval (tr.row pub 28 r)).toNat = 1) :
+    RowFacts2 X.toCtx (rowIn Conv.table tr pub 28 r) (rowOut Conv.table tr pub 28 r)
+      (rowCons Conv.table tr pub 28 r) (rowProd Conv.table tr pub 28 r) := by
+  have hP' := P_val
+  have hcP := rowNat_lt tr 28 r
+  obtain ⟨⟨k0, pc0, fee, hk0, hpc0, hoff0, hins0, hop, hfee0, hfle, hfeq, hheq⟩, hspec, h0, hts, hgas, hct,
+    hpt, hnd⟩ := conv_row_m2 X H hcode hsendF hsend hr hact
+  refine ⟨?_, h0, hts, hgas, hct, hpt, hnd⟩
+  intro E s f tps tpl t pc S live S_seg segb R hin hlive ht1 hS hg64
+  rw [conv_rowIn] at hin
+  obtain ⟨i0, i1, i2, -, i4, i5⟩ := stMsg_cons hin
+  have hpcl := R.pcLt
+  have hoffb := X.toCtx.off_bound R.kLt
+  have htot := X.toCtx.mf.total
+  simp only [toCtx_offOf, toCtx_pfOf, toCtx_M] at hoffb hpcl
+  have p0 : rowNat tr 28 r 0 = X.offOf E.k + pc := natEq (by rw [cell_cast] at i0; exact i0) (hcP _) (by
+    simp only [toCtx_M] at htot; omega)
+  have p1 : rowNat tr 28 r 1 = t := natEq (by rw [cell_cast] at i1; exact i1) (hcP _) (by omega)
+  have psb : rowNat tr 28 r Conv.kSb = E.sb :=
+    natEq (by rw [cell_cast] at i4; exact i4) (hcP _) (by have := R.sbLt; omega)
+  have hsbR := R.sbLe
+  obtain ⟨hk, hl⟩ := X.loc_unique hk0 hpc0 R.kLt hpcl (by rw [hoff0]; exact p0)
+  subst k0
+  subst pc0
+  obtain ⟨ls0, hL0, hfl0⟩ := R.labels
+  have hH := R.height
+  simp only [toCtx_ckOf] at hL0 hH
+  obtain ⟨h1, hnext, hL1, hH1⟩ := X.conv_succ R.kLt hins0 hop hL0 hH
+  have p3 : rowNat tr 28 r cH = s.stack.size - E.sb := by
+    show cn tr 28 r cH = _; rw [hheq, hH]; rfl
+  have hHb := (X.factsOf R.kLt).hBound pc hpcl
+  rw [hH] at hHb; simp only [Option.getD_some] at hHb
+  have hszP : s.stack.size < P := by have := R.sbLt; omega
+  -- the consumed message is the stack top
+  have hcons := conv_row_cons (pub := pub) hact
+  obtain ⟨mc, hmc_def⟩ : ∃ mc, mc = decMsg [((0 : Nat) : F), (v Conv.kSb + v cH - 1).eval (tr.row pub 28 r),
+        ((cn tr 28 r Conv.fWrap : Nat) : F), ((cn tr 28 r Conv.a : Nat) : F),
+        ((cn tr 28 r (Conv.a + 1) : Nat) : F), ((cn tr 28 r (Conv.a + 2) : Nat) : F),
+        ((cn tr 28 r (Conv.a + 3) : Nat) : F), ((cn tr 28 r Conv.ta : Nat) : F)] := ⟨_, rfl⟩
+  rw [← hmc_def] at hcons
+  have hmc : live mc := hlive mc (by rw [hcons]; simp)
+  have hsl : (v Conv.kSb + v cH - 1).eval (tr.row pub 28 r) =
+      ((rowNat tr 28 r Conv.kSb : Nat) : F) + ((rowNat tr 28 r cH : Nat) : F) - ((1 : Nat) : F) := by
+    simp only [v, Expr.eval_add', Expr.eval_sub', Expr.eval_col, Expr.eval_ofNat', Trace.row, cell_cast]
+  have ms : mc.space = 0 := by
+    simp only [hmc_def, decMsg, List.getD_cons_zero]; rw [Fp.toNat_cast_of_lt (by omega)]
+  have msl : mc.slot = s.stack.size - 1 := by
+    simp only [hmc_def, decMsg, List.getD_cons_succ, List.getD_cons_zero]
+    rw [hsl, slot_toNat psb p3 hsbR (by omega) hszP]
+  obtain ⟨ea, -, -, vt⟩ := R.stack_dec hmc ms msl (by omega)
+  have hnum := R.numS (s.stack.size - 1) (by omega)
+  obtain ⟨-, hprod⟩ := hspec hnum (by rw [← hmc_def]; exact ea)
+  have hins' : (X.toCtx.pfOf E.k).code[pc]? = some (.num (convOpN tr r)) := hins0
+  have hfee' : feeUnits X.toCtx.cfg (X.toCtx.pfOf E.k).gas[pc]? = some fee := hfee0
+  have hout : rowOut Conv.table tr pub 28 r =
+      stMsg (X.toCtx.offOf E.k + (pc + 1)) (t + 1) (S + fee) 0 E.sb E.cid := by
+    rw [conv_rowOut]
+    rw [cell_cast] at i0 i1 i2 i4 i5
+    rw [cell_cast tr 28 r 0, cell_cast tr 28 r 1, cell_cast tr 28 r 2, cell_cast tr 28 r 4,
+      cell_cast tr 28 r Conv.kSb, cell_cast tr 28 r Conv.kCid, i0, i1, i2, i4, i5,
+      show rowNat tr 28 r 4 = fee from hfeq]
+    simp only [stMsg, Lean.Grind.Semiring.natCast_add, toCtx_offOf, one_cast, List.cons.injEq, and_true]
+    grind
+  refine ⟨E.k, pc + 1, fee, 0, E.sb, E.cid, hfle, by omega, hout, fun hg => ⟨fun _ => ?_,
+    fun h => absurd h (by decide), fun h => absurd h (by decide)⟩⟩
+  obtain ⟨s', hst, hrel⟩ := step_conv X.toCtx R hins' hop hfee' hg hg64 (by omega) hnext
+    ⟨ls0, hL1, hfl0⟩ hH1 mc (enc 0 (s.stack.size - 1) (convVal (convOpN tr r) mc.toVal) t) hmc
+    ⟨ms, msl⟩ rfl
+  refine ⟨s', hst, ?_⟩
+  rw [vt] at hrel
+  rw [hcons, hprod, show cn tr 28 r cTs = t from p1]
+  exact hrel
+
+/-- **`RowFacts2` of an active UNREACH row**: the spec step aborts (`halted = 2`). -/
+theorem unreach_rowfacts_m2 (X : M2Ctx) {nloc ngl : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseM2Air nloc ngl) pub tr) (hcode : CodeOKM2 X tr)
+    (hsendF : ∀ o ∈ occs (wasmBaseM2Air nloc ngl) tr pub, o.1 = busFetch → o.2.1 = true → o.2.2.2 ≤ 1)
+    {r : Nat} (hr : r < tr.height 29) (hact : ((v Unreach.act).eval (tr.row pub 29 r)).toNat = 1) :
+    RowFacts2 X.toCtx (rowIn Unreach.table tr pub 29 r) (rowOut Unreach.table tr pub 29 r)
+      (rowCons Unreach.table tr pub 29 r) (rowProd Unreach.table tr pub 29 r) := by
+  have hP' := P_val
+  have hcP := rowNat_lt tr 29 r
+  obtain ⟨⟨k0, pc0, fee, hk0, hpc0, hoff0, hins0, hfee0, hfle, hfeq, -⟩, hc, hp, hh2, h0, hts, hgas⟩ :=
+    unreach_row_m2 X H hcode hsendF hr hact
+  refine ⟨?_, h0, hts, hgas, by rw [hc]; simp, by rw [hp]; simp, by rw [hp]; simp⟩
+  intro E s f tps tpl t pc S live S_seg segb R hin hlive ht1 hS hg64
+  rw [unreach_rowIn] at hin
+  obtain ⟨i0, i1, i2, -, i4, i5⟩ := stMsg_cons hin
+  have hpcl := R.pcLt
+  have hoffb := X.toCtx.off_bound R.kLt
+  have htot := X.toCtx.mf.total
+  simp only [toCtx_offOf, toCtx_pfOf, toCtx_M] at hoffb hpcl
+  have p0 : rowNat tr 29 r 0 = X.offOf E.k + pc := natEq (by rw [cell_cast] at i0; exact i0) (hcP _) (by
+    simp only [toCtx_M] at htot; omega)
+  obtain ⟨hk, hl⟩ := X.loc_unique hk0 hpc0 R.kLt hpcl (by rw [hoff0]; exact p0)
+  subst k0
+  subst pc0
+  have hins' : (X.toCtx.pfOf E.k).code[pc]? = some .unreachable := hins0
+  have hfee' : feeUnits X.toCtx.cfg (X.toCtx.pfOf E.k).gas[pc]? = some fee := hfee0
+  obtain ⟨-, -, hout0⟩ := unreach_row (pub := pub) (t := 29) (r := r) hact
+  have hout : rowOut Unreach.table tr pub 29 r =
+      stMsg (X.toCtx.offOf E.k + (pc + 1)) (t + 1) (S + fee) 2 E.sb E.cid := by
+    rw [hout0]
+    rw [cell_cast] at i0 i1 i2 i4 i5
+    simp only [cn, cPc, cTs, cS, cFee] at hfeq ⊢
+    rw [i0, i1, i2, i4, i5, hfeq]
+    simp only [stMsg, Lean.Grind.Semiring.natCast_add, toCtx_offOf, one_cast, List.cons.injEq, and_true]
+    grind
+  refine ⟨E.k, pc + 1, fee, 2, E.sb, E.cid, hfle, by omega, hout, fun hg =>
+    ⟨fun h => absurd h (by decide), fun h => absurd h (by decide), fun _ => ?_⟩⟩
+  refine ⟨{ s with gas := { s.gas with g := s.gas.g - X.toCtx.R * fee } }, trapStr "Unreachable", ?_,
+    R.step_gas hg rfl⟩
+  rw [step_eq_exec X.toCtx R hins' hfee' hg hg64]
+  simp [exec]
+
 /-! ## Base contexts carry no M2 pc
 
 `Ctx` (generalised: its module facts `ModFacts` hold for both checkers) has the predicate
@@ -623,6 +761,8 @@ theorem ctx_no_unreach (X : Ctx) (hB : X.Base) {k pc : Nat} (hk : k < X.nf)
   have h := hB k hk pc _ hins
   simp [m2Special] at h
 
+#print axioms conv_rowfacts_m2
+#print axioms unreach_rowfacts_m2
 #print axioms ctx_no_conv
 #print axioms ctx_no_unreach
 #print axioms conv_row_m2
