@@ -1,6 +1,7 @@
 import StateM5a.Steps
 import StateM5a.StepsT2
 import StateM5a.Walk
+import StateM5a.SerInj
 import StateM5a.FieldRows
 import StateM5a.Layout
 import StateM5a.Order
@@ -87,3 +88,11 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.StepsBV.br_upsert_value
 #print axioms StateM5a.StepsBV.br_del_value_keep
 #print axioms StateM5a.StepsBV.br_del_value_absent
+||||||| parent of b9a1ecef7 (M5a-2 Lean: NodeSerInj proved from the spec encoder (SerInj.nodeSerInj); Shallow requires ValueRef slots; refinedBy_of_hash' needs only Sha256CR)
+#print axioms StateM5a.SerInj.leN_inj
+#print axioms StateM5a.SerInj.hexPrefix_inj
+#print axioms StateM5a.SerInj.packNibbles_inj
+#print axioms StateM5a.SerInj.kids_inj
+#print axioms StateM5a.SerInj.slot_of_valueRef
+#print axioms StateM5a.SerInj.nodeSerInj
+#print axioms StateM5a.SerInj.refinedBy_of_hash'
