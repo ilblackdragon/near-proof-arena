@@ -1,0 +1,26 @@
+spec oracle: post-state root ed9f4bafa077b977460ec914c4a82c1cc65e39949795f1d26df83d9d5afc0f22 (Lean applyChanges)
+{"rows": {"KEY": 8689, "BR": 23, "SN": 40, "KCMP": 2046, "WSB": 32, "WSN": 30, "WSA": 6, "SNC": 571, "RNG": 256, "WSL": 6, "WSP": 8}, "heights": {"KEY": 16384, "BR": 32, "SN": 64, "KCMP": 2048, "WSB": 32, "WSN": 32, "WSA": 8, "SNC": 1024, "RNG": 256, "WSL": 8, "WSP": 8}, "sha_msgs": 45, "sha_blocks": 549, "compressions": 72, "ops": {"SN.oEF": 12, "BR.oFD": 12, "SN.oLF": 6, "SN.oLA": 1, "SN.oEU": 8, "BR.oUD": 8, "SN.oLR": 4, "SN.oLX": 1, "BR.oSL": 1, "SN.oLM": 3, "SN.oEP": 1, "SN.oES": 0, "SN.oLD": 1, "BR.oD1": 1, "SN.oLS": 1, "SN.oED": 1, "BR.oDL": 1, "SN.oEB": 1}, "versions": {"published": 12, "hashed_old": 22, "hashed_new": 15}, "writes": 6, "segments": 1}
+TABLE SHA    width  544 height 2^14 cells   8912896 constraints  1028 interactions    17 deg 4
+TABLE KEY    width   63 height 2^14 cells   1032192 constraints    59 interactions     6 deg 4
+TABLE BR     width  941 height 2^5  cells     30112 constraints  1981 interactions  1243 deg 4
+TABLE SN     width  605 height 2^6  cells     38720 constraints  1318 interactions   507 deg 4
+TABLE KCMP   width   14 height 2^11 cells     28672 constraints    26 interactions     6 deg 4
+TABLE WSB    width  136 height 2^5  cells      4352 constraints   152 interactions    33 deg 6
+TABLE WSN    width   67 height 2^5  cells      2144 constraints    27 interactions    21 deg 4
+TABLE WSA    width   63 height 2^3  cells       504 constraints    30 interactions     9 deg 2
+TABLE SNC    width  205 height 2^10 cells    209920 constraints   618 interactions   324 deg 6
+TABLE RNG    width   21 height 2^8  cells      5376 constraints    23 interactions     1 deg 2
+TABLE WSL    width  173 height 2^3  cells      1384 constraints   108 interactions    82 deg 2
+TABLE WSP    width  129 height 2^3  cells      1032 constraints    83 interactions    37 deg 3
+TABLE TAPE   width   39 height 2^3  cells       312 constraints     0 interactions     2 deg 0
+TABLE SHA512 width   83 height 2^14 cells   1359872 (native v4)
+TABLE SHA512T width    9 height 2^7  cells      1152 (native v4)
+CELLS 11628640; compressions 72
+PRECHECK OK: every constraint on every row; every bus balances (53870 distinct messages)
+TIME load+precheck 1.88s
+PARAMS n_stack 18 w_stack 16 degree 9
+TIME keygen 0.02s
+SOUNDNESS total=268.2 logup=329.3 proximity=316.2 query=268.2
+PROOF total=1266342 gkr=34328 relations=273264 stacking=2708 whir=955624
+TIME prove 71.17s verify 0.1859s threads 8 peak_rss_kib 1642136 proof_bytes 1266342
+VERIFY OK (native SWIRL verifier); statement check (TAPE root + prev_state_root): OK

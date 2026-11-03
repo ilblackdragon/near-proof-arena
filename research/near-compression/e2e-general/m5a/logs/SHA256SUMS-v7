@@ -1,0 +1,8 @@
+# M5a-8 (u32 hex-prefix length `hph`, STW `ke`, SHAS merged into the SHA-256 table)
+7984bf1e977fb1862102f6833adcf7980a8b36eb8f2fe29c6ec66c1217d9b441  m5a-d4.json (m5a-tool air 4)
+606266fb24cf9b843b00fee167c8b9008c6bebe3db82fa62ce0137fbad62507a  m5a-d5.json (m5a-tool air 5)
+a127dca33635804163a2eb631e5971f81b03740906d5040ac613ec6bcd051460  m5a-d6.json (m5a-tool air 6)
+4760ebf55cb301f795b7c531b93ed3d69fef78a692ab8f18ca27083dd05bf035  m5b-d5.json (m5a-tool airb 5)
+cc6d0a01dbc122224b57f0bb813db5fc37ae0337cb4ac3f1ca0971bfd40d2ee2  nearproof-e2e-m5a (prover: NAMES_B8, no SHAS)
+9c3f65bf4ef3d7fd03e0243db90d7e0872afb10256a7f4255c8b8707aa6685de  lean/.lake/build/bin/m5a-tool
+040905ec40a813c57e80f84fedc361bf3cd56b54f30792a034c5935ca7e955b7  syn-longkey state.json (synth.py longkey)

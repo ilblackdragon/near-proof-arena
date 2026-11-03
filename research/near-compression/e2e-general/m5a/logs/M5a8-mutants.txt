@@ -1,0 +1,130 @@
+== lk: synthetic longkey (keys of 1-2 KiB, D=4)
+  absent     REJECTED PRECHECK FAIL: SN: constraint 155 fails on row 2
+  chain      REJECTED PRECHECK FAIL: 4 unbalanced messages by bus {0: 2, 2: 2}; first [((0, [50331652, 37, 65]), 2013265920), ((0, [50331652, 37, 81]), 1)]
+  finroot    NOT APPLICABLE (no target row)
+  hphlong    REJECTED PRECHECK FAIL: 4 unbalanced messages by bus {0: 4}; first [((0, [50331652, 1, 76]), 2013265920), ((0, [50331652, 1, 332]), 1)]
+  hphshort   REJECTED PRECHECK FAIL: SN: constraint 144 fails on row 0
+  nidforge   REJECTED PRECHECK FAIL: BR: constraint 32 fails on row 13
+  node       REJECTED PRECHECK FAIL: 8 unbalanced messages by bus {5: 6, 14: 2}; first [((5, [0, 16, 0, 18513, 58080, 13504, 40072, 11293, 15038, 55074, 34062, 56186, 50574
+  omitwrite  REJECTED PRECHECK FAIL: 5 unbalanced messages by bus {13: 1, 24: 2, 26: 2}; first [((13, [0, 1, 58164, 31669, 33434, 58632, 14277, 17955, 20331, 36785, 51978, 
+  postroot   REJECTED PRECHECK FAIL: 2 unbalanced messages by bus {14: 2}; first [((14, [6, 0, 60575, 19375, 41079, 47479, 17934, 51476, 50344, 11292, 50782, 14740, 38805, 
+  prevalue   REJECTED PRECHECK FAIL: 2 unbalanced messages by bus {6: 2}; first [((6, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  split      REJECTED PRECHECK FAIL: 4 unbalanced messages by bus {0: 2, 2: 2}; first [((0, [33554465, 1, 9]), 1), ((0, [33554465, 1, 10]), 2013265920)]
+  verslot    REJECTED PRECHECK FAIL: 4 unbalanced messages by bus {25: 4}; first [((25, [1, 2, 1, 536877308, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 38, 248, 58,
+  vmcount    REJECTED PRECHECK FAIL: 17 unbalanced messages by bus {25: 17}; first [((25, [1, 0, 0, 52420, 2457, 51503, 57847, 18970, 17593, 58622, 23974, 26706, 5788, 4148
+== b1f: M5b T1 (final AIR: hph + ke + SHAS merged)
+  hphshort   REJECTED PRECHECK FAIL: SN: constraint 144 fails on row 0
+  kempty     REJECTED PRECHECK FAIL: STW: constraint 73 fails on row 0
+  omitwrite  REJECTED PRECHECK FAIL: 5 unbalanced messages by bus {13: 1, 24: 2, 26: 2}; first [((13, [0, 1, 49710, 47772, 40436, 18432, 61980, 17983, 35222, 62618, 43968, 
+  postroot   REJECTED PRECHECK FAIL: 2 unbalanced messages by bus {14: 2}; first [((14, [10, 0, 7348, 36408, 33764, 25329, 11126, 6785, 17291, 53573, 57292, 17902, 23152, 3
+  prevalue   REJECTED PRECHECK FAIL: 2 unbalanced messages by bus {6: 2}; first [((6, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  stdrop     REJECTED PRECHECK FAIL: 80 unbalanced messages by bus {13: 1, 28: 1, 29: 78}; first [((13, [0, 1, 49710, 47772, 40436, 18432, 61980, 17983, 35222, 62618, 43968
+  stkbyte    REJECTED PRECHECK FAIL: 4 unbalanced messages by bus {13: 2, 29: 2}; first [((13, [0, 1, 32193, 3970, 21304, 53493, 61072, 52022, 52661, 51518, 54228, 10664, 3
+  stvbyte    REJECTED PRECHECK FAIL: 4 unbalanced messages by bus {13: 2, 29: 2}; first [((13, [0, 1, 49710, 47772, 40436, 18432, 61980, 17983, 35222, 62618, 43968, 15998, 
+  tbig       REJECTED PRECHECK FAIL: 1 unbalanced messages by bus {24: 1}; first [((24, [256]), 2013265920)]
+  twrap      REJECTED PRECHECK FAIL: WSA: constraint 20 fails on row 0
+  wsstale    REJECTED PRECHECK FAIL: 2 unbalanced messages by bus {26: 2}; first [((26, [0, 49710, 47772, 40436, 18432, 61980, 17983, 35222, 62618, 43968, 15998, 47991, 170
+== b1: M5b T1 (hph + ke, before the SHAS merge)
+  hphshort   REJECTED PRECHECK FAIL: SN: constraint 144 fails on row 0
+  kempty     REJECTED PRECHECK FAIL: STW: constraint 73 fails on row 0
+  omitwrite  REJECTED PRECHECK FAIL: 5 unbalanced messages by bus {13: 1, 24: 2, 26: 2}; first [((13, [0, 1, 49710, 47772, 40436, 18432, 61980, 17983, 35222, 62618, 43968, 
+  postroot   REJECTED PRECHECK FAIL: 2 unbalanced messages by bus {14: 2}; first [((14, [10, 0, 7348, 36408, 33764, 25329, 11126, 6785, 17291, 53573, 57292, 17902, 23152, 3
+  prevalue   REJECTED PRECHECK FAIL: 2 unbalanced messages by bus {6: 2}; first [((6, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  stdrop     REJECTED PRECHECK FAIL: 80 unbalanced messages by bus {13: 1, 28: 1, 29: 78}; first [((13, [0, 1, 49710, 47772, 40436, 18432, 61980, 17983, 35222, 62618, 43968
+  stkbyte    REJECTED PRECHECK FAIL: 4 unbalanced messages by bus {13: 2, 29: 2}; first [((13, [0, 1, 32193, 3970, 21304, 53493, 61072, 52022, 52661, 51518, 54228, 10664, 3
+  stvbyte    REJECTED PRECHECK FAIL: 4 unbalanced messages by bus {13: 2, 29: 2}; first [((13, [0, 1, 49710, 47772, 40436, 18432, 61980, 17983, 35222, 62618, 43968, 15998, 
+  tbig       REJECTED PRECHECK FAIL: 1 unbalanced messages by bus {24: 1}; first [((24, [256]), 2013265920)]
+  twrap      REJECTED PRECHECK FAIL: WSA: constraint 20 fails on row 0
+  wsstale    REJECTED PRECHECK FAIL: 2 unbalanced messages by bus {26: 2}; first [((26, [0, 49710, 47772, 40436, 18432, 61980, 17983, 35222, 62618, 43968, 15998, 47991, 170
+== t1: T1 (D=5)
+  dmono      REJECTED PRECHECK FAIL: BR: constraint 523 fails on row 84
+  finroot    REJECTED PRECHECK FAIL: 6 unbalanced messages by bus {14: 2, 24: 4}; first [((14, [10, 0, 7604, 36408, 33764, 25329, 11126, 6785, 17291, 53573, 57292, 17902, 2
+  hphshort   REJECTED PRECHECK FAIL: SN: constraint 144 fails on row 0
+  lmwrap     REJECTED PRECHECK FAIL: SN: constraint 211 fails on row 37
+  nidforge   REJECTED PRECHECK FAIL: BR: constraint 32 fails on row 59
+  node       REJECTED PRECHECK FAIL: 10 unbalanced messages by bus {5: 2, 14: 2, 25: 6}; first [((5, [0, 12, 0, 31480, 28813, 1909, 20291, 3931, 4786, 8617, 12541, 15584, 1
+  omitwrite  REJECTED PRECHECK FAIL: 5 unbalanced messages by bus {13: 1, 24: 2, 26: 2}; first [((13, [0, 1, 49710, 47772, 40436, 18432, 61980, 17983, 35222, 62618, 43968, 
+  postroot   REJECTED PRECHECK FAIL: 2 unbalanced messages by bus {14: 2}; first [((14, [10, 0, 7348, 36408, 33764, 25329, 11126, 6785, 17291, 53573, 57292, 17902, 23152, 3
+  prevalue   REJECTED PRECHECK FAIL: 2 unbalanced messages by bus {6: 2}; first [((6, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  tbig       REJECTED PRECHECK FAIL: 1 unbalanced messages by bus {24: 1}; first [((24, [256]), 2013265920)]
+  twrap      REJECTED PRECHECK FAIL: WSA: constraint 20 fails on row 0
+  vbyte      REJECTED PRECHECK FAIL: 3 unbalanced messages by bus {24: 1, 25: 2}; first [((24, [259]), 2013265920), ((25, [2, 0, 1, 805334266, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  vernid     REJECTED PRECHECK FAIL: 36 unbalanced messages by bus {5: 2, 25: 34}; first [((5, [1048577, 0, 1, 536900860, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
+  verslot    REJECTED PRECHECK FAIL: 4 unbalanced messages by bus {25: 4}; first [((25, [1, 1, 1, 536900860, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 96, 134, 115
+  vmcount    REJECTED PRECHECK FAIL: 17 unbalanced messages by bus {25: 17}; first [((25, [1, 0, 0, 40354, 64056, 28336, 32361, 42012, 8005, 11829, 24893, 50858, 63963, 411
+  wsabsorb   REJECTED PRECHECK FAIL: WSP: constraint 5 fails on row 0
+  wsdrop     REJECTED PRECHECK FAIL: WSP: constraint 7 fails on row 0
+  wsleaf     REJECTED PRECHECK FAIL: 4 unbalanced messages by bus {27: 2, 103: 2}; first [((27, [0, 0, 0, 392182, 1146286, 1518503, 1430632, 1659652, 2610385, 926054, 13187
+  wslen      REJECTED PRECHECK FAIL: WSB: constraint 117 fails on row 16
+  wslenlo    REJECTED PRECHECK FAIL: WSB: constraint 117 fails on row 16
+  wssib      REJECTED PRECHECK FAIL: WSP: constraint 11 fails on row 1
+  wsstale    REJECTED PRECHECK FAIL: 2 unbalanced messages by bus {26: 2}; first [((26, [0, 49710, 47772, 40436, 18432, 61980, 17983, 35222, 62618, 43968, 15998, 47991, 170
+== t2: T2 (D=6)
+  absdel     REJECTED PRECHECK FAIL: SN: constraint 155 fails on row 157
+  absent     REJECTED PRECHECK FAIL: SN: constraint 147 fails on row 2
+  branchval  REJECTED PRECHECK FAIL: BR: constraint 78 fails on row 87
+  chain      REJECTED PRECHECK FAIL: 6 unbalanced messages by bus {0: 2, 24: 4}; first [((0, [50331730, 37, 14]), 1), ((0, [50331730, 37, 254]), 2013265920)]
+  dmono      REJECTED PRECHECK FAIL: BR: constraint 523 fails on row 282
+  extabsent  REJECTED PRECHECK FAIL: SN: constraint 150 fails on row 65
+  finroot    REJECTED PRECHECK FAIL: 6 unbalanced messages by bus {14: 2, 24: 4}; first [((14, [42, 0, 25077, 13066, 51200, 7013, 27154, 26375, 44666, 46215, 37390, 39235, 
+  hphshort   REJECTED PRECHECK FAIL: SN: constraint 144 fails on row 0
+  lmwrap     REJECTED PRECHECK FAIL: SN: constraint 211 fails on row 105
+  nidforge   REJECTED PRECHECK FAIL: BR: constraint 32 fails on row 188
+  node       REJECTED PRECHECK FAIL: 10 unbalanced messages by bus {5: 2, 14: 2, 25: 6}; first [((5, [0, 12, 0, 54823, 15903, 56350, 19776, 48437, 38810, 63200, 38056, 3225
+  omitwrite  REJECTED PRECHECK FAIL: 5 unbalanced messages by bus {13: 1, 24: 2, 26: 2}; first [((13, [0, 1, 53280, 7734, 2084, 33825, 17582, 3930, 38077, 37338, 39657, 135
+  postroot   REJECTED PRECHECK FAIL: 2 unbalanced messages by bus {14: 2}; first [((14, [42, 0, 24821, 13066, 51200, 7013, 27154, 26375, 44666, 46215, 37390, 39235, 57955, 
+  prevalue   REJECTED PRECHECK FAIL: 2 unbalanced messages by bus {6: 2}; first [((6, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  split      REJECTED PRECHECK FAIL: 132 unbalanced messages by bus {0: 130, 2: 2}; first [((0, [33554855, 1, 9]), 1), ((0, [33554855, 1, 136]), 2013265920)]
+  splitext   REJECTED PRECHECK FAIL: SN: constraint 203 fails on row 195
+  squash     REJECTED PRECHECK FAIL: SN: constraint 757 fails on row 166
+  tbig       REJECTED PRECHECK FAIL: 1 unbalanced messages by bus {24: 1}; first [((24, [256]), 2013265920)]
+  twrap      REJECTED PRECHECK FAIL: WSA: constraint 20 fails on row 0
+  vbyte      REJECTED PRECHECK FAIL: 3 unbalanced messages by bus {24: 1, 25: 2}; first [((24, [485]), 2013265920), ((25, [2, 0, 1, 805389562, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  vernid     REJECTED PRECHECK FAIL: 36 unbalanced messages by bus {5: 2, 25: 34}; first [((5, [1048577, 0, 1, 536966908, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
+  verslot    REJECTED PRECHECK FAIL: 4 unbalanced messages by bus {25: 4}; first [((25, [1, 1, 1, 536966908, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 64, 101, 240
+  vmcount    REJECTED PRECHECK FAIL: 17 unbalanced messages by bus {25: 17}; first [((25, [1, 0, 0, 26083, 45575, 48502, 12415, 47922, 42974, 3112, 32182, 63858, 7922, 2405
+  wsabsorb   REJECTED PRECHECK FAIL: WSP: constraint 5 fails on row 0
+  wsdrop     REJECTED PRECHECK FAIL: WSP: constraint 7 fails on row 0
+  wsleaf     REJECTED PRECHECK FAIL: 4 unbalanced messages by bus {27: 2, 103: 2}; first [((27, [0, 0, 0, 488569, 724995, 726199, 1976182, 10695, 1502927, 1770687, 255852, 
+  wslen      REJECTED PRECHECK FAIL: WSB: constraint 117 fails on row 51
+  wslenlo    REJECTED PRECHECK FAIL: WSB: constraint 117 fails on row 51
+  wssib      REJECTED PRECHECK FAIL: WSP: constraint 11 fails on row 3
+  wsstale    REJECTED PRECHECK FAIL: 2 unbalanced messages by bus {26: 2}; first [((26, [0, 53280, 7734, 2084, 33825, 17582, 3930, 38077, 37338, 39657, 13599, 25243, 51033,
+== syn: synthetic bval (D=4)
+  branchval  REJECTED PRECHECK FAIL: BR: constraint 78 fails on row 1
+  bvalue     REJECTED PRECHECK FAIL: BR: constraint 425 fails on row 15
+  bvmem      REJECTED PRECHECK FAIL: BR: constraint 514 fails on row 17
+  bvwrap     REJECTED PRECHECK FAIL: BR: constraint 514 fails on row 15
+  dmono      REJECTED PRECHECK FAIL: BR: constraint 523 fails on row 16
+  lmwrap     REJECTED PRECHECK FAIL: SN: constraint 211 fails on row 26
+  postroot   REJECTED PRECHECK FAIL: 2 unbalanced messages by bus {14: 2}; first [((14, [7, 0, 45588, 11465, 1235, 14153, 62236, 65276, 44108, 5454, 42603, 8991, 29223, 181
+  prevalue   REJECTED PRECHECK FAIL: 2 unbalanced messages by bus {6: 2}; first [((6, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  tbig       REJECTED PRECHECK FAIL: 1 unbalanced messages by bus {24: 1}; first [((24, [256]), 2013265920)]
+  twrap      REJECTED PRECHECK FAIL: WSA: constraint 20 fails on row 0
+  vbyte      NOT APPLICABLE (no target row)
+  verslot    REJECTED PRECHECK FAIL: 4 unbalanced messages by bus {25: 4}; first [((25, [1, 1, 1, 536878332, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 128, 38, 64,
+  vmcount    REJECTED PRECHECK FAIL: 17 unbalanced messages by bus {25: 17}; first [((25, [1, 0, 0, 13717, 50311, 44789, 62706, 18108, 54849, 17925, 64169, 61936, 38505, 57
+  wsabsorb   REJECTED PRECHECK FAIL: WSP: constraint 5 fails on row 0
+  wsdrop     REJECTED PRECHECK FAIL: WSP: constraint 7 fails on row 0
+  wsleaf     REJECTED PRECHECK FAIL: 4 unbalanced messages by bus {27: 2, 103: 2}; first [((27, [0, 0, 0, 490869, 517373, 1432522, 1820553, 1491437, 1977036, 1499528, 13619
+  wslen      REJECTED PRECHECK FAIL: WSB: constraint 117 fails on row 7
+  wslenlo    REJECTED PRECHECK FAIL: WSB: constraint 117 fails on row 7
+  wssib      REJECTED PRECHECK FAIL: WSP: constraint 10 fails on row 1
+  wsstale    REJECTED PRECHECK FAIL: 2 unbalanced messages by bus {26: 2}; first [((26, [0, 4693, 56010, 42551, 63244, 46598, 30269, 12341, 51183, 27474, 60201, 33733, 5262
+== t2seg: T2 seg3x5
+  omitwrite  REJECTED PRECHECK FAIL: 5 unbalanced messages by bus {13: 1, 24: 2, 26: 2}; first [((13, [0, 1, 53280, 7734, 2084, 33825, 17582, 3930, 38077, 37338, 39657, 135
+  tbig       REJECTED PRECHECK FAIL: 1 unbalanced messages by bus {24: 1}; first [((24, [256]), 2013265920)]
+  twrap      REJECTED PRECHECK FAIL: WSA: constraint 20 fails on row 10
+  wslen      REJECTED PRECHECK FAIL: WSB: constraint 117 fails on row 51
+  wsorder    REJECTED PRECHECK FAIL: WSA: constraint 3 fails on row 0
+  wsseg      REJECTED PRECHECK FAIL: 6 unbalanced messages by bus {13: 2, 26: 4}; first [((13, [1, 47, 56334, 39990, 22689, 41965, 7881, 17012, 55473, 39205, 51518, 6843, 3
+  wsstale    REJECTED PRECHECK FAIL: 2 unbalanced messages by bus {26: 2}; first [((26, [0, 53280, 7734, 2084, 33825, 17582, 3930, 38077, 37338, 39657, 13599, 25243, 51033,
+== bvn: synthetic bvnref (D=4)
+  nvlbyte    REJECTED PRECHECK FAIL: 2 unbalanced messages by bus {24: 2}; first [((24, [293]), 2013265920), ((24, [2013265920]), 2013265920)]
+  postroot   REJECTED PRECHECK FAIL: 2 unbalanced messages by bus {14: 2}; first [((14, [2, 0, 24702, 28750, 265, 60252, 6256, 24753, 6136, 33263, 46464, 36711, 57888, 1559
+  prevalue   REJECTED PRECHECK FAIL: 2 unbalanced messages by bus {6: 2}; first [((6, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  tbig       REJECTED PRECHECK FAIL: 1 unbalanced messages by bus {24: 1}; first [((24, [256]), 2013265920)]
+  twrap      REJECTED PRECHECK FAIL: WSA: constraint 20 fails on row 0
+  verslot    REJECTED PRECHECK FAIL: 4 unbalanced messages by bus {0: 2, 25: 2}; first [((0, [33554455, 35, 164]), 1), ((0, [33554455, 35, 165]), 2013265920)]
+  vmcount    REJECTED PRECHECK FAIL: 17 unbalanced messages by bus {25: 17}; first [((25, [1, 0, 0, 19564, 1534, 45170, 48825, 40373, 9014, 47755, 11281, 23579, 48217, 3534
+TOTAL 121: rejected 119, not applicable 2, other 0
