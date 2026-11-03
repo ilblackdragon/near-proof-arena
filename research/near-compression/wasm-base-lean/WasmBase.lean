@@ -175,6 +175,7 @@ import WasmBase.Main.SegSpaceG
 import WasmBase.Main.SegGrowFetch
 import WasmBase.Main.SegGrowMemg
 import WasmBase.Main.SegGrowMemgQ
+import WasmBase.Main.SegSoundG
 import WasmBase.Main.SegChainSigma
 import WasmBase.Main.HostTwoRun
 import WasmBase.Main.HostTwoRunArms
