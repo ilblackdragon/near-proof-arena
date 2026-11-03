@@ -298,12 +298,53 @@ no checker semantics changed. Log: [`docs/logs/e2e-lean-join-2026-11-03.md`](../
   `cm_iff` (`reexec_sound`, `reexec_complete`, `reexec_rejects_zero_steps`); on a real chunk,
   `cm_run_06_h10006_s0` (`d3c7/d3/06-h10006-s0`, non-genesis, via the kernel-checked
   `relAllFeatures_06_h10006_s0`).
-* **Granularity gaps (open).** (a) An engine step is a whole receipt including its instant
-  receipts and Wasm calls; the mid-call cut (`inCall`) must refine one receipt step through
-  `Wasm.run_foldSegments`. (b) A segment that contains a genesis block is one atomic `CM` step
-  (`init → doneG`, exact but uncut). (c) `CM` boundaries are abstract (`Ovl`, `Recording`, lists);
-  the SHA-384 working-set root and accumulators of §3.2 are the circuit's encoding of them, to be
-  related by `SegSystem.abs` and a boundary round-trip (`BoundaryDecodes`-style) in obligation 2.
+* **Granularity gaps.** (a) *Closed by M11b (below)*: mid-call cuts. (b) *Open*: a segment that
+  contains a genesis block is one atomic `CM` step (`init → doneG`, exact but uncut). (c) *Closed
+  by M11b up to the commitment*: the concrete §3.2 boundary encoding and `abs`; what each
+  configuration commits to (`view`) is the circuit lanes' part.
+
+**M11b (lane E, 2026-11-03) [K].** New modules, all in `defaultTargets`, standard axioms only, no
+checker definition changed. Log: [`docs/logs/e2e-lean-m11b-2026-11-03.md`](../logs/e2e-lean-m11b-2026-11-03.md).
+
+* **Mid-call cut (`CallMachine`, `CutW`, `Refined`).** One VM call is a small-step machine
+  (`CallConf`: `pre | ent p k r n | fin r`). One step is one Wasm instruction (`Wasm.step`) inside
+  the `start` or method entry; the `inCall` boundary is `ent p k (.cont s) n`, the whole `St` with
+  the fuel left. Its prefix is `runCall` verbatim (`runCall_eq_G`, `rfl`). `csteps_fin_iff`: the
+  call machine reaches `fin r` iff `r` is the call's result. `csteps_seg` and `csteps_foldSegments`
+  show a Wasm segment is a call-machine run, and `cden_foldSegments` is `Wasm.run_foldSegments`
+  lifted to the call machine. The receipt chain down to the VM call is copied verbatim with each
+  callee as a parameter (`CutW`: `pwO_std`, `rfl`/induction). Every layer is monotone in its
+  callee (`pwO_mono`, a walk over the copied bodies). The refined machine `RCM` adds
+  `RConf.call I c K q cc`. The steps are `base` (a `CM` step), `enter` (start VM call `q`),
+  `wasm` (one call-machine step), `next` (record `(q, r)` in `K`, start the next call) and
+  `resume` (finish the receipt step with the VM answered **only** from `K`, `strictO`). So the
+  STATE template never runs Wasm.
+  **`rcm_iff : Tier.rel .allFeatures cb wb ↔ RCMAccepts cb wb`** (through `rsteps_sound` /
+  `rsteps_of_steps`, `estepO_sound`). `rsteps_foldSegments` makes a list of Wasm segments an `RCM`
+  run between `inCall` boundaries. The cut is not vacuous (`rsteps_through_calls`): a receipt step
+  completed by the answers of calls `q₁…q_m` is reached through every Wasm instruction of every
+  call. `e2e_sound_r` is `e2e_sound` with obligation 2 against `RSteps` (`SegSoundR`), so segments
+  may begin and end mid-call.
+* **Concrete boundary (`Boundary`).** `BndRec` holds the §3.2 fields plus `vmAcc` (the digest of
+  `K`) and the Wasm part. `BndRec.codec` is fixed-width (u64/u128 big-endian, 42-B digests,
+  counted lists, a presence byte). Its round trip is `BndRec.decode_encode` and
+  `BndRec.encode_inj` follows. `sha384` is FIPS 180-4 §6.5 over the existing SHA-512
+  compression, with `sha384_length` and the kernel-checked `sha384_abc`. `bdigest` is its 42-B
+  truncation (U-10). For a commitment `view : RConf → BndRec` (a parameter: the working-set root
+  and accumulators are lanes A/B's), `absD view` opens a digest by choice. Then
+  `absD_bndOf` gives `abs (bndOf x) = some x ∨ BndCollision view`, and `bndCollision_split` gives
+  a collision as a SHA-384 collision or a `view` collision. `segSoundR_digest`: segments
+  whose rows open both digests to `RSteps`-connected configurations satisfy `SegSoundR` at the
+  digest boundary with `Bad := BndCollision view`.
+* **Obligation 1 from `NvFaithful` (`zk-formal/ZkFormal/PQ/E2EBridge.lean`).** `ZkFormal`
+  requires `NearSpecV3`, so the link lives on the `zk-formal` side; the v3 package cannot import
+  it without a cycle. The link is `nvFaithfulE2E_of_nv`: `NvFaithful Pin D V` for the node
+  circuit, plus `NodeOK` (an accepting node verification accepts each child and chains their
+  boundaries), `Extract` (knowledge soundness / QROM: an accepted proof is a satisfied leaf, or a
+  node trace satisfying the node AIR with lower children, or `Bad`) and `WrapOK`, together imply
+  `NvFaithfulE2E`. `e2e_sound_of_nv` is the composition. The file is on demand (like
+  `NvFaithful.lean`, not in `ZkFormal.lean`).
+  Build: `cd zk-formal && lake env lean ZkFormal/PQ/E2EBridge.lean`.
 
 **The interface the circuit lanes must meet.** A template `k` proves `Holds SegAir_k (B, B') tr`;
 obligation 2 requires `abs B = some c`, `abs B' = some c'` and `Steps c c'` with `Steps` the
@@ -360,11 +401,22 @@ hardware is available). M2 does not block T1, so it runs beside M3.
 
 **M11 (lane E, 2026-11-03):** obligation 3 (`cm_iff`), statement assembly (`e2e_statement_iff`) and
 the composition `e2e_sound` are kernel-checked; obligations 1, 2, 4 are stated `Prop`s; see §3.5
-status. Next for lane E: (1) refine engine receipt steps into Wasm `inCall` steps via
-`Wasm.run_foldSegments` (needs a defunctionalised `functionCallRecordedF`); (2) cut the genesis
-path like the reshard path (`checkD2CoreGWith` → `checkD2CoreWithObs` intake/final split); (3) a
-concrete boundary encoding with round-trip (`abs`) shared with lanes A/B; (4) instantiate
-obligation 1 from `ZkFormal.PQ.NvFaithful` once v3 and `zk-formal` share a package boundary.
+status.
+
+**M11b (lane E, 2026-11-03) [K]:** see §3.5. Done:
+* mid-call `inCall` cuts, with `rcm_iff` and `e2e_sound_r`;
+* the concrete §3.2 boundary codec with its round trip, SHA-384, and the digest `abs` under a
+  collision `Bad`;
+* obligation 1 derived from `ZkFormal.PQ.NvFaithful` plus `NodeOK`/`Extract`/`WrapOK`
+  (`E2EBridge.lean`).
+
+Open for lane E:
+1. Cut the genesis path like the reshard path (`checkD2CoreGWith` → intake/final split).
+2. The commitment `view` (working-set root, accumulators, Wasm digests) and its binding, with
+   lanes A/B.
+3. The honest prover's `K` (the call tape) as a function of the step. It exists by computation
+   (lane A's `wasmbase-tape`); it is not a Lean theorem.
+4. Instantiate `NodeOK`/`Extract` against the pinned NV circuit (with `pq-nv-faithful`).
 
 See `research/near-compression/e2e-general/m1/README.md` for commands, logs and numbers.
 
