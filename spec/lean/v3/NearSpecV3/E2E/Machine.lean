@@ -1,5 +1,4 @@
-import NearSpecV3.E2E.Engine
-import NearSpecV3.Successor.Config
+import NearSpecV3.E2E.Intake
 
 set_option maxRecDepth 20000
 set_option maxHeartbeats 16000000
@@ -17,7 +16,8 @@ configuration (D-1). Its configurations (`Conf`) are:
   state, recorder state);
 * `fin I out` — the main transition's result, before implicit transitions and outputs;
 * `done H o` — the computed header outputs `o` and the claim's chunk header `H`;
-* `doneG` — a segment that contains a genesis block, decided atomically (see below).
+* `gfin G` — a segment whose main block is genesis, after its intake (see below);
+* `doneG` — such a segment, accepted.
 
 `step` (`CM.step`) is: `INTAKE` (`intakeK`, the verbatim prefix of `checkReshardCoreObs`), then the
 engine's steps, then `FINAL` (`finK` + `tailNew`: implicit transitions, outgoing reassignment and
@@ -28,37 +28,22 @@ checker's §3.7, all against the public chunk header.
 `cm_iff` : `Tier.rel .allFeatures cb wb ↔ CMAccepts cb wb`. Equality lemmas `checkReshardCoreObs_split`
 (`rfl`) show the intake and final slices are the checker's own code.
 
-**Genesis segments.** `checkSuccessor` sends a claim whose segment contains a genesis block to
-`checkD2CoreGWith`; `CM` decides it in one atomic step (`init → doneG`). This is exact, but such a
-step is not cut further. Only chain segments that reach the genesis block take it (the first
-blocks of a chain); refining it is listed as open in the plan §3.5.
+**Genesis segments (M11c).** `checkSuccessor` sends a claim whose segment contains a genesis block
+to `checkD2CoreGWith` (`Intake.lean` slices it). Its prefix (`gPrefixK`) is part of the `INTAKE`
+step; then
+* if the main block `B2` is not genesis, the checker delegates to `checkD2CoreWithObs`: its intake
+  (`d2IntakeK`) produces an `Intake` record with `d2 = some _`, the **same engine steps** run (so
+  receipts and mid-call Wasm cuts apply as on the non-genesis path), and `FINAL` is
+  `finD2K`/`tailD2New` (`finStep` dispatches on `d2`);
+* if `B2` is genesis, `INTAKE` ends in `gfin G` (`genAK`: the stored genesis chunk extra is the
+  main transition's result) and `FINAL` (`genB`: implicit transitions on the genesis root and the
+  header comparison) steps to `doneG`.
+`cm_iff` covers both paths.
 -/
 
 namespace NearSpecV3.E2E
 open NearSpec NearSpecV3 NearSpecV3.D2 NearSpecV3.Logged NearSpecV3.Wasm
 open NearSpecV3.Successor
-
-/-- The intake record: everything the checker's prefix computes that its main transition and its
-final part read. -/
-structure Intake where
-  c : Claim
-  w : StateWitnessD2
-  H : ChunkInner
-  blks : List Blk
-  ep : EpochRec
-  L : Layout
-  wk : Walk
-  Lmain : Layout
-  slotB2 : ChunkInner
-  merged : List Bytes
-  proposed : Option Bytes
-  env : Env
-  tMain : PTrie
-  vu : Option ValidatorUpdateFacts
-  lastProps : List (Bytes × Nat)
-  receipts : List Rcpt
-  txs : List (TxD2 × Bool)
-  cong : Congestion
 
 /-- `INTAKE`, part 3: the prefix of `checkReshardCoreObs` from the epoch-start checks to the split
 gate (segment walk, receipt proofs, pre-state reveal), verbatim, followed by a continuation. -/
@@ -366,6 +351,23 @@ def headerOk (H : ChunkInner) (o : Outputs) : Bool :=
   (H.proposedSplit == o.proposedSplit) && (H.txRoot == o.txRoot) &&
   (H.encodedMerkleRoot == o.encodedMerkleRoot) && (H.encodedLength == o.encodedLength)
 
+/-- The D2 `FINAL`'s computed outputs (`checkD2CoreWithObs`): no outgoing reassignment, and no
+proposed split (the checker requires `H.proposedSplit.isNone`). -/
+def tailD2New (driver : ExecutionDriver) (I : Intake) (out : MainOutD2) (root : Bytes) :
+    Except String Outputs :=
+  let w := I.w
+  let body := u32 w.newTxs.length ++ concatAll (w.newTxs.map TxD2.raw) ++ encodeRcpts out.outgoing
+  match encodedMerkleRoot I.c.rsDataParts I.c.rsTotalParts body with
+  | none => throw "invalid: Reed-Solomon parameters"
+  | some (emr, len) =>
+    pure { stateRoot := root, outcomeRoot := outcomeRootD1 out.outcomes,
+           proposals := out.proposals.map Proposal.encode, gasLimit := I.slotB2.gasLimit,
+           gasUsed := out.gasUsed, balanceBurnt := out.balanceBurnt,
+           outgoingRoot := driver.outgoingRoot I.L out.outgoing, congestion := out.congestion,
+           bwRequests := out.bwRequests, proposedSplit := none,
+           txRoot := merklizeBorsh (w.newTxs.map TxD2.raw),
+           encodedMerkleRoot := emr, encodedLength := len }
+
 /-! ## The checker is intake, engine, final (verbatim) -/
 
 /-- **`checkReshardCoreObs` is the composition of its slices**, by `rfl`: the intake and final
@@ -479,20 +481,37 @@ inductive Conf where
   | fin (I : Intake) (out : MainOutD2)
   /-- Final: the endorsed header `H` (from the claim) and the computed outputs `o`. -/
   | done (H : ChunkInner) (o : Outputs)
-  /-- Final: a genesis-containing segment, decided atomically and accepted. -/
+  /-- A segment whose main block is genesis, after its intake (`genAK`). -/
+  | gfin (G : GFin)
+  /-- Final: a segment whose main block is genesis, accepted (`genB` passed). -/
   | doneG
+
+/-- `FINAL`, first part, by path: `checkReshardCoreObs`'s (`d2 = none`) or `checkD2CoreWithObs`'s
+(`d2 = some _`, a genesis-containing segment whose main block is not genesis). -/
+def finStep (I : Intake) (out : MainOutD2) : Except String Outputs :=
+  match I.d2 with
+  | none => finK afDriver afCfg.gasCap I out (tailNew afDriver I out)
+  | some d => finD2K afDriver afCfg.gasCap I d out (tailD2New afDriver I out)
+
+/-- `INTAKE` on a genesis-containing segment: the prefix of `checkD2CoreGWith`, then the intake of
+`checkD2CoreWithObs` (main block not genesis) or the genesis intake `genAK`. -/
+def initG (cb wb : Bytes) : Except String Conf :=
+  gPrefixK afDriver true cb wb fun g =>
+    if !g.B2.isGenesis then
+      d2IntakeK afDriver true cb wb fun I _ => pure (.eng I ⟨.start, initRec afCfg.wasm I.env⟩)
+    else genAK afDriver afHooks true afCfg.gasCap g fun G => pure (.gfin G)
 
 /-- **The step relation of `CM`** (a function: `CM` is deterministic). -/
 def CM.step : Conf → Except String Conf
   | .init cb wb =>
-    if segmentHasGenesis cb then
-      (checkD2CoreGWith afDriver afHooks true cb wb afCfg.gasCap).map fun _ => .doneG
+    if segmentHasGenesis cb then initG cb wb
     else intakeK afDriver true cb wb fun I => pure (.eng I ⟨.start, initRec afCfg.wasm I.env⟩)
   | .eng I c =>
     match c.pos with
     | .done out => pure (.fin I out)
     | _ => (estep I.prog c).map (.eng I)
-  | .fin I out => (finK afDriver afCfg.gasCap I out (tailNew afDriver I out)).map (.done I.H)
+  | .fin I out => (finStep I out).map (.done I.H)
+  | .gfin G => (genB G).map fun _ => .doneG
   | .done H o => pure (.done H o)
   | .doneG => pure .doneG
 
@@ -506,7 +525,7 @@ inductive StepsN : Nat → Conf → Conf → Prop
   | refl (c : Conf) : StepsN 0 c c
   | step {n : Nat} {a b c : Conf} : CM.step a = .ok b → StepsN n b c → StepsN (n + 1) a c
 
-/-- The accepting configurations: `FinalOut` holds (`headerOk`), or the atomic genesis path. -/
+/-- The accepting configurations: `FinalOut` holds (`headerOk`), or the genesis `FINAL` passed. -/
 def Conf.accepting : Conf → Bool
   | .done H o => headerOk H o
   | .doneG => true
@@ -619,15 +638,14 @@ theorem eng_decomp (I : Intake) {c : EConf} {cf : Conf} (h : Steps (.eng I c) cf
 
 theorem fin_accepts_iff (I : Intake) (out : MainOutD2) :
     (∃ cf, Steps (.fin I out) cf ∧ cf.accepting = true) ↔
-      ∃ o, (finK afDriver afCfg.gasCap I out (tailNew afDriver I out)) = .ok o ∧
-        headerOk I.H o = true := by
+      ∃ o, finStep I out = .ok o ∧ headerOk I.H o = true := by
   constructor
   · rintro ⟨cf, h, ha⟩
     cases h with
     | refl => simp [Conf.accepting] at ha
     | step hs hrest =>
       simp only [CM.step] at hs
-      rcases he : finK afDriver afCfg.gasCap I out (tailNew afDriver I out) with e | o <;>
+      rcases he : finStep I out with e | o <;>
         rw [he] at hs <;> simp [Except.map] at hs
       subst hs
       have := steps_done hrest
@@ -656,88 +674,6 @@ theorem afDriver_apply (h : ActionHooks) (p : Prims) (e : Env) (t : PTrie) (vu :
 
 theorem afDriver_blind : afDriver.blindOutputs = false := rfl
 
-/-- **Obligation 3 (the small-step factorisation), proved.** The `allFeatures` relation holds iff
-the chunk machine, run from `init(claim, witness)`, reaches a configuration whose computed outputs
-pass `FinalOut` (`headerOk`) against the claim's chunk header. -/
-theorem cm_iff (cb wb : Bytes) : Tier.rel .allFeatures cb wb ↔ CMAccepts cb wb := by
-  unfold Tier.rel Tier.checker CMAccepts
-  rw [checkSuccessor_af]
-  by_cases hg : segmentHasGenesis cb = true
-  · -- atomic genesis path
-    simp only [hg, ite_true]
-    constructor
-    · intro h
-      exact ⟨.doneG, .step (by simp only [CM.step, hg, ite_true, h]; rfl) (.refl _), rfl⟩
-    · rintro ⟨cf, hs, ha⟩
-      cases hs with
-      | refl => simp [Conf.accepting] at ha
-      | step h1 _ =>
-        simp only [CM.step, hg, ite_true] at h1
-        rcases he : checkD2CoreGWith afDriver afHooks true cb wb afCfg.gasCap with e | u <;>
-          rw [he] at h1 <;> simp [Except.map] at h1
-        all_goals (cases u; exact he)
-  · simp only [hg, Bool.false_eq_true, ite_false]
-    have hg' : segmentHasGenesis cb = false := by simpa using hg
-    unfold checkReshardCore
-    rw [checkReshardCoreObs_split]
-    -- the checker side
-    have hL : (intakeK afDriver true cb wb fun I =>
-        afDriver.apply afHooks prims I.env I.tMain I.vu I.lastProps I.receipts I.txs I.cong >>= fun out =>
-          finK afDriver afCfg.gasCap I out (tailOrig afDriver I out)) =
-        (intakeK afDriver true cb wb pure >>= fun I =>
-          afDriver.apply afHooks prims I.env I.tMain I.vu I.lastProps I.receipts I.txs I.cong >>= fun out =>
-            finK afDriver afCfg.gasCap I out pure >>= tailOrig afDriver I out) := by
-      rw [intakeK_nat]
-      simp only [pure_bind, finK_nat]
-    -- the machine side: the first step is the intake
-    have hR : CM.step (.init cb wb) =
-        (intakeK afDriver true cb wb pure).map fun I => .eng I ⟨.start, initRec afCfg.wasm I.env⟩ := by
-      simp only [CM.step, hg', Bool.false_eq_true, ite_false]
-      rw [except_map_eq_bind, intakeK_nat]
-      simp only [pure_bind]
-    rw [hL]
-    constructor
-    · intro h
-      rcases hx : (intakeK afDriver true cb wb pure >>= fun I =>
-          afDriver.apply afHooks prims I.env I.tMain I.vu I.lastProps I.receipts I.txs I.cong >>= fun out =>
-            finK afDriver afCfg.gasCap I out pure >>= tailOrig afDriver I out) with e | obs <;>
-        rw [hx] at h <;> simp [Except.map] at h
-      obtain ⟨I, hI, hrest⟩ := (except_bind_ok _ _ _).1 hx
-      obtain ⟨out, hout, hfin⟩ := (except_bind_ok _ _ _).1 hrest
-      obtain ⟨t, ht, htail⟩ := (except_bind_ok _ _ _).1 hfin
-      obtain ⟨o, ho, hok⟩ := (tailOrig_ok_iff afDriver afDriver_blind I out t).1 ⟨obs, htail⟩
-      rw [afDriver_apply, engine_run_ok_iff] at hout
-      obtain ⟨st', hrun⟩ := hout
-      have hfin' : finK afDriver afCfg.gasCap I out (tailNew afDriver I out) = .ok o := by
-        rw [show tailNew afDriver I out = fun t => pure t >>= tailNew afDriver I out from
-          funext fun _ => (pure_bind _ _).symm, ← finK_nat, ht]
-        exact ho
-      obtain ⟨cf, hcf, hacc⟩ := (fin_accepts_iff I out).2 ⟨o, hfin', hok⟩
-      refine ⟨cf, .step (by rw [hR, hI]; rfl) ?_, hacc⟩
-      exact (steps_eng_of_esteps I hrun).trans (.step (by simp only [CM.step]; rfl) hcf)
-    · rintro ⟨cf, hs, ha⟩
-      cases hs with
-      | refl => simp [Conf.accepting] at ha
-      | @step _ b _ h1 hrest =>
-        rw [hR] at h1
-        rcases hI : intakeK afDriver true cb wb pure with e | I <;> rw [hI] at h1 <;>
-          simp [Except.map] at h1
-        subst h1
-        obtain ⟨out, st', hrun, hfin⟩ := eng_decomp I hrest ha
-        obtain ⟨o, ho, hok⟩ := (fin_accepts_iff I out).1 ⟨cf, hfin, ha⟩
-        have hout : afDriver.apply afHooks prims I.env I.tMain I.vu I.lastProps I.receipts I.txs I.cong
-            = .ok out := by
-          rw [afDriver_apply, engine_run_ok_iff]; exact ⟨st', hrun⟩
-        rw [show tailNew afDriver I out = fun t => pure t >>= tailNew afDriver I out from
-          funext fun _ => (pure_bind _ _).symm, ← finK_nat] at ho
-        obtain ⟨t, ht, htn⟩ := (except_bind_ok _ _ _).1 ho
-        obtain ⟨obs, hobs⟩ := (tailOrig_ok_iff afDriver afDriver_blind I out t).2 ⟨o, htn, hok⟩
-        have hX := (except_bind_ok _ (fun out =>
-            finK afDriver afCfg.gasCap I out pure >>= tailOrig afDriver I out) obs).2
-          ⟨out, hout, (except_bind_ok _ _ obs).2 ⟨t, ht, hobs⟩⟩
-        exact (congrArg (Except.map (fun _ => ())) hX).trans rfl
-
-#print axioms cm_iff
 #print axioms steps_of_chain
 #print axioms stepsN_of_chain
 
@@ -780,23 +716,26 @@ theorem mapError_ok {α : Type} {f : String → String} {x : Except String α} {
 
 theorem intakeC_congr {β : Type} (driver : ExecutionDriver) (allowCodes : Bool) (c : Claim)
     (codes : List Bytes) (w : StateWitnessD2) (H : ChunkInner) (blks : List Blk) (ep : EpochRec)
-    (L : Layout) (k1 k2 : Intake → Except String β) (hk : ∀ I, I.c = c → I.H = H → k1 I = k2 I) :
+    (L : Layout) (k1 k2 : Intake → Except String β)
+    (hk : ∀ I, I.c = c → I.H = H → I.d2 = none → k1 I = k2 I) :
     intakeC driver allowCodes c codes w H blks ep L k1 = intakeC driver allowCodes c codes w H blks ep L k2 := by
   unfold intakeC
   nat_walk
-  all_goals exact hk _ rfl rfl
+  all_goals exact hk _ rfl rfl rfl
 
 theorem intakeC_post (driver : ExecutionDriver) (allowCodes : Bool) (c : Claim) (codes : List Bytes)
     (w : StateWitnessD2) (H : ChunkInner) (blks : List Blk) (ep : EpochRec) (L : Layout) :
-    PostE (intakeC driver allowCodes c codes w H blks ep L pure) (fun I => I.c = c ∧ I.H = H) := by
+    PostE (intakeC driver allowCodes c codes w H blks ep L pure)
+      (fun I => I.c = c ∧ I.H = H ∧ I.d2 = none) := by
   classical
   intro I hI
-  let k1 : Intake → Except String Intake := fun I => if I.c = c ∧ I.H = H then pure I else throw ""
+  let k1 : Intake → Except String Intake := fun I =>
+    if I.c = c ∧ I.H = H ∧ I.d2 = none then pure I else throw ""
   have h1 := intakeC_nat driver allowCodes c codes w H blks ep L pure k1
   have h2 := intakeC_congr driver allowCodes c codes w H blks ep L (fun I => pure I >>= k1) pure
-    (fun I hc hH => by simp only [pure_bind, k1, hc, hH, and_self, ite_true])
+    (fun I hc hH hd => by simp only [pure_bind, k1, hc, hH, hd, and_self, ite_true])
   rw [h2, hI] at h1
-  by_cases hq : I.c = c ∧ I.H = H
+  by_cases hq : I.c = c ∧ I.H = H ∧ I.d2 = none
   · exact hq
   · have : k1 I = Except.ok I := h1
     simp only [k1, hq, ite_false] at this
@@ -804,7 +743,7 @@ theorem intakeC_post (driver : ExecutionDriver) (allowCodes : Bool) (c : Claim) 
 
 theorem intakeB2_congr {β : Type} (driver : ExecutionDriver) (allowCodes : Bool) (c : Claim)
     (codes : List Bytes) (w : StateWitnessD2) (H : ChunkInner) (k1 k2 : Intake → Except String β)
-    (hk : ∀ I, I.c = c → I.H = H → k1 I = k2 I) :
+    (hk : ∀ I, I.c = c → I.H = H → I.d2 = none → k1 I = k2 I) :
     intakeB2 driver allowCodes c codes w H k1 = intakeB2 driver allowCodes c codes w H k2 := by
   unfold intakeB2
   nat_walk
@@ -812,15 +751,17 @@ theorem intakeB2_congr {β : Type} (driver : ExecutionDriver) (allowCodes : Bool
 
 theorem intakeB2_post (driver : ExecutionDriver) (allowCodes : Bool) (c : Claim) (codes : List Bytes)
     (w : StateWitnessD2) (H : ChunkInner) :
-    PostE (intakeB2 driver allowCodes c codes w H pure) (fun I => I.c = c ∧ I.H = H) := by
+    PostE (intakeB2 driver allowCodes c codes w H pure)
+      (fun I => I.c = c ∧ I.H = H ∧ I.d2 = none) := by
   classical
   intro I hI
-  let k1 : Intake → Except String Intake := fun I => if I.c = c ∧ I.H = H then pure I else throw ""
+  let k1 : Intake → Except String Intake := fun I =>
+    if I.c = c ∧ I.H = H ∧ I.d2 = none then pure I else throw ""
   have h1 := intakeB2_nat driver allowCodes c codes w H pure k1
   have h2 := intakeB2_congr driver allowCodes c codes w H (fun I => pure I >>= k1) pure
-    (fun I hc hH => by simp only [pure_bind, k1, hc, hH, and_self, ite_true])
+    (fun I hc hH hd => by simp only [pure_bind, k1, hc, hH, hd, and_self, ite_true])
   rw [h2, hI] at h1
-  by_cases hq : I.c = c ∧ I.H = H
+  by_cases hq : I.c = c ∧ I.H = H ∧ I.d2 = none
   · exact hq
   · have : k1 I = Except.ok I := h1
     simp only [k1, hq, ite_false] at this
@@ -829,22 +770,23 @@ theorem intakeB2_post (driver : ExecutionDriver) (allowCodes : Bool) (c : Claim)
 theorem intakeB_post (driver : ExecutionDriver) (allowCodes : Bool) (c : Claim) (swBytes : Bytes)
     (codes : List Bytes) :
     PostE (intakeB driver allowCodes c swBytes codes pure)
-      (fun I => I.c = c ∧ decodeChunkInner c.chunkInner = .ok I.H) := by
+      (fun I => I.c = c ∧ decodeChunkInner c.chunkInner = .ok I.H ∧ I.d2 = none) := by
   unfold intakeB
   post_walk
   all_goals
     exact postE_mono (intakeB2_post _ _ _ _ _ _) fun I hI =>
-      ⟨hI.1, by rw [hI.2]; exact mapError_ok ‹_›⟩
+      ⟨hI.1, by rw [hI.2.1]; exact mapError_ok ‹_›, hI.2.2⟩
 
 /-- **The intake record's claim and header are the decoded claim bytes and its `chunk_inner`.** -/
 theorem intakeK_post (driver : ExecutionDriver) (allowCodes : Bool) (cb wb : Bytes) :
     PostE (intakeK driver allowCodes cb wb pure)
-      (fun I => decodeClaimE cb = .ok I.c ∧ decodeChunkInner I.c.chunkInner = .ok I.H) := by
+      (fun I => decodeClaimE cb = .ok I.c ∧ decodeChunkInner I.c.chunkInner = .ok I.H ∧
+        I.d2 = none) := by
   unfold intakeK
   post_walk
   all_goals
     exact postE_mono (intakeB_post _ _ _ _ _) fun I hI =>
-      ⟨by rw [hI.1]; exact mapError_ok ‹_›, by rw [hI.1]; exact hI.2⟩
+      ⟨by rw [hI.1]; exact mapError_ok ‹_›, by rw [hI.1]; exact hI.2.1, hI.2.2⟩
 
 theorem steps_fin_inv {I : Intake} {out : MainOutD2} {cf : Conf} (h : Steps (.fin I out) cf) :
     cf = .fin I out ∨ ∃ o, cf = .done I.H o := by
@@ -852,7 +794,7 @@ theorem steps_fin_inv {I : Intake} {out : MainOutD2} {cf : Conf} (h : Steps (.fi
   | refl => exact .inl rfl
   | step hs hrest =>
     simp only [CM.step] at hs
-    rcases he : finK afDriver afCfg.gasCap I out (tailNew afDriver I out) with e | o <;>
+    rcases he : finStep I out with e | o <;>
       rw [he] at hs <;> simp [Except.map] at hs
     subst hs
     exact .inr ⟨o, steps_done hrest⟩
@@ -882,6 +824,327 @@ theorem step_init_nongen {cb wb : Bytes} (hg : segmentHasGenesis cb = false) :
   rw [except_map_eq_bind, intakeK_nat]
   simp only [pure_bind]
 
+/-! ## The genesis-containing path (M11c) -/
+
+theorem finStep_none {I : Intake} (h : I.d2 = none) (out : MainOutD2) :
+    finStep I out = finK afDriver afCfg.gasCap I out (tailNew afDriver I out) := by
+  simp only [finStep, h]
+
+theorem finStep_some {I : Intake} {d : D2Fin} (h : I.d2 = some d) (out : MainOutD2) :
+    finStep I out = finD2K afDriver afCfg.gasCap I d out (tailD2New afDriver I out) := by
+  simp only [finStep, h]
+
+theorem d2IntakeE_congr {β : Type} (driver : ExecutionDriver) (c : Claim) (codes : List Bytes)
+    (w : StateWitnessD2) (H : ChunkInner) (blks : List Blk) (ep : EpochRec) (L : Layout)
+    (k1 k2 : Intake → D2Fin → Except String β)
+    (hk : ∀ I d, I.c = c → I.H = H → I.d2 = some d → k1 I d = k2 I d) :
+    d2IntakeE driver c codes w H blks ep L k1 = d2IntakeE driver c codes w H blks ep L k2 := by
+  unfold d2IntakeE
+  nat_walk
+  all_goals exact hk _ _ rfl rfl rfl
+
+theorem d2IntakeD_congr {β : Type} (driver : ExecutionDriver) (c : Claim) (codes : List Bytes)
+    (w : StateWitnessD2) (H : ChunkInner) (blks : List Blk) (ep : EpochRec) (L : Layout)
+    (k1 k2 : Intake → D2Fin → Except String β)
+    (hk : ∀ I d, I.c = c → I.H = H → I.d2 = some d → k1 I d = k2 I d) :
+    d2IntakeD driver c codes w H blks ep L k1 = d2IntakeD driver c codes w H blks ep L k2 := by
+  unfold d2IntakeD
+  nat_walk
+  all_goals exact d2IntakeE_congr _ _ _ _ _ _ _ _ _ _ hk
+
+theorem d2IntakeC_congr {β : Type} (driver : ExecutionDriver) (c : Claim) (codes : List Bytes)
+    (w : StateWitnessD2) (H : ChunkInner) (k1 k2 : Intake → D2Fin → Except String β)
+    (hk : ∀ I d, I.c = c → I.H = H → I.d2 = some d → k1 I d = k2 I d) :
+    d2IntakeC driver c codes w H k1 = d2IntakeC driver c codes w H k2 := by
+  unfold d2IntakeC
+  nat_walk
+  all_goals exact d2IntakeD_congr _ _ _ _ _ _ _ _ _ _ hk
+
+theorem d2IntakeC_post (driver : ExecutionDriver) (c : Claim) (codes : List Bytes)
+    (w : StateWitnessD2) (H : ChunkInner) :
+    PostE (d2IntakeC driver c codes w H fun I d => pure (I, d))
+      (fun p => p.1.c = c ∧ p.1.H = H ∧ p.1.d2 = some p.2) := by
+  classical
+  intro p hp
+  let k1 : Intake → D2Fin → Except String (Intake × D2Fin) := fun I d =>
+    if I.c = c ∧ I.H = H ∧ I.d2 = some d then pure (I, d) else throw ""
+  have h1 := d2IntakeC_nat driver c codes w H (fun I d => pure (I, d)) (fun p => k1 p.1 p.2)
+  have h2 := d2IntakeC_congr driver c codes w H
+    (fun I d => pure (I, d) >>= fun p => k1 p.1 p.2) (fun I d => pure (I, d))
+    (fun I d hc hH hd => by simp only [pure_bind, k1, hc, hH, hd, and_self, ite_true])
+  rw [h2, hp] at h1
+  by_cases hq : p.1.c = c ∧ p.1.H = H ∧ p.1.d2 = some p.2
+  · exact hq
+  · have : k1 p.1 p.2 = Except.ok p := h1
+    simp only [k1, hq, ite_false] at this
+    cases this
+
+theorem d2IntakeB_post (driver : ExecutionDriver) (c : Claim) (swBytes : Bytes)
+    (codes : List Bytes) :
+    PostE (d2IntakeB driver c swBytes codes fun I d => pure (I, d))
+      (fun p => p.1.c = c ∧ decodeChunkInner c.chunkInner = .ok p.1.H ∧ p.1.d2 = some p.2) := by
+  unfold d2IntakeB
+  post_walk
+  all_goals
+    exact postE_mono (d2IntakeC_post _ _ _ _ _) fun p hp =>
+      ⟨hp.1, by rw [hp.2.1]; exact mapError_ok ‹_›, hp.2.2⟩
+
+/-- **The delegated intake's record carries the decoded claim and header, and its `FINAL` data.** -/
+theorem d2IntakeK_post (driver : ExecutionDriver) (allowCodes : Bool) (cb wb : Bytes) :
+    PostE (d2IntakeK driver allowCodes cb wb fun I d => pure (I, d))
+      (fun p => decodeClaimE cb = .ok p.1.c ∧ decodeChunkInner p.1.c.chunkInner = .ok p.1.H ∧
+        p.1.d2 = some p.2) := by
+  unfold d2IntakeK
+  post_walk
+  all_goals
+    exact postE_mono (d2IntakeB_post _ _ _ _) fun p hp =>
+      ⟨by rw [hp.1]; exact mapError_ok ‹_›, by rw [hp.1]; exact hp.2.1, hp.2.2⟩
+
+theorem option_beq_none_eq_isNone (x : Option Bytes) : (x == none) = x.isNone := by
+  cases x <;> rfl
+
+/-- The delegated header comparison accepts iff the computed outputs exist and match. -/
+theorem tailD2Orig_ok_iff (driver : ExecutionDriver) (hb : driver.blindOutputs = false) (I : Intake)
+    (out : MainOutD2) (root : Bytes) :
+    (∃ obs, tailD2Orig driver I out root = .ok obs) ↔
+      ∃ o, tailD2New driver I out root = .ok o ∧ headerOk I.H o = true := by
+  simp only [tailD2Orig, tailD2New, hb, Bool.false_or]
+  generalize encodedMerkleRoot I.c.rsDataParts I.c.rsTotalParts (u32 I.w.newTxs.length ++
+    concatAll (I.w.newTxs.map TxD2.raw) ++ encodeRcpts out.outgoing) = r
+  rcases r with _ | ⟨emr, len⟩
+  · simp only [check_bind_ok]
+    constructor
+    · rintro ⟨obs, -, -, -, -, -, -, -, -, -, -, -, h⟩; cases h
+    · rintro ⟨o, h, -⟩; cases h
+  · simp only [check_bind_ok, headerOk, Bool.and_eq_true]
+    constructor
+    · rintro ⟨obs, h1, h2, h3, h4, h5, h6, h7, h8, h9, h10, h11, h12, h13, -⟩
+      refine ⟨_, rfl, ⟨⟨⟨⟨⟨⟨⟨⟨⟨⟨⟨⟨h1, h2⟩, h3⟩, h4⟩, h5⟩, h6⟩, h7⟩, h8⟩, h9⟩, ?_⟩, h11⟩, h12⟩, h13⟩⟩
+      rw [option_beq_none_eq_isNone]; exact h10
+    · rintro ⟨o, ho, ⟨⟨⟨⟨⟨⟨⟨⟨⟨⟨⟨⟨h1, h2⟩, h3⟩, h4⟩, h5⟩, h6⟩, h7⟩, h8⟩, h9⟩, h10⟩, h11⟩, h12⟩, h13⟩⟩
+      cases ho
+      rw [option_beq_none_eq_isNone] at h10
+      exact ⟨_, h1, h2, h3, h4, h5, h6, h7, h8, h9, h10, h11, h12, h13, rfl⟩
+
+theorem steps_gfin_inv {G : GFin} {cf : Conf} (h : Steps (.gfin G) cf) :
+    cf = .gfin G ∨ cf = .doneG := by
+  cases h with
+  | refl => exact .inl rfl
+  | step hs hrest =>
+    simp only [CM.step] at hs
+    rcases he : genB G with e | u <;> rw [he] at hs <;> simp [Except.map] at hs
+    subst hs
+    exact .inr (steps_doneG hrest)
+
+/-- The genesis-path `INTAKE` with its continuations pulled out. -/
+theorem initG_eq (cb wb : Bytes) :
+    initG cb wb = (gPrefixK afDriver true cb wb pure >>= fun g =>
+      if !g.B2.isGenesis then
+        (d2IntakeK afDriver true cb wb (fun I d => pure (I, d)) >>= fun p =>
+          pure (Conf.eng p.1 ⟨.start, initRec afCfg.wasm p.1.env⟩))
+      else (genAK afDriver afHooks true afCfg.gasCap g pure >>= fun G => pure (Conf.gfin G))) := by
+  unfold initG
+  rw [gPrefixK_pull]
+  congr 1
+  funext g
+  split
+  · rw [d2IntakeK_pull]
+  · rw [genAK_pull]
+
+/-- The genesis-path `INTAKE` ends in the delegated engine start or in `gfin`. -/
+theorem initG_ok {cb wb : Bytes} {b : Conf} (h : initG cb wb = .ok b) :
+    (∃ p, d2IntakeK afDriver true cb wb (fun I d => pure (I, d)) = .ok p ∧
+        b = .eng p.1 ⟨.start, initRec afCfg.wasm p.1.env⟩) ∨
+      ∃ g G, gPrefixK afDriver true cb wb pure = .ok g ∧ g.B2.isGenesis = true ∧
+        genAK afDriver afHooks true afCfg.gasCap g pure = .ok G ∧ b = .gfin G := by
+  rw [initG_eq] at h
+  obtain ⟨g, hg, hr⟩ := (except_bind_ok _ _ _).1 h
+  split at hr
+  · obtain ⟨p, hp, hb⟩ := (except_bind_ok _ _ _).1 hr
+    cases hb
+    exact .inl ⟨p, hp, rfl⟩
+  · rename_i hc
+    obtain ⟨G, hG, hb⟩ := (except_bind_ok _ _ _).1 hr
+    cases hb
+    exact .inr ⟨g, G, hg, by simpa using hc, hG, rfl⟩
+
+/-- An engine start accepts iff the main transition and the record's `FINAL` succeed and match. -/
+theorem eng_accepts_iff (I : Intake) :
+    (∃ cf, Steps (.eng I ⟨.start, initRec afCfg.wasm I.env⟩) cf ∧ cf.accepting = true) ↔
+      ∃ out o, afDriver.apply afHooks prims I.env I.tMain I.vu I.lastProps I.receipts I.txs I.cong
+          = .ok out ∧ finStep I out = .ok o ∧ headerOk I.H o = true := by
+  constructor
+  · rintro ⟨cf, hs, ha⟩
+    obtain ⟨out, st', hrun, hfin⟩ := eng_decomp I hs ha
+    obtain ⟨o, ho, hok⟩ := (fin_accepts_iff I out).1 ⟨cf, hfin, ha⟩
+    refine ⟨out, o, ?_, ho, hok⟩
+    rw [afDriver_apply, engine_run_ok_iff]; exact ⟨st', hrun⟩
+  · rintro ⟨out, o, hout, ho, hok⟩
+    rw [afDriver_apply, engine_run_ok_iff] at hout
+    obtain ⟨st', hrun⟩ := hout
+    obtain ⟨cf, hcf, hacc⟩ := (fin_accepts_iff I out).2 ⟨o, ho, hok⟩
+    exact ⟨cf, (steps_eng_of_esteps I hrun).trans (.step (by simp only [CM.step]; rfl) hcf), hacc⟩
+
+/-- **`cm_iff` on a genesis-containing segment**: `checkD2CoreGWith` accepts iff `CM` reaches an
+accepting configuration, through the delegated engine run or the genesis `gfin` step. -/
+theorem cm_iff_gen (cb wb : Bytes) (hg : segmentHasGenesis cb = true) :
+    checkD2CoreGWith afDriver afHooks true cb wb afCfg.gasCap = .ok () ↔ CMAccepts cb wb := by
+  have hstep : CM.step (.init cb wb) = initG cb wb := by simp only [CM.step, hg, ite_true]
+  rw [checkD2CoreGWith_split, gPrefixK_pull]
+  unfold CMAccepts
+  constructor
+  · intro h
+    obtain ⟨g, hg1, hr⟩ := (except_bind_ok _ _ _).1 h
+    rw [gRest_eq] at hr
+    split at hr
+    · rename_i hB
+      unfold checkD2CoreWith at hr
+      rcases hx : checkD2CoreWithObs afDriver afHooks true cb wb afCfg.gasCap with e | obs <;>
+        rw [hx] at hr <;> simp [Except.map] at hr
+      rw [checkD2CoreWithObs_split, d2IntakeK_pull] at hx
+      obtain ⟨p, hp, hrest⟩ := (except_bind_ok _ _ _).1 hx
+      obtain ⟨out, hout, hfin⟩ := (except_bind_ok _ _ _).1 hrest
+      rw [finD2K_pull] at hfin
+      obtain ⟨root, hroot, htail⟩ := (except_bind_ok _ _ _).1 hfin
+      obtain ⟨o, ho, hok⟩ := (tailD2Orig_ok_iff afDriver afDriver_blind p.1 out root).1 ⟨obs, htail⟩
+      have hd := (d2IntakeK_post afDriver true cb wb p hp).2.2
+      have hfs : finStep p.1 out = .ok o := by
+        rw [finStep_some hd, finD2K_pull, hroot]; exact ho
+      obtain ⟨cf, hcf, hacc⟩ := (eng_accepts_iff p.1).2 ⟨out, o, hout, hfs, hok⟩
+      have h1 : CM.step (.init cb wb) = .ok (.eng p.1 ⟨.start, initRec afCfg.wasm p.1.env⟩) := by
+        rw [hstep, initG_eq, hg1]
+        show (if (!g.B2.isGenesis) = true then _ else _) = _
+        rw [if_pos hB, hp]
+        rfl
+      exact ⟨cf, .step h1 hcf, hacc⟩
+    · rename_i hB
+      rw [genAK_pull] at hr
+      obtain ⟨G, hG, hb⟩ := (except_bind_ok _ _ _).1 hr
+      have h1 : CM.step (.init cb wb) = .ok (.gfin G) := by
+        rw [hstep, initG_eq, hg1]
+        show (if (!g.B2.isGenesis) = true then _ else _) = _
+        rw [if_neg hB, hG]
+        rfl
+      have h2 : CM.step (.gfin G) = .ok .doneG := by simp only [CM.step, hb]; rfl
+      exact ⟨.doneG, .step h1 (.step h2 (.refl _)), rfl⟩
+  · rintro ⟨cf, hs, ha⟩
+    cases hs with
+    | refl => simp [Conf.accepting] at ha
+    | @step _ b _ h1 hrest =>
+      rw [hstep, initG_eq] at h1
+      obtain ⟨g, hg1, hr⟩ := (except_bind_ok _ _ _).1 h1
+      rw [hg1]
+      show gRest afDriver afHooks true cb wb afCfg.gasCap g = .ok ()
+      rw [gRest_eq]
+      split at hr
+      · rename_i hB
+        rw [if_pos hB]
+        obtain ⟨p, hp, hb⟩ := (except_bind_ok _ _ _).1 hr
+        cases hb
+        obtain ⟨out, o, hout, hfs, hok⟩ := (eng_accepts_iff p.1).1 ⟨cf, hrest, ha⟩
+        have hd := (d2IntakeK_post afDriver true cb wb p hp).2.2
+        rw [finStep_some hd, finD2K_pull] at hfs
+        obtain ⟨root, hroot, hnew⟩ := (except_bind_ok _ _ _).1 hfs
+        obtain ⟨obs, hobs⟩ := (tailD2Orig_ok_iff afDriver afDriver_blind p.1 out root).2 ⟨o, hnew, hok⟩
+        have hx : checkD2CoreWithObs afDriver afHooks true cb wb afCfg.gasCap = .ok obs := by
+          rw [checkD2CoreWithObs_split, d2IntakeK_pull, hp]
+          show (afDriver.apply afHooks prims p.1.env p.1.tMain p.1.vu p.1.lastProps p.1.receipts
+            p.1.txs p.1.cong >>= fun out => finD2K afDriver afCfg.gasCap p.1 p.2 out
+              (tailD2Orig afDriver p.1 out)) = .ok obs
+          rw [hout]
+          show finD2K afDriver afCfg.gasCap p.1 p.2 out (tailD2Orig afDriver p.1 out) = .ok obs
+          rw [finD2K_pull, hroot]; exact hobs
+        unfold checkD2CoreWith
+        rw [hx]; rfl
+      · rename_i hB
+        rw [if_neg hB]
+        obtain ⟨G, hG, hb⟩ := (except_bind_ok _ _ _).1 hr
+        cases hb
+        rcases steps_gfin_inv hrest with hc | hc
+        · subst hc; simp [Conf.accepting] at ha
+        · subst hc
+          cases hrest with
+          | step hs2 _ =>
+            simp only [CM.step] at hs2
+            rcases hb : genB G with e | u <;> rw [hb] at hs2 <;> simp [Except.map] at hs2
+            rw [genAK_pull, hG]
+            exact hb
+
+/-- **Obligation 3 (the small-step factorisation), proved.** The `allFeatures` relation holds iff
+the chunk machine, run from `init(claim, witness)`, reaches a configuration whose computed outputs
+pass `FinalOut` (`headerOk`) against the claim's chunk header. -/
+theorem cm_iff (cb wb : Bytes) : Tier.rel .allFeatures cb wb ↔ CMAccepts cb wb := by
+  unfold Tier.rel Tier.checker CMAccepts
+  rw [checkSuccessor_af]
+  by_cases hg : segmentHasGenesis cb = true
+  · simp only [hg, ite_true]
+    exact cm_iff_gen cb wb hg
+  · simp only [hg, Bool.false_eq_true, ite_false]
+    have hg' : segmentHasGenesis cb = false := by simpa using hg
+    unfold checkReshardCore
+    rw [checkReshardCoreObs_split]
+    -- the checker side
+    have hL : (intakeK afDriver true cb wb fun I =>
+        afDriver.apply afHooks prims I.env I.tMain I.vu I.lastProps I.receipts I.txs I.cong >>= fun out =>
+          finK afDriver afCfg.gasCap I out (tailOrig afDriver I out)) =
+        (intakeK afDriver true cb wb pure >>= fun I =>
+          afDriver.apply afHooks prims I.env I.tMain I.vu I.lastProps I.receipts I.txs I.cong >>= fun out =>
+            finK afDriver afCfg.gasCap I out pure >>= tailOrig afDriver I out) := by
+      rw [intakeK_nat]
+      simp only [pure_bind, finK_nat]
+    -- the machine side: the first step is the intake
+    have hR : CM.step (.init cb wb) =
+        (intakeK afDriver true cb wb pure).map fun I => .eng I ⟨.start, initRec afCfg.wasm I.env⟩ := by
+      simp only [CM.step, hg', Bool.false_eq_true, ite_false]
+      rw [except_map_eq_bind, intakeK_nat]
+      simp only [pure_bind]
+    rw [hL]
+    constructor
+    · intro h
+      rcases hx : (intakeK afDriver true cb wb pure >>= fun I =>
+          afDriver.apply afHooks prims I.env I.tMain I.vu I.lastProps I.receipts I.txs I.cong >>= fun out =>
+            finK afDriver afCfg.gasCap I out pure >>= tailOrig afDriver I out) with e | obs <;>
+        rw [hx] at h <;> simp [Except.map] at h
+      obtain ⟨I, hI, hrest⟩ := (except_bind_ok _ _ _).1 hx
+      obtain ⟨out, hout, hfin⟩ := (except_bind_ok _ _ _).1 hrest
+      obtain ⟨t, ht, htail⟩ := (except_bind_ok _ _ _).1 hfin
+      obtain ⟨o, ho, hok⟩ := (tailOrig_ok_iff afDriver afDriver_blind I out t).1 ⟨obs, htail⟩
+      rw [afDriver_apply, engine_run_ok_iff] at hout
+      obtain ⟨st', hrun⟩ := hout
+      have hfin' : finK afDriver afCfg.gasCap I out (tailNew afDriver I out) = .ok o := by
+        rw [show tailNew afDriver I out = fun t => pure t >>= tailNew afDriver I out from
+          funext fun _ => (pure_bind _ _).symm, ← finK_nat, ht]
+        exact ho
+      obtain ⟨cf, hcf, hacc⟩ := (fin_accepts_iff I out).2
+        ⟨o, by rw [finStep_none (intakeK_post afDriver true cb wb I hI).2.2]; exact hfin', hok⟩
+      refine ⟨cf, .step (by rw [hR, hI]; rfl) ?_, hacc⟩
+      exact (steps_eng_of_esteps I hrun).trans (.step (by simp only [CM.step]; rfl) hcf)
+    · rintro ⟨cf, hs, ha⟩
+      cases hs with
+      | refl => simp [Conf.accepting] at ha
+      | @step _ b _ h1 hrest =>
+        rw [hR] at h1
+        rcases hI : intakeK afDriver true cb wb pure with e | I <;> rw [hI] at h1 <;>
+          simp [Except.map] at h1
+        subst h1
+        obtain ⟨out, st', hrun, hfin⟩ := eng_decomp I hrest ha
+        obtain ⟨o, ho, hok⟩ := (fin_accepts_iff I out).1 ⟨cf, hfin, ha⟩
+        rw [finStep_none (intakeK_post afDriver true cb wb I hI).2.2] at ho
+        have hout : afDriver.apply afHooks prims I.env I.tMain I.vu I.lastProps I.receipts I.txs I.cong
+            = .ok out := by
+          rw [afDriver_apply, engine_run_ok_iff]; exact ⟨st', hrun⟩
+        rw [show tailNew afDriver I out = fun t => pure t >>= tailNew afDriver I out from
+          funext fun _ => (pure_bind _ _).symm, ← finK_nat] at ho
+        obtain ⟨t, ht, htn⟩ := (except_bind_ok _ _ _).1 ho
+        obtain ⟨obs, hobs⟩ := (tailOrig_ok_iff afDriver afDriver_blind I out t).2 ⟨o, htn, hok⟩
+        have hX := (except_bind_ok _ (fun out =>
+            finK afDriver afCfg.gasCap I out pure >>= tailOrig afDriver I out) obs).2
+          ⟨out, hout, (except_bind_ok _ _ obs).2 ⟨t, ht, hobs⟩⟩
+        exact (congrArg (Except.map (fun _ => ())) hX).trans rfl
+
+#print axioms cm_iff
+#print axioms cm_iff_gen
+
 /-- **The header `CM` compares with is the claim's own `chunk_inner`.** -/
 theorem cm_done_header {cb wb : Bytes} {H : ChunkInner} {o : Outputs}
     (h : Steps (.init cb wb) (.done H o)) :
@@ -890,10 +1153,15 @@ theorem cm_done_header {cb wb : Bytes} {H : ChunkInner} {o : Outputs}
   | step hs hrest =>
     by_cases hg : segmentHasGenesis cb = true
     · simp only [CM.step, hg, ite_true] at hs
-      rcases he : checkD2CoreGWith afDriver afHooks true cb wb afCfg.gasCap with e | u <;>
-        rw [he] at hs <;> simp [Except.map] at hs
-      subst hs
-      cases steps_doneG hrest
+      rcases initG_ok hs with ⟨p, hp, rfl⟩ | ⟨g, G, -, -, -, rfl⟩
+      · have hpost := d2IntakeK_post afDriver true cb wb p hp
+        rcases steps_eng_inv hrest with ⟨c', hc'⟩ | ⟨out, hf⟩
+        · cases hc'
+        · rcases steps_fin_inv hf with hc | ⟨o', hc⟩
+          · cases hc
+          · cases hc
+            exact ⟨p.1.c, hpost.1, hpost.2.1⟩
+      · rcases steps_gfin_inv hrest with hc | hc <;> cases hc
     · have hg' : segmentHasGenesis cb = false := by simpa using hg
       rw [step_init_nongen hg'] at hs
       rcases hI : intakeK afDriver true cb wb pure with e | I <;> rw [hI] at hs <;>
@@ -905,7 +1173,7 @@ theorem cm_done_header {cb wb : Bytes} {H : ChunkInner} {o : Outputs}
       · rcases steps_fin_inv hf with hc | ⟨o', hc⟩
         · cases hc
         · cases hc
-          exact ⟨I.c, hp.1, hp.2⟩
+          exact ⟨I.c, hp.1, hp.2.1⟩
 
 #print axioms intakeK_post
 #print axioms cm_done_header

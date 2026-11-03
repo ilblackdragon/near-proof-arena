@@ -7,7 +7,8 @@ set_option linter.unusedVariables false
 # E2E-M11b, part 4: the concrete boundary encoding (plan §3.2) and `abs`
 
 **The record.** `BndRec` is the plan §3.2 boundary: chunk constants (`claimDigest`), position
-(phase tag, block, receipt and action index, `inCall`), clock `t`, state root `stRoot`, gas and
+(phase tag, block, receipt and action index, `inCall`), clock `t`, state root `stRoot`, the
+intake-context commitment `ctxRoot` (M11c), gas and
 balance totals with the in-flight receipt's counters, the output accumulators, the digest of the
 VM answers so far (`vmAcc`, the `K` of `RCM`), and, when `inCall`, the Wasm part (`WasmBnd`: `pc`,
 `S`, `stackRem`, frame-chain digest, `memRoot` and `memPages`, globals, registers, VMContext and
@@ -23,7 +24,8 @@ with the §5.3.4 initial value, truncated to 48 bytes (`sha384_length`). `bdiges
 truncation (U-10). The public boundary of a segment is `bdigest (encode (view x))`.
 
 **The abstraction.** What a configuration commits to (`view : RConf → BndRec`: working-set root,
-accumulators, Wasm digests) is computed by the circuit lanes; here it is a parameter.
+accumulators, Wasm digests) is computed by the circuit lanes; here it is a parameter (`View.lean`
+fixes the components and reduces a `view` collision to per-component collisions).
 `absD view d` opens a digest to the configuration it commits to (classical choice).
 * `absD_bndOf`: `absD view (bndOf view x) = some x`, or `BndCollision view`;
 * `bndCollision_split`: a boundary collision is a SHA-384 collision on two distinct encodings, or
@@ -224,6 +226,9 @@ structure BndRec where
   inCall : Bool
   t : Nat
   stRoot : ArenaCore.Bytes
+  /-- The commitment to the intake context `I` (decoded claim and witness, environment, receipts,
+  transactions; M11c). -/
+  ctxRoot : ArenaCore.Bytes
   gasUsed : Nat
   gasBurnt : Nat
   balanceBurnt : Nat
@@ -253,14 +258,14 @@ def WasmBnd.codec : Codec WasmBnd :=
 
 def BndRec.codec : Codec BndRec :=
   mapC (pairC digC (pairC u64C (pairC u64C (pairC u64C (pairC u64C (pairC boolC (pairC u64C
-      (pairC digC (pairC u64C (pairC u64C (pairC u128C (pairC u64C (pairC u64C (pairC u64C
+      (pairC digC (pairC digC (pairC u64C (pairC u64C (pairC u128C (pairC u64C (pairC u64C (pairC u64C
       (pairC u64C (pairC digC (pairC (listC digC) (pairC digC (pairC digC (pairC digC
-      (optC WasmBnd.codec)))))))))))))))))))))
+      (optC WasmBnd.codec))))))))))))))))))))))
     (fun r => (r.claimDigest, r.phase, r.blockIdx, r.receiptIdx, r.actionIdx, r.inCall, r.t,
-      r.stRoot, r.gasUsed, r.gasBurnt, r.balanceBurnt, r.compute, r.rPrepaid, r.rBurnt, r.rUsed,
-      r.outcomeAcc, r.outRcptAcc, r.proposalsAcc, r.bwAcc, r.vmAcc, r.wasm))
-    (fun (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u) =>
-      ⟨a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u⟩)
+      r.stRoot, r.ctxRoot, r.gasUsed, r.gasBurnt, r.balanceBurnt, r.compute, r.rPrepaid, r.rBurnt,
+      r.rUsed, r.outcomeAcc, r.outRcptAcc, r.proposalsAcc, r.bwAcc, r.vmAcc, r.wasm))
+    (fun (a, b, c, d, e, f, g, h, h', i, j, k, l, m, n, o, p, q, r, s, t, u) =>
+      ⟨a, b, c, d, e, f, g, h, h', i, j, k, l, m, n, o, p, q, r, s, t, u⟩)
     (fun _ => rfl)
 
 /-- The encoding of a boundary record. -/
