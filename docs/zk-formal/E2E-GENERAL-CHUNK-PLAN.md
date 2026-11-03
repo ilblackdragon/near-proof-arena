@@ -654,9 +654,13 @@ See `research/near-compression/e2e-general/m1/README.md` for commands, logs and 
 * **Finding [K/S].** The HOST-row premises (`HoldRowS`, `HostRegRely`, `HostRely.wf`) quantify over
   every related pre-state, but `RelW` does not pin the host-side state (`gas.remaining`, `ctx`, …;
   `relW_sigma` [K]). On any segment with a continuing host call they cannot hold, so the segment
-  theorems (and `wasm_base_sound_m2`) are **vacuous on host traces**. The fix is to pin `σ` per host
-  call (the `HostIf` contract, `m6/README.md` §3); it is the first M6 item. Host-free segments are
+  theorems (and `wasm_base_sound_m2`) are **vacuous on host traces**. Host-free segments are
   unaffected.
+  * The counterexample is mechanised (`HostVacuity.lean`).
+  * σ-pinned restatements are proved: `seg_sound_σ`/`_cσ`/`_σ_mp` and `seg_chain_σ`, with the
+    thread being the host side plus registers.
+  * Open: that an honest run satisfies `HoldRowSσ`. This is argued, and needs the two-run
+    `callHost` footprint (M6.2).
 * **Segment soundness [K]:**
   * `TombDead` discharged (`seg_tombDead`); `InDom` at the out-boundary (`seg_inDom`, `seg_wasmD`).
   * Halting segments (`seg_sound_halt`/`seg_sound_any`).

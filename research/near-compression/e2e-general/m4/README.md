@@ -357,8 +357,7 @@ follow-up (SIGMA), cherry-picked onto the lane branch. The shared interface was 
   and arms read `ctx` (`block_index`, `input`), none of which the relation pins, while the row's
   `g_after` and messages are fixed. So `seg_sound*`, `seg_chain*` and `wasm_base_sound_m2` hold
   vacuously for segments that contain a continuing host call. Host-free segments are unaffected.
-  The counterexample and the fix (pin the host-side state `σ` per host call, the `HostIf` shape of
-  `m6/README.md` §3) are §9.6. The non-vacuity checker (§9.5) cannot see this: these premises
+  The mechanised counterexample and the σ-pinned restatement are §9.6 item 1. The non-vacuity checker (§9.5) cannot see this: these premises
   mention the spec state, not the trace.
 * **`wasm_base_exec_host_holds` (pre-M2, `Main/SoundHost.lean`) looks vacuous on host traces**
   [M]: it assumes `Holds` of both `wasmBaseHostAir` and `wasmBaseAir` for one trace, and on the two
@@ -492,9 +491,21 @@ Premise checkers (`PremCheck.lean`): `CutoHiLimbs`, `HostBLinked`, `RegCLinked`,
 
 ### 9.6 Open
 
-1. **Host-row premises (§9.1).** Restate them with a pinned host-side state `σ` (a ghost thread by
-   STATE time, `HoldRowSσ`), then do M6.2 (`HostIf ⇒ HoldRowSσ ∧ HostRely`). The SIGMA sub-lane
-   result is in the lane log.
+1. **Host-row premises (§9.1): restated; honest satisfiability open.**
+   * `HostVacuity.lean` mechanises the counterexample [K]. `vacuity_witness` (by `decide`) is
+     `call 0` to `block_index` from two related states that differ in `gas.burnt` and
+     `ctx.blockHeight`; `not_holdRowS_of_sigma` then refutes `HoldRowS`.
+   * `SegSigma.lean` restricts the row premises to pre-states on a ghost thread `sideR s = σ t`.
+     `sideR` is the host side with `gas.g` blanked, **plus the register file**, which `RelW` does
+     not see either. A non-host step keeps it (`step_sideG`). The induction is one copied
+     `exec_rowsJ`.
+   * **`seg_sound_σ`, `seg_sound_cσ`, `seg_sound_σ_mp`, `Cuti.seg_chain_σ`/`seg_chain_csteps_σ`**
+     [K] take `HoldRowSσ`/`HostRelyσ`, `SigKeep` and the in-boundary pin, and conclude
+     `sideR sN = σ (t_out+1)`.
+   * Open: that an honest run satisfies `HoldRowSσ`/`HostRelyσ.reg`. This is argued in the header
+     of `SegSoundSigma.lean`; proving it needs the two-run footprint of `callHost`, i.e. M6.2.
+   * Also open: the σ form of `wasm_base_sound_m2`, and merging σ with
+     `seg_chain_mem`/`seg_chain_k`.
 2. One combined chain statement (memory + key bus + MP), and the first segment's `h0` from the
    entry state after `enter`.
 3. `seg_sound` for `wasmBaseSegAirG` (size clause), and the corpus grow calls.

@@ -253,13 +253,20 @@ CORE, CUTI, MEM, MP, NV, GROW, LINK, M6, SIGMA.
   * `hostRely_sp` (space clause, no premises).
   * Host footprint for all 75 + 14 arms (`callHost_hinv`, `inv_auto` tactic).
   * `step_regIds` (`RegWF` kept by every step); `HostRely.wf` ⇐ `HostRegCap`.
-* Builds: `lake build WasmBase wasmbase-tool` green (standard axioms, no `sorry`); prover release
+* **SIGMA [K]:**
+  * Mechanised counterexample (`HostVacuity.lean`: `vacuity_witness`, `not_holdRowS_of_sigma`).
+  * σ-pinned statements `seg_sound_σ`/`seg_sound_cσ`/`seg_sound_σ_mp` and `Cuti.seg_chain_σ`. The
+    thread is the host side plus the registers (`step_sideG`).
+  * That an honest run satisfies `HoldRowSσ` is argued, not proved. It needs the two-run
+    `callHost` footprint (M6.2).
+* Builds: `lake build WasmBase wasmbase-tool` green (695 jobs; standard axioms, no `sorry`); prover release
   build green; `make pin-check` ok; nothing under `spec/` changed. Heavy jobs ran in
   `systemd-run --user --scope` (Lean ≤ 12 G / 4 CPUs; provers ≤ 24 G under one `flock`).
 
 ### Next
 
-* M6: σ-pinned host premises (if SIGMA did not finish them), `HostIf ⇒ HoldRowS ∧ HostRely`, the
-  noninterference half of the host footprint.
+* M6: the two-run `callHost` footprint, so that an honest run provably satisfies `HoldRowSσ`
+  (`HostIf ⇒ HoldRowSσ ∧ HostRelyσ`).
+* The σ form of `wasm_base_sound_m2`; one chain statement with σ + memory + key bus.
 * One combined chain statement; the first segment's `h0` from `enter`; `seg_sound` for the grow AIR
   (size clause); the corpus grow calls.

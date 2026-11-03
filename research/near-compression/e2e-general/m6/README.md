@@ -93,5 +93,9 @@ Obligations, by owner:
     (`Main/HostRegWF.lean`).
 * **Open:**
   * Noninterference half of M6.1: an arm's result factors through `σ` + bytes/registers read.
-  * The σ-pinned restatement (SIGMA sub-lane; see the lane log).
-  * M6.2–M6.5.
+  * The two-run footprint of `callHost`, which would make honest `HoldRowSσ`/`HostRelyσ` (M6.2) a
+    theorem.
+  * M6.3–M6.5.
+* **σ-pinned restatement [K]:** `HostVacuity.lean` (mechanised counterexample), `SegSigma.lean`,
+  `SegSoundSigma(MP).lean`, `SegChainSigma.lean` (`seg_sound_σ`, `seg_sound_cσ`, `seg_chain_σ`).
+  The thread `sideR` is the host side plus the register file.
