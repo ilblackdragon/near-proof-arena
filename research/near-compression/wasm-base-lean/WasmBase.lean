@@ -146,3 +146,4 @@ import WasmBase.Main.SegChainMP
 import WasmBase.Main.SegGrowMerkle
 import WasmBase.Main.SegGrow
 import WasmBase.Main.SegGrowSend
+import WasmBase.Main.SegMemFrame
