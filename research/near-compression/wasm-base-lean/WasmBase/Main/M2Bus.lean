@@ -657,4 +657,217 @@ theorem m2_reg_partition {tr : Trace} {pub : List F} (hb : HostBLinked tr pub) (
   obtain ⟨r, hr, hra, hts, hhid⟩ := hg.linked r' hr' ha
   exact ⟨r, mem_actRowsT.mpr ⟨hr, hra⟩, by simp only [regKey, hostKey, hts, hhid]⟩
 
+/-! ## HOST' rows on the CH bus: inactive rows emit nothing -/
+
+/-- `HostTraceOK` for an M2 trace (the `Host.cActPf`/`Host.cActNres` gating, via HOST' 's
+constraints). -/
+theorem m2_host_trace_ok {nloc ngl : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseM2Air nloc ngl) pub tr) : HostTraceOK tr pub := by
+  intro r hr hneg
+  have hcon := m2_host_con H hr
+  have hbA := hcon Host.cAct host_cAct_mem
+  have hgR := hcon Host.cActNres host_cActNres_mem
+  simp only [Chips.bool, Chips.v, Expr.eval_mul', Expr.eval_sub', Expr.eval_add', Expr.eval_col,
+    Expr.eval_ofNat', natRow, Host.act, Host.nres, Host.cAct, Host.cActNres] at hbA hgR
+  have hactNe : rowNat tr 22 r Host.act ≠ 1 := by
+    intro hv
+    exact hneg (by
+      simp only [rowAct, Host.table, Host.inters, stateIn, List.cons_append, List.getD_cons_zero,
+        Chips.v, Expr.eval_col, Trace.row, rowNat]
+      exact hv)
+  have hact0 : rowNat tr 22 r Host.act = 0 := by
+    have hb := bool_nat (rowNat_lt tr 22 r Host.act) hbA
+    rcases hb with h | h
+    · exact h
+    · exact absurd h hactNe
+  have hactIdx : rowNat tr 22 r 5 = 0 := by simpa [Host.act] using hact0
+  have hone : ((1 : Nat) : F) - (rowNat tr 22 r 5 : F) = 1 := by rw [hactIdx]; rfl
+  have hnrF : (rowNat tr 22 r Host.nres : F) = 0 := by
+    rw [hone, Lean.Grind.Semiring.one_mul] at hgR; exact hgR
+  have hnr : rowNat tr 22 r Host.nres = 0 :=
+    (cast_inj_iff (rowNat_lt tr 22 r Host.nres) (by decide : (0 : Nat) < P)).mp hnrF
+  refine ⟨fun j hj => ?_, hnr⟩
+  have h := hcon (Host.cActPf j) (host_cActPf_mem j hj)
+  simp only [Chips.v, Expr.eval_mul', Expr.eval_sub', Expr.eval_col, Expr.eval_ofNat', natRow,
+    Host.act, Host.cActPf] at h
+  rw [hone, Lean.Grind.Semiring.one_mul] at h
+  exact (cast_inj_iff (rowNat_lt tr 22 r (Host.pf j)) (by decide : (0 : Nat) < P)).mp h
+
+theorem rowProdH_host (tr : Trace) (pub : List F) (r : Nat) :
+    rowProdH tr pub (22, r) = rowProd Host.table tr pub 22 r := by simp [rowProdH, chipTHost]
+theorem rowConsH_host (tr : Trace) (pub : List F) (r : Nat) :
+    rowConsH tr pub (22, r) = rowCons Host.table tr pub 22 r := by simp [rowConsH, chipTHost]
+
+/-- The HOST' block of the CH bus, produced side: the active HOST rows' `rowProdH`. -/
+theorem m2_host_ch_send {nloc ngl : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseM2Air nloc ngl) pub tr) :
+    (part HostR.table tr pub 22 busStk true).map decMsg = (hostActRows tr pub).flatMap (rowProdH tr pub) := by
+  rw [hostR_part _ _ _ _ busStk_ne_regRd, host_part_ch_send]
+  rw [show (hostActRows tr pub).flatMap (rowProdH tr pub) =
+      (hostActRows tr pub).flatMap (fun ρ => rowProd Host.table tr pub 22 ρ.2) from
+    flatMap_congr_on _ _ _ (fun ρ hρ => by
+      obtain ⟨t, r⟩ := ρ
+      obtain rfl : t = 22 := hostActRows_eq_host hρ
+      exact rowProdH_host tr pub r)]
+  rw [hostActRows_flatMap]
+  refine flatMap_congr_on _ _ _ (fun r hr => ?_)
+  by_cases ha : rowAct Host.table tr pub 22 r
+  · rw [if_pos ha]
+  · rw [if_neg ha, host_row_prod_inactive (m2_host_trace_ok H r (List.mem_range.mp hr) ha).2]
+
+/-- The HOST' block of the CH bus, consumed side. -/
+theorem m2_host_ch_recv {nloc ngl : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseM2Air nloc ngl) pub tr) :
+    (part HostR.table tr pub 22 busStk false).map decMsg = (hostActRows tr pub).flatMap (rowConsH tr pub) := by
+  rw [hostR_part _ _ _ _ busStk_ne_regRd, host_part_ch_recv]
+  rw [show (hostActRows tr pub).flatMap (rowConsH tr pub) =
+      (hostActRows tr pub).flatMap (fun ρ => rowCons Host.table tr pub 22 ρ.2) from
+    flatMap_congr_on _ _ _ (fun ρ hρ => by
+      obtain ⟨t, r⟩ := ρ
+      obtain rfl : t = 22 := hostActRows_eq_host hρ
+      exact rowConsH_host tr pub r)]
+  rw [hostActRows_flatMap]
+  refine flatMap_congr_on _ _ _ (fun r hr => ?_)
+  by_cases ha : rowAct Host.table tr pub 22 r
+  · rw [if_pos ha]
+  · obtain ⟨h0, _⟩ := m2_host_trace_ok H r (List.mem_range.mp hr) ha
+    rw [if_neg ha, host_row_cons_inactive (fun j hj => h0 j (argRange_lt hj))]
+
+/-! ## The action list of `wasmBaseM2Air`
+
+`actListM2 = actListHost ++ tailActRows`: the base instruction rows (1–14), the active HOST rows (22),
+then the active IF (26), CONV (28) and UNREACH (29) rows.  HOST' is read through `Host.table`, which
+has the same STATE/CH interactions (`hostR_rowMsgs`), so `HostBLinked`, `hostActRows`, `rowInH`…
+apply unchanged.  A HOST row's CH messages are fused with its `HOSTB` bytes **and its REG-C net
+traffic** (`prodCHM2`/`consCHM2`). -/
+
+/-- The chip table of an M2 action row (HOST read as `Host.table`). -/
+def chipTM2 (t : Nat) : Table := if t = 22 then Host.table else chipM2 t
+
+/-- The active IF, CONV and UNREACH rows. -/
+def tailActRows (tr : Trace) (pub : List F) : List (Nat × Nat) :=
+  (actRowsT IfC.table tr pub 26).map (fun r => (26, r)) ++
+    ((actRowsT Conv.table tr pub 28).map (fun r => (28, r)) ++
+      (actRowsT Unreach.table tr pub 29).map (fun r => (29, r)))
+
+/-- **The action list of `wasmBaseM2Air`.** -/
+def actListM2 (tr : Trace) (pub : List F) : List (Nat × Nat) := actListHost tr pub ++ tailActRows tr pub
+
+def rowInM (tr : Trace) (pub : List F) (ρ : Nat × Nat) : List F := rowIn (chipTM2 ρ.1) tr pub ρ.1 ρ.2
+def rowOutM (tr : Trace) (pub : List F) (ρ : Nat × Nat) : List F := rowOut (chipTM2 ρ.1) tr pub ρ.1 ρ.2
+def rowConsM (tr : Trace) (pub : List F) (ρ : Nat × Nat) : List Msg := rowCons (chipTM2 ρ.1) tr pub ρ.1 ρ.2
+def rowProdM (tr : Trace) (pub : List F) (ρ : Nat × Nat) : List Msg := rowProd (chipTM2 ρ.1) tr pub ρ.1 ρ.2
+
+/-- The REG-C block of an action row: the call's net register/memory traffic for a HOST row. -/
+def regProdH (tr : Trace) (pub : List F) (ρ : Nat × Nat) : List Msg :=
+  if ρ.1 = 22 then regProdOf tr pub ρ.2 else []
+def regConsH (tr : Trace) (pub : List F) (ρ : Nat × Nat) : List Msg :=
+  if ρ.1 = 22 then regConsOf tr pub ρ.2 else []
+
+/-- **The CH messages an M2 action row produces**, including its call's `HOSTB` and REG-C traffic. -/
+def prodCHM2 (tr : Trace) (pub : List F) (ρ : Nat × Nat) : List Msg :=
+  rowProdM tr pub ρ ++ (hostbProdH tr pub ρ ++ regProdH tr pub ρ)
+/-- **The CH messages an M2 action row consumes**, including its call's `HOSTB` and REG-C traffic. -/
+def consCHM2 (tr : Trace) (pub : List F) (ρ : Nat × Nat) : List Msg :=
+  rowConsM tr pub ρ ++ (hostbConsH tr pub ρ ++ regConsH tr pub ρ)
+
+theorem chipTM2_host_list {ρ : Nat × Nat} (h : (1 ≤ ρ.1 ∧ ρ.1 ≤ 14) ∨ ρ.1 = 22) :
+    chipTM2 ρ.1 = chipTHost ρ.1 := by
+  unfold chipTM2 chipTHost chipM2
+  rcases h with ⟨h1, h2⟩ | h
+  · rw [if_neg (by omega), if_neg (by omega), if_neg (by omega), if_neg (by omega),
+      if_neg (by omega)]
+  · rw [if_pos h, if_pos h]
+
+theorem mem_actListHost_cases {tr : Trace} {pub : List F} {ρ : Nat × Nat} (h : ρ ∈ actListHost tr pub) :
+    (1 ≤ ρ.1 ∧ ρ.1 ≤ 14) ∨ ρ.1 = 22 := by
+  rcases List.mem_append.mp h with h | h
+  · obtain ⟨h1, h9, -⟩ := mem_actList h; exact Or.inl ⟨h1, h9⟩
+  · exact Or.inr (hostActRows_eq_host h)
+
+theorem actListHost_M_eq {tr : Trace} {pub : List F} {ρ : Nat × Nat} (h : ρ ∈ actListHost tr pub) :
+    rowInM tr pub ρ = rowInH tr pub ρ ∧ rowOutM tr pub ρ = rowOutH tr pub ρ ∧
+      rowConsM tr pub ρ = rowConsH tr pub ρ ∧ rowProdM tr pub ρ = rowProdH tr pub ρ := by
+  have e := chipTM2_host_list (mem_actListHost_cases h)
+  simp only [rowInM, rowOutM, rowConsM, rowProdM, rowInH, rowOutH, rowConsH, rowProdH, e]
+  simp
+
+theorem chipTM2_26 : chipTM2 26 = IfC.table := by simp [chipTM2, chipM2]
+theorem chipTM2_28 : chipTM2 28 = Conv.table := by simp [chipTM2, chipM2]
+theorem chipTM2_29 : chipTM2 29 = Unreach.table := by simp [chipTM2, chipM2]
+
+theorem tail_ne_22 {tr : Trace} {pub : List F} {ρ : Nat × Nat} (h : ρ ∈ tailActRows tr pub) :
+    ρ.1 = 26 ∨ ρ.1 = 28 ∨ ρ.1 = 29 := by
+  simp only [tailActRows, List.mem_append, List.mem_map] at h
+  rcases h with ⟨r, _, rfl⟩ | ⟨r, _, rfl⟩ | ⟨r, _, rfl⟩
+  · exact Or.inl rfl
+  · exact Or.inr (Or.inl rfl)
+  · exact Or.inr (Or.inr rfl)
+
+theorem tail_map {β : Type} (tr : Trace) (pub : List F) (f : Table → Nat → Nat → β) :
+    (tailActRows tr pub).map (fun ρ => f (chipTM2 ρ.1) ρ.1 ρ.2) =
+      (actRowsT IfC.table tr pub 26).map (f IfC.table 26) ++
+        ((actRowsT Conv.table tr pub 28).map (f Conv.table 28) ++
+          (actRowsT Unreach.table tr pub 29).map (f Unreach.table 29)) := by
+  simp only [tailActRows, List.map_append, List.map_map, Function.comp_def, chipTM2_26, chipTM2_28,
+    chipTM2_29]
+
+theorem tail_flatMap {β : Type} (tr : Trace) (pub : List F) (f : Table → Nat → Nat → List β) :
+    (tailActRows tr pub).flatMap (fun ρ => f (chipTM2 ρ.1) ρ.1 ρ.2) =
+      (actRowsT IfC.table tr pub 26).flatMap (f IfC.table 26) ++
+        ((actRowsT Conv.table tr pub 28).flatMap (f Conv.table 28) ++
+          (actRowsT Unreach.table tr pub 29).flatMap (f Unreach.table 29)) := by
+  simp only [tailActRows, List.flatMap_append, List.flatMap_map, chipTM2_26, chipTM2_28, chipTM2_29]
+
+/-! ## The STATE bus of an M2 trace -/
+
+theorem m2_msgs_state {X : Ctx} {nloc ngl : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseM2Air nloc ngl) pub tr) (hpub : PubOK X nloc ngl pub) :
+    msgs (wasmBaseM2Air nloc ngl) tr pub busState true =
+      stMsg 0 1 0 0 0 0 :: (actListM2 tr pub).map (rowOutM tr pub) ∧
+    msgs (wasmBaseM2Air nloc ngl) tr pub busState false =
+      [tr.cell 0 0 Boundary.pcf, pub.getD Boundary.pubN 0, pub.getD Boundary.pubS 0,
+        pub.getD Boundary.pubStatus 0, tr.cell 0 0 Boundary.sbf, tr.cell 0 0 Boundary.cidf] ::
+        (actListM2 tr pub).map (rowInM tr pub) := by
+  have h0 : 1 ≤ tr.height 0 := by have := H.heightPos 0 (by rw [m2_air_len]; decide); omega
+  obtain ⟨ms1, ms2⟩ := msgs_state_of (X := X) (nloc := nloc) (ncode := ngl) h0 hpub
+  have hAH_out : (actListHost tr pub).map (rowOutM tr pub) = (actListHost tr pub).map (rowOutH tr pub) :=
+    List.map_congr_left fun ρ hρ => (actListHost_M_eq hρ).2.1
+  have hAH_in : (actListHost tr pub).map (rowInM tr pub) = (actListHost tr pub).map (rowInH tr pub) :=
+    List.map_congr_left fun ρ hρ => (actListHost_M_eq hρ).1
+  constructor
+  · rw [m2_msgs_air, ms1, (m2_env_nil tr pub busState true (Or.inl rfl)).1,
+      (m2_env_nil tr pub busState true (Or.inl rfl)).2, (m2_state_nil tr pub true).1,
+      (m2_state_nil tr pub true).2, hostR_part _ _ _ _ busState_ne_regRd, host_part_state_T,
+      ← hostActRows_rowOut, shape_part_true ifc_shape, shape_part_true conv_shape,
+      shape_part_true unreach_shape]
+    unfold actListM2
+    rw [List.map_append, hAH_out, actListHost_map_out]
+    have ht := tail_map tr pub (fun T t r => rowOut T tr pub t r)
+    rw [show (tailActRows tr pub).map (rowOutM tr pub) =
+      (tailActRows tr pub).map (fun ρ => rowOut (chipTM2 ρ.1) tr pub ρ.1 ρ.2) from rfl, ht]
+    simp only [List.cons_append, List.nil_append, List.append_assoc]
+  · rw [m2_msgs_air, ms2, (m2_env_nil tr pub busState false (Or.inl rfl)).1,
+      (m2_env_nil tr pub busState false (Or.inl rfl)).2, (m2_state_nil tr pub false).1,
+      (m2_state_nil tr pub false).2, hostR_part _ _ _ _ busState_ne_regRd, host_part_state_F,
+      ← hostActRows_rowIn, shape_part_false ifc_shape, shape_part_false conv_shape,
+      shape_part_false unreach_shape]
+    unfold actListM2
+    rw [List.map_append, hAH_in, actListHost_map_in]
+    have ht := tail_map tr pub (fun T t r => rowIn T tr pub t r)
+    rw [show (tailActRows tr pub).map (rowInM tr pub) =
+      (tailActRows tr pub).map (fun ρ => rowIn (chipTM2 ρ.1) tr pub ρ.1 ρ.2) from rfl, ht]
+    simp only [List.cons_append, List.nil_append, List.append_assoc]
+
+/-- **`hst` for the M2 AIR, from `Holds`.** -/
+theorem m2_hst {X : Ctx} {nloc ngl : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseM2Air nloc ngl) pub tr) (hpub : PubOK X nloc ngl pub) :
+    (stMsg 0 1 0 0 0 0 :: (actListM2 tr pub).map (rowOutM tr pub)).Perm
+      ([tr.cell 0 0 Boundary.pcf, pub.getD Boundary.pubN 0, pub.getD Boundary.pubS 0,
+        pub.getD Boundary.pubStatus 0, tr.cell 0 0 Boundary.sbf, tr.cell 0 0 Boundary.cidf] ::
+        (actListM2 tr pub).map (rowInM tr pub)) := by
+  obtain ⟨e1, e2⟩ := m2_msgs_state H hpub
+  rw [← e1, ← e2]
+  exact m2_msgs_perm H hpub busState (Or.inl rfl)
+
 end WasmBase
