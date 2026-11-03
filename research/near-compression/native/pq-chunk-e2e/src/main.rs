@@ -225,6 +225,8 @@ fn init() {
             // e2e: bind the base's cached TAPE by its openings at the stacking point (L1 circuit),
             // so the verifier evaluates the public TAPE instead of recomputing its commitment.
             ("NEARPROOF_TAPE_EVAL", "1"),
+            // e2e (E2E-D): PCS-level hiding of the base and FINAL commitments (profile::zk_lever)
+            ("NEARPROOF_ZK", "1"),
         ] {
             if std::env::var_os(k).is_none() {
                 std::env::set_var(k, v);
@@ -650,6 +652,72 @@ fn verify_bench(air: &str, public: &str, setup_path: &str, bundle: &str, reps: u
         med(tf)
     );
 }
+/// [E2E-D] Hiding sanity check: field-by-field comparison of two proofs of the same statement.
+/// Every proof field is flattened to its scalar leaves (field-element coefficients, digest bytes,
+/// lengths); leaves are grouped by path with indices removed, and each group reports how many
+/// leaves agree at the same position. A field that is a deterministic function of the witness
+/// agrees everywhere when the two proofs share the witness and differ only in prover randomness;
+/// a hidden field agrees only by chance (~1/p per base-field leaf). Shape (lengths) must agree.
+/// Necessary, not sufficient, for zero knowledge.
+fn zk_diff(a: &Path, b: &Path) {
+    use std::collections::BTreeMap;
+    fn walk(v: &serde_json::Value, path: &str, out: &mut Vec<(String, serde_json::Value)>) {
+        match v {
+            serde_json::Value::Object(m) => {
+                for (k, x) in m {
+                    walk(x, &format!("{path}.{k}"), out)
+                }
+            }
+            serde_json::Value::Array(xs) => {
+                out.push((format!("{path}#len"), serde_json::json!(xs.len())));
+                for x in xs {
+                    walk(x, &format!("{path}[]"), out)
+                }
+            }
+            x => out.push((path.to_string(), x.clone())),
+        }
+    }
+    let (pa, pb) = (read_proof(a), read_proof(b));
+    let (mut la, mut lb) = (vec![], vec![]);
+    walk(&serde_json::to_value(&pa).unwrap(), "", &mut la);
+    walk(&serde_json::to_value(&pb).unwrap(), "", &mut lb);
+    let mut stats: BTreeMap<String, (usize, usize, bool)> = BTreeMap::new();
+    let mut ib = lb.iter().peekable();
+    for (k, x) in &la {
+        // walk order is identical while shapes agree; a shape difference shows up as a #len miss
+        let same = match ib.next() {
+            Some((kb, y)) if kb == k => x == y,
+            _ => false,
+        };
+        let key = k.trim_end_matches("#len").to_string();
+        let e = stats.entry(key).or_insert((0, 0, false));
+        if k.ends_with("#len") {
+            e.2 |= !same;
+        } else {
+            e.0 += 1;
+            e.1 += same as usize;
+        }
+    }
+    let mut leaking = 0;
+    for (k, (n, eq, shape_diff)) in &stats {
+        if *n == 0 {
+            continue;
+        }
+        let verdict = if *shape_diff {
+            "SHAPE_DIFFERS"
+        } else if *eq == *n {
+            leaking += 1;
+            "IDENTICAL"
+        } else if *eq * 1000 > *n {
+            leaking += 1;
+            "PARTLY_IDENTICAL"
+        } else {
+            "differs"
+        };
+        println!("ZK_DIFF {k} leaves={n} equal={eq} {verdict}");
+    }
+    println!("ZK_DIFF_SUMMARY groups={} identical_or_partly={leaking}", stats.len());
+}
 fn main() {
     init();
     let a: Vec<String> = std::env::args().collect();
@@ -712,8 +780,9 @@ fn main() {
             let p = read_proof(Path::new(&a[2]));
             println!("PROOF_SECTIONS {}", proof_sections(&p));
         }
+        Some("zk-diff") if a.len() == 4 => zk_diff(Path::new(&a[2]), Path::new(&a[3])),
         _ => panic!(
-            "usage: base AIR DUMP OUT CERTS EXCLUSIONS | probe OUT | validate-base AIR PUBLIC OUT | chain AIR PUBLIC OUT CERTS EXCLUSIONS [RESUME_LEVEL] | replay-final AIR PUBLIC OUT CERTS EXCLUSIONS LEVEL | verify AIR CLAIM STATEPUBLIC SETUP TRUSTED_SHA256 BUNDLE | proof-sections PROOF"
+            "usage: base AIR DUMP OUT CERTS EXCLUSIONS | probe OUT | validate-base AIR PUBLIC OUT | chain AIR PUBLIC OUT CERTS EXCLUSIONS [RESUME_LEVEL] | replay-final AIR PUBLIC OUT CERTS EXCLUSIONS LEVEL | verify AIR CLAIM STATEPUBLIC SETUP TRUSTED_SHA256 BUNDLE | proof-sections PROOF | zk-diff PROOF_A PROOF_B"
         ),
     }
 }

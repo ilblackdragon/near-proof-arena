@@ -25,6 +25,7 @@ pub fn run() {
                     wide_query_pow: true,
                     tight_heights: true,
                     whir_y: true,
+                    zk: 0,
                 };
                 let w = &params.whir;
                 let h = params.l_skip + params.n_stack;

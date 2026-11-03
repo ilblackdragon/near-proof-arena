@@ -1,0 +1,358 @@
+--- a/stark-backend-unified/crates/stark-backend/src/config.rs
++++ b/stark-backend-unified/crates/stark-backend/src/config.rs
+@@ -364,13 +364,46 @@
+     /// the query points, including the final round) before sampling gamma_i. Zero bytes; needed
+     /// for any future digest narrowing (lane/pq-weak-binding HROB.md).
+     pub whir_y: bool,
++    /// [E2E-D zk-pcs] PCS-level hiding of the common-main commitment. `0` off (upstream layout).
++    /// `1` (salt): every stacked column reserves its last [`ZK_RESERVE_ROWS`] rows, filled with
++    /// fresh uniform field elements (no trace slice is placed there, so no PIOP claim weighs them):
++    /// the commitment root is then a hiding commitment and every transcript challenge squeezed
++    /// after it is a random-oracle output on an unpredictable input. `2` (full): as `1`, plus
++    /// [`ZK_MASK_COLS`] stacked columns of fresh uniform elements, so WHIR's batched polynomial
++    /// `g = sum_j mu^j col_j` is a one-time pad over the extension field (see
++    /// `research/near-compression/e2e/ZK-ARGUMENT.md`). Serialized only when non-zero, so the
++    /// pre-hash of every existing key is unchanged.
++    #[serde(default, skip_serializing_if = "zk_is_off")]
++    pub zk: u8,
+ }
+ 
++fn zk_is_off(zk: &u8) -> bool {
++    *zk == 0
++}
++
++/// [E2E-D zk-pcs] Rows reserved (and randomised) at the bottom of every stacked column when
++/// `levers.zk >= 1`. Must exceed the number of linear functionals of one stacked column a proof
++/// reveals: 1 opening at u, plus `num_queries(round 0) * 2^k_first` opened codeword symbols.
++pub const ZK_RESERVE_ROWS: usize = 256;
++/// [E2E-D zk-pcs] Uniform stacked columns appended when `levers.zk >= 2`: 12 base columns span
++/// BabyBear's degree-12 extension under the batching coefficients, making `g` uniform over EF.
++pub const ZK_MASK_COLS: usize = 12;
++
+ impl WhirLevers {
+     pub fn is_default(&self) -> bool {
+         *self == Self::default()
+     }
+ 
++    /// `(reserved rows per stacked column, appended mask columns)` of the `zk` lever.
++    pub fn zk_shape(&self) -> (usize, usize) {
++        match self.zk {
++            0 => (0, 0),
++            1 => (ZK_RESERVE_ROWS, 0),
++            2 => (ZK_RESERVE_ROWS, ZK_MASK_COLS),
++            z => panic!("unknown zk lever {z}"),
++        }
++    }
++
+     /// Wire flags byte for the GKR / opening levers (bit 0 gruen_gkr, bit 1 gkr_derive_claims,
+     /// bit 2 next_mask).
+     pub fn flags(&self) -> u8 {
+--- a/stark-backend-unified/crates/stark-backend/src/proof.rs
++++ b/stark-backend-unified/crates/stark-backend/src/proof.rs
+@@ -263,7 +263,11 @@
+             CODEC_VERSION_LEVERS.encode(writer)?;
+             // Lever header: k_first, multiproof, keep_domain, flags (gruen/derive/next_mask).
+             let k_first: u8 = levers.k_first.try_into().map_err(Error::other)?;
+-            writer.write_all(&[k_first, levers.multiproof as u8, levers.keep_domain as u8, levers.flags()])?;
++            // [E2E-D zk-pcs] the keep_domain byte carries the zk mode in bits 1-2 (0 = upstream byte)
++            if levers.zk > 2 {
++                return Err(Error::other("zk lever"));
++            }
++            writer.write_all(&[k_first, levers.multiproof as u8, levers.keep_domain as u8 | levers.zk << 1, levers.flags()])?;
+         }
+         SC::encode_digest(&self.common_main_commit, writer)?;
+ 
+@@ -512,10 +516,14 @@
+             if h[3] & !127 != 0 {
+                 return Err(invalid("lever flags"));
+             }
++            let zk = (h[2] >> 1) & 3;
++            if h[2] & !7 != 0 || zk > 2 {
++                return Err(invalid("lever keep_domain/zk byte"));
++            }
+             let levers = WhirLevers {
+                 k_first: h[0] as usize,
+                 multiproof: bit(h[1])?,
+-                keep_domain: bit(h[2])?,
++                keep_domain: bit(h[2] & 1)?,
+                 gruen_gkr: h[3] & 1 != 0,
+                 gkr_derive_claims: h[3] & 2 != 0,
+                 next_mask: h[3] & 4 != 0,
+@@ -523,6 +531,7 @@
+                 wide_query_pow: h[3] & 16 != 0,
+                 tight_heights: h[3] & 32 != 0,
+                 whir_y: h[3] & 64 != 0,
++                zk,
+             };
+             if levers.is_default() {
+                 return Err(invalid("lever format with default levers"));
+--- a/stark-backend-unified/crates/stark-backend/src/prover/stacked_pcs.rs
++++ b/stark-backend-unified/crates/stark-backend/src/prover/stacked_pcs.rs
+@@ -237,7 +237,31 @@
+     H::F: TwoAdicField + Ord + p3_field::PrimeField64,
+     H::Digest: Copy,
+ {
+-    let (q_trace, layout) = stacked_matrix_tight(l_skip, n_stack, traces, tight)?;
++    stacked_commit_odd_zk(hasher, l_skip, n_stack, log_blowup, k_whir, domain_odd_factor, traces, tight, 0)
++}
++
++/// [E2E-D zk-pcs] [`stacked_commit_odd`] with the `zk` lever (`WhirLevers::zk`): the layout keeps
++/// the last `ZK_RESERVE_ROWS` rows of every stacked column free and (zk = 2) appends
++/// `ZK_MASK_COLS` columns; all of these cells are filled with fresh uniform field elements.
++#[instrument(level = "info", skip_all)]
++#[allow(clippy::type_complexity, clippy::too_many_arguments)]
++pub fn stacked_commit_odd_zk<H: MerkleHasher>(
++    hasher: &H,
++    l_skip: usize,
++    n_stack: usize,
++    log_blowup: usize,
++    k_whir: usize,
++    domain_odd_factor: usize,
++    traces: &[&ColMajorMatrix<H::F>],
++    tight: bool,
++    zk: u8,
++) -> Result<(H::Digest, StackedPcsData<H::F, H::Digest>), StackedPcsError>
++where
++    H::F: TwoAdicField + Ord + p3_field::PrimeField64,
++    H::Digest: Copy,
++{
++    let (mut q_trace, layout) = stacked_matrix_tight_zk(l_skip, n_stack, traces, tight, zk)?;
++    zk_fill(&mut q_trace, &layout, zk);
+     crate::prover::stream_pcs::memprof("commit.stacked_matrix");
+     let tree = if crate::prover::stream_pcs::stream_enabled() {
+         // [stream research] never materialise the codeword (byte-identical tree, see stream_pcs)
+@@ -348,6 +372,23 @@
+         log_stacked_height: usize,
+         sorted: Vec<(usize, usize, Option<usize>)>,
+     ) -> Result<Self, StackedPcsError> {
++        Self::new_tight_zk(l_skip, log_stacked_height, sorted, 0)
++    }
++
++    /// [E2E-D zk-pcs] [`Self::new_tight`] under the `zk` lever (`WhirLevers::zk`). With `zk = 0`
++    /// identical to `new_tight`. Otherwise every stacked column holds slices only in its first
++    /// `height - ZK_RESERVE_ROWS` rows (first-fit decreasing: slices are powers of two sorted by
++    /// size, so each column's fill pointer stays aligned to every later slice), and `zk = 2`
++    /// appends `ZK_MASK_COLS` columns with no slice. Cells outside every slice carry no PIOP weight.
++    pub fn new_tight_zk(
++        l_skip: usize,
++        log_stacked_height: usize,
++        sorted: Vec<(usize, usize, Option<usize>)>,
++        zk: u8,
++    ) -> Result<Self, StackedPcsError> {
++        if zk != 0 {
++            return Self::new_zk_packed(l_skip, log_stacked_height, sorted, zk);
++        }
+         if sorted.iter().all(|(_, _, t)| t.is_none()) {
+             return Self::new(l_skip, log_stacked_height, sorted.into_iter().map(|(w, h, _)| (w, h)).collect());
+         }
+@@ -414,6 +455,84 @@
+         })
+     }
+ 
++    fn new_zk_packed(
++        l_skip: usize,
++        log_stacked_height: usize,
++        sorted: Vec<(usize, usize, Option<usize>)>,
++        zk: u8,
++    ) -> Result<Self, StackedPcsError> {
++        let (reserve, mask_cols) = crate::WhirLevers { zk, ..Default::default() }.zk_shape();
++        let height = 1usize << log_stacked_height;
++        assert!(reserve < height && reserve.is_power_of_two(), "zk reserve");
++        let cap = height - reserve;
++        let mut entries: Vec<(usize, usize, StackedSlice)> = Vec::new();
++        let mut mat_starts = Vec::new();
++        for (mat_idx, (width, log_ht, tight)) in sorted.into_iter().enumerate() {
++            mat_starts.push(entries.len());
++            if log_ht > log_stacked_height {
++                return Err(StackedPcsError::LayoutHeightExceeded { log_height: log_ht, log_stacked_height });
++            }
++            let chunks: Vec<(usize, usize)> = match tight {
++                Some(h) if log_ht >= l_skip => {
++                    assert!(h > 0 && h <= 1 << log_ht && h % (1 << l_skip) == 0, "tight height");
++                    let mut out = Vec::new();
++                    let mut off = 0;
++                    for e in (l_skip..=log_ht).rev() {
++                        if (h >> e) & 1 == 1 {
++                            out.push((e, off));
++                            off += 1 << e;
++                        }
++                    }
++                    out
++                }
++                _ => vec![(log_ht, 0)],
++            };
++            for j in 0..width {
++                for &(e, off) in &chunks {
++                    entries.push((
++                        mat_idx,
++                        j,
++                        StackedSlice { col_idx: 0, row_idx: 0, log_height: e, src_row: off, col_log_height: log_ht },
++                    ));
++                }
++            }
++        }
++        entries.sort_by_key(|(_, _, s)| std::cmp::Reverse(s.log_height));
++        // First-fit decreasing with splitting: a slice that fits no open column is halved (both
++        // halves stay aligned to their size: src_row and the column fill pointer are multiples of
++        // it) when some open column has room for a half; otherwise it opens a column. Without the
++        // split, two 2^(h-1) slices could never share a column of capacity 2^h - R.
++        let mut queue: std::collections::VecDeque<(usize, usize, StackedSlice)> = entries.into();
++        let mut placed = Vec::with_capacity(queue.len());
++        let mut fill: Vec<usize> = Vec::new();
++        while let Some((m, j, mut s)) = queue.pop_front() {
++            let len = s.len(l_skip);
++            let c = match fill.iter().position(|&f| f + len <= cap) {
++                Some(c) => c,
++                None => {
++                    let half = len / 2;
++                    if s.log_height > l_skip && fill.iter().any(|&f| f + half <= cap) || len > cap {
++                        assert!(s.log_height > l_skip, "zk layout: unsplittable slice exceeds capacity");
++                        let (e, off) = (s.log_height - 1, s.src_row);
++                        let mk = |o| StackedSlice { col_idx: 0, row_idx: 0, log_height: e, src_row: o, col_log_height: s.col_log_height() };
++                        queue.push_front((m, j, mk(off + (1 << e))));
++                        queue.push_front((m, j, mk(off)));
++                        continue;
++                    }
++                    fill.push(0);
++                    fill.len() - 1
++                }
++            };
++            debug_assert_eq!(fill[c] % len, 0, "zk layout alignment");
++            s.col_idx = c;
++            s.row_idx = fill[c];
++            fill[c] += len;
++            placed.push((m, j, s));
++        }
++        let entries = placed;
++        Ok(Self { l_skip, height, width: fill.len() + mask_cols, sorted_cols: entries, mat_starts })
++    }
++
+     /// Raw unsafe constructor
+     pub fn from_raw_parts(
+         l_skip: usize,
+@@ -549,6 +668,57 @@
+     traces: &[&ColMajorMatrix<F>],
+     tight: bool,
+ ) -> Result<(ColMajorMatrix<F>, StackedLayout), StackedPcsError> {
++    stacked_matrix_tight_zk(l_skip, n_stack, traces, tight, 0)
++}
++
++/// [E2E-D zk-pcs] Fill the cells the `zk` layout leaves outside every slice — the last
++/// `ZK_RESERVE_ROWS` rows of each slice-bearing column and every appended mask column — with fresh
++/// uniform field elements (rejection sampling of /dev/urandom words). Holes left by the packing
++/// stay zero; hiding does not need them.
++pub fn zk_fill<F: p3_field::PrimeField64>(q: &mut ColMajorMatrix<F>, layout: &StackedLayout, zk: u8) {
++    if zk == 0 {
++        return;
++    }
++    let (reserve, mask_cols) = crate::WhirLevers { zk, ..Default::default() }.zk_shape();
++    let height = layout.height();
++    let width = layout.width();
++    assert_eq!(q.width(), width, "zk layout width");
++    let used = width - mask_cols;
++    let p = F::ORDER_U64;
++    assert!(p < 1 << 31, "zk_fill samples 31-bit fields");
++    // Uniform elements by rejection sampling of 31-bit words read from the OS CSPRNG (no PRG of
++    // our own; each column reads its own buffer).
++    q.values.par_chunks_exact_mut(height).enumerate().for_each(|(c, col)| {
++        use std::io::Read;
++        let cells = if c < used { &mut col[height - reserve..] } else { &mut col[..] };
++        let mut f = std::fs::File::open("/dev/urandom").expect("zk: /dev/urandom");
++        let mut buf = vec![0u8; 4 * cells.len() + 64];
++        let mut i = 0usize;
++        let mut pos = buf.len();
++        while i < cells.len() {
++            if pos + 4 > buf.len() {
++                f.read_exact(&mut buf).expect("zk: /dev/urandom");
++                pos = 0;
++            }
++            let v = (u32::from_le_bytes(buf[pos..pos + 4].try_into().unwrap()) & 0x7fff_ffff) as u64;
++            pos += 4;
++            if v < p {
++                cells[i] = F::from_u64(v);
++                i += 1;
++            }
++        }
++    });
++}
++
++/// [E2E-D zk-pcs] [`stacked_matrix_tight`] laid out under the `zk` lever (the random cells are
++/// zero here; [`zk_fill`] fills them). With zk the width is the layout's, not `cells / height`.
++pub fn stacked_matrix_tight_zk<F: Field>(
++    l_skip: usize,
++    n_stack: usize,
++    traces: &[&ColMajorMatrix<F>],
++    tight: bool,
++    zk: u8,
++) -> Result<(ColMajorMatrix<F>, StackedLayout), StackedPcsError> {
+     let floor: Option<Vec<usize>> = if tight {
+         // match each trace to an unused floor entry with its (width, log_height), in any order
+         TIGHT_FLOOR.lock().unwrap().as_ref().and_then(|f| {
+@@ -583,9 +753,9 @@
+         .zip(traces)
+         .map(|((_, _, th), t)| th.unwrap_or(t.height().max(1 << l_skip)) * t.width())
+         .sum();
+-    let mut layout = StackedLayout::new_tight(l_skip, l_skip + n_stack, sorted_meta)?;
++    let mut layout = StackedLayout::new_tight_zk(l_skip, l_skip + n_stack, sorted_meta, zk)?;
+     let height = 1usize << (l_skip + n_stack);
+-    let width = total_cells.div_ceil(height);
++    let width = if zk == 0 { total_cells.div_ceil(height) } else { layout.width() };
+ 
+     let mut q_mat = F::zero_vec(
+         width
+--- a/stark-backend-unified/crates/stark-backend/src/verifier/proof_shape.rs
++++ b/stark-backend-unified/crates/stark-backend/src/verifier/proof_shape.rs
+@@ -594,13 +594,14 @@
+             }));
+         }
+     }
+-    let common_main_layout = StackedLayout::new_tight(
++    let common_main_layout = StackedLayout::new_tight_zk(
+         l_skip,
+         mvk.params.n_stack + l_skip,
+         per_trace
+             .iter()
+             .map(|(_, vk, vdata)| (vk.params.width.common_main, vdata.log_height, vdata.tight_height))
+             .collect_vec(),
++        mvk.params.whir.levers.zk,
+     )
+     .unwrap();
+ 
+--- a/stark-backend-unified/crates/cpu-backend/src/device.rs
++++ b/stark-backend-unified/crates/cpu-backend/src/device.rs
+@@ -9,7 +9,7 @@
+     proof::{BatchConstraintProof, GkrProof, StackingProof, WhirProof},
+     prover::{
+         poly::Mle,
+-        stacked_pcs::{stacked_commit_odd, StackedPcsData},
++        stacked_pcs::{stacked_commit_odd_zk, StackedPcsData},
+         stacked_reduction::prove_stacked_opening_reduction,
+         ColMajorMatrix, CommittedTraceData, DeviceDataTransporter, DeviceMultiStarkProvingKey,
+         DeviceStarkProvingKey, MultiRapProver, OpeningProver, ProverDevice,
+@@ -78,7 +78,7 @@
+ 
+         // Reference PCS commit (levers: k_first rows per leaf, coset-leaf hashing; x15 domains).
+         let params = self.params();
+-        let (root, data) = stacked_commit_odd(
++        let (root, data) = stacked_commit_odd_zk(
+             self.config().hasher(),
+             params.l_skip,
+             params.n_stack,
+@@ -87,6 +87,7 @@
+             params.whir.domain_odd_factor,
+             &col_major_refs,
+             params.whir.levers.tight_heights,
++            params.whir.levers.zk,
+         )?;
+         Ok((root, data))
+     }
+--- a/openvm-sha384/crates/recursion/src/sha384/e2e_tests.rs
++++ b/openvm-sha384/crates/recursion/src/sha384/e2e_tests.rs
+@@ -50,6 +50,7 @@
+         wide_query_pow: e("WIDE_POW", 0) == 1,
+         tight_heights: e("TIGHT", 0) == 1,
+         whir_y: e("WHIR_Y", 0) == 1,
++        zk: 0,
+     };
+     let x15 = e("X15", 1);
+     if levers.is_default() && x15 == 1 {
