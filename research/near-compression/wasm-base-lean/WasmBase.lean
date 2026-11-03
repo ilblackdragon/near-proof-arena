@@ -135,3 +135,5 @@ import WasmBase.Main.SegDom
 import WasmBase.Main.SegHalt
 import WasmBase.Main.SegLinkage
 import WasmBase.Main.SegSoundC
+import WasmBase.Main.SegHoldsS
+import WasmBase.Main.SegSoundMP
