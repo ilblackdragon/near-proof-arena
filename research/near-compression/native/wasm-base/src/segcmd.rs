@@ -462,6 +462,18 @@ fn tampers_mp(spec: &AirSpec, s: &SegInst) -> Vec<Case> {
         }
         push("MPATH-MP idx+1".into(), edit(&[(r, "idx", get(r, "idx") + one)]), s.comps.clone());
         push("MPATH-MP lvl+1".into(), edit(&[(r, "lvl", get(r, "lvl") + one)]), s.comps.clone());
+        // lvl+1 with consistent level bits: only the node bus can reject it
+        {
+            let u = get(r, "lvl").as_canonical_u32() as usize + 1;
+            let d = s.pubs[seg::PUB_DEPTH].as_canonical_u32() as usize;
+            let names: Vec<(String, F)> = (0..5)
+                .flat_map(|i| [(format!("a{i}"), F::from_u32(((u - 1) >> i) as u32 & 1)), (format!("b{i}"), F::from_u32((d.saturating_sub(u) >> i) as u32 & 1))])
+                .collect();
+            let mut e: Vec<(usize, &str, F)> = names.iter().map(|(n, v)| (r, n.as_str(), *v)).collect();
+            e.push((r, "lvl", F::from_u32(u as u32)));
+            push("MPATH-MP lvl+1 (level bits consistent)".into(), edit(&e), s.comps.clone());
+        }
+        push("MPATH-MP level bit a0 flipped".into(), edit(&[(r, "a0", one - get(r, "a0"))]), s.comps.clone());
         // a duplicated node: a copy of the row in a padding row, with its own (duplicated) compressions
         if let Some(pad) = (0..h).find(|&p| get(p, "act") == zero) {
             let mut m = s.mats.clone();

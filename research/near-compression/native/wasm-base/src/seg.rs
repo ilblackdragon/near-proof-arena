@@ -725,6 +725,7 @@ fn multiproof_rows(mp: &mut Tb, sha: &mut Sha, tree: &mut Tree, leaves: &[(u64, 
     if leaves.is_empty() {
         return;
     }
+    assert!(tree.d <= 30, "the multiproof's level bits need D ≤ 30");
     // touched positions of the current level: new digest and (level 0) the leaf's ro flag
     let mut cur: BTreeMap<usize, ([u64; 6], u64)> = leaves.iter().map(|&(b, ro, d)| (b as usize, (d, ro as u64))).collect();
     for lvl in 1..=tree.d {
@@ -736,6 +737,10 @@ fn multiproof_rows(mp: &mut Tb, sha: &mut Sha, tree: &mut Tree, leaves: &[(u64, 
             mp.u("top", (lvl == tree.d) as u64);
             mp.u("lvl", lvl as u64);
             mp.u("idx", n as u64);
+            for i in 0..5 {
+                mp.u(&format!("a{i}"), ((lvl - 1) >> i) as u64 & 1);
+                mp.u(&format!("b{i}"), ((tree.d - lvl) >> i) as u64 & 1);
+            }
             let mut kids = [([0u64; 6], [0u64; 6]); 2];
             for (s, side) in ["L", "R"].iter().enumerate() {
                 let ci = 2 * n + s;

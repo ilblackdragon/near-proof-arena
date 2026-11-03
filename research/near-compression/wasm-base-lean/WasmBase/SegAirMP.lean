@@ -29,8 +29,9 @@ field only), the old/new child digests `oX`/`nX` (18 limbs each), the old/new ou
   root row `nbt = 1`, without one (no touched block) `nbt = 0` and `memOut = memIn`;
 * `po = H(oL ‖ oR)` always, `pn = H(nL ‖ nR)` unless `ro`, and `ro` forces `nL = oL`, `nR = oR`,
   `pn = po`;
-* `lvl` is range-checked to `[1, D]` (`r16 (lvl − 1)`, `r16 (D − lvl)`); a touched leaf needs
-  `lvl = 1`.
+* `lvl` is range-checked to `[1, D]` by two 5-bit decompositions on the row itself,
+  `lvl − 1 = Σ 2^i·a_i`, `D − lvl = Σ 2^i·b_i` (local, so the Lean argument needs no R16 lookup;
+  `D ≤ 30`); a touched leaf needs `lvl = 1`.
 
 No transition constraint: the rows may be in any order.
 
@@ -62,13 +63,15 @@ namespace MpathMP
 def cols : List String :=
   ["act", "top", "ro", "lvl", "idx", "lfL", "ndL", "lfR", "ndR", "rL", "rR", "cidO", "cidN"] ++
   names "oL" 18 ++ names "nL" 18 ++ names "oR" 18 ++ names "nR" 18 ++ names "po" 18 ++ names "pn" 18 ++
-  names "xo" 6 ++ names "xn" 6
+  names "xo" 6 ++ names "xn" 6 ++ names "a" 5 ++ names "b" 5
 def c (s : String) : Expr := v (ix cols s)
 def dig (pre : String) : List Expr := (names pre 18).map c
 /-- The inner-node block `left48 ‖ right48` with its SHA-384 padding (96 bytes = 768 bits). -/
 def nodeBlock (l r : String) : List W3 :=
   wordsAt c l 6 ++ wordsAt c r 6 ++ [constW (2 ^ 63), zeroW, zeroW, constW 768]
 def ivW : List W3 := IV384.map constW
+/-- `Σ_{i<5} 2^i · x_i` over the bit columns `x0 … x4`. -/
+def bits5 (x : String) : Expr := sumE ((List.range 5).map fun i => Expr.c (2 ^ i) * c s!"{x}{i}")
 def constraints : List Expr :=
   let act := c "act"
   [bool act, bool (c "top"), bool (c "ro"), bool (c "lfL"), bool (c "ndL"), bool (c "lfR"), bool (c "ndR"),
@@ -76,7 +79,9 @@ def constraints : List Expr :=
    (1 - act) * c "lfR", (1 - act) * c "ndR",
    c "lfL" * c "ndL", c "lfR" * c "ndR",
    c "lfL" * (c "lvl" - 1), c "lfR" * (c "lvl" - 1),
-   c "top" * (c "lvl" - pv pubDepth), c "top" * c "idx"] ++
+   c "top" * (c "lvl" - pv pubDepth), c "top" * c "idx",
+   c "act" * (c "lvl" - 1 - bits5 "a"), c "act" * (pv pubDepth - c "lvl" - bits5 "b")] ++
+  ((List.range 5).flatMap fun i => [bool (c s!"a{i}"), bool (c s!"b{i}")]) ++
   ((List.range 18).flatMap fun l =>
     [(1 - c "lfL" - c "ndL") * (c s!"nL{l}" - c s!"oL{l}"),
      (1 - c "lfR" - c "ndR") * (c s!"nR{l}" - c s!"oR{l}"),
@@ -90,8 +95,7 @@ def inters : List Inter :=
    ⟨busNode, false, c "ndR", [c "lvl" - 1, i2 + 1] ++ dig "oR" ++ dig "nR"⟩,
    ⟨busNode, true, act - top, [c "lvl", c "idx"] ++ dig "po" ++ dig "pn"⟩,
    ⟨busRch, false, top, [0] ++ dig "po"⟩,
-   ⟨busRch, true, top, [1] ++ dig "pn"⟩,
-   r16 (c "lvl" - 1) act, r16 (pv pubDepth - c "lvl") act] ++
+   ⟨busRch, true, top, [1] ++ dig "pn"⟩] ++
   comp (c "cidO") (ivW ++ nodeBlock "oL" "oR" ++ wordsAt c "po" 6 ++ wordsAt c "xo" 2) act ++
   comp (c "cidN") (ivW ++ nodeBlock "nL" "nR" ++ wordsAt c "pn" 6 ++ wordsAt c "xn" 2) (act * (1 - c "ro"))
 def table : Table := ⟨"MPATH", cols, constraints, inters⟩
