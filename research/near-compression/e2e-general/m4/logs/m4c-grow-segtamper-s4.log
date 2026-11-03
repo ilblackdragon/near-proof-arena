@@ -1,0 +1,33 @@
+TRACE steps 3144 cuts 6 tracegen 0.07s
+SEGBUILD 0 0.36s
+SEGBUILD 1 0.55s
+SEGBUILD 2 0.49s
+SEGBUILD 3 0.27s
+SEGBUILD 4 0.38s
+SEGBUILD 5 0.42s
+SEGBUILD 6 0.37s
+HONEST segment 4 verifies
+REJECTED pub nblk_out+64 (forged out-size) (rows honest): verifier: BatchConstraintError(SumClaimMismatch { sum_claim: BinomialExtensionField { value: [85897214, 1891608991, 1773185222, 863353971, 436847, 1206624842, 708239916, 328010809, 1368450978, 418050688, 666237311, 322958148], _phantom: PhantomData<p3_monty_31::monty_31::MontyField31<p3_baby_bear::baby_bear::BabyBearParameters>> }, sum_univ_domain_s_0: BinomialExtensionField { value: [1112382372, 2005114346, 1038127531, 1126773828, 640926601, 1086583956, 73232438, 578962030, 581204973, 1892840505, 888854264, 1750761960], _phantom: PhantomData<p3_monty_31::monty_31::MontyField31<p3_baby_bear::baby_bear::BabyBearParameters>> } }) [precheck: SEGG row 0 constraint 1 = 2013265857]
+REJECTED pub nblk_in+64 (forged in-size) (rows honest): prover error [precheck: SEGG row 0 constraint 0 = 2013265857]
+REJECTED pub D_out+1 (rows honest): verifier: BatchConstraintError(SumClaimMismatch { sum_claim: BinomialExtensionField { value: [1236962534, 296794800, 1751847286, 221577694, 1942537074, 1623160030, 1061638836, 668075413, 7524539, 1391453037, 892825832, 190580842], _phantom: PhantomData<p3_monty_31::monty_31::MontyField31<p3_baby_bear::baby_bear::BabyBearParameters>> }, sum_univ_domain_s_0: BinomialExtensionField { value: [514207761, 1248053004, 977181665, 716246809, 415341763, 1410479509, 758121631, 67709056, 1316017661, 1449372425, 514539580, 1814581327], _phantom: PhantomData<p3_monty_31::monty_31::MontyField31<p3_baby_bear::baby_bear::BabyBearParameters>> } }) [precheck: MPATH row 0 constraint 20 = 1]
+REJECTED pub D_in+1 (rows honest): verifier: BatchConstraintError(SumClaimMismatch { sum_claim: BinomialExtensionField { value: [1618559920, 1019981473, 495016944, 192333821, 658395110, 878306738, 678974010, 418731717, 1804998980, 1197539215, 1093736703, 1002098244], _phantom: PhantomData<p3_monty_31::monty_31::MontyField31<p3_baby_bear::baby_bear::BabyBearParameters>> }, sum_univ_domain_s_0: BinomialExtensionField { value: [333052684, 783471251, 1751781950, 1226438681, 1282980412, 1122550435, 1076114640, 622224307, 1982279502, 1128908071, 917093225, 876702077], _phantom: PhantomData<p3_monty_31::monty_31::MontyField31<p3_baby_bear::baby_bear::BabyBearParameters>> } }) [precheck: SEGG row 0 constraint 2 = 1]
+REJECTED pub MEMB bound (104)-1 (rows honest): prover error [precheck: 2 unbalanced messages by bus {3: 2}; first [((3, [65532]), 1, Some(("MEMB", 17))), ((3, [65534]), -1, Some(("CMP", 0)))]]
+REJECTED SEGG pout+1 with pub nblk_out+64 (forged final size): prover error [precheck: 2 unbalanced messages by bus {2: 2}; first [((2, [8, 0, 0, 1027, 0, 0, 0, 2174]), 1, Some(("MEMG", 2))), ((2, [8, 0, 0, 1028, 0, 0, 0, 2174]]
+REJECTED SEGG pin+1 with pub nblk_in+64 (forged initial size): prover error [precheck: 4 unbalanced messages by bus {2: 2, 3: 2}; first [((2, [8, 0, 0, 1025, 0, 0, 0, 2000]), -1, Some(("MEMG", 0))), ((2, [8, 0, 0, 1026, 0, 0, 0]
+REJECTED SEGG tz+1 (final size message time): prover error [precheck: 2 unbalanced messages by bus {2: 2}; first [((2, [8, 0, 0, 1027, 0, 0, 0, 2174]), 1, Some(("MEMG", 2))), ((2, [8, 0, 0, 1027, 0, 0, 0, 2175]]
+REJECTED MEMBG out byte bo3+1 (grown content forged): prover error [precheck: 4 unbalanced messages by bus {2: 2, 103: 2}; first [((2, [3, 67174403, 0, 0, 0, 0, 0, 2168]), 1, Some(("MEMBG", 0))), ((2, [3, 67174403, 0, ]
+REJECTED MEMBG tg-1 on the whole block (zero bytes before the grow): prover error [precheck: 2050 unbalanced messages by bus {2: 2048, 213: 2}; first [((2, [3, 67174400, 0, 0, 0, 0, 0, 2167]), 1, Some(("MEMBG", 0))), ((2, [3, 6717440]
+REJECTED MEMBG tg=t_in (grown block present at the segment start): prover error [precheck: 2050 unbalanced messages by bus {2: 2048, 213: 2}; first [((2, [3, 67174400, 0, 0, 0, 0, 0, 2000]), 1, Some(("MEMBG", 0))), ((2, [3, 6717440]
+REJECTED MEMBG gold+1 on the padding row: prover error [precheck: 4 unbalanced messages by bus {3: 2, 213: 2}; first [((3, [0]), -1, Some(("ADD", 0))), ((3, [2013265857]), 1, Some(("MEMBG", 8))), ((213, [21]
+REJECTED MEMBG blk+1 on the whole block: prover error [precheck: 38 unbalanced messages by bus {2: 32, 3: 4, 15: 2}; first [((2, [3, 67174416, 0, 0, 0, 0, 0, 2168]), -1, Some(("STORE", 5))), ((2, [3, 67174]
+REJECTED MEMBG out-leaf limb hoO0+1 (padding row): prover error [precheck: 4 unbalanced messages by bus {15: 2, 103: 2}; first [((15, [65600, 0, 84982, 882225, 3356648, 688007, 356054, 3595565, 2060127, 387053, 2807]
+REJECTED MEMBG block dropped (rows inactive): prover error [precheck: MEMBG row 8 constraint 13 = 1]
+REJECTED MPATH grown leaf L with old digest oL0+1 (old leaf not zleaf): prover error [precheck: 4 unbalanced messages by bus {15: 2, 103: 2}; first [((15, [65600, 0, 84982, 882225, 3356648, 688007, 356054, 3595565, 2060127, 387053, 2807]
+REJECTED MEMBH blk+1 on the whole block: prover error [precheck: 134 unbalanced messages by bus {2: 128, 3: 4, 15: 2}; first [((2, [3, 67108872, 0, 0, 0, 0, 0, 2000]), -1, Some(("LOAD", 4))), ((2, [3, 6710]
+REJECTED MEMBH in-byte bi7+1: prover error [precheck: 6 unbalanced messages by bus {2: 2, 4: 2, 103: 2}; first [((2, [3, 67108871, 0, 0, 0, 0, 0, 2000]), -1, Some(("MEMBH", 0))), ((2, [3, 671088]
+REJECTED MEMG grow gm+1: prover error [precheck: 1 unbalanced messages by bus {213: 1}; first [((213, [2168, 1025, 1027]), -1, Some(("MEMG", 1)))]]
+REJECTED MEMG grow old+1: prover error [precheck: MEMG row 1 constraint 7 = 2013265920]
+REJECTED MEMG grow n0+1, d-1 (grow by one more page): prover error [precheck: 12 unbalanced messages by bus {0: 2, 2: 4, 3: 4, 213: 2}; first [((0, [50, 2169, 3189, 0, 0, 0]), -1, Some(("CONV", 3))), ((0, [50, 2169, 31]
+REJECTED MEMG grow tz+1 (size message time): prover error [precheck: 4 unbalanced messages by bus {2: 2, 3: 2}; first [((2, [8, 0, 0, 1025, 0, 0, 0, 2162]), 1, Some(("MEMG", 0))), ((2, [8, 0, 0, 1025, 0, 0, 0,]
+REJECTED MEMG memory.size old+1: prover error [precheck: 8 unbalanced messages by bus {2: 6, 3: 2}; first [((2, [0, 0, 0, 1025, 0, 0, 0, 2162]), -1, Some(("CONV", 2))), ((2, [0, 0, 0, 1026, 0, 0, 0]
+SEGTAMPER 23 rejected, 0 accepted
