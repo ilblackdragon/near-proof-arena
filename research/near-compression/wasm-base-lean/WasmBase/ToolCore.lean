@@ -7,6 +7,7 @@ import WasmBase.IfCheck
 import WasmBase.M2Check
 import WasmBase.M2Air
 import WasmBase.SegAir
+import WasmBase.M2RegAbsent
 import WasmBase.ShaAir
 import WasmBase.ShaSound
 /-!
@@ -284,6 +285,7 @@ def evalPoints (nloc ncode : Nat) (path : String) (which : Nat := 0) : IO Unit :
     | 3 => Chips.wasmBaseHashAir nloc ncode
     | 4 => wasmBaseIfRegAir nloc ncode
     | 5 => wasmBaseM2Air nloc ncode
+    | 6 => wasmBaseM2rAir nloc ncode
     | _ => wasmBaseAir nloc ncode
   let lines ← IO.FS.lines path
   for ln in lines do
