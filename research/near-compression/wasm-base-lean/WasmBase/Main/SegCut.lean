@@ -21,7 +21,11 @@ file proves the execution side of one segment, and the chaining.
   `halted = 1/2`, giving `.fin`/`.abort` as in `exec_of_rows_seg`.
 * `foldSegments_of_bnd`, `CutSeg`, `cuts_foldSegments` — chaining: a list of cut segments whose
   boundaries match gives `foldSegments … ks s0 = .cont sN`, and `cuts_csteps` lifts it to the call
-  machine (`csteps_foldSegments`).
+  machine (`csteps_foldSegments`); `cuts_halt` ends the chain in a returning/trapping segment.
+* `RelW.relabel`, `Bnd.relabel` — the boundary relabelling: activation ids of the live frames to
+  depths, live locals spaces and call records relabelled the same way, **dead locals spaces
+  dropped** (they could collide with the new depth labels, so the next segment must not re-produce
+  them).
 -/
 
 namespace WasmBase
@@ -618,5 +622,344 @@ theorem cuts_cden (X : Ctx) (sg : Nat → Nat × Nat) {ρ : Type} [DecidableEq �
 #print axioms cuts_halt
 #print axioms cuts_csteps
 #print axioms cuts_cden
+
+/-! ## Relabelling activation ids to depths at a cut
+
+The segment AIR relabels the activation ids of the live frames to their **depths** (0 for the entry
+frame, 1, 2, … up the frame stack) at every cut, so the boundary is a function of the spec state.
+`RelW.relabel` proves the relation survives: relabel the locals spaces `16 + cid` of the live frames
+and the call records (space 4: slot = callee id, `l2` = caller id) by `σ` (the depth map), drop the
+messages of dead locals spaces (returned activations, `deadSp`), keep everything else.  The relabelled
+environment has `cid = rest.length`, its caller chain has ids `sv'.length - 1 - i` (depths), and it
+has no dead spaces left. -/
+
+/-- Relabel a message's activation ids by `σ`: call records (space 4) at slot and caller id, locals
+spaces `16 + c` to `16 + σ c`; other spaces unchanged. -/
+def rlMsg (σ : Nat → Nat) (x : Msg) : Msg :=
+  if x.space = 4 then { x with slot := σ x.slot, l2 := σ x.l2 }
+  else if 16 ≤ x.space then { x with space := 16 + σ (x.space - 16) } else x
+
+/-- `x` is in no locals space, or in the locals space of an activation in `A`. -/
+def keepA (A : List Nat) (x : Msg) : Prop := 16 ≤ x.space → x.space - 16 ∈ A
+
+instance (A : List Nat) : DecidablePred (keepA A) := fun x => by unfold keepA; infer_instance
+
+/-- The relabelled live set: images of the kept live messages. -/
+def relabelLive (σ : Nat → Nat) (A : List Nat) (L : Msg → Prop) : Msg → Prop :=
+  fun y => ∃ x, L x ∧ keepA A x ∧ y = rlMsg σ x
+
+theorem rlMsg_low {σ : Nat → Nat} {x : Msg} (h4 : x.space ≠ 4) (h16 : x.space < 16) : rlMsg σ x = x := by
+  simp only [rlMsg, h4, if_false, show ¬ 16 ≤ x.space by omega]
+
+theorem rlMsg_space (σ : Nat → Nat) (x : Msg) :
+    (rlMsg σ x).space = if x.space = 4 then 4 else if 16 ≤ x.space then 16 + σ (x.space - 16) else x.space := by
+  unfold rlMsg; split
+  · rename_i h; simp [h]
+  · split <;> rfl
+
+theorem relabel_low {σ : Nat → Nat} {A : List Nat} {L : Msg → Prop} {y : Msg} (h4 : y.space ≠ 4)
+    (h16 : y.space < 16) : relabelLive σ A L y ↔ L y := by
+  constructor
+  · rintro ⟨x, hx, -, rfl⟩
+    have hs := rlMsg_space σ x
+    by_cases a : x.space = 4
+    · rw [if_pos a] at hs; exact absurd hs h4
+    by_cases b : 16 ≤ x.space
+    · rw [if_neg a, if_pos b] at hs; omega
+    · rwa [rlMsg_low a (by omega)]
+  · intro h; exact ⟨y, h, fun h' => absurd h' (by omega), (rlMsg_low h4 h16).symm⟩
+
+theorem rlMsg_local (σ : Nat → Nat) (c j : Nat) (v : Val) (tp : Nat) :
+    rlMsg σ (enc (16 + c) j v tp) = enc (16 + σ c) j v tp := by
+  simp only [rlMsg, enc, show ¬ (16 + c = 4) by omega, if_false, show 16 ≤ 16 + c by omega, if_true,
+    show 16 + c - 16 = c by omega]
+
+theorem rlMsg_call (σ : Nat → Nat) (c r sb cid ch tp : Nat) :
+    rlMsg σ (callMsg c r sb cid ch tp) = callMsg (σ c) r sb (σ cid) ch tp := by
+  simp [rlMsg, callMsg]
+
+theorem localView_rl {σ : Nat → Nat} {c : Nat} {locs : Array Val} {tpl : Nat → Nat} {x : Msg}
+    (h : x ∈ localView (16 + c) locs tpl) : rlMsg σ x ∈ localView (16 + σ c) locs tpl := by
+  obtain ⟨j, hj, rfl⟩ := mem_localView.mp h
+  rw [rlMsg_local]; exact mem_localView.mpr ⟨j, hj, rfl⟩
+
+theorem localView_rl_inv {σ : Nat → Nat} {c d : Nat} {locs : Array Val} {tpl : Nat → Nat} {y : Msg}
+    (hd : σ c = d) (h : y ∈ localView (16 + d) locs tpl) :
+    ∃ x, x ∈ localView (16 + c) locs tpl ∧ y = rlMsg σ x := by
+  obtain ⟨j, hj, rfl⟩ := mem_localView.mp h
+  exact ⟨_, mem_localView.mpr ⟨j, hj, rfl⟩, by rw [rlMsg_local, hd]⟩
+
+/-- The saved callers with depth ids (the bottom one 0). -/
+def svR : List Saved → List Saved
+  | [] => []
+  | c :: sv => { c with cid := sv.length } :: svR sv
+
+@[simp] theorem svR_length : ∀ sv : List Saved, (svR sv).length = sv.length
+  | [] => rfl
+  | _ :: sv => by simp [svR, svR_length sv]
+
+/-- The ids of `svR sv` are depths: the `i`-th saved caller from the top has id `length - 1 - i`. -/
+theorem svR_cid : ∀ (sv : List Saved) (i : Nat) (hi : i < (svR sv).length),
+    ((svR sv)[i]'hi).cid = sv.length - 1 - i
+  | [], _, hi => by simp at hi
+  | c :: sv, 0, _ => by simp [svR]
+  | c :: sv, i + 1, hi => by
+    simp only [svR, List.getElem_cons_succ, List.length_cons]
+    rw [svR_cid sv i (by simp [svR] at hi; simpa using hi)]; omega
+
+theorem chainCharge_svR (X : Ctx) : ∀ (k : Nat) (sv : List Saved), chainCharge X k (svR sv) = chainCharge X k sv
+  | _, [] => rfl
+  | k, c :: sv => by simp only [svR, chainCharge]; rw [chainCharge_svR X c.k sv]
+
+section ChainFacts
+variable {X : Ctx} {t : Nat}
+
+theorem Chain.len : ∀ {cid sb k : Nat} {rest : List Frame} {sv : List Saved},
+    Chain X t cid sb k rest sv → rest.length = sv.length
+  | _, _, _, [], [], _ => rfl
+  | _, _, _, _ :: _, _ :: _, h => by simp [h.2.2.2.2.2.2.2.2.2.2.2.2.len]
+  | _, _, _, [], _ :: _, h => h.elim
+  | _, _, _, _ :: _, [], h => h.elim
+
+theorem Chain.ids_lt : ∀ {cid sb k : Nat} {rest : List Frame} {sv : List Saved},
+    Chain X t cid sb k rest sv → ∀ c ∈ sv, c.cid < cid
+  | _, _, _, [], [], _ => by simp
+  | _, _, _, _ :: _, c :: sv, h => by
+    intro c' hc'
+    rcases List.mem_cons.mp hc' with rfl | hc'
+    · exact h.2.2.2.2.1
+    · have := h.2.2.2.2.2.2.2.2.2.2.2.2.ids_lt c' hc'; have := h.2.2.2.2.1; omega
+  | _, _, _, [], _ :: _, h => h.elim
+  | _, _, _, _ :: _, [], h => h.elim
+
+theorem Chain.len_le : ∀ {cid sb k : Nat} {rest : List Frame} {sv : List Saved},
+    Chain X t cid sb k rest sv → sv.length ≤ cid
+  | _, _, _, [], [], _ => by simp
+  | _, _, _, _ :: _, c :: sv, h => by
+    have := h.2.2.2.2.2.2.2.2.2.2.2.2.len_le; have := h.2.2.2.2.1; simp; omega
+  | _, _, _, [], _ :: _, h => h.elim
+  | _, _, _, _ :: _, [], h => h.elim
+
+theorem Chain.svR : ∀ {cid sb k : Nat} {rest : List Frame} {sv : List Saved},
+    Chain X t cid sb k rest sv → Chain X t sv.length sb k rest (svR sv)
+  | _, _, _, [], [], h => ⟨rfl, h.2⟩
+  | _, _, _, _ :: _, c :: sv, h => by
+    obtain ⟨a1, a2, a3, a4, -, a6, a7, a8, a9, a10, a11, a12, a13⟩ := h
+    exact ⟨a1, a2, a3, a4, by simp, a6, a7, a8, a9, a10, a11, a12, by simpa using a13.svR⟩
+  | _, _, _, [], _ :: _, h => h.elim
+  | _, _, _, _ :: _, [], h => h.elim
+
+/-- `σ` maps the chain's ids to depths. -/
+def DepthOK (σ : Nat → Nat) : Nat → List Saved → Prop
+  | cid, [] => σ cid = 0
+  | cid, c :: sv => σ cid = sv.length + 1 ∧ DepthOK σ c.cid sv
+
+theorem DepthOK.top {σ : Nat → Nat} : ∀ {cid : Nat} {sv : List Saved}, DepthOK σ cid sv → σ cid = sv.length
+  | _, [], h => h
+  | _, _ :: _, h => by simpa using h.1
+
+theorem DepthOK.congr {σ σ' : Nat → Nat} : ∀ {cid sb k : Nat} {rest : List Frame} {sv : List Saved},
+    Chain X t cid sb k rest sv → DepthOK σ' cid sv → (∀ x, x ≤ cid → σ x = σ' x) → DepthOK σ cid sv
+  | _, _, _, [], [], _, h, e => by simp only [DepthOK] at h ⊢; rw [e _ (Nat.le_refl _), h]
+  | _, _, _, _ :: _, c :: sv, hc, h, e => by
+    refine ⟨by rw [e _ (Nat.le_refl _)]; exact h.1, DepthOK.congr hc.2.2.2.2.2.2.2.2.2.2.2.2 h.2 ?_⟩
+    intro x hx; have := hc.2.2.2.2.1; exact e x (by omega)
+  | _, _, _, [], _ :: _, hc, _, _ => hc.elim
+  | _, _, _, _ :: _, [], hc, _, _ => hc.elim
+
+theorem DepthOK.exists : ∀ {cid sb k : Nat} {rest : List Frame} {sv : List Saved},
+    Chain X t cid sb k rest sv → ∃ σ, DepthOK σ cid sv
+  | _, _, _, [], [], _ => ⟨fun _ => 0, rfl⟩
+  | cid, _, _, _ :: _, c :: sv, hc => by
+    obtain ⟨σ', h'⟩ := DepthOK.exists hc.2.2.2.2.2.2.2.2.2.2.2.2
+    refine ⟨fun x => if x = cid then sv.length + 1 else σ' x, by simp, ?_⟩
+    refine DepthOK.congr hc.2.2.2.2.2.2.2.2.2.2.2.2 h' ?_
+    intro x hx; have := hc.2.2.2.2.1; simp only [show x ≠ cid by omega, if_false]
+  | _, _, _, [], _ :: _, hc => hc.elim
+  | _, _, _, _ :: _, [], hc => hc.elim
+
+theorem DepthOK.below {σ : Nat → Nat} : ∀ {cid sb k : Nat} {rest : List Frame} {sv : List Saved},
+    Chain X t cid sb k rest sv → DepthOK σ cid sv → ∀ c ∈ sv, σ c.cid < sv.length
+  | _, _, _, [], [], _, _ => by simp
+  | _, _, _, _ :: _, c :: sv, hc, h => by
+    intro c' hc'
+    rcases List.mem_cons.mp hc' with rfl | hc'
+    · rw [h.2.top]; simp
+    · have := DepthOK.below hc.2.2.2.2.2.2.2.2.2.2.2.2 h.2 c' hc'; simp; omega
+  | _, _, _, [], _ :: _, hc, _ => hc.elim
+  | _, _, _, _ :: _, [], hc, _ => hc.elim
+
+/-- Chain messages are call records or in the locals space of a saved caller. -/
+theorem chainMsgs_space_ids : ∀ {cid k : Nat} {rest : List Frame} {sv : List Saved} {x : Msg},
+    chainMsgs X cid k rest sv x → x.space = 4 ∨ (16 ≤ x.space ∧ x.space - 16 ∈ sv.map Saved.cid)
+  | _, _, [], [], _, h => h.elim
+  | _, _, _ :: _, c :: sv, x, h => by
+    rcases h with rfl | h | h
+    · exact Or.inl rfl
+    · obtain ⟨j, -, rfl⟩ := mem_localView.mp h; right; simp
+    · rcases chainMsgs_space_ids h with h | ⟨h1, h2⟩
+      · exact Or.inl h
+      · right; exact ⟨h1, List.mem_cons_of_mem _ h2⟩
+  | _, _, [], _ :: _, _, h => h.elim
+  | _, _, _ :: _, [], _, h => h.elim
+
+theorem chainMsgs_rl {σ : Nat → Nat} : ∀ {cid sb k : Nat} {rest : List Frame} {sv : List Saved},
+    Chain X t cid sb k rest sv → DepthOK σ cid sv → ∀ x,
+      chainMsgs X cid k rest sv x → chainMsgs X sv.length k rest (svR sv) (rlMsg σ x)
+  | _, _, _, [], [], _, _, _, h => h.elim
+  | _, _, _, _ :: _, c :: sv, hc, hd, x, h => by
+    have ht := hd.1
+    have hc' := hd.2.top
+    rcases h with rfl | h | h
+    · left; rw [rlMsg_call, ht, hc']; simp [svR]
+    · right; left; have := localView_rl (σ := σ) h; rw [hc'] at this; simpa [svR] using this
+    · right; right; simpa [svR] using chainMsgs_rl hc.2.2.2.2.2.2.2.2.2.2.2.2 hd.2 x h
+  | _, _, _, [], _ :: _, hc, _, _, _ => hc.elim
+  | _, _, _, _ :: _, [], hc, _, _, _ => hc.elim
+
+theorem chainMsgs_rl_inv {σ : Nat → Nat} : ∀ {cid sb k : Nat} {rest : List Frame} {sv : List Saved},
+    Chain X t cid sb k rest sv → DepthOK σ cid sv → ∀ y,
+      chainMsgs X sv.length k rest (svR sv) y → ∃ x, chainMsgs X cid k rest sv x ∧ y = rlMsg σ x
+  | _, _, _, [], [], _, _, _, h => by simp [svR, chainMsgs] at h
+  | _, _, _, _ :: _, c :: sv, hc, hd, y, h => by
+    have ht := hd.1
+    have hc' := hd.2.top
+    simp only [svR, List.length_cons, chainMsgs] at h
+    rcases h with rfl | h | h
+    · refine ⟨_, Or.inl rfl, ?_⟩; rw [rlMsg_call, ht, hc']
+    · obtain ⟨x, hx, rfl⟩ := localView_rl_inv hc' h
+      exact ⟨x, Or.inr (Or.inl hx), rfl⟩
+    · obtain ⟨x, hx, rfl⟩ := chainMsgs_rl_inv hc.2.2.2.2.2.2.2.2.2.2.2.2 hd.2 y (by simpa using h)
+      exact ⟨x, Or.inr (Or.inr hx), rfl⟩
+  | _, _, _, [], _ :: _, hc, _, _, _ => hc.elim
+  | _, _, _, _ :: _, [], hc, _, _, _ => hc.elim
+
+end ChainFacts
+
+/-- **Relabelling to depths.**  A related state stays related when the live frames' activation ids
+are replaced by their depths (`σ`, with the current frame at depth `E.rest.length`), the live
+locals spaces and call records are relabelled by `σ`, and the messages of dead locals spaces are
+dropped (`A` = the live ids).  In the relabelled environment the caller chain is `svR sv` (ids =
+depths, `svR_cid`) and every live message in space 4 or `≥ 16` is a chain message: no dead spaces. -/
+theorem RelW.relabel {X : Ctx} {E : Env} {s : St} {f : Frame} {tps tpl : Nat → Nat} {t pc S : Nat}
+    {live : Msg → Prop} {a b : Nat} (R : RelW X E s f tps tpl t pc S live a b) :
+    ∃ (σ : Nat → Nat) (A : List Nat) (sv : List Saved), σ E.cid = E.rest.length ∧
+      RelW X ⟨E.sb, E.rest.length, E.rest, relabelLive σ A E.live, E.k⟩ s f tps tpl t pc S (relabelLive σ A live) a b ∧
+      Chain X t E.rest.length E.sb E.k E.rest (svR sv) ∧
+      (∀ y, relabelLive σ A E.live y → (y.space = 4 ∨ 16 ≤ y.space) →
+        chainMsgs X E.rest.length E.k E.rest (svR sv) y) := by
+  obtain ⟨sv, hc, hin, hout, hrl⟩ := R.calls.chain
+  obtain ⟨tpb, htpb, hbud⟩ := R.calls.budget
+  obtain ⟨σ, hd⟩ := DepthOK.exists hc
+  have hlen := hc.len
+  have htop : σ E.cid = E.rest.length := by rw [hd.top, hlen]
+  let A := E.cid :: sv.map Saved.cid
+  have keepChain : ∀ x, chainMsgs X E.cid E.k E.rest sv x → keepA A x := by
+    intro x hx h16
+    rcases chainMsgs_space_ids hx with h | ⟨-, h⟩
+    · omega
+    · exact List.mem_cons_of_mem _ h
+  -- low spaces are untouched
+  have lowE : ∀ y, y.space ≠ 4 → y.space < 16 → (relabelLive σ A E.live y ↔ E.live y) :=
+    fun y h4 h16 => relabel_low h4 h16
+  -- the relabelled outer messages in space 4 or `≥ 16` are exactly the relabelled chain
+  have outR : ∀ y, relabelLive σ A E.live y → (y.space = 4 ∨ 16 ≤ y.space) →
+      chainMsgs X E.rest.length E.k E.rest (svR sv) y := by
+    rintro y ⟨x, hx, hk, rfl⟩ hs
+    have hxs : x.space = 4 ∨ 16 ≤ x.space := by
+      have := rlMsg_space σ x
+      by_cases a4 : x.space = 4
+      · exact Or.inl a4
+      by_cases a16 : 16 ≤ x.space
+      · exact Or.inr a16
+      rw [if_neg a4, if_neg a16] at this; rw [this] at hs; omega
+    rcases hout x hx hxs with h | ⟨d1, -, d3, d4⟩
+    · rw [hlen]; exact chainMsgs_rl hc hd x h
+    · exfalso
+      rcases List.mem_cons.mp (hk d1) with h | h
+      · exact d3 (by omega)
+      · obtain ⟨c, hcm, hce⟩ := List.mem_map.mp h
+        exact d4 c hcm (by omega)
+  refine ⟨σ, A, sv, htop, ?_, by rw [hlen]; exact hc.svR, outR⟩
+  have hsepR : ∀ x, relabelLive σ A E.live x → x.space ≠ 0 ∧ x.space ≠ 16 + E.rest.length := by
+    rintro y ⟨x, hx, hk, rfl⟩
+    have hsep := R.envSep x hx
+    have hs := rlMsg_space σ x
+    by_cases a4 : x.space = 4
+    · rw [if_pos a4] at hs; rw [hs]; omega
+    by_cases a16 : 16 ≤ x.space
+    · rw [if_neg a4, if_pos a16] at hs; rw [hs]
+      refine ⟨by omega, ?_⟩
+      rcases List.mem_cons.mp (hk a16) with h | h
+      · exact absurd (show x.space = E.lsp by simp only [Env.lsp]; omega) hsep.2
+      · obtain ⟨c, hcm, hce⟩ := List.mem_map.mp h
+        have := DepthOK.below hc hd c hcm
+        rw [hce] at this; omega
+    · rw [if_neg a4, if_neg a16] at hs; rw [hs]; omega
+  have hheap : HeapOK ⟨E.sb, E.rest.length, E.rest, relabelLive σ A E.live, E.k⟩ s t := by
+    obtain ⟨T, tpm, h1, h2, h3, h4⟩ := R.heap.mem
+    obtain ⟨tpg, g1, g2⟩ := R.heap.glob
+    exact ⟨R.heap.pages, ⟨T, tpm, h1, h2, h3, fun x hx => (lowE x (by omega) (by omega)).trans (h4 x hx)⟩,
+      ⟨tpg, g1, fun x hx => (lowE x (by omega) (by omega)).trans (g2 x hx)⟩⟩
+  have hcalls : CallsOK X ⟨E.sb, E.rest.length, E.rest, relabelLive σ A E.live, E.k⟩ s t := by
+    refine ⟨?_, ⟨svR sv, ?_, ?_, ?_, ?_⟩, ⟨tpb, htpb, fun x hx => (lowE x (by omega) (by omega)).trans (hbud x hx)⟩⟩
+    · have := hc.len_le; have := R.calls.cidLtT; show E.rest.length < t; omega
+    · show Chain X t E.rest.length E.sb E.k E.rest (svR sv); rw [hlen]; exact hc.svR
+    · intro y hy
+      have hy' : chainMsgs X sv.length E.k E.rest (svR sv) y := by rw [← hlen]; exact hy
+      obtain ⟨x, hx, rfl⟩ := chainMsgs_rl_inv hc hd y hy'
+      exact ⟨x, hin x hx, keepChain x hx, rfl⟩
+    · intro y hy hs; exact Or.inl (outR y hy hs)
+    · show s.stackRem + chainCharge X E.k (svR sv) < 2 ^ 30; rw [chainCharge_svR]; exact hrl
+  refine ⟨R.frames, R.kLt, R.fn, R.pcEq, R.pcLt, R.labels, R.base, R.sbLe, R.height, R.nloc, R.gas, R.segLt,
+    R.segbLt, R.numS, R.numL, R.tpsLt, R.tplLt, hsepR, ?_, R.sbLt, ?_, hheap, hcalls, ?_⟩
+  · intro h0
+    have h0' : E.rest.length = 0 := h0
+    have hr : E.rest = [] := List.length_eq_zero_iff.mp h0'
+    have hsv : sv = [] := List.length_eq_zero_iff.mp (by rw [← hlen, h0'])
+    refine ⟨hr, ?_⟩
+    have hc0 := hc; rw [hr, hsv] at hc0; exact hc0.2
+  · have := hc.len_le; have := R.cidLt; show E.rest.length < 2 ^ 28; omega
+  · intro y
+    constructor
+    · rintro ⟨x, hx, hk, rfl⟩
+      rcases (R.live x).mp hx with h | h | h
+      · obtain ⟨i, hi, rfl⟩ := mem_stackView.mp h
+        left; rw [rlMsg_low (by simp) (by simp)]; exact mem_stackView.mpr ⟨i, hi, rfl⟩
+      · right; left
+        have := localView_rl (σ := σ) h
+        simp only [Env.lsp] at this ⊢; rwa [htop] at this
+      · right; right; exact ⟨x, h, hk, rfl⟩
+    · rintro (h | h | h)
+      · obtain ⟨i, hi, rfl⟩ := mem_stackView.mp h
+        refine ⟨_, (R.live _).mpr (Or.inl h), fun h' => absurd h' (by simp), (rlMsg_low (by simp) (by simp)).symm⟩
+      · simp only [Env.lsp] at h
+        obtain ⟨x, hx, rfl⟩ := localView_rl_inv htop h
+        refine ⟨x, (R.live x).mpr (Or.inr (Or.inl hx)), ?_, rfl⟩
+        intro _; obtain ⟨j, -, rfl⟩ := mem_localView.mp hx; simp [A]
+      · obtain ⟨x, hx, hk, rfl⟩ := h
+        exact ⟨x, (R.live x).mpr (Or.inr (Or.inr hx)), hk, rfl⟩
+
+/-- **The boundary relation, relabelled.**  At a cut, the STATE message's activation id may be
+replaced by the current frame's depth `s.frames.length - 1` and the live list by its relabelled,
+dead-space-free image: the boundary is then a function of the spec state (and producer times). -/
+theorem Bnd.relabel {X : Ctx} {sg : Nat → Nat × Nat} {s : St} {t S : Nat} {m : List F} {L : List Msg}
+    (h : Bnd X sg s t S m L) :
+    ∃ (σ : Nat → Nat) (A : List Nat), Bnd X sg s t S (m.set 5 ((s.frames.length - 1 : Nat) : F))
+      ((L.filter (fun x => decide (keepA A x))).map (rlMsg σ)) := by
+  obtain ⟨k, pc, sb, cid, rfl, E, f, tps, tpl, rfl, rfl, rfl, R⟩ := h
+  obtain ⟨σ, A, sv, -, R', -, -⟩ := R.relabel
+  have hfr : s.frames.length - 1 = E.rest.length := by rw [R.frames]; simp
+  refine ⟨σ, A, E.k, pc, E.sb, E.rest.length, ?_, ⟨E.sb, E.rest.length, E.rest, relabelLive σ A E.live, E.k⟩,
+    f, tps, tpl, rfl, rfl, rfl, ?_⟩
+  · rw [hfr]; rfl
+  · refine (congrArg (fun L => RelW X _ s f tps tpl (t + 1) pc S L _ _) (funext fun y => propext ?_)).mp R'
+    simp only [relabelLive, List.mem_map, List.mem_filter, decide_eq_true_eq]
+    constructor
+    · rintro ⟨x, hx, hk, rfl⟩; exact ⟨x, ⟨hx, hk⟩, rfl⟩
+    · rintro ⟨x, ⟨hx, hk⟩, rfl⟩; exact ⟨x, hx, hk, rfl⟩
+
+#print axioms RelW.relabel
+#print axioms Bnd.relabel
 
 end WasmBase
