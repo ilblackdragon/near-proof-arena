@@ -17,15 +17,28 @@ them for the batched FINAL of M5a-2:
   `NewOK σ b R'` (`b = vid n'` with `σ n' = R'`, or a final node hashed to `b = dig h'`).
   `out_view`: a node whose children are collapses of the expansions of `R'`'s children
   (`RecCl`) is a collapse (`Cl`) of the expansion of `b`.
-* **Collapse with written values.**  A written leaf holds `(|x|, sha256 x)` in the circuit and
-  `.val x` in the spec: `Cl` is `Rv` (without the reveal side conditions) plus the value-slot
-  collapse `.ref |x| (sha256 x) ↦ .val x`; `cl_collapse`: collapsing keeps refinement.
-* **Walk semantics** `Sem` (per walk mode: `0` find, `1` upsert, `2` delete), the row-local
-  lemmas for the upsert ops `SN.oLR` (`loc_leafRep`), `BR.oUD` (`loc_brDesc`), `SN.oEU`
-  (`loc_extDesc`), and the assembly `bus_batched_changes`: from `DOWN`/`UP`/`TCH` balance, the
-  walk shape, every row's local step, the `TCH` / root link of the writing `WSB` rows and the
-  write log, on any revealed well-formed witness trie with root `prev_state_root`,
-  `applyChanges` succeeds and its `rootHash` is `post_state_root`.
+* **Collapse with written values.**  A written leaf / branch value is `(|x|, sha256 x)` in the
+  circuit and `.val x` in the spec: `Cl` is `Rv` (without the reveal side conditions) plus the
+  value-slot collapses `.ref |x| (sha256 x) ↦ .val x` (`slot`, `bval`); `cl_collapse`:
+  collapsing keeps refinement; `cl_wf`: and well-formedness (digests are 32 bytes).
+* **The store from `VER`** (`ver_store`): `σ = storeOf vers` (the version-publishing rows'
+  records by id); every reader's record is `OldOK` for the ref it reads (`Traffic.ver_recv`; a
+  digest's publishers agree by `Sha256CR` + the proved `NodeSerInj`, `hashed_agree`).
+* **Walk semantics** `Sem` (per walk mode: `0` find `SemF`, `1` upsert `SemU`, `2` delete
+  `SemD`): the expansion of a row's input ref (well-formed) reveals to a trie on which the spec
+  chain of the rest of the key runs; the result collapses to the expansion of the output ref
+  (or is `NONE` / `SAME` / a leaf descriptor) and is well-formed.  **Row-local steps** (one per
+  op, from the row's decoded facts and its child's `Sem`): upsert `oLR` `step_leafRep`, `oUD`
+  `step_brDesc`, `oEU` `step_extDesc`, `oUN` `step_brNew` (with the `MATQ`/`MATR` relation
+  `MatRel`), `oUV` `step_brUpVal`; delete `oLD`, `oLZ`, `oEZ`, `oES`, `oED`, `oEB`, `oDA`, `oDS`,
+  `oDH`/`oDN` (`step_brKeep`), `oDZ`, `oDV`; find `oLF`, `oLA`, `oEA`, `oEF`, `oFD`, `oFA`, `oFV`.
+  Not yet: the split ops (`oLX`/`oEX`/`oSL`/`oEP`/`oEM`/`oLM`), `oDL`, `oD1`/`oLS` (their extra
+  request / response buses go through `Traffic.reqresp`).
+* **Assembly** `bus_batched_changes`: from `DOWN`/`UP`/`TCH` balance, the walk shape, every
+  row's local step, the `TCH` / root link of the writing `WSB` rows and the write log, on any
+  revealed well-formed witness trie with root `prev_state_root`, `applyChanges` succeeds and its
+  `rootHash` is `post_state_root`.  Premise `Sha256CR` only: the false `KeepsFW` is not used
+  (well-formedness is carried along the walk; `Store.keepsFWRows`).
 -/
 
 namespace StateM5a.BusWalk

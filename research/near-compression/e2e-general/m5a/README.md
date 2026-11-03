@@ -4,6 +4,82 @@ Plan: `docs/zk-formal/E2E-GENERAL-CHUNK-PLAN.md` §3.2 (the `stRoot` working set
 Date 2026-11-03. Labels: **[M]** measured here, **[K]** kernel-checked Lean (std axioms),
 **[S]** stated / design only.
 
+## M5a-3 (fourth session, 2026-11-03)
+
+### Bus-level step [K] (`lean/StateM5a/{Bus,Traffic,BusWalk}.lean`, std axioms, no `sorry`)
+
+From bus balance to `rootHash (applyChanges …)`, with `Sha256CR` the only cryptographic premise:
+
+* **`Bus`** (generic, ZkFormal): `busList A tr pub b s` = the messages sent / received on bus `b`,
+  repeated by multiplicity; `count_busList` (= `busCount`), **`holds_perm`**: `Holds A pub tr` ⇒
+  on every bus the sent list is a permutation of the received list (the LogUp predicate in list
+  form); `perm_decode`: under an injective encoding the decoded message lists are permutations too.
+* **`Traffic`** (generic record-level traffic):
+  * **`walk_unique`**: at most one active row receives a `DOWN` at each `(w, d)`.  `UP` does not
+    repeat the node's ref, so this is what lets a parent trust the answer at `(w, d')`.  Proof:
+    the number of open `DOWN` edges of walk `w` crossing depth `d` is 1 at `d = 0` (one `WSB`
+    root per walk) and never grows (`cross_step`: a row at `d` that descends replaces the edge
+    that reached it), and the rows at `d` are at most the edges ending there.
+  * **`walk_sem`**: any property `Sem` that every active row's step carries from its child's
+    `(DOWN, UP)` pair to its own holds at every walk root (induction on depth, `child_of`).
+  * **`tch_chain`**: `TCH` balance makes the writing `WSB` rows one chain from the public
+    `TCH(0, prev)` to `TCH(n, post)` (row count `= n`, `a (j+1) = b j`).
+  * **`ver_recv`**: a `VER` reader's record (all parts) is one published record, if publishers
+    under one ref agree; **`reqresp`**: on a request / response bus (`MATQ`/`MATR`, `SIBQ`/`SIBA`,
+    `SPQ`/`SPR`, `SXQ`/`SXR`) with one request per key, the response a requester receives comes
+    from a responder that received exactly its request.
+* **`BusWalk`** (the M5a instantiation):
+  * **store**: `ver_store` — `σ = storeOf vers` (version-publishing rows' records by id; ids
+    distinct); every `VER` reader's record is `OldOK σ ref R` (a version id's record, or a record
+    hashed to the digest; digest publishers agree: `hashed_agree`, `Sha256CR` + `NodeSerInj` via
+    `shallow_eq`).
+  * **views**: `in_view_wf` (the expansion of a row's input ref reveals to its record with expanded
+    children, well-formed), `out_view` (a node whose children collapse to the expansions of the
+    published record's children collapses to the expansion of the output ref); `Cl` = collapse
+    including written values (`.ref |x| (sha256 x) ↦ .val x`, leaf `slot` and branch `bval`),
+    `cl_collapse` (keeps refinement), `cl_wf` (keeps `wf`).
+  * **walk semantics** `Sem` = `SemF` / `SemU` / `SemD` by mode, and **23 row-local steps**:
+    upsert `oLR`, `oUD`, `oEU`, `oUN` (with `MatRel`, the `MATQ`/`MATR` answer), `oUV`; delete
+    `oLD`, `oLZ`, `oEZ`, `oES`, `oED`, `oEB`, `oDA`, `oDS`, `oDH`/`oDN`, `oDZ`, `oDV`; find `oLF`,
+    `oLA`, `oEA`, `oEF`, `oFD`, `oFA`, `oFV` (`step_*`; `localOK_upsert`/`_delete`/`_find` turn
+    them into `Traffic.LocalOK`).
+  * **`chain_changes`** / **`bus_batched_changes`**: walk shape + `DOWN`/`UP`/`TCH` balance +
+    every row's `LocalOK` + the writing rows as roots of the committed changes ⇒ on any revealed,
+    well-formed witness trie with root `prev_state_root`, `applyChanges` succeeds and
+    `rootHash = post_state_root`.  **Premise `Sha256CR` only**: `KeepsFW` (false, see below) is
+    not used — well-formedness is carried along the walk (rows' memory / length bounds) and
+    `Store.keepsFWRows` transfers it to the witness.
+
+**What is still a premise** (open; field level / remaining ops): (1) decoding — each table's
+`DOWN`/`UP`/`TCH`/`VER` interaction message is the injective encoding of the decoded record
+(`perm_decode`'s hypotheses, refs as flag + 16 limbs); (2) `WalkShape` (`d' > d`: `BR` `d + 1`,
+`SN` `d + klen` with `klen ≥ 1` from `isE·(1 − a₀)`; one root per walk: `WSB` `i` distinct,
+`W_FINAL` offset) and active-row bookkeeping (`gdn ≤ gold` from the one-hot bundles); (3) the
+per-row decoded facts each `step_*` takes (`OldOK` from `ver_store` / a hashing row, `NewOK`,
+nibble lookups `K.drop d = …`, mismatch witness, memory / length bounds, kept-branch counts);
+(4) row-local steps for the split ops (`oLX`/`oEX`/`oSL`/`oEP`/`oEM`/`oLM`), `oDL` and
+`oD1`/`oLS` (the bus tool is `reqresp`); (5) the link from the write tape / `WRITE` order to the
+change list (`KCMP` ⇒ `sortKV` is `Order`; the leaf ↔ change pairing is the `WSB` table).
+
+### M5a-3 Lean (state, priority 2) [K]
+
+* **`KeepsFW` is false** (`Store.not_keepsFW`: a `2^32`-byte value written into a well-formed
+  leaf). Replaced by what holds (`Keep`): `RP P a b` = refinement whose stubs cover subtrees with
+  property `P`; `upsert` and `del` commute with it for every `P` (`upsert_rp`, `del_rp`). With
+  `P = False`: a change keeps the witness revealed, unconditionally (`full_upsert`, `full_del`,
+  `full_applyChange`). With `P = wf`: every node of the spec's result is a node the rows
+  rewrote or an old subtree, so `t₁'.wf` (the rows' new trie: range-checked memory limbs,
+  nibbles, key / value lengths) gives `T'.wf` (`applyChange_wf_of_rows`). Together
+  `keepsFWRows : KeepsFWRows`.
+* **`batched_changes'`**: `batched_changes` without `KeepsFW`; premises `Sha256CR` and
+  `ChangeRowsW` (the rows of every change, with `t₁'.wf`). The old `batched_changes` and
+  `KeepsFW` are kept unchanged.
+* Chain constructors `UChain.brVal` (`oUV`), `DChain.brDelVal` (`oDV`), `DChain.brValAbs` (`oDZ`),
+  with their memory correspondence to `Br.memNew` in the docstrings; `uchain_sound` /
+  `dchain_sound` extended (all other users go through them).
+* `StepsBV.br_del_value_one` (+ `_leaf`, `_ext`, `_branch`, `_hash`, `br_del_value_none`): the
+  spec step of the squash after a value delete leaving one child, for a future row op.
+
 ## M5a-2 (third session, 2026-11-03): batched FINAL in the AIR
 
 Sections below this one describe M5a as first built (every walk row hashes its old and its new
@@ -138,25 +214,6 @@ changes exercising `oUV` ×3, `oDV`, `oDZ`, `oFV` ×5, an extension-internal abs
 2. Completeness still missing: the squash after a value delete leaving one child, squash to a
    value leaf / onto an extension or branch sibling (`extendChild [i]` with a non-leaf), splits
    where one key ends at the new branch, a mismatch past a head's 63 nibbles, the empty trie.
-
-### M5a-3 Lean (state, priority 2) [K]
-
-* **`KeepsFW` is false** (`Store.not_keepsFW`: a `2^32`-byte value written into a well-formed
-  leaf). Replaced by what holds (`Keep`): `RP P a b` = refinement whose stubs cover subtrees with
-  property `P`; `upsert` and `del` commute with it for every `P` (`upsert_rp`, `del_rp`). With
-  `P = False`: a change keeps the witness revealed, unconditionally (`full_upsert`, `full_del`,
-  `full_applyChange`). With `P = wf`: every node of the spec's result is a node the rows
-  rewrote or an old subtree, so `t₁'.wf` (the rows' new trie: range-checked memory limbs,
-  nibbles, key / value lengths) gives `T'.wf` (`applyChange_wf_of_rows`). Together
-  `keepsFWRows : KeepsFWRows`.
-* **`batched_changes'`**: `batched_changes` without `KeepsFW`; premises `Sha256CR` and
-  `ChangeRowsW` (the rows of every change, with `t₁'.wf`). The old `batched_changes` and
-  `KeepsFW` are kept unchanged.
-* Chain constructors `UChain.brVal` (`oUV`), `DChain.brDelVal` (`oDV`), `DChain.brValAbs` (`oDZ`),
-  with their memory correspondence to `Br.memNew` in the docstrings; `uchain_sound` /
-  `dchain_sound` extended (all other users go through them).
-* `StepsBV.br_del_value_one` (+ `_leaf`, `_ext`, `_branch`, `_hash`, `br_del_value_none`): the
-  spec step of the squash after a value delete leaving one child, for a future row op.
 
 ## Result on T1 (`d3c8/d3/02-h10196-s3`)
 
