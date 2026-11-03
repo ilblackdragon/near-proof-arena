@@ -1,0 +1,14 @@
+TAMPER honest proof verifies and its code_root matches
+
+thread 'main' (953230) panicked at src/air.rs:148:57:
+called `Option::unwrap()` on a `None` value
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+TAMPER REGA[double fill: clear group ending row 15 -> read + DRAIN] REJECTED (bus: unbalanced: [((2, [6, 0, 3, 0, 0, 0, 0, 71]), -1)])
+TAMPER REGA[double fill, fill row 48 atp=0 (RINIT message)] REJECTED (bus: unbalanced: [((2, [6, 0, 3, 0, 0, 0, 0, 0]), -1)])
+TAMPER REGA[fill len row 4].atp+1   REJECTED (bus: unbalanced: [((2, [6, 0, 3, 0, 0, 0, 0, 0]), 1), ((3, [1]), 1), ((2, [6, 0, 3, 0)
+TAMPER REGA[fill len row 4].act=0   REJECTED (constraint: REG row 3 constraint 48 = 1)
+TAMPER RINIT[row 0].act=0           REJECTED (bus: unbalanced: [((2, [6, 0, 3, 0, 0, 0, 0, 0]), -1), ((3, [0]), -2)])
+TAMPER RINIT[row 0].rid+1           REJECTED (bus: unbalanced: [((2, [6, 0, 3, 0, 0, 0, 0, 0]), -1), ((3, [0]), -1), ((3, [1]), 1),)
+TAMPER RINIT[duplicate id 0]        REJECTED (bus: unbalanced: [((3, [2013265920]), 1)])
+TAMPER RINIT[unsorted ids 2, 1]     REJECTED (bus: unbalanced: [((3, [2013265919]), 1)])
+TAMPER summary 8/8 rejected
