@@ -1,0 +1,65 @@
+{
+ "heights": {
+  "KEY": 256,
+  "BR": 128,
+  "SN": 64,
+  "KCMP": 64,
+  "WSB": 64,
+  "WSN": 64,
+  "WSA": 16,
+  "SNC": 4,
+  "RNG": 256,
+  "WSL": 16,
+  "WSP": 32
+ },
+ "sha_msgs": 101,
+ "sha_blocks": 189,
+ "compressions": 150,
+ "keys": 17,
+ "ws_keys": 17,
+ "changes": 10,
+ "writes": 10,
+ "segments": 1,
+ "rch": [
+  "1aa181af046c64f25453c1c5c6e87a11933a83eb19bea0cc07c056158dfdca71f9b1c88ff82d91f74c87858fbdf6d2dc",
+  "e6b548d6bdd262308965f328cacedbfb5ab6cfe78d2eede988ea3dc9c064e33f52f051ff0a01fccfbb41bd736028d166"
+ ],
+ "rows": {
+  "KEY": 171,
+  "BR": 96,
+  "SN": 60,
+  "KCMP": 51,
+  "WSB": 64,
+  "WSN": 62,
+  "WSA": 10,
+  "SNC": 0,
+  "RNG": 256,
+  "WSL": 10,
+  "WSP": 17
+ },
+ "ops": {
+  "BR.oFD": 57,
+  "SN.oEF": 19,
+  "SN.oLF": 16,
+  "BR.oFA": 1,
+  "BR.oUD": 31,
+  "SN.oEU": 12,
+  "SN.oLR": 7,
+  "SN.oES": 0,
+  "SN.oLD": 3,
+  "BR.oD1": 1,
+  "SN.oLS": 1,
+  "SN.oED": 1,
+  "SN.oLM": 1,
+  "BR.oDL": 1,
+  "BR.oDH": 3,
+  "BR.oDN": 2
+ },
+ "pre_root": "9da2fa386eb07e69a41c1f452e35613dc6aaf9dba09e965c7e775cee0d4c3f70",
+ "post_root": "1db48e3883e462f12b761a81438bd145dfcc45ee5a7097acdf7b9b000a249628",
+ "versions": {
+  "published": 21,
+  "hashed_old": 48,
+  "hashed_new": 36
+ }
+}

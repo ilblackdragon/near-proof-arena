@@ -1441,7 +1441,7 @@ def _t_wsorder(g):
     T = g.T['WSA']
     rows = T.rows
     pair = next((a, b) for a in rows for b in rows
-                if a is not b and T.get(a, 'kd') == T.get(b, 'kd') and T.get(b, 'idp') == T.get(a, 't'))
+                if a is not b and T.get(a, 'kd', 0) == T.get(b, 'kd', 0) and T.get(b, 'idp') == T.get(a, 't'))
     a, b = pair            # a: earlier (t1), b: later (t2), b consumed a
     t1, t2 = T.get(a, 't'), T.get(b, 't')
     for nm, n in (('cp', 1), ('cl', 1), ('cv', 16), ('wr', 1), ('idp', 1)):
