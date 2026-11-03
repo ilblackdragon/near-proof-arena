@@ -122,4 +122,5 @@ import WasmBase.Main.SegShaCut
 import WasmBase.Main.BusCount
 import WasmBase.Main.SegMP
 import WasmBase.Main.SegBus
+import WasmBase.Main.SegRowsX
 import WasmBase.Main.SegSoundX

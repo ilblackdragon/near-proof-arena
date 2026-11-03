@@ -1,4 +1,4 @@
-import WasmBase.Main.SegBus
+import WasmBase.Main.SegRowsX
 import WasmBase.Main.CtxNodup
 
 /-!
@@ -190,5 +190,80 @@ theorem seg_sound_rows (X : M2Ctx) {nloc ngl : Nat} {pub : List F} {tr : Trace}
   exact h3
 
 #print axioms seg_sound_rows
+
+/-! ## Channel spaces of the instruction rows
+
+Every CH interaction of an instruction table (1–14, IF, CONV, UNREACH) has as space expression a
+constant in `{0, 2, 3, 4, 5}`, `16 + ts` (CALL: the callee's locals, `ts` = the row's STATE time),
+`16 + cid` (`cid` = the row's STATE activation id), or LOCAL's `(1 − isG)·(16 + cid) + 2·isG`.  So a
+row's consumed/produced messages are in space `0, 2, 3, 4, 5` or `16 + x` with `x` its STATE time or
+activation id (`instr_space`). -/
+
+/-- The `k`-th field expression of a table's STATE receive. -/
+def stE (T : Table) (k : Nat) : Expr := (T.inters.getD 0 default).msg.getD k 0
+
+/-- The allowed space expressions of a table's CH interactions (`loc`: also LOCAL's form). -/
+def spAllowed (T : Table) (loc : Bool) (e : Option Expr) : Bool :=
+  decide (e = some (.c 0)) || decide (e = some (.c 2)) || decide (e = some (.c 3)) ||
+  decide (e = some (.c 4)) || decide (e = some (.c 5)) || decide (e = some (.add (.c 16) (stE T 1))) ||
+  decide (e = some (.add (.c 16) (stE T 5))) || (loc && decide (e = some Local.space))
+
+def SpForm (T : Table) (loc : Bool) : Bool :=
+  T.inters.all fun i => decide (i.bus ≠ busStk) || spAllowed T loc i.msg.head?
+
+theorem instr_spform : ∀ t, IsInstrM2 t → SpForm (chipM2 t) (decide (t = 9)) = true := by
+  intro t ht
+  rcases ht with ⟨h1, h14⟩ | rfl | rfl | rfl
+  · rcases (show t = 1 ∨ t = 2 ∨ t = 3 ∨ t = 4 ∨ t = 5 ∨ t = 6 ∨ t = 7 ∨ t = 8 ∨ t = 9 ∨ t = 10 ∨ t = 11 ∨
+      t = 12 ∨ t = 13 ∨ t = 14 by omega) with
+      rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> decide +kernel
+  all_goals decide +kernel
+
+theorem stE_eval (T : Table) (tr : Trace) (pub : List F) (t r k : Nat) :
+    (stE T k).eval (tr.row pub t r) = (rowIn T tr pub t r).getD k 0 := by
+  simp only [stE, rowIn, List.getD_eq_getElem?_getD, List.getElem?_map]
+  cases h : (T.inters[0]?.getD default).msg[k]? <;> simp [h] <;> rfl
+
+/-- The space of a consumed/produced message of an instruction row: `0, 2, 3, 4, 5`, or `16 + ts`,
+`16 + cid` (field arithmetic) for the row's STATE time / activation id. -/
+def SpaceIn (inS : List F) (x : Msg) : Prop :=
+  x.space = 0 ∨ x.space = 2 ∨ x.space = 3 ∨ x.space = 4 ∨ x.space = 5 ∨
+    x.space = ((16 : F) + inS.getD 1 0).toNat ∨ x.space = ((16 : F) + inS.getD 5 0).toNat
+
+theorem spaceIn_of {T : Table} {loc : Bool} (hS : SpForm T loc = true) {tr : Trace} {pub : List F} {t r : Nat}
+    (hloc : loc = true → (Local.isG.eval (tr.row pub t r) = 0 ∨ Local.isG.eval (tr.row pub t r) = 1) ∧
+      (v Local.kCid).eval (tr.row pub t r) = (rowIn T tr pub t r).getD 5 0)
+    {s : Bool} {m : List F} (hm : m ∈ rowMsgs T tr pub t r busStk s) :
+    SpaceIn (rowIn T tr pub t r) (decMsg m) := by
+  obtain ⟨i, hi, rfl⟩ := mem_rowMsgs hm
+  have hb := (List.mem_filter.mp hi).2
+  simp only [decide_eq_true_eq] at hb
+  have hc := List.all_eq_true.mp hS i (List.mem_filter.mp hi).1
+  simp only [Bool.or_eq_true, decide_eq_true_eq, hb.1, ne_eq, not_true_eq_false, false_or] at hc
+  have hP := P_val
+  have sp : (decMsg (i.msg.map (·.eval (tr.row pub t r)))).space =
+      (match i.msg.head? with | some e => e.eval (tr.row pub t r) | none => 0).toNat := by
+    cases hmsg : i.msg <;> simp [decMsg, hmsg]
+  simp only [SpaceIn]; rw [sp]
+  simp only [spAllowed, Bool.or_eq_true, Bool.and_eq_true, decide_eq_true_eq] at hc
+  rcases hc with ((((((h | h) | h) | h) | h) | h) | h) | ⟨hl, h⟩ <;> rw [h]
+  · left; rfl
+  · right; left; rfl
+  · right; right; left; rfl
+  · right; right; right; left; rfl
+  · right; right; right; right; left; rfl
+  · right; right; right; right; right; left; simp only [Expr.eval, stE_eval]; rfl
+  · right; right; right; right; right; right; simp only [Expr.eval, stE_eval]; rfl
+  · obtain ⟨hg, hk⟩ := hloc hl
+    have e : Local.space = (1 - Local.isG) * (16 + v Local.kCid) + 2 * Local.isG := rfl
+    rw [e]
+    simp only [Expr.eval_add', Expr.eval_mul', Expr.eval_sub', Expr.eval_ofNat', hk]
+    rcases hg with hg | hg <;> rw [hg]
+    · right; right; right; right; right; right
+      congr 1; rw [show ((1 : Nat) : F) = 1 from rfl, show ((2 : Nat) : F) * 0 = 0 by grind]; grind
+    · right; left
+      have : (((1 : Nat) : F) - 1) * (((16 : Nat) : F) + (rowIn T tr pub t r).getD 5 0) + ((2 : Nat) : F) * 1 =
+          ((2 : Nat) : F) := by rw [show ((1 : Nat) : F) = 1 from rfl]; grind
+      rw [this]; rfl
 
 end WasmBase
