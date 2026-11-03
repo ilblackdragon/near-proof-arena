@@ -76,6 +76,7 @@ import WasmBase.M2Ctx
 import WasmBase.Main.M2Rows
 import WasmBase.Main.M2Looks
 import WasmBase.Main.M2If
+import WasmBase.Main.M2Dispatch
 import WasmBase.M2RegAbsent
 import WasmBase.Main.M2RegAbsentFacts
 import WasmBase.M3Air
