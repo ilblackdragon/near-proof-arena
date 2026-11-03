@@ -657,17 +657,19 @@ def RefKind (rk : Nat) : Prop := rk = RK_H ∨ rk = RK_HB ∨ rk = RK_HE ∨ rk 
 /-- What a delete result says about the subtree left: nothing (`NONE`), the unchanged node
 (`SAME`, its own ref), a rewritten node under its ref with its memory (`H` / `HE`, `HB` a kept
 branch), or a leaf descriptor (`LD`: key `K_kid2[st2..]`, the leaf's value ref). -/
-def DRes (σ : Store) (keyOf : Nat → List Nat) (res : Res) : Option PTrie → Prop
-  | none => res.rk = RK_NONE
-  | some t' => (res.rk = RK_SAME ∧ ∃ P', Exp σ (.inl res.ref) (.inl P') ∧ Cl (.inl P') (.inl t')) ∨
-    ((res.rk = RK_H ∨ res.rk = RK_HB ∨ res.rk = RK_HE) ∧ ∃ P', Exp σ (.inl res.ref) (.inl P') ∧
+def DRes (σ : Store) (keyOf : Nat → List Nat) (res : Res) : Bool → Option PTrie → Prop
+  | b, none => res.rk = RK_NONE ∧ b = true
+  | b, some t' => (res.rk = RK_SAME ∧ b = false ∧ ∃ P', Exp σ (.inl res.ref) (.inl P') ∧
+      Cl (.inl P') (.inl t')) ∨
+    ((res.rk = RK_H ∨ res.rk = RK_HB ∨ res.rk = RK_HE) ∧ b = true ∧ ∃ P', Exp σ (.inl res.ref) (.inl P') ∧
       Cl (.inl P') (.inl t') ∧ t'.memD = res.nm ∧ (res.rk = RK_HB → ∃ v cs m, t' = .branch v cs m)) ∨
-    (res.rk = RK_LD ∧ ∃ m2, t' = .leaf ((keyOf res.kid2).drop res.st2) (.ref res.alen res.avh) m2)
+    (res.rk = RK_LD ∧ b = true ∧
+      ∃ m2, t' = .leaf ((keyOf res.kid2).drop res.st2) (.ref res.alen res.avh) m2)
 
 /-- Delete walk below depth `d`. -/
 def SemD (σ : Store) (keyOf : Nat → List Nat) (K : List Nat) (d : Nat) (a : Ref) (res : Res) : Prop :=
   ∀ P, Exp σ (.inl a) (.inl P) → P.wf = true → ∃ t₁ b o, Rv (.inl P) (.inl t₁) ∧
-    DChain t₁ (K.drop d) (b, o) ∧ t₁.mem? = some res.om ∧ DRes σ keyOf res o ∧
+    DChain t₁ (K.drop d) (b, o) ∧ t₁.mem? = some res.om ∧ DRes σ keyOf res b o ∧
     ∀ t', o = some t' → t'.wf = true
 
 /-- Find walk below depth `d` (INTAKE): the answer is absent (`fpres = 0`) or the value ref. -/
@@ -820,6 +822,448 @@ theorem localOK_find {σ : Store} {keyOf : Nat → List Nat} (r : WRow Ref Pay R
     simp only [Sem, hp, hmode]
     exact hs
 
+/-! ## Row-local steps (delete, find) -/
+
+/-- `wf` forward along a reveal. -/
+def WFR : Sum PTrie Kids → Sum PTrie Kids → Prop
+  | .inl a, .inl b => a.wf = true → b.wf = true
+  | .inr a, .inr b => ∀ n, Kids.wf a n = true → Kids.wf b n = true
+  | _, _ => True
+
+theorem rv_wf {x y : Sum PTrie Kids} (h : Rv x y) : WFR x y := by
+  induction h with
+  | refl x => cases x <;> simp [WFR]
+  | stub h n n' _ hw _ _ _ ih => simp only [WFR] at ih ⊢; intro _; exact ih hw
+  | ext k c c' m _ ih =>
+    simp only [WFR, PTrie.wf, Bool.and_eq_true] at ih ⊢
+    intro hw; exact ⟨⟨⟨hw.1.1.1, ih hw.1.1.2⟩, hw.1.2⟩, hw.2⟩
+  | branch v cs cs' m _ ih =>
+    simp only [WFR, PTrie.wf, Bool.and_eq_true] at ih ⊢
+    intro hw; exact ⟨⟨hw.1.1, ih 16 hw.1.2⟩, hw.2⟩
+  | knone r r' _ ih =>
+    simp only [WFR, Kids.wf, Bool.and_eq_true] at ih ⊢
+    intro n hw; exact ⟨hw.1, ih _ hw.2⟩
+  | ksome c c' r r' _ _ ihc ihr =>
+    simp only [WFR, Kids.wf, Bool.and_eq_true] at ihc ihr ⊢
+    intro n hw; exact ⟨⟨hw.1.1, ihc hw.1.2⟩, ihr _ hw.2⟩
+
+theorem kexp_at_none {σ : Store} : ∀ {rcs : RKids} {ks : Kids} {n : Nat},
+    Exp σ (.inr rcs) (.inr ks) → rcs.at n = none → Kids.at ks n = none
+  | .nil, _, n, e, _ => by cases e; cases n <;> rfl
+  | .none r, _, 0, e, _ => by cases e; rfl
+  | .some c r, _, 0, _, h => by simp [RKids.at] at h
+  | .none r, _, n + 1, e, h => by
+    cases e with
+    | knone _ ks hr => simp only [RKids.at] at h; simp only [Kids.at]; exact kexp_at_none hr h
+  | .some c r, _, n + 1, e, h => by
+    cases e with
+    | ksome _ _ t ks _ hr => simp only [RKids.at] at h; simp only [Kids.at]; exact kexp_at_none hr h
+
+end StateM5a.BusWalk
+
+namespace StateM5a.Store
+
+/-- Number of present slots of a record's children (the row's `Σ nf`). -/
+def RKids.count : RKids → Nat
+  | .nil => 0
+  | .none r => RKids.count r
+  | .some _ r => RKids.count r + 1
+
+end StateM5a.Store
+
+namespace StateM5a.BusWalk
+
+open StateM5a NearSpec NearSpecV3.D2 StateM5a.Steps StateM5a.Walk StateM5a.Store StateM5a.Traffic
+
+theorem kcl_present_length {σ : Store} {rcs : RKids} {ks : Kids} (h : KCl σ rcs ks) :
+    ∀ i, (Kids.present ks i).length = rcs.count := by
+  induction h with
+  | nil => intro i; rfl
+  | none r ks _ ih => intro i; simp only [Kids.present, RKids.count]; exact ih _
+  | some c r t ks _ _ ih => intro i; simp only [Kids.present, RKids.count, List.length_cons]; rw [ih]
+
+theorem kcl_put_none {σ : Store} : ∀ {rcs : RKids} {ks : Kids} {n : Nat} {c : Ref},
+    KCl σ rcs ks → rcs.at n = some c → KCl σ (rcs.put n none) (Kids.put ks n none)
+  | .nil, _, n, _, _, h => by cases n <;> simp [RKids.at] at h
+  | .none r, _, 0, _, _, h => by simp [RKids.at] at h
+  | .some _ r, _, 0, _, k, _ => by
+    cases k with
+    | some _ _ _ ks _ hk => exact .none _ _ hk
+  | .none r, _, n + 1, _, k, h => by
+    cases k with
+    | none _ ks hk => simp only [RKids.at] at h; exact .none _ _ (kcl_put_none hk h)
+  | .some _ r, _, n + 1, _, k, h => by
+    cases k with
+    | some _ _ t₀ ks h₀ hk => simp only [RKids.at] at h; exact .some _ _ _ _ h₀ (kcl_put_none hk h)
+
+theorem kids_wf_put_none : ∀ {ks : Kids} {n i : Nat} {c : PTrie}, Kids.wf ks n = true →
+    Kids.at ks i = some c → Kids.wf (Kids.put ks i none) n = true
+  | .nil, _, i, _, _, h => by cases i <;> simp [Kids.at] at h
+  | .none r, _, 0, _, _, h => by simp [Kids.at] at h
+  | .some c' r, _, 0, _, hw, _ => by
+    simp only [Kids.wf, Bool.and_eq_true] at hw
+    simp only [Kids.put, Kids.wf, Bool.and_eq_true]; exact ⟨hw.1.1, hw.2⟩
+  | .none r, _, i + 1, _, hw, h => by
+    simp only [Kids.wf, Bool.and_eq_true] at hw; simp only [Kids.at] at h
+    simp only [Kids.put, Kids.wf, Bool.and_eq_true]; exact ⟨hw.1, kids_wf_put_none hw.2 h⟩
+  | .some c' r, _, i + 1, _, hw, h => by
+    simp only [Kids.wf, Bool.and_eq_true] at hw; simp only [Kids.at] at h
+    simp only [Kids.put, Kids.wf, Bool.and_eq_true]; exact ⟨hw.1, kids_wf_put_none hw.2 h⟩
+
+/-- An unchanged node is the `SAME` result of its own ref. -/
+theorem same_res {σ : Store} {keyOf : Nat → List Nat} {a : Ref} {P t : PTrie} {res : Res}
+    (hP : Exp σ (.inl a) (.inl P)) (hrv : Rv (.inl P) (.inl t)) (hrk : res.rk = RK_SAME)
+    (href : res.ref = a) : DRes σ keyOf res false (some t) :=
+  Or.inl ⟨hrk, rfl, P, href ▸ hP, rv_cl hrv⟩
+
+/-- **`SN.oLD`** (leaf delete): the key ends at this leaf; nothing is left (`NONE`). -/
+theorem step_leafDel {σ : Store} {keyOf : Nat → List Nat} {K : List Nat} {d : Nat} {a : Ref}
+    {res : Res} {k : List Nat} {s : Slot} {m : Nat} (hold : OldOK σ a (.leaf k s m))
+    (hK : K.drop d = k) (hrk : res.rk = RK_NONE) (hom : res.om = m) : SemD σ keyOf K d a res := by
+  intro P hP hPw
+  obtain ⟨N, hN, -, hrv⟩ := in_view_wf hold hP hPw
+  simp only [RecExp] at hN; subst hN
+  exact ⟨_, true, none, hrv _ (.refl _), hK ▸ DChain.leafDel k s m, by simp [PTrie.mem?, hom],
+    ⟨hrk, rfl⟩, by simp⟩
+
+/-- **`SN.oLZ`** (absent delete at a leaf): mismatch witness `jm`; the leaf is `SAME`. -/
+theorem step_leafAbs {σ : Store} {keyOf : Nat → List Nat} {K : List Nat} {d : Nat} {a : Ref}
+    {res : Res} {k : List Nat} {s : Slot} {m jm : Nat} (hold : OldOK σ a (.leaf k s m))
+    (hmis : k[jm]? ≠ (K.drop d)[jm]?) (hrk : res.rk = RK_SAME) (href : res.ref = a)
+    (hom : res.om = m) : SemD σ keyOf K d a res := by
+  intro P hP hPw
+  obtain ⟨N, hN, hNw, hrv⟩ := in_view_wf hold hP hPw
+  simp only [RecExp] at hN; subst hN
+  exact ⟨_, false, _, hrv _ (.refl _), DChain.leafAbs k _ s m jm hmis, by simp [PTrie.mem?, hom],
+    same_res hP (hrv _ (.refl _)) hrk href, by intro t' e; cases e; exact hNw⟩
+
+/-- **`SN.oEZ`** (absent delete at an extension): mismatch within the extension's key. -/
+theorem step_extAbs {σ : Store} {keyOf : Nat → List Nat} {K : List Nat} {d : Nat} {a c : Ref}
+    {res : Res} {k : List Nat} {m jm : Nat} (hold : OldOK σ a (.ext k c m)) (hj : jm < k.length)
+    (hmis : k[jm]? ≠ (K.drop d)[jm]?) (hrk : res.rk = RK_SAME) (href : res.ref = a)
+    (hom : res.om = m) : SemD σ keyOf K d a res := by
+  intro P hP hPw
+  obtain ⟨N, ⟨Pc, rfl, -⟩, hNw, hrv⟩ := in_view_wf hold hP hPw
+  exact ⟨_, false, _, hrv _ (.refl _), DChain.extAbs k _ Pc m jm hj hmis, by simp [PTrie.mem?, hom],
+    same_res hP (hrv _ (.refl _)) hrk href, by intro t' e; cases e; exact hNw⟩
+
+/-- **`SN.oES`** (delete below an extension, child `SAME`): the extension is `SAME`. -/
+theorem step_extSame {σ : Store} {keyOf : Nat → List Nat} {K : List Nat} {d : Nat} {a c : Ref}
+    {res cres : Res} {k : List Nat} {m : Nat} (hold : OldOK σ a (.ext k c m))
+    (hK : K.drop d = k ++ K.drop (d + k.length)) (hrkc : cres.rk = RK_SAME) (hrk : res.rk = RK_SAME)
+    (href : res.ref = a) (hom : res.om = m) (hc : SemD σ keyOf K (d + k.length) c cres) :
+    SemD σ keyOf K d a res := by
+  intro P hP hPw
+  obtain ⟨N, ⟨Pc, rfl, hPc⟩, hNw, hrv⟩ := in_view_wf hold hP hPw
+  simp only [PTrie.wf, Bool.and_eq_true] at hNw
+  obtain ⟨tc, bc, oc, hrc, hdc, hmc, hresc, -⟩ := hc Pc hPc hNw.1.1.2
+  have hbc : bc = false := by
+    cases oc with
+    | none => simp only [DRes] at hresc; rw [hresc.1] at hrkc; simp [RK_NONE, RK_SAME] at hrkc
+    | some _ =>
+      simp only [DRes] at hresc
+      rcases hresc with ⟨-, h, -⟩ | ⟨h, -⟩ | ⟨h, -⟩
+      · exact h
+      · rcases h with h | h | h <;> rw [h] at hrkc <;> simp [RK_H, RK_HB, RK_HE, RK_SAME] at hrkc
+      · rw [h] at hrkc; simp [RK_LD, RK_SAME] at hrkc
+  subst hbc
+  have hr : Rv (.inl P) (.inl (.ext k tc m)) := hrv _ (.ext _ _ _ _ hrc)
+  refine ⟨_, false, _, hr, ?_, by simp [PTrie.mem?, hom], same_res hP hr hrk href, ?_⟩
+  · rw [hK]; exact DChain.extSame k _ tc m cres.om oc hmc hdc
+  · intro t' e; cases e; exact (rv_wf hr : WFR _ _) hPw
+
+/-- **`SN.oED`** (delete below an extension, child a leaf descriptor): the extension's key joins
+the leaf's (`extendChild`); the descriptor's key `K_kid2[d..]` is the extension's key followed
+by the child descriptor's key (the extension's nibbles are also looked up against `kid2`). -/
+theorem step_extLeaf {σ : Store} {keyOf : Nat → List Nat} {K : List Nat} {d : Nat} {a c : Ref}
+    {res cres : Res} {k : List Nat} {m : Nat} (hold : OldOK σ a (.ext k c m))
+    (hK : K.drop d = k ++ K.drop (d + k.length)) (hrkc : cres.rk = RK_LD) (hrk : res.rk = RK_LD)
+    (hk2 : res.kid2 = cres.kid2) (hst : res.st2 = d) (hal : res.alen = cres.alen)
+    (hah : res.avh = cres.avh)
+    (hK2 : (keyOf cres.kid2).drop d = k ++ (keyOf cres.kid2).drop cres.st2)
+    (hom : res.om = m)
+    (hdw : (PTrie.leaf ((keyOf res.kid2).drop res.st2) (.ref res.alen res.avh)
+      (leafMem ((keyOf res.kid2).drop res.st2) res.alen)).wf = true)
+    (hc : SemD σ keyOf K (d + k.length) c cres) : SemD σ keyOf K d a res := by
+  intro P hP hPw
+  obtain ⟨N, ⟨Pc, rfl, hPc⟩, hNw, hrv⟩ := in_view_wf hold hP hPw
+  simp only [PTrie.wf, Bool.and_eq_true] at hNw
+  obtain ⟨tc, bc, oc, hrc, hdc, hmc, hresc, -⟩ := hc Pc hPc hNw.1.1.2
+  obtain ⟨m2, rfl, hbc⟩ : ∃ m2, oc = some (.leaf ((keyOf cres.kid2).drop cres.st2)
+      (.ref cres.alen cres.avh) m2) ∧ bc = true := by
+    cases oc with
+    | none => simp only [DRes] at hresc; rw [hresc.1] at hrkc; simp [RK_NONE, RK_LD] at hrkc
+    | some t' =>
+      simp only [DRes] at hresc
+      rcases hresc with ⟨h, -⟩ | ⟨h, -⟩ | ⟨-, hb, m2, rfl⟩
+      · rw [h] at hrkc; simp [RK_LD, RK_SAME] at hrkc
+      · rcases h with h | h | h <;> rw [h] at hrkc <;> simp [RK_H, RK_HB, RK_HE, RK_LD] at hrkc
+      · exact ⟨m2, rfl, hb⟩
+  subst hbc
+  have hr : Rv (.inl P) (.inl (.ext k tc m)) := hrv _ (.ext _ _ _ _ hrc)
+  have hkey : k ++ (keyOf cres.kid2).drop cres.st2 = (keyOf res.kid2).drop res.st2 := by
+    rw [hk2, hst, hK2]
+  refine ⟨_, true, some (.leaf (k ++ (keyOf cres.kid2).drop cres.st2) (.ref cres.alen cres.avh)
+    (leafMem (k ++ (keyOf cres.kid2).drop cres.st2) (Slot.ref cres.alen cres.avh).len)), hr, ?_,
+    by simp [PTrie.mem?, hom], ?_, ?_⟩
+  · rw [hK]; exact DChain.extLeaf k _ _ tc m cres.om m2 _ hmc hdc
+  · refine Or.inr (Or.inr ⟨hrk, rfl, leafMem (k ++ (keyOf cres.kid2).drop cres.st2)
+      (Slot.ref cres.alen cres.avh).len, ?_⟩)
+    rw [hkey, hal, hah]
+  · intro t' e; cases e
+    simp only [Slot.len]; rw [hkey, ← hal, ← hah]; exact hdw
+
+/-- **`SN.oEB`** (delete below an extension, child a kept branch `HB`): the extension over the
+branch's new ref (`extendChild k (branch …)`), memory `extOwnMem k + nm` (`< 2^64`), result `HE`. -/
+theorem step_extBranch {σ : Store} {keyOf : Nat → List Nat} {K : List Nat} {d : Nat} {a c : Ref}
+    {res cres : Res} {k : List Nat} {m : Nat} (hold : OldOK σ a (.ext k c m))
+    (hK : K.drop d = k ++ K.drop (d + k.length)) (hrkc : cres.rk = RK_HB) (hrk : res.rk = RK_HE)
+    (hnew : NewOK σ res.ref (.ext k cres.ref (extOwnMem k + cres.nm)))
+    (hom : res.om = m) (hnm : res.nm = extOwnMem k + cres.nm) (hnb : res.nm < 18446744073709551616)
+    (hc : SemD σ keyOf K (d + k.length) c cres) : SemD σ keyOf K d a res := by
+  intro P hP hPw
+  obtain ⟨N, ⟨Pc, rfl, hPc⟩, hNw, hrv⟩ := in_view_wf hold hP hPw
+  simp only [PTrie.wf, Bool.and_eq_true] at hNw
+  obtain ⟨tc, bc, oc, hrc, hdc, hmc, hresc, hwc⟩ := hc Pc hPc hNw.1.1.2
+  obtain ⟨bv, cs, m', rfl, hbc, Pc', hPc', hclc, hnc⟩ : ∃ bv cs m', oc = some (.branch bv cs m') ∧
+      bc = true ∧ ∃ Pc', Exp σ (.inl cres.ref) (.inl Pc') ∧ Cl (.inl Pc') (.inl (.branch bv cs m')) ∧
+      m' = cres.nm := by
+    cases oc with
+    | none => simp only [DRes] at hresc; rw [hresc.1] at hrkc; simp [RK_NONE, RK_HB] at hrkc
+    | some t' =>
+      simp only [DRes] at hresc
+      rcases hresc with ⟨h, -⟩ | ⟨-, hb, Pc', hPc', hclc, hn, hsh⟩ | ⟨h, -⟩
+      · rw [h] at hrkc; simp [RK_HB, RK_SAME] at hrkc
+      · obtain ⟨bv, cs, m', rfl⟩ := hsh hrkc
+        exact ⟨bv, cs, m', rfl, hb, Pc', hPc', hclc, hn⟩
+      · rw [h] at hrkc; simp [RK_LD, RK_HB] at hrkc
+  subst hbc
+  have hr : Rv (.inl P) (.inl (.ext k tc m)) := hrv _ (.ext _ _ _ _ hrc)
+  obtain ⟨P', hP', hcl⟩ := out_view hnew (N := .ext k (.branch bv cs m') (extOwnMem k + m'))
+    ⟨_, by rw [hnc], Pc', hPc', hclc⟩
+  refine ⟨_, true, some (.ext k (.branch bv cs m') (extOwnMem k + m')), hr, ?_,
+    by simp [PTrie.mem?, hom], ?_, ?_⟩
+  · rw [hK]; exact DChain.extBranch k _ tc m cres.om bv cs m' hmc hdc
+  · refine Or.inr (Or.inl ⟨Or.inr (Or.inr hrk), rfl, P', hP', hcl, ?_, ?_⟩)
+    · show extOwnMem k + m' = res.nm
+      rw [hnc, hnm]
+    · intro h; rw [hrk] at h; simp [RK_HE, RK_HB] at h
+  · intro t' e; cases e
+    have hw := hwc _ rfl
+    simp only [PTrie.wf, Bool.and_eq_true, decide_eq_true_eq] at hw ⊢
+    refine ⟨⟨⟨hNw.1.1.1, hw⟩, ?_⟩, by simpa using hNw.2⟩
+    rw [hnc, ← hnm]; exact hnb
+
+/-- **`BR.oDA`** (absent delete at an empty slot): the branch is `SAME`. -/
+theorem step_brAbs {σ : Store} {keyOf : Nat → List Nat} {K : List Nat} {d : Nat} {a : Ref}
+    {res : Res} {v : Option Slot} {rcs : RKids} {m n : Nat} (hold : OldOK σ a (.branch v rcs m))
+    (hat : rcs.at n = none) (hK : K.drop d = n :: K.drop (d + 1)) (hrk : res.rk = RK_SAME)
+    (href : res.ref = a) (hom : res.om = m) : SemD σ keyOf K d a res := by
+  intro P hP hPw
+  obtain ⟨N, ⟨ks, rfl, hks⟩, hNw, hrv⟩ := in_view_wf hold hP hPw
+  refine ⟨_, false, _, hrv _ (.refl _), ?_, by simp [PTrie.mem?, hom],
+    same_res hP (hrv _ (.refl _)) hrk href, by intro t' e; cases e; exact hNw⟩
+  rw [hK]; exact DChain.brAbs v ks m n _ (kexp_at_none hks hat)
+
+/-- **`BR.oDS`** (delete below a branch, child `SAME`): the branch is `SAME`. -/
+theorem step_brSame {σ : Store} {keyOf : Nat → List Nat} {K : List Nat} {d : Nat} {a c : Ref}
+    {res cres : Res} {v : Option Slot} {rcs : RKids} {m n : Nat} (hold : OldOK σ a (.branch v rcs m))
+    (hat : rcs.at n = some c) (hK : K.drop d = n :: K.drop (d + 1)) (hrkc : cres.rk = RK_SAME)
+    (hrk : res.rk = RK_SAME) (href : res.ref = a) (hom : res.om = m)
+    (hc : SemD σ keyOf K (d + 1) c cres) : SemD σ keyOf K d a res := by
+  intro P hP hPw
+  obtain ⟨N, ⟨ks, rfl, hks⟩, hNw, hrv⟩ := in_view_wf hold hP hPw
+  obtain ⟨Pc, hat', hPc⟩ := kexp_at hks hat
+  have hNw' := hNw
+  simp only [PTrie.wf, Bool.and_eq_true] at hNw'
+  obtain ⟨tc, bc, oc, hrc, hdc, hmc, hresc, -⟩ := hc Pc hPc (kids_wf_at hNw'.1.2 hat')
+  have hbc : bc = false := by
+    cases oc with
+    | none => simp only [DRes] at hresc; rw [hresc.1] at hrkc; simp [RK_NONE, RK_SAME] at hrkc
+    | some _ =>
+      simp only [DRes] at hresc
+      rcases hresc with ⟨-, h, -⟩ | ⟨h, -⟩ | ⟨h, -⟩
+      · exact h
+      · rcases h with h | h | h <;> rw [h] at hrkc <;> simp [RK_H, RK_HB, RK_HE, RK_SAME] at hrkc
+      · rw [h] at hrkc; simp [RK_LD, RK_SAME] at hrkc
+  subst hbc
+  have hr : Rv (.inl P) (.inl (.branch v (Kids.put ks n (some tc)) m)) :=
+    hrv _ (.branch _ _ _ _ (rv_kids_put hat' hrc))
+  refine ⟨_, false, _, hr, ?_, by simp [PTrie.mem?, hom], same_res hP hr hrk href, ?_⟩
+  · rw [hK]; exact DChain.brSame v _ m n _ tc cres.om oc (kids_put_at tc hat') hmc hdc
+  · intro t' e; cases e; exact (rv_wf hr : WFR _ _) hPw
+
+/-- **`BR.oDH` / `oDN`** (delete below a branch that is kept): the child's result (a rewritten
+node `H`/`HB`/`HE` under its ref, or nothing, `NONE`) replaces slot `n`; the branch keeps
+`≥ 1` child and (a value or `≥ 2` children) — `FieldRows.br_keep`; memory `m − om + nm`
+(`< 2^64`); result `HB`. -/
+theorem step_brKeep {σ : Store} {keyOf : Nat → List Nat} {K : List Nat} {d : Nat} {a c : Ref}
+    {res cres : Res} {v : Option Slot} {rcs : RKids} {m n : Nat} (hold : OldOK σ a (.branch v rcs m))
+    (hat : rcs.at n = some c) (hK : K.drop d = n :: K.drop (d + 1))
+    (hrkc : cres.rk = RK_NONE ∨ cres.rk = RK_H ∨ cres.rk = RK_HB ∨ cres.rk = RK_HE)
+    (hrk : res.rk = RK_HB)
+    (hnew : NewOK σ res.ref (.branch v (rcs.put n (if cres.rk = RK_NONE then none else some cres.ref))
+      (m - cres.om + (if cres.rk = RK_NONE then 0 else cres.nm))))
+    (hcnt : (rcs.put n (if cres.rk = RK_NONE then none else some cres.ref)).count ≠ 0)
+    (hcnt1 : v = none → (rcs.put n (if cres.rk = RK_NONE then none else some cres.ref)).count ≠ 1)
+    (hom : res.om = m) (hnm : res.nm = m - cres.om + (if cres.rk = RK_NONE then 0 else cres.nm))
+    (hnb : res.nm < 18446744073709551616)
+    (hc : SemD σ keyOf K (d + 1) c cres) : SemD σ keyOf K d a res := by
+  intro P hP hPw
+  obtain ⟨N, ⟨ks, rfl, hks⟩, hNw, hrv⟩ := in_view_wf hold hP hPw
+  obtain ⟨Pc, hat', hPc⟩ := kexp_at hks hat
+  simp only [PTrie.wf, Bool.and_eq_true] at hNw
+  obtain ⟨tc, bc, oc, hrc, hdc, hmc, hresc, hwc⟩ := hc Pc hPc (kids_wf_at hNw.1.2 hat')
+  -- the child's result: nothing, or a node under `cres.ref`
+  obtain ⟨hbc, hcl, hmem⟩ : bc = true ∧
+      KCl σ (rcs.put n (if cres.rk = RK_NONE then none else some cres.ref)) (Kids.put ks n oc) ∧
+      delMem oc = (if cres.rk = RK_NONE then 0 else cres.nm) := by
+    cases oc with
+    | none =>
+      simp only [DRes] at hresc
+      obtain ⟨h, hb⟩ := hresc
+      simp only [h, ite_true]
+      exact ⟨hb, kcl_put_none (kcl_of_exp hks) hat, rfl⟩
+    | some t' =>
+      simp only [DRes] at hresc
+      rcases hresc with ⟨h, -⟩ | ⟨h, hb, Pc', hPc', hclc, hn, -⟩ | ⟨h, -⟩
+      · exfalso; rcases hrkc with e | e | e | e <;> rw [h] at e <;>
+          simp [RK_SAME, RK_NONE, RK_H, RK_HB, RK_HE] at e
+      · have hne : cres.rk ≠ RK_NONE := by
+          rcases h with e | e | e <;> rw [e] <;> simp [RK_NONE, RK_H, RK_HB, RK_HE]
+        simp only [hne, ite_false]
+        exact ⟨hb, kcl_put (kcl_of_exp hks) hat ⟨Pc', hPc', hclc⟩, hn⟩
+      · exfalso; rcases hrkc with e | e | e | e <;> rw [h] at e <;>
+          simp [RK_LD, RK_NONE, RK_H, RK_HB, RK_HE] at e
+  subst hbc
+  have hr : Rv (.inl P) (.inl (.branch v (Kids.put ks n (some tc)) m)) :=
+    hrv _ (.branch _ _ _ _ (rv_kids_put hat' hrc))
+  have hpp : Kids.put (Kids.put ks n (some tc)) n oc = Kids.put ks n oc := kids_put_put _ _ _ _
+  have hlen := kcl_present_length hcl 0
+  refine ⟨_, true, some (.branch v (Kids.put (Kids.put ks n (some tc)) n oc) (m - cres.om + delMem oc)),
+    hr, ?_, by simp [PTrie.mem?, hom], ?_, ?_⟩
+  · rw [hK]
+    refine DChain.brKeep v _ m n _ tc oc cres.om (kids_put_at tc hat') hmc hdc ?_ ?_
+    · rw [hpp]; intro e; rw [e] at hlen; exact hcnt hlen.symm
+    · rw [hpp]; intro hv e; rw [e] at hlen; exact hcnt1 hv hlen.symm
+  · obtain ⟨P', hP', hcl'⟩ := out_view hnew (N := .branch v (Kids.put ks n oc)
+      (m - cres.om + (if cres.rk = RK_NONE then 0 else cres.nm))) ⟨_, rfl, hcl⟩
+    refine Or.inr (Or.inl ⟨Or.inr (Or.inl hrk), rfl, P', hP', ?_, ?_, fun _ => ⟨_, _, _, rfl⟩⟩)
+    · rw [hpp, hmem]; exact hcl'
+    · show m - cres.om + delMem oc = res.nm
+      rw [hmem, hnm]
+  · intro t' e; cases e
+    simp only [PTrie.wf, Bool.and_eq_true, decide_eq_true_eq]
+    rw [hpp, hmem, ← hnm]
+    refine ⟨⟨hNw.1.1, ?_⟩, hnb⟩
+    cases oc with
+    | none => exact kids_wf_put_none hNw.1.2 hat'
+    | some t' => exact kids_wf_put hNw.1.2 hat' (hwc t' rfl)
+
+/-- **`SN.oLF`** (find hit at a leaf): the answer is the leaf's value ref. -/
+theorem step_leafHit {σ : Store} {K : List Nat} {d : Nat} {a : Ref} {res : Res} {k : List Nat}
+    {m : Nat} (hold : OldOK σ a (.leaf k (.ref res.alen res.avh) m)) (hK : K.drop d = k)
+    (hf : res.fpres = 1) : SemF σ K d a res := by
+  intro P hP hPw
+  obtain ⟨N, hN, -, hrv⟩ := in_view_wf hold hP hPw
+  simp only [RecExp] at hN; subst hN
+  exact ⟨_, _, hrv _ (.refl _), hK ▸ FChain.leafHit k _ m, Or.inr ⟨hf, rfl⟩⟩
+
+/-- **`SN.oLA`** (find miss at a leaf, mismatch witness). -/
+theorem step_leafMiss {σ : Store} {K : List Nat} {d : Nat} {a : Ref} {res : Res} {k : List Nat}
+    {s : Slot} {m jm : Nat} (hold : OldOK σ a (.leaf k s m)) (hmis : k[jm]? ≠ (K.drop d)[jm]?)
+    (hf : res.fpres = 0) : SemF σ K d a res := by
+  intro P hP hPw
+  obtain ⟨N, hN, -, hrv⟩ := in_view_wf hold hP hPw
+  simp only [RecExp] at hN; subst hN
+  exact ⟨_, _, hrv _ (.refl _), FChain.leafMiss k _ s m jm hmis, Or.inl ⟨hf, rfl⟩⟩
+
+/-- **`SN.oEA`** (find miss at an extension). -/
+theorem step_extMiss {σ : Store} {K : List Nat} {d : Nat} {a c : Ref} {res : Res} {k : List Nat}
+    {m jm : Nat} (hold : OldOK σ a (.ext k c m)) (hj : jm < k.length)
+    (hmis : k[jm]? ≠ (K.drop d)[jm]?) (hf : res.fpres = 0) : SemF σ K d a res := by
+  intro P hP hPw
+  obtain ⟨N, ⟨Pc, rfl, -⟩, -, hrv⟩ := in_view_wf hold hP hPw
+  exact ⟨_, _, hrv _ (.refl _), FChain.extMiss k _ Pc m jm hj hmis, Or.inl ⟨hf, rfl⟩⟩
+
+/-- **`SN.oEF`** (find through an extension): the child's answer. -/
+theorem step_extFind {σ : Store} {K : List Nat} {d : Nat} {a c : Ref} {res cres : Res}
+    {k : List Nat} {m : Nat} (hold : OldOK σ a (.ext k c m))
+    (hK : K.drop d = k ++ K.drop (d + k.length)) (hf : res.fpres = cres.fpres)
+    (hal : res.alen = cres.alen) (hah : res.avh = cres.avh)
+    (hc : SemF σ K (d + k.length) c cres) : SemF σ K d a res := by
+  intro P hP hPw
+  obtain ⟨N, ⟨Pc, rfl, hPc⟩, hNw, hrv⟩ := in_view_wf hold hP hPw
+  simp only [PTrie.wf, Bool.and_eq_true] at hNw
+  obtain ⟨tc, ans, hrc, hfc, hans⟩ := hc Pc hPc hNw.1.1.2
+  refine ⟨_, ans, hrv _ (.ext _ _ _ _ hrc), ?_, ?_⟩
+  · rw [hK]; exact FChain.extDesc k _ tc m ans hfc
+  · rw [hf, hal, hah]; exact hans
+
+/-- **`BR.oFD`** (find through a branch): the child's answer. -/
+theorem step_brFind {σ : Store} {K : List Nat} {d : Nat} {a c : Ref} {res cres : Res}
+    {v : Option Slot} {rcs : RKids} {m n : Nat} (hold : OldOK σ a (.branch v rcs m))
+    (hat : rcs.at n = some c) (hK : K.drop d = n :: K.drop (d + 1)) (hf : res.fpres = cres.fpres)
+    (hal : res.alen = cres.alen) (hah : res.avh = cres.avh)
+    (hc : SemF σ K (d + 1) c cres) : SemF σ K d a res := by
+  intro P hP hPw
+  obtain ⟨N, ⟨ks, rfl, hks⟩, hNw, hrv⟩ := in_view_wf hold hP hPw
+  obtain ⟨Pc, hat', hPc⟩ := kexp_at hks hat
+  simp only [PTrie.wf, Bool.and_eq_true] at hNw
+  obtain ⟨tc, ans, hrc, hfc, hans⟩ := hc Pc hPc (kids_wf_at hNw.1.2 hat')
+  refine ⟨_, ans, hrv _ (.branch _ _ _ _ (rv_kids_put hat' hrc)), ?_, ?_⟩
+  · rw [hK]; exact FChain.brDesc v _ m n _ tc ans (kids_put_at tc hat') hfc
+  · rw [hf, hal, hah]; exact hans
+
+/-- **`BR.oFA`** (find miss at an empty slot). -/
+theorem step_brEmpty {σ : Store} {K : List Nat} {d : Nat} {a : Ref} {res : Res}
+    {v : Option Slot} {rcs : RKids} {m n : Nat} (hold : OldOK σ a (.branch v rcs m))
+    (hat : rcs.at n = none) (hK : K.drop d = n :: K.drop (d + 1)) (hf : res.fpres = 0) :
+    SemF σ K d a res := by
+  intro P hP hPw
+  obtain ⟨N, ⟨ks, rfl, hks⟩, -, hrv⟩ := in_view_wf hold hP hPw
+  refine ⟨_, none, hrv _ (.refl _), ?_, Or.inl ⟨hf, rfl⟩⟩
+  rw [hK]; exact FChain.brEmpty v ks m n _ (kexp_at_none hks hat)
+
+/-- **`BR.oFV`** (the key ends at this branch: its value; `KLEN`). -/
+theorem step_brVal {σ : Store} {K : List Nat} {d : Nat} {a : Ref} {res : Res}
+    {v : Option Slot} {rcs : RKids} {m : Nat} (hold : OldOK σ a (.branch v rcs m))
+    (hK : K.drop d = []) (hv : (res.fpres = 0 ∧ v = none) ∨ (res.fpres = 1 ∧ v = some (.ref res.alen res.avh))) :
+    SemF σ K d a res := by
+  intro P hP hPw
+  obtain ⟨N, ⟨ks, rfl, hks⟩, -, hrv⟩ := in_view_wf hold hP hPw
+  exact ⟨_, v, hrv _ (.refl _), hK ▸ FChain.brVal v ks m, hv⟩
+
+/-- **`BR.oDZ`** (absent value delete: the key ends at a branch without a value): `SAME`. -/
+theorem step_brValAbs {σ : Store} {keyOf : Nat → List Nat} {K : List Nat} {d : Nat} {a : Ref}
+    {res : Res} {rcs : RKids} {m : Nat} (hold : OldOK σ a (.branch none rcs m)) (hK : K.drop d = [])
+    (hrk : res.rk = RK_SAME) (href : res.ref = a) (hom : res.om = m) : SemD σ keyOf K d a res := by
+  intro P hP hPw
+  obtain ⟨N, ⟨ks, rfl, hks⟩, hNw, hrv⟩ := in_view_wf hold hP hPw
+  exact ⟨_, false, _, hrv _ (.refl _), hK ▸ DChain.brValAbs ks m, by simp [PTrie.mem?, hom],
+    same_res hP (hrv _ (.refl _)) hrk href, by intro t' e; cases e; exact hNw⟩
+
+/-- **`BR.oDV`** (value delete keeping the branch, `≥ 2` children): result `HB`, memory
+`m − valueMem |old|`. -/
+theorem step_brDelVal {σ : Store} {keyOf : Nat → List Nat} {K : List Nat} {d : Nat} {a : Ref}
+    {res : Res} {s : Slot} {rcs : RKids} {m : Nat} (hold : OldOK σ a (.branch (some s) rcs m))
+    (hK : K.drop d = []) (hcnt : 2 ≤ rcs.count) (hrk : res.rk = RK_HB)
+    (hnew : NewOK σ res.ref (.branch none rcs (m - valueMem s.len)))
+    (hom : res.om = m) (hnm : res.nm = m - valueMem s.len) : SemD σ keyOf K d a res := by
+  intro P hP hPw
+  obtain ⟨N, ⟨ks, rfl, hks⟩, hNw, hrv⟩ := in_view_wf hold hP hPw
+  have hcl := kcl_of_exp hks
+  obtain ⟨P', hP', hcl'⟩ := out_view hnew (N := .branch none ks (m - valueMem s.len)) ⟨_, rfl, hcl⟩
+  refine ⟨_, true, some (.branch none ks (m - valueMem s.len)), hrv _ (.refl _), hK ▸ DChain.brDelVal s ks m (by rw [kcl_present_length hcl 0]; exact hcnt),
+    by simp [PTrie.mem?, hom], Or.inr (Or.inl ⟨Or.inr (Or.inl hrk), rfl, P', hP', hcl', ?_,
+      fun _ => ⟨_, _, _, rfl⟩⟩), ?_⟩
+  · show m - valueMem s.len = res.nm
+    rw [hnm]
+  · intro t' e; cases e
+    simp only [PTrie.wf, Bool.and_eq_true, decide_eq_true_eq] at hNw ⊢
+    exact ⟨⟨trivial, hNw.1.2⟩, by omega⟩
+
+
 /-! ## All changes: the induction on the root chain -/
 
 /-- One committed change's rows, on the expansion `P` of the change's input ref: reveal, run the
@@ -905,10 +1349,10 @@ theorem stepRows_of_sem {σ : Store} {keyOf : Nat → List Nat} {q : Root Ref Pa
     cases o with
     | none =>
       simp only [DRes] at hres
-      rcases hrk with h | h | h | h <;> rw [hres] at h <;> simp [RK_NONE, RK_H, RK_HB, RK_HE, RK_SAME] at h
+      rcases hrk with h | h | h | h <;> rw [hres.1] at h <;> simp [RK_NONE, RK_H, RK_HB, RK_HE, RK_SAME] at h
     | some t' =>
       simp only [DRes] at hres
-      rcases hres with ⟨-, P', hP', hcl⟩ | ⟨-, P', hP', hcl, -⟩ | ⟨h, -⟩
+      rcases hres with ⟨-, -, P', hP', hcl⟩ | ⟨-, -, P', hP', hcl, -⟩ | ⟨h, -⟩
       · exact ⟨t₁, t', P', b, hr, hc, hP', hcl, hw t' rfl⟩
       · exact ⟨t₁, t', P', b, hr, hc, hP', hcl, hw t' rfl⟩
       · rcases hrk with e | e | e | e <;> rw [h] at e <;> simp [RK_LD, RK_H, RK_HB, RK_HE, RK_SAME] at e
