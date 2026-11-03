@@ -34,3 +34,5 @@ import StateM5a.StateView
 import StateM5a.WsLen
 import StateM5a.WsRaw
 import StateM5a.WsSeg
+import StateM5a.WsDecode
+import StateM5a.WsDecode2
