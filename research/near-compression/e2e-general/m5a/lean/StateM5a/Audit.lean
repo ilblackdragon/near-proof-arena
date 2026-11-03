@@ -1,3 +1,4 @@
+import StateM5a.Tape
 import StateM5a.DepthBound
 import StateM5a.KeyDecode
 import StateM5a.Steps
@@ -336,3 +337,10 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.DepthBound.walk_shape'
 #print axioms StateM5a.DepthBound.air_batched_changes'
 #print axioms StateM5a.DepthBound.air_batched_changesS'
+#print axioms StateM5a.Tape.limbBytes_pairs
+#print axioms StateM5a.Tape.stdDec_std
+#print axioms StateM5a.Tape.busList_tch
+#print axioms StateM5a.Tape.wsb_j
+#print axioms StateM5a.Tape.tch_perm
+#print axioms StateM5a.Tape.root_of_row
+#print axioms StateM5a.Tape.air_final

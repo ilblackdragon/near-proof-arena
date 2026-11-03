@@ -33,3 +33,4 @@ import StateM5a.Sha512If
 import StateM5a.StateView
 import StateM5a.KeyDecode
 import StateM5a.DepthBound
+import StateM5a.Tape
