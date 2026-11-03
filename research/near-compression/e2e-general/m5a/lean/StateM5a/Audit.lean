@@ -503,3 +503,4 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.VerStore.br_newOK
 #print axioms StateM5a.VerStore.brVers_nodup
 #print axioms StateM5a.VerAssembly.air_final_sorted_ver
+#print axioms StateM5a.VerRead.br_ver_head

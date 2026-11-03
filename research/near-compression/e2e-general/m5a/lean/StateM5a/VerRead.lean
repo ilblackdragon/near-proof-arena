@@ -41,6 +41,25 @@ theorem new_get (p : Nat) (hp : p < 17) : brNewParts[p]? = some (newE p) := by
 theorem parts_len : brOldParts.length = 17 ∧ brNewParts.length = 17 ∧ brRcvParts.length = 17 := by
   simp [brOldParts, brNewParts, brRcvParts, Br.rec]
 
+
+/-- **Every `BR` publication on `VER` carries the tag `VT_BR`** (for the `SN` readers). -/
+theorem br_ver_head : ∀ i ∈ Br.interactions, i.bus = B_VER → i.send = true → i.msg.head? = some (K VT_BR) := by
+  intro i hi hb hs
+  have : i ∈ Br.interactions.filter (fun i => decide (i.bus = B_VER ∧ i.send = true)) :=
+    List.mem_filter.2 ⟨hi, by simp [hb, hs]⟩
+  rw [br_ver_filter] at this
+  rcases List.mem_append.1 this with h | h
+  · obtain ⟨m, hm, rfl⟩ := List.mem_map.1 h
+    obtain ⟨q, hq, rfl⟩ := List.getElem_of_mem hm
+    have := old_get q (by have := parts_len.1; omega)
+    rw [List.getElem?_eq_getElem hq] at this
+    rw [Option.some.inj this]; rfl
+  · obtain ⟨m, hm, rfl⟩ := List.mem_map.1 h
+    obtain ⟨q, hq, rfl⟩ := List.getElem_of_mem hm
+    have := new_get q (by have := parts_len.2.1; omega)
+    rw [List.getElem?_eq_getElem hq] at this
+    rw [Option.some.inj this]; rfl
+
 theorem fp_one_ne_two : (Fp.ofNat 1 : Fp) ≠ Fp.ofNat 2 := by decide
 
 section
