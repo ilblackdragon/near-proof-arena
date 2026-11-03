@@ -138,7 +138,10 @@ in all three.
 **37 / 37 rejected.** `extend_s` occurs in no corpus run, so its sign-bit case (`CONV[f_exts] sgn
 flip`) has no target here; `conv_limbs`/`conv_row_spec` cover it in Lean.
 
-FULLBATTERY
+**Full battery at `wasmBaseM2Air`** on the `3b1ad423.run` refill call (`TAMPER_ONLY` unset: every
+pre-existing base, HOST, HOSTB, REG' case plus the new ones; `logs/refill-full-tamper.log`):
+**211 / 211 rejected**. The one reported gap is the known one, not counted: a consistent HOST +
+HOSTO `g_after` change verifies (the oracle is free until M6).
 
 ## 5. Lean [K]
 

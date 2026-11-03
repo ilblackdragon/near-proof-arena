@@ -385,7 +385,8 @@ See `research/near-compression/e2e-general/m1/README.md` for commands, logs and 
   `3b1ad423`, `e1fe4f9c`, `d3ed`, `d3hostx`; 17,409 / 18,222 `d3rich` calls. Remainder (813, all
   `d3rich.run`): `memory.grow` 385, `abort` 120, `promise_yield_resume` 58 (no chip); stack-budget
   trap 124, address `≥ 2^27` 89, out-of-gas at a Wasm instruction 37 (generator domain).
-* **Mutants**: see the M2 README §4.
+* **Mutants**: CONV/UNREACH/REG-C 37 / 37 rejected on three corpus calls; the full battery at
+  `wasmBaseM2Air` on a refill call 211 / 211 (the HOSTO `g_after` gap reported, not counted).
 * **Lean** (standard axioms): `Main/M2Link.lean` (`conv_row_spec`, `step_conv`, `execNum_conv`,
   `unreach_row`, `regc_clear_cancels`, `regc_clear_next`); `Main/RegWalkG.lean`: the REG group
   walk and `RegLenAgree` for any AIR with REG's constraints at an index, instantiated at index 27 of

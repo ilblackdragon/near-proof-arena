@@ -83,7 +83,8 @@ No Lean spec, checker or signed file changed. `make pin-check` ok.
   `memory.grow` 385, `abort` 120, `promise_yield_resume` 58, stack-budget trap 124, address
   `≥ 2^27` 89, out-of-gas at a Wasm instruction 37.
 * **Mutants**: CONV/UNREACH/REG-C, 37 / 37 rejected over three corpus calls (one with a refill, one
-  ending in `unreachable`).
+  ending in `unreachable`); the full battery at `wasmBaseM2Air` on the refill call, 211 / 211
+  (plus the documented HOSTO `g_after` gap, reported not counted).
 * **Lean** (`propext`/`Classical.choice`/`Quot.sound` only, no `sorry`): `Main/M2Link.lean`
   (`conv_row_spec`, `step_conv`, `execNum_conv`, `unreach_row`, `regc_clear_cancels`,
   `regc_clear_next`); `Main/RegWalkG.lean`: the REG group walk, `pos < len` and `RegLenAgree` for any
