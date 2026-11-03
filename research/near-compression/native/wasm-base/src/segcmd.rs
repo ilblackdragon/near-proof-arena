@@ -26,6 +26,12 @@ use p3_matrix::dense::RowMajorMatrix;
 use std::sync::Arc;
 use std::time::Instant;
 
+/// `SEG_CONTINUE=1` (E2E M6, GROW corpus runs): report a segment that fails to build or to
+/// pre-check and go on with the others, instead of stopping the whole call.
+fn cont() -> bool {
+    std::env::var("SEG_CONTINUE").is_ok_and(|v| !v.is_empty())
+}
+
 fn load(p: &str) -> AirSpec {
     AirSpec::parse(&std::fs::read_to_string(p).unwrap())
 }
@@ -42,7 +48,19 @@ pub fn segments(seg_air: &AirSpec, m2_air: &AirSpec, prep_path: &str, k: u64) ->
     let mut out = vec![];
     for i in 0..g.cuts.len() - 1 {
         let t1 = Instant::now();
-        let s = seg::build(seg_air, m2_air, &g, &prep, i, &mut tree);
+        let s = if cont() {
+            // E2E M6 (GROW): report a segment the generator cannot build and stop there
+            match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| seg::build(seg_air, m2_air, &g, &prep, i, &mut tree))) {
+                Ok(s) => s,
+                Err(e) => {
+                    let msg = e.downcast_ref::<String>().cloned().or_else(|| e.downcast_ref::<&str>().map(|x| x.to_string())).unwrap_or_default();
+                    println!("SEGBUILD FAIL {i}: {msg}");
+                    break;
+                }
+            }
+        } else {
+            seg::build(seg_air, m2_air, &g, &prep, i, &mut tree)
+        };
         println!("SEGBUILD {i} {:.2}s", t1.elapsed().as_secs_f64());
         out.push(s);
     }
@@ -65,6 +83,20 @@ fn report(spec: &AirSpec, i: usize, s: &SegInst) {
     if st.pages.0 != st.pages.1 || st.grown + st.high > 0 {
         println!("  GROW pages {} -> {} | grown blocks (MEMBG) {} | old blocks above 64 MiB (MEMBH) {} | depth lift {}",
             st.pages.0, st.pages.1, st.grown, st.high, st.lift);
+    }
+    // E2E M6 (GROW): the segment's `memory.grow` / `memory.size` rows (MEMG `f_grow` = col 5,
+    // `f_size` = col 6, `ok` = col 14), so a failing grow (pages unchanged) is reported too
+    if let Some(ti) = spec.tables.iter().position(|t| t.name == "MEMG") {
+        let m = &s.mats[ti];
+        let (mut g, mut z, mut ok) = (0usize, 0usize, 0usize);
+        for row in m.values.chunks(m.width) {
+            g += (row[5] == F::ONE) as usize;
+            z += (row[6] == F::ONE) as usize;
+            ok += (row[5] == F::ONE && row[14] == F::ONE) as usize;
+        }
+        if g + z > 0 {
+            println!("  MEMG rows: memory.grow {g} (succeeded {ok}, failed {}) memory.size {z}", g - ok);
+        }
     }
     let mut bnd_cells = 0usize;
     let mut instr_cells = 0usize;
@@ -102,11 +134,22 @@ pub fn cmd_segcheck(a: &[String]) {
     let (seg_air, m2_air) = (load(&a[0]), load(&a[1]));
     let k: u64 = a[3].parse().unwrap();
     let (_prep, _g, segs) = segments(&seg_air, &m2_air, &a[2], k);
+    let mut bad = 0usize;
     for (i, s) in segs.iter().enumerate() {
         report(&seg_air, i, s);
         let t = Instant::now();
-        seg::precheck(&seg_air, &s.mats, &s.pubs, &s.comps).unwrap_or_else(|e| panic!("segment {i}: {e}"));
-        println!("  PRECHECK OK ({:.2}s): every constraint on every row, every bus balanced incl. the chip's interface", t.elapsed().as_secs_f64());
+        match seg::precheck(&seg_air, &s.mats, &s.pubs, &s.comps) {
+            Ok(()) => println!("  PRECHECK OK ({:.2}s): every constraint on every row, every bus balanced incl. the chip's interface", t.elapsed().as_secs_f64()),
+            Err(e) if cont() => {
+                println!("  PRECHECK FAIL: {e}");
+                bad += 1;
+            }
+            Err(e) => panic!("segment {i}: {e}"),
+        }
+    }
+    if cont() && (bad > 0 || segs.len() + 1 < _g.cuts.len()) {
+        println!("SEGCHECK PARTIAL {} of {} segments built, {} pre-check failures, chain {}", segs.len(), _g.cuts.len() - 1, bad, chain_ok(&segs));
+        return;
     }
     assert!(chain_ok(&segs), "boundary chain");
     println!("SEGCHECK OK {} segments chained: B_out(k) = B_in(k+1) for every k", segs.len());
@@ -243,7 +286,13 @@ pub fn cmd_segprove(a: &[String]) {
     let mut total_prove = 0.0;
     for (i, s) in segs.iter().enumerate() {
         report(&seg_air, i, s);
-        seg::precheck(&seg_air, &s.mats, &s.pubs, &s.comps).unwrap_or_else(|e| panic!("segment {i}: {e}"));
+        if let Err(e) = seg::precheck(&seg_air, &s.mats, &s.pubs, &s.comps) {
+            if cont() {
+                println!("  PRECHECK FAIL: {e}");
+                continue;
+            }
+            panic!("segment {i}: {e}");
+        }
         if let Some(o) = &only {
             if !o.contains(&i) {
                 continue;
@@ -263,6 +312,10 @@ pub fn cmd_segprove(a: &[String]) {
             tv * 1000.0,
             crate::peak_rss_kib()
         );
+    }
+    if cont() && (!chain_ok(&segs) || segs.len() + 1 < _g.cuts.len()) {
+        println!("SEGPROVE PARTIAL ({} of {} segments built)", segs.len(), _g.cuts.len() - 1);
+        return;
     }
     assert!(chain_ok(&segs), "boundary chain");
     println!("SEGPROVE OK {} segments, chained by hand (B_out(k) = B_in(k+1)); total prove {total_prove:.1}s", segs.len());

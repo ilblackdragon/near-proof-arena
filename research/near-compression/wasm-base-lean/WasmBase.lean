@@ -166,4 +166,6 @@ import WasmBase.Main.HostVacuity
 import WasmBase.Main.SegSigma
 import WasmBase.Main.SegSoundSigma
 import WasmBase.Main.SegSoundSigmaMP
+import WasmBase.Main.SegGrowStep
+import WasmBase.Main.SegExecQ
 import WasmBase.Main.SegChainSigma
