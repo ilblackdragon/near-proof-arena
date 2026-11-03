@@ -1,4 +1,20 @@
-# Handover — 2026-10-25
+# Handover — 2026-11-03
+
+## Gate-B freeze and E2E lanes — 2026-11-03
+
+* **Gate-B freeze replay done: 0 disagreements on every run** (main `ca08fdf37`, checker
+  `644495ff…`): fixtures 1,364, gap census 3,138 and the full corpus 235,716 on both tiers; mainnet
+  shard 13 1,223/1,223 accepted. [Record](evidence/lean-chunk-completion/gate-b-freeze-644495ff/README.md).
+  The v3.1 draft's `tree_digest` is regenerated against the frozen tree (unsigned, unpublished).
+  Still open: W13 (sponsor machine) and Gates A/C (owner signatures).
+* **E2E (relaxed targets, plan `docs/zk-formal/E2E-GENERAL-CHUNK-PLAN.md`).**
+  - **Lane E, Lean join:** `cm_iff` and `rcm_iff` (machine with mid-call Wasm cut) are proved.
+    SHA-384 boundary encoding with round trip. `e2e_sound` from obligations 1/2/4; obligation 1 from
+    `NvFaithful` (`zk-formal/ZkFormal/PQ/E2EBridge.lean`).
+  - **Lane B, state:** batched FINAL in the circuit. T2: 16.2 M cells, 1.30 MB proof, 478 s,
+    verify 190 ms; root equals the Lean run's; 33/33 mutants rejected. `NodeSerInj` and
+    `del_refinedBy` are proved.
+  - Lanes A (Wasm coverage) and D (ZK wrap ≤ ~400 KB) are in flight.
 
 ## Global actions and complete-code policy — 2026-10-24 (historical)
 

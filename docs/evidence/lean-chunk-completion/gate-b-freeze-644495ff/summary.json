@@ -1,0 +1,121 @@
+{
+ "commit": "ca08fdf377a3c6d0449ef15e675717b607ea3556",
+ "checker_sha256": "644495ff5e04801f6ba206abb5d3f608bcfe0f10499767a8203464d4b10a9ae3",
+ "runs": {
+  "fixtures-final-allFeatures": {
+   "status": "pass",
+   "cases": 1364,
+   "verdicts": {
+    "accept": 827,
+    "out_of_domain": 4,
+    "reject": 533
+   },
+   "partition": {
+    "domain_exclusion_asserted": 4,
+    "verdict_agree_outside_domain": 462,
+    "verdict_compared_agree": 898
+   },
+   "report.json_sha256": "a7094253eefd0ffb140f3fc7ef6b5d3be2048569b76944e2147bcac387e8685a",
+   "results.jsonl_sha256": "be7dc5c088d1d25f0104dc945d89d7416fa5b982539acaf97660c13bbd6affb7"
+  },
+  "fixtures-final-signed": {
+   "status": "pass",
+   "cases": 1364,
+   "verdicts": {
+    "accept": 434,
+    "out_of_domain": 509,
+    "reject": 421
+   },
+   "partition": {
+    "accept_above_g_alpha_agree": 200,
+    "domain_exclusion_asserted": 505,
+    "domain_exclusion_independently_asserted": 4,
+    "verdict_agree_outside_domain": 289,
+    "verdict_compared_agree": 366
+   },
+   "report.json_sha256": "b16f5a216883199460a3d51d32f57158a5237a5fe69fecae43eaf86e360ee2ad",
+   "results.jsonl_sha256": "a544e250876371b78cd40a935142fd61e71cad4e9a753f2bf5a4532de94e9aa7"
+  },
+  "census-allFeatures": {
+   "status": "pass",
+   "cases": 3138,
+   "verdicts": {
+    "accept": 3138
+   },
+   "partition": {
+    "verdict_agree_outside_domain": 1945,
+    "verdict_compared_agree": 1193
+   },
+   "report.json_sha256": "452ca24e0c27429a651cc787df38152c78c434a92e931ef29a45e3f483aa2d5c",
+   "results.jsonl_sha256": "20dbb0fa14ed0b78328cb1ade4f6b704ac17353dfb9d4a36429500d4384e8574"
+  },
+  "census-signed": {
+   "status": "pass",
+   "cases": 3138,
+   "verdicts": {
+    "accept": 735,
+    "out_of_domain": 2403
+   },
+   "partition": {
+    "domain_exclusion_asserted": 2403,
+    "verdict_agree_outside_domain": 735
+   },
+   "report.json_sha256": "75caa48bf9024aae0d83b042451de472e5204a6619c3030283b642c3be14ebf4",
+   "results.jsonl_sha256": "a426b79d5f145aff78418d8986e189dcfe2662d4a586a9f864e35c3af9d3afc5"
+  },
+  "corpus-cases-allFeatures": {
+   "status": "pass",
+   "cases": 235716,
+   "verdicts": {
+    "accept": 76431,
+    "out_of_domain": 94,
+    "reject": 159191
+   },
+   "partition": {
+    "domain_exclusion_asserted": 94,
+    "verdict_agree_outside_domain": 122377,
+    "verdict_compared_agree": 113245
+   },
+   "report.json_sha256": "078c6bad5ce365ac72861ae0bbd649dabb36073f735ac8642f4666b4868c6b42",
+   "results.jsonl_sha256": "ec259c202465c579713d3fdd4b33775cf30cefee25ba0a9539936f220949d0cf"
+  },
+  "corpus-cases-signed": {
+   "status": "pass",
+   "cases": 235716,
+   "verdicts": {
+    "accept": 73783,
+    "out_of_domain": 2758,
+    "reject": 159175
+   },
+   "partition": {
+    "domain_exclusion_asserted": 2513,
+    "domain_exclusion_independently_asserted": 245,
+    "verdict_agree_outside_domain": 120922,
+    "verdict_compared_agree": 112036
+   },
+   "report.json_sha256": "b7ef1b2bf6709ec6b43a18bff2c8634beff4c3b518402a6fff217de240c952eb",
+   "results.jsonl_sha256": "cd5d6bab41faa7526b5ce3b12b9c62447c83723d8bdfe7f9996b11e36a7fd829"
+  },
+  "shard13-allFeatures": {
+   "cases": 1223,
+   "verdicts": {
+    "accept": 1223
+   },
+   "jsonl_sha256": "57d5cc988f420dabc9bb483f796d8a52453e85fd42c0f8408001e79638e96f39"
+  },
+  "shard13-signed": {
+   "cases": 1223,
+   "verdicts": {
+    "out_of_domain": 279,
+    "accept": 944
+   },
+   "jsonl_sha256": "e5f1ae363d085ef7d4553902019a1021ebecebbd12961c35f2334bb5acd93697"
+  }
+ },
+ "inputs": {
+  "census.txt": "105fbc6ec4107027106b039181cf9e3cd7452ab1b7c4a50d8c533d086a3b582c",
+  "corpus-cases.txt": "09673f6defe96adbca4e31e3f6aac517b9ae35ef53568b769340cd8f3dd26eee",
+  "fixtures-final.txt": "a08775608a1f5437a958434ffc00d047f301017da51be9225abd4677a445a847",
+  "shard13.txt": "97350518cf76445d2f2956abe4c70d630320901a68010195c34ba474bd4fde74"
+ }
+}

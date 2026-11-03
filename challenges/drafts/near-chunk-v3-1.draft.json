@@ -82,7 +82,7 @@
     "formal_spec": {
       "relation_module": "NearSpecV3.ChallengeChunkV3R",
       "relation_decl": "NearSpecV3.RelChunkV3R",
-      "tree_digest": "sha256:a61d8ff43cf7a93b9b1b7c8c9d998f061473ce21f797b18cd4ee478889ccdb23",
+      "tree_digest": "sha256:9923436b975d011d4def3d8332d8ede2e6f598c2f36db6c390afd73834924ab9",
       "lean_toolchain": "leanprover/lean4:v4.34.1"
     },
     "spec_doc_digest": "sha256:b68420e35a81c52a1dacf03b865e599dcf0a76ecc836235f8b3d2db765e33e94"

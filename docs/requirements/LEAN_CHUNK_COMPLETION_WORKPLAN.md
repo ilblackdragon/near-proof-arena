@@ -15,6 +15,7 @@ Gates A–C are defined in the [transition plan](LEAN_CHUNK_TRANSITION_PLAN.md);
   The signed tier is now the old pipeline (`D3.checkD3Core`) plus a proved hand-over to the recorder
   engine for resharding claims and witnesses over the storage-proof bound (`checkD3_of_core_ok`,
   `checkD3_cases`; `G_α` is not applied on the hand-over path).
+- **Gate-B freeze replay (2026-11-03, main `ca08fdf37`, checker `644495ff…`): 0 disagreements on every run** — fixtures 1,364, gap census 3,138, full corpus 235,716 on both tiers, mainnet shard 13 1,223/1,223 accepted (`allFeatures`). `allFeatures` corpus: 76,431 / 159,191 / 94 out of domain; `signed`: 73,783 / 159,175 / 2,758 (all asserted). [Record](../evidence/lean-chunk-completion/gate-b-freeze-644495ff/README.md). v3.1 draft `tree_digest` regenerated against the frozen tree.
 - **Full corpus, pre-freeze replay (2026-10-31, checker `197e28fe…`, all 235,716 cases), 0
   disagreements with cold nearcore on either tier.** `allFeatures`: 76,431 accept / 159,190 reject /
   95 out of domain (the preparation-pipeline races, `e.code_prep_race`). `signed`: 73,783 / 159,175 /
@@ -53,7 +54,7 @@ Gates A–C are defined in the [transition plan](LEAN_CHUNK_TRANSITION_PLAN.md);
 |---|---|---|
 | 1 | **W13 all-shard mainnet replay**. The cold native adapter, the finality/authentication boundary and the blind gate replay are built and dry-run on shard 13: 1,221/1,223 match, the 2 not-yet-final heights refused ([dry run](../evidence/lean-chunk-completion/mainnet-w13-gate-dryrun/README.md)). Left: the 1,000-block all-shard capture ([runbook](../../tools/mainnet-replay/ALL_SHARDS_RUNBOOK.md)) | waits on the sponsor machine; `make w13-gate` at 100% coverage, 0 mismatches / unsupported / missing / errors |
 | 5 | **Tier refinement** O2 (curve hosts), O3 (global actions), O4 (storage resolution), O6 (resharding on non-genesis segments) — O1, O5, O7 proved | in progress (three lanes, 2026-10-31); proofs build with the allowed axioms. Status: [tier-refinement-w12 §5](../evidence/lean-chunk-completion/tier-refinement-w12/README.md) |
-| 13 | **W14–W16**: freeze one package and replay everything on it (Gate B); restricted reference admission (Gate A); successor admission and release (Gate C) | Gate B after item 5; Gate A/C need signed admissions by the owner |
+| 13 | **W14–W16**: freeze one package and replay everything on it (Gate B); restricted reference admission (Gate A); successor admission and release (Gate C) | Gate B replay **done 2026-11-03** on checker `644495ff…`, 0 disagreements ([record](../evidence/lean-chunk-completion/gate-b-freeze-644495ff/README.md)); Gate B's W13 part waits on item 1; Gate A/C need signed admissions by the owner |
 
 **Closed this round** (evidence linked; residuals listed so they are not lost):
 
