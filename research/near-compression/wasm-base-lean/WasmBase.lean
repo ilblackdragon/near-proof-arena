@@ -167,3 +167,7 @@ import WasmBase.Main.SegSigma
 import WasmBase.Main.SegSoundSigma
 import WasmBase.Main.SegSoundSigmaMP
 import WasmBase.Main.SegChainSigma
+import WasmBase.Main.SegExecJH
+import WasmBase.Main.SegSoundAll
+import WasmBase.Main.SegChainAll
+import WasmBase.Main.M2SoundSigma
