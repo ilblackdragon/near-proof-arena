@@ -150,7 +150,8 @@ theorem fetch_rec {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace} (_hpu
   simp only [codeRec] at hm
   obtain ⟨q, l, hq, hl, hoff, hrj⟩ := X.recG hjc
   have CF := X.factsOf hq
-  obtain ⟨ins, fee, hins, hfee, hfl, hrec⟩ := CF.recs l hl
+  obtain ⟨ins, hins, hrec0⟩ := CF.recs l hl
+  obtain ⟨fee, hfee, hfl, hrec⟩ := hrec0 (L.base q hq l ins hins)
   have hsz : l < (X.ckOf q).records.size := by rw [CF.records]; exact hl
   rw [Array.getElem?_eq_getElem hsz] at hrec
   simp only [hrj, Option.getD_some, Array.getElem?_eq_getElem hsz] at hm
@@ -242,7 +243,8 @@ theorem fetch_pc {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace} (_hpub
   simp only [codeRec] at hm
   obtain ⟨q, l, hq, hl, hoff, hrj⟩ := X.recG hjc
   have CF := X.factsOf hq
-  obtain ⟨ins, fee, hins, hfee, hfl, hrec⟩ := CF.recs l hl
+  obtain ⟨ins, hins, hrec0⟩ := CF.recs l hl
+  obtain ⟨fee, hfee, hfl, hrec⟩ := hrec0 (L.base q hq l ins hins)
   have hsz : l < (X.ckOf q).records.size := by rw [CF.records]; exact hl
   rw [Array.getElem?_eq_getElem hsz] at hrec
   simp only [hrj, Option.getD_some, Array.getElem?_eq_getElem hsz] at hm

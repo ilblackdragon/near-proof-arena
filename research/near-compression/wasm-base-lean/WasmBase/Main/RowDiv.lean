@@ -113,7 +113,7 @@ theorem div_binop_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Tra
   subst hinsn
   -- two operands on the stack
   obtain ⟨hfam, hpops⟩ := isFamilyNum_of_binop hop
-  have hv := CF.verify pc hpcl
+  have hv := CF.verify pc hpcl _ hins (by m2_ns)
   obtain ⟨ls0, hL, -⟩ := R.labels
   simp only [verifyAt, hins, hL, hH, kindOf, hfam, ite_true, hpops, Bool.and_eq_true,
     decide_eq_true_eq] at hv

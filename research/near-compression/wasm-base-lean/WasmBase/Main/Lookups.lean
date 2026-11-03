@@ -106,6 +106,9 @@ structure Looks (X : Ctx) (nloc ncode : Nat) (pub : List F) (tr : Trace) : Prop 
       o.2.2.1 = [((k : Nat) : F), ((x : Nat) : F), ((y : Nat) : F), ((byteF k x y : Nat) : F)]
   func : ∀ o ∈ occs (wasmBaseAir nloc ncode) tr pub, o.1 = busFunc → o.2.1 = true → o.2.2.2 = 1 →
     ∃ k, k < X.nf ∧ o.2.2.1 = funcRec X k
+  /-- the context is in the base checker's domain (no M2 addition at any checked pc), so every
+  fetched record is a base `recordOf` record -/
+  base : X.Base
 
 /-! ## The BYTE table rows answer exactly `byteF` -/
 
@@ -228,10 +231,10 @@ theorem instr_func {T : Table} (h : T ∈ instrTables) :
 
 theorem looks_of {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace} (H : Holds (wasmBaseAir nloc ncode) pub tr)
     (hcode : CodeOK X tr) (hfunc : FuncOK X tr)
-    (hsend : ∀ o ∈ occs (wasmBaseAir nloc ncode) tr pub, o.2.1 = true → o.2.2.2 ≤ 1) :
+    (hsend : ∀ o ∈ occs (wasmBaseAir nloc ncode) tr pub, o.2.1 = true → o.2.2.2 ≤ 1) (hB : X.Base) :
     Looks X nloc ncode pub tr := by
   have hP' := P_val
-  refine ⟨fun o ho hb hs hc => ?_, fun o ho hb hs hc => ?_, fun o ho hb hs hc => ?_, fun o ho hb hs hc => ?_⟩
+  refine ⟨fun o ho hb hs hc => ?_, fun o ho hb hs hc => ?_, fun o ho hb hs hc => ?_, fun o ho hb hs hc => ?_, hB⟩
   · refine lookup_sound H busFetch (fun m => ∃ j, j < X.M.codeSize ∧ m = codeRec X j) ?_
       (fun o' ho' _ hs' => hsend o' ho' hs') ho hb hs hc
     intro o' ho' hb' hs' _

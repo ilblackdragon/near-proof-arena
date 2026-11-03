@@ -29,25 +29,6 @@ end WasmBase
 namespace WasmBase
 open NearSpecV3.Wasm
 
-/-- What a successful `checkModule` gives (all from decidable checks and `check`). -/
-structure ModFacts (cfg : NearCfg) (p : Prepared) (entry : Nat) (M : ModOut) : Prop where
-  head : M.fns.head? = some entry
-  cks : ∀ k, k < M.fns.length →
-    check cfg p (M.fns.getD k 0) (M.offs.getD k 0) (callInfo p M.fns M.offs) = some (M.cks.getD k default)
-  pfs : ∀ k, k < M.fns.length → ∃ pf, p.funcs[M.fns.getD k 0]? = some pf ∧ M.sizes.getD k 0 = pf.code.size
-  total : M.codeSize < 2 ^ 20
-  layout : layoutOk M.fns M.offs M.sizes M.codeSize = true
-  recSize : M.records.size = M.codeSize
-  recs : ∀ j, j < M.codeSize → M.records[j]? =
-      some (((M.cks.getD (locate M.offs M.sizes j).1 default).records)[(locate M.offs M.sizes j).2]?.getD [])
-  feeLe : ∀ k j, k < M.fns.length → j < M.fns.length →
-    (M.cks.getD k default).maxFee + (M.cks.getD j default).prologue ≤ M.maxFee
-  closed : M.fns.all (fun fn => ((p.funcs[fn]?.map (calleesOf p)).getD []).all (M.fns.contains ·)) = true
-  offs0 : M.offs.getD 0 0 = 0
-  entryParams : ∃ pf, p.funcs[entry]? = some pf ∧ pf.type.params.size = 0
-  funcs : ∀ k, k < M.fns.length → M.funcs.getD k [] = funcRow (M.offs.getD k 0) (M.cks.getD k default)
-  funcsLen : M.funcs.length = M.fns.length
-
 theorem checkModule_sound {cfg : NearCfg} {p : Prepared} {entry : Nat} {M : ModOut}
     (h : checkModule cfg p entry = some M) : ModFacts cfg p entry M := by
   unfold checkModule at h
@@ -71,6 +52,7 @@ theorem checkModule_sound {cfg : NearCfg} {p : Prepared} {entry : Nat} {M : ModO
           dsimp only at hk ⊢
           have := hcl2 k (by simpa using hk)
           simp only [List.getElem_range] at this
+          apply check_sound
           rw [this, List.getD_eq_getElem?_getD (l := cks), List.getElem?_eq_getElem (by omega), Option.getD_some]
         · intro k hk
           dsimp only at hk ⊢
@@ -118,7 +100,51 @@ theorem checkModule_sound {cfg : NearCfg} {p : Prepared} {entry : Nat} {M : ModO
           rw [List.getD_eq_getElem?_getD, List.getElem?_map, List.getElem?_range hk, Option.map_some, Option.getD_some]
       · simp at h
 
-theorem Ctx.mf (X : Ctx) : ModFacts X.cfg X.p X.fn X.M := checkModule_sound X.hM
+theorem Ctx.mf (X : Ctx) : ModFacts X.cfg X.p X.fn X.M := X.hM
+
+/-- **The base context**: built from a successful base `checkModule`. -/
+def Ctx.ofCheck (cfg : NearCfg) (p : Prepared) (fn : Nat) (M : ModOut) (g0 : Nat)
+    (h : checkModule cfg p fn = some M) : Ctx := ⟨cfg, p, fn, M, g0, checkModule_sound h⟩
+
+/-- No checked function of the context contains an M2 addition: the base checker's domain. -/
+def Ctx.Base (X : Ctx) : Prop :=
+  ∀ k, k < X.nf → ∀ (pc : Nat) (ins : Instr), (X.pfOf k).code[pc]? = some ins → m2Special X.p ins = false
+
+/-- The per-function `check` equations of a successful `checkModule`. -/
+theorem checkModule_check {cfg : NearCfg} {p : Prepared} {entry : Nat} {M : ModOut}
+    (h : checkModule cfg p entry = some M) : ∀ k, k < M.fns.length →
+      check cfg p (M.fns.getD k 0) (M.offs.getD k 0) (callInfo p M.fns M.offs) = some (M.cks.getD k default) := by
+  unfold checkModule at h
+  dsimp only at h
+  split at h
+  · simp at h
+  · split at h
+    · simp at h
+    · rename_i cks hc
+      split at h
+      · simp only [Option.some.injEq] at h
+        subst h
+        obtain ⟨hcl1, hcl2⟩ := mapM_some _ _ _ hc
+        simp only [List.length_range] at hcl1
+        intro k hk
+        dsimp only at hk ⊢
+        have := hcl2 k (by simpa using hk)
+        simp only [List.getElem_range] at this
+        rw [this, List.getD_eq_getElem?_getD (l := cks), List.getElem?_eq_getElem (by omega), Option.getD_some]
+      · simp at h
+
+/-- A base-checked context is `Base`. -/
+theorem Ctx.ofCheck_base {cfg : NearCfg} {p : Prepared} {fn : Nat} {M : ModOut} {g0 : Nat}
+    (h : checkModule cfg p fn = some M) : (Ctx.ofCheck cfg p fn M g0 h).Base := by
+  unfold Ctx.Base
+  intro k hk pc ins hins
+  have hc := checkModule_check h k hk
+  simp only [Ctx.ofCheck, Ctx.pfOf, Ctx.fnOf, Ctx.nf] at hins hk ⊢
+  cases hpf : p.funcs[M.fns.getD k 0]? with
+  | none => obtain ⟨pf, F⟩ := check_sound hc; rw [F.func] at hpf; cases hpf
+  | some pf =>
+    rw [hpf, Option.getD_some] at hins
+    exact check_nonspecial hc hpf hins
 
 theorem Ctx.layout (X : Ctx) :
     X.M.offs.length = X.nf ∧ X.M.sizes.length = X.nf ∧
@@ -143,7 +169,7 @@ def Ctx.cinfo (X : Ctx) : Nat → Option Nat := callInfo X.p X.M.fns X.M.offs
 /-- The facts of `check` for every checked function. -/
 theorem Ctx.factsOf (X : Ctx) {k : Nat} (hk : k < X.nf) :
     CheckFacts X.cfg X.p (X.fnOf k) (X.offOf k) X.cinfo (X.pfOf k) (X.ckOf k) := by
-  obtain ⟨pf', h⟩ := check_sound (X.mf.cks k hk)
+  obtain ⟨pf', h⟩ := X.mf.cks k hk
   have : pf' = X.pfOf k := by
     have := h.func; simp only [Ctx.pfOf, Ctx.fnOf, this, Option.getD_some]
   subst this; exact h
