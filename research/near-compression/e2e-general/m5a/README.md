@@ -4,6 +4,107 @@ Plan: `docs/zk-formal/E2E-GENERAL-CHUNK-PLAN.md` §3.2 (the `stRoot` working set
 Date 2026-11-03. Labels: **[M]** measured here, **[K]** kernel-checked Lean (std axioms),
 **[S]** stated / design only.
 
+## M5a-4 (fifth session, 2026-11-03)
+
+Lean only [K] (std axioms, no `sorry`, no circuit change; T1/T2/synthetic proofs and mutants of
+M5a-3 stand unchanged). Modules in `lean/StateM5a/`, all in `StateM5a.lean` and `Audit.lean`.
+
+### From `Holds` of the AIR to `applyChanges` (priority 1)
+
+* **Walk traffic from `Holds`** (`DecodeBus`, `DecodeWalk`, `DecodeM5a`): `walk_traffic` — for the
+  AIR the prover runs (`fullAir D extra` = `m5aAir D` followed by any tables that do not use
+  `DOWN`/`UP`: the SHA-512 chip, the public tape) and **any** field decoder `Dc` (walk id and
+  depth = the first two message elements as naturals, the rest via `Dc.dp` / `Dc.dr`), the decoded
+  `BR`/`SN` rows (`walkRows`: one `WRow` per active row, from the table's own `DOWN`/`UP`
+  interactions) and `WSB` roots (`walkRoots`: INTAKE and FINAL roots) satisfy
+  `downSends ~ downRecvs` and `upSends ~ upRecvs` exactly as `Traffic` takes them. Decoding needs no
+  injectivity (`List.Perm.map`). The `DOWN`/`UP` interactions are read off the exported tables and
+  pinned by `filter` lemmas (`br_ds`, `sn_ur`, `wsb_ds`, …; an AIR change breaks the build); the
+  other nine tables are shown not to use `DOWN`/`UP` (`decide`).
+* **Field facts**: `FieldWalk2.sn_gdn_walk` (the M5a-3 open `SN` descend fact, now staged: each
+  `omega` sees ≤ 12 flags) — `gdn = 1 ⇒ mF + mU + mD = 1 ∧ isE = 1 ∧ a₀ = 1`, and
+  `sn_gdn_klen`: with `cont = 0`, `1 ≤ klen ≤ 64`. `FieldWsb.wsb_index`: the `WSB` rows are phase 0
+  with `i = r`, then phase 1 with `i + 2^D = r` (from `isFirst`/`isTransition`/`e`, heights
+  `≤ 2^20`).
+* **Walk shape** (`DecodeShape`): `walk_rootUniq` — one decoded root per walk id, **from `Holds`
+  alone** (`D ≤ 30`): INTAKE id `r < 2^20`, FINAL id `2^20 + i`; `walk_deeper` — a child `DOWN` is
+  in the same walk and strictly deeper (`BR` `d + 1`, `SN` `d + klen`), under two premises: the
+  depth of a descending row is `< P − 64`, and a descending `SN` row has `cont = 0`.
+* **Assembly**: `air_batched_changes` / **`air_batched_changesS`** — `bus_batched_changes` (resp.
+  the split-aware `bus_batched_changesS`, below) with its `DOWN`/`UP` permutations and its walk
+  shape discharged from `Holds`. Premises still open: the depth bounds (`hbr`, `hsn`), every decoded
+  row's `LocalOK` (`hloc`: the per-row facts below), `TCH` against the public tape (`hT`) and the
+  writing roots as roots of the committed changes (`hroot`); `Sha256CR` is the only cryptographic
+  premise.
+
+### Row-local steps for the remaining ops (priority 2; `BusSplit`, `BusSplit2`)
+
+* Responder relations, one per request / response bus, each proved from the responding row's
+  decoded facts: `matRel_oLM` (`MATQ`/`MATR`), `sibRel_oLS` (`SIBQ`/`SIBA`), `sxRel_oEM`
+  (`SXQ`/`SXR`), `epRel_oEP` (`EPQ`), `splitRel_oSL` (`SPQ`/`SPR`); carried to the requester by
+  `Traffic.reqresp` (`spr_reqresp`, `mat_reqresp`, `sib_reqresp`, `sx_reqresp`;
+  `splitAns_of_spr`: the `SPR` answer at the requester's depth is `wrapExt p (splitBr …)`).
+* Steps: `step_leafSplit` (`oLX`, via `UChain.leafSplit`), `step_brLeaf` (`oDL`: a kept branch
+  whose child is a leaf descriptor, slot from `MATR`; `step_brKeep` does not cover it),
+  `step_brOne` (`oD1` + `oLS`: squash onto the one remaining leaf sibling), `step_extSplit`
+  (`oEX`); `LocalOK` wrappers for each.
+* **`oEX` and `SemU`**: `SemU` is stated through `Walk.UChain`, which has no extension-split
+  constructor, so `oEX` is proved against `SemUS` (= `SemU` with the spec equation
+  `t₁.upsert (K.drop d) x = some t₁'`, `semUS_of_semU`), with `oUD`/`oEU` re-proved on it and
+  `bus_batched_changesS` (same statement, same `Sha256CR`-only premise). `air_batched_changesS` is
+  the main assembly.
+
+### Working-set bus step and the SHA-512 chip interface (priority 3; `WsBus`, `Sha512If`)
+
+* `WM` memory chain: `wm_orphan` (every write access has its entry's `WSL` row), `wm_chain` (per
+  entry, the time-sorted accesses are exactly `WsCost.chain_sound_any`'s premise: the closing value
+  is the last write). `RCH`: `rch_tops` (one top row per segment), `rch_link` (segment roots chain
+  from the INTAKE root). `PT`: one row / message per tree position (`pt_rows_le_one`,
+  `wsl_unique`, a counting argument as `walk_unique`); `seg_update` rebuilds the segment's
+  `Merkle.Upd` from the `WSP`/`WSL` rows; `seg_root` / `seg_root_leaves`: with no collision of the
+  node hash, the new `RCH` is the root of the working set with exactly the touched leaves replaced.
+* `Sha512If`: the native chip's `IF384` interface (from `prover/src/s384/{air,main}.rs`: 16
+  messages per compression over `h ‖ block ‖ compress(h, block)`) as the contract
+  `Sha512IfContract` (compression function a parameter); `comp_sound`, `comp_iv` (leaf digest),
+  `comp_node` (`o = nodeH l r`), `wsp_hashes` (a `WSP` row's two compressions are `WspOK.hO`/`hN`
+  with `H = nodeH compress`), `enc_inj`.
+
+### State component of lane E's `ViewImpl` (priority 4; `StateView`)
+
+The package imports `NearSpecV3.E2E.View` (read only). `stD P v = bdigest (ser (commitOf P v))`,
+`StCommit = (tag, working-set root 48 B, entry count, trie root 32 B, change index, rest digest
+42 B)`, 139-byte injective serialization (`ser_inj`). Working-set root: `Merkle.root` of
+`sha384(l ‖ r)` over leaf digests `cmp384 (leafBlock (sha256 key, vref pre, vref cur, written))`.
+Proved: `merkle_binding`, `trie_binding` (fully revealed well-formed tries with equal `hashOf`
+are equal or a SHA-256 collision; via `nodeSerInj`), `wsRoot_binding`, **`stD_binding`**:
+`Coll (stD P) → Sha384Coll ∨ Sha256Coll ∨ LeafColl` (`LeafColl`: a collision of the one-compression
+leaf digest, a named event), `viewImpl_hst` — exactly the `hst` argument of
+`viewImpl_binding_bad` — and `viewImpl_binding_st`. Parameters (`StViewParams`, obligations for
+M5b/M5d/lane E): `proj_inj` (tag, working set, trie, index and rest determine the `StV`; the
+working set's key set must become a function of `StV`), `encRest_inj` (an injective encoding of
+the rest of `RS`/`Recording`/`MainOutD2`), `trie_ok` (the trie is fully revealed: the spec's
+`Ovl` trie is partial, so lane E must commit its full expansion and put the reveal shape in the
+rest), `leafBlock_inj` (from `WsCost.leafLimb_inj`), range facts. Note: the entry count `wsLen` is
+not carried by the circuit today (without it a real leaf could equal a zero padding leaf — a
+preimage event, not a collision); it can be a chunk constant.
+
+### Open after M5a-4
+
+1. Per-row decoded facts → `LocalOK` for each decoded row (the `step_*` premises: `OldOK`/`NewOK`
+   from `ver_store` and the hashing rows, nibble lookups, bounds, kept-branch counts) — needs the
+   `VER`/`SHA`/`NIB`/`KLEN` traffic decoded as `walk_traffic` does for `DOWN`/`UP`, and a concrete
+   decoder `Dc`.
+2. Depth bounds `hbr`/`hsn`: from the `NIB` lookup at depth `d` (`KEY` indices `< 2^21`) — needs
+   the `KEY` index lemma and lookup membership; the `SNC` chain bound on a continued head's `rl`.
+3. `TCH`: the public tape as an `extra` table in Lean; the writing roots ↔ committed changes
+   (`KCMP` order, the `WRITE` tape).
+4. Working-set field → record decoding (`WM`/`PT`/`RCH`/`IF384`), range facts, the chip itself
+   (its faithfulness argument stays outside `Holds`), composing segments along `rch_link`.
+5. `ViewImpl` parameters above; the `UChain` / `SemU` choice (`SemS` adopted for the assembly).
+6. Completeness gaps (not started this session): squash after a value delete / onto an extension
+   or branch sibling, splits where a key ends at the new branch, mismatch past 63 nibbles, the empty
+   trie.
+
 ## M5a-3 (fourth session, 2026-11-03)
 
 ### Bus-level step [K] (`lean/StateM5a/{Bus,Traffic,BusWalk}.lean`, std axioms, no `sorry`)

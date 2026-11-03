@@ -18,6 +18,17 @@ import StateM5a.BusWalk
 import StateM5a.FieldWalk
 import StateM5a.Keep
 import StateM5a.WsCost
+import StateM5a.FieldWalk2
+import StateM5a.FieldWsb
+import StateM5a.DecodeBus
+import StateM5a.DecodeWalk
+import StateM5a.DecodeM5a
+import StateM5a.DecodeShape
+import StateM5a.BusSplit
+import StateM5a.BusSplit2
+import StateM5a.WsBus
+import StateM5a.Sha512If
+import StateM5a.StateView
 
 /-! Axiom audit of the M5a lemmas (`lake build StateM5a.Audit` prints them): every theorem must
 depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
@@ -237,3 +248,75 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.WsCost.wsl_kd
 #print axioms StateM5a.FieldWalk.br_gdn_gold
 #print axioms StateM5a.FieldWalk.sn_bool
+#print axioms StateM5a.FieldWalk2.sn_gdn_ops
+#print axioms StateM5a.FieldWalk2.sn_gdn_isE
+#print axioms StateM5a.FieldWalk2.sn_isE_a0
+#print axioms StateM5a.FieldWalk2.sn_gdn_gwalk
+#print axioms StateM5a.FieldWalk2.sn_gdn_walk
+#print axioms StateM5a.FieldWalk2.sn_gdn_klen
+#print axioms StateM5a.FieldWsb.wsb_index
+#print axioms StateM5a.FieldWsb.wsb_row_inj
+#print axioms StateM5a.DecodeBus.rowBusList_one
+#print axioms StateM5a.DecodeBus.tableBusList_one
+#print axioms StateM5a.DecodeBus.rowBusList_two
+#print axioms StateM5a.DecodeBus.busList_extend
+#print axioms StateM5a.DecodeWalk.rowsL_din
+#print axioms StateM5a.DecodeWalk.rowsL_dout
+#print axioms StateM5a.DecodeWalk.rowsL_uout
+#print axioms StateM5a.DecodeWalk.rowsL_uin
+#print axioms StateM5a.DecodeWalk.rootsOf_dn
+#print axioms StateM5a.DecodeWalk.rootsOf_up
+#print axioms StateM5a.DecodeM5a.busList_m5a
+#print axioms StateM5a.DecodeM5a.br_gdn_g
+#print axioms StateM5a.DecodeM5a.sn_gdn_g
+#print axioms StateM5a.DecodeM5a.walk_traffic
+#print axioms StateM5a.DecodeShape.walk_rootUniq
+#print axioms StateM5a.DecodeShape.walk_deeper
+#print axioms StateM5a.DecodeShape.walk_shape
+#print axioms StateM5a.DecodeShape.air_batched_changes
+#print axioms StateM5a.DecodeShape.air_batched_changesS
+#print axioms StateM5a.WsBus.wm_orphan
+#print axioms StateM5a.WsBus.wm_chain
+#print axioms StateM5a.WsBus.rch_tops
+#print axioms StateM5a.WsBus.rch_link
+#print axioms StateM5a.WsBus.pt_rows_le_one
+#print axioms StateM5a.WsBus.wsl_unique
+#print axioms StateM5a.WsBus.seg_update
+#print axioms StateM5a.WsBus.seg_root
+#print axioms StateM5a.WsBus.seg_root_leaves
+#print axioms StateM5a.Sha512If.comp_sound
+#print axioms StateM5a.Sha512If.comp_iv
+#print axioms StateM5a.Sha512If.comp_node
+#print axioms StateM5a.Sha512If.wsp_hashes
+#print axioms StateM5a.Sha512If.enc_inj
+#print axioms StateM5a.StateView.ser_inj
+#print axioms StateM5a.StateView.merkle_binding
+#print axioms StateM5a.StateView.trie_binding
+#print axioms StateM5a.StateView.wsRoot_binding
+#print axioms StateM5a.StateView.stD_binding
+#print axioms StateM5a.StateView.stD_binding_bad
+#print axioms StateM5a.StateView.viewImpl_hst
+#print axioms StateM5a.StateView.viewImpl_binding_st
+#print axioms StateM5a.BusWalk.matRel_oLM
+#print axioms StateM5a.BusWalk.sibRel_oLS
+#print axioms StateM5a.BusWalk.sxRel_oEM
+#print axioms StateM5a.BusWalk.epRel_oEP
+#print axioms StateM5a.BusWalk.splitRel_oSL
+#print axioms StateM5a.BusWalk.splitAns_of_spr
+#print axioms StateM5a.BusWalk.spr_reqresp
+#print axioms StateM5a.BusWalk.mat_reqresp
+#print axioms StateM5a.BusWalk.sib_reqresp
+#print axioms StateM5a.BusWalk.sx_reqresp
+#print axioms StateM5a.BusWalk.step_leafSplit
+#print axioms StateM5a.BusWalk.localOK_leafSplit
+#print axioms StateM5a.BusWalk.step_brLeaf
+#print axioms StateM5a.BusWalk.localOK_brLeaf
+#print axioms StateM5a.BusWalk.step_brOne
+#print axioms StateM5a.BusWalk.localOK_brOne
+#print axioms StateM5a.BusWalk.step_extSplit
+#print axioms StateM5a.BusWalk.localOK_extSplit
+#print axioms StateM5a.BusWalk.step_brDescS
+#print axioms StateM5a.BusWalk.step_extDescS
+#print axioms StateM5a.BusWalk.localOK_S_of_leaf
+#print axioms StateM5a.BusWalk.localOK_S_of_mode
+#print axioms StateM5a.BusWalk.bus_batched_changesS

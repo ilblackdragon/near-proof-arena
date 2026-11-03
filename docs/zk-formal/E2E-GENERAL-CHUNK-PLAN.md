@@ -709,5 +709,31 @@ maps to §3.2's `stRoot` and will follow lane E's `CM` boundary record when §3.
   facts the steps take; steps for the split ops, `oDL`, `oD1`; the `WM`/`PT` bus step; the
   SHA-512 chip interface; the completeness gaps of M5a-2.
 
-**Next:** the decoding lemmas and split-op steps, then M5b (STATE rows produce the writes now on
+**M5a-4 (fifth session, 2026-11-03) [K]:** log
+[`docs/logs/e2e-m5a4-state-2026-11-03.md`](../logs/e2e-m5a4-state-2026-11-03.md). Lean only, no
+circuit change.
+* **From `Holds` of the AIR the prover runs** (`m5aAir D` + tables not on `DOWN`/`UP`): for any
+  field decoder, `DecodeM5a.walk_traffic` gives the record-level `DOWN`/`UP` permutations of the
+  decoded `BR`/`SN` rows and `WSB` roots (interactions pinned by `filter` lemmas against the
+  exported tables); `DecodeShape.walk_rootUniq` (one root per walk id, from `Holds` alone),
+  `walk_deeper` (premises: depth `< P − 64`, short `SN` keys), and **`air_batched_changesS`**:
+  `rootHash (applyChanges …) = post_state_root` from `Holds`, `Sha256CR`, the depth bounds, each
+  decoded row's `LocalOK`, `TCH` and the writing roots. `FieldWalk2.sn_gdn_walk` (the `SN` descend
+  fact, staged), `FieldWsb.wsb_index`.
+* **All ops have row-local steps**: `oLX`, `oEX`, `oDL`, `oD1` + responders `oSL`/`oEP`/`oEM`/
+  `oLM`/`oLS` through `Traffic.reqresp` (`BusSplit`, `BusSplit2`); `oEX` needs `SemUS` (the spec
+  equation in place of `UChain`), `bus_batched_changesS`.
+* **Working set** (`WsBus`): `WM` chain (`wm_chain`), `RCH` link, `PT` uniqueness and the
+  segment's `Merkle.Upd` rebuilt from the rows (`seg_root`); **SHA-512 chip interface** (`Sha512If`:
+  `IF384` contract, `comp_node`, `wsp_hashes`).
+* **`ViewImpl` state component** (`StateView`, imports `NearSpecV3.E2E.View`): `stD`,
+  `stD_binding : Coll stD → Sha384Coll ∨ Sha256Coll ∨ LeafColl`, `viewImpl_hst` (the `hst`
+  argument of `viewImpl_binding_bad`); parameters `proj_inj`, `encRest_inj`, `trie_ok` (lane E must
+  commit the full trie expansion), `leafBlock_inj`.
+* **Open:** per-row decoded facts → `LocalOK` (`VER`/`SHA`/`NIB`/`KLEN` decoding, a concrete
+  decoder), the depth bounds (`KEY` index + `NIB` membership; `SNC` `rl` bound), `TCH`/public tape
+  in Lean, working-set field decoding and segment composition, the `ViewImpl` parameters, the
+  completeness gaps of M5a-2.
+
+**Next:** the per-row decoded facts (`LocalOK` from the AIR) and the depth bounds, then M5b (STATE rows produce the writes now on
 the public tape).
