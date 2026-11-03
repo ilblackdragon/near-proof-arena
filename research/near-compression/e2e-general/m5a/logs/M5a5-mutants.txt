@@ -1,0 +1,60 @@
+# M5a-5 mutants on the wsLen AIR (m5a-tool air D; hashes in SHA256SUMS-v5). t2seg3x5 = T2 traced with --segs 3 --extra-writes 5. syn node/finroot do not apply (as in M5a-2).
+t2 absdel: PRECHECK FAIL: SN: constraint 154 fails on row 157 REJECTED (prover error) after 6.1s 
+t2 absent: PRECHECK FAIL: SN: constraint 146 fails on row 2 REJECTED (prover error) after 6.7s 
+t2 branchval: PRECHECK FAIL: BR: constraint 78 fails on row 87 REJECTED (prover error) after 6.7s 
+t2 chain: PRECHECK FAIL: 6 unbalanced messages by bus {0: 2, 24: 4} REJECTED (prover error) after 5.9s 
+t2 extabsent: PRECHECK FAIL: SN: constraint 149 fails on row 65 REJECTED (prover error) after 7.1s 
+t2 finroot: PRECHECK FAIL: 6 unbalanced messages by bus {14: 2, 24: 4} REJECTED (prover error) after 6.4s 
+t2 nidforge: PRECHECK FAIL: BR: constraint 32 fails on row 188 REJECTED (prover error) after 6.8s 
+t2 node: PRECHECK FAIL: 10 unbalanced messages by bus {5: 2, 14: 2, 25: 6} REJECTED (prover error) after 5.9s 
+t2 omitwrite: PRECHECK FAIL: 4 unbalanced messages by bus {13: 1, 24: 1, 26: 2} REJECTED (prover error) after 6.3s 
+t2 postroot: PRECHECK FAIL: 2 unbalanced messages by bus {14: 2} REJECTED (prover error) after 7.1s 
+t2 prevalue: PRECHECK FAIL: 2 unbalanced messages by bus {6: 2} REJECTED (prover error) after 7.0s 
+t2 split: PRECHECK FAIL: 132 unbalanced messages by bus {0: 130, 2: 2} REJECTED (prover error) after 6.5s 
+t2 splitext: PRECHECK FAIL: SN: constraint 202 fails on row 195 REJECTED (prover error) after 5.9s 
+t2 squash: PRECHECK FAIL: SN: constraint 755 fails on row 166 REJECTED (prover error) after 7.1s 
+t2 vernid: PRECHECK FAIL: 36 unbalanced messages by bus {5: 2, 25: 34} REJECTED (prover error) after 6.3s 
+t2 verslot: PRECHECK FAIL: 4 unbalanced messages by bus {25: 4} REJECTED (prover error) after 5.9s 
+t2 vmcount: PRECHECK FAIL: 17 unbalanced messages by bus {25: 17} REJECTED (prover error) after 7.3s 
+t2 wsabsorb: PRECHECK FAIL: WSP: constraint 5 fails on row 0 REJECTED (prover error) after 7.0s 
+t2 wsdrop: PRECHECK FAIL: WSP: constraint 7 fails on row 0 REJECTED (prover error) after 6.5s 
+t2 wsleaf: PRECHECK FAIL: 4 unbalanced messages by bus {27: 2, 103: 2} REJECTED (prover error) after 7.4s 
+t2 wslen: PRECHECK FAIL: WSB: constraint 117 fails on row 51 REJECTED (native verifier: BatchConstraintError SumClaimMismatch)
+t2 wslenlo: PRECHECK FAIL: WSB: constraint 117 fails on row 51 REJECTED (native verifier: BatchConstraintError SumClaimMismatch)
+t2 wssib: PRECHECK FAIL: WSP: constraint 11 fails on row 3 REJECTED (prover error) after 6.9s 
+t2 wsstale: PRECHECK FAIL: 2 unbalanced messages by bus {26: 2} REJECTED (prover error) after 6.0s 
+t1 finroot: PRECHECK FAIL: 6 unbalanced messages by bus {14: 2, 24: 4} REJECTED (prover error) after 2.7s 
+t1 nidforge: PRECHECK FAIL: BR: constraint 32 fails on row 59 REJECTED (prover error) after 2.5s 
+t1 node: PRECHECK FAIL: 10 unbalanced messages by bus {5: 2, 14: 2, 25: 6} REJECTED (prover error) after 3.3s 
+t1 omitwrite: PRECHECK FAIL: 4 unbalanced messages by bus {13: 1, 24: 1, 26: 2} REJECTED (prover error) after 2.7s 
+t1 postroot: PRECHECK FAIL: 2 unbalanced messages by bus {14: 2} REJECTED (prover error) after 3.0s 
+t1 prevalue: PRECHECK FAIL: 2 unbalanced messages by bus {6: 2} REJECTED (prover error) after 3.5s 
+t1 vernid: PRECHECK FAIL: 36 unbalanced messages by bus {5: 2, 25: 34} REJECTED (prover error) after 2.5s 
+t1 verslot: PRECHECK FAIL: 4 unbalanced messages by bus {25: 4} REJECTED (prover error) after 2.6s 
+t1 vmcount: PRECHECK FAIL: 17 unbalanced messages by bus {25: 17} REJECTED (prover error) after 2.7s 
+t1 wsabsorb: PRECHECK FAIL: WSP: constraint 5 fails on row 0 REJECTED (prover error) after 2.6s 
+t1 wsdrop: PRECHECK FAIL: WSP: constraint 7 fails on row 0 REJECTED (prover error) after 2.8s 
+t1 wsleaf: PRECHECK FAIL: 4 unbalanced messages by bus {27: 2, 103: 2} REJECTED (prover error) after 2.8s 
+t1 wslen: PRECHECK FAIL: WSB: constraint 117 fails on row 16 REJECTED (native verifier: BatchConstraintError SumClaimMismatch)
+t1 wslenlo: PRECHECK FAIL: WSB: constraint 117 fails on row 16 REJECTED (native verifier: BatchConstraintError SumClaimMismatch)
+t1 wssib: PRECHECK FAIL: WSP: constraint 11 fails on row 1 REJECTED (prover error) after 2.6s 
+t1 wsstale: PRECHECK FAIL: 2 unbalanced messages by bus {26: 2} REJECTED (prover error) after 2.5s 
+syn branchval: PRECHECK FAIL: BR: constraint 78 fails on row 1 REJECTED (prover error) after 1.2s 
+syn bvalue: PRECHECK FAIL: BR: constraint 425 fails on row 15 REJECTED (prover error) after 1.3s 
+syn bvmem: PRECHECK FAIL: BR: constraint 514 fails on row 17 REJECTED (prover error) after 1.3s 
+syn postroot: PRECHECK FAIL: 2 unbalanced messages by bus {14: 2} REJECTED (prover error) after 1.5s 
+syn prevalue: PRECHECK FAIL: 2 unbalanced messages by bus {6: 2} REJECTED (prover error) after 1.6s 
+syn verslot: PRECHECK FAIL: 4 unbalanced messages by bus {25: 4} REJECTED (prover error) after 1.4s 
+syn vmcount: PRECHECK FAIL: 17 unbalanced messages by bus {25: 17} REJECTED (prover error) after 1.3s 
+syn wsabsorb: PRECHECK FAIL: WSP: constraint 5 fails on row 0 REJECTED (prover error) after 1.6s 
+syn wsdrop: PRECHECK FAIL: WSP: constraint 7 fails on row 0 REJECTED (prover error) after 1.5s 
+syn wsleaf: PRECHECK FAIL: 4 unbalanced messages by bus {27: 2, 103: 2} REJECTED (prover error) after 1.5s 
+syn wslen: PRECHECK FAIL: WSB: constraint 117 fails on row 7 REJECTED (native verifier: BatchConstraintError SumClaimMismatch)
+syn wslenlo: PRECHECK FAIL: WSB: constraint 117 fails on row 7 REJECTED (native verifier: BatchConstraintError SumClaimMismatch)
+syn wssib: PRECHECK FAIL: WSP: constraint 10 fails on row 1 REJECTED (prover error) after 1.1s 
+syn wsstale: PRECHECK FAIL: 2 unbalanced messages by bus {26: 2} REJECTED (prover error) after 1.0s 
+t2seg3x5 omitwrite: PRECHECK FAIL: 4 unbalanced messages by bus {13: 1, 24: 1, 26: 2} REJECTED (prover error) after 6.2s 
+t2seg3x5 wslen: PRECHECK FAIL: WSB: constraint 117 fails on row 51 REJECTED (native verifier: BatchConstraintError SumClaimMismatch)
+t2seg3x5 wsorder: PRECHECK FAIL: WSA: constraint 3 fails on row 0 REJECTED (prover error) after 6.5s 
+t2seg3x5 wsseg: PRECHECK FAIL: 6 unbalanced messages by bus {13: 2, 26: 4} REJECTED (prover error) after 5.7s 
+t2seg3x5 wsstale: PRECHECK FAIL: 2 unbalanced messages by bus {26: 2} REJECTED (prover error) after 5.5s 
