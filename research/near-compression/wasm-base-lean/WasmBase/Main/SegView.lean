@@ -261,7 +261,12 @@ theorem RelW.relabelV {X : Ctx} {E : Env} {s : St} {f : Frame} {tps tpl : Nat �
       Chain X t E.rest.length E.sb E.k E.rest (svR sv) ∧
       (∀ y, relabelLive σ A E.live y → (y.space = 4 ∨ 16 ≤ y.space) →
         chainMsgs X E.rest.length E.k E.rest (svR sv) y) ∧
-      (∀ y, chainMsgs X E.rest.length E.k E.rest (svR sv) y → relabelLive σ A E.live y) := by
+      (∀ y, chainMsgs X E.rest.length E.k E.rest (svR sv) y → relabelLive σ A E.live y) ∧
+      -- the choice of `(σ, A)` (exported for the CUTO link, `Main/SegLinkSpec.RelabelOK`)
+      (∃ sv0, Chain X t E.cid E.sb E.k E.rest sv0 ∧ (∀ x, chainMsgs X E.cid E.k E.rest sv0 x → E.live x) ∧
+        (∀ x, E.live x → (x.space = 4 ∨ 16 ≤ x.space) →
+          chainMsgs X E.cid E.k E.rest sv0 x ∨ deadSp t E.cid sv0 x) ∧
+        DepthOK σ E.cid sv0 ∧ A = E.cid :: sv0.map Saved.cid) := by
   obtain ⟨sv, hc, hin, hout, hrl⟩ := R.calls.chain
   obtain ⟨tpb, htpb, hbud⟩ := R.calls.budget
   obtain ⟨σ, hd⟩ := DepthOK.exists hc
@@ -299,7 +304,7 @@ theorem RelW.relabelV {X : Ctx} {E : Env} {s : St} {f : Frame} {tps tpl : Nat �
     have hy' : chainMsgs X sv.length E.k E.rest (svR sv) y := by rw [← hlen]; exact hy
     obtain ⟨x, hx, rfl⟩ := chainMsgs_rl_inv hc hd y hy'
     exact ⟨x, hin x hx, keepChain x hx, rfl⟩
-  refine ⟨σ, A, sv, htop, ?_, by rw [hlen]; exact hc.svR, outR, inR⟩
+  refine ⟨σ, A, sv, htop, ?_, by rw [hlen]; exact hc.svR, outR, inR, ⟨sv, hc, hin, hout, hd, rfl⟩⟩
   have hsepR : ∀ x, relabelLive σ A E.live x → x.space ≠ 0 ∧ x.space ≠ 16 + E.rest.length := by
     rintro y ⟨x, hx, hk, rfl⟩
     have hsep := R.envSep x hx
@@ -487,7 +492,7 @@ theorem RelW.relabel_view {X : Ctx} (hnd : X.M.fns.Nodup) {E : Env} {s : St} {f 
         (relabelLive σ A live) a b ∧
       RegC (relabelLive σ A live) s ∧ SpC (relabelLive σ A live) ∧
       ∀ y, (∃ x, relabelLive σ A live x ∧ x.space ≠ 3 ∧ x.space ≠ 7 ∧ fieldsOf x = y) ↔ y ∈ cutView X s := by
-  obtain ⟨σ, A, sv, -, R', hc, hout, hin⟩ := R.relabelV
+  obtain ⟨σ, A, sv, -, R', hc, hout, hin, -⟩ := R.relabelV
   refine ⟨σ, A, R', hreg.relabel, hsp.relabel, ?_⟩
   exact view_eq_of_depth hnd R' rfl hc (idsDepth_svR sv) hin hout hreg.relabel hsp.relabel
 
