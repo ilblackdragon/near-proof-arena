@@ -175,3 +175,4 @@ import WasmBase.Main.HostSigmaBridge
 import WasmBase.Main.HostIf
 import WasmBase.Main.HostAns
 import WasmBase.Main.HostIfTape
+import WasmBase.Main.HostIfCover
