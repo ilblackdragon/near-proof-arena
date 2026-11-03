@@ -4,7 +4,56 @@ import WasmBase.Main.BusCount
 /-!
 # WasmBase.Main.SegMP — the multiproof MPATH of `wasmBaseSegAirMP` (E2E M4b)
 
-PLACEHOLDER
+`wasmBaseSegAirMP` (`WasmBase/SegAirMP.lean`) is `wasmBaseSegAir` with table 20 replaced by a
+batched Merkle multiproof: one row per touched tree node `(lvl, idx)`, with per child a touched-leaf
+flag `lfX` (bus 15, MEMB's `[blk, ro, hoI, hoO]`), a touched-node flag `ndX` (the new node bus 17)
+or an untouched witness digest used for both trees.  This file proves, **at bus level**, what the
+table computes.
+
+## Main statement
+
+**`mp_tree`**: on a satisfied `wasmBaseSegAirMP` trace with public depth `D ≤ 30`, given the node
+compression as a hypothesis function `node` on the 18-limb digests (`chipO`: every active row's old
+output `po = node oL oR`; `chipN`: its new output `pn = node nL nR` unless `ro`), there is a
+partial tree `T : PTree` with
+* `T.At D 0` — `T` sits at the root position of a depth-`D` binary tree (leaves are block
+  indices, stubs stand for untouched subtrees, nodes at `(k, n)` have children at `(k−1, 2n)`,
+  `(k−1, 2n+1)`); its leaves are distinct (`PTree.At_nodup`) and lie in `[0, 2^D)` (`PTree.At_leaves`);
+* `memIn = T.eval node leafOld` and `memOut = T.eval node leafNew` — the **same** tree (same
+  stubs), with the old resp. new leaf digests;
+* every leaf `i` of `T` is a bus-15 message `[i, ρ] ++ leafOld i ++ leafNew i` sent with a
+  nonzero count (the only bus-15 sender is MEMB's padding row: `memb_bus`, `segMP_occ`);
+* every bus-15 message sent with count 1 is such a leaf of `T`.
+
+So a later collision-resistance argument can compare `T` with the full memory tree: if
+`T.eval node leafOld = root(M_in)` then (CR) each stub is the full tree's node at its position and
+each `leafOld i` is block `i`'s leaf; then `T.eval node leafNew` is the root of `M_in` with the
+touched blocks replaced.
+
+## How (the soundness sketch of `SegAirMP.lean`, formally)
+
+* `mpm_row`, `mpm_limbs`, `mpm_level`: the row constraints (booleans, untouched ⇒ `n = o`,
+  `ro` ⇒ unchanged, `lvl = 1 + a`, `D = 1 + a + b` from the 5-bit columns).
+* `segMP_occ`: every occurrence on buses 15, 16, 17 (only SEGB, MEMB, MPATH use them).
+* `rch_root`, `rch_in`, **`root_unique`**: on RCH a root's `[1] ++ pn` is SEGB's
+  `[nbt] ++ memOut`; SEGB's `[0] ++ memIn` is a root's `[0] ++ po` (or `memOut = memIn` with no
+  root); two roots would send `[1] ++ memOut` twice against SEGB's single receive.
+* `pos_of_act`: every active row is at a position `(ℓ, n)`, `1 ≤ ℓ ≤ D`, `n < 2^(D−ℓ)`
+  (`Pos`): a non-root row's message is received by a parent one level up (`parent_of`).
+* **`pos_unique`**: at most one row per position (two would send one message twice; only the unique
+  parent's one side receives it — the counting is `Main/BusCount.lean`'s `two_le_busNat'` /
+  `busNat_le_row`, exact by the bit counts on bus 17).
+* `mpTree`: the tree read off the rows (`rowAt`: the row at a position); `mpTree_eval`: the subtree
+  of a row evaluates to its `po` (old leaves) and `pn` (new leaves); `mpTree_leaves`,
+  `mpTree_sub`, `exists_root`: its leaves are exactly the touched leaf children.
+
+## Named hypotheses, domain conditions, open
+
+* `node`, `chipO`, `chipN`: the SHA-384 node compression on MPATH's limbs — the chip contract
+  (sub-lane S2 instantiates it with lane B's `Sha512If`).
+* `hD : D ≤ 30` (the verifier fixes `D = 16`): positions are naturals `< 2^30 < p`.
+* Not here: MEMB's side (each leaf message's digests are the SHA-384 of the block's bytes) and the
+  CR comparison with the full memory tree.
 -/
 
 namespace WasmBase
@@ -928,5 +977,496 @@ theorem pos_unique (hD : Dn pub ≤ 30) : ∀ k r r' ℓ n, Dn pub - ℓ = k →
     exact no_double H 17 (bits17 H) _ two (by omega)
 
 end uniq
+
+/-! ## The partial tree -/
+
+/-- **A partial binary Merkle tree**: touched leaves (by index), stubs (a digest standing for an
+untouched subtree, the same in the old and the new tree), inner nodes. -/
+inductive PTree where
+  | leaf (i : Nat)
+  | stub (d : List F)
+  | node (l r : PTree)
+
+namespace PTree
+
+/-- The root digest, with node compression `h` and leaf digests `lf`. -/
+def eval (h : List F → List F → List F) (lf : Nat → List F) : PTree → List F
+  | .leaf i => lf i
+  | .stub d => d
+  | .node l r => h (l.eval h lf) (r.eval h lf)
+
+def leaves : PTree → List Nat
+  | .leaf i => [i]
+  | .stub _ => []
+  | .node l r => l.leaves ++ r.leaves
+
+/-- `T` is the subtree at level `k`, position `n`, of a binary tree with leaves `0 … 2^D − 1` at
+level 0 (a leaf sits at its own index; a stub anywhere; a node's children at `(k − 1, 2n)` and
+`(k − 1, 2n + 1)`). -/
+def At : Nat → Nat → PTree → Prop
+  | _, _, .stub _ => True
+  | 0, n, .leaf i => i = n
+  | k + 1, n, .node l r => At k (2 * n) l ∧ At k (2 * n + 1) r
+  | _, _, _ => False
+
+/-- The leaves of a subtree at `(k, n)` are the indices `n·2^k … (n+1)·2^k − 1`. -/
+theorem At_leaves : ∀ (k n : Nat) (T : PTree), At k n T → ∀ i ∈ T.leaves, n * 2 ^ k ≤ i ∧ i < (n + 1) * 2 ^ k
+  | _, _, .stub _, _ => by simp [leaves]
+  | 0, n, .leaf i, h => by simp only [At] at h; subst h; simp [leaves]
+  | k + 1, n, .node l r, h => by
+    obtain ⟨hl, hr⟩ := h
+    intro i hi
+    have e1 : n * 2 ^ (k + 1) = 2 * (n * 2 ^ k) := by rw [Nat.pow_succ]; grind
+    have e2 : (n + 1) * 2 ^ (k + 1) = 2 * (n * 2 ^ k) + 2 * 2 ^ k := by rw [Nat.pow_succ]; grind
+    have e3 : (2 * n) * 2 ^ k = 2 * (n * 2 ^ k) := by grind
+    have e4 : (2 * n + 1) * 2 ^ k = 2 * (n * 2 ^ k) + 2 ^ k := by grind
+    have e5 : (2 * n + 1 + 1) * 2 ^ k = 2 * (n * 2 ^ k) + 2 * 2 ^ k := by grind
+    rw [e1, e2]
+    rcases List.mem_append.mp hi with hi | hi
+    · have := At_leaves k (2 * n) l hl i hi
+      rw [e3, show 2 * n + 1 = 2 * n + 1 from rfl, e4] at this; omega
+    · have := At_leaves k (2 * n + 1) r hr i hi
+      rw [e4, e5] at this; omega
+  | 0, _, .node _ _, h => by simp [At] at h
+  | _ + 1, _, .leaf _, h => by simp [At] at h
+
+/-- The leaves of a positioned partial tree are distinct. -/
+theorem At_nodup : ∀ (k n : Nat) (T : PTree), At k n T → T.leaves.Nodup
+  | _, _, .stub _, _ => by simp [leaves]
+  | 0, n, .leaf i, _ => by simp [leaves]
+  | k + 1, n, .node l r, h => by
+    obtain ⟨hl, hr⟩ := h
+    simp only [leaves]
+    refine List.nodup_append.mpr ⟨At_nodup k _ l hl, At_nodup k _ r hr, ?_⟩
+    intro a ha b hb hab
+    subst hab
+    have h1 := At_leaves k _ l hl a ha
+    have h2 := At_leaves k _ r hr a hb
+    have e3 : (2 * n) * 2 ^ k = 2 * (n * 2 ^ k) := by grind
+    have e4 : (2 * n + 1) * 2 ^ k = 2 * (n * 2 ^ k) + 2 ^ k := by grind
+    have e5 : (2 * n + 1 + 1) * 2 ^ k = 2 * (n * 2 ^ k) + 2 * 2 ^ k := by grind
+    rw [e3, e4] at h1; rw [e4, e5] at h2
+    omega
+  | 0, _, .node _ _, h => by simp [At] at h
+  | _ + 1, _, .leaf _, h => by simp [At] at h
+
+end PTree
+
+open Classical in
+/-- The row at node `(ℓ, n)`, if any (unique by `pos_unique`). -/
+noncomputable def rowAt (tr : Trace) (pub : List F) (ℓ n : Nat) : Option Nat :=
+  if h : ∃ r, Pos tr pub r ℓ n then some (Classical.choose h) else none
+
+/-- **The partial tree of the MPATH rows**: at `(ℓ + 1, n)` the row's node, a touched child is the
+subtree one level down (a leaf at level 0), an untouched child the stub of its witness digest. -/
+noncomputable def mpTree (tr : Trace) (pub : List F) : Nat → Nat → PTree
+  | 0, n => .leaf n
+  | ℓ + 1, n =>
+    match rowAt tr pub (ℓ + 1) n with
+    | none => .stub []
+    | some r =>
+      .node (if mc tr r 5 = 1 ∨ mc tr r 6 = 1 then mpTree tr pub ℓ (2 * n) else .stub (mdig tr r 13))
+        (if mc tr r 7 = 1 ∨ mc tr r 8 = 1 then mpTree tr pub ℓ (2 * n + 1) else .stub (mdig tr r 49))
+
+/-- The old / new leaf digests: those the level-1 row receives (MEMB's `hoI` / `hoO`). -/
+noncomputable def leafOld (tr : Trace) (pub : List F) (i : Nat) : List F :=
+  match rowAt tr pub 1 (i / 2) with
+  | some r => if i % 2 = 0 then mdig tr r 13 else mdig tr r 49
+  | none => []
+noncomputable def leafNew (tr : Trace) (pub : List F) (i : Nat) : List F :=
+  match rowAt tr pub 1 (i / 2) with
+  | some r => if i % 2 = 0 then mdig tr r 31 else mdig tr r 67
+  | none => []
+
+theorem mpTree_At (tr : Trace) (pub : List F) : ∀ ℓ n, (mpTree tr pub ℓ n).At ℓ n
+  | 0, n => by simp [mpTree, PTree.At]
+  | ℓ + 1, n => by
+    simp only [mpTree]
+    split
+    · simp [PTree.At]
+    · simp only [PTree.At]
+      constructor
+      · split
+        · exact mpTree_At tr pub ℓ (2 * n)
+        · simp [PTree.At]
+      · split
+        · exact mpTree_At tr pub ℓ (2 * n + 1)
+        · simp [PTree.At]
+
+section tree
+variable {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : Holds (wasmBaseSegAirMP nloc ngl) pub tr)
+include H
+
+theorem rowAt_eq (hD : Dn pub ≤ 30) {r ℓ n : Nat} (hp : Pos tr pub r ℓ n) : rowAt tr pub ℓ n = some r := by
+  have h : ∃ r, Pos tr pub r ℓ n := ⟨r, hp⟩
+  unfold rowAt
+  rw [dif_pos h]
+  congr 1
+  exact pos_unique H hD _ _ _ ℓ n rfl (Classical.choose_spec h) hp
+
+theorem mpTree_eq (hD : Dn pub ≤ 30) {r ℓ n : Nat} (hp : Pos tr pub r (ℓ + 1) n) :
+    mpTree tr pub (ℓ + 1) n =
+      .node (if mc tr r 5 = 1 ∨ mc tr r 6 = 1 then mpTree tr pub ℓ (2 * n) else .stub (mdig tr r 13))
+        (if mc tr r 7 = 1 ∨ mc tr r 8 = 1 then mpTree tr pub ℓ (2 * n + 1) else .stub (mdig tr r 49)) := by
+  conv => lhs; unfold mpTree
+  rw [rowAt_eq H hD hp]
+
+/-- A touched child of a row at `(ℓ, n)`: a leaf iff `ℓ = 1`; a node child is a row at `(ℓ − 1, 2n + s)`
+whose message is the one received. -/
+theorem child_cases (hD : Dn pub ≤ 30) {r ℓ n : Nat} (hp : Pos tr pub r ℓ n) :
+    (mc tr r 5 = 1 → ℓ = 1) ∧ (mc tr r 7 = 1 → ℓ = 1) ∧
+    (mc tr r 6 = 1 → ∃ c, 2 ≤ ℓ ∧ Pos tr pub c (ℓ - 1) (2 * n) ∧ sendN tr c = recvNL tr r) ∧
+    (mc tr r 8 = 1 → ∃ c, 2 ≤ ℓ ∧ Pos tr pub c (ℓ - 1) (2 * n + 1) ∧ sendN tr c = recvNR tr r) := by
+  obtain ⟨hr, ha, h3, h4, h1, hle, hn⟩ := hp
+  obtain ⟨-, -, -, -, -, -, -, -, -, -, l5, l7, -⟩ := mpm_row H hr
+  have hb : 2 ^ (Dn pub - ℓ) ≤ 2 ^ 29 := Nat.pow_le_pow_right (by decide) (by omega)
+  -- a sender `c` of the received message `[ℓ − 1, 2n + s] ++ …`
+  have key : ∀ c s : Nat, s ≤ 1 → c < tr.height 20 → mc tr c 0 = 1 → mc tr c 3 = mc tr r 3 - 1 →
+      mc tr c 4 = ((2 : Nat) : F) * mc tr r 4 + ((s : Nat) : F) → 2 ≤ ℓ ∧ Pos tr pub c (ℓ - 1) (2 * n + s) := by
+    intro c s hs hc hca e3 e4
+    obtain ⟨ℓc, nc, hpc⟩ := pos_of_act H hD hc hca
+    obtain ⟨-, -, f3, f4, g1, gle, gn⟩ := hpc
+    have hbc : 2 ^ (Dn pub - ℓc) ≤ 2 ^ 30 := Nat.pow_le_pow_right (by decide) (by omega)
+    rw [f3, h3] at e3
+    have hl : ((ℓc + 1 : Nat) : F) = ((ℓ : Nat) : F) := by rw [Lean.Grind.Semiring.natCast_add, e3]; grind
+    have hl' := cast_inj_small (by omega) (by omega) hl
+    rw [f4, h4] at e4
+    have hn' : nc = 2 * n + s := cast_inj_small (by omega) (by omega)
+      (by rw [e4]; simp only [Lean.Grind.Semiring.natCast_add, Lean.Grind.Semiring.natCast_mul])
+    subst hn'
+    refine ⟨by omega, hc, hca, by rw [f3]; congr 1; omega, f4, by omega, by omega, by rw [show ℓ - 1 = ℓc by omega]; exact gn⟩
+  refine ⟨fun h5 => ?_, fun h7 => ?_, fun h6 => ?_, fun h8 => ?_⟩
+  · have := l5 h5; rw [h3, ← cast_one] at this; exact cast_inj_small (by omega) (by omega) this
+  · have := l7 h7; rw [h3, ← cast_one] at this; exact cast_inj_small (by omega) (by omega) this
+  · obtain ⟨c, hc, hca, -, hm⟩ := (node_recv_send H hr).1 h6
+    obtain ⟨e3, e4, -, -⟩ := msg_split (mdig_len tr c 85) (mdig_len tr r 13) hm
+    obtain ⟨h2, hpc⟩ := key c 0 (by omega) hc hca e3 (by rw [e4, cast_zero]; grind)
+    exact ⟨c, h2, hpc, hm⟩
+  · obtain ⟨c, hc, hca, -, hm⟩ := (node_recv_send H hr).2 h8
+    obtain ⟨e3, e4, -, -⟩ := msg_split (mdig_len tr c 85) (mdig_len tr r 49) hm
+    obtain ⟨h2, hpc⟩ := key c 1 (by omega) hc hca e3 (by rw [e4, cast_one])
+    exact ⟨c, h2, hpc, hm⟩
+
+/-- **The subtree of a row evaluates to its old and new outputs.** -/
+theorem mpTree_eval (hD : Dn pub ≤ 30) (node : List F → List F → List F)
+    (chipO : ∀ r, r < tr.height 20 → mc tr r 0 = 1 → mdig tr r 85 = node (mdig tr r 13) (mdig tr r 49))
+    (chipN : ∀ r, r < tr.height 20 → mc tr r 0 = 1 → mc tr r 2 = 0 → mdig tr r 103 = node (mdig tr r 31) (mdig tr r 67)) :
+    ∀ ℓ r n, Pos tr pub r (ℓ + 1) n →
+      (mpTree tr pub (ℓ + 1) n).eval node (leafOld tr pub) = mdig tr r 85 ∧
+      (mpTree tr pub (ℓ + 1) n).eval node (leafNew tr pub) = mdig tr r 103 := by
+  intro ℓ
+  induction ℓ with
+  | zero =>
+    intro r n hp
+    obtain ⟨c5, c7, c6, c8⟩ := child_cases H hD hp
+    obtain ⟨-, -, -, b5, b6, b7, b8, -⟩ := mpm_row H hp.1
+    obtain ⟨u1, u2, u3⟩ := mpm_limbs H hp.1
+    have hrow := rowAt_eq H hD hp
+    have cL : (if mc tr r 5 = 1 ∨ mc tr r 6 = 1 then mpTree tr pub 0 (2 * n) else .stub (mdig tr r 13)).eval node
+        (leafOld tr pub) = mdig tr r 13 ∧
+        (if mc tr r 5 = 1 ∨ mc tr r 6 = 1 then mpTree tr pub 0 (2 * n) else .stub (mdig tr r 13)).eval node
+        (leafNew tr pub) = mdig tr r 31 := by
+      by_cases t : mc tr r 5 = 1 ∨ mc tr r 6 = 1
+      · rw [if_pos t]
+        rcases t with h5 | h6
+        · simp only [mpTree, PTree.eval, leafOld, leafNew, show 2 * n / 2 = n by omega, hrow,
+            show 2 * n % 2 = 0 by omega, ite_true]
+          refine ⟨?_, ?_⟩ <;> first | trivial | rfl | simp
+        · obtain ⟨c, h2, -⟩ := c6 h6; omega
+      · rw [if_neg t]
+        have h5 : mc tr r 5 = 0 := by rcases b5 with h | h; exact h; exact absurd (Or.inl h) t
+        have h6 : mc tr r 6 = 0 := by rcases b6 with h | h; exact h; exact absurd (Or.inr h) t
+        exact ⟨rfl, (u1 h5 h6).symm⟩
+    have cR : (if mc tr r 7 = 1 ∨ mc tr r 8 = 1 then mpTree tr pub 0 (2 * n + 1) else .stub (mdig tr r 49)).eval node
+        (leafOld tr pub) = mdig tr r 49 ∧
+        (if mc tr r 7 = 1 ∨ mc tr r 8 = 1 then mpTree tr pub 0 (2 * n + 1) else .stub (mdig tr r 49)).eval node
+        (leafNew tr pub) = mdig tr r 67 := by
+      by_cases t : mc tr r 7 = 1 ∨ mc tr r 8 = 1
+      · rw [if_pos t]
+        rcases t with h7 | h8
+        · simp only [mpTree, PTree.eval, leafOld, leafNew, show (2 * n + 1) / 2 = n by omega, hrow,
+            show (2 * n + 1) % 2 = 1 by omega]
+          refine ⟨?_, ?_⟩ <;> first | trivial | rfl | simp
+        · obtain ⟨c, h2, -⟩ := c8 h8; omega
+      · rw [if_neg t]
+        have h7 : mc tr r 7 = 0 := by rcases b7 with h | h; exact h; exact absurd (Or.inl h) t
+        have h8 : mc tr r 8 = 0 := by rcases b8 with h | h; exact h; exact absurd (Or.inr h) t
+        exact ⟨rfl, (u2 h7 h8).symm⟩
+    rw [mpTree_eq H hD hp]
+    simp only [PTree.eval]
+    rw [cL.1, cR.1, cL.2, cR.2]
+    refine ⟨(chipO r hp.1 hp.2.1).symm, ?_⟩
+    rcases (mpm_row H hp.1).2.2.1 with h2 | h2
+    · exact (chipN r hp.1 hp.2.1 h2).symm
+    · obtain ⟨v1, v2, v3⟩ := u3 h2
+      rw [v1, v2, v3]; exact (chipO r hp.1 hp.2.1).symm
+  | succ ℓ ih =>
+    intro r n hp
+    obtain ⟨c5, c7, c6, c8⟩ := child_cases H hD hp
+    obtain ⟨-, -, -, b5, b6, b7, b8, -⟩ := mpm_row H hp.1
+    obtain ⟨u1, u2, u3⟩ := mpm_limbs H hp.1
+    have cL : (if mc tr r 5 = 1 ∨ mc tr r 6 = 1 then mpTree tr pub (ℓ + 1) (2 * n) else .stub (mdig tr r 13)).eval node
+        (leafOld tr pub) = mdig tr r 13 ∧
+        (if mc tr r 5 = 1 ∨ mc tr r 6 = 1 then mpTree tr pub (ℓ + 1) (2 * n) else .stub (mdig tr r 13)).eval node
+        (leafNew tr pub) = mdig tr r 31 := by
+      by_cases t : mc tr r 5 = 1 ∨ mc tr r 6 = 1
+      · rw [if_pos t]
+        rcases t with h5 | h6
+        · have := c5 h5; omega
+        · obtain ⟨c, -, hpc, hm⟩ := c6 h6
+          rw [show ℓ + 1 + 1 - 1 = ℓ + 1 by omega] at hpc
+          obtain ⟨-, -, f1, f2⟩ := msg_split (mdig_len tr c 85) (mdig_len tr r 13) hm
+          rw [(ih c (2 * n) hpc).1, (ih c (2 * n) hpc).2]
+          exact ⟨f1, f2⟩
+      · rw [if_neg t]
+        have h5 : mc tr r 5 = 0 := by rcases b5 with h | h; exact h; exact absurd (Or.inl h) t
+        have h6 : mc tr r 6 = 0 := by rcases b6 with h | h; exact h; exact absurd (Or.inr h) t
+        exact ⟨rfl, (u1 h5 h6).symm⟩
+    have cR : (if mc tr r 7 = 1 ∨ mc tr r 8 = 1 then mpTree tr pub (ℓ + 1) (2 * n + 1) else .stub (mdig tr r 49)).eval node
+        (leafOld tr pub) = mdig tr r 49 ∧
+        (if mc tr r 7 = 1 ∨ mc tr r 8 = 1 then mpTree tr pub (ℓ + 1) (2 * n + 1) else .stub (mdig tr r 49)).eval node
+        (leafNew tr pub) = mdig tr r 67 := by
+      by_cases t : mc tr r 7 = 1 ∨ mc tr r 8 = 1
+      · rw [if_pos t]
+        rcases t with h7 | h8
+        · have := c7 h7; omega
+        · obtain ⟨c, -, hpc, hm⟩ := c8 h8
+          rw [show ℓ + 1 + 1 - 1 = ℓ + 1 by omega] at hpc
+          obtain ⟨-, -, f1, f2⟩ := msg_split (mdig_len tr c 85) (mdig_len tr r 49) hm
+          rw [(ih c (2 * n + 1) hpc).1, (ih c (2 * n + 1) hpc).2]
+          exact ⟨f1, f2⟩
+      · rw [if_neg t]
+        have h7 : mc tr r 7 = 0 := by rcases b7 with h | h; exact h; exact absurd (Or.inl h) t
+        have h8 : mc tr r 8 = 0 := by rcases b8 with h | h; exact h; exact absurd (Or.inr h) t
+        exact ⟨rfl, (u2 h7 h8).symm⟩
+    rw [mpTree_eq H hD hp]
+    simp only [PTree.eval]
+    rw [cL.1, cR.1, cL.2, cR.2]
+    refine ⟨(chipO r hp.1 hp.2.1).symm, ?_⟩
+    rcases (mpm_row H hp.1).2.2.1 with h2 | h2
+    · exact (chipN r hp.1 hp.2.1 h2).symm
+    · obtain ⟨v1, v2, v3⟩ := u3 h2
+      rw [v1, v2, v3]; exact (chipO r hp.1 hp.2.1).symm
+
+end tree
+
+section main
+variable {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : Holds (wasmBaseSegAirMP nloc ngl) pub tr)
+include H
+
+omit H in
+theorem rowAt_some {ℓ n r : Nat} (h : rowAt tr pub ℓ n = some r) : Pos tr pub r ℓ n := by
+  unfold rowAt at h
+  split at h
+  · rename_i hex
+    cases h
+    exact Classical.choose_spec hex
+  · cases h
+
+/-- Every leaf of the tree of `(ℓ + 1, n)` is a touched leaf child of a level-1 row. -/
+theorem mpTree_leaves (hD : Dn pub ≤ 30) : ∀ ℓ n, ∀ i ∈ (mpTree tr pub (ℓ + 1) n).leaves,
+    ∃ r1 n1, Pos tr pub r1 1 n1 ∧ ((i = 2 * n1 ∧ mc tr r1 5 = 1) ∨ (i = 2 * n1 + 1 ∧ mc tr r1 7 = 1)) := by
+  intro ℓ
+  induction ℓ with
+  | zero =>
+    intro n i hi
+    unfold mpTree at hi
+    split at hi
+    · simp [PTree.leaves] at hi
+    · rename_i r hr
+      have hp := rowAt_some hr
+      obtain ⟨-, -, c6, c8⟩ := child_cases H hD hp
+      simp only [PTree.leaves] at hi
+      rcases List.mem_append.mp hi with hi | hi
+      · split at hi
+        · rename_i t
+          simp only [mpTree, PTree.leaves, List.mem_singleton] at hi
+          rcases t with h5 | h6
+          · exact ⟨r, n, hp, Or.inl ⟨hi, h5⟩⟩
+          · obtain ⟨c, h2, -⟩ := c6 h6; exact absurd h2 (by decide)
+        · simp [PTree.leaves] at hi
+      · split at hi
+        · rename_i t
+          simp only [mpTree, PTree.leaves, List.mem_singleton] at hi
+          rcases t with h7 | h8
+          · exact ⟨r, n, hp, Or.inr ⟨hi, h7⟩⟩
+          · obtain ⟨c, h2, -⟩ := c8 h8; exact absurd h2 (by decide)
+        · simp [PTree.leaves] at hi
+  | succ ℓ ih =>
+    intro n i hi
+    unfold mpTree at hi
+    split at hi
+    · simp [PTree.leaves] at hi
+    · simp only [PTree.leaves] at hi
+      rcases List.mem_append.mp hi with hi | hi
+      · split at hi
+        · exact ih _ i hi
+        · simp [PTree.leaves] at hi
+      · split at hi
+        · exact ih _ i hi
+        · simp [PTree.leaves] at hi
+
+/-- The leaf message of a touched leaf child (MEMB's `[blk, ro, hoI, hoO]`). -/
+theorem leaf_msg (hD : Dn pub ≤ 30) {r1 n1 : Nat} (hp : Pos tr pub r1 1 n1) :
+    (mc tr r1 5 = 1 → ∃ o ∈ occs (wasmBaseSegAirMP nloc ngl) tr pub, o.1 = 15 ∧ o.2.1 = true ∧ o.2.2.2 ≠ 0 ∧
+      o.2.2.1 = [((2 * n1 : Nat) : F), mc tr r1 9] ++ leafOld tr pub (2 * n1) ++ leafNew tr pub (2 * n1)) ∧
+    (mc tr r1 7 = 1 → ∃ o ∈ occs (wasmBaseSegAirMP nloc ngl) tr pub, o.1 = 15 ∧ o.2.1 = true ∧ o.2.2.2 ≠ 0 ∧
+      o.2.2.1 = [((2 * n1 + 1 : Nat) : F), mc tr r1 10] ++ leafOld tr pub (2 * n1 + 1) ++ leafNew tr pub (2 * n1 + 1)) := by
+  have hrow := rowAt_eq H hD hp
+  have h4 := hp.2.2.2.1
+  refine ⟨fun h5 => ?_, fun h7 => ?_⟩
+  · obtain ⟨o, ho, hb, hs, hm, hc⟩ := (leaf_recv_send H hp.1).1 h5
+    refine ⟨o, ho, hb, hs, hc, ?_⟩
+    rw [hm, recvLL, h4]
+    simp only [leafOld, leafNew, show 2 * n1 / 2 = n1 by omega, hrow, show 2 * n1 % 2 = 0 by omega, ite_true,
+      Lean.Grind.Semiring.natCast_mul]
+  · obtain ⟨o, ho, hb, hs, hm, hc⟩ := (leaf_recv_send H hp.1).2 h7
+    refine ⟨o, ho, hb, hs, hc, ?_⟩
+    rw [hm, recvLR, h4]
+    simp only [leafOld, leafNew, show (2 * n1 + 1) / 2 = n1 by omega, hrow, show (2 * n1 + 1) % 2 = 1 by omega,
+      Lean.Grind.Semiring.natCast_mul, Lean.Grind.Semiring.natCast_add, cast_one]
+    simp
+
+/-- The leaves below a row are leaves of the whole tree. -/
+theorem mpTree_sub (hD : Dn pub ≤ 30) : ∀ k r ℓ n, Dn pub - ℓ = k → Pos tr pub r ℓ n →
+    ∀ i ∈ (mpTree tr pub ℓ n).leaves, i ∈ (mpTree tr pub (Dn pub) 0).leaves := by
+  intro k
+  induction k with
+  | zero =>
+    intro r ℓ n hk hp i hi
+    have hl : ℓ = Dn pub := by have := hp.2.2.2.2.2.1; omega
+    have hn : n = 0 := by have := hp.2.2.2.2.2.2; rw [hl, Nat.sub_self] at this; omega
+    subst hl; subst hn; exact hi
+  | succ k ih =>
+    intro r ℓ n hk hp i hi
+    have hl : ℓ < Dn pub := by omega
+    obtain ⟨q, hq, hside⟩ := parent_pos H hD hp hl
+    apply ih q (ℓ + 1) (n / 2) (by omega) hq
+    rw [mpTree_eq H hD hq]
+    simp only [PTree.leaves]
+    rcases hside with ⟨h2, h6, -⟩ | ⟨h2, h8, -⟩
+    · apply List.mem_append_left
+      rw [ite_cond_eq_true _ _ (eq_true (Or.inr h6)), show 2 * (n / 2) = n by omega]; exact hi
+    · apply List.mem_append_right
+      rw [ite_cond_eq_true _ _ (eq_true (Or.inr h8)), show 2 * (n / 2) + 1 = n by omega]; exact hi
+
+/-- A row hangs below a root. -/
+theorem exists_root (hD : Dn pub ≤ 30) : ∀ k r ℓ n, Dn pub - ℓ = k → Pos tr pub r ℓ n →
+    ∃ ρ, ρ < tr.height 20 ∧ mc tr ρ 1 = 1 := by
+  intro k
+  induction k with
+  | zero =>
+    intro r ℓ n hk hp
+    have hl : ℓ = Dn pub := by have := hp.2.2.2.2.2.1; omega
+    subst hl
+    exact ⟨r, hp.1, top_of_lvlD H hp.1 hp.2.1 hp.2.2.1⟩
+  | succ k ih =>
+    intro r ℓ n hk hp
+    obtain ⟨q, hq, -⟩ := parent_pos H hD hp (by omega)
+    exact ih q (ℓ + 1) (n / 2) (by omega) hq
+
+/-- **The multiproof MPATH, bus level.**  On a satisfied `wasmBaseSegAirMP` trace with depth
+`D ≤ 30`, if every MPATH row's old output is the node compression `node` of its old children (and
+its new output of its new children unless `ro`), there is a partial tree `T` at the root position
+`(D, 0)` such that
+* `memIn` (public) is `T`'s root with the old leaf digests, `memOut` with the new ones (the stubs,
+  i.e. the untouched subtrees, are the same in both);
+* every leaf `i` of `T` is a bus-15 message `[i, ρ] ++ old_i ++ new_i` (sent by MEMB);
+* every bus-15 message sent with count 1 is a leaf of `T`.
+`T`'s leaves are distinct (`PTree.At_nodup`). -/
+theorem mp_tree (hD : Dn pub ≤ 30) (node : List F → List F → List F)
+    (chipO : ∀ r, r < tr.height 20 → mc tr r 0 = 1 → mdig tr r 85 = node (mdig tr r 13) (mdig tr r 49))
+    (chipN : ∀ r, r < tr.height 20 → mc tr r 0 = 1 → mc tr r 2 = 0 → mdig tr r 103 = node (mdig tr r 31) (mdig tr r 67)) :
+    ∃ T : PTree, T.At (Dn pub) 0 ∧
+      T.eval node (leafOld tr pub) = pubDig pub pubMemIn ∧ T.eval node (leafNew tr pub) = pubDig pub pubMemOut ∧
+      (∀ i ∈ T.leaves, ∃ o ∈ occs (wasmBaseSegAirMP nloc ngl) tr pub, o.1 = 15 ∧ o.2.1 = true ∧ o.2.2.2 ≠ 0 ∧
+        ∃ ρ, o.2.2.1 = [((i : Nat) : F), ρ] ++ leafOld tr pub i ++ leafNew tr pub i) ∧
+      (∀ o ∈ occs (wasmBaseSegAirMP nloc ngl) tr pub, o.1 = 15 → o.2.1 = true → o.2.2.2 = 1 →
+        ∃ i ∈ T.leaves, ∃ ρ, o.2.2.1 = [((i : Nat) : F), ρ] ++ leafOld tr pub i ++ leafNew tr pub i) := by
+  -- a touched leaf message is received by a level-1 row
+  have recv1 : ∀ o ∈ occs (wasmBaseSegAirMP nloc ngl) tr pub, o.1 = 15 → o.2.1 = true → o.2.2.2 = 1 →
+      ∃ q nq, Pos tr pub q 1 nq ∧ ((mc tr q 5 = 1 ∧ o.2.2.1 = [((2 * nq : Nat) : F), mc tr q 9] ++
+        leafOld tr pub (2 * nq) ++ leafNew tr pub (2 * nq)) ∨ (mc tr q 7 = 1 ∧ o.2.2.1 =
+        [((2 * nq + 1 : Nat) : F), mc tr q 10] ++ leafOld tr pub (2 * nq + 1) ++ leafNew tr pub (2 * nq + 1))) := by
+    intro o ho hb hs hc
+    obtain ⟨q, hq, hcase⟩ := leaf_send_recv H ho hb hs hc
+    have hqa : mc tr q 0 = 1 := act_of_nd H hq (by
+      rcases hcase with h | h; exact Or.inr (Or.inr (Or.inl h.1)); exact Or.inr (Or.inr (Or.inr h.1)))
+    obtain ⟨ℓq, nq, hpq⟩ := pos_of_act H hD hq hqa
+    obtain ⟨c5, c7, -, -⟩ := child_cases H hD hpq
+    have hrow := rowAt_eq H hD hpq
+    have h4 := hpq.2.2.2.1
+    rcases hcase with ⟨h5, hm⟩ | ⟨h7, hm⟩
+    · have := c5 h5; subst this
+      refine ⟨q, nq, hpq, Or.inl ⟨h5, ?_⟩⟩
+      rw [← hm, recvLL, h4]
+      simp only [leafOld, leafNew, show 2 * nq / 2 = nq by omega, hrow, show 2 * nq % 2 = 0 by omega, ite_true,
+        Lean.Grind.Semiring.natCast_mul]
+    · have := c7 h7; subst this
+      refine ⟨q, nq, hpq, Or.inr ⟨h7, ?_⟩⟩
+      rw [← hm, recvLR, h4]
+      simp only [leafOld, leafNew, show (2 * nq + 1) / 2 = nq by omega, hrow, show (2 * nq + 1) % 2 = 1 by omega,
+        Lean.Grind.Semiring.natCast_mul, Lean.Grind.Semiring.natCast_add, cast_one]
+      simp
+  by_cases hroot : ∃ ρ, ρ < tr.height 20 ∧ mc tr ρ 1 = 1
+  · obtain ⟨ρ, hρ, htop⟩ := hroot
+    have ha : mc tr ρ 0 = 1 := by
+      rcases (mpm_row H hρ).1 with h | h
+      · have := ((mpm_row H hρ).2.2.2.2.2.2.2.1 h).1; rw [this] at htop; exact absurd htop (by decide)
+      · exact h
+    obtain ⟨ℓ, n, hp⟩ := pos_of_act H hD hρ ha
+    obtain ⟨l3, l4⟩ := lvl_of_top H hρ htop
+    have hl := pos_lvl_inj hD hp l3 hD
+    have hn := pos_idx_inj hD hp (by rw [l4]; rfl) (by decide)
+    subst hl; subst hn
+    have hD1 := hp.2.2.2.2.1
+    obtain ⟨d, hd⟩ : ∃ d, Dn pub = d + 1 := ⟨Dn pub - 1, by omega⟩
+    obtain ⟨e1, e2⟩ := mpTree_eval H hD node chipO chipN d ρ 0 (by rw [← hd]; exact hp)
+    obtain ⟨n1, eo⟩ := rch_root H hρ htop
+    have ei : mdig tr ρ 85 = pubDig pub pubMemIn := by
+      rcases rch_in H with ⟨h0, -⟩ | ⟨q, hq, hqt, hqi⟩
+      · rw [h0] at n1; exact absurd n1 (by decide)
+      · rw [← root_unique H hq hρ hqt htop]; exact hqi
+    refine ⟨mpTree tr pub (Dn pub) 0, mpTree_At tr pub _ _, by rw [hd, e1, ei], by rw [hd, e2, eo], ?_, ?_⟩
+    · intro i hi
+      rw [hd] at hi
+      obtain ⟨r1, n1, hp1, hcase⟩ := mpTree_leaves H hD d 0 i hi
+      rcases hcase with ⟨rfl, h5⟩ | ⟨rfl, h7⟩
+      · obtain ⟨o, ho, hb, hs, hc, hm⟩ := (leaf_msg H hD hp1).1 h5
+        exact ⟨o, ho, hb, hs, hc, _, hm⟩
+      · obtain ⟨o, ho, hb, hs, hc, hm⟩ := (leaf_msg H hD hp1).2 h7
+        exact ⟨o, ho, hb, hs, hc, _, hm⟩
+    · intro o ho hb hs hc
+      obtain ⟨q, nq, hpq, hcase⟩ := recv1 o ho hb hs hc
+      have hsub := mpTree_sub H hD _ q 1 nq rfl hpq
+      rcases hcase with ⟨h5, hm⟩ | ⟨h7, hm⟩
+      · refine ⟨2 * nq, hsub _ ?_, _, hm⟩
+        rw [mpTree_eq H hD hpq, if_pos (Or.inl h5)]
+        simp [PTree.leaves, mpTree]
+      · refine ⟨2 * nq + 1, hsub _ ?_, _, hm⟩
+        rw [mpTree_eq H hD hpq, if_pos (Or.inl h7)]
+        simp [PTree.leaves, mpTree]
+  · have hno : ∀ q nq, ¬ Pos tr pub q 1 nq := fun q nq hp =>
+      hroot (exists_root H hD _ q 1 nq rfl hp)
+    have heq : pubDig pub pubMemIn = pubDig pub pubMemOut := by
+      rcases rch_in H with ⟨-, h⟩ | ⟨q, hq, hqt, -⟩
+      · exact h
+      · exact absurd ⟨q, hq, hqt⟩ hroot
+    refine ⟨.stub (pubDig pub pubMemIn), by simp [PTree.At], rfl, heq, by simp [PTree.leaves], ?_⟩
+    intro o ho hb hs hc
+    obtain ⟨q, nq, hpq, -⟩ := recv1 o ho hb hs hc
+    exact absurd hpq (hno q nq)
+
+end main
+
+#print axioms segMP_same
+#print axioms two_le_busNat'
+#print axioms busNat_le_row
+#print axioms root_unique
+#print axioms pos_of_act
+#print axioms pos_unique
+#print axioms mpTree_eval
+#print axioms PTree.At_nodup
+#print axioms mp_tree
 
 end WasmBase
