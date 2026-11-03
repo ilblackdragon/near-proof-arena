@@ -42,3 +42,6 @@ import StateM5a.KeyDecode
 import StateM5a.DepthBound
 import StateM5a.Tape
 import StateM5a.KeyLookups
+import StateM5a.WsTree
+import StateM5a.WsDecode4
+import StateM5a.WsKey
