@@ -11,7 +11,7 @@ import WasmBase.IfCheck
 | `unreachable` | 0x00 | the `UNREACH` chip: a trapping row (`halted = 2`), record `[pc, 0, h, fee, 0, 0, 0, 0]` |
 | `if` with a result | `if (result t)` … `else` … `end` | checker only: the `IF`/`CTRL` rows are unchanged (§ below) |
 | `ed25519_verify` | host id 61, `(6, 1)`, all `i64` | the HOST row as every other oracle-answered host (`hostFnsM2`) |
-| **admitted, no chip** | `memory.grow`, `memory.size`, a call of a listed host whose signature the HOST row cannot carry (`abort`: `i32` parameters) | records with opcodes `0x240`/`0x241`/`0x242` that **no chip's FETCH query can produce** |
+| **admitted, no chip** | `memory.grow`, `memory.size`, a call of a listed host whose signature the HOST row cannot carry (`abort`: `i32` parameters; `promise_yield_resume`: `i32` result) | records with opcodes `0x240`/`0x241`/`0x242` that **no chip's FETCH query can produce** |
 
 ## Admitted-but-unchipped instructions
 
@@ -49,9 +49,17 @@ def hostFnsM2 : List (Nat × String × Nat × Nat) := Chips.hostFns ++ [(61, "ed
 
 def hostIdOfM2 (name : String) : Option Nat := (hostFnsM2.find? (fun x => x.2.1 = name)).map (·.1)
 
+/-- The HOST row pushes its result with tag `i64` (`Chips.Host`'s `stkSend … 1 …`), so a host whose
+result is `i32` (`promise_yield_resume`) has no HOST row: it is admitted without a chip. -/
+def hostResI64 (name : String) : Bool :=
+  match NearSpecV3.Wasm.hostSigs.find? (·.1 = name) with
+  | some (_, ft) => ft.results.all (· == .i64)
+  | none => false
+
 /-- Host id and signature an import call **with a HOST row** (np ≤ 9, ar ≤ 1, `i64` parameters). -/
 def hostChipM2 (name : String) : Option (Nat × Nat × Nat) :=
-  (hostFnsM2.find? (fun x => x.2.1 = name && Chips.hostShapeOk x.2.2.1 x.2.2.2 && Chips.hostArgsI64 name)).map
+  (hostFnsM2.find? (fun x => x.2.1 = name && Chips.hostShapeOk x.2.2.1 x.2.2.2 && Chips.hostArgsI64 name &&
+      hostResI64 name)).map
     fun x => (x.1, x.2.2.1, x.2.2.2)
 
 /-- Signature of any listed host (also those without a HOST row: admitted, no chip). -/

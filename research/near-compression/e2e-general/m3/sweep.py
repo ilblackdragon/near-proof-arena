@@ -38,6 +38,18 @@ PROVER = "/data/illia/nearproof-deps/e2e-laneA/target/release/nearproof-wasm-bas
 D3TINY = "8152bed25554d521d3fcdd919f4457b66e06b720906fdd40fd6fd0723ed36bf9"
 
 
+def trace_logs(t):
+    """The trace's logs in order: `log_utf8` payloads as they are, `log_utf16` payloads decoded from
+    UTF-16LE (the host's `String::from_utf16`) and re-encoded as UTF-8, as the outcome stores them."""
+    if "logx" not in t:
+        return t["logs"]
+    out = []
+    for hid, h in t["logx"]:
+        b = bytes.fromhex(h)
+        out.append(h if hid == 45 else b.decode("utf-16-le").encode("utf-8").hex())
+    return out
+
+
 def main():
     args = sys.argv[1:]
     jobs, tool, prover, airc = 8, TOOL, PROVER, "airM2"
@@ -146,9 +158,16 @@ def main():
         else:
             cmp["g_final"] = t["g_final_trace"] == c["prep"]["gFinal"]
             r["burnt_formula_eq"] = burnt_eq
-        cmp["logs"] = t["logs"] == real["logs"]
+        cmp["logs"] = trace_logs(t) == real["logs"]
         if real["err"] is None:
-            cmp["ret"] = (t["rets"][-1] if t["rets"] else None) == real["ret"]
+            lr = t.get("lastret")
+            if isinstance(real["ret"], str) and real["ret"].startswith("receipt"):
+                # `promise_return(p)`: the outcome names the receipt the promise became; the Wasm
+                # trace carries the promise index (the receipt numbering is the state side's, M6)
+                cmp["ret"] = lr is not None and lr[0] == 30
+                r["promise_ret"] = [lr[1] if lr else None, real["ret"]]
+            else:
+                cmp["ret"] = (t["rets"][-1] if t["rets"] else None) == real["ret"] and (lr is None or lr[0] == 50)
         r["cmp"] = cmp
         r["class"] = "equal" if all(cmp.values()) else "DIFFERENT"
         if real["err"] is not None and all(cmp.values()):

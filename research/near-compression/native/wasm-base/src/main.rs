@@ -316,6 +316,25 @@ fn hostb_payloads(spec: &AirSpec, g: &Gen) -> Vec<(u64, u64, Vec<u8>)> {
     out
 }
 
+/// E2E M2: the successful host calls of the trace, `(ts, hid, arg0)` in time order (from HOST's rows).
+fn host_calls_ok(spec: &AirSpec, g: &Gen) -> Vec<(u64, u64, u64)> {
+    let Some(hi) = spec.tables.iter().position(|t| t.name == "HOST") else { return vec![] };
+    let ht = &spec.tables[hi];
+    let hw = ht.cols.len();
+    let c = |n: &str| ht.col(n);
+    let m = &g.mats[hi];
+    let at = |r: usize, k: usize| m.values[r * hw + k].as_canonical_u32() as u64;
+    let mut out = vec![];
+    for r in 0..m.values.len() / hw {
+        if at(r, c("act")) == 1 && at(r, c("st")) == 0 {
+            let a0 = (0..4).map(|i| at(r, c(&format!("P0_{i}"))) << (16 * i)).sum::<u64>();
+            out.push((at(r, c("ts")), at(r, c("hid")), a0));
+        }
+    }
+    out.sort();
+    out
+}
+
 /// `check-tape <air.json> <prep.json>...`: E2E M3.  For each prep (one call's chunk host tape,
 /// `wasmbase-tape`), generate the trace, run the full constraint and bus pre-check, and print one JSON
 /// line: the trace's final budget `g_final_trace`, and the `log_utf8` (45) / `value_return` (50) /
@@ -328,14 +347,20 @@ fn cmd_check_tape(air_path: &str, preps: &[String]) {
             let (_prep, g) = generate(&spec, p);
             let c = tracegen::check_constraints(&spec, &g).err();
             let b = tracegen::check_buses(&spec, &g).err();
-            (g.g_final_trace, hostb_payloads(&spec, &g), c, b, g.steps)
+            (g.g_final_trace, hostb_payloads(&spec, &g), c, b, g.steps, host_calls_ok(&spec, &g))
         }));
         match r {
-            Ok((gf, pl, c, b, steps)) => {
+            Ok((gf, pl, c, b, steps, hc)) => {
                 let hx = |v: &Vec<u8>| v.iter().map(|x| format!("{x:02x}")).collect::<String>();
                 let pick = |h: u64| -> Vec<String> {
                     pl.iter().filter(|(_, hid, _)| *hid == h).map(|(_, _, v)| format!("\"{}\"", hx(v))).collect()
                 };
+                // E2E M2: every log (`log_utf8` 45 / `log_utf16` 46) in order, and the trace's last
+                // return-kind call (`value_return` 50 / `promise_return` 30, with its promise index)
+                let logx: Vec<String> = pl.iter().filter(|(_, hid, _)| *hid == 45 || *hid == 46)
+                    .map(|(_, hid, v)| format!("[{hid},\"{}\"]", hx(v))).collect();
+                let lastret = hc.iter().filter(|(_, h, _)| *h == 50 || *h == 30).last()
+                    .map(|(_, h, a)| format!("[{h},{a}]")).unwrap_or("null".into());
                 let skeys: Vec<String> = pl.iter().filter(|(_, hid, _)| (57..=60).contains(hid)).map(|(_, _, v)| format!("\"{}\"", hx(v))).collect();
                 let err = match (c, b) {
                     (None, None) => "null".to_string(),
@@ -343,8 +368,8 @@ fn cmd_check_tape(air_path: &str, preps: &[String]) {
                     (_, Some(e)) => format!("\"bus: {}\"", e[..e.len().min(200)].replace('"', "'")),
                 };
                 println!(
-                    "{{\"prep\":\"{p}\",\"ok\":{},\"steps\":{steps},\"g_final_trace\":{gf},\"logs\":[{}],\"rets\":[{}],\"skeys\":[{}],\"svals\":[{}],\"err\":{err}}}",
-                    err == "null", pick(45).join(","), pick(50).join(","), skeys.join(","), pick(314).join(",")
+                    "{{\"prep\":\"{p}\",\"logx\":[{}],\"lastret\":{lastret},\"ok\":{},\"steps\":{steps},\"g_final_trace\":{gf},\"logs\":[{}],\"rets\":[{}],\"skeys\":[{}],\"svals\":[{}],\"err\":{err}}}",
+                    logx.join(","), err == "null", pick(45).join(","), pick(50).join(","), skeys.join(","), pick(314).join(",")
                 );
             }
             Err(e) => {
