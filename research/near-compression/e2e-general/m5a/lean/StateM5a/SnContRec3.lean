@@ -6,7 +6,7 @@ import StateM5a.SnContRec2
 
 `contKeyB tr pub r M = hpDec (hp_0..hp_31 ++ M) odd`: the nibbles the hashed `hexPrefix`
 encodes, where `M` are the `SNC` bytes of the message (`SnContRec2.cont_node`).  **`grecK_hashed`**:
-when the message is `serC … M …` (every entry a byte, `hplen < 256`), the record
+when the message is `serC … M …` (every entry a byte, `hplen < 2^16`), the record
 `gRecK (contKeyB M)` is `Hashed` to its SHA-256, and the key has `2·(hplen − 1) + odd`
 nibbles, all `< 16`.
 -/
@@ -50,7 +50,7 @@ set_option maxHeartbeats 8000000 in
 theorem grecK_hashed (hc : ∀ e ∈ Sn.table.constraints, e.eval tr 3 r pub = 0)
     (hA : ev tr 3 r pub (Sn.c "act") = 1) (hk0 : ev tr 3 r pub (Sn.c "k" 0) < 16) {x mb : Nat → Expr} {xf : Expr} {M : List Nat}
     (hML : M.length = ev tr 3 r pub (Sn.c "hplen") - 32) (hMb : ∀ v ∈ M, v < 256)
-    (hH32 : 32 ≤ ev tr 3 r pub (Sn.c "hplen")) (hH256 : ev tr 3 r pub (Sn.c "hplen") < 256)
+    (hH32 : 32 ≤ ev tr 3 r pub (Sn.c "hplen")) (hH256 : ev tr 3 r pub (Sn.c "hplen") < 65536)
     (hby : ∀ k, k < 5 + ev tr 3 r pub (Sn.c "hplen") + payLen tr pub r + 8 →
       (k < 37 ∨ 5 + ev tr 3 r pub (Sn.c "hplen") ≤ k) →
       headF tr pub r (ev tr 3 r pub (Sn.c "hplen")) x mb k < 256)
@@ -110,7 +110,7 @@ theorem grecK_hashed (hc : ∀ e ∈ Sn.table.constraints, e.eval tr 3 r pub = 0
         hexPrefix (hpDec B (ev tr 3 r pub (Sn.c "odd"))) (decide (ev tr 3 r pub (Sn.c "isL") = 1)) ++
         (List.range (payLen tr pub r)).map (fun t => UInt8.ofNat (ev tr 3 r pub (x t))) ++
         u64 (memS tr pub r mb) := by
-    rw [hlen, u32_small hH256, hhpE, memS_u64 hmb, hB, htag]
+    rw [hlen, u32_mid hH256, hhpE, memS_u64 hmb, hB, htag]
     simp only [serC, List.map_append, List.map_cons, List.map_nil, List.map_map, List.cons_append,
       List.nil_append, List.append_assoc]
     rfl

@@ -95,7 +95,7 @@ theorem snc_cont (hH : Holds (fullAir D extra nb np) pub tr)
 /-- **A byte hashed under `ID_SN + 2·r0 + par`** of a head with `cont = 0` was sent by `SN` row
 `r0`, from the `SHA_BYTES` sends led by `idO` (`par = 0`) / `idN` (`par = 1`). -/
 theorem sn_byte (hH : Holds (fullAir D extra nb np) pub tr)
-    (hxB : ∀ T ∈ extra, sendsOn T.interactions B_SHA_BYTES = false)
+    (hxB : XSbHi D extra nb np tr pub)
     (hxK : ∀ T ∈ extra, sendsOn T.interactions B_KC = false)
     {r0 par : Nat} (hr0 : r0 < tr.height 3) (hcont : ev tr 3 r0 pub (Sn.c "cont") = 0) (hpar : par ≤ 1)
     {id x y : Fp} (hid : id.toNat = ID_SN + 2 * r0 + par)
@@ -111,8 +111,8 @@ theorem sn_byte (hH : Holds (fullAir D extra nb np) pub tr)
   have hH3 : tr.height 3 ≤ 2 ^ 20 :=
     Nat.pow_le_pow_right (by decide) (hH.logBound 3 (by rw [fullAir_len]; omega)).2
   have hlt := Fp.toNat_lt id
-  obtain ⟨t, hts, ht, r, hr, i, hi, hb, hs, hp, he⟩ := sender_set B_SHA_BYTES [1, 2, 3, 8] (sb_only D) hxB
-    (recv_sent hH hm)
+  obtain ⟨t, hts, ht, r, hr, i, hi, hb, hs, hp, he⟩ := sender_lo [1, 2, 3, 8] (sb_only D) hxB
+    (recv_sent hH hm) (by rw [hid, show ID_SN = 50331648 from rfl, show ID_ST = 67108864 from rfl]; omega)
   have hhead := congrArg List.head? he
   simp only [List.head?_cons] at hhead
   simp only [List.mem_cons, List.not_mem_nil, or_false] at hts
@@ -203,7 +203,7 @@ theorem ev_serLenS {r : Nat} (hpl : ev tr 3 r pub (Sn.c "hplen") ≤ 33) (hL : e
 /-- **A hashing `SN` head's message is `snSerF`** (generic in the node's columns): every entry is a
 byte, and the received digest is its SHA-256. -/
 theorem sn_node (hH : Holds (fullAir D extra nb np) pub tr)
-    (hxB : ∀ T ∈ extra, sendsOn T.interactions B_SHA_BYTES = false)
+    (hxB : XSbHi D extra nb np tr pub)
     (hxD : ∀ T ∈ extra, sendsOn T.interactions B_SHA_DIGEST = false)
     (hxK : ∀ T ∈ extra, sendsOn T.interactions B_KC = false)
     {r par : Nat} (hr : r < tr.height 3) (hpar : par ≤ 1)

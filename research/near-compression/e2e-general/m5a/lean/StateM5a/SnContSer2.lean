@@ -4,7 +4,7 @@ import StateM5a.SnContSer
 # StateM5a.SnContSer2 — the values a continued head sends, by offset
 
 `headF k`: the value a continued head (`hplen = H`) puts at serialization offset `k` outside the
-`SNC` range `[37, 5 + H)`: the tag `3·isE`, `u32 H` as `(H, 0, 0, 0)`, `hp_{k−5}` (`k < 37`), the
+`SNC` range `[37, 5 + H)`: the tag `3·isE`, `u32 H` as `(hplen − 256·hph, hph, 0, 0)` (M5a-8), `hp_{k−5}` (`k < 37`), the
 payload `x_{k−5−H}`, the memory bytes `mb_{k−5−H−payLen}`.  **`cont_ser_val`**: every firing send of
 `Sn.serBytes` on a continued head is `(id, pe, ve)` with `pe < serLen`, `pe` outside `[37, 5 + H)`,
 and `ve = headF pe`.
@@ -24,7 +24,9 @@ variable (tr : Trace Fp) (pub : List Fp) (r : Nat)
 
 /-- The head's value at offset `k` (outside the `SNC` range). -/
 def headF (H : Nat) (x mb : Nat → Expr) (k : Nat) : Nat :=
-  if k = 0 then ev tr 3 r pub (sm 3 (Sn.c "isE")) else if k = 1 then H else if k < 5 then 0
+  if k = 0 then ev tr 3 r pub (sm 3 (Sn.c "isE"))
+  else if k = 1 then ev tr 3 r pub (Sn.c "hplen" - sm 256 (Sn.c "hph"))
+  else if k = 2 then ev tr 3 r pub (Sn.c "hph") else if k < 5 then 0
   else if k < 37 then ev tr 3 r pub (Sn.c "hp" (k - 5))
   else if k < 5 + H + payLen tr pub r then ev tr 3 r pub (x (k - 5 - H))
   else ev tr 3 r pub (mb (k - 5 - H - payLen tr pub r))
@@ -36,26 +38,29 @@ variable {tr : Trace Fp} {pub : List Fp} {r : Nat} {H : Nat} {x mb : Nat → Exp
 
 theorem headF_hp {m : Nat} (hm : m < 32) : headF tr pub r H x mb (5 + m) = ev tr 3 r pub (Sn.c "hp" m) := by
   unfold headF
-  rw [if_neg (by omega), if_neg (by omega), if_neg (by omega), if_pos (by omega), show 5 + m - 5 = m by omega]
+  rw [if_neg (by omega), if_neg (by omega), if_neg (by omega), if_neg (by omega), if_pos (by omega),
+    show 5 + m - 5 = m by omega]
 
 theorem headF_x (hH : 32 ≤ H) {t : Nat} (ht : t < payLen tr pub r) :
     headF tr pub r H x mb (5 + H + t) = ev tr 3 r pub (x t) := by
   unfold headF
-  rw [if_neg (by omega), if_neg (by omega), if_neg (by omega), if_neg (by omega), if_pos (by omega),
-    show 5 + H + t - 5 - H = t by omega]
+  rw [if_neg (by omega), if_neg (by omega), if_neg (by omega), if_neg (by omega), if_neg (by omega),
+    if_pos (by omega), show 5 + H + t - 5 - H = t by omega]
 
 theorem headF_mb (hH : 32 ≤ H) {b : Nat} :
     headF tr pub r H x mb (5 + H + payLen tr pub r + b) = ev tr 3 r pub (mb b) := by
   unfold headF
   rw [if_neg (by omega), if_neg (by omega), if_neg (by omega), if_neg (by omega), if_neg (by omega),
-    show 5 + H + payLen tr pub r + b - 5 - H - payLen tr pub r = b by omega]
+    if_neg (by omega), show 5 + H + payLen tr pub r + b - 5 - H - payLen tr pub r = b by omega]
 
 theorem headF_0 : headF tr pub r H x mb 0 = ev tr 3 r pub (sm 3 (Sn.c "isE")) := by
   unfold headF; rw [if_pos rfl]
-theorem headF_1 : headF tr pub r H x mb 1 = H := by
+theorem headF_1 : headF tr pub r H x mb 1 = ev tr 3 r pub (Sn.c "hplen" - sm 256 (Sn.c "hph")) := by
   unfold headF; rw [if_neg (by omega), if_pos rfl]
-theorem headF_z {k : Nat} (h1 : 2 ≤ k) (h2 : k < 5) : headF tr pub r H x mb k = 0 := by
-  unfold headF; rw [if_neg (by omega), if_neg (by omega), if_pos h2]
+theorem headF_2 : headF tr pub r H x mb 2 = ev tr 3 r pub (Sn.c "hph") := by
+  unfold headF; rw [if_neg (by omega), if_neg (by omega), if_pos rfl]
+theorem headF_z {k : Nat} (h1 : 3 ≤ k) (h2 : k < 5) : headF tr pub r H x mb k = 0 := by
+  unfold headF; rw [if_neg (by omega), if_neg (by omega), if_neg (by omega), if_pos h2]
 
 theorem payLen_eq : payLen tr pub r = 32 + 4 * ev tr 3 r pub (Sn.c "isL") := rfl
 
@@ -81,11 +86,11 @@ theorem cont_ser_val (hc : ∀ e ∈ Sn.table.constraints, e.eval tr 3 r pub = 0
   · refine ⟨_, _, rfl, ?_, ?_, ?_⟩ <;> rw [ev3_c 1 (by decide)]
     · omega
     · omega
-    · rw [headF_1, hpl]
+    · rw [headF_1]
   · refine ⟨_, _, rfl, ?_, ?_, ?_⟩ <;> rw [ev3_c 2 (by decide)]
     · omega
     · omega
-    · rw [headF_z (by omega) (by omega), ev3_c 0 (by decide)]
+    · rw [headF_2]
   · refine ⟨_, _, rfl, ?_, ?_, ?_⟩ <;> rw [ev3_c 3 (by decide)]
     · omega
     · omega

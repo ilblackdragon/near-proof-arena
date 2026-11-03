@@ -101,6 +101,14 @@ theorem u32_small {n : Nat} (h : n < 256) : u32 n = [UInt8.ofNat n, 0, 0, 0] := 
   simp only [u32, leN, Nat.mod_eq_of_lt h, Nat.div_eq_of_lt h, Nat.zero_mod, Nat.zero_div]
   rfl
 
+/-- M5a-8: the `u32` of a length below `2^16`. -/
+theorem u32_mid {n : Nat} (h : n < 65536) :
+    u32 n = [UInt8.ofNat (n % 256), UInt8.ofNat (n / 256), 0, 0] := by
+  have h1 : n / 256 < 256 := by omega
+  simp only [u32, leN, Nat.mod_eq_of_lt h1, Nat.div_div_eq_div_mul, Nat.div_eq_of_lt (show n < 256 * 256 by omega),
+    Nat.zero_mod, Nat.zero_div]
+  rfl
+
 theorem range_split (f : Nat → UInt8) (a b : Nat) :
     (List.range (a + b)).map f = (List.range a).map f ++ (List.range b).map fun j => f (a + j) := by
   rw [List.range_add, List.map_append, List.map_map]
@@ -222,7 +230,7 @@ theorem sn_mem_gsg : Sn.c "gsha" * (1 - Sn.c "gold") ∈ Sn.constraints := by
 section
 variable {tr : Trace Fp} {pub : List Fp} {D : Nat} {extra : List Table} {nb np : Nat}
 variable (hH : Holds (fullAir D extra nb np) pub tr)
-  (hxB : ∀ T ∈ extra, sendsOn T.interactions B_SHA_BYTES = false)
+  (hxB : XSbHi D extra nb np tr pub)
   (hxD : ∀ T ∈ extra, sendsOn T.interactions B_SHA_DIGEST = false)
   (hxK : ∀ T ∈ extra, sendsOn T.interactions B_KC = false)
   (hN : ∀ T ∈ extra, sendsOn T.interactions B_NIB = false)

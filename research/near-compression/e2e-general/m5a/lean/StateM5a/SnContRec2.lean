@@ -7,9 +7,9 @@ import StateM5a.SnContSer2
 `cont_node`: a continued head (`cont = 1`) hashing a node (`g = 1`, id `ID_SN + 2·r + par`)
 receives the digest `sha256 (serC …)` where
 
-`serC = [3·isE, H, 0, 0, 0] ++ hp_0..hp_31 ++ M ++ payload ++ memory bytes`,
+`serC = [3·isE, H % 256, H / 256, 0, 0] ++ hp_0..hp_31 ++ M ++ payload ++ memory bytes`,
 
-`H = hplen < 256`, and `M` (`H − 32` bytes) is what the `SNC` chunks put at offsets `37 .. 4 + H`;
+`H = hplen < 2^16` (its `u32` bytes `(H % 256, H / 256, 0, 0)`, M5a-8), and `M` (`H − 32` bytes) is what the `SNC` chunks put at offsets `37 .. 4 + H`;
 every entry is a byte.  (`SnContMem.cont_msg` used the same argument for the memory bytes.)
 -/
 
@@ -27,7 +27,20 @@ set_option maxRecDepth 100000
 
 /-- The serialization of a continued head's node (as naturals). -/
 def serC (tag H : Nat) (hp : Nat → Nat) (M : List Nat) (pl : Nat) (pay mb : Nat → Nat) : List Nat :=
-  [tag, H, 0, 0, 0] ++ (List.range 32).map hp ++ M ++ (List.range pl).map pay ++ (List.range 8).map mb
+  [tag, H % 256, H / 256, 0, 0] ++ (List.range 32).map hp ++ M ++ (List.range pl).map pay ++ (List.range 8).map mb
+
+/-- M5a-8: the head's two length bytes `lo = H − 256·hi` (field), `hi`, both bytes, spell `H`
+(plain naturals; `Q` the field size). -/
+theorem u32_split (Q H lo hi : Nat) (hQ : 1073741824 < Q) (hH : H < 134217728) (hlo : lo < 256)
+    (hhi : hi < 256) (h : lo = (H + (Q - 256 % Q * hi % Q) % Q) % Q) : H = lo + 256 * hi := by
+  rw [Nat.mod_eq_of_lt (show 256 < Q by omega), Nat.mod_eq_of_lt (show 256 * hi < Q by omega)] at h
+  rcases Nat.eq_zero_or_pos hi with rfl | hp
+  · rw [Nat.mul_zero, Nat.sub_zero, Nat.mod_self, Nat.add_zero, Nat.mod_eq_of_lt (by omega)] at h
+    omega
+  · rw [Nat.mod_eq_of_lt (show Q - 256 * hi < Q by omega)] at h
+    by_cases hc : H + (Q - 256 * hi) < Q
+    · rw [Nat.mod_eq_of_lt hc] at h; omega
+    · rw [Nat.mod_eq_sub_mod (by omega), Nat.mod_eq_of_lt (by omega)] at h; omega
 
 theorem range_add_map (g : Nat → Nat) (a b : Nat) :
     (List.range (a + b)).map g = (List.range a).map g ++ (List.range b).map fun j => g (a + j) := by
@@ -36,7 +49,7 @@ theorem range_add_map (g : Nat → Nat) (a b : Nat) :
 
 /-- **A list indexed by offset is `serC`** (pure). -/
 theorem serC_eq (g : Nat → Nat) (tag H pl : Nat) (hp pay mb : Nat → Nat) (hH : 32 ≤ H)
-    (g0 : g 0 = tag) (g1 : g 1 = H) (gz : ∀ k, 2 ≤ k → k < 5 → g k = 0)
+    (g0 : g 0 = tag) (g1 : g 1 = H % 256) (g2 : g 2 = H / 256) (gz : ∀ k, 3 ≤ k → k < 5 → g k = 0)
     (ghp : ∀ m, m < 32 → g (5 + m) = hp m) (gpay : ∀ t, t < pl → g (5 + H + t) = pay t)
     (gmb : ∀ b, b < 8 → g (5 + H + pl + b) = mb b) :
     (List.range (5 + H + pl + 8)).map g =
@@ -44,9 +57,9 @@ theorem serC_eq (g : Nat → Nat) (tag H pl : Nat) (hp pay mb : Nat → Nat) (hH
   have e : 5 + H + pl + 8 = (((5 + 32) + (H - 32)) + pl) + 8 := by omega
   rw [e, range_add_map, range_add_map, range_add_map, range_add_map]
   unfold serC
-  have h5 : (List.range 5).map g = [tag, H, 0, 0, 0] := by
+  have h5 : (List.range 5).map g = [tag, H % 256, H / 256, 0, 0] := by
     rw [show List.range 5 = [0, 1, 2, 3, 4] from rfl]
-    simp only [List.map_cons, List.map_nil, g0, g1, gz 2 (by omega) (by omega), gz 3 (by omega) (by omega),
+    simp only [List.map_cons, List.map_nil, g0, g1, g2, gz 3 (by omega) (by omega),
       gz 4 (by omega) (by omega)]
   rw [h5]
   have a1 : ((List.range 32).map fun j => g (5 + j)) = (List.range 32).map hp := by
@@ -67,7 +80,7 @@ variable {tr : Trace Fp} {pub : List Fp} {D : Nat} {extra : List Table} {nb np :
 set_option maxHeartbeats 4000000 in
 /-- **The message of a hashing continued head.** -/
 theorem cont_node (hH : Holds (fullAir D extra nb np) pub tr)
-    (hxB : ∀ T ∈ extra, sendsOn T.interactions B_SHA_BYTES = false)
+    (hxB : XSbHi D extra nb np tr pub)
     (hxD : ∀ T ∈ extra, sendsOn T.interactions B_SHA_DIGEST = false)
     (hxK : ∀ T ∈ extra, sendsOn T.interactions B_KC = false)
     (hxR : ∀ T ∈ extra, sendsOn T.interactions B_KCR = false)
@@ -82,7 +95,7 @@ theorem cont_node (hH : Holds (fullAir D extra nb np) pub tr)
     (hg : ev tr 3 r pub g = 1) (hA : ev tr 3 r pub (Sn.c "act") = 1)
     (hcont : ev tr 3 r pub (Sn.c "cont") = 1) :
     ∃ M : List Nat, M.length = ev tr 3 r pub (Sn.c "hplen") - 32 ∧ (∀ v ∈ M, v < 256) ∧
-      32 ≤ ev tr 3 r pub (Sn.c "hplen") ∧ ev tr 3 r pub (Sn.c "hplen") < 256 ∧
+      32 ≤ ev tr 3 r pub (Sn.c "hplen") ∧ ev tr 3 r pub (Sn.c "hplen") < 65536 ∧
       (∀ k, k < 5 + ev tr 3 r pub (Sn.c "hplen") + payLen tr pub r + 8 →
         (k < 37 ∨ 5 + ev tr 3 r pub (Sn.c "hplen") ≤ k) →
         headF tr pub r (ev tr 3 r pub (Sn.c "hplen")) x mb k < 256) ∧
@@ -164,6 +177,16 @@ theorem cont_node (hH : Holds (fullAir D extra nb np) pub tr)
     intro k hk ho
     have := (hpos k (by omega)).2 (by rw [Nat.mod_eq_of_lt (by omega)]; exact ho)
     rwa [Nat.mod_eq_of_lt (show k < P by omega)] at this
+  -- the `u32` length bytes (M5a-8): `lo = H − 256·hi`, `hi`, both bytes, so `H = lo + 256·hi`
+  have hlo := hval 1 (by omega) (by omega)
+  have hhi := hval 2 (by omega) (by omega)
+  rw [headF_1, FieldRows.ev_sub, ev3_sm, hHd] at hlo
+  rw [headF_2] at hhi
+  rw [← hhi] at hlo
+  have hsplit := u32_split P H _ _ (by decide) (by omega) (UInt8.toNat_lt (mm[1]!)) (UInt8.toNat_lt (mm[2]!)) hlo
+  have hg1 : (mm[1]!).toNat = H % 256 := by have := UInt8.toNat_lt (mm[1]!); omega
+  have hg2 : (mm[2]!).toNat = H / 256 := by have := UInt8.toNat_lt (mm[1]!); omega
+  have hH16 : H < 65536 := by have := UInt8.toNat_lt (mm[1]!); have := UInt8.toNat_lt (mm[2]!); omega
   -- the message as `serC`
   have hL5 : 5 + H + PL + 8 = 45 + H + 4 * I := by omega
   have hmm : mm.map UInt8.toNat = (List.range (5 + H + PL + 8)).map fun k => (mm[k]!).toNat := by
@@ -174,7 +197,7 @@ theorem cont_node (hH : Holds (fullAir D extra nb np) pub tr)
       simp [getElem!_def, List.getElem?_eq_getElem h]
     · rw [List.getElem?_eq_none (by simp; omega), List.getElem?_eq_none (by simp; omega)]
   rw [serC_eq (fun k => (mm[k]!).toNat) _ H PL _ _ _ hH32 (hval 0 (by omega) (by omega))
-    (hval 1 (by omega) (by omega)) (fun k h1 h2 => by rw [hval k (by omega) (by omega), headF_z h1 h2])
+    hg1 hg2 (fun k h1 h2 => by rw [hval k (by omega) (by omega), headF_z h1 h2])
     (fun m hm => by rw [hval _ (by omega) (by omega), headF_hp hm])
     (fun t ht => by rw [hval _ (by omega) (by omega), headF_x hH32 (by omega)])
     (fun b hb => by rw [hval _ (by omega) (by omega), ← hPL, headF_mb hH32])] at hmm
@@ -183,9 +206,7 @@ theorem cont_node (hH : Holds (fullAir D extra nb np) pub tr)
     simp only [List.mem_map] at hv
     obtain ⟨i, -, rfl⟩ := hv
     exact UInt8.toNat_lt _
-  · have := hval 1 (by omega) (by omega)
-    rw [headF_1] at this
-    rw [← this]; exact UInt8.toNat_lt _
+  · exact hH16
   · intro k hk ho
     rw [← hPL] at hk
     rw [← hval k (by omega) ho]; exact UInt8.toNat_lt _

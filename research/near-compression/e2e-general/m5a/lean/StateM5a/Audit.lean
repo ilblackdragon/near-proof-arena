@@ -1,3 +1,4 @@
+import StateM5a.SnFinal6
 import StateM5a.SnContRec4
 import StateM5a.M5bFinal
 import StateM5a.SnFinal5
@@ -59,6 +60,7 @@ import StateM5a.SnResp
 import StateM5a.WalkEnd
 import StateM5a.BrOsl
 import StateM5a.BrOslSplit
+import StateM5a.StHost
 
 /-! Axiom audit of the M5a lemmas (`lake build StateM5a.Audit` prints them): every theorem must
 depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
@@ -642,6 +644,11 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.StSound.write_sent
 #print axioms StateM5a.StSound.write_recv
 #print axioms StateM5a.StSound.desc_msg
+#print axioms StateM5a.StSound.sb_sent_hi
+#print axioms StateM5a.StSound.sd_sent
+#print axioms StateM5a.KeyDigest.xsbHi_of_silent
+#print axioms StateM5a.KeyDigest.sender_lo
+#print axioms StateM5a.KeyDigest.m5a_sb_lo
 #print axioms StateM5a.StSound.wsa_mem_write
 #print axioms StateM5a.StSound.wsa_key
 #print axioms StateM5a.StSound.committedOf_eq
@@ -658,3 +665,34 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.SnContRec3.grecK_hashed
 #print axioms StateM5a.SnContRec4.cont_oldOK
 #print axioms StateM5a.SnContRec4.cont_newOK
+#print axioms StateM5a.SnContKey1.hpDec_head
+#print axioms StateM5a.SnContKey1.snc_kc
+#print axioms StateM5a.SnContKey2.cont_msg_snc
+#print axioms StateM5a.SnContKey3.snc_bytes_key
+#print axioms StateM5a.SnContKey4.cont_key
+#print axioms StateM5a.SnContKey5.cont_old
+#print axioms StateM5a.SnContKey5.cont_new
+#print axioms StateM5a.SnContKey5.cont_leaf_nmem
+#print axioms StateM5a.SnContResp.hlongS_of
+#print axioms StateM5a.SnContResp.hlongM_of
+#print axioms StateM5a.SnContResp.snFreshLong_of
+#print axioms StateM5a.SnFinal6.air_final_sorted_sn6
+#print axioms StateM5a.SnContLocA.cont_mismatch
+#print axioms StateM5a.SnContLocA.localOK_oLF_K
+#print axioms StateM5a.SnContLocB.localOK_oLR_K
+#print axioms StateM5a.SnContLocB.localOK_oEB_K
+#print axioms StateM5a.SnContLocX.split_keysC
+#print axioms StateM5a.SnContLocX.localOK_oLX_K
+#print axioms StateM5a.SnContLocX.localOK_oEX_K
+#print axioms StateM5a.SnContRestAll.cont_depth
+#print axioms StateM5a.SnContRestAll.snContRest_of
+-- M5a-8: u32 hex-prefix length (`hph`), STW empty key (`ke`), `HostReqs` from the T1 tape
+#print axioms StateM5a.SnSer.sn_hph0
+#print axioms StateM5a.SnSer.sn_ser_ok
+#print axioms StateM5a.SnRec.u32_mid
+#print axioms StateM5a.SnContRec2.u32_split
+#print axioms StateM5a.StSound.stw_key
+#print axioms StateM5a.StSound.stw_row
+#print axioms StateM5a.StHost.hostOK_of
+#print axioms StateM5a.StHost.hostReqs_of_tape
+#print axioms StateM5a.StHost.m5b_final_tape

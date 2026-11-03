@@ -4,6 +4,97 @@ Plan: `docs/zk-formal/E2E-GENERAL-CHUNK-PLAN.md` §3.2 (the `stRoot` working set
 Date 2026-11-03. Labels: **[M]** measured here, **[K]** kernel-checked Lean (std axioms),
 **[S]** stated / design only.
 
+## M5a-8 (ninth session, 2026-11-03): continued keys from `Holds`, keys up to 2 KiB, `SHAS` merged
+
+Log `docs/logs/e2e-m5a8-state-2026-11-03.md`. **AIR change** (`SN` column `hph`, `STW` flag `ke`,
+`SHAS` merged into the SHA-256 table); every case re-proved, roots = Lean oracle
+(`logs/M5a8-proofs.txt`), 121 mutant runs: 119 rejected, 2 not applicable (`logs/M5a8-mutants.txt`).
+Lean: `lake build StateM5a m5a-tool` green (379 jobs), std axioms only (`Audit.lean`).
+
+### Headline [K]: `M5bFinal.m5b_final` without continued-key premises
+
+Premises now: `HostOK`, `Holds` of the M5b prover AIR, `CompressOK`, the SHA-512 chip contract,
+`1 ≤ D ≤ 20`, the named CR (`NodeCR`, `LeafCR`, `Sha256CR`), the producer premise `HostReqs`,
+`n < p`, `|prev| = |post| = 32`, and the pre-state facts (`T.hashOf = prev`, `Full T ∧ T.wf`).
+`SnFreshLong`, `SnContRest`, `hlongS`, `hlongM` are discharged (sub-agent C):
+
+* `SnContKey1..5`: a continued head hashing a node has a key `K` (`klen = 62 + odd + rl` nibbles,
+  all `< 16`) whose record is `Hashed` to its digest; its first `62 + odd` nibbles are the head's
+  cells (`hpDec_head`, pure); every `SNC` chunk `c + 1` of head `r` has `p = d + 62 + odd + 64c`,
+  `kA = kid`, `fA = 1 − gA`, `kB = kid2`, `gB = g2` (`snc_kc`, induction over the `KC` chain); the
+  message bytes at `37 + i` are the chunks' `hp_m` (`cont_msg_snc`, `Sha256CR`); so with `gA = 0`,
+  `K = K_kid[d .. d + klen)` (`cont_key`), with `g2 = 1` also `K_kid2[…]`; `cont_old` / `cont_new`
+  are `OldOK` / `NewOK` over `K`, `cont_leaf_nmem` the new leaf's memory `< p`.
+* `SnContResp`: `hlongS_of`, `hlongM_of`, `snFreshLong_of`; `SnContLocA/B/X`: every walk op over the
+  full key (`cont_mismatch`: `ajm = 1` puts the mismatch in the head, `mL·cont = 0`);
+  `SnContRestAll.snContRest_of`; `SnFinal6.air_final_sorted_sn6` (new static premise `hrK`, no extra
+  table touches `KCR`, discharged in `M5bFinal`).
+* **`StHost.m5b_final_tape`** (item 5): on the T1 tape of a request list (`hostOf reqs`, what
+  `tracegen.py` writes), `HostReqs` holds for every trace given `MemAgree` (two `HB` entries at the
+  same `(ts, pos)` agree), bounds `< p` and `(seg, ts)` order of the public list
+  (`hostReqs_of_tape`) — so the producer premise is a check of public data on T1, not vacuous.
+
+### u32 hex-prefix length and the empty key (item 2) [M][K]
+
+The `SN` head sent `u32 |hp|` as `(hplen, 0, 0, 0)`, so node keys of more than ~509 nibbles could
+not be proved. Now `(hplen − 256·hph, hph, 0, 0)` with a new column `hph`, both bytes checked by the
+SHA-256 table, and `(1 − cont)·hph = 0`. Lean: `SnSer.sn_hph0` (a head-only key has `hph = 0`, so
+`sn_ser_ok` is unchanged), `SnContRec2.u32_split` (`lo = H − 256·hi` in the field with `lo, hi`
+bytes and `H < 2^27` gives `H = lo + 256·hi < 2^16`), `cont_node` (`serC` head
+`[tag, H % 256, H / 256, 0, 0]`), `SnRec.u32_mid`, `grecK_hashed`. `STW` gets `ke` (`ke·klen = 0`,
+`ke·(dk − sha256 [])`, the key's `DESC` / digest receives gated by `act − ke`): an empty key needs no
+`STB` run (`StSound.stw_key`). New synthetic case **`synth.py longkey`**: keys of 1,006–2,046 bytes
+(NEAR's 2 KiB storage keys), node keys up to 4,088 nibbles (`hplen` 2,045, `hph` 7), 571 `SNC` rows;
+a long leaf replaced, split near its head (`oLX`), deleted with its sibling leaf squashed, a long
+extension descended, finds: root `ed9f4baf…0f22` = Lean oracle, **proof 1,266,342 B**, 71 s.
+Mutants `hphshort`, `hphlong`, `kempty` (and `chain` on a 2 KiB key) rejected.
+
+### `SHAS` merged into the SHA-256 table (item 3) [M][K]
+
+`STB` sends `SHA_BYTES(ID_ST + m, j, b)` and `STW` receives `SHA_DIGEST` of the M5a SHA-256 table;
+`SHAS`, `SB2`, `SD2` removed. Lean (sub-agent S): `KeyDigest.XSbHi` — every `SHA_BYTES` message an
+extra table sends carries an id `≥ ID_ST` — replaces "extras never send on `SHA_BYTES`" in every
+signature (`xsbHi_of_silent`; `sender_set_hi`; `sender_lo` at the four roots, whose ids are below
+`ID_ST`; `m5a_sb_lo`: `KEY`/`BR`/`SN`/`SNC` ids `< ID_ST`); `FinalOrder.Prem.hxB` from `Holds`
+(`M5b.x_hxB`); `StSound.sb_sent_hi` / `sd_sent` / `desc_msg` over the merged table. Tooling
+auto-detects the merged AIR (no `SHAS` in the names JSON → STATE messages in `sha_msgs.json`;
+prover `NAMES_B8`).
+
+| M5b T1 | proof | relations | whir |
+|---|---|---|---|
+| M5a-7 (`SHAS`) | 1,526,081 B | 330,180 | 1,161,664 |
+| `hph` + `ke`, before the merge | 1,531,265 B | 330,324 | 1,166,704 |
+| **final** (`n18 w9`) | **1,476,227 B** | 277,996 | 1,164,054 |
+| M5a T1 (no STATE rows) | 1,237,850 B | 273,744 | 930,060 |
+
+The merge saves ~50 kB (the `SHAS` openings; the main table stays at 2^12 rows, the STATE messages
+fit its padding). The remaining +238 kB over M5a T1 is `whir` on the `STB` / `HTAPE` tables (2^11
+rows each) — the next lever (pack several bytes per `STB` row; `HTAPE` is T1-only).
+
+### Item 4 (completeness gaps): scoped, not built [S]
+
+Both sub-agents designed one gap each and judged it several sessions of Lean (new `UChain` /
+`DChain` constructors and their ~100 case sites), so nothing was built:
+
+* *split where a key ends at the new branch* (`alice` vs `alice.near`): `oLX`/`oEX` with the
+  existing `mK` (walk key ends) / `mL` (old leaf ends) mismatch kinds, `oSL` with a value
+  (`nhv = mK + mL`) and one child, value from the walk or the old leaf via `SPQ`;
+* *squash onto an extension / branch sibling, squash after a branch-value delete*: result kind
+  `RK_XD` (extension descriptor) beside `RK_LD`, sibling reads `SN.oXS` / `BR.oBS`, `BR.oDX` +
+  `SN.oXM` to materialize, `SN.oED` merging an `XD` child. Fixture `synth.py squashx` (spec oracle =
+  transcription `419b6589…2dc9c4`; tracegen: `Unsupported: squash onto a ext sibling`).
+
+### Open after M5a-8
+
+1. Completeness gaps: the two designs above; a mismatch past the head's first `62 + odd` nibbles;
+   a long extension key under a delete (`retag_sn`); a final node over an in-memory child of a
+   continued key; an empty trie / empty *trie* key (the `KEY` table has no 0-byte key; `ke` covers
+   the STATE rows); node keys over ~65,000 nibbles (`memChain` limb `< 2^17`; NEAR's are ~4,100).
+2. `HostReqs` from lane A's `HOST` rows and memory argument (on T1: `StHost`, a check of the tape).
+3. Reads (`storage_read`/`has_key`) — design only (§M5b).
+4. M5b size: `whir` on `STB`/`HTAPE` (+234 kB over M5a T1).
+5. Lane E `StViewE`.
+
 ## M5a-7 (eighth session, 2026-11-03): split rows compiled, every short-key and memory premise from `Holds`, STATE rows sound, M5b end to end
 
 Log `docs/logs/e2e-m5a7-state-2026-11-03.md`. **No AIR change** this session (the AIR, the

@@ -7,8 +7,8 @@ import ZkFormal.Sha.Table
 In M5a the working-set writes `WRITE(seg, t, kd16, present, len, vh16)` (received by `WSA`) came
 from the public tape.  M5b produces them from **execution-side messages carrying the raw trie key
 and value bytes**, so the key digest `kd = sha256 key` and the value digest `vh = sha256 value` are
-computed in-circuit (a second instance `SHAS` of the unchanged SHA-256 table on its own bus pair
-`SB2`/`SD2`, message ids `ID_ST + m`), and the write time `t` is the
+computed in-circuit (by the M5a SHA-256 table itself, on `SHA_BYTES`/`SHA_DIGEST`, under message
+ids `ID_ST + m`, disjoint from the `KEY`/`BR`/`SN` ids), and the write time `t` is the
 request's timestamp (chosen by the execution side, range-checked by `WSA`: `t < 2^24`, and ordered
 per entry by the `WM` gap).
 
@@ -21,20 +21,20 @@ Execution-side interface (the shape of lane A's host buses, plan §3.3):
 On T1 (no Wasm yet) the public tape sends both.  The state side:
 * **`STB`** (one row per message byte): runs of rows, one per message `m = 0, 1, …` (consecutive,
   so each `m` has exactly one run), `j = 0, 1, …` within a run, `ts`/`base` constant on a run.  A
-  row sends the byte to the SHA-256 instance `SB2(ID_ST + m, j, b)` and receives it from the
+  row sends the byte to the SHA-256 table `SHA_BYTES(ID_ST + m, j, b)` and receives it from the
   execution side `HB(ts, base + j, b)`; the run's last row sends the descriptor
   `DESC(m, ts, base, len = j + 1)`.
 * **`STW`** (one row per write): receives `SREQ`, the key run's descriptor `DESC(mk, ts, kptr, klen)`
-  and digest `SD2(ID_ST + mk, klen, dk)`, for a non-empty value the value run's
-  `DESC(mv, ts, vptr, vlen)` and `SD2(ID_ST + mv, vlen, dv)` (an empty value: `ve = 1`,
+  and digest `SHA_DIGEST(ID_ST + mk, klen, dk)`, for a non-empty value the value run's
+  `DESC(mv, ts, vptr, vlen)` and `SHA_DIGEST(ID_ST + mv, vlen, dv)` (an empty value: `ve = 1`,
   `dv = sha256 []`; a remove: `pr = 0`, `vlen = 0`, `dv = 0`), and sends
   `WRITE(seg, ts, pack2 dk, pr, vlen, pack2 dv)`.
 
 The tables are not part of `m5aAir`: `m5bAir D` is `(m5aAir D).tables ++ m5bExtra`, i.e.
-`fullAir D m5bExtra …`.  None of them sends on a bus the M5a theorems restrict for extra tables
-(`SHA_BYTES`, `SHA_DIGEST`, `NIB`, `KLEN`, `ORD`, `KC`, `KDIG`; no interaction on `WM`, `PT`,
-`RCH`, `RNG`, `TREE`, `DOWN`, `UP`, `TCH`, `VER`) — the reason for the second SHA-256 instance
-instead of a new id space in the first (`M5b.lean`).
+`fullAir D m5bExtra …`.  None of them sends on a bus the M5a theorems silence for extra tables
+(`SHA_DIGEST`, `NIB`, `KLEN`, `ORD`, `KC`, `KDIG`; no interaction on `WM`, `PT`, `RCH`, `RNG`,
+`TREE`, `DOWN`, `UP`, `TCH`, `VER`); on `SHA_BYTES` only `STB` sends, under ids `≥ ID_ST`
+(`KeyDigest.XSbHi`, the M5a premise for extra `SHA_BYTES` senders; `M5b.x_hxB`).
 -/
 
 namespace StateM5a
@@ -47,17 +47,7 @@ def B_SREQ : Nat := NUM_BUSES_WS
 def B_HB : Nat := NUM_BUSES_WS + 1
 /-- `(m, ts, base, len)`: `STB` message `m` is the `len` bytes at `base, …` of call `ts`. -/
 def B_DESC : Nat := NUM_BUSES_WS + 2
-/-- The second SHA-256 instance's byte / digest buses (the `SHA_BYTES` / `SHA_DIGEST` of `SHAS`). -/
-def B_SB2 : Nat := NUM_BUSES_WS + 3
-def B_SD2 : Nat := NUM_BUSES_WS + 4
-def NUM_BUSES_ST : Nat := NUM_BUSES_WS + 5
-
-/-- The second SHA-256 table (`ZkFormal.Sha.Table`, unchanged) for the STATE messages. -/
-def shaTableS : Table := ZkFormal.Sha.Table.table B_SB2 B_SD2
-
-/-- SHA-256 message ids of the `STB` messages: `ID_ST + m` (disjoint from `KEY`/`BR`/`SN`, so the
-two instances can later be merged). -/
-def ID_ST : Nat := 4 * 2 ^ 24
+def NUM_BUSES_ST : Nat := NUM_BUSES_WS + 3
 
 /-- `sha256 []`. -/
 def SHA256_EMPTY : List Nat :=
@@ -86,7 +76,7 @@ def constraints : List Expr :=
 
 def interactions : List Interaction :=
   let A := c "act"
-  [snd B_SB2 A [K ID_ST + c "m", c "j", c "b"],
+  [snd B_SHA_BYTES A [K ID_ST + c "m", c "j", c "b"],
    rcv B_HB A [c "ts", c "base" + c "j", c "b"],
    snd B_DESC (c "last") [c "m", c "ts", c "base", c "j" + 1]]
 
@@ -96,7 +86,7 @@ end Stb
 namespace Stw
 def L : Layout :=
   [("act", 1), ("seg", 1), ("ts", 1), ("pr", 1), ("ve", 1), ("klen", 1), ("kptr", 1), ("vlen", 1),
-   ("vptr", 1), ("mk", 1), ("mv", 1), ("dk", 32), ("dv", 32)]
+   ("vptr", 1), ("mk", 1), ("mv", 1), ("dk", 32), ("dv", 32), ("ke", 1)]
 def T : Cols := ⟨L⟩
 def c (s : String) (j : Nat := 0) : Expr := T.c s j
 
@@ -105,15 +95,18 @@ def constraints : List Expr :=
   [bool (c "act"), bool pr, bool ve, (1 - c "act") * pr, (1 - pr) * ve, (1 - pr) * c "vlen",
    ve * c "vlen"] ++
   ((List.range 32).flatMap fun b =>
-    [(1 - pr) * c "dv" b, ve * (c "dv" b - K (SHA256_EMPTY.getD b 0))])
+    [(1 - pr) * c "dv" b, ve * (c "dv" b - K (SHA256_EMPTY.getD b 0))]) ++
+  -- M5a-8: an empty key (`ke = 1`: `klen = 0`, `dk = sha256 []`, no `STB` run)
+  [bool (c "ke"), (1 - c "act") * c "ke", c "ke" * c "klen"] ++
+  (List.range 32).map fun b => c "ke" * (c "dk" b - K (SHA256_EMPTY.getD b 0))
 
 def interactions : List Interaction :=
-  let A := c "act"; let gv := c "pr" - c "ve"
+  let A := c "act"; let gv := c "pr" - c "ve"; let gk := c "act" - c "ke"
   [rcv B_SREQ A [c "ts", c "pr", c "seg", c "klen", c "kptr", c "vlen", c "vptr"],
-   rcv B_DESC A [c "mk", c "ts", c "kptr", c "klen"],
-   rcv B_SD2 A ([K ID_ST + c "mk", c "klen"] ++ (List.range 32).map fun b => c "dk" b),
+   rcv B_DESC gk [c "mk", c "ts", c "kptr", c "klen"],
+   rcv B_SHA_DIGEST gk ([K ID_ST + c "mk", c "klen"] ++ (List.range 32).map fun b => c "dk" b),
    rcv B_DESC gv [c "mv", c "ts", c "vptr", c "vlen"],
-   rcv B_SD2 gv ([K ID_ST + c "mv", c "vlen"] ++ (List.range 32).map fun b => c "dv" b),
+   rcv B_SHA_DIGEST gv ([K ID_ST + c "mv", c "vlen"] ++ (List.range 32).map fun b => c "dv" b),
    snd B_WRITE A ([c "seg", c "ts"] ++ pack2 (fun b => c "dk" b) ++ [c "pr", c "vlen"] ++
      pack2 (fun b => c "dv" b))]
 
@@ -121,12 +114,12 @@ def table : Table := { width := L.width, constraints, interactions, maxLog := 20
 end Stw
 
 /-- The M5b tables, after `m5aAir`'s. -/
-def m5bExtra : List Table := [shaTableS, Stb.table, Stw.table]
+def m5bExtra : List Table := [Stb.table, Stw.table]
 
 def m5bAir (D : Nat) : Air :=
   { tables := (m5aAir D).tables ++ m5bExtra, numBuses := NUM_BUSES_ST, numPub := 17 }
 
-def tableNamesB : List String := tableNames ++ ["SHAS", "STB", "STW"]
+def tableNamesB : List String := tableNames ++ ["STB", "STW"]
 
 def layoutsB (D : Nat) : List (String × Layout) := layouts D ++ [("STB", Stb.L), ("STW", Stw.L)]
 

@@ -1194,3 +1194,25 @@ rows produce the writes now on the public tape; range-check `WSA` times).
 * **Open:** continued-key rows (`ckey` ↔ walk key, then `SnContRest`, `hlongS`/`hlongM`,
   `SnFreshLong`), `HostReqs` from lane A's HOST rows, reads, `SHAS` merge, completeness gaps (keys
   > ~254 bytes: `hplen < 256` — new; empty key), lane E `StViewE`.
+
+**M5a-8 (ninth session, 2026-11-03) [K][M]:** README §"M5a-8", log
+[`docs/logs/e2e-m5a8-state-2026-11-03.md`](../logs/e2e-m5a8-state-2026-11-03.md). AIR change, all
+cases re-proved (roots = Lean oracle), 121 mutant runs: 119 rejected, 2 not applicable.
+* **`m5b_final` without continued-key premises [K]:** premises are now `Holds`, chip contract,
+  `CompressOK`, `NodeCR`/`LeafCR`/`Sha256CR`, `1 ≤ D ≤ 20`, `HostOK`/`HostReqs` (+ `n < p`, the
+  32-byte roots, the pre-state facts). The continued head's full key is tied to the walk key
+  (`SnContKey1..5`: head cells, `KC`-chain fields of every `SNC` chunk, chunk bytes via `Sha256CR`);
+  `SnContResp` (`hlongS`/`hlongM`/`SnFreshLong`), `SnContLocA/B/X` + `SnContRestAll` (`SnContRest`),
+  `SnFinal6`. `StHost.m5b_final_tape`: on the T1 tape `HostReqs` follows from checks of the public
+  request list (`MemAgree`, bounds, order) — the producer premise is satisfiable, not vacuous.
+* **Keys up to 2 KiB [M][K]:** `u32 |hp|` = `(hplen − 256·hph, hph, 0, 0)` (new `SN` column `hph`,
+  `(1 − cont)·hph = 0`; `SnContRec2.u32_split`); synthetic `longkey` (keys of 1–2 KiB, node keys up
+  to 4,088 nibbles, 571 `SNC` rows) proves, 1,266,342 B. `STW` empty-key flag `ke` (no `STB` run);
+  an empty *trie* key still needs `KEY`-table support (never occurs on NEAR).
+* **`SHAS` merged [M][K]:** `STB`/`STW` use the M5a SHA-256 table (`KeyDigest.XSbHi`: extra senders'
+  ids `≥ ID_ST`); M5b T1 1,526,081 → **1,476,227 B**. The rest of the M5b overhead (+238 kB over M5a
+  T1) is `whir` on `STB`/`HTAPE`.
+* **Open:** completeness gaps (designs for "key ends at the new branch" and "squash onto an
+  extension / branch sibling" — several sessions each; mismatch past the head; long extension
+  under a delete; empty trie), `HostReqs` from lane A's HOST rows, reads, `STB` packing, lane E
+  `StViewE`.

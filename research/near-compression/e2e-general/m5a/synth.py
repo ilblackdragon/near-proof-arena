@@ -14,6 +14,11 @@ Cases (NEAR-shaped keys: `0x00 ‖ account id`, so `alice` is a prefix of `alice
          keeping the branch (`BR.oDV`), an absent delete at a branch without value (`BR.oDZ`), finds
          ending at a branch value (`BR.oFV`)
   bvnref two changes below a branch with a value (the kept value of a version-published branch, M5a-6)
+  squashx deletes squashing onto extension / branch siblings (a fixture for the open gap; tracegen
+         reports it Unsupported)
+  longkey keys of 1–2 KiB (M5a-8: the u32 hex-prefix length past 255; leaf / extension keys of up to
+         ~4,200 nibbles, continued over ~65 `SNC` chunks): a long leaf replaced (`SN.oLR`), split
+         near its head (`oLX`), deleted (`oLD`), a long extension descended (`oEU`), finds
 """
 import hashlib
 import json
@@ -52,6 +57,24 @@ CASES = {
         pre=['alice', 'alice.near', 'alice.x', 'bob', 'bob.near', 'carl1', 'carl2'],
         changes=[('alice.near', 'alice.near-2'), ('alice.x', 'alice.x-2')],
         reads=['alice']),
+    # M5a-8 item 4 (open; tracegen stops with `Unsupported: squash onto a ext sibling`): deletes
+    # squashing onto a non-leaf sibling (`squashBranch` → `extendChild [i] c`, `c` an extension / a
+    # branch), under a branch parent and under an extension parent that merges; a branch-value
+    # delete leaving one extension child.  The spec oracle (`m5a-tool apply`) agrees with ptrie.py.
+    'squashx': dict(
+        pre=['cab', 'caxy1', 'caxy2', 'dab', 'daxy1', 'daxy2', 'dz', 'eab', 'ep1', 'eq1', 'ez',
+             'gab', 'gaxy1', 'gaxy2', 'gb', 'hh', 'hhxy1', 'hhxy2', 'hz'],
+        changes=[('cab', None), ('dab', None), ('eab', None), ('gab', None), ('hh', None)],
+        reads=['caxy1', 'gb']),
+    # M5a-8: keys of 1-2 KiB (`acct` + a long suffix; NEAR's storage keys go up to 2 KiB)
+    'longkey': dict(
+        pre=['alice,' + 'A' * 1100, 'alice,' + 'B' * 1100, 'bob,' + 'x' * 1000 + 'a',
+             'bob,' + 'x' * 1000 + 'b', 'carl,' + 'Q' * 2040, 'dave', 'erin,' + 'E' * 1200,
+             'erin,' + 'F' * 1200],
+        changes=[('alice,' + 'A' * 1100, 'alice-2'), ('alice,' + 'AC' + 'C' * 1098, 'alice-3'),
+                 ('bob,' + 'x' * 1000 + 'a', 'bob-2'), ('erin,' + 'E' * 1200, None),
+                 ('carl,' + 'Q' * 2040, 'carl-2'), ('dave', 'dave-2')],
+        reads=['bob,' + 'x' * 1000 + 'b', 'carl,' + 'Q' * 2040]),
 }
 
 

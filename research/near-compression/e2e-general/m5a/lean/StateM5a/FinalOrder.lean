@@ -162,9 +162,11 @@ structure Prem (tr : Trace Fp) (pub : List Fp) (D : Nat) (extra : List Table) (n
   hLCR : LeafCR compress
   hCR : Walk.Sha256CR
   hsil : ∀ T ∈ extra, sendsOn T.interactions B_NIB = false ∧ sendsOn T.interactions B_KLEN = false ∧
-    sendsOn T.interactions B_ORD = false ∧ sendsOn T.interactions B_SHA_BYTES = false ∧
+    sendsOn T.interactions B_ORD = false ∧
     sendsOn T.interactions B_SHA_DIGEST = false ∧ sendsOn T.interactions B_KC = false ∧
     sendsOn T.interactions B_KDIG = false
+  /-- The extra tables' `SHA_BYTES` sends use ids `≥ ID_ST` (M5a-8; was: they do not send). -/
+  hxB : XSbHi D extra nb np tr pub
 
 theorem Prem.dist (h : Prem tr pub D extra nb np compress) :
     IntakeKeysDistinct compress (wsLeaves tr pub D 0) (WsLen.wsLen pub) :=
@@ -172,12 +174,12 @@ theorem Prem.dist (h : Prem tr pub D extra nb np compress) :
     (fun T hT i hi => ⟨(h.hx T hT i hi).1, (h.hx T hT i hi).2.1, (h.hx T hT i hi).2.2.1,
       (h.hx T hT i hi).2.2.2.1⟩) h.hcomp h.hC
     (fun T hT => (h.hsil T hT).1) (fun T hT => (h.hsil T hT).2.1) (fun T hT => (h.hsil T hT).2.2.1)
-    (fun T hT => (h.hsil T hT).2.2.2.1) (fun T hT => (h.hsil T hT).2.2.2.2.1)
-    (fun T hT => (h.hsil T hT).2.2.2.2.2.1) (fun T hT => (h.hsil T hT).2.2.2.2.2.2)
+    h.hxB (fun T hT => (h.hsil T hT).2.2.2.1)
+    (fun T hT => (h.hsil T hT).2.2.2.2.1) (fun T hT => (h.hsil T hT).2.2.2.2.2)
 
 theorem Prem.kdr (h : Prem tr pub D extra nb np compress) : WsbKdRange tr pub :=
-  wsbKdRange h.hH (fun T hT => (h.hsil T hT).2.2.2.1) (fun T hT => (h.hsil T hT).2.2.2.2.1)
-    (fun T hT => (h.hsil T hT).2.2.2.2.2.1) (fun T hT => (h.hsil T hT).2.2.2.2.2.2)
+  wsbKdRange h.hH h.hxB (fun T hT => (h.hsil T hT).2.2.2.1)
+    (fun T hT => (h.hsil T hT).2.2.2.2.1) (fun T hT => (h.hsil T hT).2.2.2.2.2)
 
 /-- The `WSB` height is `2^(D+1)`. -/
 theorem wsb_height (hH : Holds (fullAir D extra nb np) pub tr) (hD : D ≤ 30) : tr.height 5 = 2 ^ (D + 1) := by
@@ -244,10 +246,10 @@ theorem final_key (h : Prem tr pub D extra nb np compress) {i : Nat} (hi : i < W
     · have := ph0_lt hH hD30 (tr.height 5 - (2 ^ D + i) - 1) _ (by omega) hr1 a; omega
     · exact (WsLen.wsb_real_iff hc hlog hD30 hr1).2.2 (by omega)
   have s := h.hsil
-  have k1 := wsb_kd hH (fun T hT => (s T hT).2.2.2.1) (fun T hT => (s T hT).2.2.2.2.1)
-    (fun T hT => (s T hT).2.2.2.2.2.1) (fun T hT => (s T hT).2.2.2.2.2.2) hr1 hR1
-  have k0 := wsb_kd hH (fun T hT => (s T hT).2.2.2.1) (fun T hT => (s T hT).2.2.2.2.1)
-    (fun T hT => (s T hT).2.2.2.2.2.1) (fun T hT => (s T hT).2.2.2.2.2.2) hi5 ri
+  have k1 := wsb_kd hH h.hxB (fun T hT => (s T hT).2.2.2.1)
+    (fun T hT => (s T hT).2.2.2.2.1) (fun T hT => (s T hT).2.2.2.2.2) hr1 hR1
+  have k0 := wsb_kd hH h.hxB (fun T hT => (s T hT).2.2.2.1)
+    (fun T hT => (s T hT).2.2.2.2.1) (fun T hT => (s T hT).2.2.2.2.2) hi5 ri
   have e : pairs (sha256 (wkey tr pub (2 ^ D + i))) = pairs (sha256 (wkey tr pub i)) := by
     unfold wkey; rw [← k1, ← k0]; exact hkd
   have hs := congrArg limbBytes e

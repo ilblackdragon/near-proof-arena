@@ -1,5 +1,4 @@
-import StateM5a.SnFinal5
-import StateM5a.SnContLimbs
+import StateM5a.SnFinal6
 import StateM5a.StSoundF
 
 /-!
@@ -10,13 +9,13 @@ the M5a tables, the STATE rows producing the writes from the execution side's ra
 the public tape), the semantic premises of `M5b.prem` (chip contract, `CompressOK`, `NodeCR`,
 `LeafCR`, `Sha256CR`, `1 ≤ D ≤ 20`), the producer premise `StSound.HostReqs` (the execution side's
 `SREQ`/`HB` sends are the request list `reqs`, memory a function of `(ts, pos)`, requests in
-`(seg, ts)` order) and the **continued-key** premises still open (`SnFreshLong`, `SnContRest`,
-`hlongS`, `hlongM`): the spec's own overlay of the requests (`StSound.committedOf T reqs`, nearcore's
+`(seg, ts)` order) — no continued-key premise left (M5a-8, `SnFinal6`: `SnFreshLong`,
+`SnContRest`, `hlongS`, `hlongM` from `Holds` + `Sha256CR`): the spec's own overlay of the requests (`StSound.committedOf T reqs`, nearcore's
 `TrieUpdate` set / remove / commit), applied in key order to the pre-state trie `T` (root `prev`),
 reaches `post`.
 
 Pieces: `M5b.prem` (static premises), `StSound.final_changes_m5b` (`committed ~ cs`),
-`SnContLimbs.snContMem_of` (the continued keys' memory limbs), `SnFinal5.air_final_sorted_sn5`.
+`SnFinal6.air_final_sorted_sn6` (every continued-key premise from `Holds`).
 -/
 
 namespace StateM5a.M5bFinal
@@ -46,19 +45,6 @@ theorem m5b_final {tr : Trace Fp} {pub : List Fp} {D nb np : Nat} {compress : Li
     (hCR : Walk.Sha256CR)
     {reqs : List Req} (hR : HostReqs (fullAir D (m5bX host prev post n) nb np) tr pub host reqs)
     (hn : n < 2013265921) (hprev : prev.length = 32) (hpost : post.length = 32)
-    (hFL : SnFreshLong (storeOf (brVers tr pub ++ snVers tr pub)) (keyOf tr) tr pub)
-    (hcr : SnContRest (storeOf (brVers tr pub ++ snVers tr pub)) (keyOf tr) tr pub)
-    (hlongS : ∀ s, s < tr.height 3 → ev tr 3 s pub (Sn.c "oLS") = 1 → ev tr 3 s pub (Sn.c "cont") = 1 →
-      SibRel (storeOf (brVers tr pub ++ snVers tr pub)) (keyOf tr) (ev tr 3 s pub (Sn.c "d"))
-        (refOf (E tr 3 s pub (Sn.c "oref")) ((pack2 fun b => Sn.c "ho" b).map (E tr 3 s pub)))
-        (ev tr 3 s pub (Sn.c "kid")) (ev tr 3 s pub (Sn.vlenOf fun t => Sn.c "x" t))
-        (bytesOf ((pack2 fun b => Sn.c "x" (4 + b)).map (E tr 3 s pub))))
-    (hlongM : ∀ s, s < tr.height 3 → ev tr 3 s pub (Sn.c "oLM") = 1 → ev tr 3 s pub (Sn.c "cont") = 1 →
-      MatRel (storeOf (brVers tr pub ++ snVers tr pub)) (keyOf tr) (ev tr 3 s pub (Sn.c "kid"))
-        (ev tr 3 s pub (Sn.c "d")) (ev tr 3 s pub (Sn.c "dvlen"))
-        (bytesOf (((List.range 16).map fun i => Sn.c "dvh" i).map (E tr 3 s pub)))
-        (refOf (E tr 3 s pub (Sn.c "nref")) ((pack2 fun b => Sn.c "hn" b).map (E tr 3 s pub)))
-        (le4 (Sn.NM.map (E tr 3 s pub))))
     (T : PTrie) (hT0 : T.hashOf = prev) (hF : Full T ∧ T.wf = true) :
     ∃ T', applyChanges (some T) (sortKV (committedOf T reqs)) = some (some T') ∧ rootHash (some T') = post := by
   have hP := M5b.prem hh hH hcomp hC hD1 hD hNCR hLCR hCR
@@ -68,13 +54,10 @@ theorem m5b_final {tr : Trace Fp} {pub : List Fp} {D nb np : Nat} {compress : Li
   -- the number of writing rows is `n` (the `TCH` chain)
   have hT := tch_perm [] prev post n (m5bRest host) hH (fun T hT i hi => (rest_hr hh T hT i hi).2.2) hn hprev hpost
   have hN := (Traffic.tch_chain hT).1
-  have hCM := SnContLimbs.snContMem_of hH (fun T hT => (x_hsil hh prev post n T hT).2.2.2.1)
-    (fun T hT => (x_hsil hh prev post n T hT).2.2.2.2.1) (fun T hT => (x_hsil hh prev post n T hT).2.2.2.2.2.1)
-    (no_send hX (by decide)) (no_bus hX (by decide))
-  exact air_final_sorted_sn5 D [] prev post n (m5bRest host) nb np hP (rest_hr hh) (rest_hrN hh) (rest_hrS hh)
+  exact SnFinal6.air_final_sorted_sn6 D [] prev post n (m5bRest host) nb np hP (rest_hr hh) (rest_hrN hh) (rest_hrS hh)
     (fun T hT => ⟨no_send hRb (by decide) T hT, no_send hRb (by decide) T hT, no_send hRb (by decide) T hT,
       no_send hRb (by decide) T hT, no_send hRb (by decide) T hT⟩)
-    (x_hxV hh prev post n) hn hprev hpost hCR hCM hFL hcr hlongS hlongM cs (by rw [hlen]; omega) hcs
+    (no_bus hRb (by decide)) (x_hxV hh prev post n) hn hprev hpost hCR cs (by rw [hlen]; omega) hcs
     (committedOf T reqs) hcomm T hT0 hF
 
 end StateM5a.M5bFinal

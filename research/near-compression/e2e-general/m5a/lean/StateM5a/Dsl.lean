@@ -145,6 +145,8 @@ def RK_SAME : Nat := 6
 def ID_KEY : Nat := 2 ^ 24
 def ID_BR : Nat := 2 * 2 ^ 24
 def ID_SN : Nat := 3 * 2 ^ 24
+/-- SHA-256 message ids of the STATE (`STB`) messages: `ID_ST + m` (M5b; same SHA-256 table). -/
+def ID_ST : Nat := 4 * 2 ^ 24
 /-- Walk ids of the FINAL changes (INTAKE finds use the leaf index). -/
 def W_FINAL : Nat := 2 ^ 20
 

@@ -137,3 +137,15 @@ import StateM5a.SnContRec1
 import StateM5a.SnContRec2
 import StateM5a.SnContRec3
 import StateM5a.SnContRec4
+import StateM5a.SnContKey1
+import StateM5a.SnContKey2
+import StateM5a.SnContKey3
+import StateM5a.SnContKey4
+import StateM5a.SnContKey5
+import StateM5a.SnContResp
+import StateM5a.SnFinal6
+import StateM5a.SnContLocA
+import StateM5a.SnContLocB
+import StateM5a.SnContLocX
+import StateM5a.SnContRestAll
+import StateM5a.StHost

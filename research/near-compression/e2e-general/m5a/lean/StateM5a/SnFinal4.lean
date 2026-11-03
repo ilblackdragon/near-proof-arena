@@ -52,7 +52,7 @@ end
 section
 variable {tr : Trace Fp} {pub : List Fp} {D : Nat} {extra : List Table} {nb np : Nat}
 variable (hH : Holds (fullAir D extra nb np) pub tr)
-  (hxB : ∀ T ∈ extra, sendsOn T.interactions B_SHA_BYTES = false)
+  (hxB : XSbHi D extra nb np tr pub)
   (hxD : ∀ T ∈ extra, sendsOn T.interactions B_SHA_DIGEST = false)
   (hxK : ∀ T ∈ extra, sendsOn T.interactions B_KC = false)
   (hN : ∀ T ∈ extra, sendsOn T.interactions B_NIB = false)
@@ -155,9 +155,9 @@ theorem air_final_sorted_sn4 {tr : Trace Fp} {pub : List Fp} (D : Nat)
   have hD30 : D ≤ 30 := by have := hP.hD; omega
   have hxN := fun T hT => (hP.hsil T hT).1
   have hxL := fun T hT => (hP.hsil T hT).2.1
-  have hxB := fun T hT => (hP.hsil T hT).2.2.2.1
-  have hxD := fun T hT => (hP.hsil T hT).2.2.2.2.1
-  have hxK := fun T hT => (hP.hsil T hT).2.2.2.2.2.1
+  have hxB := hP.hxB
+  have hxD := fun T hT => (hP.hsil T hT).2.2.2.1
+  have hxK := fun T hT => (hP.hsil T hT).2.2.2.2.1
   have hxr : ∀ T ∈ tapeTable (m5aTape writes prev post n) :: rest, ∀ i ∈ T.interactions, i.bus ≠ B_RNG :=
     fun T hT i hi => (hP.hx T hT i hi).2.2.2.1
   have hxR := tp B_KCR (by decide) (by decide) (fun T hT => (hrN T hT).2.2)

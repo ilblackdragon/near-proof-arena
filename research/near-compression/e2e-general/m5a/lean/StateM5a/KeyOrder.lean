@@ -227,7 +227,7 @@ theorem ord_recv (hH : Holds (fullAir D extra nb np) pub tr)
 
 /-- **`WsLeafF.WsbKdRange` from `KDIG`.** -/
 theorem wsbKdRange (hH : Holds (fullAir D extra nb np) pub tr)
-    (hxB : ∀ T ∈ extra, sendsOn T.interactions B_SHA_BYTES = false)
+    (hxB : XSbHi D extra nb np tr pub)
     (hxD : ∀ T ∈ extra, sendsOn T.interactions B_SHA_DIGEST = false)
     (hxK : ∀ T ∈ extra, sendsOn T.interactions B_KC = false)
     (hxG : ∀ T ∈ extra, sendsOn T.interactions B_KDIG = false) : WsLeafF.WsbKdRange tr pub := by

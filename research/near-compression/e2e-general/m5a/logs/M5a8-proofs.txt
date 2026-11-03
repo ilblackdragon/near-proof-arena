@@ -1,0 +1,57 @@
+# M5a-8 proofs
+== lk: synthetic longkey (D=4)
+  spec oracle: post-state root ed9f4bafa077b977460ec914c4a82c1cc65e39949795f1d26df83d9d5afc0f22 (Lean applyChanges)
+  PRECHECK OK: every constraint on every row; every bus balances (53870 distinct messages)
+  PARAMS n_stack 18 w_stack 16 degree 9
+  PROOF total=1266342 gkr=34328 relations=273264 stacking=2708 whir=955624
+  TIME prove 71.17s verify 0.1859s threads 8 peak_rss_kib 1642136 proof_bytes 1266342
+  VERIFY OK (native SWIRL verifier); statement check (TAPE root + prev_state_root): OK
+== t1: T1 (D=5)
+  spec oracle: post-state root 1db48e3883e462f12b761a81438bd145dfcc45ee5a7097acdf7b9b000a249628 (Lean applyChanges)
+  PRECHECK OK: every constraint on every row; every bus balances (12359 distinct messages)
+  PARAMS n_stack 18 w_stack 9 degree 9
+  PROOF total=1237850 gkr=31256 relations=273744 stacking=2372 whir=930060
+  TIME prove 71.90s verify 0.0964s threads 8 peak_rss_kib 1284928 proof_bytes 1237850
+  VERIFY OK (native SWIRL verifier); statement check (TAPE root + prev_state_root): OK
+== t2: T2 (D=6)
+  spec oracle: post-state root 61f5330ac8001b656a126707ae7ab487920e9943e263915d1018a1e607993006 (Lean applyChanges)
+  PRECHECK OK: every constraint on every row; every bus balances (30671 distinct messages)
+  PARAMS n_stack 18 w_stack 15 degree 9
+  PROOF total=1259858 gkr=34328 relations=274224 stacking=2660 whir=948228
+  TIME prove 132.55s verify 0.1051s threads 8 peak_rss_kib 1737992 proof_bytes 1259858
+  VERIFY OK (native SWIRL verifier); statement check (TAPE root + prev_state_root): OK
+== t2seg: T2 seg3x5 (D=6)
+  spec oracle: post-state root 61f5330ac8001b656a126707ae7ab487920e9943e263915d1018a1e607993006 (Lean applyChanges)
+  PRECHECK OK: every constraint on every row; every bus balances (30846 distinct messages)
+  PARAMS n_stack 18 w_stack 15 degree 9
+  PROOF total=1261076 gkr=34328 relations=274224 stacking=2660 whir=949446
+  TIME prove 113.77s verify 0.1509s threads 8 peak_rss_kib 1693556 proof_bytes 1261076
+  VERIFY OK (native SWIRL verifier); statement check (TAPE root + prev_state_root): OK
+== syn: synthetic bval (D=4)
+  spec oracle: post-state root b2142cc904d33749f31cfefcac4c154ea66b231f722746bf3424fb139bd07895 (Lean applyChanges)
+  PRECHECK OK: every constraint on every row; every bus balances (3980 distinct messages)
+  PARAMS n_stack 18 w_stack 8 degree 9
+  PROOF total=1214798 gkr=28328 relations=273264 stacking=2228 whir=910560
+  TIME prove 42.06s verify 0.1489s threads 8 peak_rss_kib 985672 proof_bytes 1214798
+  VERIFY OK (native SWIRL verifier); statement check (TAPE root + prev_state_root): OK
+== bvn: synthetic bvnref (D=4)
+  spec oracle: post-state root 617e704e0109eb5c187060b117f881efb5808f67e2203ce66ad21d1a20787749 (Lean applyChanges)
+  PRECHECK OK: every constraint on every row; every bus balances (2273 distinct messages)
+  PARAMS n_stack 14 w_stack 20 degree 9
+  PROOF total=980028 gkr=25544 relations=272784 stacking=2516 whir=678766
+  TIME prove 14.28s verify 0.0927s threads 8 peak_rss_kib 186000 proof_bytes 980028
+  VERIFY OK (native SWIRL verifier); statement check (TAPE root + prev_state_root): OK
+== b1: M5b T1 (hph + ke, before the SHAS merge; D=5)
+  spec oracle: post-state root 1db48e3883e462f12b761a81438bd145dfcc45ee5a7097acdf7b9b000a249628 (Lean applyChanges)
+  PRECHECK OK: every constraint on every row; every bus balances (15115 distinct messages)
+  PARAMS n_stack 18 w_stack 10 degree 9
+  PROOF total=1531265 gkr=31256 relations=330324 stacking=2472 whir=1166704
+  TIME prove 72.54s verify 0.1284s threads 8 peak_rss_kib 1551180 proof_bytes 1531265
+  VERIFY OK (native SWIRL verifier); statement check (TAPE root + prev_state_root): OK
+== b1f: M5b T1 (final AIR; D=5)
+  spec oracle: post-state root 1db48e3883e462f12b761a81438bd145dfcc45ee5a7097acdf7b9b000a249628 (Lean applyChanges)
+  PRECHECK OK: every constraint on every row; every bus balances (15115 distinct messages)
+  PARAMS n_stack 18 w_stack 9 degree 9
+  PROOF total=1476227 gkr=31256 relations=277996 stacking=2424 whir=1164054
+  TIME prove 69.29s verify 0.1058s threads 8 peak_rss_kib 1493312 proof_bytes 1476227
+  VERIFY OK (native SWIRL verifier); statement check (TAPE root + prev_state_root): OK

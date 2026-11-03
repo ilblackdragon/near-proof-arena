@@ -398,7 +398,7 @@ def L : Layout :=
    ("dvlen", 1), ("dvh", 16), ("sh", 16), ("sm", 4),
    ("z", 1), ("iz", 1), ("sxh", 16), ("sxm", 4), ("xh", 16), ("xm", 4), ("cmb", 8), ("cy2", 4),
    ("gsha", 1), ("oref", 1), ("vm", VBITS), ("xf", 1), ("nref", 1), ("vmn", VBITS), ("nxf", 1),
-   ("shf", 1), ("sxhf", 1), ("xhf", 1)]
+   ("shf", 1), ("sxhf", 1), ("xhf", 1), ("hph", 1)]
 def T : Cols := ⟨L⟩
 def c (s : String) (j : Nat := 0) : Expr := T.c s j
 def nx (s : String) (j : Nat := 0) : Expr := T.n s j
@@ -471,6 +471,9 @@ def constraints : List Expr :=
    c "hp" 0 - (sm 32 (c "isL") + odd * (16 + k 0)),
    -- a continued head holds stream nibbles 2..63 exactly (`62 + odd` key nibbles)
    c "cont" * (1 - a 61), c "cont" * a 63, c "cont" * (a 62 - odd), (1 - c "cont") * c "rl",
+   -- M5a-8: the high byte of the `u32` hex-prefix length (`hplen = lo + 256·hph`, both bytes checked
+   -- by the SHA-256 table) is 0 on a head-only key (`hplen ≤ 33`)
+   (1 - c "cont") * c "hph",
    -- the first nibble not looked up against the walk key, and the mismatch there
    c "jm" - sumE ((List.range KMAX).map b),
    c "kj" - sumE ((List.range KMAX).map fun j => e j * k j),
@@ -527,11 +530,12 @@ def idN : Expr := K ID_SN + sm 2 (c "rid") + 1
 
 /-- Serialization of a leaf (`[0] ++ u32 |hp| ++ hp ++ u32 vlen ++ vh ++ u64 mem`) or an
 extension (`[3] ++ u32 |hp| ++ hp ++ child ++ u64 mem`); `x` is the 36 (leaf) / 32 (ext) payload
-bytes.  The head sends `hp` bytes `0..32`; continuation rows (`SNC`) send the rest. -/
+bytes.  The head sends `hp` bytes `0..32`; continuation rows (`SNC`) send the rest.  `u32 |hp|` is
+`(hplen − 256·hph, hph, 0, 0)` (M5a-8: keys up to 2 KiB; both bytes checked by the SHA-256 table). -/
 def serBytes (id g : Expr) (x : Nat → Expr) (mb : Nat → Expr) : List Interaction :=
   let hpl := c "hplen"
-  [snd B_SHA_BYTES g [id, 0, sm 3 (c "isE")], snd B_SHA_BYTES g [id, 1, hpl],
-   snd B_SHA_BYTES g [id, 2, 0], snd B_SHA_BYTES g [id, 3, 0], snd B_SHA_BYTES g [id, 4, 0]] ++
+  [snd B_SHA_BYTES g [id, 0, sm 3 (c "isE")], snd B_SHA_BYTES g [id, 1, hpl - sm 256 (c "hph")],
+   snd B_SHA_BYTES g [id, 2, c "hph"], snd B_SHA_BYTES g [id, 3, 0], snd B_SHA_BYTES g [id, 4, 0]] ++
   ((List.range HPMAX).map fun m => snd B_SHA_BYTES (g * c "ha" m) [id, K (5 + m), c "hp" m]) ++
   ((List.range 36).map fun t =>
     snd B_SHA_BYTES (if t < 32 then g else g * c "isL") [id, 5 + hpl + K t, x t]) ++

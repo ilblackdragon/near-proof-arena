@@ -46,6 +46,10 @@ const NAMES: &[&str] = &["SHA", "KEY", "BR", "SN", "KCMP", "WSB", "WSN", "WSA", 
 /// M5b (`m5a-tool airb`): the M5a tables plus the STATE rows.
 const NAMES_B: &[&str] =
     &["SHA", "KEY", "BR", "SN", "KCMP", "WSB", "WSN", "WSA", "SNC", "RNG", "WSL", "WSP", "SHAS", "STB", "STW"];
+/// M5b after M5a-8: the STATE messages are hashed by the M5a `SHA` table (no `SHAS`; tracegen then
+/// puts them in `sha_msgs.json`).
+const NAMES_B8: &[&str] =
+    &["SHA", "KEY", "BR", "SN", "KCMP", "WSB", "WSN", "WSA", "SNC", "RNG", "WSL", "WSP", "STB", "STW"];
 const P: u64 = 0x7800_0001;
 const LEAN_IF: u16 = 16;
 
@@ -217,7 +221,13 @@ struct Inst {
 fn load(air_path: &str, dir: &str) -> Inst {
     let text = std::fs::read_to_string(air_path).unwrap();
     let nt = serde_json::from_str::<serde_json::Value>(&text).unwrap()["tables"].as_array().unwrap().len();
-    let names = if nt == NAMES_B.len() { NAMES_B } else { NAMES };
+    let names = if nt == NAMES_B.len() {
+        NAMES_B
+    } else if nt == NAMES_B8.len() {
+        NAMES_B8
+    } else {
+        NAMES
+    };
     let mut cl = ClassicalAir::parse(&text, names);
     assert_eq!(cl.tables.len(), names.len());
     for t in cl.tables.iter_mut() {
@@ -230,7 +240,7 @@ fn load(air_path: &str, dir: &str) -> Inst {
     let pubs: Vec<F> = pb.chunks(4).map(|c| F::new(u32::from_le_bytes(c.try_into().unwrap()))).collect();
     let (mut spec, mut mats) = (vec![], vec![]);
     for t in cl.tables.iter() {
-        // `SHAS` (M5b): the second SHA-256 instance, over the STATE messages
+        // `SHAS` (M5b before M5a-8): the second SHA-256 instance, over the STATE messages
         let m = if t.name == "SHA" || t.name == "SHAS" {
             let f = if t.name == "SHA" { "sha_msgs.json" } else { "sha_msgs_st.json" };
             let v: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(d.join(f)).unwrap()).unwrap();
