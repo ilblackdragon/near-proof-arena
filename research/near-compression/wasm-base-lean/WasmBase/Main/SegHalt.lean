@@ -13,7 +13,7 @@ globals, stack budget, registers), DROP drops the dead locals, MEMB consumes the
 SEGB consumes the gas register; `pubs_of(…, c1.halted, …)` publishes the status.  So every table
 behaves as at a cut, and the statement below is satisfied by honest halting segments.
 
-* `segCutS` — the trace → `CutSeg` instantiation for **any** published status `st ≤ 2`
+* `segCutSt` — the trace → `CutSeg` instantiation for **any** published status `st ≤ 2`
   (`segCut` is the case `st = 0`).
 * **`seg_sound_halt`** — from `seg_sound`'s hypotheses with `halted_out = st ∈ {1, 2}`:
   `t_out = t_in + n`; for `st = 1`, `seg n s0 = .fin sN` (and `run`), no frame left, the gas
@@ -34,7 +34,7 @@ set_option maxRecDepth 100000
 
 /-- **The trace → `CutSeg` instantiation for the published status `st`** (`segCut` with
 `st := 0` is the cut case). -/
-def segCutS (X : Ctx) {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsX (wasmBaseSegAir nloc ngl) pub tr)
+def segCutSt (X : Ctx) {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsX (wasmBaseSegAir nloc ngl) pub tr)
     {sg : Nat → Nat × Nat}
     (hrows : ∀ ρ ∈ actListM2 tr pub,
       RowFactsSegMap X (rowInM tr pub ρ) (rowOutM tr pub ρ) (consCHS tr pub ρ) (prodCHS tr pub ρ) sg)
@@ -140,7 +140,7 @@ theorem seg_sound_halt (X : M2Ctx) {nloc ngl : Nat} {pub : List F} {tr : Trace}
     have e : (pub.getD pubTOut 0).toNat - (pub.getD pubTIn 0).toNat = (actListM2 tr pub).length := by omega
     rw [e] at hfeeN; exact hfeeN
   have hT := seg_tombDead X H hcode hfunc hb hg hkeep hhold st hst2 hstN hlen htin hfeeN hstepgas hg64 hinit h0
-  let c := segCutS X.toCtx H hrows hb hg st hst2 hstN hinit ht hfee
+  let c := segCutSt X.toCtx H hrows hb hg st hst2 hstN hinit ht hfee
   obtain ⟨-, -, hf, ha⟩ := exec_of_rows_cut X.toCtx c.act c.inS c.outS c.cons c.prod c.init c.fin c.pcf
     c.N c.Sf sg c.st c.hst2 c.hrows c.t0 c.S0 c.m0 c.sbf c.cidf c.hst c.hch c.hinit c.hinitTp
     c.ht c.hfee hstepgas hg64 h0
@@ -149,7 +149,7 @@ theorem seg_sound_halt (X : M2Ctx) {nloc ngl : Nat} {pub : List F} {tr : Trace}
   refine ⟨hlenEq, fun h1 => ?_, fun h2 => ?_, ctx_out_sha H hC hl⟩
   · obtain ⟨sN, tps, tpl, locs, hs, hr, hfr, hgas, G, hG, hv⟩ := hf h1
     have hgas' := hgas
-    simp only [c, segCutS] at hgas' hs hr hv
+    simp only [c, segCutSt] at hgas' hs hr hv
     rw [eT] at hgas'
     refine ⟨sN, tps, tpl, locs, hs, hr, hfr, hgas', ⟨G, hG, hv⟩, fun y => ⟨?_, ?_⟩⟩
     · rintro ⟨hy, hy0⟩
@@ -178,11 +178,11 @@ theorem seg_sound_halt (X : M2Ctx) {nloc ngl : Nat} {pub : List F} {tr : Trace}
       · have := (drop_dead H hT hr' ha' hi').1; omega
   · obtain ⟨sN, e, hs, hr, hgas⟩ := ha h2
     have hgas' := hgas
-    simp only [c, segCutS] at hgas' hs hr
+    simp only [c, segCutSt] at hgas' hs hr
     rw [eT] at hgas'
     exact ⟨sN, e, hs, hr, hgas'⟩
 
-#print axioms segCutS
+#print axioms segCutSt
 #print axioms cuto_low_fields
 #print axioms seg_sound_halt
 
