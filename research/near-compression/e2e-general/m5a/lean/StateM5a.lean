@@ -84,3 +84,5 @@ import StateM5a.RowSnF
 import StateM5a.RowSnM
 import StateM5a.RowSnD
 import StateM5a.RowSnAll
+import StateM5a.RowSnN
+import StateM5a.RowSnE
