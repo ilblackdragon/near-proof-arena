@@ -40,6 +40,7 @@ Working-set count mutants (M5a-5: `wsLen` is public value 16):
             would have to count as real)
   wslenlo   the statement claims one entry fewer (the last real leaf would have to be padding)
   bvwrap    a branch-value write (`oUV`) whose 4 length bytes encode |x| + P (field-equal to |x|)
+  vbyte     a version-published leaf holding a non-byte value-hash cell (same 16-bit pair sum)
   dmono     a branch-keeping delete (`oDH`/`oDL`) whose `mem - om` witness is off by one
 Branch-value mutants (synthetic case `bval`):
   bvalue    a branch-value write (`oUV`) storing another value-hash byte than the walk's value
@@ -980,7 +981,21 @@ class Gen:
         self.build_ws()
         self.build_kcmp()
         self.build_keys()
+        self.range_versions()
         self.build_rng()
+
+    def range_versions(self):
+        """M5a-5: a version-published (unhashed) node's value bytes are looked up in `RNG`: the
+        branch value hash `nvh` (`BR`), a leaf's payload `nx` (`SN`, `isL`)."""
+        Tb, Ts = self.T['BR'], self.T['SN']
+        for r in Tb.rows:
+            if Tb.get(r, 'nref') == 1:
+                for t in range(32):
+                    self.rng(Tb.get(r, 'nvh', t))
+        for r in Ts.rows:
+            if Ts.get(r, 'nref') == 1 and Ts.get(r, 'isL') == 1:
+                for t in range(36):
+                    self.rng(Ts.get(r, 'nx', t))
 
     # ------------------------------------------------------------------ working set
     @staticmethod
@@ -1554,7 +1569,24 @@ def _t_bvwrap(g):
     g.build_rng()
 
 
-TAMPERS = dict(dmono=_t_dmono, bvwrap=_t_bvwrap, absent=_t_absent, extabsent=_t_extabsent, branchval=_t_branchval, split=_t_split,
+def _t_vbyte(g):
+    # M5a-5: a version-published leaf (`SN`, `nref = 1`) holds a non-byte value-hash cell with the
+    # same 16-bit pair sum (`256·a + b` unchanged: a − 1, b + 256)
+    T = g.T['SN']
+    r = next(r for r in T.rows if T.get(r, 'nref') == 1 and T.get(r, 'isL') == 1 and
+             any(T.get(r, 'nx', 4 + 2 * i) > 0 for i in range(16)))
+    i = next(i for i in range(16) if T.get(r, 'nx', 4 + 2 * i) > 0)
+    a, b = T.get(r, 'nx', 4 + 2 * i), T.get(r, 'nx', 5 + 2 * i)
+    g.rng_count[a] -= 1
+    g.rng_count[b] -= 1
+    g.rng(a - 1)
+    T.set(r, 'nx', a - 1, 4 + 2 * i)
+    T.set(r, 'nx', b + 256, 5 + 2 * i)
+    g.T['RNG'].rows = []
+    g.build_rng()
+
+
+TAMPERS = dict(vbyte=_t_vbyte, dmono=_t_dmono, bvwrap=_t_bvwrap, absent=_t_absent, extabsent=_t_extabsent, branchval=_t_branchval, split=_t_split,
                splitext=_t_splitext, absdel=_t_absdel, squash=_t_squash, chain=_t_chain,
                verslot=_t_verslot, vernid=_t_vernid, vmcount=_t_vmcount, finroot=_t_finroot,
                nidforge=_t_nidforge, bvalue=_t_bvalue, bvmem=_t_bvmem, wsstale=_t_wsstale,

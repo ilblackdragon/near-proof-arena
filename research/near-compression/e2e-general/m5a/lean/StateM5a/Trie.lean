@@ -366,7 +366,10 @@ def interactions : List Interaction :=
        (fun (i, p) => (c "oFD" + c "oD1") * c "lvh" i + c "oFV" * p) ++
      [c "oFD" * c "fpres" + c "oFV" * c "hasv"])] ++
   -- M5a-5: the bytes of `mem − om` on `oDH`/`oDL` rows
-  (List.range 8).map fun b => rcv B_RNG (c "oDH" + c "oDL") [c "dm" b]
+  ((List.range 8).map fun b => rcv B_RNG (c "oDH" + c "oDL") [c "dm" b]) ++
+  -- M5a-5: a version-published (unhashed) branch's value-hash bytes are bytes (a hashed one's are
+  -- checked by the SHA-256 table)
+  (List.range 32).map fun b => rcv B_RNG (c "nref") [c "nvh" b]
 
 def table : Table := { width := L.width, constraints, interactions, maxLog := 20 }
 end Br
@@ -609,7 +612,10 @@ def interactions : List Interaction :=
       c "oLF" * vlenOf (fun t => c "x" t) + (c "oEF" + c "oED") * c "alen"] ++
      ((pack2 fun b => c "x" (4 + b)).zip ((List.range 16).map fun i => c "avh" i)).map
        (fun (p, q) => c "oLF" * p + (c "oEF" + c "oED") * q) ++
-     [c "oLF" + c "oEF" * c "fpres"])]
+     [c "oLF" + c "oEF" * c "fpres"])] ++
+  -- M5a-5: a version-published (unhashed) leaf's payload (value length and hash) is bytes (a
+  -- hashed one's are checked by the SHA-256 table; an extension's payload is its child's ref)
+  (List.range 36).map fun t => rcv B_RNG (c "nref" * c "isL") [c "nx" t]
 
 def table : Table := { width := L.width, constraints, interactions, maxLog := 20 }
 end Sn
