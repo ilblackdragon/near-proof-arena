@@ -328,6 +328,7 @@ theorem consumer_node_sha384 {chip : List IfMsg} (hcon : Sha512IfContract SegSha
       W64 dl ∧ W64 dr ∧ W64 dout ∧
       (∀ k, k < 6 → W (8 + k) = wF (dl.getD k 0)) ∧ (∀ k, k < 6 → W (14 + k) = wF (dr.getD k 0)) ∧
       (∀ k, k < 6 → W (24 + k) = wF (dout.getD k 0)) ∧
+      dout = (compressW NearSpecV3.E2E.Bnd.IV384 (dl ++ dr ++ padW)).take 6 ∧
       wbytes dout = NearSpecV3.E2E.Bnd.sha384 (wbytes (dl ++ dr)) := by
   obtain ⟨h, blk, h8, h16, wh, wb, hW⟩ := consumer_sound compressW_ok hcon hlt hW3 hin
   have hco := compressW_ok h blk
@@ -390,6 +391,7 @@ theorem consumer_node_sha384 {chip : List IfMsg} (hcon : Sha512IfContract SegSha
     have eb : blk = blk.take 6 ++ (blk.drop 6).take 6 ++ padW := by
       rw [← hp, List.append_assoc, show blk.drop 12 = (blk.drop 6).drop 6 by simp [List.drop_drop],
         List.take_append_drop, List.take_append_drop]
+    refine ⟨by rw [← eb], ?_⟩
     rw [sha384_node _ _ (by simp [h16]) (by simp [h16]), ← eb]
 
 /-- **Lane B's record-level node** (`comp_node`) with the chip's compression is SHA-384:

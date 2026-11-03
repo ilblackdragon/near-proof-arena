@@ -110,3 +110,4 @@ import WasmBase.Main.SegView
 import WasmBase.Main.SegCuto
 import WasmBase.Main.SegShaSpec
 import WasmBase.Main.SegSha
+import WasmBase.Main.SegShaMpath
