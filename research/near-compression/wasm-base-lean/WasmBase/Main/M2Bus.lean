@@ -870,4 +870,232 @@ theorem m2_hst {X : Ctx} {nloc ngl : Nat} {pub : List F} {tr : Trace}
   rw [← e1, ← e2]
   exact m2_msgs_perm H hpub busState (Or.inl rfl)
 
+/-! ## The CH bus of an M2 trace -/
+
+theorem uniform_part_dec {T : Table} (hU : UniformSC T = true) (tr : Trace) (pub : List F) (t : Nat) :
+    (part T tr pub t busStk true).map decMsg = (actRowsT T tr pub t).flatMap (rowProd T tr pub t) ∧
+    (part T tr pub t busStk false).map decMsg = (actRowsT T tr pub t).flatMap (rowCons T tr pub t) := by
+  rw [uniform_part_ch hU, uniform_part_ch hU, List.map_flatMap, List.map_flatMap]
+  exact ⟨rfl, rfl⟩
+
+theorem m2_regc_part {nloc ngl : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseM2Air nloc ngl) pub tr) :
+    ((part RegC.table tr pub 27 busStk true).map decMsg).Perm
+        ((List.range (tr.height 27)).flatMap (regNetProd tr pub) ++
+          (List.range (tr.height 27)).flatMap (regClr tr pub)) ∧
+    ((part RegC.table tr pub 27 busStk false).map decMsg).Perm
+        ((List.range (tr.height 27)).flatMap (regNetCons tr pub) ++
+          (List.range (tr.height 27)).flatMap (regClr tr pub)) := by
+  unfold part
+  rw [List.map_flatMap, List.map_flatMap]
+  constructor
+  · refine List.Perm.trans (List.Perm.of_eq ?_) (perm_flatMap_append _ _ _)
+    exact flatMap_congr_on _ _ _ (fun r hr => regc_prod_split (m2_regc_con H (List.mem_range.mp hr)))
+  · refine List.Perm.trans (List.Perm.of_eq ?_) (perm_flatMap_append _ _ _)
+    exact flatMap_congr_on _ _ _ (fun r _ => regc_cons_split tr pub r)
+
+theorem actListHost_reg_prod {tr : Trace} {pub : List F} :
+    (actListHost tr pub).flatMap (regProdH tr pub) =
+      (hostActRows tr pub).flatMap (fun ρ => regProdOf tr pub ρ.2) := by
+  unfold actListHost
+  rw [List.flatMap_append]
+  have hnil : (actList tr pub).flatMap (regProdH tr pub) = [] := by
+    refine List.flatMap_eq_nil_iff.mpr (fun ρ hρ => ?_)
+    simp only [regProdH, actList_ne_host hρ, if_false]
+  rw [hnil, List.nil_append]
+  refine flatMap_congr_on _ _ _ (fun ρ hρ => ?_)
+  simp only [regProdH, hostActRows_eq_host hρ, if_true]
+
+theorem actListHost_reg_cons {tr : Trace} {pub : List F} :
+    (actListHost tr pub).flatMap (regConsH tr pub) =
+      (hostActRows tr pub).flatMap (fun ρ => regConsOf tr pub ρ.2) := by
+  unfold actListHost
+  rw [List.flatMap_append]
+  have hnil : (actList tr pub).flatMap (regConsH tr pub) = [] := by
+    refine List.flatMap_eq_nil_iff.mpr (fun ρ hρ => ?_)
+    simp only [regConsH, actList_ne_host hρ, if_false]
+  rw [hnil, List.nil_append]
+  refine flatMap_congr_on _ _ _ (fun ρ hρ => ?_)
+  simp only [regConsH, hostActRows_eq_host hρ, if_true]
+
+theorem tail_nil22 {β : Type} {tr : Trace} {pub : List F} (f : Nat × Nat → List β)
+    (hf : ∀ ρ : Nat × Nat, ρ.1 ≠ 22 → f ρ = []) : (tailActRows tr pub).flatMap f = [] := by
+  refine List.flatMap_eq_nil_iff.mpr (fun ρ hρ => hf ρ ?_)
+  rcases tail_ne_22 hρ with h | h | h <;> omega
+
+/-- The fused fold over `actListM2`, produced side, as blocks. -/
+theorem actListM2_prod_perm (tr : Trace) (pub : List F) :
+    ((actListM2 tr pub).flatMap (prodCHM2 tr pub)).Perm
+      ((((((actList tr pub).flatMap
+            (fun ρ => (rowMsgs (chipT ρ.1) tr pub ρ.1 ρ.2 busStk true).map decMsg) ++
+          (hostActRows tr pub).flatMap (rowProdH tr pub)) ++
+          ((actRowsT IfC.table tr pub 26).flatMap (rowProd IfC.table tr pub 26) ++
+            ((actRowsT Conv.table tr pub 28).flatMap (rowProd Conv.table tr pub 28) ++
+              (actRowsT Unreach.table tr pub 29).flatMap (rowProd Unreach.table tr pub 29)))) ++
+        (hostActRows tr pub).flatMap (fun ρ => hostbProdOf tr pub ρ.2)) ++
+        (hostActRows tr pub).flatMap (fun ρ => regProdOf tr pub ρ.2))) := by
+  unfold prodCHM2
+  refine (perm_flatMap_append _ _ _).trans ?_
+  rw [List.append_assoc]
+  refine List.Perm.append (List.Perm.of_eq ?_) ((perm_flatMap_append _ _ _).trans (List.Perm.of_eq ?_))
+  · unfold actListM2
+    rw [List.flatMap_append, show (actListHost tr pub).flatMap (rowProdM tr pub) =
+        (actListHost tr pub).flatMap (rowProdH tr pub) from
+      flatMap_congr_on _ _ _ (fun ρ hρ => (actListHost_M_eq hρ).2.2.2), actListHost_flatMap_prod,
+      show (tailActRows tr pub).flatMap (rowProdM tr pub) =
+        (tailActRows tr pub).flatMap (fun ρ => rowProd (chipTM2 ρ.1) tr pub ρ.1 ρ.2) from rfl,
+      tail_flatMap tr pub (fun T t r => rowProd T tr pub t r)]
+  · unfold actListM2
+    rw [List.flatMap_append, List.flatMap_append, actListHost_hostb_prod, actListHost_reg_prod,
+      tail_nil22 (hostbProdH tr pub) (fun ρ h => by simp [hostbProdH, h]),
+      tail_nil22 (regProdH tr pub) (fun ρ h => by simp [regProdH, h])]
+    simp only [List.append_nil]
+
+/-- The fused fold over `actListM2`, consumed side, as blocks. -/
+theorem actListM2_cons_perm (tr : Trace) (pub : List F) :
+    ((actListM2 tr pub).flatMap (consCHM2 tr pub)).Perm
+      ((((((actList tr pub).flatMap
+            (fun ρ => (rowMsgs (chipT ρ.1) tr pub ρ.1 ρ.2 busStk false).map decMsg) ++
+          (hostActRows tr pub).flatMap (rowConsH tr pub)) ++
+          ((actRowsT IfC.table tr pub 26).flatMap (rowCons IfC.table tr pub 26) ++
+            ((actRowsT Conv.table tr pub 28).flatMap (rowCons Conv.table tr pub 28) ++
+              (actRowsT Unreach.table tr pub 29).flatMap (rowCons Unreach.table tr pub 29)))) ++
+        (hostActRows tr pub).flatMap (fun ρ => hostbConsOf tr pub ρ.2)) ++
+        (hostActRows tr pub).flatMap (fun ρ => regConsOf tr pub ρ.2))) := by
+  unfold consCHM2
+  refine (perm_flatMap_append _ _ _).trans ?_
+  rw [List.append_assoc]
+  refine List.Perm.append (List.Perm.of_eq ?_) ((perm_flatMap_append _ _ _).trans (List.Perm.of_eq ?_))
+  · unfold actListM2
+    rw [List.flatMap_append, show (actListHost tr pub).flatMap (rowConsM tr pub) =
+        (actListHost tr pub).flatMap (rowConsH tr pub) from
+      flatMap_congr_on _ _ _ (fun ρ hρ => (actListHost_M_eq hρ).2.2.1), actListHost_flatMap_cons,
+      show (tailActRows tr pub).flatMap (rowConsM tr pub) =
+        (tailActRows tr pub).flatMap (fun ρ => rowCons (chipTM2 ρ.1) tr pub ρ.1 ρ.2) from rfl,
+      tail_flatMap tr pub (fun T t r => rowCons T tr pub t r)]
+  · unfold actListM2
+    rw [List.flatMap_append, List.flatMap_append, actListHost_hostb_cons, actListHost_reg_cons,
+      tail_nil22 (hostbConsH tr pub) (fun ρ h => by simp [hostbConsH, h]),
+      tail_nil22 (regConsH tr pub) (fun ρ h => by simp [regConsH, h])]
+    simp only [List.append_nil]
+
+/-- The decoded CH bus of an M2 trace, produced side, as blocks. -/
+theorem m2_ch_dec_true {X : Ctx} {nloc ngl : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseM2Air nloc ngl) pub tr) (hpub : PubOK X nloc ngl pub) :
+    (msgs (wasmBaseM2Air nloc ngl) tr pub busStk true).map decMsg =
+      ((initRaw nloc pub).map decMsg ++ ((globRaw nloc ngl pub).map decMsg ++
+        ((budRaw nloc ngl pub).map decMsg ++
+          (actList tr pub).flatMap
+            (fun ρ => (rowMsgs (chipT ρ.1) tr pub ρ.1 ρ.2 busStk true).map decMsg) ++
+          (memRaw tr pub).map decMsg))) ++
+      ((hostActRows tr pub).flatMap (rowProdH tr pub) ++
+        ((part HostB.table tr pub 25 busStk true).map decMsg ++
+          ((actRowsT IfC.table tr pub 26).flatMap (rowProd IfC.table tr pub 26) ++
+            ((part RegC.table tr pub 27 busStk true).map decMsg ++
+              ((actRowsT Conv.table tr pub 28).flatMap (rowProd Conv.table tr pub 28) ++
+                (actRowsT Unreach.table tr pub 29).flatMap (rowProd Unreach.table tr pub 29)))))) := by
+  have h0 : 1 ≤ tr.height 0 := by have := H.heightPos 0 (by rw [m2_air_len]; decide); omega
+  have CF := chipFactsC X (m2_holdsC H)
+  rw [m2_msgs_air, (msgs_ch_of (X := X) h0 hpub CF).1, (m2_env_nil tr pub busStk true (Or.inr rfl)).1,
+    (m2_env_nil tr pub busStk true (Or.inr rfl)).2, List.nil_append, List.nil_append]
+  simp only [List.map_append]
+  rw [m2_host_ch_send H, (uniform_part_dec ifc_uniform tr pub 26).1,
+    (uniform_part_dec conv_uniform tr pub 28).1, (uniform_part_dec unreach_uniform tr pub 29).1,
+    List.map_flatMap]
+
+/-- The decoded CH bus of an M2 trace, consumed side, as blocks. -/
+theorem m2_ch_dec_false {X : Ctx} {nloc ngl : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseM2Air nloc ngl) pub tr) (hpub : PubOK X nloc ngl pub) :
+    (msgs (wasmBaseM2Air nloc ngl) tr pub busStk false).map decMsg =
+      ((if X.ck.arity = 1 ∧ pub.getD Boundary.pubStatus 0 = ((1 : Nat) : F) then
+          [resRaw pub tr] else []).map decMsg ++ (finRaw nloc tr).map decMsg ++
+        (actList tr pub).flatMap
+          (fun ρ => (rowMsgs (chipT ρ.1) tr pub ρ.1 ρ.2 busStk false).map decMsg) ++
+        (drainRaw tr pub).map decMsg) ++
+      ((hostActRows tr pub).flatMap (rowConsH tr pub) ++
+        ((part HostB.table tr pub 25 busStk false).map decMsg ++
+          ((actRowsT IfC.table tr pub 26).flatMap (rowCons IfC.table tr pub 26) ++
+            ((part RegC.table tr pub 27 busStk false).map decMsg ++
+              ((actRowsT Conv.table tr pub 28).flatMap (rowCons Conv.table tr pub 28) ++
+                (actRowsT Unreach.table tr pub 29).flatMap (rowCons Unreach.table tr pub 29)))))) := by
+  have h0 : 1 ≤ tr.height 0 := by have := H.heightPos 0 (by rw [m2_air_len]; decide); omega
+  have CF := chipFactsC X (m2_holdsC H)
+  rw [m2_msgs_air, (msgs_ch_of (X := X) h0 hpub CF).2, (m2_env_nil tr pub busStk false (Or.inr rfl)).1,
+    (m2_env_nil tr pub busStk false (Or.inr rfl)).2, List.nil_append, List.nil_append]
+  simp only [List.map_append]
+  rw [m2_host_ch_recv H, (uniform_part_dec ifc_uniform tr pub 26).2,
+    (uniform_part_dec conv_uniform tr pub 28).2, (uniform_part_dec unreach_uniform tr pub 29).2,
+    List.map_flatMap]
+
+/-- The CH block bookkeeping, over abstract lists (kept abstract so the kernel never unfolds the
+concrete message lists). -/
+theorem ch_assemble {α : Type} [DecidableEq α]
+    (I G B M Rs Fn D Ab Hh If Cv Ur HBt RGt Abf Hc Iff Cvf Urf HBf RGf HBt' HBf' RGn RGnf Rn Rnf Cl
+      P Q : List α)
+    (hbus : ((I ++ (G ++ (B ++ Ab ++ M))) ++ (Hh ++ (HBt ++ (If ++ (RGt ++ (Cv ++ Ur)))))).Perm
+      ((Rs ++ Fn ++ Abf ++ D) ++ (Hc ++ (HBf ++ (Iff ++ (RGf ++ (Cvf ++ Urf)))))))
+    (pBt : HBt'.Perm HBt) (pBf : HBf'.Perm HBf)
+    (pRt : RGt.Perm (Rn ++ Cl)) (pRf : RGf.Perm (Rnf ++ Cl))
+    (gRt : RGn.Perm Rn) (gRf : RGnf.Perm Rnf)
+    (aT : P.Perm ((((Ab ++ Hh) ++ (If ++ (Cv ++ Ur))) ++ HBt') ++ RGn))
+    (aF : Q.Perm ((((Abf ++ Hc) ++ (Iff ++ (Cvf ++ Urf))) ++ HBf') ++ RGnf)) :
+    ((I ++ (G ++ (B ++ M))) ++ P).Perm ((Rs ++ Fn ++ D) ++ Q) := by
+  rw [List.perm_iff_count] at *
+  intro a
+  have c0 := hbus a
+  have c1 := pBt a
+  have c2 := pBf a
+  have c3 := pRt a
+  have c4 := pRf a
+  have c5 := gRt a
+  have c6 := gRf a
+  have c7 := aT a
+  have c8 := aF a
+  simp only [List.count_append] at c0 c1 c2 c3 c4 c5 c6 c7 c8 ⊢
+  omega
+
+/-- **`hch` for the M2 AIR**, from `Holds`, `HostBLinked` and `RegCLinked`.  The initial/final
+blocks are the boundary's, exactly as in `host_hch`; the clear pairs of REG-C cancel. -/
+theorem m2_hch {X : Ctx} {nloc ngl : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseM2Air nloc ngl) pub tr) (hpub : PubOK X nloc ngl pub)
+    (hb : HostBLinked tr pub) (hg : RegCLinked tr pub) :
+    (((initRaw nloc pub).map decMsg ++
+        ((globRaw nloc ngl pub).map decMsg ++
+          ((budRaw nloc ngl pub).map decMsg ++ (memRaw tr pub).map decMsg))) ++
+        (actListM2 tr pub).flatMap (prodCHM2 tr pub)).Perm
+      (((((if X.ck.arity = 1 ∧ pub.getD Boundary.pubStatus 0 = ((1 : Nat) : F) then
+              [resRaw pub tr] else []).map decMsg ++ (finRaw nloc tr).map decMsg) ++
+          (drainRaw tr pub).map decMsg)) ++
+        (actListM2 tr pub).flatMap (consCHM2 tr pub)) := by
+  have hbus := (m2_msgs_perm H hpub busStk (Or.inr rfl)).map decMsg
+  rw [m2_ch_dec_true H hpub, m2_ch_dec_false H hpub] at hbus
+  have pBt := m2_hostb_partition hb true
+  have pBf := m2_hostb_partition hb false
+  obtain ⟨pRt, pRf⟩ := m2_regc_part H
+  have gRt := m2_reg_partition hb hg (regNetProd tr pub)
+    (fun r' hr hna => (regc_inactive_nil (m2_regc_con H hr) hna).1)
+  have gRf := m2_reg_partition hb hg (regNetCons tr pub)
+    (fun r' hr hna => (regc_inactive_nil (m2_regc_con H hr) hna).2)
+  have aT := actListM2_prod_perm tr pub
+  have aF := actListM2_cons_perm tr pub
+  exact ch_assemble _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ hbus pBt pBf pRt pRf gRt gRf aT aF
+
+/-- **Both bus premises of `exec_of_rows_seg` for `wasmBaseM2Air`.** -/
+theorem m2_buses {X : Ctx} {nloc ngl : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseM2Air nloc ngl) pub tr) (hpub : PubOK X nloc ngl pub)
+    (hb : HostBLinked tr pub) (hg : RegCLinked tr pub) :
+    (stMsg 0 1 0 0 0 0 :: (actListM2 tr pub).map (rowOutM tr pub)).Perm
+        ([tr.cell 0 0 Boundary.pcf, pub.getD Boundary.pubN 0, pub.getD Boundary.pubS 0,
+          pub.getD Boundary.pubStatus 0, tr.cell 0 0 Boundary.sbf, tr.cell 0 0 Boundary.cidf] ::
+          (actListM2 tr pub).map (rowInM tr pub)) ∧
+      ((((initRaw nloc pub).map decMsg ++
+          ((globRaw nloc ngl pub).map decMsg ++
+            ((budRaw nloc ngl pub).map decMsg ++ (memRaw tr pub).map decMsg))) ++
+          (actListM2 tr pub).flatMap (prodCHM2 tr pub))).Perm
+        ((((if X.ck.arity = 1 ∧ pub.getD Boundary.pubStatus 0 = ((1 : Nat) : F) then
+                [resRaw pub tr] else []).map decMsg ++ (finRaw nloc tr).map decMsg) ++
+            (drainRaw tr pub).map decMsg) ++
+          (actListM2 tr pub).flatMap (consCHM2 tr pub)) :=
+  ⟨m2_hst H hpub, m2_hch H hpub hb hg⟩
+
 end WasmBase
