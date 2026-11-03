@@ -175,3 +175,41 @@ sha256 `644495ff…` untouched). Heavy jobs in `systemd-run --user --scope` with
 * Compose segment soundness (the `cutView` equality, leaf = SHA-384 of bytes), lane E's `wasmD`.
 * Boundary cost levers; segments with `memory.grow`.
 * M2 bus split and `wasm_base_sound_m2`; the generator limits; M6 (replace HOSTO).
+
+## Fourth session: M4b
+
+Details: `research/near-compression/e2e-general/m4/README.md` §8. Six Lean/prover sub-lanes in
+worktrees (V view, S1 `cutView`, S2 SHA streams, S3 CUTO link, S4 `CutSeg` from the trace, C
+boundary cost, M2 `wasm_base_sound_m2`), cherry-picked onto the lane branch. `wasm-base-lean` now
+requires `StateM5a` (lane B's `Sha512If` and Merkle lemmas, reused).
+
+* **Item 1 [M]:** tamper battery on the final `wasmBaseSegAir` (after `r16 gl`): 26/26 + 28/28
+  rejected, honest verifies (`m4/logs/m4b-segtamper-final-s*.log`).
+* **Findings:** `Holds (wasmBaseSegAir …)` unsatisfiable (`seg_holds_false`; the M4 Lean results
+  were vacuous) → `HoldsX` + named chip contract `ChipIf`; CUTO filler not forced to zero
+  (`cuto_filler_counterexample`) → `Cut.rowWords` gated by `act`. The fixed AIR re-checks the
+  benchmark (5 segments, chained), proves the refill call (4 segments) and rejects 54/54 tampers
+  (`m4/logs/m4b-fix-*`).
+* **Item 2 [K]:** `WasmView.lean`: concrete `wasmD`, `wasmD_binding : Coll wasmD → Sha384Coll`,
+  `viewImpl_hwasm`, `reconstruct`, `wasmD_air`. `BndRec` mismatch resolved on our side
+  (globals/registers digests = the single ctxDigest); optional proposal `WasmBnd.gasLeft`.
+* **Item 3 [K]:** `seg_sound` (cut case, `SegSoundX.lean`) from `HoldsX` + `ChipIf`: `CutSeg` built
+  from the trace, `BndC` (register/space clauses, `fns` Nodup, CUTO field bounds) preserved,
+  public `ctx_out` = SHA-384 of `cutView X sN`; MEMB leaf = `sha384` of block bytes, MPATH node =
+  `sha384 (l ‖ r)`. Named: host relies (M6), `HostBLinked`, `RegCLinked`, `CodeOK`/`FuncOK`,
+  `TombDead`, in-boundary `Nodup`. Not yet conjuncts: memory root, CUTI side, halting segments.
+* **Item 4 [K]:** `wasm_base_sound_m2` with `m2_hst`/`m2_hch` (`RegCLinked` named).
+* **Item 5 [M][K]:** `wasmBaseSegAirMP` (batched Merkle multiproof MPATH, `mp_tree`): 1,610 → 680
+  compressions per 2^18-step segment, chip 2^18 → 2^17, 38.86 M → 27.91 M cells, boundary 59 % →
+  43 %, peak RSS 19.4 → 17.2 GB; proof size/time unchanged (same stacked shape); 39/39 + 46/46
+  tampers rejected, also after the filler fix.
+* **Item 6:** `memory.grow` segments not started.
+* Builds: `lake build WasmBase wasmbase-tool` green (433 jobs; standard axioms, no `sorry`); prover
+  release build green; `make pin-check` ok; nothing under `spec/` changed. Heavy jobs in
+  `systemd-run --user --scope` (`MemoryMax ≤ 24G`, ≤ 8 CPUs).
+
+### Next
+
+* `seg_sound`: memory-root conjunct, CUTI side, `TombDead`, halting segments, `InDom` from `BndC`;
+  port to `wasmBaseSegAirMP`.
+* `memory.grow` segments; generator limits; M6 (replace HOSTO, discharge the host relies).

@@ -1,0 +1,18 @@
+TRACE steps 96 cuts 3 tracegen 0.05s
+SEGBUILD 0 0.12s
+SEGBUILD 1 0.11s
+SEGBUILD 2 0.11s
+SEGBUILD 3 0.11s
+SEG 0 t (0, 30] steps 30 halted 0 | boundary: stream in 7 out 12 msgs, blocks 1 (read-only 0), drops 0 tombs 0, compressions 62 (stream 12, MEMB 18, MPATH 32)
+  CELLS instruction+lookup tables 1449420 | boundary tables 13084 | SHA-512 chip 681088 (height 8192) | total 2143592
+  PRECHECK OK (0.05s): every constraint on every row, every bus balanced incl. the chip's interface
+SEG 1 t (30, 60] steps 30 halted 0 | boundary: stream in 12 out 15 msgs, blocks 1 (read-only 1), drops 1 tombs 1, compressions 41 (stream 16, MEMB 9, MPATH 16)
+  CELLS instruction+lookup tables 1449332 | boundary tables 14140 | SHA-512 chip 681088 (height 8192) | total 2144560
+  PRECHECK OK (0.05s): every constraint on every row, every bus balanced incl. the chip's interface
+SEG 2 t (60, 90] steps 30 halted 0 | boundary: stream in 15 out 40 msgs, blocks 1 (read-only 1), drops 2 tombs 2, compressions 55 (stream 30, MEMB 9, MPATH 16)
+  CELLS instruction+lookup tables 1451260 | boundary tables 17004 | SHA-512 chip 681088 (height 8192) | total 2149352
+  PRECHECK OK (0.05s): every constraint on every row, every bus balanced incl. the chip's interface
+SEG 3 t (90, 96] steps 6 halted 1 | boundary: stream in 40 out 40 msgs, blocks 0 (read-only 0), drops 0 tombs 0, compressions 42 (stream 42, MEMB 0, MPATH 0)
+  CELLS instruction+lookup tables 1448712 | boundary tables 10096 | SHA-512 chip 681088 (height 8192) | total 2139896
+  PRECHECK OK (0.05s): every constraint on every row, every bus balanced incl. the chip's interface
+SEGCHECK OK 4 segments chained: B_out(k) = B_in(k+1) for every k

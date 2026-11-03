@@ -26,6 +26,12 @@ moreLinkArgs = [".lake/build/tape_shim.o", "-Wl,--wrap=lp_NearSpecV3_NearSpecV3_
 name = "NearSpecV3"
 path = "../../../spec/lean/v3"
 
+# E2E M4b: lane B's SHA-512 chip interface contract (`StateM5a.Sha512If`) and SHA-384 Merkle
+# binding lemmas (`StateM5a.StateView`) are reused, not duplicated.
+[[require]]
+name = "StateM5a"
+path = "../e2e-general/m5a/lean"
+
 # Only `ZkFormal.Algebra.Fp` (BabyBear, primality certificate, field instance) is imported.
 [[require]]
 name = "ZkFormal"

@@ -1,0 +1,22 @@
+TRACE steps 1128011 cuts 4 tracegen 1.44s
+SEGBUILD 0 0.57s
+SEGBUILD 1 0.57s
+SEGBUILD 2 0.54s
+SEGBUILD 3 0.55s
+SEGBUILD 4 0.23s
+SEG 0 t (0, 262144] steps 262144 halted 0 | boundary: stream in 4 out 11 msgs, blocks 32 (read-only 0), drops 22308 tombs 11154, compressions 680 (stream 10, MEMB 576, MPATH 94)
+  CELLS instruction+lookup tables 16017828 | boundary tables 1017192 | SHA-512 chip 10880128 (height 131072) | total 27915148
+  PRECHECK OK (0.93s): every constraint on every row, every bus balanced incl. the chip's interface
+SEG 1 t (262144, 524288] steps 262144 halted 0 | boundary: stream in 11 out 4 msgs, blocks 32 (read-only 0), drops 22312 tombs 11156, compressions 680 (stream 10, MEMB 576, MPATH 94)
+  CELLS instruction+lookup tables 16017828 | boundary tables 1017040 | SHA-512 chip 10880128 (height 131072) | total 27914996
+  PRECHECK OK (0.98s): every constraint on every row, every bus balanced incl. the chip's interface
+SEG 2 t (524288, 786432] steps 262144 halted 0 | boundary: stream in 4 out 9 msgs, blocks 32 (read-only 0), drops 22308 tombs 11154, compressions 679 (stream 9, MEMB 576, MPATH 94)
+  CELLS instruction+lookup tables 16017828 | boundary tables 1017192 | SHA-512 chip 10880128 (height 131072) | total 27915148
+  PRECHECK OK (0.96s): every constraint on every row, every bus balanced incl. the chip's interface
+SEG 3 t (786432, 1048576] steps 262144 halted 0 | boundary: stream in 9 out 8 msgs, blocks 32 (read-only 0), drops 22312 tombs 11156, compressions 681 (stream 11, MEMB 576, MPATH 94)
+  CELLS instruction+lookup tables 16017828 | boundary tables 1017568 | SHA-512 chip 10880128 (height 131072) | total 27915524
+  PRECHECK OK (0.96s): every constraint on every row, every bus balanced incl. the chip's interface
+SEG 4 t (1048576, 1128011] steps 79435 halted 1 | boundary: stream in 8 out 5 msgs, blocks 32 (read-only 0), drops 6760 tombs 3380, compressions 679 (stream 9, MEMB 576, MPATH 94)
+  CELLS instruction+lookup tables 5087652 | boundary tables 476368 | SHA-512 chip 10880128 (height 131072) | total 16444148
+  PRECHECK OK (0.38s): every constraint on every row, every bus balanced incl. the chip's interface
+SEGCHECK OK 5 segments chained: B_out(k) = B_in(k+1) for every k

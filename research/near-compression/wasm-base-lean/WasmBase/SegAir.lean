@@ -200,11 +200,13 @@ def n (s : String) : Expr := nv (ix cs s)
 def F (k : Nat) : Expr := c cs s!"lo{k}" + 65536 * c cs s!"hi{k}"
 def Fn (k : Nat) : Expr := n cs s!"lo{k}" + 65536 * n cs s!"hi{k}"
 
-/-- The row's 8 block words (one message, or the padding block's halves on a `kP` row). -/
+/-- The row's 8 block words (one message, or the padding block's halves on a `kP` row).  The
+message limbs are gated by `act` (not `kD`), so a data row without a message (the odd stream's
+filler, `kD = 1`, `act = 0`) hashes the all-zero message (M4b fix: `cuto_filler_counterexample`). -/
 def rowWords : List W3 :=
-  let kD := c cs "kD"; let kP := c cs "kP"; let j := c cs "j"
+  let act := c cs "act"; let kP := c cs "kP"; let j := c cs "j"
   ((List.range 7).map fun k =>
-    [kD * c cs s!"lo{k}", kD * c cs s!"hi{k}",
+    [act * c cs s!"lo{k}", act * c cs s!"hi{k}",
      if k = 0 then c cs "act" + kP * (1 - j) * Expr.c (2 ^ 21) else 0]) ++
   [[kP * j * 1024 * c cs "gl", kP * j * c cs "gh", 0]]
 

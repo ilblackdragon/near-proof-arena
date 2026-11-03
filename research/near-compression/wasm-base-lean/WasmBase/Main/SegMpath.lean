@@ -47,7 +47,7 @@ theorem mp_ix_limbs : ∀ l, l < 18 → ix Mpath.cols s!"co{l}" = 12 + l ∧ ix 
     ix Mpath.cols s!"ri{l}" = 114 + l ∧ ix Mpath.cols s!"rt{l}" = 132 + l := by decide
 
 /-- MPATH's constraints hold on every row. -/
-theorem mp_C {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : Holds (wasmBaseSegAir nloc ngl) pub tr)
+theorem mp_C {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsX (wasmBaseSegAir nloc ngl) pub tr)
     {r : Nat} (hr : r < tr.height 20) : ∀ e ∈ Mpath.constraints, e.eval (tr.row pub 20 r) = 0 := by
   have ht : 20 < (wasmBaseSegAir nloc ngl).tables.length := by simp [seg_air_len]
   intro e he
@@ -121,7 +121,7 @@ theorem topCount_mono (tr : Trace) {r r' : Nat} (h : r ≤ r') : topCount tr r �
     · have := ih (by omega); rw [topCount_succ]; omega
 
 section rows
-variable {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : Holds (wasmBaseSegAir nloc ngl) pub tr)
+variable {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsX (wasmBaseSegAir nloc ngl) pub tr)
 include H
 
 theorem mp_bool {r : Nat} (hr : r < tr.height 20) :
@@ -491,18 +491,19 @@ theorem dig_eval (tr : Trace) (pub : List F) (r : Nat) (base : Nat) (s : String)
 
 /-- A send with count 1 on a bus whose send counts are bits has a matching receive with a nonzero
 count. -/
-theorem send_has_recv {A : Air} {tr : Trace} {pub : List F} (H : Holds A pub tr) (b : Nat)
+theorem send_has_recv {A : Air} {tr : Trace} {pub : List F} (H : HoldsX A pub tr) (b : Nat)
     (hbit : ∀ o ∈ occs A tr pub, o.1 = b → o.2.1 = true → o.2.2.2 ≤ 1)
-    {o : Occ} (ho : o ∈ occs A tr pub) (hb : o.1 = b) (hs : o.2.1 = true) (hc : o.2.2.2 = 1) :
+    {o : Occ} (ho : o ∈ occs A tr pub) (hb : o.1 = b) (hs : o.2.1 = true) (hc : o.2.2.2 = 1)
+    (hx : b ≠ extBus := by decide) :
     ∃ o' ∈ occs A tr pub, o'.1 = b ∧ o'.2.1 = false ∧ o'.2.2.1 = o.2.2.1 ∧ o'.2.2.2 ≠ 0 := by
   refine Classical.byContradiction fun hn => ?_
   have h0 : busNat A tr pub b false o.2.2.1 = 0 :=
     busNat_zero fun o' ho' hb' hs' hm' =>
       Classical.byContradiction fun hc' => hn ⟨o', ho', hb', hs', hm', hc'⟩
-  have hbal := H.balance b o.2.2.1
+  have hbal := H.balance b o.2.2.1 hx
   rw [h0] at hbal
   have hge := count_le_busNat ho hb hs rfl
-  have hlt := busNat_lt H b true o.2.2.1 hbit
+  have hlt := busNat_ltX H b true o.2.2.1 hbit
   rw [Nat.mod_eq_of_lt hlt, Nat.zero_mod] at hbal
   omega
 
@@ -517,7 +518,7 @@ theorem cons_append_inj {a b : F} {L L' : List F} (h : [a] ++ L = [b] ++ L') : a
   simpa using h
 
 section chain
-variable {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : Holds (wasmBaseSegAir nloc ngl) pub tr)
+variable {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsX (wasmBaseSegAir nloc ngl) pub tr)
 include H
 
 /-- **Every RCH occurrence**: SEGB's `[0] ++ memIn` (out) / `[nbt] ++ memOut` (in) with count
