@@ -54,6 +54,7 @@ def main (args : List String) : IO Unit := do
   | ["prepM2", path, exportName, g0] => prepIf path exportName g0.toNat! "" checkModuleM2
   | ["prepM2", path, exportName, g0, inp] => prepIf path exportName g0.toNat! inp checkModuleM2
   | ["airM2", l, n] => IO.println (airJson (wasmBaseM2Air l.toNat! n.toNat!))
+  | ["airSeg", l, n] => IO.println (airJson (wasmBaseSegAir l.toNat! n.toNat!))
   | ["evalM2", l, n, path] => evalPoints l.toNat! n.toNat! path 5
   | ["airIf", l, n] => IO.println (airJson (wasmBaseIfAir l.toNat! n.toNat!))
   | ["airIfH", l, n] => IO.println (airJson (wasmBaseIfHostAir l.toNat! n.toNat!))
