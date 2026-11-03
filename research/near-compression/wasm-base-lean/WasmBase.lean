@@ -131,3 +131,4 @@ import WasmBase.Check.TraceDump
 import WasmBase.Check.PremCheck
 import WasmBase.Main.SegRowRel
 import WasmBase.Main.SegTomb
+import WasmBase.Main.SegDom
