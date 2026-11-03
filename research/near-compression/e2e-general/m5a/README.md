@@ -4,6 +4,141 @@ Plan: `docs/zk-formal/E2E-GENERAL-CHUNK-PLAN.md` §3.2 (the `stRoot` working set
 Date 2026-11-03. Labels: **[M]** measured here, **[K]** kernel-checked Lean (std axioms),
 **[S]** stated / design only.
 
+## M5a-2 (third session, 2026-11-03): batched FINAL in the AIR
+
+Sections below this one describe M5a as first built (every walk row hashes its old and its new
+node); the tables and the Lean list there are still valid, with the changes listed here.
+
+### Design
+
+Each trie node is hashed **once**:
+* **pre-state nodes**: the first row that reads a node hashes it (`gsha = 1`) and publishes its
+  record on a new bus `VER` under its digest, with a multiplicity (`vm`, 7 bits) equal to its other
+  readers; every other reader — INTAKE finds and FINAL changes alike — receives the record from
+  `VER` instead of hashing (this also batches INTAKE: T2's root was hashed by 53 walks, now once);
+* **new nodes**: a node a later change rewrites is not hashed; its row publishes the record on
+  `VER` under a *version id* (`nref = 1`; the id is the row's new-node message id
+  `ID + 2·rid + 1`, unique per row and table); a node no later change rewrites is *final* and is
+  hashed by its row, which publishes it under its digest for later readers (absent deletes read
+  without rewriting). A final node's children are final (a rewrite of a child rewrites its parent),
+  so its serialization has only digests (`gfin · isn = 0`).
+* **refs**: every child slot, every `DOWN`/`UP`/`MATR`/`SPQ`/`SPR`/`SXQ`/`SXR`/`SIBQ` hash field and
+  the root chain `TCH` carry a *ref* = (flag, 16 limbs): a digest, or a version id (cell 0 = id,
+  others 0). The public ends `TCH(0, 0, prev_state_root)` and `TCH(n, 0, post_state_root)` are
+  digests, so the last change must hash the root.
+* **records**: a `BR` record is 17 `VER` messages (16 slots `(f, f·isn, f·32 bytes)` and one value /
+  memory part), an `SN` record 3 (header with `isL`, `klen`, 36 payload bytes, memory limbs; key
+  nibbles 0–31, 32–63): the backend caps a message at 63 fields. Every part carries the full ref.
+  A key longer than one row (`cont`) is never on `VER` (always hashed, old and new).
+* **range checks**: a published (unhashed) node's 8 memory bytes are looked up in `RNG` (the SHA
+  table no longer checks them), as are a written branch value's length bytes.
+
+No timestamps are needed: records are immutable values keyed by unique ids (a persistent store),
+so the `VER` bus defines a function `σ : id → record`; the trie between changes is the expansion
+of `TCH`'s ref through `σ` (`Store.Exp`). The trace generator runs twice: pass 1 (= the M5a
+trace, still valid: `--unbatched`) finds every version's readers; pass 2 assigns `gsha`, `nref`,
+`vm`, `vmn`.
+
+### Results [M] (main stack: unified SWIRL, BabyBear Ext12, SHA-384 MMCS, stacked WHIR)
+
+| | T1 (`d3c8/d3/02-h10196-s3`) | T2 (`d3c9/d3/00-h10018-s0`) |
+|---|---|---|
+| trie-node rows | 156 (unchanged) | 623 (unchanged) |
+| SHA-256 messages of trie rows (M5a → batched) | 212 → 84 | 874 → 172 |
+| SHA-256 blocks of trie rows | 524 → 172 | 2,370 → 327 |
+| trie-row SHA-256 cells | 4.96 M → 1.64 M (−67 %) | 22.39 M → 3.12 M (−86 %) |
+| cells per trie-node row (incl. SHA) | 32.6 k → 11.3 k | 36.7 k → 5.8 k |
+| total used cells (`cost.py`) | 8.15 M → 4.83 M | 34.25 M → 14.97 M |
+| committed (padded) cells | 14.52 M → 7.87 M | 47.33 M → 16.18 M |
+| versions published / pre-state nodes hashed / final nodes hashed | 21 / 48 / 36 | 211 / 82 / 90 |
+| proof (M5a → batched) | verifies: 1,243,380 → **1,258,042 B**, 268.2-bit, prove 260 s (8 threads, host load ≈ 45), verify 179 ms, peak RSS 1.52 GB | verifies: 1,533,468 → **1,296,042 B**, 268.2-bit, prove 4,392 s (throttled) → **478 s**, verify 190 ms, peak RSS 16.4 → **2.67 GB** |
+| root | `1db48e38…249628` = Lean `stateRoot` | `61f5330a…07993006` = Lean `stateRoot` |
+
+The final-node count matches the batching model's `fin` count (T1 36, T2 88 + 2 nodes with keys
+longer than one row, which are always hashed). The prover is the M5a binary (unchanged,
+`logs/SHA256SUMS-v2`); AIR hashes in `logs/SHA256SUMS-v3`. With the trie side batched, the
+SHA-512 working-set chip (10.9 M of T2's 16.2 M committed cells, `WSA` 170 k cells per write) is
+now the dominant state cost.
+
+**Root equality.** `tracegen.py` asserts the circuit's last `TCH` root (a digest) = its
+transcription's `applyChanges` root = the case's `post_root`; that root is the Lean `allFeatures`
+run's `stateRoot` (T1, T2), and `m5a-tool apply` recomputes it with the Lean spec itself
+(`revealTrie` → `applyChanges ∘ sortKV` → `rootHash`; `run.sh` step 2b) — equal on T1, T2 and
+the synthetic case.
+
+**Mutants** [M] (`logs/M5a2-mutants.txt`, on the final AIR): **T2 17/17, T1 9/9, synthetic
+7/7 rejected** — each fails the precheck and the prover refuses it. The 12 of M5a, rerun, plus
+five for the batched path: `verslot` (a row reading a version holds another off-path child byte
+→ `VER` unbalanced), `vernid` (it claims another version's id → `DOWN` + `VER`), `vmcount` (a
+pre-state node published for one reader more → `VER`), `finroot` (the last change leaves the
+root as a version id → `TCH` against the public `post_state_root`, + `RNG`), `nidforge` (a version
+under another row's id → the id constraint). Synthetic case: `bvalue` (`oUV` stores another value
+byte → the `dvh` constraint), `bvmem` (`oDV` memory + 1 → the memory chain); its `node` and
+`finroot` tampers do not apply (their helpers expect a leaf / branch root; that trie's root is an
+extension). Proof sizes barely move: the WHIR query part (~0.94 MB) dominates and depends on
+columns, not rows.
+
+### Completeness: branch values (synthetic case)
+
+New `BR` ops for a walk key that ends at a branch (a key that is a prefix of another): `oUV`
+writes the branch value (over an old value or none; `valueMem` in the memory chain), `oDV`
+deletes it keeping the branch (≥ 2 children, `squashBranch`'s last case), `oDZ` an absent delete
+(no value; result `SAME`). The rewritten branch's value is now its own columns (`nhv`, `nvl`,
+`nvh`; equal to the old value on every other op). No corpus case has them, so `synth.py bval`
+builds a NEAR-shaped pre-state (`0x00 ‖ account`, `alice` next to `alice.near`, 18 keys) and 7
+changes exercising `oUV` ×3, `oDV`, `oDZ`, `oFV` ×5, an extension-internal absent delete and
+`extendChild` onto a kept branch; the Lean spec oracle confirms its root. **It proves** (D = 4): 26 `BR` / 31 `SN` rows,
+1,237,614 B, 268.2-bit, prove 130 s, verify 172 ms (`logs/M5a2-syn-bval-*`).
+
+### Lean [K] (std axioms, no `sorry`)
+
+* `Store` — the batched-FINAL memory argument: `Ref` (digest | version id), records with ref
+  children, the store expansion `Exp σ` and `exp_functional` (a ref expands to one trie: the trie
+  one change leaves is the trie the next starts from); `Rv` (reveal: stubs replaced by nodes hashing
+  to them) with `rv_refinedBy` (revealing keeps refinement of a revealed, well-formed witness;
+  `Sha256CR` + `NodeSerInj` through `refinedBy_of_hash`) and `rv_collapse` (collapsing final nodes
+  to digests keeps it; no assumption); `change_step` (one change, any step relation that carries
+  refinement), `upsert_step`, `find_step` (INTAKE finds on the revealed pre-state), and
+  `batched_upserts`: from `TCH(0) = prev_state_root` through every upsert change to a digest
+  `post`, the spec's fold of the changes on the witness trie succeeds with root hash `post`;
+  **`batched_changes`**: the same for every change, upserts and deletes (`del_step` from
+  `Refine.del_refinedBy`), with `applyChanges` and `rootHash` themselves. Premises: `Sha256CR` and
+  `KeepsFW` (applied changes keep the witness revealed and well-formed: a spec property, open);
+  `NodeSerInj` is discharged by `SerInj.nodeSerInj`.
+* `FieldVer` — the version constraints at field level: a `VER` publisher of an old node hashed it
+  (`br_vm_gsha`, `sn_vm_gsha`) under its digest with digest children (`br_gsha_dig`,
+  `br_gsha_isn`, `sn_gsha_dig`); a publisher of a new node has one (`*_vmn_gnew`); a version id is
+  the row's own (`br_vid`, `sn_vid`); a continued key never uses `VER` (`sn_cont`).
+* `StepsBV` — `br_upsert_value`, `br_del_value_keep`, `br_del_value_absent` (the spec steps of
+  `oUV`, `oDV`, `oDZ`).
+* `SerInj` (Lean sub-lane) — **`nodeSerInj : NodeSerInj` proved** from the spec's encoder (tag
+  byte; `u16`/`u32`/`u64` injective under `wf`'s bounds, `leN_inj`; `hexPrefix_inj`,
+  `packNibbles_inj`; bitmap + 32-byte child hashes slot by slot, `kids_inj`; a `ValueRef` pins the
+  slot, `slot_of_valueRef`). `Shallow` now also requires value slots to be refs (a row holds a
+  `ValueRef`; with a revealed row value the statement is false). `refinedBy_of_hash'` needs only
+  `Sha256CR`.
+* `Refine` (sub-lane) — **`del_refinedBy`**: `del` commutes with refinement for the general spec
+  `del` (same deleted flag, refining result; via `squashBranch_refinedBy`,
+  `extendChild_refinedBy`), `dchain_witness`, `change_del_witness`, `findRef_refinedBy`;
+  **`rows_refinedBy`**: a well-formed rows' trie with ref slots and the root hash of a revealed
+  well-formed trie refines it (`nodeSerInj` at every node, `Sha256CR` only); `find_spec`,
+  `upsert_spec`, `del_spec` against any spec partial trie.
+* `FieldRows2` (sub-lane) — `sn_hexPrefix`: a short-key `SN` row's `hp` bytes are exactly
+  `hexPrefix` of its `klen` nibbles and `hplen = 1 + klen/2` (from the `a`/`k`/`ha`/`hp`/`odd`
+  constraints, nibbles < 16); `br_sel`: a descending `BR` row has one selector, at a present slot,
+  equal to the looked-up nibble.
+
+### Open after M5a-2
+
+1. Bus level: that the rows' `VER`/`DOWN`/`UP` traffic yields `Rv`, the chain relations and
+   `Exp` (with `FieldVer` + `rid` = row index giving unique ids, the `VER` receives are a function
+   of the ref) and the field facts building `wf` / ref slots of the rows' trie; `KeepsFW`; chain
+   constructors for `oUV`/`oDV`/`oDZ`; field level: `BR` children block from `rank`, the other
+   one-hot bundles, `cont` rows / `SNC`, `WS*`.
+2. Completeness still missing: the squash after a value delete leaving one child, squash to a
+   value leaf / onto an extension or branch sibling (`extendChild [i]` with a non-leaf), splits
+   where one key ends at the new branch, a mismatch past a head's 63 nibbles, the empty trie.
+
 ## Result on T1 (`d3c8/d3/02-h10196-s3`)
 
 | | |
@@ -129,6 +264,10 @@ doing the same — one rewrite per touched node — roughly halves FINAL).
 research/near-compression/e2e-general/m5a/run.sh <case dir> <out dir> [check|prove|mutants]   # D=5 (T1)
 D=6 research/near-compression/e2e-general/m5a/run.sh <T2 case dir> <out dir> prove              # T2
 python3 research/near-compression/e2e-general/m5a/batch_cost.py <out>/state.json <out>/dump <out>/names.json
+# M5a-2: synthetic branch-value case (D=4); the spec oracle alone: m5a-tool apply <state.json>
+python3 research/near-compression/e2e-general/m5a/synth.py bval <out>/state.json
+D=4 research/near-compression/e2e-general/m5a/run.sh - <out> prove
+UNBATCHED=1 …/run.sh <case> <out> check     # the M5a (every node hashed) trace, still valid
 ```
 
 1. `nearspec-v3-check-successor --tier allFeatures --emit-full` (the Lean write log) and
@@ -179,9 +318,9 @@ the working set), so with digest reuse only the final trie is hashed.  Of T2's 3
 (`cost.py`) FINAL hashing is 14.6 M; batching takes ~12 M off (35 % of the total).  The AIR change
 this needs is in *Next steps* (an offline-memory node store instead of hash-addressed versions).
 
-## Next steps
+## Next steps (as of the second session; items 1–3 are done or superseded by M5a-2 above)
 
-1. **Batched FINAL in the AIR** (the model above).  Per-change walk rows stay (narrow, no SHA) but
+1. **Batched FINAL in the AIR** (the model above; done in M5a-2 with immutable versions instead of timestamps).  Per-change walk rows stay (narrow, no SHA) but
    address in-memory nodes by id through a node store bus `NODE(nid, t, record)` with timestamps
    (`t` = change index; read `t_r < t`, write `t`; Blum/Spice offline memory checking), records
    holding keys as `(kid, start, len)` references into `KEY` and children as hash-or-nid slots.

@@ -1,0 +1,22 @@
+TABLE SHA    width  544 height 2^10 cells    557056 constraints  1028 interactions    17 deg 4
+TABLE KEY    width   63 height 2^6  cells      4032 constraints    59 interactions     6 deg 4
+TABLE BR     width  929 height 2^5  cells     29728 constraints  1926 interactions  1199 deg 4
+TABLE SN     width  604 height 2^5  cells     19328 constraints  1280 interactions   471 deg 4
+TABLE KCMP   width   14 height 2^6  cells       896 constraints    26 interactions     6 deg 4
+TABLE WSB    width  153 height 2^5  cells      4896 constraints   154 interactions    41 deg 6
+TABLE WSN    width   67 height 2^5  cells      2144 constraints    27 interactions    21 deg 4
+TABLE WSA    width  449 height 2^3  cells      3592 constraints   221 interactions   195 deg 2
+TABLE SNC    width  205 height 2^2  cells       820 constraints   618 interactions   324 deg 6
+TABLE RNG    width   21 height 2^8  cells      5376 constraints    23 interactions     1 deg 2
+TABLE TAPE   width   37 height 2^4  cells       592 constraints     0 interactions     2 deg 0
+TABLE SHA512 width   83 height 2^15 cells   2719744 (native v4)
+TABLE SHA512T width    9 height 2^7  cells      1152 (native v4)
+CELLS 3349356; compressions 146
+PRECHECK OK: every constraint on every row; every bus balances (4926 distinct messages)
+TIME load+precheck 0.25s
+PARAMS n_stack 18 w_stack 8 degree 9
+TIME keygen 0.03s
+SOUNDNESS total=268.2 logup=329.3 proximity=316.2 query=268.2
+PROOF total=1237614 gkr=31256 relations=277856 stacking=2324 whir=925856
+TIME prove 130.32s verify 0.1718s threads 8 peak_rss_kib 1149760 proof_bytes 1237614
+VERIFY OK (native SWIRL verifier); statement check (TAPE root + prev_state_root): OK

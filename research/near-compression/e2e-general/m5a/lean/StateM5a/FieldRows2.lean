@@ -1,5 +1,6 @@
 import StateM5a.FieldRows
 import StateM5a.Layout
+import StateM5a.FieldVer
 
 /-!
 # StateM5a.FieldRows2 — the `SN` key / `hexPrefix` layout from the table's constraints
@@ -22,7 +23,7 @@ constraints being added to the table).
 
 namespace StateM5a.FieldRows2
 
-open ZkFormal.Air ZkFormal.Algebra ZkFormal.Sha.Sound StateM5a.FieldRows
+open ZkFormal.Air ZkFormal.Algebra ZkFormal.Sha.Sound StateM5a.FieldRows StateM5a.FieldVer
 
 variable {tr : Trace Fp} {t r : Nat} {pub : List Fp}
 
@@ -418,22 +419,25 @@ include hc
 
 theorem br_hold {e : Expr} (he : e ∈ Br.constraints) : ev tr t r pub e = 0 := hold rfl hc he
 
+set_option maxHeartbeats 4000000 in
 theorem br_bool_sel (i : Nat) (hi : i < 16) : ev tr t r pub (Br.c "sel" i) ≤ 1 := by
   apply bool_le; apply br_hold hc
   unfold Br.constraints
-  simp only [List.mem_append, List.mem_flatMap, List.mem_range, List.mem_cons]
-  mem_search i hi
+  simp only [List.mem_append, List.mem_flatMap, List.mem_map, List.mem_range]
+  memfind
 
+set_option maxHeartbeats 4000000 in
 theorem br_bool_f (i : Nat) (hi : i < 16) : ev tr t r pub (Br.c "f" i) ≤ 1 := by
   apply bool_le; apply br_hold hc
   unfold Br.constraints
-  simp only [List.mem_append, List.mem_flatMap, List.mem_range, List.mem_cons]
-  mem_search i hi
+  simp only [List.mem_append, List.mem_flatMap, List.mem_map, List.mem_range]
+  memfind
 
-/-- **`BR` selected slot**: on a descending row (`act = 1`, `oFV = 0`, `gdn = 1`) exactly one
+set_option maxHeartbeats 4000000 in
+/-- **`BR` selected slot**: on a descending row (`act = 1`, `gEnd = 0`, `gdn = 1`) exactly one
 selector `sel_i` is `1`, slot `i` is present (`f_i = 1`), and the nibble the row looks up against
 the walk key (`nib = Σ i·sel_i`) is `i`: the row descends into child `Kids.at cs i`. -/
-theorem br_sel (hA : ev tr t r pub (Br.c "act") = 1) (hv : ev tr t r pub (Br.c "oFV") = 0)
+theorem br_sel (hA : ev tr t r pub (Br.c "act") = 1) (hv : ev tr t r pub Br.gEnd = 0)
     (hg : ev tr t r pub (Br.c "gdn") = 1) :
     ∃ i, i < 16 ∧ ev tr t r pub (Br.c "sel" i) = 1 ∧
       (∀ j, j < 16 → j ≠ i → ev tr t r pub (Br.c "sel" j) = 0) ∧
@@ -442,7 +446,9 @@ theorem br_sel (hA : ev tr t r pub (Br.c "act") = 1) (hv : ev tr t r pub (Br.c "
   have bf := br_bool_f hc
   -- Σ sel = 1
   have h1 := br_hold hc (e := sumE ((List.range 16).map fun i => Br.c "sel" i) -
-      (Br.c "act" - Br.c "oFV")) (by unfold Br.constraints; simp)
+      (Br.c "act" - Br.gEnd)) (by
+        unfold Br.constraints; simp only [List.mem_append, List.mem_flatMap, List.mem_map, List.mem_range]
+        memfind)
   have h1' := eq_of_sub h1
   rw [ev_sumE, List.map_map] at h1'
   have hs16 : ((List.range 16).map fun i => ev tr t r pub (Br.c "sel" i)).sum ≤ 16 := by
@@ -451,14 +457,16 @@ theorem br_sel (hA : ev tr t r pub (Br.c "act") = 1) (hv : ev tr t r pub (Br.c "
           obtain ⟨j, hj, rfl⟩ := hx; exact bs j hj)
     simpa using this
   have hsum : ((List.range 16).map fun i => ev tr t r pub (Br.c "sel" i)).sum = 1 := by
-    have e : ev tr t r pub (Br.c "act" - Br.c "oFV") = 1 := by rw [ev_sub, hA, hv]; try simp
+    have e : ev tr t r pub (Br.c "act" - Br.gEnd) = 1 := by rw [ev_sub, hA, hv]; try simp
     rw [e, Function.comp_def, Nat.mod_eq_of_lt (by omega)] at h1'
     exact h1'
   obtain ⟨i, hi, h1i, hu⟩ := sum_one (fun j => ev tr t r pub (Br.c "sel" j)) 16 bs hsum
   refine ⟨i, hi, h1i, hu, ?_, ?_⟩
   · -- Σ sel·f = gdn = 1
     have h2 := br_hold hc (e := sumE ((List.range 16).map fun i => Br.c "sel" i * Br.c "f" i) -
-        Br.c "gdn") (by unfold Br.constraints; simp)
+        Br.c "gdn") (by
+          unfold Br.constraints; simp only [List.mem_append, List.mem_flatMap, List.mem_map, List.mem_range]
+          memfind)
     have h2' := eq_of_sub h2
     rw [ev_sumE, List.map_map, hg] at h2'
     have hF : ((List.range 16).map (ev tr t r pub ∘ fun i => Br.c "sel" i * Br.c "f" i)).sum =

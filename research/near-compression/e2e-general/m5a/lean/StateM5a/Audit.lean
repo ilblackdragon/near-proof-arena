@@ -90,7 +90,6 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.StepsBV.br_upsert_value
 #print axioms StateM5a.StepsBV.br_del_value_keep
 #print axioms StateM5a.StepsBV.br_del_value_absent
-||||||| parent of b9a1ecef7 (M5a-2 Lean: NodeSerInj proved from the spec encoder (SerInj.nodeSerInj); Shallow requires ValueRef slots; refinedBy_of_hash' needs only Sha256CR)
 #print axioms StateM5a.SerInj.leN_inj
 #print axioms StateM5a.SerInj.hexPrefix_inj
 #print axioms StateM5a.SerInj.packNibbles_inj
@@ -122,3 +121,5 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.FieldRows2.sum_one
 #print axioms StateM5a.FieldRows2.sum_single
 #print axioms StateM5a.FieldRows2.br_sel
+#print axioms StateM5a.Store.del_step
+#print axioms StateM5a.Store.batched_changes

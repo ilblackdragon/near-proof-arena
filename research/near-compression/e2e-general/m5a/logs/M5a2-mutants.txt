@@ -1,0 +1,35 @@
+t2 node: PRECHECK FAIL: 10 unbalanced messages by bus {5: 2, 14: 2, 25: 6} | REJECTED (prover error) after 11.1s
+t2 prevalue: PRECHECK FAIL: 2 unbalanced messages by bus {6: 2} | REJECTED (prover error) after 10.9s
+t2 omitwrite: PRECHECK FAIL: 259 unbalanced messages by bus {12: 2, 13: 1, 103: 256} | REJECTED (prover error) after 11.8s
+t2 postroot: PRECHECK FAIL: 2 unbalanced messages by bus {14: 2} | REJECTED (prover error) after 11.5s
+t2 absent: PRECHECK FAIL: SN: constraint 146 fails on row 2 | REJECTED (prover error) after 11.4s
+t2 extabsent: PRECHECK FAIL: SN: constraint 149 fails on row 65 | REJECTED (prover error) after 11.0s
+t2 branchval: PRECHECK FAIL: BR: constraint 78 fails on row 87 | REJECTED (prover error) after 11.3s
+t2 split: PRECHECK FAIL: 132 unbalanced messages by bus {0: 130, 2: 2} | REJECTED (prover error) after 11.2s
+t2 splitext: PRECHECK FAIL: SN: constraint 202 fails on row 195 | REJECTED (prover error) after 10.1s
+t2 absdel: PRECHECK FAIL: SN: constraint 154 fails on row 157 | REJECTED (prover error) after 10.1s
+t2 squash: PRECHECK FAIL: SN: constraint 755 fails on row 166 | REJECTED (prover error) after 10.3s
+t2 chain: PRECHECK FAIL: 6 unbalanced messages by bus {0: 2, 24: 4} | REJECTED (prover error) after 10.3s
+t2 verslot: PRECHECK FAIL: 4 unbalanced messages by bus {25: 4} | REJECTED (prover error) after 9.8s
+t2 vernid: PRECHECK FAIL: 36 unbalanced messages by bus {5: 2, 25: 34} | REJECTED (prover error) after 10.4s
+t2 vmcount: PRECHECK FAIL: 17 unbalanced messages by bus {25: 17} | REJECTED (prover error) after 10.0s
+t2 finroot: PRECHECK FAIL: 6 unbalanced messages by bus {14: 2, 24: 4} | REJECTED (prover error) after 11.2s
+t2 nidforge: PRECHECK FAIL: BR: constraint 32 fails on row 188 | REJECTED (prover error) after 10.1s
+t1 node: PRECHECK FAIL: 10 unbalanced messages by bus {5: 2, 14: 2, 25: 6} | REJECTED (prover error) after 5.2s
+t1 prevalue: PRECHECK FAIL: 2 unbalanced messages by bus {6: 2} | REJECTED (prover error) after 4.2s
+t1 omitwrite: PRECHECK FAIL: 227 unbalanced messages by bus {12: 2, 13: 1, 103: 224} | REJECTED (prover error) after 4.7s
+t1 postroot: PRECHECK FAIL: 2 unbalanced messages by bus {14: 2} | REJECTED (prover error) after 5.3s
+t1 verslot: PRECHECK FAIL: 4 unbalanced messages by bus {25: 4} | REJECTED (prover error) after 5.4s
+t1 vernid: PRECHECK FAIL: 36 unbalanced messages by bus {5: 2, 25: 34} | REJECTED (prover error) after 5.5s
+t1 vmcount: PRECHECK FAIL: 17 unbalanced messages by bus {25: 17} | REJECTED (prover error) after 6.1s
+t1 finroot: PRECHECK FAIL: 6 unbalanced messages by bus {14: 2, 24: 4} | REJECTED (prover error) after 4.9s
+t1 nidforge: PRECHECK FAIL: BR: constraint 32 fails on row 59 | REJECTED (prover error) after 4.7s
+syn node GEN FAIL
+syn prevalue: PRECHECK FAIL: 2 unbalanced messages by bus {6: 2} | REJECTED (prover error) after 2.7s
+syn postroot: PRECHECK FAIL: 2 unbalanced messages by bus {14: 2} | REJECTED (prover error) after 2.7s
+syn branchval: PRECHECK FAIL: BR: constraint 78 fails on row 1 | REJECTED (prover error) after 2.8s
+syn verslot: PRECHECK FAIL: 4 unbalanced messages by bus {25: 4} | REJECTED (prover error) after 2.7s
+syn vmcount: PRECHECK FAIL: 17 unbalanced messages by bus {25: 17} | REJECTED (prover error) after 2.7s
+syn finroot GEN FAIL
+syn bvalue: PRECHECK FAIL: BR: constraint 425 fails on row 15 | REJECTED (prover error) after 3.1s
+syn bvmem: PRECHECK FAIL: BR: constraint 514 fails on row 17 | REJECTED (prover error) after 2.9s

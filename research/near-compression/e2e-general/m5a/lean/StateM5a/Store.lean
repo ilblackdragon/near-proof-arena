@@ -1,4 +1,4 @@
-import StateM5a.Walk
+import StateM5a.Refine
 
 /-!
 # StateM5a.Store — batched FINAL: the version store replaces the hash link
@@ -359,5 +359,85 @@ theorem batched_upserts (hCR : Sha256CR) (hInj : NodeSerInj) (hKeep : UpsertKeep
 
 /-- `P 0` for a digest ref is the stub, refined by any trie with that root hash. -/
 theorem start_refinedBy (T : PTrie) : (PTrie.hash T.hashOf).refinedBy T := stub_refinedBy T
+
+/-! ## All changes: upserts and deletes (`NodeSerInj` discharged by `SerInj.nodeSerInj`) -/
+
+/-- The spec's step of one committed change on a non-empty trie that stays non-empty. -/
+def stepOf (k : Bytes) (v : Option Bytes) (T : PTrie) : Option PTrie :=
+  match applyChange (some T) k v with
+  | some (some T') => some T'
+  | _ => none
+
+theorem stepOf_some {k : Bytes} {v : Option Bytes} {T T' : PTrie} (h : stepOf k v T = some T') :
+    applyChange (some T) k v = some (some T') := by
+  unfold stepOf at h
+  split at h
+  · rename_i T₁ e; cases h; exact e
+  · cases h
+
+/-- One committed change's rows: reveal the input expansion, run the change's chain (an upsert
+chain for a present value, a delete chain that leaves a non-empty trie for an absent one),
+collapse to the output expansion. -/
+def ChangeRows (P P' : PTrie) (k : Bytes) : Option Bytes → Prop
+  | some x => ∃ t₁ t₁', Rv (.inl P) (.inl t₁) ∧ UChain t₁ (nibbles k) x t₁' ∧ Rv (.inl P') (.inl t₁')
+  | none => ∃ t₁ t₁' b, Rv (.inl P) (.inl t₁) ∧ DChain t₁ (nibbles k) (b, some t₁') ∧
+      Rv (.inl P') (.inl t₁')
+
+/-- The delete walk's step relation carries refinement (`Refine.del_refinedBy`). -/
+theorem del_step (k : Bytes) :
+    ∀ t₁ t₁' T, (∃ b, DChain t₁ (nibbles k) (b, some t₁')) → t₁.refinedBy T →
+      ∃ T', stepOf k none T = some T' ∧ t₁'.refinedBy T' := by
+  intro t₁ t₁' T ⟨b, hc⟩ hr
+  obtain ⟨r₂, hd, -, ho⟩ := StateM5a.Refine.del_refinedBy t₁ T _ _ hr (dchain_sound hc)
+  obtain ⟨b₂, o₂⟩ := r₂
+  cases o₂ with
+  | none => simp [StateM5a.Refine.OptRefines] at ho
+  | some T' =>
+    refine ⟨T', ?_, ho⟩
+    simp [stepOf, applyChange, hd]
+
+/-- Applied changes keep the witness revealed and well-formed (a spec property; premise). -/
+def KeepsFW : Prop :=
+  ∀ (T T' : PTrie) (k : Bytes) (v : Option Bytes), Full T ∧ T.wf = true →
+    applyChange (some T) k v = some (some T') → Full T' ∧ T'.wf = true
+
+/-- **Batched FINAL, every change (upserts and deletes).**  `P j` are the expansions of the
+`TCH` refs; `P 0` is the stub `prev_state_root`, the last ref the digest `post`.  On any revealed,
+well-formed witness trie with root `prev_state_root`, the spec's `applyChanges` succeeds and its
+`rootHash` is `post` — the claim's post-state root.  Premises: `Sha256CR` and `KeepsFW` only
+(`NodeSerInj` is `SerInj.nodeSerInj`). -/
+theorem batched_changes (hCR : Sha256CR) (hKeep : KeepsFW) :
+    ∀ (cs : List (Bytes × Option Bytes)) (P : Nat → PTrie) (T : PTrie),
+      (P 0).refinedBy T → Full T ∧ T.wf = true →
+      (∀ j (hj : j < cs.length), ChangeRows (P j) (P (j + 1)) (cs[j]).1 (cs[j]).2) →
+      ∀ post, P cs.length = .hash post →
+      ∃ T', applyChanges (some T) cs = some (some T') ∧ rootHash (some T') = post
+  | [], P, T, h0, _, _, post, hn => by
+    refine ⟨T, rfl, ?_⟩
+    simp only [List.length_nil] at hn
+    rw [hn] at h0
+    simpa [PTrie.refinedBy, rootHash] using h0.symm
+  | (k, v) :: rest, P, T, h0, hF, hrows, post, hn => by
+    have hr0 := hrows 0 (by simp)
+    simp only [List.getElem_cons_zero] at hr0
+    obtain ⟨T₁, hT₁, h1⟩ : ∃ T₁, stepOf k v T = some T₁ ∧ (P 1).refinedBy T₁ := by
+      cases v with
+      | some x =>
+        obtain ⟨t₁, t₁', hr, hc, hr'⟩ := hr0
+        obtain ⟨T', hT', h1⟩ := change_step hCR StateM5a.SerInj.nodeSerInj (fun a b => UChain a (nibbles k) x b)
+          (fun t => t.upsert (nibbles k) x) (upsert_step (nibbles k) x) h0 hF hr hc hr'
+        exact ⟨T', by simp [stepOf, applyChange, hT'], h1⟩
+      | none =>
+        obtain ⟨t₁, t₁', b, hr, hc, hr'⟩ := hr0
+        exact change_step hCR StateM5a.SerInj.nodeSerInj (fun a b' => ∃ b, DChain a (nibbles k) (b, some b'))
+          (stepOf k none) (del_step k) h0 hF hr ⟨b, hc⟩ hr'
+    have hA := stepOf_some hT₁
+    obtain ⟨T'', h2, h3⟩ := batched_changes hCR hKeep rest (fun j => P (j + 1)) T₁ h1
+      (hKeep T T₁ k v hF hA)
+      (fun j hj => by
+        have := hrows (j + 1) (by simp; omega)
+        simp only [List.getElem_cons_succ] at this
+        exact this) post (by simpa using hn)
+    exact ⟨T'', by simp [applyChanges, hA, h2], h3⟩
 
 end StateM5a.Store
