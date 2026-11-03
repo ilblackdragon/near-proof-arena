@@ -100,11 +100,15 @@ end Key
 /-- 8 little-endian bytes as 4 limbs of 16 bits. -/
 def memLimbs (T : Cols) (s : String) : List Expr := (List.range 4).map fun k => limb16 (fun b => T.c s b) k
 
+/-- The carry into limb `k` (none into limb 0). -/
+def cprev (cy : Nat → Expr) : Nat → Expr
+  | 0 => 0
+  | k + 1 => cy k
+
 /-- `nw = m + plus − minus` on 4 limbs of 16 bits, carries `cy ∈ {−1,0,1}`, no final carry; gated. -/
 def memChain (g : Expr) (nw m plus minus : List Expr) (cy : Nat → Expr) : List Expr :=
   ((List.range 4).map fun k =>
-    g * (nw.getD k 0 + sm 65536 (cy k) - m.getD k 0 - plus.getD k 0 + minus.getD k 0 -
-      (if k = 0 then 0 else cy (k - 1)))) ++
+    g * (nw.getD k 0 + sm 65536 (cy k) - m.getD k 0 - plus.getD k 0 + minus.getD k 0 - cprev cy k)) ++
   [g * cy 3] ++ (List.range 4).map fun k => cy k * (cy k - 1) * (cy k + 1)
 
 /-! ## BR: one row per branch node visited (or built by a split) -/

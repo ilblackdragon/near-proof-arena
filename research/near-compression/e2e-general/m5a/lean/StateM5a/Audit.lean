@@ -1,5 +1,7 @@
 import StateM5a.Steps
 import StateM5a.StepsT2
+import StateM5a.Walk
+import StateM5a.FieldRows
 import StateM5a.Layout
 import StateM5a.Order
 import StateM5a.Merkle
@@ -46,3 +48,18 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.Order.nibLt_bytesLt
 #print axioms StateM5a.Merkle.write_access_sound
 #print axioms StateM5a.KeyField.key_row_nibbles
+#print axioms StateM5a.Walk.fchain_sound
+#print axioms StateM5a.Walk.fchain_witness
+#print axioms StateM5a.Walk.uchain_sound
+#print axioms StateM5a.Walk.uchain_witness
+#print axioms StateM5a.Walk.dchain_sound
+#print axioms StateM5a.Walk.change_upsert
+#print axioms StateM5a.Walk.change_del
+#print axioms StateM5a.Walk.refinedBy_of_hash
+#print axioms StateM5a.Walk.kids_at_refinedBy
+#print axioms StateM5a.FieldRows.kcmp_fin_lt
+#print axioms StateM5a.FieldRows.sn_mismatch_ne
+#print axioms StateM5a.FieldRows.br_keep
+#print axioms StateM5a.FieldRows.memChain_sound
+#print axioms StateM5a.FieldRows.onehot_of_sum
+#print axioms StateM5a.FieldRows.limb_eq
