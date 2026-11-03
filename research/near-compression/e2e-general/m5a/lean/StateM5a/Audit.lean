@@ -8,6 +8,9 @@ import StateM5a.Tape
 import StateM5a.DepthBound
 import StateM5a.KeyDecode
 import StateM5a.Steps
+import StateM5a.RowBrF
+import StateM5a.RowHloc
+import StateM5a.RowFacts
 import StateM5a.StepsT2
 import StateM5a.Walk
 import StateM5a.SerInj
@@ -344,6 +347,21 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.BusWalk.localOK_extSplitS
 #print axioms StateM5a.BusWalk.stepRowsS_of_stepRows
 #print axioms StateM5a.BusWalk.stepRows_of_semS
+#print axioms StateM5a.RowBr.br_flags
+#print axioms StateM5a.RowBr.br_some_op
+#print axioms StateM5a.RowBrF.localOK_oFD
+#print axioms StateM5a.RowBrF.localOK_oFA
+#print axioms StateM5a.RowBrF.localOK_oFV
+#print axioms StateM5a.RowBrD.localOK_oDA
+#print axioms StateM5a.RowBrD.localOK_oDS
+#print axioms StateM5a.RowBrD.localOK_oDZ
+#print axioms StateM5a.RowBrU.localOK_oUD
+#print axioms StateM5a.RowBrK.localOK_oDH
+#print axioms StateM5a.RowBrK.localOK_oDN
+#print axioms StateM5a.RowBrN.br_mem_desc
+#print axioms StateM5a.RowHloc.hloc_br
+#print axioms StateM5a.RowHloc.hloc_cDc
+#print axioms StateM5a.RowHloc.air_batched_changes_cDc
 #print axioms StateM5a.StateView.shape_binding
 #print axioms StateM5a.StateView.circuit_binding
 #print axioms StateM5a.StateView.ser_ne_raw
@@ -464,3 +482,16 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.FinalOrder.wr_sorted
 #print axioms StateM5a.FinalOrder.fc_sorted
 #print axioms StateM5a.FinalOrder.air_final_sorted
+#print axioms StateM5a.RowDec.cDc_std
+#print axioms StateM5a.RowFacts.br_mono
+#print axioms StateM5a.RowFacts.brRowFacts_of
+#print axioms StateM5a.RowFacts.hloc_air
+#print axioms StateM5a.RowFacts.air_final_sorted_cDc
+#print axioms StateM5a.RowBrV2.localOK_oUV
+#print axioms StateM5a.RowBrV2.localOK_oDV
+#print axioms StateM5a.RowBrL.localOK_oDL
+#print axioms StateM5a.RowBrV.br_nvlen
+#print axioms StateM5a.RowBrUN.localOK_oUN
+#print axioms StateM5a.RowBrD1.localOK_oD1
+#print axioms StateM5a.RowHloc.walkOps_covered
+#print axioms StateM5a.RowFacts.keyOf_bounds
