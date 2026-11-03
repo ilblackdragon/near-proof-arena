@@ -8,7 +8,7 @@ keys looked up, and the committed overlay at finalize, cross-checked against the
 NAMES_JSON is `m5a-tool air`'s column map.  OUT_DIR receives one `<TABLE>.bin` per Python-built
 table (u32 log2 height, u32 width, row-major u32 cells), `sha_msgs.json` (the SHA-256 table's
 messages, built into a trace by the prover), `comps.json` (the SHA-512 compressions, in chip
-order), `tape.json` (the public messages) and `pubs.bin` (prev_state_root as 16 limbs).
+order), `tape.json` (the public messages) and `pubs.bin` (prev_state_root as 16 limbs, then the working-set entry count `wsLen`).
 
 The walks are the spec's own recursions (`ptrie.py`, a transcription of `PTrie.findRef`,
 `PTrie.upsert`, `PTrie.del`, `applyChanges`); every row records the case it takes, and the result
@@ -35,6 +35,14 @@ Batched-FINAL mutants (M5a-2: in-memory node versions on `VER`):
   vmcount   a pre-state node's hashing row publishes it for one reader more than read it
   finroot   the last change leaves the root in memory (a version id) instead of hashing it
   nidforge  a version published under another row's version id
+Working-set count mutants (M5a-5: `wsLen` is public value 16):
+  wslen     the statement claims one working-set entry more than the trace has (a padding leaf
+            would have to count as real)
+  wslenlo   the statement claims one entry fewer (the last real leaf would have to be padding)
+  bvwrap    a branch-value write (`oUV`) whose 4 length bytes encode |x| + P (field-equal to |x|)
+  lmwrap    a new leaf (`oLR`) whose memory bytes encode leafMem + P (field-equal in its equation)
+  vbyte     a version-published leaf holding a non-byte value-hash cell (same 16-bit pair sum)
+  dmono     a branch-keeping delete (`oDH`/`oDL`) whose `mem - om` witness is off by one
 Branch-value mutants (synthetic case `bval`):
   bvalue    a branch-value write (`oUV`) storing another value-hash byte than the walk's value
   bvmem     a branch-value delete (`oDV`) with memory usage + 1
@@ -382,6 +390,15 @@ class Gen:
         self.carries(T, r, [mem_limbs(base)[k] + mem_limbs(nm)[k] + mem_limbs(nm2)[k] + vl(vplus)[k]
                             for k in range(4)],
                      [mem_limbs(om)[k] + vl(vminus)[k] for k in range(4)], mem_limbs(m2), 'cy', (-1, 0, 1, 2))
+        if op in ('oDH', 'oDL'):
+            # M5a-5: the spec's truncated `m - old + new` is exact only for `old <= m`; the row
+            # proves it with the bytes of `dm = m - old` (RNG) on a no-final-borrow chain
+            dm = node[3] - om
+            assert dm >= 0, (node[3], om)
+            T.setv(r, 'dm', le(dm, 8))
+            for x in le(dm, 8):
+                self.rng(x)
+            self.carries(T, r, mem_limbs(node[3]), mem_limbs(om), mem_limbs(dm), 'cyd')
         hn = self.new_ref(T, r, 'BR', rid, new_node, False)
         nkn = sum(1 for c in kids2 if c is not None)
         if op in ('oDH', 'oDL', 'oDN'):
@@ -965,7 +982,21 @@ class Gen:
         self.build_ws()
         self.build_kcmp()
         self.build_keys()
+        self.range_versions()
         self.build_rng()
+
+    def range_versions(self):
+        """M5a-5: a version-published (unhashed) node's value bytes are looked up in `RNG`: the
+        branch value hash `nvh` (`BR`), a leaf's payload `nx` (`SN`, `isL`)."""
+        Tb, Ts = self.T['BR'], self.T['SN']
+        for r in Tb.rows:
+            if Tb.get(r, 'nref') == 1:
+                for t in range(32):
+                    self.rng(Tb.get(r, 'nvh', t))
+        for r in Ts.rows:
+            if Ts.get(r, 'nref') == 1 and Ts.get(r, 'isL') == 1:
+                for t in range(36):
+                    self.rng(Ts.get(r, 'nx', t))
 
     # ------------------------------------------------------------------ working set
     @staticmethod
@@ -1144,6 +1175,11 @@ class Gen:
                 Tl.set(r, 'ncp', nc[0]); Tl.set(r, 'ncl', nc[1]); Tl.setv(r, 'ncv', pack2(nc[2])); Tl.set(r, 'nwr', nwr)
                 Tl.setv(r, 'nclx', self.len_chunks(nc[1]))
                 Tl.set(r, 'idl', last_t[i])
+                # M5a-5: the touched leaf is a real entry, `i < wsLen` (bytes of `wsLen - 1 - i`)
+                ix = [((n - 1 - i) >> (8 * k)) & 255 for k in range(3)]
+                Tl.setv(r, 'ix', ix)
+                for x in ix:
+                    self.rng(x)
                 for x in list(kdi) + self.len_chunks(p[1]) + self.len_chunks(c[1]) + self.len_chunks(nc[1]):
                     self.rng(x)
                 cO, outO = self.leaf_hash(self.leaf_words(kdi, p, c, wr))
@@ -1279,9 +1315,15 @@ class Gen:
                 heights[nm] = T.dump(os.path.join(out, nm + '.bin'))
         json.dump(self.sha_msgs, open(os.path.join(out, 'sha_msgs.json'), 'w'))
         json.dump(self.comps, open(os.path.join(out, 'comps.json'), 'w'))
-        pubs = pack2(self.pre_root)
+        # public values: prev_state_root (16 limbs), then the working-set entry count (M5a-5)
+        wslen = len(self.keys)
+        if self.mutant == 'wslen':
+            wslen += 1
+        elif self.mutant == 'wslenlo':
+            wslen -= 1
+        pubs = pack2(self.pre_root) + [wslen]
         with open(os.path.join(out, 'pubs.bin'), 'wb') as f:
-            f.write(struct.pack('<16I', *pubs))
+            f.write(struct.pack('<17I', *pubs))
         tape = []
         for (t, seg, key, ref) in self.writes:
             tape.append([13, True, [seg, t] + pack2(sha(key)) + [ref[0], ref[1]] + pack2(ref[2])])
@@ -1505,7 +1547,65 @@ def _t_wsleaf(g):
     g.comps[T.get(r, 'cidO') // 128] = dict(h=[str(x) for x in S5.IV384], block=[str(x) for x in words])
     T.setv(r, 'dgO', g.l18(out[:6])); T.setv(r, 'dxO', g.l18(out[6:]))
 
-TAMPERS = dict(absent=_t_absent, extabsent=_t_extabsent, branchval=_t_branchval, split=_t_split,
+def _t_dmono(g):
+    # M5a-5: a branch-keeping delete (`oDH`/`oDL`) claims `mem - om` one larger (its memory-order
+    # witness no longer matches the row's memory and the child's old memory)
+    T = g.T['BR']
+    r = next(r for r in T.rows if T.get(r, 'oDH') + T.get(r, 'oDL') == 1)
+    T.set(r, 'dm', T.get(r, 'dm', 0) + 1, 0)
+
+
+def _t_bvwrap(g):
+    # M5a-5: a branch-value write (`oUV`) whose length bytes encode |x| + P (= |x| in the field):
+    # the rewritten branch would serialize and charge a wrong u32 length
+    T = g.T['BR']
+    r = next(r for r in T.rows if T.get(r, 'oUV') == 1)
+    n = sum(T.get(r, 'nvl', t) << (8 * t) for t in range(4)) + 2013265921
+    for t in range(4):
+        g.rng_count[T.get(r, 'nvl', t)] -= 1
+    T.setv(r, 'nvl', [(n >> (8 * t)) & 255 for t in range(4)])
+    for t in range(4):
+        g.rng(T.get(r, 'nvl', t))
+    g.T['RNG'].rows = []
+    g.build_rng()
+
+
+def _t_vbyte(g):
+    # M5a-5: a version-published leaf (`SN`, `nref = 1`) holds a non-byte value-hash cell with the
+    # same 16-bit pair sum (`256·a + b` unchanged: a − 1, b + 256)
+    T = g.T['SN']
+    r = next(r for r in T.rows if T.get(r, 'nref') == 1 and T.get(r, 'isL') == 1 and
+             any(T.get(r, 'nx', 4 + 2 * i) > 0 for i in range(16)))
+    i = next(i for i in range(16) if T.get(r, 'nx', 4 + 2 * i) > 0)
+    a, b = T.get(r, 'nx', 4 + 2 * i), T.get(r, 'nx', 5 + 2 * i)
+    g.rng_count[a] -= 1
+    g.rng_count[b] -= 1
+    g.rng(a - 1)
+    T.set(r, 'nx', a - 1, 4 + 2 * i)
+    T.set(r, 'nx', b + 256, 5 + 2 * i)
+    g.T['RNG'].rows = []
+    g.build_rng()
+
+
+def _t_lmwrap(g):
+    # M5a-5: a new leaf (`SN` `oLR`) whose memory bytes encode leafMem + P (field-equal to the
+    # honest value in the memory equation)
+    T = g.T['SN']
+    r = next(r for r in T.rows if T.get(r, 'oLR') == 1)
+    old = [T.get(r, 'nmem', t) for t in range(8)]
+    n = sum(old[t] << (8 * t) for t in range(4)) + 2013265921
+    new = [(n >> (8 * t)) & 255 for t in range(4)] + old[4:]
+    if T.get(r, 'nref') == 1:
+        for x in old:
+            g.rng_count[x] -= 1
+        for x in new:
+            g.rng(x)
+        g.T['RNG'].rows = []
+        g.build_rng()
+    T.setv(r, 'nmem', new)
+
+
+TAMPERS = dict(lmwrap=_t_lmwrap, vbyte=_t_vbyte, dmono=_t_dmono, bvwrap=_t_bvwrap, absent=_t_absent, extabsent=_t_extabsent, branchval=_t_branchval, split=_t_split,
                splitext=_t_splitext, absdel=_t_absdel, squash=_t_squash, chain=_t_chain,
                verslot=_t_verslot, vernid=_t_vernid, vmcount=_t_vmcount, finroot=_t_finroot,
                nidforge=_t_nidforge, bvalue=_t_bvalue, bvmem=_t_bvmem, wsstale=_t_wsstale,

@@ -125,7 +125,8 @@ def L : Layout :=
    ("rk", 1), ("kid2", 1), ("st2", 1), ("lvlen", 1), ("lvh", 16), ("fpres", 1),
    ("xl", 1), ("xk", 1), ("lvlen2", 1), ("lvh2", 16), ("nh2", 32), ("nm2", 4),
    ("gsha", 1), ("oref", 1), ("vm", VBITS), ("isn", 16), ("nref", 1), ("vmn", VBITS), ("nhf", 1),
-   ("nh2f", 1), ("oUV", 1), ("oDV", 1), ("oDZ", 1), ("nhv", 1), ("nvl", 4), ("nvh", 32)]
+   ("nh2f", 1), ("oUV", 1), ("oDV", 1), ("oDZ", 1), ("nhv", 1), ("nvl", 4), ("nvh", 32),
+   ("dm", 8), ("cyd", 4)]
 def T : Cols := ⟨L⟩
 def c (s : String) (j : Nat := 0) : Expr := T.c s j
 def nx (s : String) (j : Nat := 0) : Expr := T.n s j
@@ -263,7 +264,18 @@ def constraints : List Expr :=
     [(c "gnew" - c "oUV" - c "oDV") * (c "nvl" t - c "vl" t), (1 - c "nhv") * c "nvl" t]) ++
   ((List.range 32).flatMap fun t =>
     [(c "gnew" - c "oUV" - c "oDV") * (c "nvh" t - c "vh" t), (1 - c "nhv") * c "nvh" t]) ++
-  memNew
+  memNew ++
+  -- M5a-5: a delete-descend keeping the branch (`oDH`/`oDL`) computes the spec's truncated
+  -- `m − old + new` (`Kids.delAt` / `squashBranch`); the row checks `old ≤ m` (`dm = mem − om`,
+  -- 8 bytes in `RNG`, no final borrow), so the exact chain `memNew` is the spec's value
+  memChain (c "oDH" + c "oDL") (memLimbs T "dm") M [] ((List.range 4).map fun k => c "om" k)
+    (fun k => c "cyd" k) ++
+  -- M5a-5: a written branch value's length is `< 2^24` (as `SN`'s 3 length bytes), so its four
+  -- `RNG` bytes are the walk's `dvlen` without wrap-around (`2^32 > P`)
+  [c "oUV" * c "nvl" 3,
+  -- M5a-5: an old branch value's length is `< 2^24` too (as `SN`'s `isL·x₃ = 0`), so the find
+  -- answer `vlen` (one field element) is the serialized u32 length
+   c "hasv" * c "vl" 3]
 
 def idO : Expr := K ID_BR + sm 2 (c "rid")
 def idN : Expr := K ID_BR + sm 2 (c "rid") + 1
@@ -355,7 +367,12 @@ def interactions : List Interaction :=
      [c "oD1" * c "kid2", c "oD1" * d, (c "oFD" + c "oD1") * c "lvlen" + c "oFV" * vlen] ++
      ((List.range 16).zip (pack2 fun b => c "vh" b)).map
        (fun (i, p) => (c "oFD" + c "oD1") * c "lvh" i + c "oFV" * p) ++
-     [c "oFD" * c "fpres" + c "oFV" * c "hasv"])]
+     [c "oFD" * c "fpres" + c "oFV" * c "hasv"])] ++
+  -- M5a-5: the bytes of `mem − om` on `oDH`/`oDL` rows
+  ((List.range 8).map fun b => rcv B_RNG (c "oDH" + c "oDL") [c "dm" b]) ++
+  -- M5a-5: a version-published (unhashed) branch's value-hash bytes are bytes (a hashed one's are
+  -- checked by the SHA-256 table)
+  (List.range 32).map fun b => rcv B_RNG (c "nref") [c "nvh" b]
 
 def table : Table := { width := L.width, constraints, interactions, maxLog := 20 }
 end Br
@@ -483,6 +500,9 @@ def constraints : List Expr :=
     c "xh" i - c "oEX" * (c "z" * (sm 256 (c "x" (2 * i)) + c "x" (2 * i + 1)) + (1 - c "z") * c "sxh" i)) ++
   ((List.range 4).map fun t => c "xm" t - c "oEX" * (c "z" * CM.getD t 0 + (1 - c "z") * c "sxm" t)) ++
   ((List.range 4).map fun t => (c "oLR" + c "oLM") * c "nmem" (4 + t)) ++
+  -- M5a-5: the new leaf's memory is `< 2^25` (top byte 0 or 1), so its two 16-bit limbs equal
+  -- `100 + 2·hplen + vlen` without wrap-around (`2^32 > P`)
+  [(c "oLR" + c "oLM") * c "nmem" 3 * (c "nmem" 3 - 1)] ++
   ((List.range KMAX).flatMap fun j =>
     [bool (a j), a (j + 1) * (1 - a j), (1 - a j) * k j,
      bool (b j), b (j + 1) * (1 - b j), b j * (1 - a j), (1 - c "gA") * (b j - a j)]) ++
@@ -598,7 +618,10 @@ def interactions : List Interaction :=
       c "oLF" * vlenOf (fun t => c "x" t) + (c "oEF" + c "oED") * c "alen"] ++
      ((pack2 fun b => c "x" (4 + b)).zip ((List.range 16).map fun i => c "avh" i)).map
        (fun (p, q) => c "oLF" * p + (c "oEF" + c "oED") * q) ++
-     [c "oLF" + c "oEF" * c "fpres"])]
+     [c "oLF" + c "oEF" * c "fpres"])] ++
+  -- M5a-5: a version-published (unhashed) leaf's payload (value length and hash) is bytes (a
+  -- hashed one's are checked by the SHA-256 table; an extension's payload is its child's ref)
+  (List.range 36).map fun t => rcv B_RNG (c "nref" * c "isL") [c "nx" t]
 
 def table : Table := { width := L.width, constraints, interactions, maxLog := 20 }
 end Sn

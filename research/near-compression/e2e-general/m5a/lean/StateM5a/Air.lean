@@ -9,7 +9,8 @@ import ZkFormal.Air.Export
 Tables, in order: `SHA` (the unchanged SHA-256 block table of `ZkFormal.Sha.Table`, whose
 soundness is `ZkFormal.Sha.sha_digest_contract_closed`), `KEY`, `BR`, `SN`, `KCMP`, `WSB`,
 `WSN`, `WSA`, `SNC`, `RNG`, `WSL`, `WSP`.  The SHA-512 compression chip (native, `native/sha384-air4`) and the public tape are
-added by the prover.  Public values `0..15`: `prev_state_root` as 16 limbs of 16 bits.
+added by the prover.  Public values `0..15`: `prev_state_root` as 16 limbs of 16 bits; `16`: the working-set entry
+count `wsLen` (M5a-5, `Ws.PUB_WSLEN`).
 -/
 
 namespace StateM5a
@@ -23,7 +24,7 @@ def tableNames : List String := ["SHA", "KEY", "BR", "SN", "KCMP", "WSB", "WSN",
 def m5aAir (D : Nat) : Air :=
   { tables := [shaTable, Key.table, Br.table, Sn.table, Kcmp.table, Wsb.table D, Wsn.table D,
       Wsa.table, Snc.table, Rng.table, Wsl.table, Wsp.table D],
-    numBuses := NUM_BUSES_WS, numPub := 16 }
+    numBuses := NUM_BUSES_WS, numPub := 17 }
 
 def layouts (D : Nat) : List (String × Layout) :=
   [("KEY", Key.L), ("BR", Br.L), ("SN", Sn.L), ("KCMP", Kcmp.L), ("WSB", Wsb.L), ("WSN", Wsn.L),

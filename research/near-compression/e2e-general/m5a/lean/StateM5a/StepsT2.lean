@@ -149,6 +149,27 @@ theorem ext_split (p xs ys : List Nat) (x y : Nat) (hxy : x ≠ y) (c : PTrie) (
     commonPrefix_split p xs ys x y hxy, List.drop_left']
   rfl
 
+/-- The old-side child of an extension split: the child itself (`xs = []`) or the re-keyed
+extension `xs ↦ c` (`SN.oEM`). -/
+def extSub (xs : List Nat) (c : PTrie) (cm : Nat) : PTrie :=
+  match xs with
+  | [] => c
+  | _ :: _ => .ext xs c (extOwnMem xs + cm)
+
+/-- Its memory usage. -/
+def extSubMem (xs : List Nat) (cm : Nat) : Nat :=
+  match xs with
+  | [] => cm
+  | _ :: _ => extOwnMem xs + cm
+
+/-- `ext_split` with the old-side child named (`extSub`, `extSubMem`). -/
+theorem ext_split' (p xs ys : List Nat) (x y : Nat) (hxy : x ≠ y) (c : PTrie) (m : Nat) (v : Bytes) :
+    PTrie.upsert (.ext (p ++ x :: xs) c m) (p ++ y :: ys) v =
+      some (wrapExt p (.branch none (kids2 x (extSub xs c (m - extOwnMem (p ++ x :: xs))) y
+        (newLeaf ys v)) (50 + extSubMem xs (m - extOwnMem (p ++ x :: xs)) + leafMem ys v.length))) := by
+  rw [ext_split p xs ys x y hxy c m v]
+  cases xs <;> rfl
+
 /-! ## The split branch's slots -/
 
 theorem kidsFrom_at (f : Nat → Option PTrie) : ∀ (n i j : Nat), j < n →

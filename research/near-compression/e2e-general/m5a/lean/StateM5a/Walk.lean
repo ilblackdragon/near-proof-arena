@@ -189,6 +189,13 @@ inductive UChain : PTrie → List Nat → Bytes → PTrie → Prop
       UChain (.leaf (p ++ x :: xs) s m) (p ++ y :: ys) v
         (wrapExt p (.branch none (kids2 x (.leaf xs s (leafMem xs s.len)) y (newLeaf ys v))
           (50 + leafMem xs s.len + leafMem ys v.length)))
+  /-- `SN.oEX` + `SN.oEM` (when `xs ≠ []`) + `BR.oSL` + `SN.oLM` + `SN.oEP` (when `p ≠ []`): the
+  walk key leaves the extension `p ++ x :: xs` at `x ≠ y`; the old side is `extSub xs c cm`
+  (`cm = m − extOwnMem k`), the spec's `splitExt` (`ext_split'`). -/
+  | extSplit (p xs ys : List Nat) (x y : Nat) (hxy : x ≠ y) (c : PTrie) (m : Nat) (v : Bytes) :
+      UChain (.ext (p ++ x :: xs) c m) (p ++ y :: ys) v
+        (wrapExt p (.branch none (kids2 x (extSub xs c (m - extOwnMem (p ++ x :: xs))) y (newLeaf ys v))
+          (50 + extSubMem xs (m - extOwnMem (p ++ x :: xs)) + leafMem ys v.length)))
   /-- `SN.oEU` -/
   | extDesc (k rest : List Nat) (c c' : PTrie) (m cm : Nat) (v : Bytes) (hm : c.mem? = some cm)
       (hc : UChain c rest v c') : UChain (.ext k c m) (k ++ rest) v (.ext k c' (m + c'.memD - cm))
@@ -216,6 +223,7 @@ theorem uchain_sound {t : PTrie} {key : List Nat} {v : Bytes} {t' : PTrie} (h : 
   induction h with
   | leafRep k s m v => exact leaf_upsert k s m v
   | leafSplit p xs ys x y hxy s m v => exact leaf_split p xs ys x y hxy s m v
+  | extSplit p xs ys x y hxy c m v => exact ext_split' p xs ys x y hxy c m v
   | extDesc k rest c c' m cm v hm _ ih => exact ext_upsert k c c' m cm rest v hm ih
   | brDesc bv cs m n rest c c' cm v hat hm _ ih => exact br_upsert_descend bv cs m n rest v c c' cm hat hm ih
   | brNew bv cs m n rest v hat hn => exact br_upsert_new bv cs m n rest v hat hn

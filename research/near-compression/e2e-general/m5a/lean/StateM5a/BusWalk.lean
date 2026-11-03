@@ -32,8 +32,9 @@ them for the batched FINAL of M5a-2:
   `step_brDesc`, `oEU` `step_extDesc`, `oUN` `step_brNew` (with the `MATQ`/`MATR` relation
   `MatRel`), `oUV` `step_brUpVal`; delete `oLD`, `oLZ`, `oEZ`, `oES`, `oED`, `oEB`, `oDA`, `oDS`,
   `oDH`/`oDN` (`step_brKeep`), `oDZ`, `oDV`; find `oLF`, `oLA`, `oEA`, `oEF`, `oFD`, `oFA`, `oFV`.
-  Not yet: the split ops (`oLX`/`oEX`/`oSL`/`oEP`/`oEM`/`oLM`), `oDL`, `oD1`/`oLS` (their extra
-  request / response buses go through `Traffic.reqresp`).
+  The split ops (`oLX`/`oEX`/`oSL`/`oEP`/`oEM`/`oLM`), `oDL`, `oD1`/`oLS` (extra request / response
+  buses through `Traffic.reqresp`) are in `BusSplit` / `BusSplit2`, on this same `Sem` (`UChain`
+  has the extension-split constructor `extSplit`, so one semantics covers every op).
 * **Assembly** `bus_batched_changes`: from `DOWN`/`UP`/`TCH` balance, the walk shape, every
   row's local step, the `TCH` / root link of the writing `WSB` rows and the write log, on any
   revealed well-formed witness trie with root `prev_state_root`, `applyChanges` succeeds and its

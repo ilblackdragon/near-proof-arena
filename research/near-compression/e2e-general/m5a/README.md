@@ -4,6 +4,128 @@ Plan: `docs/zk-formal/E2E-GENERAL-CHUNK-PLAN.md` §3.2 (the `stRoot` working set
 Date 2026-11-03. Labels: **[M]** measured here, **[K]** kernel-checked Lean (std axioms),
 **[S]** stated / design only.
 
+## M5a-5 (sixth session, 2026-11-03)
+
+Log `docs/logs/e2e-m5a5-state-2026-11-03.md`. Six AIR changes (`wsLen`, and five soundness
+fixes — two real holes — found by the per-row decoding and an audit), T1/T2/synthetic/T2-seg3x5
+re-proved, all mutants rejected; Lean: one upsert semantics, the premises of
+`air_batched_changes` discharged from `Holds` except the `SN`-side ones listed under *Open*, the
+working set from `Holds`, `StViewParams` for lane B, a non-vacuity witness.
+
+### AIR changes [M][K]
+
+| change | why | constraint / lookup |
+|---|---|---|
+| `wsLen` = public value 16 (integrator decision) | the entry count is in the state commitment; a real leaf must not equal a zero padding leaf | `WSB`: `real ↔ i < wsLen` in both phases (4 constraints); `WSL`: `i < wsLen` (bytes `ix` of `wsLen − 1 − i`, `RNG`) |
+| `BR` `oDH`/`oDL`: `om ≤ mem` | the spec's `Kids.delAt`/`squashBranch` computes `m − old + new` with truncated subtraction; the row's chain is exact. They differ when a child's old memory exceeds the parent's, which `PTrie.wf` allows | `dm = mem − om` (8 `RNG` bytes, no-final-borrow `memChain`, carries `cyd`) |
+| `BR` `oUV`: written length `< 2^24` | **soundness hole**: the 4 length bytes were tied to the walk's `dvlen` over BabyBear; `2^32 > P`, so the bytes could encode `|x| + P`, serialized and charged as the u32 length | `oUV · nvl₃ = 0` (as `SN`'s 3 length bytes) |
+| version-published nodes: value bytes ranged | a node published on `VER` under a version id is not hashed, so its value bytes were tied to the walk only by pair sums / `vlenOf`; a non-byte cell with the same combination entered the record later rows read | `RNG` receives: `BR` `nvh` (gate `nref`), `SN` leaf payload `nx` (gate `nref·isL`) |
+| `SN` `oLR`/`oLM`: new leaf memory `< 2^25` | **soundness hole**: the memory was one field equation over `limb₀ + 65536·limb₁` of byte columns (up to `2^32 − 1 > P`), so `leafMem + P` passed and the parents' exact 64-bit chains carried it into the root | `(oLR + oLM)·nmem₃·(nmem₃ − 1) = 0` |
+| `BR` old value length `< 2^24` | the find answer carries the 4 length bytes as one field element; `PTrie.wf` allows lengths `< 2^32`, so a length in `[P, P + 2^24)` answered `L − P` (no attack on NEAR's ≤ 4 MiB values, but a state premise) | `hasv · vl₃ = 0` (as `SN`'s `isL·x₃ = 0`) |
+
+The `oUV`, `oLR`/`oLM` and version-byte findings came from the per-row decoding (the Lean step
+could not be proved without a `< P` premise); a read-only audit of the whole AIR for this class
+(sums of bytes/limbs reaching `P`, unranged bytes, truncated spec subtraction, counter wrap) then
+found the old-length case and nothing else in the current AIR, plus two items for later: `WSA`
+times `t` must be range-checked once M5b makes them prover-chosen (today they come from the public
+tape; with free `t` a closed `WM` cycle of ~120 accesses summing to `0 mod P` would balance on its
+own), and the `SN` `u32 |hp|` is sent as one byte (a completeness gap for node keys ≥ ~510
+nibbles).
+
+Results on the final AIR [M] (same stack and parameters as M5a-3, 8 threads, shared host):
+
+| | T1 (D = 5) | T2 (D = 6) | synthetic `bval` (D = 4) | T2 seg 3 × 5 |
+|---|---|---|---|---|
+| committed cells | 5,152,916 | 10,733,280 | 1,988,660 | 10,733,280 |
+| proof (268.2-bit) | 1,238,870 B | 1,262,138 B | 1,216,322 B | 1,267,556 B |
+| prove / verify / peak RSS | 72 s / 105 ms / 1.27 GB | 130 s / 119 ms / 1.57 GB | 46 s / 118 ms / 1.01 GB | 121 s / 114 ms / 1.65 GB |
+| root (= `m5a-tool apply`, Lean) | `1db48e38…249628` | `61f5330a…07993006` | `b2142cc9…bd07895` | `61f5330a…07993006` |
+
+Mutants (`logs/M5a5-mutants.txt`): **T2 27/27, T1 19/19, synthetic 17/17, T2-seg3x5 5/5
+rejected** (68): all of M5a-3 plus `wslen` / `wslenlo` (statement claims one entry more / fewer →
+the new `WSB` constraint), `dmono` (`mem − om` witness off by one → the new chain), `bvwrap`
+(synthetic: length bytes encode `|x| + P`; caught first by `memNew`), `vbyte` (a version leaf's
+hash cell non-byte with the same pair sum → `RNG` and `VER`; no version leaf in the synthetic
+trace), `lmwrap` (an `oLR` leaf's memory bytes encode `leafMem + P` → the new `nmem₃`
+constraint). Logs `logs/M5a5-*-prove.log`, hashes `logs/SHA256SUMS-v5` (prover binary unchanged).
+
+### Lean [K] (std axioms, no `sorry`; `lake build StateM5a`, Audit 530+ `#print axioms`)
+
+* **One upsert semantics** (integrator decision): `Walk.UChain.extSplit` (the spec's `splitExt`,
+  `Steps.ext_split'`); `uchain_sound` covers it, so `BusSplit2.step_extSplit`/`localOK_extSplit`
+  are on `SemU`/`Sem`. `SemUS := SemU`, `semS_eq_sem : SemS = Sem`, `localOK_semS_iff`;
+  `DecodeShape.air_batched_changes` is the one assembly (`*S` are one-line corollaries).
+* **Keys, depths, tape** (`KeyDecode`, `KeyLookups`, `DepthBound`, `KcChain`, `KeyDigest`,
+  `KeyOrder`, `IntakeKeys`, `Tape`, `FinalOrder`): `keyOf tr = nibbles (keyBytes tr)` from the
+  `KEY` table; every `NIB`/`KLEN` receive is a lookup into it (`nib_recv`, `klen_recv`, per
+  interaction in `KeyLookups`); `KDIG = sha256 keyBytes` (`kdig_recv`, from the SHA-256 table
+  contract and the id spaces); `ORD(ka, kb) ⇒ bytesLt` (`ord_recv`); depth bounds `br_depth`,
+  `sn_depth`, and the `SNC` chain bound (`sncDeeper`) replace `hbr`/`hsn`; the public tape is a
+  Lean table (`tapeTable`), `tch_perm` gives `hT`, `root_of_row` gives `hroot`; the INTAKE keys are
+  strictly increasing and distinct, the writing roots are in key order, and
+  **`FinalOrder.air_final_sorted`**: `applyChanges (some T) (sortKV committed) = some (some T')`
+  with `rootHash = post_state_root`, for every `committed ~ cs` matching the writing rows.
+* **Per-row `LocalOK`** (`RowDec`, `RowBr*`, `RowFacts`, `RowHloc`, `Ver*`, `BrSer`, `BrDigest`,
+  `BrRange`, `BrSib`, `BrMat`, `RowSn*`): a concrete decoder `cDc` (`Tape.StdDec`); **all 14 `BR`
+  walk ops** `LocalOK` from the row's constraints; `OldOK`/`NewOK` of `BR` records from `VER`
+  balance (`VerStore.br_oldOK`/`br_newOK`: parts of one digest from several publishers assemble
+  to their common record, `VerDec.dec_of_parts`); `BrDigest.brHashed`: a hashing row's record
+  hashes to its digest (SHA-256 contract, single sender per message id, `BrSer.ser_ok`), no
+  cryptographic assumption; limb ranges (`BrRange.brRangesW_of`); `MATR`/`SIBA` answers
+  (`br_mat`, `br_sib`, via `walk_unique`). `SN`: decoded rows, mismatch witness, and the walk
+  ops `oLF`, `oEF`, `oLA`, `oEA`, `oLZ`, `oEZ`, `oLD`, `oLR`, `oEU`, `oES`, `oEB`, `oED`
+  (`RowSnAll.hloc_sn`, `RowSnAll2.hloc_sn2`, `SnAssembly.hloc_sn3`; new records `RowSnN.snNew`
+  with exact memories), `SnDepthAll.sn_depth_all`, the responder relations `SnSibOK`/`SnMatOK`
+  for one-row keys (`SnResp`). Latest assembly **`SnResp.air_final_sorted_sn2`**:
+  `applyChanges (some T) (sortKV committed)` reaches `post_state_root` from `Holds` of the AIR the
+  prover runs, `Sha256CR`, the chip contract and the premises listed under *Open*.
+* **Working set from `Holds`** (`WsLen`, `WsRaw`, `WsDecode*`, `WsSeg`, `WsTree`, `WsKey`,
+  `WsLeafF`, `WsEntries`): `wsb_real_iff` (`real ↔ i < wsLen`), `wsb_leaves` (`wsLen` real
+  leaves, then zero padding), `wsl_lt_wsLen`; `PT`/`RCH`/`WM`/`TREE` traffic decoded (field
+  positions bounded by counting, no wrap); `wsn_roots` (INTAKE / FINAL roots are the Merkle roots
+  of the `WSB` leaves); `ws_compose`/`ws_final`; `content_eq` (equal leaf blocks ⇒ equal fields;
+  length chunks `< 64` from the chip contract's 64-bit words); **`WsEntries.ws_entries`**: every
+  real FINAL leaf has the INTAKE key and pre-value, and its current value / written flag is the
+  entry's latest write (or the INTAKE value). Premises: `Sha512IfContract`, `CompressOK`,
+  `NodeCR`, `LeafCR` (named), tape times `< 2^24`.
+* **`StViewParams` for lane B** (`StateView`, `StateViewParams`): `stD` has a circuit form
+  (`fits v`) and a raw form (the M5a-4 `∀ v` range fields could not be met by any projection);
+  the trie is committed as root + reveal shape (`shape_binding`); `leafBlockN_inj`,
+  `encRestB_inj`, `rawB_inj`, `proj_injB` (`kv_ext`), `stD_binding_B`, `viewImpl_hst_B`.
+  **Lane E supplies `StViewE`**: `encE` injective on stripped components (`EPos`/`RS` minus the
+  overlay, `Recording`, `MainOutD2`); `keysOf` (the chunk key set — not determined by the overlay
+  or the partial trie, so it must be carried in `StV`, e.g. `StV.eng` from the intake record);
+  `idxOf`; `depth ≤ 24`; and for segment soundness only `FitsReach` (replaces `trie_ok`: reached
+  overlays keep the intake trie `t` of `Ovl.ofTrie`, `t.wf`, `t.hashOf = prev_state_root`, shape
+  `erase t` in the rest, `ovlInv`, values `< 2^24`, entries `≤ 2^depth`).
+* **Non-vacuity** (`ChipStub`): `IF384` (16) is the only bus without a Lean or tape sender (the
+  native SHA-512 chip). `holds_of_holdsX`: a trace satisfying `Holds` except `IF384` balance
+  extends by a constraint-free stub sender (`chipStub`) to `Holds` of the AIR with the stub
+  appended, tables unchanged, no receive multiplicity forced to vanish; `precheck_holds_tape`:
+  every precheck-accepted trace gives a `Holds` instance of the shape our theorems take, and their
+  `Sha512IfContract` premise becomes the native chip's faithfulness on its own sends. No theorem
+  excludes the stub (`stub_bus_premise`), so none is vacuous.
+
+### Open after M5a-5
+
+1. Premises of `air_final_sorted_sn2` on the `SN` side: the splits `oLX`/`oEX` (step lemmas exist;
+   they need `SplitAns` from the `SPQ`/`SPR`/`EPQ`/`SXQ` protocol) and continued keys
+   (`cont = 1`, `SnRest2`, long-key responders `hlongS`/`hlongM`); `SN` old/new records from
+   `VER`/SHA-256 (`SnOldAll`, `SnNewAll`, `SnOldAny`, `SnNewAny`: an `SN` `PartDec`, the `SN`
+   analogue of `br_rd_part`, `snVers`, `SN` `Hashed`); limb ranges `SnLimbs3`, `SnUpLimbs`,
+   `SnMatLimbs` (the audit shows each is pinned by SHA bytes / `RNG` / `VER` — a proof task);
+   `SnLeafMemLt`/`SnMatLeaf` (`< P`) are now dischargeable from the new `nmem₃` constraint.
+2. `BR`: `OslApart` (a split's new branch is not at an active row's walk position); `hVl`
+   (16-bit `vl` limbs on rows reading on `VER`) and `hVP` (old length `< P`, now dischargeable
+   from `hasv·vl₃ = 0`).
+3. M5b: range-check `WSA` times (above).
+4. `committed ~ cs`: the spec's committed overlay against the writing rows' changes (overlay ↔
+   tape, value preimages) — M5b.
+5. Lane E: `StViewE` (above).
+6. Completeness gaps (unchanged): squash after a value delete / onto an extension or branch
+   sibling, splits where a key ends at the new branch, mismatch past 63 nibbles, the empty trie;
+   new: node keys ≥ ~510 nibbles (the `u32 |hp|` is sent as one byte).
+
 ## M5a-4 (fifth session, 2026-11-03)
 
 Lean only [K] (std axioms, no `sorry`, no circuit change; T1/T2/synthetic proofs and mutants of
