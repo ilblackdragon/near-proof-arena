@@ -15,6 +15,7 @@ import StateM5a.StepsBV
 import StateM5a.Bus
 import StateM5a.Traffic
 import StateM5a.BusWalk
+import StateM5a.Keep
 
 /-! Axiom audit of the M5a lemmas (`lake build StateM5a.Audit` prints them): every theorem must
 depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
@@ -148,3 +149,45 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.BusWalk.chain_changes
 #print axioms StateM5a.BusWalk.stepRows_of_sem
 #print axioms StateM5a.BusWalk.bus_batched_changes
+-- M5a-3: branch-value chain constructors (soundness through the extended matches)
+#print axioms StateM5a.Walk.uchain_sound
+#print axioms StateM5a.Walk.dchain_sound
+#print axioms StateM5a.Walk.uchain_witness
+#print axioms StateM5a.Refine.dchain_witness
+-- M5a-3: the squash after a value delete (spec steps)
+#print axioms StateM5a.StepsBV.br_del_value_one
+#print axioms StateM5a.StepsBV.br_del_value_one_leaf
+#print axioms StateM5a.StepsBV.br_del_value_one_ext
+#print axioms StateM5a.StepsBV.br_del_value_one_branch
+#print axioms StateM5a.StepsBV.br_del_value_one_hash
+#print axioms StateM5a.StepsBV.br_del_value_none
+-- M5a-3: `KeepsFW` weakened and proved; batched FINAL without it
+#print axioms StateM5a.Keep.rp_mem
+#print axioms StateM5a.Keep.rp_memD
+#print axioms StateM5a.Keep.splitLeaf_rp
+#print axioms StateM5a.Keep.splitExt_rp
+#print axioms StateM5a.Keep.upsert_rp
+#print axioms StateM5a.Keep.kids_upsert_rp
+#print axioms StateM5a.Keep.extendChild_rp
+#print axioms StateM5a.Keep.present_rp
+#print axioms StateM5a.Keep.squashBranch_rp
+#print axioms StateM5a.Keep.del_rp
+#print axioms StateM5a.Keep.kids_delAt_rp
+#print axioms StateM5a.Keep.slotOk_of_refines
+#print axioms StateM5a.Keep.rp_wf
+#print axioms StateM5a.Keep.krp_wf
+#print axioms StateM5a.Keep.rp_of_refinedBy
+#print axioms StateM5a.Keep.krp_of_refinedBy
+#print axioms StateM5a.Keep.upsert_wf_of_rows
+#print axioms StateM5a.Keep.del_wf_of_rows
+#print axioms StateM5a.Keep.applyChange_wf_of_rows
+#print axioms StateM5a.Store.not_keepsFW
+#print axioms StateM5a.Store.full_rp
+#print axioms StateM5a.Store.rp_full
+#print axioms StateM5a.Store.full_upsert
+#print axioms StateM5a.Store.full_del
+#print axioms StateM5a.Store.full_applyChange
+#print axioms StateM5a.Store.keepsFWRows
+#print axioms StateM5a.Store.ChangeRowsW.rows
+#print axioms StateM5a.Store.change_keep
+#print axioms StateM5a.Store.batched_changes'

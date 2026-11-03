@@ -1,4 +1,5 @@
 import StateM5a.StepsT2
+import StateM5a.StepsBV
 import NearSpec.TrieUpsertProofs
 
 /-!
@@ -12,8 +13,9 @@ rows' nodes and whose other subtrees are stubs; `t₁.hashOf` is the root the fi
 constructor per row op, `Steps` / `StepsT2`):
 
 * `FChain t key a` (INTAKE find: `oLF/oLA/oEF/oEA/oFD/oFA/oFV`) → `t.findRef key = some a`;
-* `UChain t key v t'` (FINAL upsert: `oLR/oLX/oEU/oEX/oUD/oUN`) → `t.upsert key v = some t'`;
-* `DChain t key r` (FINAL delete: `oLD/oLZ/oEZ/oES/oEB/oED/oDA/oDS/oDH/oDN`) → `t.del key = some r`.
+* `UChain t key v t'` (FINAL upsert: `oLR/oLX/oEU/oEX/oUD/oUN/oUV`) → `t.upsert key v = some t'`;
+* `DChain t key r` (FINAL delete: `oLD/oLZ/oEZ/oES/oEB/oED/oDA/oDS/oDH/oDN/oD1/oDV/oDZ`) →
+  `t.del key = some r`.
 
 **Witness trie.**  The spec runs on the witness trie `t₂` (`revealTrie`), which the rows' trie
 refines (`t₁.refinedBy t₂`: same nodes on the path, stubs elsewhere whose bytes are the subtree
@@ -29,7 +31,7 @@ the whole rows' trie and the delete refinement are in `StateM5a.Refine`.
 
 namespace StateM5a.Walk
 
-open NearSpec NearSpecV3.D2 StateM5a.Steps
+open NearSpec NearSpecV3.D2 StateM5a.Steps StateM5a.StepsBV
 
 /-! ## Named hypotheses -/
 
@@ -199,6 +201,15 @@ inductive UChain : PTrie → List Nat → Bytes → PTrie → Prop
       (hat : Kids.at cs n = none) (hn : n < kidsLen cs) :
       UChain (.branch bv cs m) (n :: rest) v
         (.branch bv (Kids.put cs n (some (newLeaf rest v))) (m + leafMem rest v.length - 0))
+  /-- `BR.oUV`: the key ends at this branch; its value is written (over an old value or none),
+  the children kept.  AIR (`Trie.Br`): `nhv = 1`, the new value's length `nvl` (4 bytes, each in
+  `RNG`) = the walk's `dvlen`, its hash `nvh` = the walk's `dvh`; `nm = om = 0`, so the memory
+  chain `memNew` reads `nmem = mem + (nvl + 50) − hasv·(vl + 50)` on 4 limbs of 16 bits with no
+  final carry, i.e. `m + valueMem |x| − valueMem |old|` exactly (no underflow: the limbs are
+  non-negative), which is the spec's truncated `m + valueMem x.length - …` (`br_upsert_value`). -/
+  | brVal (bv : Option Slot) (cs : Kids) (m : Nat) (v : Bytes) :
+      UChain (.branch bv cs m) [] v
+        (.branch (some (.val v)) cs (m + valueMem v.length - (match bv with | some s => valueMem s.len | none => 0)))
 
 theorem uchain_sound {t : PTrie} {key : List Nat} {v : Bytes} {t' : PTrie} (h : UChain t key v t') :
     t.upsert key v = some t' := by
@@ -208,6 +219,7 @@ theorem uchain_sound {t : PTrie} {key : List Nat} {v : Bytes} {t' : PTrie} (h : 
   | extDesc k rest c c' m cm v hm _ ih => exact ext_upsert k c c' m cm rest v hm ih
   | brDesc bv cs m n rest c c' cm v hat hm _ ih => exact br_upsert_descend bv cs m n rest v c c' cm hat hm ih
   | brNew bv cs m n rest v hat hn => exact br_upsert_new bv cs m n rest v hat hn
+  | brVal bv cs m v => exact br_upsert_value bv cs m v
 
 /-- **Upsert walk on the witness trie.**  On any trie the rows' trie refines, the spec's upsert
 succeeds and its result has the root hash the rows compute (`PTrie.upsert_refinedBy`,
@@ -258,6 +270,16 @@ inductive DChain : PTrie → List Nat → Bool × Option PTrie → Prop
       (hat : Kids.at cs n = some c) (hm : c.mem? = some cm) (hc : DChain c rest (true, none))
       (hp : Kids.present (Kids.put cs n none) 0 = [(i, .leaf k2 s m2)]) :
       DChain (.branch none cs m) (n :: rest) (true, some (.leaf ([i] ++ k2) s (leafMem ([i] ++ k2) s.len)))
+  /-- `BR.oDV`: the key ends at this branch, which has a value (`hasv = 1`) and ≥ 2 children
+  (`inv1·nkn = 1`, `inv2·(nkn − 1) = 1`: the children count, unchanged, is neither 0 nor 1); the
+  value is removed (`nhv = 0`) and the branch kept (`squashBranch`'s last case).  AIR memory chain:
+  `nm = om = 0`, `nmem = mem − (vl + 50)` exactly (no final carry), the spec's
+  `m - valueMem s.len` (`br_del_value_keep`; a row with `m < valueMem` cannot exist). -/
+  | brDelVal (s : Slot) (cs : Kids) (m : Nat) (h2 : 2 ≤ (Kids.present cs 0).length) :
+      DChain (.branch (some s) cs m) [] (true, some (.branch none cs (m - valueMem s.len)))
+  /-- `BR.oDZ`: the key ends at a branch without a value (`hasv = 0`): nothing is deleted, the
+  result is `SAME` (`br_del_value_absent`). -/
+  | brValAbs (cs : Kids) (m : Nat) : DChain (.branch none cs m) [] (false, some (.branch none cs m))
 
 theorem dchain_sound {t : PTrie} {key : List Nat} {r : Bool × Option PTrie} (h : DChain t key r) :
     t.del key = some r := by
@@ -272,6 +294,8 @@ theorem dchain_sound {t : PTrie} {key : List Nat} {r : Bool × Option PTrie} (h 
   | brSame v cs m n rest c cm c'' hat hm _ ih => exact br_del_same v cs m n rest c cm c'' hat hm ih
   | brKeep v cs m n rest c c' cm hat hm _ h0 h1 ih => exact br_del_keep v cs m n rest c c' cm hat hm ih h0 h1
   | brOne cs m n i rest k2 c cm s m2 hat hm _ hp ih => exact br_del_one cs m n i rest k2 c cm s m2 hat hm ih hp
+  | brDelVal s cs m h2 => exact br_del_value_keep s cs m h2
+  | brValAbs cs m => exact br_del_value_absent cs m
 
 /-! ## One committed change (`applyChange`) -/
 

@@ -139,6 +139,25 @@ changes exercising `oUV` ×3, `oDV`, `oDZ`, `oFV` ×5, an extension-internal abs
    value leaf / onto an extension or branch sibling (`extendChild [i]` with a non-leaf), splits
    where one key ends at the new branch, a mismatch past a head's 63 nibbles, the empty trie.
 
+### M5a-3 Lean (state, priority 2) [K]
+
+* **`KeepsFW` is false** (`Store.not_keepsFW`: a `2^32`-byte value written into a well-formed
+  leaf). Replaced by what holds (`Keep`): `RP P a b` = refinement whose stubs cover subtrees with
+  property `P`; `upsert` and `del` commute with it for every `P` (`upsert_rp`, `del_rp`). With
+  `P = False`: a change keeps the witness revealed, unconditionally (`full_upsert`, `full_del`,
+  `full_applyChange`). With `P = wf`: every node of the spec's result is a node the rows
+  rewrote or an old subtree, so `t₁'.wf` (the rows' new trie: range-checked memory limbs,
+  nibbles, key / value lengths) gives `T'.wf` (`applyChange_wf_of_rows`). Together
+  `keepsFWRows : KeepsFWRows`.
+* **`batched_changes'`**: `batched_changes` without `KeepsFW`; premises `Sha256CR` and
+  `ChangeRowsW` (the rows of every change, with `t₁'.wf`). The old `batched_changes` and
+  `KeepsFW` are kept unchanged.
+* Chain constructors `UChain.brVal` (`oUV`), `DChain.brDelVal` (`oDV`), `DChain.brValAbs` (`oDZ`),
+  with their memory correspondence to `Br.memNew` in the docstrings; `uchain_sound` /
+  `dchain_sound` extended (all other users go through them).
+* `StepsBV.br_del_value_one` (+ `_leaf`, `_ext`, `_branch`, `_hash`, `br_del_value_none`): the
+  spec step of the squash after a value delete leaving one child, for a future row op.
+
 ## Result on T1 (`d3c8/d3/02-h10196-s3`)
 
 | | |
