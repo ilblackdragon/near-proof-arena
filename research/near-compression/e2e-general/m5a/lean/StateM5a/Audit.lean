@@ -4,6 +4,7 @@ import StateM5a.Walk
 import StateM5a.SerInj
 import StateM5a.Refine
 import StateM5a.FieldRows
+import StateM5a.FieldRows2
 import StateM5a.Layout
 import StateM5a.Order
 import StateM5a.Merkle
@@ -109,3 +110,12 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.Refine.find_spec
 #print axioms StateM5a.Refine.upsert_spec
 #print axioms StateM5a.Refine.del_spec
+#print axioms StateM5a.FieldRows2.prefix_flags
+#print axioms StateM5a.FieldRows2.half_eq
+#print axioms StateM5a.FieldRows2.sn_flags
+#print axioms StateM5a.FieldRows2.sn_odd
+#print axioms StateM5a.FieldRows2.sn_ha
+#print axioms StateM5a.FieldRows2.sn_hplen
+#print axioms StateM5a.FieldRows2.keyOf_getD
+#print axioms StateM5a.FieldRows2.sn_hp
+#print axioms StateM5a.FieldRows2.sn_hexPrefix
