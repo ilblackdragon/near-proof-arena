@@ -1,6 +1,7 @@
 import WasmBase.Main.SegSigma
 import WasmBase.Main.SegGrowStep
 import WasmBase.Main.SegGrow
+import WasmBase.Main.SegMemFrame
 
 /-!
 # WasmBase.Main.SegExecQ — the segment induction with the invariant handed to the row spec (E2E M6, GROW)
@@ -95,6 +96,25 @@ theorem RowFactsSegMapJ.toJQ {X : Ctx} {J : Nat → St → Prop} {Q : St → (Ms
     (h : RowFactsSegMapJ X J inS outS cons prod sg) : RowFactsSegMapJQ X J Q mf inS outS cons prod sg :=
   RowFactsSegJ.toJQ hmf h
 
+/-- **`RowQJ` with the gas of one step available** (`R · (S + mf − a) ≤ b`, what `hstepgas` gives at
+every row): a row whose step lemma needs its charge to succeed (MEMG) can then compute its step. -/
+def RowQJM (X : Ctx) (J : Nat → St → Prop) (Q : St → (Msg → Prop) → Prop) (mf : Nat) (inS : List F)
+    (cons prod : List Msg) : Prop :=
+  ∀ (E : Env) (s : St) (f : Frame) (tps tpl : Nat → Nat) (t pc S : Nat) (live : Msg → Prop) (a b : Nat)
+    (s' : St), RelW X E s f tps tpl t pc S live a b → X.R * (S + mf - a) ≤ b → J t s →
+    inS = stMsg (X.offOf E.k + pc) t S 0 E.sb E.cid →
+    (∀ x ∈ cons, live x) → step X.cfg X.p s = .cont s' → Q s live → Q s' (stepLive live cons prod)
+
+theorem RowQJ.toM {X : Ctx} {J : Nat → St → Prop} {Q : St → (Msg → Prop) → Prop} {mf : Nat} {inS : List F}
+    {cons prod : List Msg} (h : RowQJ X J Q inS cons prod) : RowQJM X J Q mf inS cons prod :=
+  fun E s f tps tpl t pc S live a b s' R _ hJ hin hl hs hQ => h E s f tps tpl t pc S live a b s' R hJ hin hl hs hQ
+
+theorem rowQJM_and {X : Ctx} {J : Nat → St → Prop} {Q1 Q2 : St → (Msg → Prop) → Prop} {mf : Nat} {inS : List F}
+    {cons prod : List Msg} (h1 : RowQJM X J Q1 mf inS cons prod) (h2 : RowQJM X J Q2 mf inS cons prod) :
+    RowQJM X J (fun s live => Q1 s live ∧ Q2 s live) mf inS cons prod :=
+  fun E s f tps tpl t pc S live a b s' R hg hJ hin hl hs hQ =>
+    ⟨h1 E s f tps tpl t pc S live a b s' R hg hJ hin hl hs hQ.1, h2 E s f tps tpl t pc S live a b s' R hg hJ hin hl hs hQ.2⟩
+
 /-! ## 2. The segment induction with `Q` in the row spec -/
 
 section
@@ -117,7 +137,7 @@ theorem exec_rowsJQ (sg : Nat → Nat × Nat) (st : Nat) (hst2 : st ≤ 2) (J : 
       X.R * (S + mf - (sg t).1) ≤ (sg t).2)
     (hg64 : X.g0 < 2 ^ 64)
     {s0 : St} (h0 : Bnd X sg s0 t0 S0 m0 init)
-    (hQ : ∀ r ∈ act, RowQJ X J Q (inS r) (cons r) (prod r))
+    (hQ : ∀ r ∈ act, RowQJM X J Q mf (inS r) (cons r) (prod r))
     (hQ0 : Q s0 (· ∈ init)) (hJ0 : J (t0 + 1) s0) :
     N.toNat = t0 + act.length + 1 ∧
     (st = 0 → ∃ sN, NearSpecV3.Wasm.seg X.cfg X.p act.length s0 = .cont sN ∧
@@ -320,7 +340,8 @@ theorem exec_rowsJQ (sg : Nat → Nat × Nat) (st : Nat) (hst2 : st ≤ 2) (J : 
       · rw [hg1, show t0 + (k + 1) + 1 = t0 + k + 1 + 1 by omega, ← hsb', ← hcid', ← hk']
         exact Rel_of_RelW_congr R' eS
       · rw [← eS]
-        exact hQ rs[k] (hmem k (by omega)) E s f tps tpl (t0 + k + 1) pc _ (live init prodL consL k) _ _ s' R hJk
+        exact hQ rs[k] (hmem k (by omega)) E s f tps tpl (t0 + k + 1) pc _ (live init prodL consL k) _ _ s' R
+          (hstepgas (t0 + k + 1) ((gasF (pos k)).toNat) s.gas.g R.gas) hJk
           (by rw [← pos_in k (by omega)]; exact hin) hlive hs' hQk
       · rw [show t0 + (k + 1) + 1 = t0 + k + 1 + 1 by omega]; exact hJ'
   have e1 : prodL.flatten = rs.flatMap prod := by simp [prodL, List.flatMap]
@@ -424,8 +445,150 @@ theorem segg_size_track {pin pout : Nat} (hin : (pNin pub).toNat = 64 * pin) (ho
   rw [hout, szC_fin (hN h0) hmf]
 end
 
+/-! ## 4. Rows that keep the size clause -/
+
+/-- **A row that keeps the page count and whose messages avoid space 8 keeps the size clause**
+(every instruction row of `actListM2` keeps the page count, `seg_instr_pagesKeep`; HOST rows by
+`HostPagesRely`).  Note the boundary relation's space clause `SpC` (`SpaceOK`, `Main/SegView.lean`)
+has no space 8: with the size message live, the grow chain's boundary relation needs `SpaceOK ∨
+space = 8`. -/
+theorem rowQJ_szC {X : Ctx} {J : Nat → St → Prop} {inS : List F} {cons prod : List Msg}
+    (hk : PagesKeep X inS) (hc : ∀ x ∈ cons, x.space ≠ 8) (hp : ∀ x ∈ prod, x.space ≠ 8) :
+    RowQJ X J SzC inS cons prod :=
+  fun E s f tps tpl t pc S live a b s' R _ hin _ hs hQ =>
+    SzC.keep hQ hc hp (hk E s f tps tpl t pc S live a b s' R hin hs)
+
+/-! ## 5. A MEMG row's spec premise from its decoding -/
+
+/-- The premises a row's decoding states about every related pre-state (the shape of
+`RowSpecSegJQ`'s hypotheses). -/
+def AtRow (X : Ctx) (inS : List F) (P : Env → St → Frame → (Nat → Nat) → Nat → Nat → Nat → Prop) : Prop :=
+  ∀ (E : Env) (s : St) (f : Frame) (tps tpl : Nat → Nat) (t pc S : Nat) (live : Msg → Prop) (a b : Nat),
+    RelW X E s f tps tpl t pc S live a b → inS = stMsg (X.offOf E.k + pc) t S 0 E.sb E.cid → P E s f tps t pc S
+
+/-- **The spec premise of a MEMG `memory.size` row, from the size clause.**  The row's decoding
+gives: the instruction at its pc is `memory.size` with fee units `fee ≤ mf` and a straight successor
+(code facts, `hcode`); it consumes the size message `szMsg pg tz` and produces the pushed `i32` and
+`szMsg pg t` (`hprod`; the slot is the stack height); its out-STATE is `pc + 1`, `S + fee`
+(`hout`).  The size clause in `Q` pins `pg = s.pages.size`, and `step_memSize` gives the step. -/
+theorem memSize_rowSpecJQ (X : Ctx) {J : Nat → St → Prop} {Q : St → (Msg → Prop) → Prop} {mf : Nat}
+    (hQ : ∀ s live, Q s live → SzC s live) {inS outS : List F} {prod : List Msg} {sg : Nat × Nat}
+    (hJk : RowJKeep X J inS) {pg tz fee : Nat} (hfm : fee ≤ mf)
+    (hcode : AtRow X inS fun E s f _ _ pc _ => (X.pfOf E.k).code[pc]? = some .memSize ∧
+      feeUnits X.cfg (X.pfOf E.k).gas[pc]? = some fee ∧ pc + 1 < (X.pfOf E.k).code.size ∧
+      (∃ ls, (X.ckOf E.k).labels[pc + 1]? = some ls ∧ f.labels = shiftLabels E.sb ls) ∧
+      (X.ckOf E.k).heights[pc + 1]? = some (s.stack.size + 1 - E.sb))
+    (hout : AtRow X inS fun E _ _ _ t pc S => outS = stMsg (X.offOf E.k + (pc + 1)) (t + 1) (S + fee) 0 E.sb E.cid)
+    (hprod : AtRow X inS fun _ s _ _ t _ _ => prod = [enc 0 s.stack.size (i32V pg) t, szMsg pg t]) :
+    RowSpecSegJQ X J Q mf inS outS [szMsg pg tz] prod sg sg := by
+  intro E s f tps tpl t pc S live R hJ hQs hin hl h1 h2 h3
+  obtain ⟨hins, hfee, hnext, hL1, hH1⟩ := hcode E s f tps tpl t pc S live _ _ R hin
+  have hz : live (szMsg pg tz) := hl _ (by simp)
+  have hpg : pg = s.pages.size := SzC.pages (hQ s live hQs) hz
+  subst hpg
+  refine ⟨E.k, pc + 1, fee, 0, E.sb, E.cid, hfm, by omega, by rw [hout E s f tps tpl t pc S live _ _ R hin], ?_⟩
+  intro hg
+  refine ⟨fun _ => ?_, fun h => absurd h (by decide), fun h => absurd h (by decide)⟩
+  obtain ⟨s', hs, -, hR, -⟩ := step_memSize X R hins hfee hg h3 hnext hL1 hH1 (hQ s live hQs) hz
+  rw [hprod E s f tps tpl t pc S live _ _ R hin]
+  exact ⟨s', hs, hR, hJk E s f tps tpl t pc S live _ _ s' R hin h1 hJ hs⟩
+
+/-- **The spec premise of a successful MEMG `memory.grow` row**: as `memSize_rowSpecJQ`, with the
+consumed top operand an `i32` page count `w` (`hstk`), the grow succeeding (`pages + w ≤
+maxMemoryPages`, from the row's `ok = 1` and the size clause), the linear fee `fee + lin · w ≤ mf`,
+and the grown zero bytes `A` (MEMBG's blocks of this grow) in the new pages. -/
+theorem memGrowOk_rowSpecJQ (X : Ctx) {J : Nat → St → Prop} {Q : St → (Msg → Prop) → Prop} {mf : Nat}
+    (hQ : ∀ s live, Q s live → SzC s live) {inS outS : List F} {cons prod : List Msg} {sg : Nat × Nat}
+    (hJk : RowJKeep X J inS) {pg tz fee lin : Nat} {w : UInt32} (hfm : fee + lin * w.toNat ≤ mf)
+    (hok : pg + w.toNat ≤ X.cfg.maxMemoryPages) (A : List Nat) (hAnd : A.Nodup)
+    (hA : ∀ a ∈ A, pg * pageSize ≤ a ∧ a < (pg + w.toNat) * pageSize)
+    (hcode : AtRow X inS fun E s f _ _ pc _ => (X.pfOf E.k).code[pc]? = some .memGrow ∧
+      growFee X.cfg (X.pfOf E.k).gas[pc]? = some (fee, lin) ∧ pc + 1 < (X.pfOf E.k).code.size ∧
+      (∃ ls, (X.ckOf E.k).labels[pc + 1]? = some ls ∧ f.labels = shiftLabels E.sb ls) ∧
+      (X.ckOf E.k).heights[pc + 1]? = some (s.stack.size - E.sb) ∧
+      E.sb + 1 ≤ s.stack.size ∧ s.stack[s.stack.size - 1]? = some (.i32 w))
+    (hout : AtRow X inS fun E _ _ _ t pc S =>
+      outS = stMsg (X.offOf E.k + (pc + 1)) (t + 1) (S + (fee + lin * w.toNat)) 0 E.sb E.cid)
+    (hcons : AtRow X inS fun _ s _ tps _ _ _ =>
+      cons = [enc 0 (s.stack.size - 1) (.i32 w) (tps (s.stack.size - 1)), szMsg pg tz])
+    (hprod : AtRow X inS fun _ s _ _ t _ _ =>
+      prod = enc 0 (s.stack.size - 1) (i32V pg) t :: szMsg (pg + w.toNat) t :: zeroBytes A t) :
+    RowSpecSegJQ X J Q mf inS outS cons prod sg sg := by
+  intro E s f tps tpl t pc S live R hJ hQs hin hl h1 h2 h3
+  obtain ⟨hins, hfee, hnext, hL1, hH1, hstk, hw⟩ := hcode E s f tps tpl t pc S live _ _ R hin
+  rw [hcons E s f tps tpl t pc S live _ _ R hin] at hl ⊢
+  have hz : live (szMsg pg tz) := hl _ (by simp)
+  have hpg : pg = s.pages.size := SzC.pages (hQ s live hQs) hz
+  subst hpg
+  refine ⟨E.k, pc + 1, fee + lin * w.toNat, 0, E.sb, E.cid, hfm, by omega,
+    by rw [hout E s f tps tpl t pc S live _ _ R hin], ?_⟩
+  intro hg
+  refine ⟨fun _ => ?_, fun h => absurd h (by decide), fun h => absurd h (by decide)⟩
+  obtain ⟨s', hs, -, hR, -⟩ := step_memGrow_ok X R hins hfee hstk hw hg hok hnext hL1 hH1 (hQ s live hQs) hz
+    A hAnd hA
+  rw [hprod E s f tps tpl t pc S live _ _ R hin]
+  exact ⟨s', hs, hR, hJk E s f tps tpl t pc S live _ _ s' R hin h1 hJ hs⟩
+
+/-- **A MEMG `memory.size` row keeps the size clause** (`RowQJM`; the step is `step_memSize`'s, by
+determinism of `step`). -/
+theorem memSize_rowQJM (X : Ctx) {J : Nat → St → Prop} {mf : Nat} {inS : List F} {prod : List Msg}
+    {pg tz fee : Nat} (hfm : fee ≤ mf)
+    (hcode : AtRow X inS fun E s f _ _ pc _ => (X.pfOf E.k).code[pc]? = some .memSize ∧
+      feeUnits X.cfg (X.pfOf E.k).gas[pc]? = some fee ∧ pc + 1 < (X.pfOf E.k).code.size ∧
+      (∃ ls, (X.ckOf E.k).labels[pc + 1]? = some ls ∧ f.labels = shiftLabels E.sb ls) ∧
+      (X.ckOf E.k).heights[pc + 1]? = some (s.stack.size + 1 - E.sb))
+    (hprod : AtRow X inS fun _ s _ _ t _ _ => prod = [enc 0 s.stack.size (i32V pg) t, szMsg pg t])
+    (hg64 : X.g0 < 2 ^ 64) :
+    RowQJM X J SzC mf inS [szMsg pg tz] prod := by
+  intro E s f tps tpl t pc S live a b s' R hg _ hin hl hs hQ
+  obtain ⟨hins, hfee, hnext, hL1, hH1⟩ := hcode E s f tps tpl t pc S live _ _ R hin
+  have hz : live (szMsg pg tz) := hl _ (by simp)
+  have hpg : pg = s.pages.size := SzC.pages hQ hz
+  subst hpg
+  have hg' : X.R * (S + fee - a) ≤ b :=
+    Nat.le_trans (Nat.mul_le_mul_left _ (by omega)) hg
+  obtain ⟨s'', hs'', -, -, hQ'⟩ := step_memSize X R hins hfee hg' hg64 hnext hL1 hH1 hQ hz
+  rw [hs] at hs''
+  cases hs''
+  rw [hprod E s f tps tpl t pc S live _ _ R hin]
+  exact hQ'
+
+/-- **A successful MEMG `memory.grow` row keeps the size clause** (`step_memGrow_ok`). -/
+theorem memGrowOk_rowQJM (X : Ctx) {J : Nat → St → Prop} {mf : Nat} {inS : List F} {cons prod : List Msg}
+    {pg tz fee lin : Nat} {w : UInt32} (hfm : fee + lin * w.toNat ≤ mf)
+    (hok : pg + w.toNat ≤ X.cfg.maxMemoryPages) (A : List Nat) (hAnd : A.Nodup)
+    (hA : ∀ a ∈ A, pg * pageSize ≤ a ∧ a < (pg + w.toNat) * pageSize)
+    (hcode : AtRow X inS fun E s f _ _ pc _ => (X.pfOf E.k).code[pc]? = some .memGrow ∧
+      growFee X.cfg (X.pfOf E.k).gas[pc]? = some (fee, lin) ∧ pc + 1 < (X.pfOf E.k).code.size ∧
+      (∃ ls, (X.ckOf E.k).labels[pc + 1]? = some ls ∧ f.labels = shiftLabels E.sb ls) ∧
+      (X.ckOf E.k).heights[pc + 1]? = some (s.stack.size - E.sb) ∧
+      E.sb + 1 ≤ s.stack.size ∧ s.stack[s.stack.size - 1]? = some (.i32 w))
+    (hcons : AtRow X inS fun _ s _ tps _ _ _ =>
+      cons = [enc 0 (s.stack.size - 1) (.i32 w) (tps (s.stack.size - 1)), szMsg pg tz])
+    (hprod : AtRow X inS fun _ s _ _ t _ _ =>
+      prod = enc 0 (s.stack.size - 1) (i32V pg) t :: szMsg (pg + w.toNat) t :: zeroBytes A t) :
+    RowQJM X J SzC mf inS cons prod := by
+  intro E s f tps tpl t pc S live a b s' R hg _ hin hl hs hQ
+  obtain ⟨hins, hfee, hnext, hL1, hH1, hstk, hw⟩ := hcode E s f tps tpl t pc S live _ _ R hin
+  rw [hcons E s f tps tpl t pc S live _ _ R hin] at hl ⊢
+  have hz : live (szMsg pg tz) := hl _ (by simp)
+  have hpg : pg = s.pages.size := SzC.pages hQ hz
+  subst hpg
+  have hg' : X.R * (S + (fee + lin * w.toNat) - a) ≤ b :=
+    Nat.le_trans (Nat.mul_le_mul_left _ (by omega)) hg
+  obtain ⟨s'', hs'', -, -, hQ'⟩ := step_memGrow_ok X R hins hfee hstk hw hg' hok hnext hL1 hH1 hQ hz A hAnd hA
+  rw [hs] at hs''
+  cases hs''
+  rw [hprod E s f tps tpl t pc S live _ _ R hin]
+  exact hQ'
+
 #print axioms exec_rowsJQ
 #print axioms RowFactsSegMapJ.toJQ
+#print axioms memSize_rowQJM
+#print axioms memGrowOk_rowQJM
+#print axioms memSize_rowSpecJQ
+#print axioms memGrowOk_rowSpecJQ
+#print axioms rowQJ_szC
 #print axioms pages_of_64
 #print axioms segg_size_dec
 #print axioms segg_size_track
