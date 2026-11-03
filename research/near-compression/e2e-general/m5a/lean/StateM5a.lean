@@ -31,3 +31,7 @@ import StateM5a.BusSplit2
 import StateM5a.WsBus
 import StateM5a.Sha512If
 import StateM5a.StateView
+import StateM5a.RowDec
+import StateM5a.RowBr
+import StateM5a.RowBrMsg
+import StateM5a.RowBrF
