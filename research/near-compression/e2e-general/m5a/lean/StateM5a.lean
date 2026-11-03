@@ -45,3 +45,5 @@ import StateM5a.KeyLookups
 import StateM5a.WsTree
 import StateM5a.WsDecode4
 import StateM5a.WsKey
+import StateM5a.WsLeafF
+import StateM5a.WsEntries
