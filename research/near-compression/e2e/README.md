@@ -18,7 +18,7 @@ processes. `zero_knowledge_established=false` (reason below).
 |---|---|---|
 | mask the core proof steps of FINAL | built, see the list below | **yes** |
 | one simulator plus a concrete hiding error | `ZK-ARGUMENT.md` §6: ε_ZK ≤ 2^-185 + ε_D + ε_E, where ε_D and ε_E are two composition lemmas (base-field cells absorbing extension-field functionals) that are argued but not proved | **written; not established** |
-| two-witness test, witness-guessing distinguisher | `results/zk/zk-guess.txt` (§0.3) | see §0.3 |
+| two-witness test, witness-guessing distinguisher | `zk = 2` packet: the right witness matches 287/287 openings; full-ZK packet: 0/287 for both witnesses (§0.3) | **passes** |
 | split packing (`zk = 3`) | fixed. FINAL layout is 68 stacked columns (`zk = 4` would be 98; non-ZK 53 + 15 mask columns), with 1,537 slices | **yes** |
 | proof ≤ ~400 KB with ZK | **319,695 / 320,464 / 319,779 B** | **yes** |
 | verify < 200 ms, one core | **40–50 ms** fresh process, 5 runs per chunk, host load 13–19; the FINAL check itself is 24–26 ms | **yes** |
@@ -59,11 +59,38 @@ manifests of each packet, proof and setup. Verify now runs public-input preparat
 
 ### 0.2 Sizes at 268 and 274 bits per round (FINAL layer)
 
-See `results/zk/zk5-extra.txt`: chunk 1, full ZK, `NEARPROOF_FINAL_RBR=274`.
+Chunk 1, full ZK, same L4 (`results/zk/zk5`, `zk5b`, `zk5r274`, `zk5-extra.log`):
+
+| FINAL per-round target | WHIR queries | min bits | packet B | verify, 1 thread |
+|---|---|---:|---:|---:|
+| 268 (pinned) | [46, 41, 31, 25] | 268.2 | 319,695 (second proof of the same L4: 318,813) | 40–50 ms |
+| 274 (`NEARPROOF_FINAL_RBR=274`) | [47, 43, 31, 25] | 274.0 | **325,051** (+5.4 KB) | 39 ms |
+
+Only the FINAL layer was re-targeted; the inner levels and the base stay at 268. The two
+268-bit proofs differ by 0.9 KB because Merkle multiproof deduplication depends on the query
+positions.
 
 ### 0.3 Hiding tests
 
-`results/zk/zk-diff-zk5.txt` and `results/zk/zk-guess.txt`. See ZK-ARGUMENT.md §8.2.
+* **Same witness, fresh randomness.** `results/zk/zk-diff-zk5-same-witness.txt` compares two
+  full-ZK FINAL proofs of the same L4. Every value field differs, except the shape, the public
+  values, the PoW witness of a fixed-zero-bit grind, and structural zeros: `q0_claim`, the empty
+  slots of layer 0, Gruen-derived zero evaluations, and the zero last evaluation of the doubled
+  batch round. On 11-03 morning (`zk = 2`) the GKR, zerocheck and opening values also changed,
+  but only through their challenges: they were still deterministic in (witness, challenges).
+* **Witness-guessing distinguisher and two-witness test** (`results/zk/zk-guess.txt`, method in
+  ZK-ARGUMENT.md §8.2). Each candidate witness is the FINAL trace regenerated from an L4
+  checkpoint. The distinguisher recomputes all 287 masked column openings, plus the 4 public
+  program openings, at the proof's own batch point.
+
+  | packet (chunk 1) | right witness (chunk 1) | wrong witness (chunk 2) |
+  |---|---|---|
+  | `zk = 2` (PCS-ZK only) | **287/287** match: the proof identifies its witness | 20/287 (columns equal across chunks) |
+  | `zk = 5` (full ZK) | **0/287** (public program 4/4) | 0/287 (program 0/4) |
+
+  With masking, the right witness is no more consistent with the proof than the wrong one. This
+  is the test the 11-02 log called "only meaningful after PIOP masking", and it now passes. It is
+  a necessary condition, not a proof of ZK (§0 table).
 
 ### 0.4 Verify in process (sub-agent)
 

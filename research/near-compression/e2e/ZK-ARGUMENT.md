@@ -350,6 +350,14 @@ openings, stacking rounds and openings. Every tampered proof must be rejected. R
   proof's own chunk versus another chunk's L4. Without PIOP masking the right witness matches
   every opening and the wrong one matches none, so the proof identifies its witness. With
   masking neither matches.
+* **Results (2026-11-03, chunk 1).**
+  * `zk = 2` packet: the right witness matches 287/287 masked-column openings (plus 4/4 public);
+    the wrong witness matches 20/287.
+  * `zk = 5` packet: 0/287 for both witnesses. The right witness also matches the public program
+    openings (4/4); the wrong one, from another chunk with a different program, matches 0/4.
+  * `zk-diff` of two `zk = 5` proofs of the same L4: no witness-dependent field is equal. Only
+    the shape, the public values, the zero-bit LogUp PoW witness and structural zeros agree.
+  * Files: `results/zk/zk-guess.txt`, `results/zk/zk-diff-zk5-same-witness.txt`.
 
 ## 9. Obligations before `zero_knowledge_established = true`
 
