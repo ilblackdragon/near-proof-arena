@@ -389,4 +389,92 @@ theorem seg_instr_rowQ_reg {X : Ctx} {nloc ngl : Nat} {pub : List F} {tr : Trace
   · rw [eC] at hx; obtain ⟨m, hm, rfl⟩ := List.mem_map.mp hx; exact six false m hm
   · rw [eP] at hx; obtain ⟨m, hm, rfl⟩ := List.mem_map.mp hx; exact six true m hm
 
+/-! ## The segment soundness theorem -/
+
+/-- The register-keep premise of the instruction rows: an instruction row's step keeps the register
+file (its instruction is not a call of an import nor `call_indirect`, `StepRegs.NonHostI`;
+`regKeep_of_code`). -/
+def InstrRegKeep (X : Ctx) (tr : Trace) (pub : List F) : Prop :=
+  ∀ ρ ∈ actListM2 tr pub, ρ.1 ≠ 22 → RegKeep X (rowInM tr pub ρ)
+
+/-- The HOST rows' clause relies (host-chip contract, M6): the register clause (`HostRegRely`), the
+space clause and the register-file well-formedness. -/
+structure HostRely (X : Ctx) (tr : Trace) (pub : List F) : Prop where
+  reg : ∀ ρ ∈ actListM2 tr pub, ρ.1 = 22 → HostRegRely X (rowInM tr pub ρ) (consCHS tr pub ρ) (prodCHS tr pub ρ)
+  sp : ∀ ρ ∈ actListM2 tr pub, ρ.1 = 22 →
+    RowQ X (fun _ live => SpC live) (rowInM tr pub ρ) (consCHS tr pub ρ) (prodCHS tr pub ρ)
+  wf : ∀ ρ ∈ actListM2 tr pub, ρ.1 = 22 →
+    RowQ X (fun s _ => RegWF s) (rowInM tr pub ρ) (consCHS tr pub ρ) (prodCHS tr pub ρ)
+
+/-- **`seg_sound`: segment soundness (cut case) from `HoldsX`.**
+
+For a satisfied segment trace (`HoldsX (wasmBaseSegAir …)`, bus 103 left to the SHA chip), the
+SHA-512 chip contract `ChipIf compressW …` with its limb bound `CutoHiLimbs`, an M2-checked module
+`X` with the CODE/FUNC commitment bindings, and a spec state `s0` related by `BndC` to the
+in-boundary (`t_in`, `S_in`, SEGB's first STATE message, the live list `initS` = CUTI ∪ MEMB ∪ gas
+register) with a well-formed register file, on a cut (`halted_out = 0`):
+
+* `t_out = t_in + n` (`n` = number of action rows);
+* `seg n s0 = .cont sN`, and `run` continues from `sN`;
+* `BndC` at the out-boundary (`t_out`, `S_out`, SEGB's last STATE message, the live list `finS` =
+  CUTO ∪ MEMB ∪ gas register ∪ DROP consumptions);
+* CUTO's hashed list is `cutView X sN`, the public `ctx_out` limbs are those of the SHA-384 digest `d`
+  with `wbytes d = cutDigest (cutView X sN)`, and every view entry is `MsgWF`.
+
+The trace → `CutSeg` instantiation (`segCut`: rows `seg_rowfacts` + `HoldRowS`, STATE `seg_hst`,
+CH `seg_hch`), `FinSplit`/`hin` (`seg_finSplit`, `seg_cuto_in_fin`), the instruction rows' space
+clause (`seg_instr_rowQ_sp`) and their register / `RegWF` clauses given `InstrRegKeep`
+(`seg_instr_rowQ_reg`, `rowQ_regWF_keep`) are theorems.  Named premises: see the module header. -/
+theorem seg_sound (X : M2Ctx) {nloc ngl : Nat} {pub : List F} {tr : Trace}
+    (H : HoldsX (wasmBaseSegAir nloc ngl) pub tr) {chip : List StateM5a.Sha512If.IfMsg}
+    (hC : SegSha.ChipIf SegSha.compressW (wasmBaseSegAir nloc ngl) pub tr chip) (hl : CutoHiLimbs tr)
+    (hcode : CodeOK X.toCtx tr) (hfunc : FuncOK X.toCtx tr)
+    (hb : HostBLinked tr pub) (hg : RegCLinked tr pub)
+    {sg : Nat → Nat × Nat} (hkeep : SegKeepM2 tr pub sg) (hhold : HoldRowS X.toCtx tr pub sg)
+    (hrely : HostRely X.toCtx tr pub) (hrk : InstrRegKeep X.toCtx tr pub)
+    (hst0 : pub.getD Boundary.pubStatus 0 = 0)
+    (hlen : (actListM2 tr pub).length < 2 ^ 28) (htin : (pub.getD pubTIn 0).toNat < 2 ^ 28)
+    (hfeeN : (pub.getD pubSIn 0).toNat +
+      ((pub.getD pubTOut 0).toNat - (pub.getD pubTIn 0).toNat + 1) * (X.toCtx.maxFee + 1) < P)
+    (hstepgas : ∀ t S g : Nat, X.toCtx.R * (S - (sg t).1) + g = (sg t).2 →
+      X.toCtx.R * (S + X.toCtx.maxFee - (sg t).1) ≤ (sg t).2)
+    (hg64 : X.toCtx.g0 < 2 ^ 64)
+    (hinit : (initS tr pub).Nodup)
+    (hT : TombDead tr pub (finS tr pub))
+    {s0 : St} (h0 : BndC X.toCtx sg s0 (pub.getD pubTIn 0).toNat (pub.getD pubSIn 0).toNat (segM0 tr pub)
+      (initS tr pub)) (hw0 : RegWF s0) :
+    (pub.getD pubTOut 0).toNat = (pub.getD pubTIn 0).toNat + (actListM2 tr pub).length ∧
+    ∃ sN, NearSpecV3.Wasm.seg X.toCtx.cfg X.toCtx.p (actListM2 tr pub).length s0 = .cont sN ∧
+      (∀ m, run X.toCtx.cfg X.toCtx.p ((actListM2 tr pub).length + m) s0 = run X.toCtx.cfg X.toCtx.p m sN) ∧
+      BndC X.toCtx sg sN (pub.getD pubTOut 0).toNat (pub.getD pubSOut 0).toNat (segFinM tr pub) (finS tr pub) ∧
+      cutoList tr = cutView X.toCtx sN ∧
+      (∃ d : List Nat, d.length = 6 ∧ StateM5a.Sha512If.W64 d ∧ pubDig pub pubCtxOut = SegSha.limbsF d ∧
+        SegSha.wbytes d = cutDigest (cutView X.toCtx sN)) ∧
+      ∀ y ∈ cutView X.toCtx sN, MsgWF y := by
+  have hP := P_val
+  have hI : SegInstrRows X.toCtx tr pub := fun t r htI hr ha => seg_rowfacts X H hcode hfunc htI hr ha
+  have hrows := rowFactsSegMap_seg X.toCtx hI hkeep hhold
+  have hlv : ∀ ρ ∈ actListM2 tr pub, (lvl (rowInM tr pub ρ)).toNat < 2 ^ 30 := by
+    intro ρ hρ
+    have := seg_row_lvl H (fun ρ hρ => (hrows ρ hρ).tsOut) (by omega) ρ hρ
+    omega
+  refine seg_sound_rows X H hC hl hI hb hg hkeep hhold hst0 hlen htin hfeeN hstepgas hg64 hinit
+    (fun ρ hρ => ?_) (fun ρ hρ => ?_) (fun ρ hρ => ?_) hT h0 hw0
+  · by_cases h22 : ρ.1 = 22
+    · exact hrely.reg ρ hρ h22
+    · exact seg_instr_rowQ_reg H hρ h22 (hlv ρ hρ) (hrk ρ hρ h22)
+  · by_cases h22 : ρ.1 = 22
+    · exact hrely.sp ρ hρ h22
+    · exact seg_instr_rowQ_sp H hρ h22 (hlv ρ hρ)
+  · by_cases h22 : ρ.1 = 22
+    · exact hrely.wf ρ hρ h22
+    · exact rowQ_regWF_keep (hrk ρ hρ h22)
+
+#print axioms rowFactsSegMap_seg
+#print axioms seg_len
+#print axioms seg_row_lvl
+#print axioms seg_instr_rowQ_sp
+#print axioms seg_instr_rowQ_reg
+#print axioms seg_sound
+
 end WasmBase
