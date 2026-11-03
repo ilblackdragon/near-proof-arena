@@ -567,7 +567,7 @@ theorem checkM2_facts {cfg : NearCfg} {p : Prepared} {fn off : Nat} {cinfo : Nat
     ∃ pf, CheckFacts cfg p fn off cinfo pf ck := by
   obtain ⟨pf, F⟩ := checkM2_sound h
   refine ⟨pf, CheckFacts.of_parts F.func F.basic F.lsize F.hsize F.l0 F.h0 ?_ F.hBound F.records ?_
-    F.arity F.resTag F.localTags F.np F.nl F.charge F.prologue⟩
+    ?_ ?_ F.arity F.resTag F.localTags F.np F.nl F.charge F.prologue⟩
   · intro pc hpc ins hins hns
     rw [← verifyAtM2_base hins hns]; exact F.verify pc hpc
   · intro pc hpc
@@ -589,6 +589,51 @@ theorem checkM2_facts {cfg : NearCfg} {p : Prepared} {fn off : Nat} {cinfo : Nat
       have := F.feeLe pc hpc
       rw [Array.getElem?_eq_getElem hsz, Option.getD_some, recordOf_fee hr] at this
       exact this
+  · -- an M2 addition's record carries an M2 opcode
+    intro pc hpc ins hins hs
+    have hr := F.recs pc hpc
+    have hsz : pc < ck.records.size := by rw [F.records]; exact hpc
+    rw [Array.getElem?_eq_getElem hsz] at hr ⊢
+    unfold recordAtM2 at hr
+    rw [hins] at hr
+    cases hfee : feeUnits cfg pf.gas[pc]? <;> rw [hfee] at hr <;>
+      cases ins <;> simp only [m2Special, reduceCtorEq, Bool.false_eq_true] at hs <;> simp only at hr
+    all_goals (repeat' split at hr)
+    all_goals first
+      | (simp at hr; done)
+      | (simp only [Option.some.injEq] at hr; rw [← hr]
+         refine ⟨_, _, rfl, ?_⟩
+         simp only [m2OpNat, opMemGrowX, opMemSizeX, opUnreach, opHostX, Chips.opHost, Chips.IfC.opIf,
+           Chips.Ctrl.opJump]
+         decide)
+      | (exfalso; simp_all [isConvOp]; done)
+      | (simp only [Option.some.injEq] at hr; rw [← hr]
+         refine ⟨_, _, rfl, ?_⟩
+         simp only [m2OpNat, Bool.or_eq_true, beq_iff_eq] at hs ⊢; omega)
+    all_goals done
+  · intro pc hpc hins
+    have hv := F.verify pc hpc
+    have hr := F.recs pc hpc
+    have hfl := F.feeLe pc hpc
+    obtain ⟨ls, h, hl, hh⟩ := F.lh hpc
+    simp only [verifyAtM2, hins, hl, hh] at hv
+    cases ls with
+    | nil => simp at hv
+    | cons lab rest =>
+      simp only [Bool.and_eq_true, decide_eq_true_eq] at hv
+      obtain ⟨h1, ⟨h2, h3⟩, h4⟩ := hv
+      cases hfee : feeUnits cfg pf.gas[pc]? with
+      | none =>
+        exfalso
+        have hsz : pc < ck.records.size := by rw [F.records]; exact hpc
+        rw [Array.getElem?_eq_getElem hsz] at hr
+        unfold recordAtM2 at hr; rw [hins, hfee] at hr; simp at hr
+      | some fee =>
+        unfold recordAtM2 at hr; rw [hins, hfee] at hr; simp only [hl] at hr
+        rw [← hr] at hfl
+        simp only [Option.getD_some, List.getD_cons_succ, List.getD_cons_zero] at hfl
+        refine ⟨lab, rest, fee, hl, by rw [hh]; exact h1, h2, h3, by rw [hh]; exact h4, rfl, hfl, ?_⟩
+        rw [← hr, hh]
 
 /-- **`checkModuleM2` gives the generalised `ModFacts`.** -/
 theorem checkModuleM2_modFacts {cfg : NearCfg} {p : Prepared} {entry : Nat} {MH : ModOutH}
