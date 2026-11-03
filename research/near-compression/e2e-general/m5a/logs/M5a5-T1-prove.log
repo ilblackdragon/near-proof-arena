@@ -1,7 +1,7 @@
 TABLE SHA    width  544 height 2^12 cells   2228224 constraints  1028 interactions    17 deg 4
 TABLE KEY    width   63 height 2^8  cells     16128 constraints    59 interactions     6 deg 4
-TABLE BR     width  941 height 2^7  cells    120448 constraints  1944 interactions  1207 deg 4
-TABLE SN     width  604 height 2^6  cells     38656 constraints  1280 interactions   471 deg 4
+TABLE BR     width  941 height 2^7  cells    120448 constraints  1976 interactions  1239 deg 4
+TABLE SN     width  604 height 2^6  cells     38656 constraints  1316 interactions   507 deg 4
 TABLE KCMP   width   14 height 2^6  cells       896 constraints    26 interactions     6 deg 4
 TABLE WSB    width  136 height 2^6  cells      8704 constraints   152 interactions    33 deg 6
 TABLE WSN    width   67 height 2^6  cells      4288 constraints    27 interactions    21 deg 4
@@ -14,11 +14,11 @@ TABLE TAPE   width   39 height 2^4  cells       624 constraints     0 interactio
 TABLE SHA512 width   83 height 2^15 cells   2719744 (native v4)
 TABLE SHA512T width    9 height 2^7  cells      1152 (native v4)
 CELLS 5152916; compressions 150
-PRECHECK OK: every constraint on every row; every bus balances (12351 distinct messages)
-TIME load+precheck 0.49s
+PRECHECK OK: every constraint on every row; every bus balances (12359 distinct messages)
+TIME load+precheck 0.48s
 PARAMS n_stack 18 w_stack 9 degree 9
 TIME keygen 0.02s
 SOUNDNESS total=268.2 logup=329.3 proximity=316.2 query=268.2
-PROOF total=1236308 gkr=31256 relations=273504 stacking=2372 whir=928758
-TIME prove 66.70s verify 0.1045s threads 8 peak_rss_kib 1267852 proof_bytes 1236308
+PROOF total=1232612 gkr=31256 relations=273504 stacking=2372 whir=925062
+TIME prove 59.32s verify 0.0959s threads 8 peak_rss_kib 1299780 proof_bytes 1232612
 VERIFY OK (native SWIRL verifier); statement check (TAPE root + prev_state_root): OK
