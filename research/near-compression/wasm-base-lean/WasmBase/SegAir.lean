@@ -242,7 +242,9 @@ def streamConstraints (digestBase : Nat) : List Expr :=
   ((List.range 18).map fun i => kP * j * (c cs s!"h{i}" - pv (digestBase + i)))
 
 def padR16 : List Inter :=
-  [r16 (32 * c cs "gl") (c cs "kP" * c cs "j"), r16 (c cs "gh") (c cs "kP" * c cs "j")]
+  [r16 (32 * c cs "gl") (c cs "kP" * c cs "j"), r16 (c cs "gh") (c cs "kP" * c cs "j"),
+   -- `gl` itself: `r16 (32·gl)` alone admits gl ≈ P/32 (`gl_padding_counterexample`, R16Audit)
+   r16 (c cs "gl") (c cs "kP" * c cs "j")]
 end
 
 namespace In
