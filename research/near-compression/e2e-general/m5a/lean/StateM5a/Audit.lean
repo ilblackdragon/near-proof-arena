@@ -1,3 +1,4 @@
+import StateM5a.DepthBound
 import StateM5a.KeyDecode
 import StateM5a.Steps
 import StateM5a.StepsT2
@@ -329,3 +330,9 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.KeyDecode.klen_recv
 #print axioms StateM5a.KeyDecode.nib_of_rcv
 #print axioms StateM5a.KeyDecode.klen_of_rcv
+#print axioms StateM5a.DepthBound.br_depth
+#print axioms StateM5a.DepthBound.sn_depth
+#print axioms StateM5a.DepthBound.walk_deeper'
+#print axioms StateM5a.DepthBound.walk_shape'
+#print axioms StateM5a.DepthBound.air_batched_changes'
+#print axioms StateM5a.DepthBound.air_batched_changesS'
