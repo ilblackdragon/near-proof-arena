@@ -107,6 +107,16 @@ against the NvAir's program-column openings at `r`. Now `stark_backend::verifier
 it to `check_final_program_at`. The program MLE is also evaluated over the program's `2^m`
 prefix with the high hypercube variables factored out as `∏_{i>m}(1 − r_i)`.
 
+**Update (2026-11-03, D-3 / D-4).** The thread-locals are gone. Review #6 and review-zk6 N4
+flagged the thread coupling. Now:
+* `verifier::verify_with_points` returns `VerifiedPoints { r, u }` from the same verification.
+* `verify_final_claim` takes `r` from it, through `verify_with_point`.
+* The driver's `base_point` takes the base stacking point `u` from it.
+* `LAST_ZEROCHECK_POINT`, `LAST_STACKING_POINT` and the `take_last_*` functions are removed.
+
+The equivalence argument below is unchanged: the point is still derived by the same successful
+verification of the same proof.
+
 ### 2.2 Equivalence
 
 * `r` is set on the success path of the same `verify` call on the same proof (cleared before the

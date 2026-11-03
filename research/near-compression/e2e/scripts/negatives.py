@@ -20,19 +20,29 @@ outdir.mkdir(exist_ok=True)
 env = dict(os.environ, RAYON_NUM_THREADS=os.environ.get('RAYON_NUM_THREADS', '8'))
 results = {}
 
-def verify(name, claim, bundle_bytes, setup_pin=pin, expect_ok=False):
+def verify(name, claim, bundle_bytes, setup_pin=pin, expect_ok=False, setup_bytes=None, reason=None):
+    """`setup_bytes`: verify against this setup (pinned by `setup_pin`) instead of the run's.
+    `reason`: a rejection only passes if the verifier's output contains it (the check that
+    must fire, not some later one)."""
     with tempfile.TemporaryDirectory(prefix='e2e-neg-', dir='/data/illia/nearproof-deps') as d:
         b = pathlib.Path(d) / 'FINAL.bundle'
         b.write_bytes(bundle_bytes)
+        s = run / 'SETUP.json'
+        if setup_bytes is not None:
+            s = pathlib.Path(d) / 'SETUP.json'
+            s.write_bytes(setup_bytes)
         r = subprocess.run([str(B), 'verify', str(air), str(claim), str(C / 'statepublic'),
-                            str(run / 'SETUP.json'), setup_pin, str(b)],
+                            str(s), setup_pin, str(b)],
                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=600, env=env)
     (outdir / f'{name}.log').write_bytes(r.stdout)
     ok = r.returncode == 0 and b'INDEPENDENT_VERIFY_OK' in r.stdout
     last = r.stdout.decode(errors='replace').strip().splitlines()[-3:]
+    passed = ok == expect_ok and (ok or reason is None or reason.encode() in r.stdout)
     results[name] = {'accepted': ok, 'expected': 'accept' if expect_ok else 'reject',
-                     'pass': ok == expect_ok, 'tail': last}
-    print(('PASS ' if ok == expect_ok else 'FAIL ') + name + (' accepted' if ok else ' rejected'))
+                     'pass': passed, 'tail': last}
+    if reason is not None:
+        results[name]['required_reason'] = reason
+    print(('PASS ' if passed else 'FAIL ') + name + (' accepted' if ok else ' rejected'))
 
 claim = case / 'claim.bin'
 verify('untouched', claim, packet, expect_ok=True)
@@ -82,6 +92,34 @@ verify('trailing_byte', claim, packet + b'\0')
 verify('truncated_proof', claim, packet[:-100])
 verify('truncated_to_hint', claim, packet[:16])
 verify('untrusted_setup_pin', claim, packet, setup_pin='0' * 64)
+
+# --- obligation H (2026-11-03): FINAL heights pinned by the setup, checked by V_d first ---
+setup_json = json.loads((run / 'SETUP.json').read_bytes())
+if setup_json.get('final_heights'):
+    import hashlib
+    hs = setup_json['final_heights']
+    a = 1  # the largest AIR (log 21): the review #1/#3 target
+    log, tight = hs[a]
+    def tampered(t):
+        with tempfile.TemporaryDirectory(prefix='e2e-th-', dir='/data/illia/nearproof-deps') as d:
+            o = pathlib.Path(d) / 'b'
+            subprocess.run([str(B), 'tamper-height', str(run / 'SETUP.json'), str(run / 'FINAL.bundle'),
+                            str(a), str(t), str(o)], check=True, stdout=subprocess.DEVNULL, env=env)
+            return o.read_bytes()
+    verify('proof_tight_height_plus4', claim, tampered(tight + 4), reason='differs from the pinned')
+    verify('proof_tight_height_max_review1', claim, tampered(1 << log), reason='differs from the pinned')
+    def repinned(s):
+        b = json.dumps(s, separators=(',', ':')).encode()
+        return b, hashlib.sha256(b).hexdigest()
+    s = json.loads((run / 'SETUP.json').read_bytes()); s['final_heights'][a][1] = tight + 4
+    b, h = repinned(s)
+    verify('setup_heights_changed_repinned', claim, packet, setup_pin=h, setup_bytes=b, reason='differs from the pinned')
+    s = json.loads((run / 'SETUP.json').read_bytes()); del s['final_heights']
+    b, h = repinned(s)
+    verify('setup_heights_removed_repinned', claim, packet, setup_pin=h, setup_bytes=b, reason='must pin the FINAL trace heights')
+    # control: the same re-serialization of the unchanged setup, re-pinned, accepts
+    b, h = repinned(json.loads((run / 'SETUP.json').read_bytes()))
+    verify('setup_reserialized_repinned_control', claim, packet, setup_pin=h, setup_bytes=b, expect_ok=True)
 
 # --- wrong witness: a base proof of a witness the AIR rejects (prover precheck skipped) ---
 if wrong_witness:

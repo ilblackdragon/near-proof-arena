@@ -418,8 +418,13 @@ In order of how soon they bite:
 3. **Per-shape trusted setup.** `SETUP.json` (final vk + program, ≈ 3.7 MB) is run-specific: the vk
    depends on trace heights and the converged program on the committed tight heights. A deployable
    verifier needs one setup per shape class (padding to classes) or a uniform recursion layer.
-4. **Zero knowledge** (`ZK-ARGUMENT.md`): Z1–Z6 unimplemented; ≈ 100–300 KB of HVZK-WHIR overhead
-   measured at the PCS level, so the ~400 KB budget is tight on top of a 300+ KB non-ZK packet.
+   (D-4: a zk-masked setup now also pins the FINAL trace heights. The shape class it reveals is
+   the scope of the ZK claim, `ZK-ARGUMENT.md` §7. The general-chunk interface and its blockers
+   are in plan §5.0.1.)
+4. **Zero knowledge** (`ZK-ARGUMENT.md`): *superseded by §0.* The FINAL layer runs `zk = 6`,
+   about 325 KB per packet. ZK is established in the classical ROM for (claim, hint, setup) as of
+   D-4. The 10-31 text, which said Z1–Z6 were unimplemented and HVZK-WHIR cost 100–300 KB, is
+   history.
 5. **Security obligations** (HANDOVER "Recursion/security"): A-IC for in-circuit SHA-384 (U-11/U-12),
    single-database NodeOK, family-QROM instantiation, WHIR transfer — `security_established=false`.
 6. **Prover time.** ≈ 1 CPU-hour per tiny chunk on 16 threads (§2). The 6-level linear chain exists

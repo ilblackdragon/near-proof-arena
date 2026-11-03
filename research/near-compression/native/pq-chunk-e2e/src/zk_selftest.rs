@@ -190,6 +190,32 @@ pub fn run(args: &[String]) {
         if zk < 4 {
             continue;
         }
+        // [E2E-D obligation H] the prover pads to setup-pinned heights: commit the sender AIR at a
+        // tight height 8 rows above its natural one (explicit zero rows); the proof must declare
+        // exactly the pinned heights and verify.
+        if let Some(th) = proof.trace_vdata[1].as_ref().and_then(|v| v.tight_height) {
+            let log = proof.trace_vdata[1].as_ref().unwrap().log_height;
+            if th + 8 <= 1 << log {
+                let widths = [2usize, 3, 3];
+                let floor: Vec<(usize, usize, usize)> = proof
+                    .trace_vdata
+                    .iter()
+                    .zip(widths)
+                    .enumerate()
+                    .map(|(i, (v, w))| {
+                        let v = v.as_ref().unwrap();
+                        let h = v.tight_height.unwrap_or(1 << v.log_height);
+                        (w, v.log_height, if i == 1 { h + 8 } else { h })
+                    })
+                    .collect();
+                openvm_stark_backend::prover::stacked_pcs::set_tight_floor(Some(floor));
+                let (vk2, p2) = fx.keygen_and_prove(&engine);
+                openvm_stark_backend::prover::stacked_pcs::set_tight_floor(None);
+                assert_eq!(p2.trace_vdata[1].as_ref().unwrap().tight_height, Some(th + 8), "zk={zk}: padding");
+                engine.verify(&vk2, &p2).unwrap_or_else(|e| panic!("zk={zk}: padded proof rejected: {e:?}"));
+                println!("ZK_SELFTEST_PAD zk={zk} air=1 tight {th} -> {} verified", th + 8);
+            }
+        }
         // tamper tests: every zk field and a sample of masked fields must be bound
         let one = <openvm_recursion_circuit::sha384::config::EF as PrimeCharacteristicRing>::ONE;
         let mut cases: Vec<(String, Proof<SC>)> = vec![];
