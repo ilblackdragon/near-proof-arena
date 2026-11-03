@@ -86,6 +86,7 @@ The memory conditions (`PagesOK`, `DataOK`, `pubMem`, `pubDataEnd`) bind the ini
 the initial stack budget (`stackRem`). -/
 theorem wasm_base_sound (X : Ctx) {nloc ncode : Nat} {pub : List F} {tr : Trace}
     (H : Holds (wasmBaseAir nloc ncode) pub tr) (hpub : PubOK X nloc ncode pub) (hcode : CodeOK X tr) (hfunc : FuncOK X tr)
+    (hB : X.Base)
     (hfeeN : (pub.getD Boundary.pubN 0).toNat * (X.maxFee + 1) < P)
     (hgas : X.R * (pub.getD Boundary.pubS 0).toNat ≤ X.g0) (hg64 : X.g0 < 2 ^ 64)
     {s0 : St} {f0 : Frame} (hfr : s0.frames = [f0]) (hfn : f0.fn = X.fn) (hpc : f0.pc = 0)
@@ -105,6 +106,6 @@ theorem wasm_base_sound (X : Ctx) {nloc ncode : Nat} {pub : List F} {tr : Trace}
     (pub.getD Boundary.pubStatus 0 = ((2 : Nat) : F) →
       ∃ sN e, run X.cfg X.p ((pub.getD Boundary.pubN 0).toNat - 1) s0 = .abort sN e ∧
         X.R * (pub.getD Boundary.pubS 0).toNat + sN.gas.g = X.g0) :=
-  wasm_base_exec X H hpub (chipFacts X H) hcode hfunc hfeeN hgas hg64 hfr hfn hpc hlab hbase hloc hstk hg hpok hdata hM hMle hDE hzero hglob hbudg
+  wasm_base_exec X H hpub (chipFacts X H) hcode hfunc hB hfeeN hgas hg64 hfr hfn hpc hlab hbase hloc hstk hg hpok hdata hM hMle hDE hzero hglob hbudg
 
 end WasmBase

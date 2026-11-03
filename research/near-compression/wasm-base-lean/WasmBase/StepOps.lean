@@ -47,7 +47,7 @@ theorem step_binop (X : Ctx) {E : Env} {s : St} {f : Frame} {tps tpl : Nat → N
       Rel X s' (t + 1) E.k (pc + 1) (S + fee) E.sb E.cid (stepLive live [ma, mb] [mr]) S_seg segb := by
   have F := (X.factsOf R.kLt)
   obtain ⟨hfam, hpops⟩ := isFamilyNum_of_binop hop
-  have hv := F.verify pc R.pcLt
+  have hv := F.verify pc R.pcLt _ hins (by m2_ns)
   obtain ⟨ls0, hL, hfl⟩ := R.labels
   have hH := R.height
   have hsb := R.sbLe
@@ -148,7 +148,7 @@ theorem step_binop_trap (X : Ctx) {E : Env} {s : St} {f : Frame} {tps tpl : Nat 
     ∃ sN e, step X.cfg X.p s = .abort sN e ∧ X.R * (S + fee - S_seg) + sN.gas.g = segb := by
   have F := (X.factsOf R.kLt)
   obtain ⟨hfam, hpops⟩ := isFamilyNum_of_binop hop
-  have hv := F.verify pc R.pcLt
+  have hv := F.verify pc R.pcLt _ hins (by m2_ns)
   obtain ⟨ls0, hL, hfl⟩ := R.labels
   have hH := R.height
   have hsb := R.sbLe
