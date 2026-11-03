@@ -1,4 +1,4 @@
-import WasmBase.Main.SegRowsX
+import WasmBase.Main.SegRegKeep
 import WasmBase.Main.CtxNodup
 
 /-!
@@ -22,7 +22,10 @@ the view is `MsgWF`.
   of an instruction table is `0, 2, 3, 4, 5`, `16 + ts` or `16 + cid` — `instr_spform`, by `decide` —,
   with `ts < 2^30` from the row's chain position `seg_row_lvl` and `cid < 2^28` from `RelW`), the
   "no space-6 message" half of the register clause (`seg_instr_rowQ_reg`), and `RegWF`
-  (`rowQ_regWF_keep`) — the latter two given `InstrRegKeep`.
+  (`rowQ_regWF_keep`), the latter two with **`InstrRegKeep`** (an instruction row's step keeps the
+  register file), which is `seg_instr_regKeep` (`Main/SegRegKeep.lean`: the row's FETCH op is
+  `< 0x1FF`, so its record is not a host call's).  So the three `RowQ` premises of
+  `seg_sound_cut_pub` remain only at HOST rows (`HostRely`).
 
 ## Named premises of `seg_sound`
 
@@ -33,10 +36,6 @@ the view is `MsgWF`.
   `HoldRowM2` + gas; host-chip contract);
 * `HostRely` — the HOST rows' register (`HostRegRely`), space and `RegWF` clauses (host-chip contract,
   M6);
-* **`InstrRegKeep`** — an instruction row's step keeps the register file (`RegKeep`; its instruction
-  is `NonHostI`: CALL rows call module functions — calls of imports have the record op `opHost`/
-  `opHostX` and run on HOST rows — and `call_indirect` has no record).  Open: derive it from each
-  chip's FETCH op (≠ `0x1FF`, `0x242`) and the M2 record inversion;
 * `hst0` (`halted_out = 0`: the cut case), `hlen` (`n < 2^28`), `htin` (`t_in < 2^28`), `hfeeN`
   (`S_in + (t_out − t_in + 1)·(maxFee + 1) < p`);
 * **`(initS tr pub).Nodup`** — the in-boundary messages are distinct (inside `CutSeg` before).  MEMB's
@@ -241,9 +240,6 @@ constant in `{0, 2, 3, 4, 5}`, `16 + ts` (CALL: the callee's locals, `ts` = the 
 row's consumed/produced messages are in space `0, 2, 3, 4, 5` or `16 + x` with `x` its STATE time or
 activation id (`instr_space`). -/
 
-/-- The `k`-th field expression of a table's STATE receive. -/
-def stE (T : Table) (k : Nat) : Expr := (T.inters.getD 0 default).msg.getD k 0
-
 /-- The allowed space expressions of a table's CH interactions (`loc`: also LOCAL's form). -/
 def spAllowed (T : Table) (loc : Bool) (e : Option Expr) : Bool :=
   decide (e = some (.c 0)) || decide (e = some (.c 2)) || decide (e = some (.c 3)) ||
@@ -260,11 +256,6 @@ theorem instr_spform : ∀ t, IsInstrM2 t → SpForm (chipM2 t) (decide (t = 9))
       t = 12 ∨ t = 13 ∨ t = 14 by omega) with
       rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> decide +kernel
   all_goals decide +kernel
-
-theorem stE_eval (T : Table) (tr : Trace) (pub : List F) (t r k : Nat) :
-    (stE T k).eval (tr.row pub t r) = (rowIn T tr pub t r).getD k 0 := by
-  simp only [stE, rowIn, List.getD_eq_getElem?_getD, List.getElem?_map]
-  cases h : (T.inters[0]?.getD default).msg[k]? <;> simp [h] <;> rfl
 
 /-- The space of a consumed/produced message of an instruction row: `0, 2, 3, 4, 5`, or `16 + ts`,
 `16 + cid` (field arithmetic) for the row's STATE time / activation id. -/
@@ -465,15 +456,15 @@ register) with a well-formed register file, on a cut (`halted_out = 0`):
 
 The trace → `CutSeg` instantiation (`segCut`: rows `seg_rowfacts` + `HoldRowS`, STATE `seg_hst`,
 CH `seg_hch`), `FinSplit`/`hin` (`seg_finSplit`, `seg_cuto_in_fin`), the instruction rows' space
-clause (`seg_instr_rowQ_sp`) and their register / `RegWF` clauses given `InstrRegKeep`
-(`seg_instr_rowQ_reg`, `rowQ_regWF_keep`) are theorems.  Named premises: see the module header. -/
+clause (`seg_instr_rowQ_sp`) and their register / `RegWF` clauses (`InstrRegKeep` = `seg_instr_regKeep`,
+`seg_instr_rowQ_reg`, `rowQ_regWF_keep`) are theorems.  Named premises: see the module header. -/
 theorem seg_sound (X : M2Ctx) {nloc ngl : Nat} {pub : List F} {tr : Trace}
     (H : HoldsX (wasmBaseSegAir nloc ngl) pub tr) {chip : List StateM5a.Sha512If.IfMsg}
     (hC : SegSha.ChipIf SegSha.compressW (wasmBaseSegAir nloc ngl) pub tr chip) (hl : CutoHiLimbs tr)
     (hcode : CodeOK X.toCtx tr) (hfunc : FuncOK X.toCtx tr)
     (hb : HostBLinked tr pub) (hg : RegCLinked tr pub)
     {sg : Nat → Nat × Nat} (hkeep : SegKeepM2 tr pub sg) (hhold : HoldRowS X.toCtx tr pub sg)
-    (hrely : HostRely X.toCtx tr pub) (hrk : InstrRegKeep X.toCtx tr pub)
+    (hrely : HostRely X.toCtx tr pub)
     (hst0 : pub.getD Boundary.pubStatus 0 = 0)
     (hlen : (actListM2 tr pub).length < 2 ^ 28) (htin : (pub.getD pubTIn 0).toNat < 2 ^ 28)
     (hfeeN : (pub.getD pubSIn 0).toNat +
@@ -494,6 +485,7 @@ theorem seg_sound (X : M2Ctx) {nloc ngl : Nat} {pub : List F} {tr : Trace}
         SegSha.wbytes d = cutDigest (cutView X.toCtx sN)) ∧
       ∀ y ∈ cutView X.toCtx sN, MsgWF y := by
   have hP := P_val
+  have hrk : InstrRegKeep X.toCtx tr pub := seg_instr_regKeep X H hcode
   have hI : SegInstrRows X.toCtx tr pub := fun t r htI hr ha => seg_rowfacts X H hcode hfunc htI hr ha
   have hrows := rowFactsSegMap_seg X.toCtx hI hkeep hhold
   have hlv : ∀ ρ ∈ actListM2 tr pub, (lvl (rowInM tr pub ρ)).toNat < 2 ^ 30 := by

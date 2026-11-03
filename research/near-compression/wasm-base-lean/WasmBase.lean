@@ -120,4 +120,5 @@ import WasmBase.Main.SegShaMemb
 import WasmBase.Main.SegShaCut
 import WasmBase.Main.SegBus
 import WasmBase.Main.SegRowsX
+import WasmBase.Main.SegRegKeep
 import WasmBase.Main.SegSoundX
