@@ -2,6 +2,7 @@ import StateM5a.Steps
 import StateM5a.StepsT2
 import StateM5a.Walk
 import StateM5a.SerInj
+import StateM5a.Refine
 import StateM5a.FieldRows
 import StateM5a.Layout
 import StateM5a.Order
@@ -96,3 +97,15 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.SerInj.slot_of_valueRef
 #print axioms StateM5a.SerInj.nodeSerInj
 #print axioms StateM5a.SerInj.refinedBy_of_hash'
+#print axioms StateM5a.Refine.del_refinedBy
+#print axioms StateM5a.Refine.kids_delAt_refinedBy
+#print axioms StateM5a.Refine.squashBranch_refinedBy
+#print axioms StateM5a.Refine.extendChild_refinedBy
+#print axioms StateM5a.Refine.del_some
+#print axioms StateM5a.Refine.dchain_witness
+#print axioms StateM5a.Refine.change_del_witness
+#print axioms StateM5a.Refine.findRef_refinedBy
+#print axioms StateM5a.Refine.rows_refinedBy
+#print axioms StateM5a.Refine.find_spec
+#print axioms StateM5a.Refine.upsert_spec
+#print axioms StateM5a.Refine.del_spec
