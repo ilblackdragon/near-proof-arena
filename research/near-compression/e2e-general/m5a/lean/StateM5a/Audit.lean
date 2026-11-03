@@ -516,3 +516,6 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.BrRange.br_M_lt
 #print axioms StateM5a.BrRange.br_nmom_lt
 #print axioms StateM5a.BrRange.brRangesW_of
+#print axioms StateM5a.BrSib.br_row_unique
+#print axioms StateM5a.BrSib.br_sib
+#print axioms StateM5a.BrMat.br_mat

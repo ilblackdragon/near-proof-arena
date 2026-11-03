@@ -1,4 +1,4 @@
-import StateM5a.BrRange
+import StateM5a.BrMat
 
 /-!
 # StateM5a.VerAssembly — `BrStore` with `old` / `new` from `VER` balance, and the final assembly
@@ -6,10 +6,13 @@ import StateM5a.BrRange
 `BrStore.old` / `BrStore.new` of every active `BR` row follow from `Holds` (the `VER` bus) with the
 store `σ = storeOf (brVers ++ rest)` (`rest`: the `SN` rows' version publications, ids distinct)
 and the SHA-256 facts of the hashing rows (`BrHashed`, from `Holds` by `BrDigest.brHashed`).
-The range facts `BrRangesW` come from `BrRange.brRangesW_of`.  **`air_final_sorted_ver`**:
+The range facts `BrRangesW` come from `BrRange.brRangesW_of`, the `MATR` / `SIBA` answers
+(`BrRest`) from `BrMat.br_mat` / `BrSib.br_sib`.  **`air_final_sorted_ver`**:
 `FinalOrder.air_final_sorted` for the concrete decoder with that store, the remaining premises being
-the `SN` side's memory limbs (`SnUpLimbs`, `SnMatLimbs`), the old value length (16-bit limbs on
-rows reading their node on `VER`; `< P`), the `MATR` / `SIBA` answers and the `SN` rows' `LocalOK`.
+on the `SN` side (the memory limbs it sends, `SnUpLimbs` / `SnMatLimbs`; its responder relations
+`SnSibOK` / `SnMatOK`; its rows' `LocalOK`), the old value length (16-bit limbs on rows reading
+their node on `VER`; `< P`), and `OslApart` (a split's new branch is not at an active row's walk
+position).
 -/
 
 namespace StateM5a.VerAssembly
@@ -63,7 +66,8 @@ theorem air_final_sorted_ver {tr : Trace Fp} {pub : List Fp} (D : Nat)
     (hr : ∀ T ∈ rest, ∀ i ∈ T.interactions, i.bus ≠ B_DOWN ∧ i.bus ≠ B_UP ∧ i.bus ≠ B_TCH)
     (hrN : ∀ T ∈ rest, sendsOn T.interactions B_NIB = false ∧ sendsOn T.interactions B_KC = false ∧
       sendsOn T.interactions B_KCR = false)
-    (hrM : ∀ T ∈ rest, sendsOn T.interactions B_MATR = false)
+    (hrS : ∀ T ∈ rest, sendsOn T.interactions B_MATQ = false ∧ sendsOn T.interactions B_MATR = false ∧
+      sendsOn T.interactions B_SIBQ = false ∧ sendsOn T.interactions B_SIBA = false)
     (hxV : ∀ T ∈ tapeTable (m5aTape writes prev post n) :: rest, sendsOn T.interactions B_VER = false)
     (hn : n < 2013265921) (hprev : prev.length = 32) (hpost : post.length = 32)
     (snVers : List (Nat × Rec))
@@ -72,27 +76,41 @@ theorem air_final_sorted_ver {tr : Trace Fp} {pub : List Fp} (D : Nat)
     (hVl : ∀ r, r < tr.height 2 → ev tr 2 r pub Br.gold = 1 → ev tr 2 r pub (Br.c "gsha") = 0 →
       ∀ k, k < 2 → ev tr 2 r pub (limb16 (fun t => Br.c "vl" t) k) < 65536)
     (hVP : ∀ r, r < tr.height 2 → ev tr 2 r pub Br.gold = 1 → brVlen tr pub r < 2013265921)
-    (hR : ∀ r, r < tr.height 2 → ev tr 2 r pub Br.gold = 1 → BrRest (storeOf (brVers tr pub ++ snVers)) tr pub r)
+    (hSib : BrSib.SnSibOK (storeOf (brVers tr pub ++ snVers)) (keyOf tr) tr pub)
+    (hMat : BrMat.SnMatOK (storeOf (brVers tr pub ++ snVers)) (keyOf tr) tr pub) (hOsl : BrMat.OslApart tr pub)
     (hsn : ∀ x ∈ rowsOf cDc snW tr 3 pub, LocalOK (Sem (storeOf (brVers tr pub ++ snVers)) (keyOf tr)) x)
     (cs : List (Bytes × Option Bytes)) (hlen : cs.length = n) (hcs : FinalChanges tr pub cs)
     (committed : List (Bytes × Option Bytes)) (hcomm : committed.Perm cs)
     (T : PTrie) (hT0 : T.hashOf = prev) (hF : Full T ∧ T.wf = true) :
-    ∃ T', applyChanges (some T) (sortKV committed) = some (some T') ∧ rootHash (some T') = post :=
-  air_final_sorted_cDc (storeOf (brVers tr pub ++ snVers)) D writes prev post n rest nb np hP hr hrN hn hprev hpost
-    (fun r hr' hg => brStore_of hP.hH hxV hP.hCR
-      (BrDigest.brHashed hP.hH (fun T hT => (hP.hsil T hT).2.2.2.1) (fun T hT => (hP.hsil T hT).2.2.2.2.1)
-        (fun T hT => (hP.hsil T hT).2.2.2.2.2.1)) snVers hnd hr' hg
-      (BrRange.brRangesW_of hP.hH (fun T hT => (hP.hsil T hT).2.2.2.1) (fun T hT => (hP.hsil T hT).2.2.2.2.1)
-        (fun T hT => (hP.hsil T hT).2.2.2.2.2.1) (fun T hT i hi => (hP.hx T hT i hi).2.2.2.1) hxV
-        (fun T hT => by
-          rcases List.mem_cons.1 hT with rfl | hT
-          · exact tape_not writes prev post n _ (by decide) (by decide)
-          · exact sendsOn_false_of fun i hi => (hr T hT i hi).2.1)
-        (fun T hT => by
-          rcases List.mem_cons.1 hT with rfl | hT
-          · exact tape_not writes prev post n _ (by decide) (by decide)
-          · exact hrM T hT)
-        hSU hSM hVl hVP hr' hg) (hR r hr' hg)) hsn
+    ∃ T', applyChanges (some T) (sortKV committed) = some (some T') ∧ rootHash (some T') = post := by
+  have tp : ∀ b, b ≠ B_WRITE → b ≠ B_TCH → (∀ T ∈ rest, sendsOn T.interactions b = false) →
+      ∀ T ∈ tapeTable (m5aTape writes prev post n) :: rest, sendsOn T.interactions b = false :=
+    fun b h1 h2 h T hT => by
+      rcases List.mem_cons.1 hT with rfl | hT
+      · exact tape_not writes prev post n b h1 h2
+      · exact h T hT
+  have hxB := fun T hT => (hP.hsil T hT).2.2.2.1
+  have hxD := fun T hT => (hP.hsil T hT).2.2.2.2.1
+  have hxK := fun T hT => (hP.hsil T hT).2.2.2.2.2.1
+  have hxN := fun T hT => (hP.hsil T hT).1
+  have hxR := tp B_KCR (by decide) (by decide) (fun T hT => (hrN T hT).2.2)
+  have hxDU : ∀ T ∈ tapeTable (m5aTape writes prev post n) :: rest, ∀ i ∈ T.interactions,
+      i.bus ≠ B_DOWN ∧ i.bus ≠ B_UP := fun T hT i hi => by
+    rcases List.mem_cons.1 hT with rfl | hT
+    · rcases tape_bus writes prev post n i hi with e | e <;> rw [e] <;> decide
+    · exact ⟨(hr T hT i hi).1, (hr T hT i hi).2.1⟩
+  have hxU := tp B_UP (by decide) (by decide) (fun T hT => sendsOn_false_of fun i hi => (hr T hT i hi).2.1)
+  have hxQ := tp B_MATQ (by decide) (by decide) (fun T hT => (hrS T hT).1)
+  have hxM := tp B_MATR (by decide) (by decide) (fun T hT => (hrS T hT).2.1)
+  have hxSQ := tp B_SIBQ (by decide) (by decide) (fun T hT => (hrS T hT).2.2.1)
+  have hxSA := tp B_SIBA (by decide) (by decide) (fun T hT => (hrS T hT).2.2.2)
+  have hD30 : D ≤ 30 := by have := hP.hD; omega
+  exact air_final_sorted_cDc (storeOf (brVers tr pub ++ snVers)) D writes prev post n rest nb np hP hr hrN hn hprev
+    hpost (fun r hr' hg => brStore_of hP.hH hxV hP.hCR (BrDigest.brHashed hP.hH hxB hxD hxK) snVers hnd hr' hg
+      (BrRange.brRangesW_of hP.hH hxB hxD hxK (fun T hT i hi => (hP.hx T hT i hi).2.2.2.1) hxV hxU hxM
+        hSU hSM hVl hVP hr' hg)
+      ⟨fun h => BrMat.br_mat hP.hH hD30 hxDU hxN hxK hxR hxQ hxM hMat hOsl hr' h,
+       fun h => BrSib.br_sib hP.hH hD30 hxDU hxN hxK hxR hxSQ hxSA hSib hr' h⟩) hsn
     cs hlen hcs committed hcomm T hT0 hF
 
 end StateM5a.VerAssembly
