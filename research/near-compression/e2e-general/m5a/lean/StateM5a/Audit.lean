@@ -12,6 +12,9 @@ import StateM5a.KeyField
 import StateM5a.Store
 import StateM5a.FieldVer
 import StateM5a.StepsBV
+import StateM5a.Bus
+import StateM5a.Traffic
+import StateM5a.BusWalk
 
 /-! Axiom audit of the M5a lemmas (`lake build StateM5a.Audit` prints them): every theorem must
 depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
@@ -123,3 +126,25 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.FieldRows2.br_sel
 #print axioms StateM5a.Store.del_step
 #print axioms StateM5a.Store.batched_changes
+#print axioms StateM5a.Bus.count_busList
+#print axioms StateM5a.Bus.holds_perm
+#print axioms StateM5a.Bus.perm_of_map_inj
+#print axioms StateM5a.Bus.perm_decode
+#print axioms StateM5a.Traffic.walk_unique
+#print axioms StateM5a.Traffic.child_of
+#print axioms StateM5a.Traffic.walk_rows
+#print axioms StateM5a.Traffic.walk_sem
+#print axioms StateM5a.Traffic.tch_chain
+#print axioms StateM5a.Traffic.ver_recv
+#print axioms StateM5a.BusWalk.cl_collapse
+#print axioms StateM5a.BusWalk.in_view
+#print axioms StateM5a.BusWalk.out_view
+#print axioms StateM5a.BusWalk.hashed_agree
+#print axioms StateM5a.BusWalk.ver_store
+#print axioms StateM5a.BusWalk.step_leafRep
+#print axioms StateM5a.BusWalk.step_brDesc
+#print axioms StateM5a.BusWalk.step_extDesc
+#print axioms StateM5a.BusWalk.localOK_upsert
+#print axioms StateM5a.BusWalk.chain_changes
+#print axioms StateM5a.BusWalk.stepRows_of_sem
+#print axioms StateM5a.BusWalk.bus_batched_changes
