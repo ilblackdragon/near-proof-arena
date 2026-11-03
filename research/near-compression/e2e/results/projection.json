@@ -1,0 +1,232 @@
+{
+ "budget_s": 3.0,
+ "eff": 0.35,
+ "n_gpu": 8,
+ "measured_chain_projection": {
+  "levels": [
+   {
+    "level": "L1",
+    "comps": 4354,
+    "ops": 2539260595892.872,
+    "one_gpu_s": 0.434,
+    "node_s": 0.09
+   },
+   {
+    "level": "L2",
+    "comps": 4956,
+    "ops": 2890676124788.7603,
+    "one_gpu_s": 0.494,
+    "node_s": 0.103
+   },
+   {
+    "level": "L3",
+    "comps": 4956,
+    "ops": 2890676124788.7603,
+    "one_gpu_s": 0.494,
+    "node_s": 0.103
+   },
+   {
+    "level": "L4",
+    "comps": 4956,
+    "ops": 2890676124788.7603,
+    "one_gpu_s": 0.494,
+    "node_s": 0.103
+   },
+   {
+    "level": "L5",
+    "comps": 4956,
+    "ops": 2890676124788.7603,
+    "one_gpu_s": 0.494,
+    "node_s": 0.103
+   },
+   {
+    "level": "FINAL",
+    "comps": 4956,
+    "ops": 2890676124788.7603,
+    "one_gpu_s": 0.741,
+    "node_s": 0.154
+   }
+  ],
+  "serial_one_gpu_s": 3.151,
+  "serial_split_8gpu_s": 0.656,
+  "note": "base proof of a D0a chunk (2.3 M cells) is < 0.05 s at this rate and omitted"
+ },
+ "rows": [
+  {
+   "row": "e2e D0a chunks (gas ~ 0; model floor at 1 Ggas)",
+   "gas": 1000000000.0,
+   "arch": "b",
+   "kind": "adv",
+   "latency_s": 0.669,
+   "design": {},
+   "gpu_s": 1.931,
+   "base_gpu_s": 0.261,
+   "agg_gpu_s": 0.569
+  },
+  {
+   "row": "e2e D0a chunks (gas ~ 0; model floor at 1 Ggas)",
+   "gas": 1000000000.0,
+   "arch": "b",
+   "kind": "real",
+   "latency_s": 0.532,
+   "design": {},
+   "gpu_s": 1.618,
+   "base_gpu_s": 0.181,
+   "agg_gpu_s": 0.0
+  },
+  {
+   "row": "e2e D0a chunks (gas ~ 0; model floor at 1 Ggas)",
+   "gas": 1000000000.0,
+   "arch": "a",
+   "kind": "adv",
+   "latency_s": 1.039,
+   "design": {},
+   "gpu_s": 3.099,
+   "base_gpu_s": 0.42,
+   "agg_gpu_s": 0.71
+  },
+  {
+   "row": "e2e D0a chunks (gas ~ 0; model floor at 1 Ggas)",
+   "gas": 1000000000.0,
+   "arch": "a",
+   "kind": "real",
+   "latency_s": 0.894,
+   "design": {},
+   "gpu_s": 2.663,
+   "base_gpu_s": 0.353,
+   "agg_gpu_s": 0.449
+  },
+  {
+   "row": "mainnet p99 18.45 Tgas",
+   "gas": 18450000000000.0,
+   "arch": "b",
+   "kind": "adv",
+   "latency_s": 1.258,
+   "design": {},
+   "gpu_s": 5.287,
+   "base_gpu_s": 1.611,
+   "agg_gpu_s": 2.238
+  },
+  {
+   "row": "mainnet p99 18.45 Tgas",
+   "gas": 18450000000000.0,
+   "arch": "b",
+   "kind": "real",
+   "latency_s": 0.622,
+   "design": {},
+   "gpu_s": 1.866,
+   "base_gpu_s": 0.218,
+   "agg_gpu_s": 0.546
+  },
+  {
+   "row": "mainnet p99 18.45 Tgas",
+   "gas": 18450000000000.0,
+   "arch": "a",
+   "kind": "adv",
+   "latency_s": 1.678,
+   "design": {},
+   "gpu_s": 7.11,
+   "base_gpu_s": 2.565,
+   "agg_gpu_s": 1.977
+  },
+  {
+   "row": "mainnet p99 18.45 Tgas",
+   "gas": 18450000000000.0,
+   "arch": "a",
+   "kind": "real",
+   "latency_s": 0.977,
+   "design": {},
+   "gpu_s": 3.034,
+   "base_gpu_s": 0.355,
+   "agg_gpu_s": 0.71
+  },
+  {
+   "row": "100 Tgas",
+   "gas": 100000000000000.0,
+   "arch": "b",
+   "kind": "adv",
+   "latency_s": 2.377,
+   "design": {},
+   "gpu_s": 15.881,
+   "base_gpu_s": 7.005,
+   "agg_gpu_s": 7.439
+  },
+  {
+   "row": "100 Tgas",
+   "gas": 100000000000000.0,
+   "arch": "b",
+   "kind": "real",
+   "latency_s": 0.839,
+   "design": {},
+   "gpu_s": 3.183,
+   "base_gpu_s": 0.928,
+   "agg_gpu_s": 1.111
+  },
+  {
+   "row": "100 Tgas",
+   "gas": 100000000000000.0,
+   "arch": "a",
+   "kind": "adv",
+   "latency_s": 3.566,
+   "design": {},
+   "gpu_s": 21.082,
+   "base_gpu_s": 11.293,
+   "agg_gpu_s": 5.73
+  },
+  {
+   "row": "100 Tgas",
+   "gas": 100000000000000.0,
+   "arch": "a",
+   "kind": "real",
+   "latency_s": 1.291,
+   "design": {},
+   "gpu_s": 4.459,
+   "base_gpu_s": 1.037,
+   "agg_gpu_s": 0.751
+  },
+  {
+   "row": "1 Pgas",
+   "gas": 1000000000000000.0,
+   "arch": "b",
+   "kind": "adv",
+   "latency_s": 10.56,
+   "design": {},
+   "gpu_s": 84.823,
+   "base_gpu_s": 43.963,
+   "agg_gpu_s": 38.497
+  },
+  {
+   "row": "1 Pgas",
+   "gas": 1000000000000000.0,
+   "arch": "b",
+   "kind": "real",
+   "latency_s": 1.889,
+   "design": {},
+   "gpu_s": 11.998,
+   "base_gpu_s": 5.367,
+   "agg_gpu_s": 4.176
+  },
+  {
+   "row": "1 Pgas",
+   "gas": 1000000000000000.0,
+   "arch": "a",
+   "kind": "adv",
+   "latency_s": 16.015,
+   "design": {},
+   "gpu_s": 128.455,
+   "base_gpu_s": 51.282,
+   "agg_gpu_s": 73.114
+  },
+  {
+   "row": "1 Pgas",
+   "gas": 1000000000000000.0,
+   "arch": "a",
+   "kind": "real",
+   "latency_s": 2.361,
+   "design": {},
+   "gpu_s": 15.496,
+   "base_gpu_s": 8.567,
+   "agg_gpu_s": 2.546
+  }
+ ]
+}

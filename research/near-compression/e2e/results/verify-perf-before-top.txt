@@ -1,0 +1,20 @@
+    32.50%  [.] _ZN20openvm_stark_backend6prover8fast_dft8dif_rows17h9fdb1e2e14682c81E.llvm.17047824940798920976                            
+    17.45%  [.] openvm_recursion_circuit::sha384::mb::sha384_x16                                                                            
+    16.47%  [.] core::ops::function::impls::<impl core::ops::function::Fn<A> for &F>::call                                                  
+    10.53%  [.] __memmove_avx512_unaligned_erms                                                                                             
+     3.07%  [.] openvm_stark_backend::prover::stream_pcs::stream_commit                                                                     
+     3.04%  [.] <alloc::vec::into_iter::IntoIter<T,A> as core::iter::traits::iterator::Iterator>::fold                                      
+     2.57%  [.] <alloc::vec::Vec<T> as alloc::vec::spec_from_iter::SpecFromIter<T,I>>::from_iter                                            
+     2.18%  [.] <core::iter::adapters::flatten::FlatMap<I,U,F> as core::iter::traits::iterator::Iterator>::next                             
+     1.84%  [.] <alloc::vec::Vec<T,A> as alloc::vec::spec_extend::SpecExtend<T,I>>::spec_extend                                             
+     1.58%  [.] core::ops::function::impls::<impl core::ops::function::FnMut<A> for &F>::call_mut                                           
+     1.16%  [.] _int_free                                                                                                                   
+     0.96%  [.] __memset_avx512_unaligned_erms                                                                                              
+     0.81%  [.] malloc                                                                                                                      
+     0.73%  [.] <openvm_recursion_circuit::sha384::config::ShaHasher as openvm_stark_backend::hasher::MerkleHasher>::hash_leaves_flat       
+     0.52%  [k] 0xffffffffa9e00ba0                                                                                                          
+     0.43%  [.] <T as alloc::vec::spec_from_elem::SpecFromElem>::from_elem                                                                  
+     0.43%  [.] __libc_calloc                                                                                                               
+     0.34%  [.] <rayon::iter::for_each::ForEachConsumer<F> as rayon::iter::plumbing::Folder<T>>::consume_iter                               
+     0.24%  [.] openvm_recursion_circuit::sha384::mb::sha384_many                                                                           
+     0.20%  [.] <openvm_recursion_circuit::sha384::config::ShaHasher as openvm_stark_backend::hasher::MerkleHasher>::compress_pairs         

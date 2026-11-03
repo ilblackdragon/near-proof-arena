@@ -1,0 +1,4 @@
+PUBLIC_PREPARATION_OK
+VERIFY_PROFILE_MS total=135.68 setup_read_pin=3.21 setup_parse=10.17 air_pin_bundle_read=1.61 statepublic_subprocess=41.17 expected_claim_tape=55.11 proof_decode=1.38 final_verify=23.01
+INDEPENDENT_VERIFY_OK bundle_bytes=307427 under_300000=false
+PROFILE: perf unavailable; resource sampling only

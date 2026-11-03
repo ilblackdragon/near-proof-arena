@@ -1,0 +1,39 @@
+== d1_00-h10006-s3
+VERIFY_BENCH_MS threads=1 reps=7 expected_claim=32.30 decode=0.222 engine_verify=14.89 program_check_replay=8.34 verify_final_claim=20.61
+total=97.16 setup_read_pin=2.64 setup_parse=5.57 air_pin_bundle_read=1.26 statepublic_subprocess=32.15 expected_claim_tape=34.28 proof_decode=0.25 final_verify=21.00 INDEPENDENT_VERIFY_OK bundle_bytes=306839 under_300000=false threads=1 cli_wall_ms=103.943317000
+total=103.62 setup_read_pin=2.66 setup_parse=5.79 air_pin_bundle_read=1.41 statepublic_subprocess=38.15 expected_claim_tape=34.36 proof_decode=0.23 final_verify=21.01 INDEPENDENT_VERIFY_OK bundle_bytes=306839 under_300000=false threads=1 cli_wall_ms=110.041605000
+total=105.77 setup_read_pin=5.63 setup_parse=8.52 air_pin_bundle_read=4.25 statepublic_subprocess=31.86 expected_claim_tape=34.31 proof_decode=0.23 final_verify=20.96 INDEPENDENT_VERIFY_OK bundle_bytes=306839 under_300000=false threads=1 cli_wall_ms=111.886875000
+VERIFY_BENCH_MS threads=16 reps=7 expected_claim=32.48 decode=0.227 engine_verify=15.70 program_check_replay=8.45 verify_final_claim=21.02
+total=100.15 setup_read_pin=2.71 setup_parse=5.58 air_pin_bundle_read=1.26 statepublic_subprocess=32.06 expected_claim_tape=37.14 proof_decode=0.23 final_verify=21.16 INDEPENDENT_VERIFY_OK bundle_bytes=306839 under_300000=false threads=16 cli_wall_ms=107.628989000
+total=98.53 setup_read_pin=2.61 setup_parse=5.58 air_pin_bundle_read=1.23 statepublic_subprocess=32.05 expected_claim_tape=35.46 proof_decode=0.24 final_verify=21.38 INDEPENDENT_VERIFY_OK bundle_bytes=306839 under_300000=false threads=16 cli_wall_ms=104.649977000
+total=99.54 setup_read_pin=2.66 setup_parse=5.59 air_pin_bundle_read=1.25 statepublic_subprocess=32.29 expected_claim_tape=36.21 proof_decode=0.24 final_verify=21.30 INDEPENDENT_VERIFY_OK bundle_bytes=306839 under_300000=false threads=16 cli_wall_ms=105.155598000
+== d1_00-h10007-s0
+VERIFY_BENCH_MS threads=1 reps=7 expected_claim=32.34 decode=0.225 engine_verify=14.45 program_check_replay=8.40 verify_final_claim=20.17
+total=130.26 setup_read_pin=4.67 setup_parse=9.46 air_pin_bundle_read=1.44 statepublic_subprocess=46.05 expected_claim_tape=47.95 proof_decode=0.23 final_verify=20.45 INDEPENDENT_VERIFY_OK bundle_bytes=307314 under_300000=false threads=1 cli_wall_ms=137.284962000
+total=101.57 setup_read_pin=5.58 setup_parse=8.57 air_pin_bundle_read=1.25 statepublic_subprocess=31.60 expected_claim_tape=33.97 proof_decode=0.23 final_verify=20.37 INDEPENDENT_VERIFY_OK bundle_bytes=307314 under_300000=false threads=1 cli_wall_ms=107.616345000
+total=98.35 setup_read_pin=5.58 setup_parse=5.55 air_pin_bundle_read=1.23 statepublic_subprocess=31.29 expected_claim_tape=34.07 proof_decode=0.23 final_verify=20.40 INDEPENDENT_VERIFY_OK bundle_bytes=307314 under_300000=false threads=1 cli_wall_ms=104.201224000
+VERIFY_BENCH_MS threads=16 reps=7 expected_claim=34.78 decode=0.392 engine_verify=14.57 program_check_replay=8.51 verify_final_claim=23.13
+total=99.08 setup_read_pin=2.68 setup_parse=5.61 air_pin_bundle_read=1.27 statepublic_subprocess=32.19 expected_claim_tape=36.61 proof_decode=0.23 final_verify=20.50 INDEPENDENT_VERIFY_OK bundle_bytes=307314 under_300000=false threads=16 cli_wall_ms=105.553547000
+total=123.58 setup_read_pin=2.99 setup_parse=9.54 air_pin_bundle_read=1.43 statepublic_subprocess=34.74 expected_claim_tape=50.08 proof_decode=0.40 final_verify=24.40 INDEPENDENT_VERIFY_OK bundle_bytes=307314 under_300000=false threads=16 cli_wall_ms=130.850363000
+total=136.21 setup_read_pin=2.95 setup_parse=9.45 air_pin_bundle_read=1.41 statepublic_subprocess=46.37 expected_claim_tape=51.23 proof_decode=0.41 final_verify=24.40 INDEPENDENT_VERIFY_OK bundle_bytes=307314 under_300000=false threads=16 cli_wall_ms=145.924198000
+== d2_05-h10042-s3
+VERIFY_BENCH_MS threads=1 reps=7 expected_claim=36.89 decode=0.226 engine_verify=13.73 program_check_replay=8.42 verify_final_claim=19.40
+total=100.05 setup_read_pin=2.70 setup_parse=5.62 air_pin_bundle_read=1.23 statepublic_subprocess=32.48 expected_claim_tape=37.01 proof_decode=1.33 final_verify=19.67 INDEPENDENT_VERIFY_OK bundle_bytes=307427 under_300000=false threads=1 cli_wall_ms=104.847099000
+total=99.94 setup_read_pin=2.60 setup_parse=5.56 air_pin_bundle_read=1.22 statepublic_subprocess=32.11 expected_claim_tape=36.91 proof_decode=1.34 final_verify=20.19 INDEPENDENT_VERIFY_OK bundle_bytes=307427 under_300000=false threads=1 cli_wall_ms=106.423353000
+total=105.79 setup_read_pin=5.62 setup_parse=8.57 air_pin_bundle_read=1.21 statepublic_subprocess=31.86 expected_claim_tape=37.15 proof_decode=1.36 final_verify=20.01 INDEPENDENT_VERIFY_OK bundle_bytes=307427 under_300000=false threads=1 cli_wall_ms=110.856168000
+VERIFY_BENCH_MS threads=16 reps=7 expected_claim=37.24 decode=0.392 engine_verify=14.51 program_check_replay=8.41 verify_final_claim=19.61
+total=107.24 setup_read_pin=2.67 setup_parse=5.55 air_pin_bundle_read=1.25 statepublic_subprocess=32.86 expected_claim_tape=41.82 proof_decode=1.43 final_verify=21.66 INDEPENDENT_VERIFY_OK bundle_bytes=307427 under_300000=false threads=16 cli_wall_ms=113.457840000
+total=129.29 setup_read_pin=3.07 setup_parse=9.65 air_pin_bundle_read=1.44 statepublic_subprocess=36.74 expected_claim_tape=53.98 proof_decode=1.41 final_verify=22.99 INDEPENDENT_VERIFY_OK bundle_bytes=307427 under_300000=false threads=16 cli_wall_ms=136.662524000
+total=105.88 setup_read_pin=2.73 setup_parse=5.64 air_pin_bundle_read=1.26 statepublic_subprocess=32.89 expected_claim_tape=40.61 proof_decode=1.30 final_verify=21.45 INDEPENDENT_VERIFY_OK bundle_bytes=307427 under_300000=false threads=16 cli_wall_ms=113.880666000
+== delivered opt-baseline-8 (v1 packet: TAPE commitment recomputed), new binary
+VERIFY_BENCH_MS threads=1 reps=3 expected_claim=8273.12 decode=0.223 engine_verify=18.34 program_check_replay=8.34 verify_final_claim=24.43
+total=8903.32 setup_read_pin=2.81 setup_parse=9.53 air_pin_bundle_read=1.42 statepublic_subprocess=45.84 expected_claim_tape=8817.88 proof_decode=0.24 final_verify=25.59 INDEPENDENT_VERIFY_OK bundle_bytes=299967 under_300000=true threads=1 cli_wall_ms=8915.317190000
+total=9583.74 setup_read_pin=2.71 setup_parse=5.58 air_pin_bundle_read=1.29 statepublic_subprocess=32.93 expected_claim_tape=9515.96 proof_decode=0.24 final_verify=25.04 INDEPENDENT_VERIFY_OK bundle_bytes=299967 under_300000=true threads=1 cli_wall_ms=9592.873249000
+total=8820.51 setup_read_pin=2.67 setup_parse=5.67 air_pin_bundle_read=1.29 statepublic_subprocess=32.93 expected_claim_tape=8753.09 proof_decode=0.23 final_verify=24.62 INDEPENDENT_VERIFY_OK bundle_bytes=299967 under_300000=true threads=1 cli_wall_ms=8830.192195000
+VERIFY_BENCH_MS threads=16 reps=3 expected_claim=2529.29 decode=0.231 engine_verify=19.06 program_check_replay=8.76 verify_final_claim=24.61
+total=2380.87 setup_read_pin=2.65 setup_parse=5.61 air_pin_bundle_read=1.28 statepublic_subprocess=32.18 expected_claim_tape=2314.11 proof_decode=0.24 final_verify=24.80 INDEPENDENT_VERIFY_OK bundle_bytes=299967 under_300000=true threads=16 cli_wall_ms=2397.058534000
+total=2444.00 setup_read_pin=2.59 setup_parse=5.51 air_pin_bundle_read=1.28 statepublic_subprocess=33.36 expected_claim_tape=2376.05 proof_decode=0.23 final_verify=24.97 INDEPENDENT_VERIFY_OK bundle_bytes=299967 under_300000=true threads=16 cli_wall_ms=2463.305821000
+total=2520.98 setup_read_pin=2.72 setup_parse=5.63 air_pin_bundle_read=1.33 statepublic_subprocess=34.81 expected_claim_tape=2448.80 proof_decode=0.40 final_verify=27.28 INDEPENDENT_VERIFY_OK bundle_bytes=299967 under_300000=true threads=16 cli_wall_ms=2540.252311000
+d1_00-h10006-s3 ok wall_ms=143.1 max_child_rss_mb=55.7
+d1_00-h10007-s0 ok wall_ms=166.4 max_child_rss_mb=55.7
+d2_05-h10042-s3 ok wall_ms=173.0 max_child_rss_mb=55.5

@@ -1,0 +1,3 @@
+PUBLIC_PREPARATION_OK
+VERIFY_PROFILE_MS total=190.25 setup_read_pin=2.76 setup_parse=5.68 air_pin_bundle_read=1.40 statepublic_subprocess=36.37 expected_claim_tape=101.66 proof_decode=0.25 final_verify=42.12
+INDEPENDENT_VERIFY_OK bundle_bytes=306839 under_300000=false

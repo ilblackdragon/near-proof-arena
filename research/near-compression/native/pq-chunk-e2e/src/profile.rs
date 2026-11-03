@@ -4,12 +4,27 @@ use openvm_stark_backend::{
     interaction::LogUpSecurityParameters,
 };
 
+/// Recursion-layer geometry. `NEARPROOF_CHAIN_GEOM=ns19lb6` raises the stacked ceiling of every
+/// recursion layer (L1.. and FINAL) from 2^20 to 2^21 at rate 1/64 (l_skip + n_stack + log_blowup
+/// stays 27, the field's two-adicity), the escape measured for depth-2 aggregation
+/// (`docs/logs/pq-agg-depth2-legal-2026-10-24.md`). Chunks with receipts need it: their L1 SHA AIR
+/// is 2^21 rows. Default: the delivered `ns18/lb7` geometry. The base layer is never affected.
+pub fn chain_geom() -> (usize, usize) {
+    match std::env::var("NEARPROOF_CHAIN_GEOM").as_deref() {
+        Ok("ns19lb6") => (19, 6),
+        Ok("ns18lb7") | Err(_) => (18, 7),
+        Ok(other) => panic!("unknown NEARPROOF_CHAIN_GEOM {other}"),
+    }
+}
+
 /// Same real-settings tail as the G2 gate, with the production 2^30 interaction budget.
 /// No environment variable may silently reduce the security target.
 pub fn params(final_layer: bool, cert_file: &str, exclusions: &str) -> SystemParams {
-    shaped_params(
+    let (n_stack, log_blowup) = chain_geom();
+    shaped_params_geom(
         final_layer,
-        18,
+        n_stack,
+        log_blowup,
         4096,
         NvCircuit::new(4, 18, 1).layout().degree().max(6),
         cert_file,
@@ -29,6 +44,18 @@ pub fn shaped_params(
         n_stack <= 18,
         "chunk shape exceeds the supported BabyBear extended domain"
     );
+    shaped_params_geom(final_layer, n_stack, 7, w_stack, degree, cert_file, exclusions)
+}
+
+fn shaped_params_geom(
+    final_layer: bool,
+    n_stack: usize,
+    log_blowup: usize,
+    w_stack: usize,
+    degree: usize,
+    cert_file: &str,
+    exclusions: &str,
+) -> SystemParams {
     let parse = |s: &str| -> Option<(u64, u64, u64)> {
         let a: Vec<_> = s.trim().split(',').collect();
         if a.len() != 4 || a[3] != "1" {
@@ -50,7 +77,11 @@ pub fn shaped_params(
         }
     }
     assert!(!certs.is_empty(), "no kernel-backed certificates");
-    let (l_skip, log_blowup, k) = (2, 7, 4);
+    let (l_skip, k) = (2, 4);
+    assert!(l_skip + n_stack + log_blowup <= 27, "beyond the BabyBear two-adic domain");
+    // Keep four WHIR rounds when the stacked height grows by one bit (ns19): one more bit folded
+    // into the final polynomial.
+    let extra = (l_skip + n_stack).saturating_sub(20);
     let levers = WhirLevers {
         k_first: if final_layer { 1 } else { 2 },
         multiproof: true,
@@ -68,7 +99,7 @@ pub fn shaped_params(
         l_skip + n_stack,
         WhirParams {
             k,
-            log_final_poly_len: if final_layer { 7 } else { 6 },
+            log_final_poly_len: if final_layer { 7 } else { 6 } + extra,
             query_phase_pow_bits: 32,
             folding_pow_bits: 0,
             mu_pow_bits: 0,

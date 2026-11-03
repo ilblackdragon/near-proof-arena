@@ -1,0 +1,4 @@
+REUSED dump public base from /data/illia/nearproof-deps/pq-e2e-zk/runs/d1_00-h10007-s0
+STAGE validate-base wall_s=40.065331437
+STAGE chain wall_s=2911.206774321
+STAGE verify wall_s=.172168071

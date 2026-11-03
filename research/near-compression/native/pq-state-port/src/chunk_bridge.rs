@@ -22,7 +22,13 @@ pub fn prove_base(
     );
     let inst = load(air, dump, Variant::D0a);
     report(&inst);
-    precheck(&inst);
+    // NEGATIVE TESTS ONLY: prove a witness the AIR rejects, so the verifier (not the prover's own
+    // check) is what refuses it. Never set for a real run.
+    if std::env::var("NEARPROOF_NEGATIVE_SKIP_PRECHECK").as_deref() == Ok("1") {
+        eprintln!("NEGATIVE TEST: precheck skipped");
+    } else {
+        precheck(&inst);
+    }
     let shape = params_for(&inst, "small");
     let params = crate::profile::shaped_params(
         false,
@@ -91,13 +97,75 @@ pub fn prove_base(
 /// Only verifier-generated public inputs/messages are read, never the proof or private traces.
 /// `statepublic` regenerates these files from claim.bin + hint.bin.
 pub fn expected_claim(air: &str, public: &str, params: SystemParams) -> StatementClaim {
-    public_statement(air, public, params, None)
+    public_statement(air, public, params, None, None)
+}
+
+/// [e2e tape-eval] The claim with the TAPE bound by evaluation: the stacked public TAPE table's
+/// prismalinear evaluation at the base proof's stacking point `u` (computed here from claim +
+/// hint, O(stacked height)), instead of its recomputed commitment root.
+pub fn expected_claim_at(
+    air: &str,
+    public: &str,
+    params: SystemParams,
+    u: &[openvm_recursion_circuit::sha384::config::EF],
+) -> StatementClaim {
+    public_statement(air, public, params, None, Some(u))
+}
+
+/// Prismalinear evaluations at `u` of every column of the stacked (full-height) commitment of
+/// `trace`: the values the base proof's `stacking_openings` carry for that commitment.
+pub fn stacked_openings_at(
+    params: &SystemParams,
+    trace: &openvm_stark_backend::prover::ColMajorMatrix<F>,
+    u: &[openvm_recursion_circuit::sha384::config::EF],
+) -> Vec<openvm_recursion_circuit::sha384::config::EF> {
+    use openvm_recursion_circuit::sha384::config::EF;
+    use openvm_stark_backend::prover::MatrixDimensions;
+    use p3_field::{PrimeCharacteristicRing, TwoAdicField};
+    let (q, _) = openvm_stark_backend::prover::stacked_pcs::stacked_matrix_tight(
+        params.l_skip,
+        params.n_stack,
+        &[trace],
+        false,
+    )
+    .expect("stacked TAPE layout");
+    let h = q.height();
+    assert_eq!(u.len(), params.n_stack + 1, "stacking point length");
+    assert_eq!(h, 1usize << (params.l_skip + params.n_stack), "stacked height");
+    let omega_pows: Vec<F> = F::two_adic_generator(params.l_skip)
+        .powers()
+        .take(1 << params.l_skip)
+        .collect();
+    // Only rows below the last non-zero row contribute: there the high hypercube bits are 0, so
+    // eq factors as eq_low(u_0, u_1..u_m) * prod_{i > m} (1 - u_i). Builds 2^(l_skip + m) weights
+    // instead of the full stacked height.
+    let last = q.values.iter().rposition(|v| *v != F::ZERO).map_or(0, |i| i % h);
+    let used = (0..q.width())
+        .filter_map(|c| q.values[c * h..(c + 1) * h].iter().rposition(|v| *v != F::ZERO))
+        .max()
+        .unwrap_or(last);
+    let m = (usize::BITS - used.leading_zeros()) as usize; // rows < 2^m
+    let m = m.saturating_sub(params.l_skip).min(params.n_stack);
+    let tail: EF = u[1 + m..].iter().map(|&x| EF::ONE - x).product();
+    let eq = openvm_stark_backend::prover::poly::evals_eq_hyperprism::<F, EF>(&omega_pows, u[0], &u[1..1 + m]);
+    q.values
+        .chunks_exact(h)
+        .map(|col| {
+            col[..eq.len()]
+                .iter()
+                .zip(&eq)
+                .filter(|(v, _)| **v != F::ZERO)
+                .map(|(&v, &e)| e * v)
+                .sum::<EF>()
+                * tail
+        })
+        .collect()
 }
 
 /// Rebuild the entire base VK from the declared AIR and verifier-produced public tape.
 /// This prevents a local checkpoint for a different relation entering a trusted setup run.
 pub fn check_base_key(air: &str, public: &str, vk: &MultiStarkVerifyingKey<Sha384Config>) {
-    public_statement(air, public, vk.inner.params.clone(), Some(vk));
+    public_statement(air, public, vk.inner.params.clone(), Some(vk), None);
 }
 
 fn public_statement(
@@ -105,6 +173,7 @@ fn public_statement(
     public: &str,
     params: SystemParams,
     expected_vk: Option<&MultiStarkVerifyingKey<Sha384Config>>,
+    tape_point: Option<&[openvm_recursion_circuit::sha384::config::EF]>,
 ) -> StatementClaim {
     // The driver initializes these once, before spawning worker threads.
     let levers = config::sha_levers();
@@ -153,6 +222,7 @@ fn public_statement(
         );
     }
     let (ts, tm) = harness("TAPE", &tape, true);
+    let params_copy = params.clone();
     let engine = Sha384RefEngine::new(params);
     if let Some(expected) = expected_vk {
         let tables: Vec<AirRef<Sha384Config>> = cl
@@ -169,11 +239,20 @@ fn public_statement(
             "base verifying key differs from the declared AIR and public TAPE"
         );
     }
-    let root = commit_program_part(engine.config(), ColMajorMatrix::from_row_major(&tm)).0;
     let mut pvs: Vec<_> = cl.tables.iter().map(|t| pv_of(t, &pubs)).collect();
     pvs.push(vec![]);
+    if let Some(u) = tape_point {
+        let ys = stacked_openings_at(&params_copy, &ColMajorMatrix::from_row_major(&tm), u);
+        return StatementClaim {
+            public_values: pvs,
+            cached_roots: vec![],
+            tape_point: Some((u.to_vec(), ys)),
+        };
+    }
+    let root = commit_program_part(engine.config(), ColMajorMatrix::from_row_major(&tm)).0;
     StatementClaim {
         public_values: pvs,
         cached_roots: vec![root],
+        tape_point: None,
     }
 }
