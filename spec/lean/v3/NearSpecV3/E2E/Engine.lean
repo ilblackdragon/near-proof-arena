@@ -244,7 +244,7 @@ macro_rules
       try simp only [bind_assoc]
       first
         | (with_reducible rfl)
-        | (refine congrArg (_ >>= ·) (funext fun _ => ?_); nat_walk)
+        | (with_reducible refine congrArg (_ >>= ·) (funext fun _ => ?_); nat_walk)
         | (split <;> nat_walk)
         | (simp only [pure_bind]; nat_walk)
         | (cases ‹_ × _›; nat_walk)
