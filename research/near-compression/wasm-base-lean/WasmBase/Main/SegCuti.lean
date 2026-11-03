@@ -481,10 +481,322 @@ theorem cuti_view {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsX (wasm
   · left
     exact StateM5a.StateView.sha384_coll e hx'
 
+/-! ## 5. The in-boundary block is duplicate-free (item 3)
+
+`initS = CUTI ∪ MEMB ∪ SEGB`.  CUTI's part is the previous view (item 2), duplicate-free under
+`RegWF` (`cutView_nodup`), in spaces other than 3 and 7.  MEMB's part: data row `9b + k` sends the
+bytes at `1024·blk_b + 128·k + i` (`i < 128`), with `blk_b < 2^16` (R16 on the block's padding row,
+which exists: `memb_complete`) and distinct across blocks (`memb_blk_distinct_of_holds`), so all
+addresses differ (`memb_addr_inj`); space 3.  SEGB's part is its one gas message (space 7). -/
+
+theorem filterMap_uniform {row : Row} {c : Expr} : ∀ (l : List Inter), (∀ i ∈ l, i.count = c) →
+    (l.filterMap fun i => if (i.count.eval row).toNat = 1 then some (i.msg.map (·.eval row)) else none) =
+      if (c.eval row).toNat = 1 then l.map (fun i => i.msg.map (·.eval row)) else []
+  | [], _ => by split <;> rfl
+  | i :: l, hc => by
+    rw [List.filterMap_cons, hc i List.mem_cons_self,
+      filterMap_uniform l (fun j hj => hc j (List.mem_cons_of_mem _ hj))]
+    by_cases h : (c.eval row).toNat = 1 <;> simp [h]
+
+theorem memb_send_filter : Memb.table.inters.filter (fun i => i.bus = busStk ∧ i.send = true) =
+    (List.range 128).map (fun i => chSend 3 (Memb.addr i) 0 [Memb.c s!"bi{i}", 0, 0, 0] (pv pubTIn) Memb.kD) := by
+  decide +kernel
+
+/-- MEMB's byte message `i` on row `r` (before decoding). -/
+def membMsg (tr : Trace) (pub : List F) (r i : Nat) : List F :=
+  (chSend 3 (Memb.addr i) 0 [Memb.c s!"bi{i}", 0, 0, 0] (pv pubTIn) Memb.kD).msg.map (·.eval (tr.row pub 19 r))
+
+theorem memb_part (tr : Trace) (pub : List F) : part Memb.table tr pub 19 busStk true =
+    (List.range (tr.height 19)).flatMap (fun r =>
+      if (Memb.kD.eval (tr.row pub 19 r)).toNat = 1 then (List.range 128).map (membMsg tr pub r) else []) := by
+  unfold part
+  congr 1; funext r
+  rw [rowMsgs_eq, memb_send_filter, filterMap_uniform _ (fun i hi => by
+    obtain ⟨j, -, rfl⟩ := List.mem_map.mp hi; rfl), List.map_map]
+  rfl
+
+theorem membMsg_space (tr : Trace) (pub : List F) (r i : Nat) : (decMsg (membMsg tr pub r i)).space = 3 := by
+  simp only [membMsg, decMsg, chSend, List.map_cons, List.cons_append, List.getD_cons_zero]
+  rfl
+
+theorem membMsg_slot (tr : Trace) (pub : List F) (r i : Nat) :
+    (decMsg (membMsg tr pub r i)).slot = ((Memb.addr i).eval (tr.row pub 19 r)).toNat := by
+  simp only [membMsg, decMsg, chSend, List.map_cons, List.cons_append, List.getD_cons_zero, List.getD_cons_succ]
+
+theorem memb_kD_eval (tr : Trace) (pub : List F) (r : Nat) : Memb.kD.eval (tr.row pub 19 r) =
+    ((mbN tr r 1 + mbN tr r 2 + mbN tr r 3 + mbN tr r 4 + mbN tr r 5 + mbN tr r 6 + mbN tr r 7 + mbN tr r 8 : Nat) : F) := by
+  have e8 : Memb.kD = 0 + Memb.p 0 + Memb.p 1 + Memb.p 2 + Memb.p 3 + Memb.p 4 + Memb.p 5 + Memb.p 6 +
+      Memb.p 7 := rfl
+  rw [e8]
+  simp only [Expr.eval_add', Expr.eval_ofNat', memb_p_eval tr pub r (show 0 < 9 by decide),
+    memb_p_eval tr pub r (show 1 < 9 by decide), memb_p_eval tr pub r (show 2 < 9 by decide),
+    memb_p_eval tr pub r (show 3 < 9 by decide), memb_p_eval tr pub r (show 4 < 9 by decide),
+    memb_p_eval tr pub r (show 5 < 9 by decide), memb_p_eval tr pub r (show 6 < 9 by decide),
+    memb_p_eval tr pub r (show 7 < 9 by decide), Lean.Grind.Semiring.natCast_add]
+  grind
+
+section memb
+variable {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsX (wasmBaseSegAir nloc ngl) pub tr)
+include H
+
+/-- A MEMB row whose byte sends fire (`kD = 1`) is an active data row. -/
+theorem memb_kD_one {r : Nat} (hr : r < tr.height 19) (h : (Memb.kD.eval (tr.row pub 19 r)).toNat = 1) :
+    mbN tr r 0 = 1 ∧ r % 9 < 8 := by
+  have hP := P_val
+  obtain ⟨ha, bp, hs⟩ := memb_row H hr
+  have b1 : mbN tr r 1 ≤ 1 := bp 0 (by decide)
+  have b2 : mbN tr r 2 ≤ 1 := bp 1 (by decide)
+  have b3 : mbN tr r 3 ≤ 1 := bp 2 (by decide)
+  have b4 : mbN tr r 4 ≤ 1 := bp 3 (by decide)
+  have b5 : mbN tr r 5 ≤ 1 := bp 4 (by decide)
+  have b6 : mbN tr r 6 ≤ 1 := bp 5 (by decide)
+  have b7 : mbN tr r 7 ≤ 1 := bp 6 (by decide)
+  have b8 : mbN tr r 8 ≤ 1 := bp 7 (by decide)
+  have b9 : mbN tr r 9 ≤ 1 := bp 8 (by decide)
+  rw [memb_kD_eval, Fp.toNat_cast_of_lt (by omega)] at h
+  have ha1 : mbN tr r 0 = 1 := by omega
+  refine ⟨ha1, ?_⟩
+  have hp := (memb_pos H r hr ha1).2
+  refine Classical.byContradiction fun hq => ?_
+  have h8 : r % 9 = 8 := by have := Nat.mod_lt r (show 9 > 0 by decide); omega
+  rw [h8] at hp
+  have : mbN tr r 9 = 1 := hp
+  omega
+
+/-- The address of byte `i` on an active data row. -/
+theorem memb_data_addr {r : Nat} (hr : r < tr.height 19) (ha : mbN tr r 0 = 1) (hq : r % 9 < 8) (i : Nat) :
+    (Memb.addr i).eval (tr.row pub 19 r) = ((1024 * mbN tr r 10 + 128 * (r % 9) + i : Nat) : F) := by
+  have hp := (memb_pos H r hr ha).2
+  obtain ⟨k, hkdef⟩ : ∃ k, k = r % 9 := ⟨_, rfl⟩
+  rw [← hkdef] at hp hq ⊢
+  have oh : ∀ j, j < 9 → mbN tr r (1 + j) = if j = k then 1 else 0 := by
+    intro j hj
+    by_cases hjk : j = k
+    · subst hjk; simpa using hp
+    · rw [if_neg hjk]; exact memb_onehot H hr (k := k) (by omega) hj (Ne.symm hjk) hp
+  have pe : ∀ j, j < 9 → (Memb.p j).eval (tr.row pub 19 r) = (((if j = k then 1 else 0 : Nat) : Nat) : F) := by
+    intro j hj; rw [memb_p_eval tr pub r hj, oh j hj]
+  have kk : Memb.kk.eval (tr.row pub 19 r) = ((k : Nat) : F) := by
+    have e9 : Memb.kk = 0 + Expr.c 0 * Memb.p 0 + Expr.c 1 * Memb.p 1 + Expr.c 2 * Memb.p 2 +
+        Expr.c 3 * Memb.p 3 + Expr.c 4 * Memb.p 4 + Expr.c 5 * Memb.p 5 + Expr.c 6 * Memb.p 6 +
+        Expr.c 7 * Memb.p 7 + Expr.c 8 * Memb.p 8 := rfl
+    rw [e9]
+    simp only [Expr.eval_add', Expr.eval_mul', Expr.eval_ofNat', Expr.eval_c, pe 0 (by decide),
+      pe 1 (by decide), pe 2 (by decide), pe 3 (by decide), pe 4 (by decide), pe 5 (by decide),
+      pe 6 (by decide), pe 7 (by decide), pe 8 (by decide)]
+    rcases (by omega : k = 0 ∨ k = 1 ∨ k = 2 ∨ k = 3 ∨ k = 4 ∨ k = 5 ∨ k = 6 ∨ k = 7) with
+      h | h | h | h | h | h | h | h <;> simp [h] <;> decide
+  simp only [Memb.addr, Expr.eval_add', Expr.eval_mul', Expr.eval_ofNat', Expr.eval_c, memb_c_eval, mb_ix.2.1, kk]
+  simp only [Lean.Grind.Semiring.natCast_add, Lean.Grind.Semiring.natCast_mul]
+
+/-- An active data row is followed by an active row of the same block. -/
+theorem memb_next {r : Nat} (hr : r < tr.height 19) (ha : mbN tr r 0 = 1) (hq : r % 9 < 8) :
+    r + 1 < tr.height 19 ∧ mbN tr (r + 1) 0 = 1 := by
+  have hP := P_val
+  have hp := (memb_pos H r hr ha).2
+  have hm : r % 9 < 9 := Nat.mod_lt _ (by decide)
+  have hp8 : mbN tr r (1 + 8) = 0 := memb_onehot H hr (k := r % 9) (j := 8) hm (by decide) (by omega) hp
+  have hr1 : r + 1 < tr.height 19 := by
+    refine Classical.byContradiction fun hn => ?_
+    have hl : r + 1 = tr.height 19 := by omega
+    have h := memb_C H hr (Expr.last * Memb.c "act" * (1 - Memb.p 8)) (by simp [Memb.constraints])
+    simp only [Expr.eval_mul', Expr.eval_sub', Expr.eval_ofNat', memb_c_eval, mb_ix.1,
+      memb_p_eval tr pub r (show 8 < 9 by decide), ha, hp8, sel_last (t := 19) (tr := tr) (pub := pub) hl] at h
+    exact absurd h (by decide)
+  refine ⟨hr1, ?_⟩
+  have hmem : Expr.trans * Memb.p (r % 9) * (1 - nv (ix Memb.cols s!"p{r % 9 + 1}")) ∈ Memb.constraints := by
+    unfold Memb.constraints
+    refine List.mem_append_left _ (List.mem_append_left _ (List.mem_append_left _ (List.mem_append_left _
+      (List.mem_append_left _ (List.mem_append_left _ (List.mem_append_right _ ?_))))))
+    exact List.mem_map.mpr ⟨r % 9, List.mem_range.mpr hq, rfl⟩
+  have h := memb_C H (r := r) hr _ hmem
+  rw [mb_ix_p (r % 9 + 1) (by omega)] at h
+  simp only [Expr.eval_mul', Expr.eval_sub', Expr.eval_ofNat', memb_p_eval tr pub r hm, nv,
+    Expr.eval_nxt, trans_eval_one tr pub 19 r hr1, hp, cast_one] at h
+  simp only [Trace.row, Nat.mod_eq_of_lt hr1, cell_cast] at h
+  have hq1 : mbN tr (r + 1) (1 + (r % 9 + 1)) = 1 :=
+    natEq (R := 1) (by rw [cast_one]; grind) (rowNat_lt _ _ _ _) (by rw [P_val]; decide)
+  obtain ⟨ha', bp', hs'⟩ := memb_row H hr1
+  have b1 : mbN tr (r + 1) 1 ≤ 1 := bp' 0 (by decide)
+  have b2 : mbN tr (r + 1) 2 ≤ 1 := bp' 1 (by decide)
+  have b3 : mbN tr (r + 1) 3 ≤ 1 := bp' 2 (by decide)
+  have b4 : mbN tr (r + 1) 4 ≤ 1 := bp' 3 (by decide)
+  have b5 : mbN tr (r + 1) 5 ≤ 1 := bp' 4 (by decide)
+  have b6 : mbN tr (r + 1) 6 ≤ 1 := bp' 5 (by decide)
+  have b7 : mbN tr (r + 1) 7 ≤ 1 := bp' 6 (by decide)
+  have b8 : mbN tr (r + 1) 8 ≤ 1 := bp' 7 (by decide)
+  have b9 : mbN tr (r + 1) 9 ≤ 1 := bp' 8 (by decide)
+  rcases (by omega : r % 9 = 0 ∨ r % 9 = 1 ∨ r % 9 = 2 ∨ r % 9 = 3 ∨ r % 9 = 4 ∨ r % 9 = 5 ∨ r % 9 = 6 ∨
+    r % 9 = 7) with e | e | e | e | e | e | e | e <;> rw [e] at hq1 <;>
+    (have : _ := hq1; simp only [Nat.reduceAdd] at this; omega)
+
+/-- **An active data row's block is complete**: its padding row `9·(r/9) + 8` exists and is active. -/
+theorem memb_complete : ∀ j r, 8 - r % 9 = j → r < tr.height 19 → mbN tr r 0 = 1 →
+    9 * (r / 9) + 8 < tr.height 19 ∧ mbN tr (9 * (r / 9) + 8) 0 = 1
+  | 0, r, hj, hr, ha => by
+    have : r = 9 * (r / 9) + 8 := by have := Nat.mod_lt r (show 9 > 0 by decide); omega
+    rw [← this]; exact ⟨hr, ha⟩
+  | j + 1, r, hj, hr, ha => by
+    have hq : r % 9 < 8 := by omega
+    obtain ⟨hr1, ha1⟩ := memb_next H hr ha hq
+    have e1 : (r + 1) / 9 = r / 9 := by omega
+    have := memb_complete j (r + 1) (by omega) hr1 ha1
+    rwa [e1] at this
+
+/-- The padding row's `blk` is below `2^16` (R16 on `blk`, count `p8`). -/
+theorem memb_blk_lt {b : Nat} (hr : 9 * b + 8 < tr.height 19) (ha : mbN tr (9 * b + 8) 0 = 1) :
+    mbN tr (9 * b + 8) 10 < 65536 := by
+  have ht : 19 < (wasmBaseSegAir nloc ngl).tables.length := by simp [seg_air_len]
+  have hp8 : mbN tr (9 * b + 8) (1 + 8) = 1 := by
+    have := (memb_pos H _ hr ha).2; rwa [show (9 * b + 8) % 9 = 8 by omega] at this
+  have mem : r16 (Memb.c "blk") (Memb.p 8) ∈ ((wasmBaseSegAir nloc ngl).tables[19]'ht).inters := by
+    rw [seg_t19]
+    show _ ∈ Memb.inters
+    unfold Memb.inters
+    refine List.mem_append_right _ ?_
+    simp
+  have h := seg_r16_lt H (seg_hsend_r16 H) ht hr mem (by rw [memb_p_eval tr pub _ (by decide), hp8]; decide)
+  simpa only [memb_c_eval, mb_ix.2.1, Fp.toNat_cast_of_lt (rowNat_lt _ _ _ _)] using h
+
+/-- The decoded address of byte `i` of an active data row, through its block's padding row. -/
+theorem memb_slot {r : Nat} (hr : r < tr.height 19) (ha : mbN tr r 0 = 1) (hq : r % 9 < 8) {i : Nat} (hi : i < 128) :
+    (decMsg (membMsg tr pub r i)).slot = 1024 * mbN tr (9 * (r / 9) + 8) 10 + 128 * (r % 9) + i ∧
+      mbN tr (9 * (r / 9) + 8) 10 < 65536 ∧ 9 * (r / 9) + 8 < tr.height 19 ∧ mbN tr (9 * (r / 9) + 8) 0 = 1 := by
+  have hP := P_val
+  obtain ⟨hc, hca⟩ := memb_complete H _ r rfl hr ha
+  have hlt := memb_blk_lt H hc hca
+  have hk := memb_blk_const H (b := r / 9) hc hca (r % 9) (by omega)
+  rw [show 9 * (r / 9) + r % 9 = r by omega] at hk
+  refine ⟨?_, hlt, hc, hca⟩
+  rw [membMsg_slot, memb_data_addr H hr ha hq, hk, Fp.toNat_cast_of_lt (by omega)]
+
+/-- **MEMB's in-side productions are duplicate-free.** -/
+theorem memb_part_nodup : ((part Memb.table tr pub 19 busStk true).map decMsg).Nodup := by
+  rw [memb_part, List.map_flatMap]
+  refine nodup_flatMap_of _ _ (fun r hr => ?_) ?_
+  · split
+    · rename_i hk
+      obtain ⟨ha, hq⟩ := memb_kD_one H (List.mem_range.mp hr) hk
+      rw [List.map_map]
+      refine nodup_map_range 128 _ (fun i j hi hj e => ?_)
+      have := congrArg Msg.slot e
+      simp only [Function.comp] at this
+      rw [(memb_slot H (List.mem_range.mp hr) ha hq hi).1, (memb_slot H (List.mem_range.mp hr) ha hq hj).1] at this
+      omega
+    · exact List.nodup_nil
+  · refine List.Pairwise.imp_of_mem ?_ (List.nodup_range (n := tr.height 19))
+    intro r r' hr hr' hne x hx hx'
+    split at hx
+    · rename_i hk
+      split at hx'
+      · rename_i hk'
+        have hr0 := List.mem_range.mp hr
+        have hr0' := List.mem_range.mp hr'
+        obtain ⟨ha, hq⟩ := memb_kD_one H hr0 hk
+        obtain ⟨ha', hq'⟩ := memb_kD_one H hr0' hk'
+        obtain ⟨i, hi, rfl⟩ := List.mem_map.mp (by simpa only [List.map_map] using hx)
+        obtain ⟨i', hi', e⟩ := List.mem_map.mp (by simpa only [List.map_map] using hx')
+        have hs := congrArg Msg.slot e
+        simp only [Function.comp] at hs
+        obtain ⟨s1, l1, c1, a1⟩ := memb_slot H hr0 ha hq (List.mem_range.mp hi)
+        obtain ⟨s2, l2, c2, a2⟩ := memb_slot H hr0' ha' hq' (List.mem_range.mp hi')
+        rw [s1, s2] at hs
+        have hii := List.mem_range.mp hi
+        have hii' := List.mem_range.mp hi'
+        obtain ⟨eb, ek, -⟩ := memb_addr_inj hq' hq hii' hii hs
+        by_cases hb : r' / 9 = r / 9
+        · omega
+        · exact memb_blk_distinct_of_holds H hb c2 c1 a2 a1 eb
+      · simp at hx'
+    · simp at hx
+
+end memb
+
+theorem segb_send_filter : Segb.table.inters.filter (fun i => i.bus = busStk ∧ i.send = true) =
+    [chSend (Expr.c spaceGas) 0 (pv pubSsegIn) (Segb.pubs pubGbIn 4) (pv pubTIn) .first] := by
+  decide +kernel
+
+theorem segb_part (tr : Trace) (pub : List F) (h0 : 1 ≤ tr.height 0) :
+    (part Segb.table tr pub 0 busStk true).map decMsg =
+      [decMsg ((chSend (Expr.c spaceGas) 0 (pv pubSsegIn) (Segb.pubs pubGbIn 4) (pv pubTIn) .first).msg.map
+        (·.eval (tr.row pub 0 0)))] := by
+  rw [part_first segb_send_filter rfl h0]; rfl
+
+theorem segb_gas_space (tr : Trace) (pub : List F) :
+    (decMsg ((chSend (Expr.c spaceGas) 0 (pv pubSsegIn) (Segb.pubs pubGbIn 4) (pv pubTIn) .first).msg.map
+      (·.eval (tr.row pub 0 0)))).space = 7 := by
+  simp only [decMsg, chSend, List.map_cons, List.cons_append, List.getD_cons_zero, Expr.eval_c, spaceGas]
+  rfl
+
+theorem fieldsOf_ofFields {y : List Nat} (hy : y.length = 7) (tp : Nat) : fieldsOf (ofFields y tp) = y := by
+  match y, hy with
+  | [a, b, c, d, e, f, g], _ => rfl
+
+/-- **The in-boundary block is duplicate-free** (item 3), given CUTI's productions as a list `L` of
+well-formed, distinct messages outside spaces 3 and 7 (item 2 gives `L = cutView X s`). -/
+theorem initS_nodup_of {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsX (wasmBaseSegAir nloc ngl) pub tr)
+    {L : List (List Nat)}
+    (hc : (part Cut.In.table tr pub 30 busStk true).map decMsg = L.map (fun y => ofFields y (pub.getD pubTIn 0).toNat))
+    (hL : L.Nodup) (hwf : ∀ y ∈ L, MsgWF y) (hsp : ∀ y ∈ L, y.getD 0 0 ≠ 3 ∧ y.getD 0 0 ≠ 7) :
+    (initS tr pub).Nodup := by
+  have h0 : 1 ≤ tr.height 0 := seg_h0 H
+  unfold initS
+  rw [hc, segb_part tr pub h0, List.nodup_append, List.nodup_append]
+  refine ⟨nodup_map_of_inj _ L hL (fun a ha b hb e => ?_), ⟨memb_part_nodup H, by simp, ?_⟩, ?_⟩
+  · have := congrArg fieldsOf e
+    rwa [fieldsOf_ofFields (hwf a ha).1, fieldsOf_ofFields (hwf b hb).1] at this
+  · intro a ha b hb e
+    rw [List.mem_singleton] at hb
+    have s1 : a.space = 3 := by
+      rw [memb_part, List.map_flatMap] at ha
+      obtain ⟨r, -, hr⟩ := List.mem_flatMap.mp ha
+      split at hr
+      · obtain ⟨i, -, rfl⟩ := List.mem_map.mp (by simpa only [List.map_map] using hr)
+        exact membMsg_space tr pub r i
+      · simp at hr
+    have s2 := segb_gas_space tr pub
+    rw [← hb, ← e] at s2; omega
+  · intro a ha b hb e
+    obtain ⟨y, hy, rfl⟩ := List.mem_map.mp ha
+    have hs : (ofFields y (pub.getD pubTIn 0).toNat).space = y.getD 0 0 := rfl
+    subst e
+    rcases List.mem_append.mp hb with hb | hb
+    · rw [memb_part, List.map_flatMap] at hb
+      obtain ⟨r, -, hr⟩ := List.mem_flatMap.mp hb
+      split at hr
+      · obtain ⟨i, -, e⟩ := List.mem_map.mp (by simpa only [List.map_map] using hr)
+        have := membMsg_space tr pub r i
+        simp only [Function.comp] at e
+        rw [e, hs] at this
+        exact (hsp y hy).1 this
+      · simp at hr
+    · rw [List.mem_singleton] at hb
+      have := segb_gas_space tr pub
+      rw [← hb, hs] at this
+      exact (hsp y hy).2 this
+
+/-- The view's entries are in spaces other than 3 and 7. -/
+theorem cutView_sp {X : Ctx} {s : St} {y : List Nat} (hy : y ∈ cutView X s) : y.getD 0 0 ≠ 3 ∧ y.getD 0 0 ≠ 7 := by
+  obtain ⟨x, hx, rfl⟩ := mem_cutView.mp hy
+  have : (fieldsOf x).getD 0 0 = x.space := rfl
+  rw [this]
+  rcases cutMsgs_space hx with a | a | a | a | ⟨a, -⟩ | a <;> omega
+
+/-- **`(initS tr pub).Nodup` at a view boundary** (item 3): CUTI produces `cutView X s` (item 2),
+`RegWF s`, the view `MsgWF`. -/
+theorem initS_nodup {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsX (wasmBaseSegAir nloc ngl) pub tr)
+    {X : Ctx} {s : St} (hw : RegWF s) (hwf : ∀ y ∈ cutView X s, MsgWF y)
+    (hc : (part Cut.In.table tr pub 30 busStk true).map decMsg =
+      (cutView X s).map (fun y => ofFields y (pub.getD pubTIn 0).toNat)) :
+    (initS tr pub).Nodup :=
+  initS_nodup_of H hc (cutView_nodup X hw) hwf (fun y hy => cutView_sp hy)
+
 end Cuti
 
 #print axioms Cuti.cuti_part
 #print axioms Cuti.cuti_stream
 #print axioms Cuti.cuti_view
+#print axioms Cuti.memb_part_nodup
+#print axioms Cuti.initS_nodup
 
 end WasmBase
