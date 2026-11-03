@@ -87,3 +87,4 @@ import WasmBase.RipemdVectors
 import WasmBase.RipemdForms
 import WasmBase.RipemdSound
 import WasmBase.RipemdRound
+import WasmBase.Main.SegRows
