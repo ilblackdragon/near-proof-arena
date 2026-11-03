@@ -4,7 +4,32 @@ import WasmBase.Main.SegSound
 /-!
 # WasmBase.Main.SegBus — the STATE/CH bus decomposition of `wasmBaseSegAir` (E2E M4b, S4)
 
-WIP
+The segment analogue of `Main/M2Bus.lean` (`m2_hst`, `m2_hch`), from `HoldsX (wasmBaseSegAir …)`
+alone (plus `HostBLinked`/`RegCLinked` for the CH fold, as in M2).  The action list is M2's
+`actListM2` (tables 1–14 read through `chipT` — RET + tombstone has RET's STATE/CH interactions —,
+active HOST rows read through `Host.table`, then IF/CONV/UNREACH).
+
+* **table split** `seg_msgs_air` (32 parts), **count bits** `seg_occ_bits` (every STATE/CH occurrence
+  has count ≤ 1: base chips by their `*_counts_of`, RET + tombstone by `ret_counts_of`, MEMB by
+  `memb_kD_le`, HOST + gas register by `host_inter_bound_of`, every other table by the decidable
+  `SCBitS` check), hence `seg_msgs_perm`;
+* **`segBase tr`**: `tr` with BOUNDARY/SEGB, DRAIN/DROP, MEMINIT/MEMB, DATA/MPATH emptied — it satisfies
+  the base AIR's constraints (`seg_base_holdsC`), so the base chip facts apply to a segment trace's
+  instruction rows (`seg_chip_inactive`; reused by `Main/SegRowsX.lean`);
+* **`seg_hst`** — the STATE perm `segM0 :: outs ~ segMF :: ins`: SEGB's start message
+  `[pc_in, t_in+1, S_in, 0, sb_in, cid_in]` and end message `[pc_out, t_out+1, S_out, halted, sb_out,
+  cidf]` (`segM0_eq`, `segMF_eq`) replace M2's fixed boundary messages;
+* **`seg_hch`** — the CH perm `initS ++ prods ~ finS ++ conss` over `actListM2`, a HOST row's CH traffic
+  fused with its call's `HOSTB` bytes, REG-C net traffic (the clear pairs cancel, as in M2) **and its
+  gas-register receive/send** (`GasT`, `prodCHS`/`consCHS`).  The boundary blocks:
+  - `initS` = CUTI's productions ++ MEMB's productions ++ SEGB's gas register (all at `t_in`,
+    `seg_initS_tp`);
+  - `finS` = CUTO's consumptions ++ MEMB's ++ SEGB's gas register ++ DROP's;
+* **`seg_finSplit`**: `FinSplit tr pub (finS tr pub)` and **`seg_cuto_in_fin`** (every active CUTO row's
+  message is in `finS`) — the hypotheses `FinSplit`/`hin` of `seg_sound_cut_pub` (S3), now theorems.
+
+The decoded CH bus is assembled from two halves (`chipsPart`, `restPart`): stating it as one 32-part
+`simp` produced a proof the kernel rejected (deep recursion), as in M2.
 -/
 
 namespace WasmBase
