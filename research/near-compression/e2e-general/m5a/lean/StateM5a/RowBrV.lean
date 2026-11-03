@@ -240,7 +240,7 @@ theorem br_mem_uvh (i : Nat) (hi : i < 16) :
     Br.c "oUV" * (Br.c "dvh" i - (sm 256 (Br.c "nvh" (2 * i)) + Br.c "nvh" (2 * i + 1))) ∈ Br.constraints := by
   brmem
 theorem br_mem_uv3 : Br.c "oUV" * Br.c "nvl" 3 ∈ Br.constraints := by
-  unfold Br.constraints; exact List.mem_append_right _ (List.mem_singleton_self _)
+  unfold Br.constraints; exact List.mem_append_right _ List.mem_cons_self
 set_option maxHeartbeats 4000000 in
 theorem br_mem_dv1 : Br.c "oDV" * (1 - Br.c "hasv") ∈ Br.constraints := by brmem
 set_option maxHeartbeats 4000000 in
