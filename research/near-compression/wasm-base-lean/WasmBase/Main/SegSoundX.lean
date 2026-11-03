@@ -4,7 +4,49 @@ import WasmBase.Main.CtxNodup
 /-!
 # WasmBase.Main.SegSoundX — segment soundness from `HoldsX` (E2E M4b, S4)
 
-WIP
+**`seg_sound`** — the cut case of a segment, from `HoldsX (wasmBaseSegAir …)` with **no given
+`CutSeg`**: the segment's `CutSeg` is built from the trace (`segCut`), and S3's `seg_sound_cut_pub`
+applied to it.  Conclusion: `t_out = t_in + n`, `seg n s0 = .cont sN` (`run` continues from `sN`),
+`BndC` at the out-boundary (SEGB's last STATE message `segFinM`, live list `finS`), CUTO's hashed list
+`= cutView X sN`, the public `ctx_out` limbs are the SHA-384 digest of `cutDigest (cutView X sN)`, and
+the view is `MsgWF`.
+
+## What is now a theorem (was a premise of `seg_sound_cut_pub`)
+
+* the whole `CutSeg`: rows (`rowFactsSegMap_seg`: instruction rows from `seg_rowfacts`,
+  `Main/SegRowsX.lean`; HOST rows `HoldRowS`), STATE (`seg_hst`), CH (`seg_hch`), producer times of the
+  in-boundary (`seg_initS_tp`), the time/fee bounds (from `hlen`, `htin` and the public `hfeeN`, via
+  `seg_len`: the segment's length is `t_out − t_in`);
+* `FinSplit`, `hin` (`seg_finSplit`, `seg_cuto_in_fin`, `Main/SegBus.lean`);
+* the per-row clauses at **instruction rows**: the space clause (`seg_instr_rowQ_sp`: every CH space
+  of an instruction table is `0, 2, 3, 4, 5`, `16 + ts` or `16 + cid` — `instr_spform`, by `decide` —,
+  with `ts < 2^30` from the row's chain position `seg_row_lvl` and `cid < 2^28` from `RelW`), the
+  "no space-6 message" half of the register clause (`seg_instr_rowQ_reg`), and `RegWF`
+  (`rowQ_regWF_keep`) — the latter two given `InstrRegKeep`.
+
+## Named premises of `seg_sound`
+
+* `ChipIf compressW …`, `CutoHiLimbs` — the SHA-512 chip contract and its limb bound (S1/S2);
+* `CodeOK`, `FuncOK` — the CODE/FUNC commitment bindings (as every `wasm_base_sound*`);
+* `HostBLinked`, `RegCLinked`, `SegKeepM2`, `hstepgas`, `hg64` — as `wasm_base_sound_m2`;
+* `HoldRowS` — the HOST rows' segment-aware row facts with the gas register fused in (M2's
+  `HoldRowM2` + gas; host-chip contract);
+* `HostRely` — the HOST rows' register (`HostRegRely`), space and `RegWF` clauses (host-chip contract,
+  M6);
+* **`InstrRegKeep`** — an instruction row's step keeps the register file (`RegKeep`; its instruction
+  is `NonHostI`: CALL rows call module functions — calls of imports have the record op `opHost`/
+  `opHostX` and run on HOST rows — and `call_indirect` has no record).  Open: derive it from each
+  chip's FETCH op (≠ `0x1FF`, `0x242`) and the M2 record inversion;
+* `hst0` (`halted_out = 0`: the cut case), `hlen` (`n < 2^28`), `htin` (`t_in < 2^28`), `hfeeN`
+  (`S_in + (t_out − t_in + 1)·(maxFee + 1) < p`);
+* **`(initS tr pub).Nodup`** — the in-boundary messages are distinct (inside `CutSeg` before).  MEMB's
+  bytes (distinct addresses, `memb_addr_inj`) and SEGB's single gas message are distinct by
+  construction; CUTI has no range/order checks, so its part is the previous segment's view only up
+  to SHA-384 (it does not follow "symmetrically" from CUTO);
+* `TombDead tr pub (finS tr pub)` — taken RETs' activations are dead at the cut (S3; an execution
+  fact);
+* `h0 : BndC …` (the in-boundary relation for `s0` at `t_in`, SEGB's first message, live list
+  `initS`) and `RegWF s0`.
 -/
 
 namespace WasmBase
