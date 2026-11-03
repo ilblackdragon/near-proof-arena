@@ -1,13 +1,14 @@
-import StateM5a.VerStore
+import StateM5a.BrDigest
 
 /-!
 # StateM5a.VerAssembly — `BrStore` with `old` / `new` from `VER` balance, and the final assembly
 
 `BrStore.old` / `BrStore.new` of every active `BR` row follow from `Holds` (the `VER` bus) with the
 store `σ = storeOf (brVers ++ rest)` (`rest`: the `SN` rows' version publications, ids distinct)
-and the SHA-256 facts of the hashing rows (`BrHashed`, premise).  **`air_final_sorted_ver`**:
-`FinalOrder.air_final_sorted` for the concrete decoder with that store, the remaining premises being
-`BrHashed`, the memory-limb ranges, the `MATR` / `SIBA` answers and the `SN` rows' `LocalOK`.
+and the SHA-256 facts of the hashing rows (`BrHashed`, from `Holds` by `BrDigest.brHashed`).
+**`air_final_sorted_ver`**: `FinalOrder.air_final_sorted` for the concrete decoder with that store,
+the remaining premises being the memory-limb ranges, the `MATR` / `SIBA` answers and the `SN` rows'
+`LocalOK`.
 -/
 
 namespace StateM5a.VerAssembly
@@ -55,7 +56,7 @@ theorem air_final_sorted_ver {tr : Trace Fp} {pub : List Fp} (D : Nat)
       sendsOn T.interactions B_KCR = false)
     (hxV : ∀ T ∈ tapeTable (m5aTape writes prev post n) :: rest, sendsOn T.interactions B_VER = false)
     (hn : n < 2013265921) (hprev : prev.length = 32) (hpost : post.length = 32)
-    (hHs : BrHashed tr pub) (snVers : List (Nat × Rec))
+    (snVers : List (Nat × Rec))
     (hnd : ((brVers tr pub ++ snVers).map (·.1)).Nodup)
     (hR : ∀ r, r < tr.height 2 → ev tr 2 r pub Br.gold = 1 → BrRest (storeOf (brVers tr pub ++ snVers)) tr pub r)
     (hsn : ∀ x ∈ rowsOf cDc snW tr 3 pub, LocalOK (Sem (storeOf (brVers tr pub ++ snVers)) (keyOf tr)) x)
@@ -64,7 +65,9 @@ theorem air_final_sorted_ver {tr : Trace Fp} {pub : List Fp} (D : Nat)
     (T : PTrie) (hT0 : T.hashOf = prev) (hF : Full T ∧ T.wf = true) :
     ∃ T', applyChanges (some T) (sortKV committed) = some (some T') ∧ rootHash (some T') = post :=
   air_final_sorted_cDc (storeOf (brVers tr pub ++ snVers)) D writes prev post n rest nb np hP hr hrN hn hprev hpost
-    (fun r hr' hg => brStore_of hP.hH hxV hP.hCR hHs snVers hnd hr' hg (hR r hr' hg)) hsn
+    (fun r hr' hg => brStore_of hP.hH hxV hP.hCR
+      (BrDigest.brHashed hP.hH (fun T hT => (hP.hsil T hT).2.2.2.1) (fun T hT => (hP.hsil T hT).2.2.2.2.1)
+        (fun T hT => (hP.hsil T hT).2.2.2.2.2.1)) snVers hnd hr' hg (hR r hr' hg)) hsn
     cs hlen hcs committed hcomm T hT0 hF
 
 end StateM5a.VerAssembly
