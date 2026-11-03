@@ -4,7 +4,72 @@ import WasmBase.Main.StepRegs
 /-!
 # WasmBase.Main.SegView — the AIR's boundary view is the spec view (E2E M4b, sub-lane S1)
 
-(module documentation: see the end of the file)
+Closes the gap listed at the end of `Main/SegRows.lean` (m4 README §7 item 1): at a cut, the
+relabelled live list `L'` of `Bnd.relabel` has, outside memory (space 3) and the gas register
+(space 7), exactly the members of `cutView X s` up to producer times; hence CUTO's hashed list *is*
+`cutView X s` and `ctx_out = cutDigest (cutView X s)`.
+
+## The four facts `RelW` lacked, and where they come from
+
+`RelW`/`Event.lean` is unchanged.  The new facts are layered on top:
+
+1. **Registers** (`RegC live s` = `Register.RegBusSound live s.registers tpr` for some `tpr`, M1's
+   stated obligation) and 2. **spaces** (`SpC live`: every live message in space 0, 2–7 or `≥ 16`)
+   form `BndC = Bnd ∧ RegC ∧ SpC`.  They are carried through a segment as invariants
+   (`exec_of_rows_cutQ`: `exec_of_rows_cut` with an extra predicate preserved by every row, `RowQ`):
+   * registers: an instruction row neither consumes nor produces space 6 and its step keeps
+     `registers` (`rowQ_reg_keep` + `regKeep_of_code`, from the spec lemma
+     `StepRegs.step_registers`: a step whose instruction is not a call of an import nor
+     `call_indirect` keeps the register file); a HOST row by the **named rely `HostRegRely`** (the
+     host function is opaque; its register effect is the host-chip contract, M6);
+   * spaces: a row's produced messages are in allowed spaces (`rowQ_space`; the per-table check, a
+     locals row's `16 + cid` with `cid < 2^28` from `RelW`, is the instantiation's).
+   At the in-cut both hold when the live list is the previous view at `t_in` plus memory and the gas
+   register (`bndC_of_view`), i.e. from the previous segment's out-cut.  The step-invariant route
+   was taken for spaces: the AIR route at the out-cut needs `DROP`'s `16 + c` not to wrap, which
+   needs `c` (a RET row's `cid`) bounded, an execution fact anyway.
+3. **`X.M.fns.Nodup`** (caller index `X.kOf fc.fn = c.k`, `kOf_fnOf`): a hypothesis on `X` here,
+   **discharged for both checkers** in `Main/CtxNodup.lean` (`Ctx.ofCheck_fns_nodup`,
+   `M2Ctx.toCtx_fns_nodup`, from `closureFns_nodup`).
+4. **Field bounds `< 2^30`** (`MsgWF`): taken from the AIR at the out cut — every member of the view
+   is a member of CUTO's hashed list, whose fields CUTO range-checks (`cutView_wf`, premise
+   `∀ y ∈ H, MsgWF y`, from `cut_field_lt`).  Not carried as a state invariant.
+
+Plus, for `ctx_out` *as a list*: `cutView` must be duplicate-free, which needs the register file
+well formed (**`RegWF s`**: distinct register ids, each register shorter than `2^24`, the space-6 key
+domain of `RegisterSpace.lean`); `RegWF` is carried as a third invariant (`rowQ_regWF_keep` for
+instruction rows; a HOST row's `RowQ` for it is part of the host rely).
+
+## Main results
+
+* `chain_img`, `view_eq_of_depth`: at a depth-labelled state, the kept live set is `cutView`, per
+  space: 0 (`RelW.live`/`stackView`), `16 + depth` and 4 (the caller chain `chainMsgs … (svR sv)`
+  against `frameMsgs`, frame at depth `d` = `s.frames.reverse[d]`), 2 (`HeapOK.glob`), 5
+  (`CallsOK.budget`), 6 (`RegC`).
+* `RelW.relabelV` (`RelW.relabel` exporting the chain in both directions), `RelW.relabel_view`,
+  **`cutView_eq`**: from `BndC` (and `fns.Nodup`) there is `(σ, A)` with `BndC` for the relabelled
+  list `L' = (L.filter (keepA A)).map (rlMsg σ)` and
+  `∀ y, (∃ x ∈ L', x.space ≠ 3 ∧ x.space ≠ 7 ∧ fieldsOf x = y) ↔ y ∈ cutView X s`.
+* `exec_of_rows_cutQ`, **`exec_of_rows_cutC`** (`BndC` in ⇒ `BndC` out across a cut segment).
+* `cutView_nodup` (under `RegWF`), `cutView_sorted`, **`ctx_out_eq`** (a strictly sorted list with
+  `cutView`'s members is `cutView`), **`ctx_out_digest`** (with the CUTO link and S2's
+  `ctxOut = cutDigest H`, `ctxOut = cutDigest (cutView X s)`), `cutView_wf`.
+* `bndC_of_view` (the in-cut clauses).
+* **`seg_sound_cut`**: the composed cut-segment statement (skeleton, §11).
+
+## Named hypotheses / open
+
+* `HostRegRely` (and the HOST row's `RowQ` for `SpC`/`RegWF`): host-chip contract (M6).
+* The **CUTO link** (`hcuto` in `ctx_out_digest`/`seg_sound_cut`): CUTO's hashed list has as
+  members exactly the kept depth-relabelled live messages — the AIR-side argument through CIDMAP
+  (functional: k4 slots strictly increasing, `cut_rec_order`; `dep` = depth, `cuto_dep`), DROP
+  (`drop_only_tombstoned`) and the final live list = CUTO ∪ MEMB ∪ SEGB ∪ DROP consumptions.  Not
+  proved here.
+* CUTO's order on the trace (`H.Pairwise keyLt`): `cut_order` is proved per row pair; the trace walk
+  (active rows are a prefix of the CUTO table) and the R16/chip-limb facts it needs are not
+  assembled here — a premise of `seg_sound_cut`.
+* The SHA stream (`ctxOut = cutDigest H`, sub-lane S2) and the memory part (`MemOut`, others) are
+  premises; the trace → `CutSeg` instantiation for `wasmBaseSegAir` is not done.
 -/
 
 namespace WasmBase
@@ -1127,5 +1192,79 @@ theorem bndC_of_view {X : Ctx} {sg : Nat → Nat × Nat} {s : St} {t S : Nat} {m
       rw [ofFields_fieldsOf]
       unfold SpaceOK
       rcases cutMsgs_space hx' with a | a | a | a | ⟨a, -⟩ | a <;> simp only <;> omega
+
+/-! ## 11. Segment soundness, composed (skeleton)
+
+The pieces above composed for one cut segment.  The trace side enters through `CutSeg` (the rows
+and bus facts of `exec_of_rows_cut`; their instantiation from `Holds (wasmBaseSegAir nloc ngl)`, the
+segment analogue of `wasm_base_exec_host_holds`, is not done here), the per-row clause facts
+(`rowQ_reg_keep`/`regKeep_of_code` for instruction rows, `HostRegRely` for HOST rows,
+`rowQ_space`, `rowQ_regWF_keep`), CUTO's hashed list `H` with its order (`cut_order`), the SHA
+stream lemma (sub-lane S2) and the memory part (left to the lead as `MemOut`). -/
+
+/-- A row that keeps the register file keeps its well-formedness. -/
+theorem rowQ_regWF_keep {X : Ctx} {inS : List F} {cons prod : List Msg} (hk : RegKeep X inS) :
+    RowQ X (fun s _ => RegWF s) inS cons prod := by
+  intro E s f tps tpl t pc S live a b s' R hin _ hs hw
+  unfold RegWF at hw ⊢
+  rw [hk E s f tps tpl t pc S live a b s' R hin hs]; exact hw
+
+/-- **Segment soundness (cut case), composed.**  For a cut segment `c` (`st = 0`) from a state `s0`
+related to its in-boundary by `BndC` with a well-formed register file, whose rows keep the register
+clause, the space clause and `RegWF` (per row, as above), there is `sN` with
+
+* `seg n s0 = .cont sN` (`n` the segment's length) and `run` continues from `sN`;
+* `BndC` at the out-boundary (`sN`, the final STATE message, the final live list `c.fin`);
+* the memory part `MemOut sN` (whatever the lead's memory lemma derives from `Bnd`);
+* the boundary view: there is a relabelling `(σ, A)` (activation ids → depths, dead locals dropped)
+  with `BndC` again, such that **if** CUTO hashes exactly the kept relabelled live messages
+  (`hcuto`, the AIR-side CUTO/CIDMAP/DROP link, open) then CUTO's list is `cutView X sN`, the public
+  `ctx_out` is `cutDigest (cutView X sN)` (via `hsha`, sub-lane S2), and the view is `MsgWF` when
+  CUTO's fields are. -/
+theorem seg_sound_cut (X : Ctx) (hnd : X.M.fns.Nodup) {sg : Nat → Nat × Nat} {ρ : Type} [DecidableEq ρ]
+    (c : CutSeg X sg ρ) (hc : c.st = 0)
+    (hstepgas : ∀ t S g : Nat, X.R * (S - (sg t).1) + g = (sg t).2 →
+      X.R * (S + X.maxFee - (sg t).1) ≤ (sg t).2)
+    (hg64 : X.g0 < 2 ^ 64)
+    (hreg : ∀ r ∈ c.act, RowQ X (fun s live => RegC live s) (c.inS r) (c.cons r) (c.prod r))
+    (hsp : ∀ r ∈ c.act, RowQ X (fun _ live => SpC live) (c.inS r) (c.cons r) (c.prod r))
+    (hwf : ∀ r ∈ c.act, RowQ X (fun s _ => RegWF s) (c.inS r) (c.cons r) (c.prod r))
+    {s0 : St} (h0 : BndC X sg s0 c.t0 c.S0 c.m0 c.init) (hw0 : RegWF s0)
+    (MemOut : St → Prop) (hmem : ∀ sN, Bnd X sg sN c.stop.t c.stop.S c.stop.m c.fin → MemOut sN)
+    (H : List (List Nat)) (hH : H.Pairwise keyLt) (ctxOut : ArenaCore.Bytes) (hsha : ctxOut = cutDigest H) :
+    ∃ sN, NearSpecV3.Wasm.seg X.cfg X.p c.len s0 = .cont sN ∧
+      (∀ m, run X.cfg X.p (c.len + m) s0 = run X.cfg X.p m sN) ∧
+      BndC X sg sN c.stop.t c.stop.S c.stop.m c.fin ∧ MemOut sN ∧
+      ∃ (σ : Nat → Nat) (A : List Nat),
+        BndC X sg sN c.stop.t c.stop.S (c.stop.m.set 5 ((sN.frames.length - 1 : Nat) : F))
+          ((c.fin.filter (fun x => decide (keepA A x))).map (rlMsg σ)) ∧
+        ((∀ y, y ∈ H ↔ ∃ x ∈ (c.fin.filter (fun x => decide (keepA A x))).map (rlMsg σ),
+            x.space ≠ 3 ∧ x.space ≠ 7 ∧ fieldsOf x = y) →
+          H = cutView X sN ∧ ctxOut = cutDigest (cutView X sN) ∧
+          ((∀ y ∈ H, MsgWF y) → ∀ y ∈ cutView X sN, MsgWF y)) := by
+  obtain ⟨h0b, h0r, h0s⟩ := h0
+  obtain ⟨-, hcut⟩ := exec_of_rows_cutQ X c.act c.inS c.outS c.cons c.prod c.init c.fin c.pcf c.N c.Sf sg c.st
+    c.hst2 c.hrows c.t0 c.S0 c.m0 c.sbf c.cidf c.hst c.hch c.hinit c.hinitTp c.ht c.hfee hstepgas hg64 h0b
+    (fun s live => (RegC live s ∧ SpC live) ∧ RegWF s)
+    (fun r hr => rowQ_and (rowQ_and (hreg r hr) (hsp r hr)) (hwf r hr)) ⟨⟨h0r, h0s⟩, hw0⟩
+  obtain ⟨sN, h1, h2, h3, ⟨h4, h5⟩, h6⟩ := hcut hc
+  have hB : BndC X sg sN c.stop.t c.stop.S c.stop.m c.fin := ⟨h3, h4, h5⟩
+  obtain ⟨σ, A, hB', hctx⟩ := ctx_out_digest hnd hB h6
+  exact ⟨sN, h1, h2, hB, hmem sN h3, σ, A, hB', fun hcuto => hctx H ctxOut hH hcuto hsha⟩
+
+#print axioms view_eq_of_depth
+#print axioms RelW.relabelV
+#print axioms RelW.relabel_view
+#print axioms cutView_eq
+#print axioms exec_of_rows_cutQ
+#print axioms exec_of_rows_cutC
+#print axioms regKeep_of_code
+#print axioms rowQ_reg_keep
+#print axioms rowQ_space
+#print axioms cutView_nodup
+#print axioms ctx_out_eq
+#print axioms ctx_out_digest
+#print axioms bndC_of_view
+#print axioms seg_sound_cut
 
 end WasmBase
