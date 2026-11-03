@@ -10,6 +10,9 @@
 #   patches/zk-piop.patch     (only with E2E_ZK=1) PIOP masking (`zk >= 4`): masked GKR, masked
 #                             batch sumcheck with column masks, masked stacking reduction
 #                             (research/near-compression/e2e/ZK-ARGUMENT.md). Inert for zk < 4.
+#                             zk = 6 (D-3): WHIR batched with the stacking coefficients (no
+#                             stacked openings), extension-field stacking masks; plus the review
+#                             fixes (layout termination, proof-shape errors, verify_with_point).
 #                             Regenerate with make_zk_piop_patch.sh.
 # Applied with `patch -p1` from the deps root. Idempotent: an overlaid tree is checked by
 # reverse-applying each patch in a dry run (the tree must contain exactly the patch's hunks).

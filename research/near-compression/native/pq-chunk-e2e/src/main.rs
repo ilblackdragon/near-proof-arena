@@ -735,9 +735,11 @@ fn zk_guess(fc: &NvCircuit, vk: &MultiStarkVerifyingKey<SC>, p: &Proof<SC>, dir:
     setup.final_vk.inner.params.whir.domain_odd_factor = setup.domain_odd_factor;
     let fp = read_proof(&dir.join("FINAL.proof"));
     let engine = Sha384CpuEngine::new_final(setup.final_vk.inner.params.clone());
-    let _ = openvm_stark_backend::verifier::take_last_zerocheck_point::<Ef>();
-    engine.verify(&setup.final_vk, &fp).expect("final proof");
-    let r = openvm_stark_backend::verifier::take_last_zerocheck_point::<Ef>().expect("batch point");
+    let r = {
+        use openvm_stark_backend::StarkEngine;
+        let mut t = engine.initial_transcript();
+        openvm_stark_backend::verifier::verify_with_point(engine.config(), &setup.final_vk, &fp, &mut t).expect("final proof")
+    };
     let (mats, _) = fc.generate(vk, p);
     let mvk = &setup.final_vk.inner;
     let l_skip = mvk.params.l_skip;
@@ -909,14 +911,14 @@ fn main() {
                 let c = openvm_stark_backend::soundness::SoundnessCalculator::calculate_from_vk(&vk);
                 let w = &c.whir_details;
                 println!(
-                    "SOUNDNESS_BITS file={path} n_stack={} log_blowup={} queries={:?} logup={:.1} gkr_sumcheck={:.1} gkr_batching={:.1} zerocheck={:.1} constraint_batching={:.1} stacked_reduction={:.1} whir={:.1} total={:.1} whir_query={:.1} whir_proximity={:.1} whir_sumcheck={:.1} whir_fold={:.1} whir_ood={:.1} whir_gamma={:.1} whir_shift={:.1} whir_mu={:.1}",
+                    "SOUNDNESS_BITS file={path} n_stack={} log_blowup={} queries={:?} logup={:.1} gkr_sumcheck={:.1} gkr_batching={:.1} zerocheck={:.1} constraint_batching={:.1} stacked_reduction={:.1} whir={:.1} total={:.1} whir_query={:.1} whir_proximity={:.1} whir_sumcheck={:.1} whir_fold={:.1} whir_ood={:.1} whir_gamma={:.1} whir_shift={:.1} whir_mu={:.1} whir_nu={:.1}",
                     vk.inner.params.n_stack,
                     vk.inner.params.log_blowup,
                     vk.inner.params.whir.rounds.iter().map(|r| r.num_queries).collect::<Vec<_>>(),
                     c.logup_bits, c.gkr_sumcheck_bits, c.gkr_batching_bits, c.zerocheck_sumcheck_bits,
                     c.constraint_batching_bits, c.stacked_reduction_bits, c.whir_bits, c.total_bits,
                     w.query_bits, w.proximity_gaps_bits, w.sumcheck_bits, w.fold_rbr_bits, w.ood_rbr_bits,
-                    w.gamma_batching_bits, w.shift_rbr_bits, w.mu_batching_bits
+                    w.gamma_batching_bits, w.shift_rbr_bits, w.mu_batching_bits, w.nu_batching_bits
                 );
             }
         }

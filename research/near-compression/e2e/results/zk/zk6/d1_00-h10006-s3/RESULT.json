@@ -1,0 +1,13 @@
+{
+  "bundle_bytes": 325751,
+  "hint_bytes": 16,
+  "levels": 5,
+  "proof_bytes": 324803,
+  "scope": "D0a",
+  "security_established": false,
+  "setup_sha256": "35675dc44e9d8e576a37fa2c2053db06bddbcd532fb90858661de16a83108af7",
+  "tape_eval": true,
+  "trusted_setup_bytes": 3832505,
+  "under_300000": false,
+  "zero_knowledge_established": false
+}

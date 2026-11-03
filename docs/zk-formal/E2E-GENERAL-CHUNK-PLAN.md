@@ -701,7 +701,49 @@ mutants rejected) is met. The gas equality holds outside the proof (the tape) un
 `lake build WasmBase` breakage reported on 2026-10-31 was fixed on main (`6a1739cd7`), and the build
 is green with the new files.
 
-### 5.0 Lane D (ZK wrap for M9): status, 2026-11-03 (milestone D-2)
+### 5.0 Lane D (ZK wrap for M9): status, 2026-11-03 (milestone D-3)
+
+See `research/near-compression/e2e/README.md` §0 (§0a for D-2) and
+`research/near-compression/e2e/ZK-ARGUMENT.md`. The log is
+`docs/logs/e2e-zk-lane-d-2026-11-03.md`.
+
+**Done (D-3):**
+* **`zk = 6` built** (FINAL, `NEARPROOF_ZK_FINAL=6`).
+  * No stacked opening is sent. WHIR batches with `μ^j + ν c_j` (the stacking coefficients),
+    and `B = Σ μ^j q̂_j(u)` is sent after `μ`.
+  * The stacking Libra masks are extension-field columns, 12 base columns each, so there are 37
+    mask columns.
+* **Soundness re-derived** (ZK-ARGUMENT §5, in the per-move form of E2E-SOUNDNESS-BUDGET §3.1).
+  * The μ move is unchanged, at 283.6 bits.
+  * The new ν move is `E_1/|F| + ℓ₀/|F|`, at 295.6 bits.
+  * FINAL minimum: 268.2 bits at the 268 target, 274.0 at 274.
+* **Lemmas D and E are proved.** D is Lemmas D1 + D2; E is Lemma V, which is exact.
+  * Simulator and hybrids are complete.
+  * **ε_ZK ≤ 2^-184.4** (ROM), for the statement (claim, setup, heights).
+* **Measured on the 3 D0a chunks.**
+  * Packets: 325,751 / 325,722 / 325,247 B. That is +6 KB against `zk = 5`: the price of the
+    provable masks.
+  * At 274 bits: 330,485 B.
+  * Verify: 41–67 ms on one core.
+  * Negatives: 21/21 per chunk.
+  * Distinguisher: 0/287 for both the right and the wrong witness.
+  * `zk-diff`: clean.
+* **Independent review: fixes landed.** #1 (verifier hang), #2 (panic), #5, #6, #7 and #8 are
+  fixed, with regression tests.
+
+**Open:**
+* `zero_knowledge_established=false` because of **obligation H**. The FINAL trace heights are
+  public, but V_d does not pin them (review #4). The fix is to record them in the setup, have
+  V_d check equality, and have the prover pad. It changes the setup content, so it is an owner
+  decision.
+* **Q:** the ZK proof is in the classical ROM. A QROM-programming lemma is needed for the PQ
+  claim. Lane E's QROM work covers soundness only.
+* Independent review of the D-3 verifier changes (`WhirBatch::Deferred`,
+  `stacking_final_coeffs`).
+* Size lever: one extension-field mask column with three τ chains would save about 4.4 KB, but
+  it needs a new rank lemma.
+
+#### D-2 status (superseded by D-3 above)
 
 See `research/near-compression/e2e/README.md` §0 and `research/near-compression/e2e/ZK-ARGUMENT.md`.
 The log is `docs/logs/e2e-zk-lane-d-2026-11-03.md`.

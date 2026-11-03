@@ -1,6 +1,6 @@
 --- a/stark-backend-unified/crates/stark-backend/src/zk.rs
 +++ b/stark-backend-unified/crates/stark-backend/src/zk.rs
-@@ -0,0 +1,269 @@
+@@ -0,0 +1,288 @@
 +//! [E2E-D zk-piop] PIOP-level masking of a proof (`WhirLevers::zk >= 4`): definitions shared by
 +//! the prover and the verifier. Construction, simulator and error bounds:
 +//! `research/near-compression/e2e/ZK-ARGUMENT.md` (§4).
@@ -34,6 +34,25 @@
 +/// layout of `width` columns (the last three of the `ZK_MASK_COLS` appended columns).
 +pub fn mask_columns(width: usize) -> (usize, usize, usize) {
 +    (width - 1, width - 2, width - 3)
++}
++
++/// [E2E-D zk-batch] `zk = 6`: `(M_s, M_1, M_2)` with `M_1`, `M_2` extension-field columns, each
++/// the `D = [EF : F]` consecutive base columns starting at the returned index
++/// (`M_j = Σ_b e_b · col[start_j + b]`, `e_b` the basis of [`BasedVectorSpace`]). Appended order:
++/// `ZK_MASK_COLS` pure pad columns, `M_2`, `M_1`, `M_s` (`config::WhirLevers::zk_shape`).
++pub fn mask_columns_ef(width: usize, d: usize) -> (usize, usize, usize) {
++    (width - 1, width - 1 - d, width - 1 - 2 * d)
++}
++
++/// [E2E-D zk-batch] The extension-field column `Σ_b e_b · cols[b]` (`cols.len() = [EF : F]`).
++pub fn ef_column<F: Field, EF: BasedVectorSpace<F> + Send + Sync>(cols: &[&[F]]) -> Vec<EF>
++where
++    F: Send + Sync,
++{
++    use p3_maybe_rayon::prelude::*;
++    assert_eq!(cols.len(), <EF as BasedVectorSpace<F>>::DIMENSION);
++    let n = cols[0].len();
++    (0..n).into_par_iter().map(|x| EF::from_basis_coefficients_fn(|b| cols[b][x])).collect()
 +}
 +
 +/// `Σ w_i · coef[c_i] = value`.
@@ -372,7 +391,7 @@
                          symbolic_constraints: constraints_with_counts(0, 1),
 --- a/stark-backend-unified/crates/stark-backend/src/config.rs
 +++ b/stark-backend-unified/crates/stark-backend/src/config.rs
-@@ -372,8 +372,10 @@
+@@ -372,8 +372,14 @@
      /// [`ZK_MASK_COLS`] stacked columns of fresh uniform elements, so WHIR's batched polynomial
      /// `g = sum_j mu^j col_j` is a one-time pad over the extension field (see
      /// `research/near-compression/e2e/ZK-ARGUMENT.md`). `3`: as `2`, with slice splitting in the
@@ -380,18 +399,24 @@
 -    /// pre-hash of every existing key is unchanged.
 +    /// packing (fewer columns; see `StackedLayout::new_tight_zk`). `4`: full zero knowledge — the
 +    /// `2` commitment layout plus PIOP masking (masked GKR, masked batch sumcheck with column
-+    /// masks, masked stacking sumcheck; [`crate::zk`]). `5`: as `4` with the `3` packing.
++    /// masks, masked stacking sumcheck; [`crate::zk`]). `5`: as `4` with the `3` packing. `6`
++    /// (lane E2E-D, milestone D-3): as `5`, with no stacked opening sent — WHIR batches the
++    /// columns with `μ^j + ν·c_j` (`c_j` the stacking reduction's final coefficients, `ν` sampled
++    /// after the prover's `B = Σ μ^j q_j(u)`) — and the two stacking mask columns `M_1, M_2`
++    /// extension-field valued (`[EF : F]` base columns each, [`crate::zk::mask_columns_ef`]).
 +    /// Serialized only when non-zero, so the pre-hash of every existing key is unchanged.
      #[serde(default, skip_serializing_if = "zk_is_off")]
      pub zk: u8,
  }
-@@ -401,10 +403,23 @@
+@@ -401,10 +407,31 @@
              0 => (0, 0),
              1 => (ZK_RESERVE_ROWS, 0),
              2 | 3 => (ZK_RESERVE_ROWS, ZK_MASK_COLS),
 +            // the PIOP masks take three more columns (`zk::mask_columns`), so that the WHIR
 +            // one-time pad keeps ZK_MASK_COLS columns no other message refers to
 +            4 | 5 => (ZK_RESERVE_ROWS, ZK_MASK_COLS + 3),
++            // `M_s` plus two extension-field mask columns of `ZK_MASK_COLS` base columns each
++            6 => (ZK_RESERVE_ROWS, ZK_MASK_COLS + 1 + 2 * ZK_MASK_COLS),
              z => panic!("unknown zk lever {z}"),
          }
      }
@@ -401,9 +426,15 @@
 +        self.zk >= 4
 +    }
 +
-+    /// [E2E-D zk] slice-splitting packing (`zk = 3` or `5`).
++    /// [E2E-D zk] slice-splitting packing (`zk = 3`, `5` or `6`).
 +    pub fn zk_split(&self) -> bool {
-+        self.zk == 3 || self.zk == 5
++        self.zk == 3 || self.zk == 5 || self.zk == 6
++    }
++
++    /// [E2E-D zk-batch] `zk = 6`: no stacked openings; WHIR batches with the stacking
++    /// coefficients (`μ^j + ν c_j`); extension-field stacking mask columns.
++    pub fn zk_batch(&self) -> bool {
++        self.zk >= 6
 +    }
 +
      /// Wire flags byte for the GKR / opening levers (bit 0 gruen_gkr, bit 1 gkr_derive_claims,
@@ -476,7 +507,7 @@
 -            let zk = (h[2] >> 1) & 3;
 -            if h[2] & !7 != 0 {
 +            let zk = (h[2] >> 1) & 7;
-+            if h[2] & !15 != 0 || zk > 5 {
++            if h[2] & !15 != 0 || zk > 6 {
                  return Err(invalid("lever keep_domain/zk byte"));
              }
              let levers = WhirLevers {
@@ -683,16 +714,29 @@
  }
 --- a/stark-backend-unified/crates/stark-backend/src/prover/stacked_pcs.rs
 +++ b/stark-backend-unified/crates/stark-backend/src/prover/stacked_pcs.rs
-@@ -503,7 +503,7 @@
+@@ -503,11 +503,20 @@
          // two 2^(h-1) slices can share a column of capacity 2^h - R (zk = 1, 2 never split).
          // The placed slices are re-sorted by size afterwards: the stacking-reduction provers group
          // trace views into contiguous same-height windows.
 -        let split = zk == 3;
-+        let split = zk == 3 || zk == 5;
++        let split = crate::WhirLevers { zk, ..Default::default() }.zk_split();
          let mut queue: std::collections::VecDeque<(usize, usize, StackedSlice)> = entries.into();
          let mut placed = Vec::with_capacity(queue.len());
          let mut fill: Vec<usize> = Vec::new();
-@@ -516,10 +516,23 @@
++        // [E2E-D review #1] The heights come from the proof (`verify_proof_shape`), so the loop
++        // must terminate on every input. An honest FINAL layout takes a few thousand steps
++        // (1,537 slices); more than the bound below is an error, never a hang.
++        let max_steps = queue.len().saturating_mul(64).max(1 << 20);
++        let mut steps = 0usize;
+         while let Some((m, j, mut s)) = queue.pop_front() {
++            steps += 1;
++            if steps > max_steps {
++                return Err(StackedPcsError::ZkLayoutNoProgress { steps });
++            }
+             let len = s.len(l_skip);
+             let c = match fill.iter().position(|&f| f + len <= cap) {
+                 Some(c) => c,
+@@ -516,10 +525,27 @@
                      if can_split && (len > cap || fill.iter().any(|&f| f + len / 2 <= cap)) {
                          let (e, off, cl) = (s.log_height - 1, s.src_row, s.col_log_height());
                          let mk = |o| StackedSlice { col_idx: 0, row_idx: 0, log_height: e, src_row: o, col_log_height: cl };
@@ -708,15 +752,19 @@
                          queue.push_front((m, j, mk(off)));
                          continue;
                      }
-+                    if queue.iter().any(|(_, _, t)| t.log_height > s.log_height) {
-+                        let pos = queue.iter().position(|(_, _, t)| t.log_height <= s.log_height).unwrap_or(queue.len());
-+                        queue.insert(pos, (m, j, s));
++                    if let Some(last) = queue.iter().rposition(|(_, _, t)| t.log_height > s.log_height) {
++                        // [E2E-D review #1] behind the *last* strictly larger slice. (Inserting at
++                        // the first slice of size <= this one put a half back at the front, in
++                        // front of its twin: the same state forever, e.g. for a declared tight
++                        // height of 2^(l_skip + n_stack). In every run that terminated the queue
++                        // was sorted there, where both positions coincide: no honest layout moves.)
++                        queue.insert(last + 1, (m, j, s));
 +                        continue;
 +                    }
                      if len > cap {
                          return Err(StackedPcsError::LayoutHeightExceeded { log_height: s.log_height, log_stacked_height });
                      }
-@@ -527,7 +540,7 @@
+@@ -527,7 +553,7 @@
                      fill.len() - 1
                  }
              };
@@ -754,7 +802,20 @@
      if mpk.params.whir.levers.gkr_derive_claims && !gkr_proof.claims_per_layer.is_empty() {
 --- a/stark-backend-unified/crates/stark-backend/src/soundness/calculator.rs
 +++ b/stark-backend-unified/crates/stark-backend/src/soundness/calculator.rs
-@@ -118,20 +118,31 @@
+@@ -62,6 +62,12 @@
+     pub query_bits: f64,
+     /// Security bits from γ batching (combining query and OOD claims).
+     pub gamma_batching_bits: f64,
++    /// [E2E-D zk-batch] `zk = 6`: the ν step that folds the stacking reduction's deferred final
++    /// check into the batched polynomial (`g = Σ_j μ^j c_j + ν D`, `D = Σ_j c'_j c_j`): mutual
++    /// correlated agreement of the line `(f_μ, D)` (batch size 2 at the initial degree and rate)
++    /// plus `L / |EF|` for the claim `ĝ(u) = B + ν S` (linear in ν, one root per list element).
++    /// `+∞` when the lever is off.
++    pub nu_batching_bits: f64,
+ }
+ 
+ #[derive(Clone, Debug)]
+@@ -118,20 +124,31 @@
              log2_list_size,
          ) + Self::effective_pow_bits(params.logup.pow_bits, base_field_order);
  
@@ -790,7 +851,7 @@
              challenge_field_bits,
              max_num_constraints_per_air,
              num_airs,
-@@ -140,10 +151,14 @@
+@@ -140,10 +157,14 @@
              n_logup,
              log2_list_size,
          );
@@ -806,6 +867,48 @@
              params.l_skip,
              params.n_stack,
              log2_list_size,
+@@ -389,6 +410,23 @@
+         let mu_batching_bits =
+             mu_security.log2_err + Self::effective_pow_bits(whir.mu_pow_bits, base_field_order);
+         let mut min_rbr_bits = mu_batching_bits;
++        // [E2E-D zk-batch] ν round (research/near-compression/e2e/ZK-ARGUMENT.md §5): line MCA at
++        // the initial degree/rate, plus one root per list element of the ν-linear claim.
++        let nu_batching_bits = if whir.levers.zk_batch() {
++            let line = Self::whir_proximity_gap_security_odd(
++                odd,
++                proximity.initial_round(),
++                challenge_field_bits,
++                log_stacked_height,
++                params.log_blowup,
++                2,
++            );
++            let b = Self::combine_security_bits(line.log2_err, challenge_field_bits - line.log2_list_size);
++            min_rbr_bits = min_rbr_bits.min(b);
++            b
++        } else {
++            f64::INFINITY
++        };
+ 
+         let mut log_inv_rate = params.log_blowup;
+         let mut current_log_degree = log_stacked_height;
+@@ -536,6 +574,7 @@
+ 
+         let details = WhirSoundnessCalculator {
+             mu_batching_bits,
++            nu_batching_bits,
+             fold_rbr_bits: min_fold_rbr_bits,
+             ood_rbr_bits: min_ood_bits,
+             shift_rbr_bits: min_shift_rbr_bits,
+@@ -1046,6 +1085,9 @@
+     );
+     println!("  Min ε_shift/ε_fin:    {:.1} bits", whir.shift_rbr_bits);
+     println!("  μ batching error:     {:.1} bits", whir.mu_batching_bits);
++    if whir.nu_batching_bits.is_finite() {
++        println!("  ν batching error:     {:.1} bits", whir.nu_batching_bits);
++    }
+     println!();
+ 
+     println!("WHIR Round Breakdown:");
 --- a/stark-backend-unified/crates/stark-backend/src/verifier/mod.rs
 +++ b/stark-backend-unified/crates/stark-backend/src/verifier/mod.rs
 @@ -48,6 +48,10 @@
@@ -819,7 +922,29 @@
  }
  
  pub mod batch_constraints;
-@@ -125,7 +129,14 @@
+@@ -91,6 +95,21 @@
+ where
+     SC::EF: p3_field::TwoAdicField,
+ {
++    verify_with_point(config, mvk, proof, transcript).map(|_| ())
++}
++
++/// [`verify`], returning the batch (zerocheck) point `r` it derived for this proof. [E2E-D review
++/// #6] callers that check openings at `r` (V_d's program check) take it from here, not from the
++/// thread-local `LAST_ZEROCHECK_POINT` (still recorded, for observation only).
++pub fn verify_with_point<SC: StarkProtocolConfig, TS: FiatShamirTranscript<SC>>(
++    config: &SC,
++    mvk: &MultiStarkVerifyingKey<SC>,
++    proof: &Proof<SC>,
++    transcript: &mut TS,
++) -> Result<Vec<SC::EF>, VerifierError<SC::EF>>
++where
++    SC::EF: p3_field::TwoAdicField,
++{
+     if config.params() != &mvk.inner.params {
+         return Err(VerifierError::SystemParamsMismatch);
+     }
+@@ -125,7 +144,14 @@
          return Err(VerifierError::EmptyTraces);
      }
      // We verify the proof shape early to return error and prevent later panics
@@ -834,7 +959,7 @@
  
      let mut trace_id_to_air_id: Vec<usize> = (0..num_airs).collect();
      trace_id_to_air_id.sort_by_key(|&air_id| {
-@@ -200,16 +211,39 @@
+@@ -200,19 +226,52 @@
          .iter()
          .map(|&air_id| trace_vdata[air_id].as_ref().unwrap().log_height as isize - l_skip as isize)
          .collect();
@@ -864,10 +989,19 @@
 +            &n_per_trace,
 +            &omega_skip_pows,
 +        )?;
-+        if out.coef_end * crate::zk::COEF_STRIDE > 1 << (l_skip + params.n_stack) {
++        // [E2E-D review #5] the coefficient cells stay below the top ZK_RESERVE_ROWS rows of M_s:
++        // that block absorbs M_s's opened symbols (ZK-ARGUMENT.md §6, Lemma E)
++        if out.coef_end * crate::zk::COEF_STRIDE > (1 << (l_skip + params.n_stack)) - crate::config::ZK_RESERVE_ROWS {
 +            return Err(VerifierError::ZkShape);
 +        }
-+        (r, Some(crate::verifier::stacked_reduction::ZkStackIn { claims: out.claims, col_masks: out.col_masks }))
++        (
++            r,
++            Some(crate::verifier::stacked_reduction::ZkStackIn {
++                claims: out.claims,
++                col_masks: out.col_masks,
++                batch: params.whir.levers.zk_batch(),
++            }),
++        )
 +    } else {
 +        let r = verify_zerocheck_and_logup::<SC, TS>(
 +            transcript,
@@ -884,35 +1018,50 @@
  
      // [e2e verify] record the batch point r for callers that check openings at it.
      LAST_ZEROCHECK_POINT.with(|c| *c.borrow_mut() = Some(Box::new(r.clone())));
-@@ -236,7 +270,8 @@
++    let r_point = r.clone();
+     // Per commit, per matrix, per column: rotated opening present (opening masks).
+     let masks_per_trace = trace_id_to_air_id
+         .iter()
+@@ -236,7 +295,8 @@
          }
      }
  
 -    let u_prism = verify_stacked_reduction::<SC, TS>(
 +    phase("gkr_batch");
-+    let u_prism = crate::verifier::stacked_reduction::verify_stacked_reduction_with::<SC, TS>(
++    let stacked_out = crate::verifier::stacked_reduction::verify_stacked_reduction_with::<SC, TS>(
          transcript,
          stacking_proof,
          &layouts,
-@@ -246,6 +281,7 @@
+@@ -246,7 +306,9 @@
          &proof.batch_constraint_proof.column_openings,
          &r,
          &omega_skip_pows,
 +        zk_in.as_ref(),
      )?;
++    let u_prism = stacked_out.u;
  
      // [e2e tape-eval] record the stacking point for callers that bind cached openings at it.
-@@ -265,14 +301,17 @@
+     LAST_STACKING_POINT.with(|c| *c.borrow_mut() = Some(Box::new(u_prism.clone())));
+@@ -265,14 +327,25 @@
          commits.extend(&trace_vdata[air_id].as_ref().unwrap().cached_commitments);
      }
  
 -    verify_whir::<SC, TS>(
 +    phase("stacking");
-+    let whir_res = verify_whir::<SC, TS>(
++    // [E2E-D zk-batch] zk = 6: the stacking final check is folded into WHIR's batching
++    let batch = match &stacked_out.deferred {
++        Some((s, coeffs)) => {
++            let b = *stacking_proof.zk.get(2).ok_or(VerifierError::ZkShape)?;
++            crate::verifier::whir::WhirBatch::Deferred { coeffs, s: *s, b }
++        }
++        None => crate::verifier::whir::WhirBatch::Openings(&stacking_proof.stacking_openings),
++    };
++    let whir_res = crate::verifier::whir::verify_whir_batched::<SC, TS>(
          transcript,
          config,
          whir_proof,
-         &stacking_proof.stacking_openings,
+-        &stacking_proof.stacking_openings,
++        batch,
          &commits,
          &u_cube,
 -    )?;
@@ -920,11 +1069,22 @@
 +    phase("whir");
 +    whir_res?;
  
-     Ok(())
+-    Ok(())
++    Ok(r_point)
  }
 --- a/stark-backend-unified/crates/stark-backend/src/verifier/proof_shape.rs
 +++ b/stark-backend-unified/crates/stark-backend/src/verifier/proof_shape.rs
-@@ -438,17 +438,19 @@
+@@ -172,6 +172,9 @@
+ 
+ #[derive(Debug, Error, PartialEq, Eq)]
+ pub enum StackingProofShapeError {
++    /// [E2E-D review #2] the declared heights admit no stacked layout.
++    #[error("declared trace heights admit no stacked layout: {0}")]
++    NoLayout(String),
+     #[error(
+         "univariate_round_coeffs should have 2 * ((1 << mvk.params.l_skip) - 1) + 1 = {expected} coefficients, but it has {actual}"
+     )]
+@@ -438,17 +441,19 @@
      let n_max = per_trace[0].2.log_height.saturating_sub(l_skip);
  
      let s_0_deg = (mvk.max_constraint_degree() + 1) * ((1 << l_skip) - 1);
@@ -948,9 +1108,53 @@
                  actual: batch_proof.denominator_term_per_air.len(),
              },
          );
+@@ -603,7 +608,11 @@
+             .collect_vec(),
+         mvk.params.whir.levers.zk,
+     )
+-    .unwrap();
++    // [E2E-D review #2] prover-chosen heights may admit no layout (e.g. a full-height tight chunk
++    // under the reserved rows of zk = 1, 2, 4): reject, never panic
++    .map_err(|e| {
++        ProofShapeError::InvalidStackingProofShape(StackingProofShapeError::NoLayout(e.to_string()))
++    })?;
+ 
+     let other_layouts = per_trace
+         .iter()
+@@ -659,7 +668,9 @@
+         .zip(&layouts)
+         .enumerate()
+     {
+-        let stacked_matrix_width = layout.width();
++        // [E2E-D zk-batch] zk = 6 sends no stacked opening
++        let stacked_matrix_width =
++            if mvk.params.whir.levers.zk_batch() { 0 } else { layout.width() };
+         if openings.len() != stacked_matrix_width {
+             return ProofShapeError::invalid_stacking(
+                 StackingProofShapeError::InvalidStackOpeningsPerMatrix {
+@@ -767,7 +778,7 @@
+                 },
+             );
+         }
+-        let width = stacking_proof.stacking_openings[commit_idx].len();
++        let width = layouts[commit_idx].width();
+         for (opened_idx, rows) in opened_rows.iter().enumerate() {
+             if rows.len() != 1 << k_whir {
+                 return ProofShapeError::invalid_whir(
 --- a/stark-backend-unified/crates/stark-backend/src/verifier/batch_constraints.rs
 +++ b/stark-backend-unified/crates/stark-backend/src/verifier/batch_constraints.rs
-@@ -531,3 +531,293 @@
+@@ -60,6 +60,10 @@
+     n_per_trace: &[isize],
+     omega_skip_pows: &[SC::F],
+ ) -> Result<Vec<SC::EF>, BatchConstraintError<SC::EF>> {
++    // [E2E-D review #8] the unmasked verifier: no zk tail
++    if !batch_proof.zk.is_empty() {
++        return Err(BatchConstraintError::InconsistentClaims);
++    }
+     let BatchConstraintPrefix {
+         rs,
+         lambda,
+@@ -531,3 +535,293 @@
          evaluator.eval_is_transition(),
      ]
  }
@@ -1246,7 +1450,18 @@
 +}
 --- a/stark-backend-unified/crates/stark-backend/src/verifier/fractional_sumcheck_gkr.rs
 +++ b/stark-backend-unified/crates/stark-backend/src/verifier/fractional_sumcheck_gkr.rs
-@@ -291,3 +291,193 @@
+@@ -76,6 +76,10 @@
+     derive: bool,
+ ) -> Result<(SC::EF, SC::EF, Vec<SC::EF>), GkrVerificationError<SC::EF>> {
+     assert!(total_rounds > 0);
++    // [E2E-D review #8] the unmasked verifier: a (serde-built) proof must not carry zk fields
++    if !proof.zk.is_empty() {
++        return Err(GkrVerificationError::NonCanonicalDerivedField);
++    }
+ 
+     if proof.claims_per_layer.len() != total_rounds {
+         return Err(GkrVerificationError::IncorrectLayerCount {
+@@ -291,3 +295,193 @@
      let denom = interpolate_linear_at_01(&[claims.q_xi_0, claims.q_xi_1], mu);
      (numer, denom)
  }
@@ -1442,7 +1657,7 @@
 +}
 --- a/stark-backend-unified/crates/stark-backend/src/verifier/stacked_reduction.rs
 +++ b/stark-backend-unified/crates/stark-backend/src/verifier/stacked_reduction.rs
-@@ -42,6 +42,49 @@
+@@ -42,6 +42,63 @@
  where
      SC::EF: TwoAdicField,
  {
@@ -1458,6 +1673,18 @@
 +        omega_shift_pows,
 +        None,
 +    )
++    .map(|o| o.u)
++}
++
++/// Output of [`verify_stacked_reduction_with`].
++#[derive(Clone, Debug)]
++pub struct StackedReductionOut<EF> {
++    /// The stacking point (`u[0]` the skip variable).
++    pub u: Vec<EF>,
++    /// [E2E-D zk-batch] `zk = 6`: the final check `Σ_j c_j q̂_j(u) = S` is not done here (no
++    /// stacked opening is sent); `(S, c)` with `c` per commit, per stacked column, for WHIR's
++    /// batching (`verify_whir_batched`). `None` otherwise (the check was done).
++    pub deferred: Option<(EF, Vec<Vec<EF>>)>,
 +}
 +
 +/// [E2E-D zk-piop] Inputs of the masked stacking reduction (`levers.zk >= 4`).
@@ -1467,6 +1694,8 @@
 +    pub claims: Vec<crate::zk::SparseClaim<EF>>,
 +    /// Per trace, per entry of `column_openings[t][0]`: `(coefficient, weight)` of its mask.
 +    pub col_masks: Vec<Vec<(usize, EF)>>,
++    /// [E2E-D zk-batch] `zk = 6`: extension-field mask columns, deferred final check.
++    pub batch: bool,
 +}
 +
 +/// [`verify_stacked_reduction`]; with `zk`, the masked reduction: before `λ`, two points
@@ -1485,21 +1714,57 @@
 +    r: &[SC::EF],
 +    omega_shift_pows: &[SC::F],
 +    zk: Option<&ZkStackIn<SC::EF>>,
-+) -> Result<Vec<SC::EF>, StackedReductionError<SC::EF>>
++) -> Result<StackedReductionOut<SC::EF>, StackedReductionError<SC::EF>>
 +where
 +    SC::EF: TwoAdicField,
 +{
      /*
       * SETUP
       *
-@@ -108,8 +151,28 @@
+@@ -59,33 +116,7 @@
+ 
+     // layouts and need_rot_per_commit both have length equal to the number of commitments
+     debug_assert_eq!(layouts.len(), need_rot_per_commit.len());
+-    let mut lambda_idx = 0usize;
+-    let lambda_indices_per_layout: Vec<Vec<(usize, bool)>> = layouts
+-        .iter()
+-        .enumerate()
+-        .map(|(commit_idx, layout)| {
+-            let need_rot_for_commit = &need_rot_per_commit[commit_idx];
+-            // This is true by construction of need_rot_for_commit:
+-            debug_assert_eq!(need_rot_for_commit.len(), layout.mat_starts.len());
+-            // Claim index of (mat, col) = position in (matrix, column) order (tight heights:
+-            // several slices of one column share it).
+-            let mut col_base = Vec::with_capacity(need_rot_for_commit.len());
+-            let mut acc = 0;
+-            for m in need_rot_for_commit {
+-                col_base.push(acc);
+-                acc += m.len();
+-            }
+-            let base = lambda_idx;
+-            lambda_idx += acc;
+-            layout
+-                .sorted_cols
+-                .iter()
+-                .map(|&(mat_idx, col_idx, _slice)| {
+-                    (base + col_base[mat_idx] + col_idx, need_rot_for_commit[mat_idx][col_idx])
+-                })
+-                .collect_vec()
+-        })
+-        .collect_vec();
++    let lambda_idx: usize = need_rot_per_commit.iter().flatten().map(|m| m.len()).sum();
+     // t_claims_len = w_{\Scr T, stack} from the paper
+     let t_claims_len = lambda_idx;
+     let mut t_claims = Vec::with_capacity(t_claims_len);
+@@ -108,8 +139,29 @@
      assert_eq!(t_claims.len(), t_claims_len);
      debug!(?t_claims);
  
 +    // [E2E-D zk-piop] mask points and claims before the batching challenge
++    let zk_batch = zk.is_some_and(|z| z.batch);
 +    let zk_pts = match zk {
 +        Some(_) => {
-+            if proof.zk.len() != 2 || layouts.len() != 1 {
++            if proof.zk.len() != 2 + zk_batch as usize || layouts.len() != 1 {
 +                return Err(StackedReductionError::FinalSumMismatch { claim: SC::EF::ZERO, final_sum: SC::EF::ONE });
 +            }
 +            let tau = |t: &mut TS| (0..=n_stack).map(|_| t.sample_ext()).collect_vec();
@@ -1521,7 +1786,7 @@
  
      /*
       * INITIAL UNIVARIATE ROUND
-@@ -122,9 +185,18 @@
+@@ -122,9 +174,18 @@
       * of sum_{z in D} s_1(z). Suppose s_1(x) = a_0 + a_1 * x + ... a_k * x^k. Because we have
       * omega^{|D|} == 1, sum_{z in D} s_1(z) = |D| * (a_0 + a_{|D|} + ...).
       */
@@ -1541,11 +1806,129 @@
      // Proof shape asserts that univariate_round_coeffs.len() == 2 * (2^l_skip - 1) + 1
      let s_0_sum_eval = proof
          .univariate_round_coeffs
-@@ -239,6 +311,35 @@
+@@ -182,13 +243,97 @@
+      * assert s_{n_stack}(u_{n_stack}) == sum_{j'} q_{j'}(u) * q_coeffs[j'].
+      */
+ 
+-    // proof shape asserts that stacking_openings.len() == layouts.len() = number of commitments
+-    let mut q_coeffs = proof
+-        .stacking_openings
++    let q_coeffs = stacking_final_coeffs::<SC>(
++        layouts,
++        need_rot_per_commit,
++        l_skip,
++        n_stack,
++        &u,
++        r,
++        lambda,
++        omega_shift_pows,
++        zk.zip(zk_pts.as_ref()).map(|(z, (t1, t2))| (z, t1.as_slice(), t2.as_slice())),
++    );
++    if zk_batch {
++        // [E2E-D zk-batch] no stacked opening: the final check goes into WHIR's batching
++        if proof.stacking_openings.len() != 1 || !proof.stacking_openings[0].is_empty() {
++            return Err(StackedReductionError::FinalSumMismatch { claim, final_sum: SC::EF::ONE });
++        }
++        return Ok(StackedReductionOut { u, deferred: Some((claim, q_coeffs)) });
++    }
++
++    let final_sum = q_coeffs.iter().zip(proof.stacking_openings.iter()).fold(
++        SC::EF::ZERO,
++        |acc, (q_coeff_vec, q_j_vec)| {
++            acc + q_coeff_vec.iter().zip(q_j_vec.iter()).fold(
++                SC::EF::ZERO,
++                |acc, (&q_coeff, &q_j)| {
++                    transcript.observe_ext(q_j);
++                    acc + (q_coeff * q_j)
++                },
++            )
++        },
++    );
++
++    if claim != final_sum {
++        return Err(StackedReductionError::FinalSumMismatch { claim, final_sum });
++    }
++
++    Ok(StackedReductionOut { u, deferred: None })
++}
++
++/// Per commit, per stacked column: the coefficient `c_j` of `q̂_j(u)` in the stacking
++/// reduction's final check `s_n(u_n) = Σ_j c_j q̂_j(u)`. Shared by the verifier and, for
++/// `zk = 6`, the prover, which batches WHIR with these coefficients. With `zk`, the mask terms:
++/// `M_s` (sparse claims and column masks) and `λ_j eq_prism(τ_j, u)` on `M_1`, `M_2` (with
++/// `zk.batch`, on each of their `[EF : F]` base columns times the basis element).
++#[allow(clippy::too_many_arguments)]
++pub fn stacking_final_coeffs<SC: StarkProtocolConfig>(
++    layouts: &[StackedLayout],
++    need_rot_per_commit: &[Vec<Vec<bool>>],
++    l_skip: usize,
++    n_stack: usize,
++    u: &[SC::EF],
++    r: &[SC::EF],
++    lambda: SC::EF,
++    omega_shift_pows: &[SC::F],
++    zk: Option<(&ZkStackIn<SC::EF>, &[SC::EF], &[SC::EF])>,
++) -> Vec<Vec<SC::EF>>
++where
++    SC::EF: TwoAdicField,
++{
++    let mut lambda_idx = 0usize;
++    let lambda_indices_per_layout: Vec<Vec<(usize, bool)>> = layouts
+         .iter()
+-        .map(|vec| vec![SC::EF::ZERO; vec.len()])
++        .enumerate()
++        .map(|(commit_idx, layout)| {
++            let need_rot_for_commit = &need_rot_per_commit[commit_idx];
++            // This is true by construction of need_rot_for_commit:
++            debug_assert_eq!(need_rot_for_commit.len(), layout.mat_starts.len());
++            // Claim index of (mat, col) = position in (matrix, column) order (tight heights:
++            // several slices of one column share it).
++            let mut col_base = Vec::with_capacity(need_rot_for_commit.len());
++            let mut acc = 0;
++            for m in need_rot_for_commit {
++                col_base.push(acc);
++                acc += m.len();
++            }
++            let base = lambda_idx;
++            lambda_idx += acc;
++            layout
++                .sorted_cols
++                .iter()
++                .map(|&(mat_idx, col_idx, _slice)| {
++                    (base + col_base[mat_idx] + col_idx, need_rot_for_commit[mat_idx][col_idx])
++                })
++                .collect_vec()
++        })
+         .collect_vec();
+-
++    let t_claims_len = lambda_idx;
++    let lambda_sqr_powers = (lambda * lambda).powers().take(t_claims_len).collect_vec();
++    let lambda_2t = (lambda * lambda).exp_u64(t_claims_len as u64);
++    let mut q_coeffs = layouts.iter().map(|l| vec![SC::EF::ZERO; l.width()]).collect_vec();
++    let _ = n_stack;
+     layouts
+         .iter()
+         .enumerate()
+@@ -239,22 +384,47 @@
                  });
          });
  
-+    if let (Some(zk), Some((t1, t2))) = (zk, &zk_pts) {
+-    let final_sum = q_coeffs.iter().zip(proof.stacking_openings.iter()).fold(
+-        SC::EF::ZERO,
+-        |acc, (q_coeff_vec, q_j_vec)| {
+-            acc + q_coeff_vec.iter().zip(q_j_vec.iter()).fold(
+-                SC::EF::ZERO,
+-                |acc, (&q_coeff, &q_j)| {
+-                    transcript.observe_ext(q_j);
+-                    acc + (q_coeff * q_j)
+-                },
+-            )
+-        },
+-    );
+-
+-    if claim != final_sum {
+-        return Err(StackedReductionError::FinalSumMismatch { claim, final_sum });
++    if let Some((zk, t1, t2)) = zk {
 +        // per-coefficient weights: column masks (with their claims' batching) and sparse claims
 +        let mut w: Vec<SC::EF> = Vec::new();
 +        let mut claim_idx = 0usize;
@@ -1567,16 +1950,270 @@
 +            crate::zk::accumulate_terms(&mut w, &c.terms, lambda_2t * l);
 +        }
 +        let width = layouts[0].width();
-+        let (ms, m1, m2) = crate::zk::mask_columns(width);
-+        q_coeffs[0][ms] += crate::zk::ms_coefficient::<SC::F, SC::EF>(l_skip, &u, &w);
 +        let ln = lambda_2t * lambda.exp_u64(zk.claims.len() as u64);
-+        q_coeffs[0][m1] += ln * eval_eq_prism(l_skip, t1, &u);
-+        q_coeffs[0][m2] += ln * lambda * eval_eq_prism(l_skip, t2, &u);
-+    }
++        let k1 = ln * eval_eq_prism(l_skip, t1, u);
++        let k2 = ln * lambda * eval_eq_prism(l_skip, t2, u);
++        if zk.batch {
++            let d = <SC::EF as p3_field::BasedVectorSpace<SC::F>>::DIMENSION;
++            let (ms, m1, m2) = crate::zk::mask_columns_ef(width, d);
++            q_coeffs[0][ms] += crate::zk::ms_coefficient::<SC::F, SC::EF>(l_skip, u, &w);
++            for b in 0..d {
++                let e = <SC::EF as p3_field::BasedVectorSpace<SC::F>>::ith_basis_element(b).unwrap();
++                q_coeffs[0][m1 + b] += k1 * e;
++                q_coeffs[0][m2 + b] += k2 * e;
++            }
++        } else {
++            let (ms, m1, m2) = crate::zk::mask_columns(width);
++            q_coeffs[0][ms] += crate::zk::ms_coefficient::<SC::F, SC::EF>(l_skip, u, &w);
++            q_coeffs[0][m1] += k1;
++            q_coeffs[0][m2] += k2;
++        }
+     }
+-
+-    Ok(u)
++    q_coeffs
+ }
 +
-     let final_sum = q_coeffs.iter().zip(proof.stacking_openings.iter()).fold(
-         SC::EF::ZERO,
-         |acc, (q_coeff_vec, q_j_vec)| {
+--- a/stark-backend-unified/crates/stark-backend/src/verifier/whir.rs
++++ b/stark-backend-unified/crates/stark-backend/src/verifier/whir.rs
+@@ -36,13 +36,39 @@
+     commitments: &[SC::Digest],
+     u: &[SC::EF],
+ ) -> Result<(), VerifyWhirError> {
++    verify_whir_batched(transcript, config, whir_proof, WhirBatch::Openings(stacking_openings), commitments, u)
++}
++
++/// How WHIR's initial polynomial is batched from the stacked columns.
++#[derive(Clone, Copy, Debug)]
++pub enum WhirBatch<'a, EF> {
++    /// Upstream: the stacked openings `q_j(u)` were sent; `g = Σ_j μ^j col_j`, claim
++    /// `Σ_j μ^j q_j(u)`.
++    Openings(&'a [Vec<EF>]),
++    /// [E2E-D zk-batch] `zk = 6`: no stacked opening. The prover sends `b = Σ_j μ^j q_j(u)` after
++    /// `μ`; then `ν` is sampled and `g = Σ_j (μ^j + ν c_j) col_j` with claim `ĝ(u) = b + ν s`,
++    /// where `s = Σ_j c_j q̂_j(u)` is the stacking reduction's deferred final check
++    /// (`c` per commit, per column; its shape gives the widths).
++    Deferred { coeffs: &'a [Vec<EF>], s: EF, b: EF },
++}
++
++/// [`verify_whir`] with the initial batching of [`WhirBatch`].
++#[instrument(level = "debug", skip_all)]
++pub fn verify_whir_batched<SC: StarkProtocolConfig, TS: FiatShamirTranscript<SC>>(
++    transcript: &mut TS,
++    config: &SC,
++    whir_proof: &WhirProof<SC>,
++    batch: WhirBatch<'_, SC::EF>,
++    commitments: &[SC::Digest],
++    u: &[SC::EF],
++) -> Result<(), VerifyWhirError> {
+     let params = config.params();
+     // widths.len() = stacking_openings.len() = layouts.len(), which proof shape constructs to equal
+     // the number of commitments, which equals commitments.len() by construction
+-    let widths = stacking_openings
+-        .iter()
+-        .map(|v| v.len())
+-        .collect::<Vec<_>>();
++    let widths = match batch {
++        WhirBatch::Openings(o) => o.iter().map(|v| v.len()).collect::<Vec<_>>(),
++        WhirBatch::Deferred { coeffs, .. } => coeffs.iter().map(|v| v.len()).collect::<Vec<_>>(),
++    };
+ 
+     // [x15 research] Bind the odd domain factor (mirrors the prover).
+     let odd = params.whir.domain_odd_factor;
+@@ -91,14 +117,23 @@
+     // num_whir_rounds * k_whir
+     let mut sumcheck_poly_iter = whir_sumcheck_polys.iter();
+     let mut folding_pow_iter = folding_pow_witnesses.iter();
+-    let mu_pows: Vec<_> = mu.powers().take(widths.iter().sum::<usize>()).collect();
+-    let mut claim = stacking_openings
+-        .iter()
+-        .flatten()
+-        .zip(mu_pows.iter())
+-        .fold(SC::EF::ZERO, |acc, (&opening, &mu_pow)| {
+-            acc + mu_pow * opening
+-        });
++    let mut mu_pows: Vec<_> = mu.powers().take(widths.iter().sum::<usize>()).collect();
++    let mut claim = match batch {
++        WhirBatch::Openings(stacking_openings) => stacking_openings
++            .iter()
++            .flatten()
++            .zip(mu_pows.iter())
++            .fold(SC::EF::ZERO, |acc, (&opening, &mu_pow)| acc + mu_pow * opening),
++        WhirBatch::Deferred { coeffs, s, b } => {
++            // [E2E-D zk-batch] bind b, then fold the deferred stacking check in with ν
++            transcript.observe_ext(b);
++            let nu = transcript.sample_ext();
++            for (g, &c) in mu_pows.iter_mut().zip(coeffs.iter().flatten()) {
++                *g += nu * c;
++            }
++            b + nu * s
++        }
++    };
+ 
+     let mut gammas = Vec::with_capacity(num_whir_rounds);
+     let mut zs = Vec::with_capacity(num_whir_rounds);
+--- a/stark-backend-unified/crates/stark-backend/src/prover/whir.rs
++++ b/stark-backend-unified/crates/stark-backend/src/prover/whir.rs
+@@ -90,6 +90,40 @@
+     SC::EF: TwoAdicField + ExtensionField<SC::F> + Ord,
+     TS: FiatShamirTranscript<SC>,
+ {
++    prove_whir_opening_batched::<SC, TS>(
++        transcript,
++        hasher,
++        l_skip,
++        log_blowup,
++        whir_params,
++        committed_mats,
++        u,
++        None,
++    )
++    .map(|(p, _)| p)
++}
++
++/// [`prove_whir_opening`]; with `deferred = Some((c, q))` (`zk = 6`, flattened over commits and
++/// columns: the stacking reduction's final coefficients `c_j` and the openings `q_j = q̂_j(u)`,
++/// which are not sent), after `μ` the prover sends `B = Σ_j μ^j q_j` (returned), samples `ν` and
++/// batches with `μ^j + ν c_j` (verifier: `verifier::whir::WhirBatch::Deferred`).
++#[allow(clippy::too_many_arguments, clippy::type_complexity)]
++pub fn prove_whir_opening_batched<SC, TS>(
++    transcript: &mut TS,
++    hasher: &SC::Hasher,
++    l_skip: usize,
++    log_blowup: usize,
++    whir_params: &WhirConfig,
++    committed_mats: &[(&ColMajorMatrix<SC::F>, &MerkleTree<SC::F, SC::Digest>)],
++    u: &[SC::EF],
++    deferred: Option<(&[SC::EF], &[SC::EF])>,
++) -> Result<(WhirProof<SC>, Option<SC::EF>), WhirProverError>
++where
++    SC: StarkProtocolConfig,
++    SC::F: TwoAdicField + Ord,
++    SC::EF: TwoAdicField + ExtensionField<SC::F> + Ord,
++    TS: FiatShamirTranscript<SC>,
++{
+     // [x15 research] Bind the odd domain factor (not in the VK pre-hash) into the transcript.
+     let odd = whir_params.domain_odd_factor;
+     if odd != 1 {
+@@ -105,7 +139,18 @@
+     // We batch the codewords for \hat{q}_j together _before_ applying WHIR.
+     let mu = transcript.sample_ext();
+     let total_width = committed_mats.iter().map(|(mat, _)| mat.width()).sum();
+-    let mu_powers = mu.powers().take(total_width).collect_vec();
++    let mut mu_powers = mu.powers().take(total_width).collect_vec();
++    let deferred_b = deferred.map(|(c, q)| {
++        assert_eq!(c.len(), total_width, "zk-batch: coefficient count");
++        assert_eq!(q.len(), total_width, "zk-batch: opening count");
++        let b: SC::EF = mu_powers.iter().zip(q).map(|(&m, &v)| m * v).sum();
++        transcript.observe_ext(b);
++        let nu = transcript.sample_ext();
++        for (g, &cj) in mu_powers.iter_mut().zip(c) {
++            *g += nu * cj;
++        }
++        b
++    });
+ 
+     let height = committed_mats[0].0.height();
+     debug_assert!(committed_mats.iter().all(|(mat, _)| mat.height() == height));
+@@ -421,7 +466,7 @@
+         log_rs_domain_size -= shrink;
+     }
+ 
+-    Ok(WhirProof::<SC> {
++    Ok((WhirProof::<SC> {
+         mu_pow_witness,
+         whir_sumcheck_polys,
+         codeword_commits,
+@@ -434,7 +479,7 @@
+         codeword_merkle_proofs,
+         final_poly: final_poly.ok_or(WhirProverError::FinalPolyNone)?,
+         levers: whir_params.levers,
+-    })
++    }, deferred_b))
+ }
+ 
+ /// Given hypercube evaluations `w_evals` of `\hat{w}` on `H_t`, this updates the evaluations
+--- a/stark-backend-unified/crates/stark-backend/src/prover/error.rs
++++ b/stark-backend-unified/crates/stark-backend/src/prover/error.rs
+@@ -55,6 +55,9 @@
+     MerkleTreeOpenedRowsOutOfBounds { index: usize, query_stride: usize },
+     #[error("stacked_matrix: width * height overflow")]
+     StackedMatrixOverflow,
++    /// [E2E-D review #1] the zk packing did not terminate within its iteration bound.
++    #[error("StackedLayout (zk packing): no layout within {steps} steps")]
++    ZkLayoutNoProgress { steps: usize },
+     #[error("rs_code_matrix: checked_shl overflow for height={height}, log_blowup={log_blowup}")]
+     RsCodeShiftOverflow { height: usize, log_blowup: usize },
+ }
+--- a/stark-backend-unified/crates/stark-backend/tests/zk_layout.rs
++++ b/stark-backend-unified/crates/stark-backend/tests/zk_layout.rs
+@@ -0,0 +1,66 @@
++//! [E2E-D review #1/#2] Regression tests for the zk stacked layout under prover-chosen heights
++//! (`verify_proof_shape` builds the layout from heights read off the proof). Template: the
++//! independent review's `review_zk_layout.rs`. Every call must return (Ok or Err) within a time
++//! bound and never panic.
++use openvm_stark_backend::prover::stacked_pcs::StackedLayout;
++
++type Meta = Vec<(usize, usize, Option<usize>)>;
++
++/// `(width, #slices)` or the error, or `None` on a timeout.
++fn run(meta: Meta, zk: u8) -> Option<Result<(usize, usize), String>> {
++    let (tx, rx) = std::sync::mpsc::channel();
++    std::thread::spawn(move || {
++        let r = std::panic::catch_unwind(|| {
++            StackedLayout::new_tight_zk(2, 21, meta, zk)
++                .map(|l| (l.width(), l.sorted_cols.len()))
++                .map_err(|e| format!("{e:?}"))
++        });
++        let _ = tx.send(r.unwrap_or_else(|_| Err("PANIC".into())));
++    });
++    rx.recv_timeout(std::time::Duration::from_secs(20)).ok()
++}
++
++/// FINAL-like shape of chunk d1_00-h10006-s3 (widths 83, 76, 9, 5; zk = 5 FINAL).
++fn honest() -> Meta {
++    vec![(83, 21, Some(1056768)), (76, 20, Some(284408)), (9, 7, Some(128)), (5, 4, Some(16))]
++}
++
++#[test]
++fn honest_layouts_unchanged() {
++    // zk = 5: 53 data columns + 15 mask columns, 1,536 slices (README §0 / D-2 log)
++    assert_eq!(run(honest(), 5), Some(Ok((68, 1536))));
++    // zk = 6: the same packing, 37 mask columns
++    assert_eq!(run(honest(), 6), Some(Ok((90, 1536))));
++}
++
++#[test]
++fn full_height_tight_chunk_terminates() {
++    // review #1: used to loop forever (a half re-queued in front of its twin)
++    for zk in [3u8, 5, 6] {
++        let mut m = honest();
++        m[0].2 = Some(1 << 21);
++        let r = run(m, zk);
++        assert!(r.is_some(), "zk={zk}: timeout");
++        assert_ne!(r, Some(Err("PANIC".into())), "zk={zk}: panic");
++    }
++}
++
++#[test]
++fn full_height_without_split_is_an_error() {
++    // review #2: zk 1, 2, 4 reserve 256 rows of every stacked column, so a 2^21-row chunk has no
++    // layout: an Err (mapped to a ProofShapeError by the verifier), not a panic
++    for zk in [1u8, 2, 4] {
++        let r = run(vec![(83, 21, Some(1 << 21))], zk);
++        assert!(matches!(r, Some(Err(ref e)) if e.contains("LayoutHeightExceeded")), "zk={zk}: {r:?}");
++    }
++}
++
++#[test]
++fn adversarial_heights_terminate() {
++    // review #3: the worst shape the review's fuzzer found (5,108 slices) still terminates
++    let r = run(
++        vec![(76, 21, Some(2097148)), (83, 21, Some(2097148)), (5, 21, Some(2096892)), (9, 20, Some(1048316))],
++        5,
++    );
++    assert!(matches!(r, Some(Ok(_)) | Some(Err(_))) && r != Some(Err("PANIC".into())), "{r:?}");
++}
 --- a/stark-backend-unified/crates/cpu-backend/src/device.rs
 +++ b/stark-backend-unified/crates/cpu-backend/src/device.rs
 @@ -116,10 +116,18 @@
@@ -1600,18 +2237,19 @@
          Ok(((gkr_proof, batch_constraint_proof), r))
      }
  }
-@@ -184,7 +192,23 @@
+@@ -184,7 +192,27 @@
          }
          // Reference stacking reduction (levers: per-column rotation masks, tight-height chunks).
          let reference = openvm_stark_backend::prover::ReferenceDevice::new(self.config().clone());
 -        let (stacking_proof, u_prisma) = prove_stacked_opening_reduction::<
 +        let zk_handoff = crate::logup_zerocheck::ZK_HANDOFF.with(|c| c.borrow_mut().take());
-+        let (stacking_proof, u_prisma) = if params.whir.levers.zk_piop() {
++        let mut deferred: Option<(Vec<SC::EF>, Vec<SC::EF>)> = None;
++        let (mut stacking_proof, u_prisma) = if params.whir.levers.zk_piop() {
 +            let zk = zk_handoff
 +                .expect("zk: GKR/batch handoff missing")
 +                .downcast::<crate::logup_zerocheck::ZkHandoff<SC::EF>>()
 +                .expect("zk handoff type");
-+            prove_stacked_opening_reduction_zk::<SC, TS>(
++            let (p, u, d) = prove_stacked_opening_reduction_zk::<SC, TS>(
 +                &reference,
 +                transcript,
 +                params.n_stack,
@@ -1619,13 +2257,16 @@
 +                need_rot_per_commit,
 +                &r,
 +                &zk,
-+            )
++                params.whir.levers.zk_batch(),
++            );
++            deferred = d;
++            (p, u)
 +        } else {
 +            prove_stacked_opening_reduction::<
              SC,
              openvm_stark_backend::prover::CpuColMajorBackend<SC>,
              _,
-@@ -197,7 +221,8 @@
+@@ -197,7 +225,8 @@
                  stacked_per_commit,
                  need_rot_per_commit,
                  &r,
@@ -1635,7 +2276,29 @@
  
          openvm_stark_backend::prover::stream_pcs::memprof("openings.after_stacking");
          let (&u0, u_rest) = u_prisma
-@@ -310,3 +335,240 @@
+@@ -215,7 +244,7 @@
+             .map(|d| (&d.matrix, &d.tree))
+             .collect_vec();
+ 
+-        let whir_proof = openvm_stark_backend::prover::whir::prove_whir_opening::<SC, _>(
++        let (whir_proof, b) = openvm_stark_backend::prover::whir::prove_whir_opening_batched::<SC, _>(
+             transcript,
+             self.config().hasher(),
+             params.l_skip,
+@@ -223,7 +252,12 @@
+             &params.whir,
+             &committed_mats,
+             &u_cube,
++            deferred.as_ref().map(|(c, q)| (c.as_slice(), q.as_slice())),
+         )?;
++        // [E2E-D zk-batch] B = Σ μ^j q_j(u), sent after μ: the third stacking zk element
++        if let Some(b) = b {
++            stacking_proof.zk.push(b);
++        }
+         Ok((stacking_proof, whir_proof))
+     }
+ }
+@@ -310,3 +344,295 @@
  
      buf
  }
@@ -1654,7 +2317,8 @@
 +    need_rot_per_commit: Vec<Vec<Vec<bool>>>,
 +    r: &[SC::EF],
 +    zk: &crate::logup_zerocheck::ZkHandoff<SC::EF>,
-+) -> (StackingProof<SC>, Vec<SC::EF>)
++    batch: bool,
++) -> (StackingProof<SC>, Vec<SC::EF>, Option<(Vec<SC::EF>, Vec<SC::EF>)>)
 +where
 +    SC: StarkProtocolConfig,
 +    SC::F: TwoAdicField + Ord,
@@ -1674,8 +2338,25 @@
 +    let sk = 1usize << l_skip;
 +    let height = pcs.layout.height();
 +    assert_eq!(height, sk << n_stack);
-+    let (ms, m1, m2) = mask_columns(pcs.layout.width());
++    let dim = <EF<SC> as BasedVectorSpace<SC::F>>::DIMENSION;
++    let (ms, m1, m2) = if batch {
++        openvm_stark_backend::zk::mask_columns_ef(pcs.layout.width(), dim)
++    } else {
++        mask_columns(pcs.layout.width())
++    };
 +    let col = |c: usize| &pcs.matrix.values[c * height..(c + 1) * height];
++    // [E2E-D zk-batch] the stacking mask columns as extension-field tables: `M_j = Σ_b e_b
++    // col[m_j + b]` (zk = 6), or the base column itself (zk = 4, 5)
++    let mask_table = |c: usize| -> Vec<EF<SC>> {
++        if batch {
++            let cols: Vec<&[SC::F]> = (0..dim).map(|b| col(c + b)).collect();
++            openvm_stark_backend::zk::ef_column::<SC::F, EF<SC>>(&cols)
++        } else {
++            col(c).par_iter().map(|&v| EF::<SC>::from(v)).collect()
++        }
++    };
++    let mt1 = mask_table(m1);
++    let mt2 = mask_table(m2);
 +    let omega = SC::F::two_adic_generator(l_skip);
 +    let omega_pows: Vec<SC::F> = omega.powers().take(sk).collect();
 +    let one = EF::<SC>::ONE;
@@ -1683,17 +2364,16 @@
 +    // Mask points and claims G_j = M̂_j(τ_j), before λ.
 +    let tau1: Vec<EF<SC>> = (0..=n_stack).map(|_| transcript.sample_ext()).collect();
 +    let tau2: Vec<EF<SC>> = (0..=n_stack).map(|_| transcript.sample_ext()).collect();
-+    let block_sums = |c: usize, eqy: &[EF<SC>]| -> Vec<EF<SC>> {
++    let block_sums = |m: &[EF<SC>], eqy: &[EF<SC>]| -> Vec<EF<SC>> {
 +        // c_z = Σ_y eqy[y] M[(y << l) | z]
-+        let m = col(c);
 +        (0..sk)
 +            .map(|z| (0..eqy.len()).into_par_iter().map(|y| eqy[y] * m[(y << l_skip) | z]).sum::<EF<SC>>())
 +            .collect()
 +    };
 +    let eqy1 = evals_eq_hypercube(&tau1[1..]);
 +    let eqy2 = evals_eq_hypercube(&tau2[1..]);
-+    let cz1 = block_sums(m1, &eqy1);
-+    let cz2 = block_sums(m2, &eqy2);
++    let cz1 = block_sums(&mt1, &eqy1);
++    let cz2 = block_sums(&mt2, &eqy2);
 +    let lag = |x: EF<SC>| -> Vec<EF<SC>> {
 +        omega_pows.iter().map(|&w| eval_eq_uni(l_skip, x, EF::<SC>::from(w))).collect()
 +    };
@@ -1728,7 +2408,6 @@
 +    let lam1 = lambda_2t * lambda.exp_u64(zk.claims.len() as u64);
 +    let lam2 = lam1 * lambda;
 +    // sparse E on M_s: per block y, weights per z
-+    let dim = <EF<SC> as BasedVectorSpace<SC::F>>::DIMENSION;
 +    let mut e_blocks: std::collections::BTreeMap<usize, Vec<EF<SC>>> = Default::default();
 +    for (k, &wk) in w.iter().enumerate() {
 +        if wk == EF::<SC>::ZERO {
@@ -1742,6 +2421,9 @@
 +    }
 +    let ms_col = col(ms);
 +
++    // [E2E-D zk-batch] inputs of the final coefficients (computed after the rounds)
++    let need_rot_for_coeffs = if batch { Some(need_rot_per_commit.clone()) } else { None };
++    let layout_for_coeffs = pcs.layout.clone();
 +    // Reference reduction with the extra terms.
 +    let mut prover = openvm_stark_backend::prover::stacked_reduction::StackedReductionCpu::<SC>::new(
 +        device,
@@ -1800,16 +2482,22 @@
 +    prover.fold_ple_evals(u_0);
 +    // folded tables after u_0
 +    let lz = lag(u_0);
-+    let fold0 = |c: usize| -> Vec<EF<SC>> {
-+        let m = col(c);
++    let fold0 = |m: &[EF<SC>]| -> Vec<EF<SC>> {
 +        (0..1usize << n_stack)
 +            .into_par_iter()
 +            .map(|y| (0..sk).map(|z| lz[z] * m[(y << l_skip) | z]).sum())
 +            .collect()
 +    };
-+    let mut t1 = fold0(m1);
-+    let mut t2 = fold0(m2);
-+    let mut ts = fold0(ms);
++    let mut t1 = fold0(&mt1);
++    let mut t2 = fold0(&mt2);
++    drop((mt1, mt2));
++    let mut ts: Vec<EF<SC>> = {
++        let m = col(ms);
++        (0..1usize << n_stack)
++            .into_par_iter()
++            .map(|y| (0..sk).map(|z| lz[z] * m[(y << l_skip) | z]).sum())
++            .collect()
++    };
 +    let e10 = eval_eq_uni(l_skip, tau1[0], u_0);
 +    let e20 = eval_eq_uni(l_skip, tau2[0], u_0);
 +    let mut k1: Vec<EF<SC>> = eqy1.par_iter().map(|&v| v * e10 * lam1).collect();
@@ -1863,6 +2551,36 @@
 +        es = merged.into_iter().collect();
 +    }
 +    let stacking_openings = prover.into_stacked_openings();
++    if batch {
++        // [E2E-D zk-batch] no stacked opening is sent: WHIR batches with the final coefficients
++        let omega_shift: Vec<SC::F> = omega_pows.clone();
++        let zk_in = openvm_stark_backend::verifier::stacked_reduction::ZkStackIn {
++            claims: zk.claims.clone(),
++            col_masks: zk.col_masks.clone(),
++            batch: true,
++        };
++        let coeffs = openvm_stark_backend::verifier::stacked_reduction::stacking_final_coeffs::<SC>(
++            std::slice::from_ref(&layout_for_coeffs),
++            need_rot_for_coeffs.as_ref().unwrap(),
++            l_skip,
++            n_stack,
++            &u_vec,
++            r,
++            lambda,
++            &omega_shift,
++            Some((&zk_in, &tau1, &tau2)),
++        );
++        let c: Vec<EF<SC>> = coeffs.into_iter().flatten().collect();
++        let q: Vec<EF<SC>> = stacking_openings.into_iter().flatten().collect();
++        debug_assert_eq!(c.len(), q.len());
++        let proof = StackingProof::<SC> {
++            univariate_round_coeffs: s_0.into_coeffs(),
++            sumcheck_round_polys,
++            stacking_openings: vec![vec![]],
++            zk: vec![g1, g2],
++        };
++        return (proof, u_vec, Some((c, q)));
++    }
 +    for claims_for_com in &stacking_openings {
 +        for &claim in claims_for_com {
 +            transcript.observe_ext(claim);
@@ -1874,7 +2592,7 @@
 +        stacking_openings,
 +        zk: vec![g1, g2],
 +    };
-+    (proof, u_vec)
++    (proof, u_vec, None)
 +}
 --- a/stark-backend-unified/crates/cpu-backend/src/fast/gkr.rs
 +++ b/stark-backend-unified/crates/cpu-backend/src/fast/gkr.rs
@@ -2394,7 +3112,7 @@
      };
      // Derived-claims lever: the verifier recomputes these, so they are not part of the proof.
      if mpk.params.whir.levers.gkr_derive_claims && !gkr_proof.claims_per_layer.is_empty() {
-@@ -2128,3 +2165,417 @@
+@@ -2128,3 +2165,423 @@
      }
      Ok((gkr_proof, batch_constraint_proof, r))
  }
@@ -2503,6 +3221,12 @@
 +        })
 +        .collect();
 +    let lay = BatchZkLayout::new(gkr_end, s_0_deg, n_max, d, &n_lifts, opening_counts.iter().sum());
++    // [E2E-D review #5] coefficient cells below the top ZK_RESERVE_ROWS rows of M_s (the
++    // verifier rejects more)
++    assert!(
++        lay.end * openvm_stark_backend::zk::COEF_STRIDE <= coefs.col.len() - openvm_stark_backend::ZK_RESERVE_ROWS,
++        "zk: mask coefficients reach the top reserved block of M_s"
++    );
 +    let h0: Vec<EF<SC>> = coefs.poly(lay.h0, s_0_deg);
 +    let hs: Vec<Vec<EF<SC>>> = lay.h.iter().map(|&(st, dg)| coefs.poly(st, dg)).collect();
 +    let xi_all = prover.xi.clone();
@@ -2869,3 +3593,53 @@
  }
  
  /// Split an NvAir trace into (common main without P0..P3, the program part P0..P3).
+--- a/openvm-sha384/crates/recursion/src/nv/vd.rs
++++ b/openvm-sha384/crates/recursion/src/nv/vd.rs
+@@ -71,6 +71,11 @@
+         let open = openvm_stark_backend::proof::column_openings_by_mask(&proof.batch_constraint_proof.column_openings[ti][0], &mask);
+         return Ok((r, n as usize, open));
+     }
++    // [E2E-D review #6] the replay below runs the unmasked zerocheck verifier: it cannot derive
++    // `r` for a masked (zk >= 4) proof, so such a proof needs `r_known`
++    if mvk.params.whir.levers.zk_piop() {
++        return Err("final proof is zk-masked: the batch point must come from verify_with_point".into());
++    }
+     let mut t = ShaTranscript::new_layer(true);
+     t.observe_commit(vk.pre_hash);
+     t.observe_commit(proof.common_main_commit);
+@@ -184,10 +189,15 @@
+ /// chain only carries a root the base proof actually committed to, so this is what turns "the
+ /// base proof verified" into "the base proof verified *for this TAPE table*".
+ pub fn verify_final_claim(setup: &VdSetup, engine_final: &Sha384CpuEngine, claim: &super::circuit::StatementClaim, proof: &Proof<SC>, skip_program: bool) -> Result<(), String> {
+-    let _ = openvm_stark_backend::verifier::take_last_zerocheck_point::<EF>();
+-    engine_final.verify(&setup.vk_final, proof).map_err(|e| format!("final proof: {e:?}"))?;
+-    // the batch point the verification above derived for this proof (same thread, just now)
+-    let r_known = openvm_stark_backend::verifier::take_last_zerocheck_point::<EF>();
++    // [E2E-D review #6] the batch point the verification derived for this proof, returned by
++    // `verify_with_point` (no thread-local)
++    let r_known = {
++        use openvm_stark_backend::StarkEngine;
++        let mut t = engine_final.initial_transcript();
++        openvm_stark_backend::verifier::verify_with_point(engine_final.config(), &setup.vk_final, proof, &mut t)
++            .map_err(|e| format!("final proof: {e:?}"))?
++    };
++    let r_known = Some(r_known);
+     let pvs = &proof.public_values[0];
+     if pvs.len() != super::uair::NV_NUM_PVS {
+         return Err("final public values".into());
+--- a/openvm-sha384/crates/recursion/src/nv/circuit.rs
++++ b/openvm-sha384/crates/recursion/src/nv/circuit.rs
+@@ -168,6 +168,13 @@
+         vk: &MultiStarkVerifyingKey<Sha384Config>,
+         proof: &Proof<Sha384Config>,
+     ) -> (Vec<RowMajorMatrix<F>>, Builder) {
++        // [E2E-D review #7] the in-circuit verifier implements the unmasked protocol only: a
++        // zk-masked (zk >= 4) child is never an inner proof (only FINAL is masked)
++        assert!(
++            !vk.inner.params.whir.levers.zk_piop(),
++            "NV generator: zk-masked child proof (zk = {})",
++            vk.inner.params.whir.levers.zk
++        );
+         // program binding is on whenever the child is an NV proof (G1 / V_d: the program is
+         // pinned, so every NV child's program must be bound to this level's)
+         #[allow(unused_mut)]
