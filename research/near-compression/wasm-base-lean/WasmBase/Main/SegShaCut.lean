@@ -34,7 +34,7 @@ word 0 of the `j = 0` padding row is `2^63`, word 15 of the `j = 1` row is `1024
   `wbytes d = sha384 (wbytes Ws)`, `Ws = (List.range (2N)).flatMap (streamW …)` the 8 decoded block
   words of every data row in row order (all `< 2^64`).
 
-## Open
+## Open (closed in `Main/SegCutWords.lean`: `cuto_ws`, `ctx_out_sha`; the note below predates it)
 
 * Linking `Ws` to `cutWords L` for CUTO's consumed list `L` (fields `F_k = lo_k + 2^16·hi_k` of the
   `act` rows in row order): an `act` row's `streamW` is `msgWords` of its fields (needs `lo < 2^16` from
@@ -573,7 +573,7 @@ limbs of six 64-bit words `d` whose bytes are `sha384 (wbytes Ws)`, where `Ws` i
 of the 8 words every data row hashes (`streamW`, in row order; all `< 2^64`).  The padding block the
 AIR hashes is exactly FIPS 180-4's for the `8·|Ws|`-byte message (`pad_whole`; `gi`, `gl`, `gh`). -/
 theorem cut_stream_digest :
-    ∃ N, 2 * N + 2 ≤ tr.height t ∧ (∀ r, r < 2 * N → kc tr t r 2 = 1) ∧
+    ∃ N, 2 * N + 2 ≤ tr.height t ∧ (∀ r, r < 2 * N → kc tr t r 2 = 1) ∧ kc tr t (2 * N) 3 = 1 ∧
       (∀ w ∈ (List.range (2 * N)).flatMap (streamW tr pub t cs), w < 2 ^ 64) ∧
       ∃ d : List Nat, d.length = 6 ∧ StateM5a.Sha512If.W64 d ∧ pubDig pub base = limbsF d ∧
         wbytes d = NearSpecV3.E2E.Bnd.sha384 (wbytes ((List.range (2 * N)).flatMap (streamW tr pub t cs))) := by
@@ -736,7 +736,7 @@ theorem cut_stream_digest :
     induction N with
     | zero => rfl
     | succ n ih => simp [List.replicate_succ, List.sum_cons]; omega
-  refine ⟨N, hN, hd, ?_, out.take 6, h6, fun w hw => hco.2 w (List.mem_of_mem_take hw), ?_, ?_⟩
+  refine ⟨N, hN, hd, hp0, ?_, out.take 6, h6, fun w hw => hco.2 w (List.mem_of_mem_take hw), ?_, ?_⟩
   · intro w hw
     rw [hWs] at hw
     obtain ⟨B, hB, hwB⟩ := List.mem_flatten.1 hw

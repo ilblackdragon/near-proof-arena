@@ -1,4 +1,4 @@
-import WasmBase.Main.SegLink
+import WasmBase.Main.SegCutWords
 
 /-!
 # WasmBase.Main.SegSound — segment soundness with the CUTO link discharged (E2E M4b, S3)
@@ -13,6 +13,10 @@ by `BndC` with a well-formed register file, with the per-row clause facts, there
 `seg n s0 = .cont sN`, `run` continuing from `sN`, `BndC` at the out-boundary, **CUTO's hashed list
 equal to `cutView X sN`**, the public `ctx_out = cutDigest (cutView X sN)` (given S2's stream lemma in
 the form `ctxOut = cutDigest (cutoList tr)`), and every view entry `MsgWF`.
+
+**`seg_sound_cut_pub`**: the same with S2's chip hypothesis `ChipIf compressW …` in place of the
+stream lemma — the public `ctx_out` limbs are those of `d` with `wbytes d = cutDigest (cutView X sN)`
+(`ctx_out_sha`, `Main/SegCutWords.lean`).
 
 Named hypotheses (beyond `seg_sound_cut`'s and S2's):
 * `CutoHiLimbs tr` — SHA chip limb bound on CUTO's `hi` halves (S1);
@@ -68,5 +72,35 @@ theorem seg_sound_cut_link (X : Ctx) (hnd : X.M.fns.Nodup) {nloc ngl : Nat} {pub
   exact ⟨sN, h1, h2, hB, e, by rw [hsha, e], cutView_wf (cuto_wf Hh hl) hset⟩
 
 #print axioms seg_sound_cut_link
+
+/-- **Segment soundness (cut case), public `ctx_out`.**  As `seg_sound_cut_link`, with S2's chip
+hypothesis `ChipIf compressW …` in place of the stream lemma: the public `ctx_out` limbs
+(`pub[49 … 67)`) are those of a SHA-384 digest `d` of the spec view, `wbytes d = cutDigest (cutView X sN)`
+(`ctx_out_sha`). -/
+theorem seg_sound_cut_pub (X : Ctx) (hnd : X.M.fns.Nodup) {nloc ngl : Nat} {pub : List F} {tr : Trace}
+    (Hh : HoldsX (wasmBaseSegAir nloc ngl) pub tr) {chip : List StateM5a.Sha512If.IfMsg}
+    (hC : SegSha.ChipIf SegSha.compressW (wasmBaseSegAir nloc ngl) pub tr chip) (hl : CutoHiLimbs tr)
+    {sg : Nat → Nat × Nat} {ρ : Type} [DecidableEq ρ]
+    (c : CutSeg X sg ρ) (hc : c.st = 0)
+    (hstepgas : ∀ t S g : Nat, X.R * (S - (sg t).1) + g = (sg t).2 →
+      X.R * (S + X.maxFee - (sg t).1) ≤ (sg t).2)
+    (hg64 : X.g0 < 2 ^ 64)
+    (hreg : ∀ r ∈ c.act, RowQ X (fun s live => RegC live s) (c.inS r) (c.cons r) (c.prod r))
+    (hsp : ∀ r ∈ c.act, RowQ X (fun _ live => SpC live) (c.inS r) (c.cons r) (c.prod r))
+    (hwf : ∀ r ∈ c.act, RowQ X (fun s _ => RegWF s) (c.inS r) (c.cons r) (c.prod r))
+    {s0 : St} (h0 : BndC X sg s0 c.t0 c.S0 c.m0 c.init) (hw0 : RegWF s0)
+    (hin : ∀ r, r < tr.height 31 → rowNat tr 31 r 0 = 1 → cutoMsg tr pub r ∈ c.fin)
+    (hS : FinSplit tr pub c.fin) (hT : TombDead tr pub c.fin) :
+    ∃ sN, NearSpecV3.Wasm.seg X.cfg X.p c.len s0 = .cont sN ∧
+      (∀ m, run X.cfg X.p (c.len + m) s0 = run X.cfg X.p m sN) ∧
+      BndC X sg sN c.stop.t c.stop.S c.stop.m c.fin ∧ cutoList tr = cutView X sN ∧
+      (∃ d : List Nat, d.length = 6 ∧ StateM5a.Sha512If.W64 d ∧ pubDig pub Chips.Seg.pubCtxOut = SegSha.limbsF d ∧
+        SegSha.wbytes d = cutDigest (cutView X sN)) ∧ ∀ y ∈ cutView X sN, MsgWF y := by
+  obtain ⟨d, h6, hW, hpub, hsha⟩ := ctx_out_sha Hh hC hl
+  obtain ⟨sN, h1, h2, hB, e, e2, hwf'⟩ := seg_sound_cut_link X hnd Hh hl c hc hstepgas hg64 hreg hsp hwf h0 hw0
+    hin hS hT (SegSha.wbytes d) hsha
+  exact ⟨sN, h1, h2, hB, e, ⟨d, h6, hW, hpub, e2⟩, hwf'⟩
+
+#print axioms seg_sound_cut_pub
 
 end WasmBase
