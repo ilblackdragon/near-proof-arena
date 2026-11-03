@@ -1196,7 +1196,7 @@ theorem bndC_of_view {X : Ctx} {sg : Nat → Nat × Nat} {s : St} {t S : Nat} {m
 /-! ## 11. Segment soundness, composed (skeleton)
 
 The pieces above composed for one cut segment.  The trace side enters through `CutSeg` (the rows
-and bus facts of `exec_of_rows_cut`; their instantiation from `Holds (wasmBaseSegAir nloc ngl)`, the
+and bus facts of `exec_of_rows_cut`; their instantiation from `HoldsX (wasmBaseSegAir nloc ngl)`, the
 segment analogue of `wasm_base_exec_host_holds`, is not done here), the per-row clause facts
 (`rowQ_reg_keep`/`regKeep_of_code` for instruction rows, `HostRegRely` for HOST rows,
 `rowQ_space`, `rowQ_regWF_keep`), CUTO's hashed list `H` with its order (`cut_order`), the SHA

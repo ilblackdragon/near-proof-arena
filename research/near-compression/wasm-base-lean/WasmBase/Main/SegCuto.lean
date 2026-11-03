@@ -50,7 +50,7 @@ theorem row_trans (tr : Trace) (pub : List F) {t r : Nat} (h : r + 1 < tr.height
   have : (r + 1 == tr.height t) = false := by simp; omega
   simp only [Expr.eval, Trace.row, this]; rfl
 
-theorem cuto_constr {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : Holds (wasmBaseSegAir nloc ngl) pub tr)
+theorem cuto_constr {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsX (wasmBaseSegAir nloc ngl) pub tr)
     {r : Nat} (hr : r < tr.height 31) {e : Expr} (he : e ∈ Cut.Out.constraints) :
     e.eval (tr.row pub 31 r) = 0 :=
   H.constr 31 (by simp [seg_air_len]) r hr e (by rw [seg_t31]; exact he)
@@ -63,7 +63,7 @@ theorem one_F : ((1 : Nat) : F) = 1 := rfl
 theorem zero_F : ((0 : Nat) : F) = 0 := rfl
 
 /-- The stream bits of a CUTO row (`act j kD kP kX`) and `kD + kP + kX = 1`, `act → kD`. -/
-theorem cuto_bits {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : Holds (wasmBaseSegAir nloc ngl) pub tr)
+theorem cuto_bits {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsX (wasmBaseSegAir nloc ngl) pub tr)
     {r : Nat} (hr : r < tr.height 31) :
     rowNat tr 31 r 0 ≤ 1 ∧ rowNat tr 31 r 1 ≤ 1 ∧ rowNat tr 31 r 2 ≤ 1 ∧ rowNat tr 31 r 3 ≤ 1 ∧ rowNat tr 31 r 4 ≤ 1 ∧
       rowNat tr 31 r 2 + rowNat tr 31 r 3 + rowNat tr 31 r 4 = 1 ∧ (rowNat tr 31 r 0 = 1 → rowNat tr 31 r 2 = 1) ∧
@@ -103,7 +103,7 @@ theorem cuto_bits {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : Holds (wasmB
 /-- **Active CUTO rows form a prefix**: an active row's predecessor is active.  (An inactive data row
 has `j = 1` and is followed by the padding group; padding is followed by dead rows; dead rows by dead
 rows: none of them can precede a data row.) -/
-theorem cuto_prefix {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : Holds (wasmBaseSegAir nloc ngl) pub tr)
+theorem cuto_prefix {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsX (wasmBaseSegAir nloc ngl) pub tr)
     {r : Nat} (hr : r + 1 < tr.height 31) (ha : rowNat tr 31 (r + 1) 0 = 1) : rowNat tr 31 r 0 = 1 := by
   obtain ⟨i0, i1, i2, i3, i4, -⟩ := cuto_ix
   obtain ⟨a0, aj, aD, aP, aX, asum, aact, aj1⟩ := cuto_bits H (r := r) (by omega)
@@ -153,13 +153,13 @@ sub-lane S2 / lane B). -/
 def CutoHiLimbs (tr : Trace) : Prop :=
   ∀ r, r < tr.height 31 → rowNat tr 31 r 0 = 1 → ∀ k, k < 7 → rowNat tr 31 r (12 + k) < 2 ^ 21
 
-theorem cuto_inter {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : Holds (wasmBaseSegAir nloc ngl) pub tr)
+theorem cuto_inter {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsX (wasmBaseSegAir nloc ngl) pub tr)
     {r : Nat} (hr : r < tr.height 31) {e c : Expr} (hi : r16 e c ∈ Cut.Out.inters)
     (hc : (c.eval (tr.row pub 31 r)).toNat = 1) : (e.eval (tr.row pub 31 r)).toNat < 65536 :=
   seg_r16_lt H (seg_hsend_r16 H) (t := 31) (by simp [seg_air_len]) hr (by rw [seg_t31]; exact hi) hc
 
 /-- The halves of an active CUTO row: `lo_k < 2^16`, `hi_k < 2^14`, so field `k` is `< 2^30`. -/
-theorem cuto_halves {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : Holds (wasmBaseSegAir nloc ngl) pub tr)
+theorem cuto_halves {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsX (wasmBaseSegAir nloc ngl) pub tr)
     (hl : CutoHiLimbs tr) {r : Nat} (hr : r < tr.height 31) (ha : rowNat tr 31 r 0 = 1) {k : Nat} (hk : k < 7) :
     rowNat tr 31 r (5 + k) < 2 ^ 16 ∧ rowNat tr 31 r (12 + k) < 2 ^ 14 := by
   obtain ⟨i0, -⟩ := cuto_ix
@@ -177,7 +177,7 @@ theorem cuto_halves {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : Holds (was
     row_cur, Fp.toNat_cast_of_lt (rowNat_lt tr 31 r _)] at l1 l2
   exact ⟨l1, cut_hi (hl r hr ha k hk) l2⟩
 
-theorem cutoF_lt {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : Holds (wasmBaseSegAir nloc ngl) pub tr)
+theorem cutoF_lt {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsX (wasmBaseSegAir nloc ngl) pub tr)
     (hl : CutoHiLimbs tr) {r : Nat} (hr : r < tr.height 31) (ha : rowNat tr 31 r 0 = 1) {k : Nat} (hk : k < 7) :
     cutoF tr r k < 2 ^ 30 := by
   obtain ⟨a, b⟩ := cuto_halves H hl hr ha hk
@@ -188,7 +188,7 @@ theorem fcast (lo hi : Nat) :
   simp only [Lean.Grind.Semiring.natCast_add, Lean.Grind.Semiring.natCast_mul]
 
 /-- **CUTO's order on consecutive active rows** (`cut_order` on the trace). -/
-theorem cuto_order_step {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : Holds (wasmBaseSegAir nloc ngl) pub tr)
+theorem cuto_order_step {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsX (wasmBaseSegAir nloc ngl) pub tr)
     (hl : CutoHiLimbs tr) {r : Nat} (hr : r + 1 < tr.height 31) (ha : rowNat tr 31 r 0 = 1)
     (hb : rowNat tr 31 (r + 1) 0 = 1) : keyLt (cutoRow tr r) (cutoRow tr (r + 1)) := by
   obtain ⟨i0, -, -, -, -, i61, i62, i63⟩ := cuto_ix
@@ -242,7 +242,7 @@ theorem keyLt_trans {a b c : List Nat} (h1 : keyLt a b) (h2 : keyLt b c) : keyLt
   unfold keyLt at *; omega
 
 /-- Order between any two active rows `r < r'` (all rows in between are active, `cuto_prefix`). -/
-theorem cuto_order {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : Holds (wasmBaseSegAir nloc ngl) pub tr)
+theorem cuto_order {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsX (wasmBaseSegAir nloc ngl) pub tr)
     (hl : CutoHiLimbs tr) : ∀ d r, r + d + 1 < tr.height 31 → rowNat tr 31 (r + d + 1) 0 = 1 →
       keyLt (cutoRow tr r) (cutoRow tr (r + d + 1))
   | 0, r, hr, hb => cuto_order_step H hl hr (cuto_prefix H hr hb) hb
@@ -256,7 +256,7 @@ theorem cuto_order {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : Holds (wasm
 
 /-- **CUTO's hashed list is strictly increasing in `(space, slot)`** on any satisfying segment trace
 (given the chip's limb bound). -/
-theorem cuto_sorted {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : Holds (wasmBaseSegAir nloc ngl) pub tr)
+theorem cuto_sorted {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsX (wasmBaseSegAir nloc ngl) pub tr)
     (hl : CutoHiLimbs tr) : (cutoList tr).Pairwise keyLt := by
   unfold cutoList
   rw [List.pairwise_map, List.pairwise_filter, List.pairwise_iff_getElem]
@@ -267,7 +267,7 @@ theorem cuto_sorted {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : Holds (was
   rwa [show i + (j - i - 1) + 1 = j by omega] at this
 
 /-- **Every hashed CUTO message is `MsgWF`** (7 fields, each `< 2^30`). -/
-theorem cuto_wf {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : Holds (wasmBaseSegAir nloc ngl) pub tr)
+theorem cuto_wf {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsX (wasmBaseSegAir nloc ngl) pub tr)
     (hl : CutoHiLimbs tr) : ∀ y ∈ cutoList tr, MsgWF y := by
   intro y hy
   simp only [cutoList, List.mem_map, List.mem_filter, List.mem_range, decide_eq_true_eq] at hy
@@ -289,7 +289,7 @@ theorem cuto_wf {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : Holds (wasmBas
 `MsgWF` is `cuto_wf` (both from `Holds` and the chip limb bound), so, given the CUTO link `hcuto`,
 `ctx_out = cutDigest (cutView X sN)` and every message of the view is `MsgWF`. -/
 theorem seg_sound_cut_holds (X : Ctx) (hnd : X.M.fns.Nodup) {nloc ngl : Nat} {pub : List F} {tr : Trace}
-    (Hh : Holds (wasmBaseSegAir nloc ngl) pub tr) (hl : CutoHiLimbs tr)
+    (Hh : HoldsX (wasmBaseSegAir nloc ngl) pub tr) (hl : CutoHiLimbs tr)
     {sg : Nat → Nat × Nat} {ρ : Type} [DecidableEq ρ]
     (c : CutSeg X sg ρ) (hc : c.st = 0)
     (hstepgas : ∀ t S g : Nat, X.R * (S - (sg t).1) + g = (sg t).2 →

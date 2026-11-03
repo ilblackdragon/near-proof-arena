@@ -8,7 +8,8 @@ CUTO hashes the consumed small-state messages two per SHA-512 block (8 words eac
 (`kD = 1`, `act = 0`, `j = 1`), then the padding group (`kP`).  `cutWords L` (`Main/SegRows.lean`)
 completes the last block with the all-zero message, and `cutDigest L = sha384 (cutBytes L)`.
 
-**The filler row is not forced to zero** (`cuto_filler_counterexample`).  On a filler row every
+**The filler row was not forced to zero** (`cuto_filler_counterexample`, against the pre-fix words
+`rowWordsKD`; fixed in M4b, `cuto_filler_fixed`).  On a filler row every
 CUTO constraint and every non-chip interaction is satisfied with `lo_1 = 1` (and `slot = 1`, which
 `F_1 = slot` asks for); its block words carry `lo_k`, `hi_k` multiplied by `kD = 1`, so the filler
 message it hashes is `[0, 1, 0, …]`-shaped instead of zero.  The digest CUTO publishes is then
@@ -61,19 +62,36 @@ theorem cuto_ix_cex : ix Cut.Out.cols "act" = 0 ∧ ix Cut.Out.cols "j" = 1 ∧ 
     ix Cut.Out.cols "kP" = 3 ∧ ix Cut.Out.cols "lo1" = 6 ∧ ix Cut.Out.cols "gi" = 19 ∧ ix Cut.Out.cols "slot" = 48 := by
   decide
 
-/-- **CUTO's filler row is not forced to the zero message.**  `cexRow` satisfies every CUTO
-constraint, every interaction of CUTO other than the chip's (bus 103) has count 0 on it, the chip
-receives have count 1, and the eight block words it hashes are not all zero (word 1 is `[1, 0, 0]`,
-i.e. the 64-bit word 1). -/
+/-- The block words as `Cut.rowWords` defined them before the M4b fix (message limbs gated by `kD`
+instead of `act`); kept to state the counterexample. -/
+def rowWordsKD (cs : List String) : List W3 :=
+  let kD := Cut.c cs "kD"; let kP := Cut.c cs "kP"; let j := Cut.c cs "j"
+  ((List.range 7).map fun k =>
+    [kD * Cut.c cs s!"lo{k}", kD * Cut.c cs s!"hi{k}",
+     if k = 0 then Cut.c cs "act" + kP * (1 - j) * Expr.c (2 ^ 21) else 0]) ++
+  [[kP * j * 1024 * Cut.c cs "gl", kP * j * Cut.c cs "gh", 0]]
+
+/-- **CUTO's filler row was not forced to the zero message** (before the M4b fix).  `cexRow`
+satisfies every CUTO constraint, every interaction of CUTO other than the chip's (bus 103) has count
+0 on it, the chip receives have count 1, and the eight block words the pre-fix AIR hashed
+(`rowWordsKD`) are not all zero (word 1 is `[1, 0, 0]`, i.e. the 64-bit word 1). -/
 theorem cuto_filler_counterexample :
     (∀ e ∈ Cut.Out.constraints, e.eval cexRow = 0) ∧
     (∀ i ∈ Cut.Out.inters, i.bus ≠ busIf → i.count.eval cexRow = 0) ∧
     (∀ i ∈ Cut.Out.inters, i.bus = busIf → i.count.eval cexRow = 1) ∧
     (Cut.Out.c "act").eval cexRow = 0 ∧ (Cut.Out.c "kD").eval cexRow = 1 ∧ (Cut.Out.c "j").eval cexRow = 1 ∧
     (Cut.Out.n "kP").eval cexRow = 1 ∧
-    (Cut.rowWords Cut.Out.cols).map (·.map (·.eval cexRow)) =
+    (rowWordsKD Cut.Out.cols).map (·.map (·.eval cexRow)) =
       [[0, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]] := by
   decide
+
+/-- **The fix**: with the message limbs gated by `act` (`Cut.rowWords` now), the same row hashes the
+all-zero message. -/
+theorem cuto_filler_fixed :
+    (Cut.rowWords Cut.Out.cols).map (·.map (·.eval cexRow)) =
+      [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]] := by
+  decide
+
 
 
 /-! ## The CUT stream: row structure -/
@@ -402,7 +420,7 @@ theorem hwF_eq {tr : Trace} {pub : List F} {t : Nat} {cs : List String} (hcs : c
 theorem bwF_eq {tr : Trace} {pub : List F} {t : Nat} {cs : List String} (hcs : cs = Cut.In.cols ∨ cs = Cut.Out.cols)
     (r : Nat) {w : Nat} (hw : w < 8) :
     bwF tr pub t cs r w =
-      if w < 7 then [kc tr t r 2 * kc tr t r (5 + w), kc tr t r 2 * kc tr t r (12 + w),
+      if w < 7 then [kc tr t r 0 * kc tr t r (5 + w), kc tr t r 0 * kc tr t r (12 + w),
         if w = 0 then kc tr t r 0 + kc tr t r 3 * (1 - kc tr t r 1) * ((2 ^ 21 : Nat) : F) else 0]
       else [kc tr t r 3 * kc tr t r 1 * ((1024 : Nat) : F) * kc tr t r 20, kc tr t r 3 * kc tr t r 1 * kc tr t r 21, 0] := by
   rcases hcs with rfl | rfl <;>
