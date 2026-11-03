@@ -274,3 +274,47 @@ The steps, in order:
    * REG-C (27), with the refill clear/absent gap still open;
    * a STATE/CH bus split of the M2 AIR, because the host stack's `host_buses` covers only tables
      0–22.
+
+## Update: absent-register header (`wasmBaseM2rAir`)
+
+Closes the §5 open item "forcing a clear before a refill", as a **new** AIR value
+(`WasmBase/M2RegAbsent.lean`; `wasmBaseM2Air` and REG-C are unchanged):
+
+```
+wasmBaseM2rAir = base (0–21) ++ [HOST', HOSTO, HOSTT, HOSTB, IF (26), REG-A (27), CONV (28), UNREACH (29), RINIT (30)]
+```
+
+* Per register id exactly one *header* is live: its length message or an **absent** message
+  `[6, rid·2^24, 3, 0,0,0,0, tp]` (tag 3). **RINIT** (`act, rid, gap`) produces one per used id at
+  time 0, ids strictly increasing (`nxt.rid = rid + 1 + nxt.gap`, `rid`, `gap` R16-checked).
+* **REG-A** = REG-C + `atp, ahp`: a fill group's length row (`act·kind·(1−rd)`) consumes the absent
+  message at `atp ≤ ts` (`r16 (ts − atp − 2^16·ahp)`, `r16 (4·ahp)`; non-strict because a clear and
+  its fill share `ts`); a clear group's length row (`act·kind·clr`) re-produces it at `ts`; new
+  constraint `cLenAct = (1 − nxt.f)·nxt.kind·(1 − nxt.act)` (a length row after a byte row of its
+  group is active — otherwise a fill could create bytes without consuming the header). Leftover
+  absent messages go to DRAIN (`space·inv = 1` admits space 6).
+* Tools: `wasmbase-tool airM2r <nloc> <ngl>` / `evalM2r`. The trace generator enables the header
+  when the AIR has a `RINIT` table (`tracegen.rs` `Absent`); `tamper` adds `REGA`/`RINIT` cases.
+
+**Lean [K]** (`WasmBase/Main/M2RegAbsentFacts.lean`, standard axioms): `regAt_m2r` (the group walk
+applies at index 27), `m2r_hsend_r16` (R16 send bound), `m2r_regLenAgree_group`; header row facts
+`m2r_fill_consumes_absent`, `m2r_fill_absent_time` (`atp ≤ ts` for times `< 2^29`),
+`m2r_clear_produces_absent`, `m2r_rinit_produces_absent`, `m2r_lenAct`, `m2r_rinit_prefix`,
+`m2r_rinit_strict`, `m2r_rinit_distinct`. **Open:** the bus-level count (per id,
+`#fills ≤ 1 + #clears`, hence one live length message) needs the CH decomposition of the M2 tables
+(only RINIT/REG-A/DRAIN carry space-6 tag-3 messages; DRAIN's and LOCAL's space/tag are columns).
+
+**Measured [M]** on the refill call `3b1ad423.run` (`refill.json` of §4; 96 steps, a refill of
+register 0). Honest: `check-tape` passes at `wasmBaseM2rAir` with the same outcome as at
+`wasmBaseM2Air` (also `conv.json`, `unreach.json` of §4). Mutants (`logs/refill-m2r-*.log`):
+
+| mutant | `wasmBaseM2Air` | `wasmBaseM2rAir` |
+|---|---|---|
+| double fill: the clear group made a plain read (`clr = 0`) and its re-produced messages drained, so the fill overwrites a live register | **verifies** (precheck passes; `logs/refill-m2-doublefill-gap.log`) | rejected: absent `(rid 0, t 71)` consumed, never produced |
+| same, the fill claiming the RINIT message (`atp = 0`, R16 answers adjusted) | – | rejected: absent `(rid 0, t 0)` consumed twice |
+| fill `atp + 1`; fill length row `act = 0` (`cLenAct`) | – | rejected (bus; constraint) |
+| RINIT `act = 0`; `rid + 1` | – | rejected (bus) |
+| RINIT duplicate id / unsorted ids (`cInc` satisfied in the field by `gap = p − 1`, `p − 2`; extra absent drained, `rid` answered) | – | rejected by the R16 lookup on `gap` |
+
+`TAMPER_ONLY=REGA,RINIT,REGC,CONV` at `wasmBaseM2rAir`: **25 / 25 rejected** (the pre-existing
+REG-C and CONV cases included); header-only rerun after the `atp = 0` case was made R16-clean: 8 / 8.

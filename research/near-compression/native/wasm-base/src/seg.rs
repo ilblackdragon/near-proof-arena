@@ -428,13 +428,13 @@ fn rows_in(spec: &TableSpec, m: &RowMajorMatrix<F>, key: &str, lo: u64, hi: u64)
 
 /// Build segment `k` (between `gen.cuts[k]` and `gen.cuts[k + 1]`).  `tree` is the memory tree at
 /// the segment's start and is advanced to its end.
-pub fn build(seg: &AirSpec, m2: &AirSpec, gen: &Gen, prep: &Prep, k: usize, tree: &mut Tree) -> SegInst {
-    let (c0, c1) = (&gen.cuts[k], &gen.cuts[k + 1]);
+pub fn build(seg: &AirSpec, m2: &AirSpec, g: &Gen, prep: &Prep, k: usize, tree: &mut Tree) -> SegInst {
+    let (c0, c1) = (&g.cuts[k], &g.cuts[k + 1]);
     let (t_in, t_out) = (c0.t, c1.t);
     let mut sha = Sha::default();
     let mut mats: Vec<Option<RowMajorMatrix<F>>> = vec![None; seg.tables.len()];
     let si = |n: &str| seg.index(n);
-    let full = |n: &str| (&m2.tables[m2.index(n)], &gen.mats[m2.index(n)]);
+    let full = |n: &str| (&m2.tables[m2.index(n)], &g.mats[m2.index(n)]);
 
     // ---- copied rows -------------------------------------------------------------------------
     for name in ["ADD", "BIT", "MUL", "SHIFT", "CMP", "CONST", "STACK", "CTRL", "LOCAL", "DIV", "LOAD", "STORE",

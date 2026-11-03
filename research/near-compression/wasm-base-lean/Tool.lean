@@ -19,6 +19,9 @@ import WasmBase.Census
 * `wasmbase-tool evalR <nloc> <ngl> <points>`: the same for `wasmBaseRegAir`.
 * `wasmbase-tool airIfR <nloc> <ngl>` / `evalIfR`: `wasmBaseIfRegAir` (E2E M1-a: IF + REG' with the
   `read_register` memory write, `WasmBase/RegMem.lean`).
+* `wasmbase-tool airM2 <nloc> <ngl>` / `evalM2`: `wasmBaseM2Air` (E2E M2, `WasmBase/M2Air.lean`).
+* `wasmbase-tool airM2r <nloc> <ngl>` / `evalM2r`: `wasmBaseM2rAir` (M2 + the absent-register header:
+  REG-A and RINIT, `WasmBase/M2RegAbsent.lean`).
 -/
 
 open NearSpecV3.Wasm WasmBase ZkFormal.Algebra
@@ -56,6 +59,8 @@ def main (args : List String) : IO Unit := do
   | ["airM2", l, n] => IO.println (airJson (wasmBaseM2Air l.toNat! n.toNat!))
   | ["airSeg", l, n] => IO.println (airJson (wasmBaseSegAir l.toNat! n.toNat!))
   | ["evalM2", l, n, path] => evalPoints l.toNat! n.toNat! path 5
+  | ["airM2r", l, n] => IO.println (airJson (wasmBaseM2rAir l.toNat! n.toNat!))
+  | ["evalM2r", l, n, path] => evalPoints l.toNat! n.toNat! path 6
   | ["airIf", l, n] => IO.println (airJson (wasmBaseIfAir l.toNat! n.toNat!))
   | ["airIfH", l, n] => IO.println (airJson (wasmBaseIfHostAir l.toNat! n.toNat!))
   | ["airIfR", l, n] => IO.println (airJson (wasmBaseIfRegAir l.toNat! n.toNat!))
