@@ -68,6 +68,7 @@ import WasmBase.Main.RegMemLink
 import WasmBase.M2Check
 import WasmBase.M2Air
 import WasmBase.SegAir
+import WasmBase.SegAirMP
 import WasmBase.Census
 import WasmBase.Main.M2Link
 import WasmBase.Main.RegWalkG
