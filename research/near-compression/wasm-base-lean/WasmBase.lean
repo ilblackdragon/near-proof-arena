@@ -133,3 +133,4 @@ import WasmBase.Main.SegRowRel
 import WasmBase.Main.SegTomb
 import WasmBase.Main.SegDom
 import WasmBase.Main.SegHalt
+import WasmBase.Main.SegLinkage
