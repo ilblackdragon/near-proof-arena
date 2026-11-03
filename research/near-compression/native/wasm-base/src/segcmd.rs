@@ -517,7 +517,7 @@ fn tampers_key(spec: &AirSpec, s: &SegInst) -> Vec<Case> {
         for x in m[hb].values[r * w..(r + 1) * w].iter_mut() {
             *x = F::ZERO;
         }
-        for (c, v) in [("act", 1u32), ("dir", 1), ("f", 1), ("blen", 1), ("ts", 7), ("hid", 999)] {
+        for (c, v) in [("act", 1u32), ("dir", 1), ("f", 1), ("len", 1), ("ts", 7), ("hid", 999)] {
             put(&mut m, "HOSTB", r, c, F::from_u32(v));
         }
         seg::recount(spec, &mut m, &s.pubs);
