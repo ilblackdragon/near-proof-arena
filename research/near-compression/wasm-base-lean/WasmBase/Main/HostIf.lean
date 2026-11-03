@@ -206,11 +206,11 @@ def HostPost (X : Ctx) (b : St) (outS : List F) (cons prod : List Msg) (sgin sgo
 
 /-- **A pre-state of a row**: related at the row's in-segment, entering the row's STATE message, with
 the row's consumed messages live (so its stack arguments, the HOSTB bytes it reads and the REG-C
-entries it reads are the state's), at a STATE time below `P`. -/
+entries it reads are the state's), at a STATE time below `P` with `S + maxFee < P`. -/
 def RowPre (X : Ctx) (inS : List F) (cons : List Msg) (sgin : Nat × Nat) (E : Env) (s : St) (f : Frame)
     (tps tpl : Nat → Nat) (t pc S : Nat) (live : Msg → Prop) : Prop :=
   RelW X E s f tps tpl t pc S live sgin.1 sgin.2 ∧ inS = stMsg (X.offOf E.k + pc) t S 0 E.sb E.cid ∧
-    (∀ x ∈ cons, live x) ∧ t + 1 < P
+    (∀ x ∈ cons, live x) ∧ t + 1 < P ∧ S + X.maxFee < P
 
 /-- **The row is answered from host side `a` to host side `b`**: some pre-state of the row with host
 side `a` satisfies the row's post-condition with out-pin `b`.  (The honest prover's witness is the
@@ -328,7 +328,7 @@ theorem holdRowSσ_of_hostIf {X : Ctx} {tr : Trace} {pub : List F} {sg : Nat →
     rw [this, e0]
   obtain ⟨E0, w, f0, tps0, tpl0, t0, pc0, S0, live0, hpre0, hw, hpost⟩ := hI.ans r hA
   obtain ⟨k', pc', fee, hb, sb', cid', a1, a2, a3, a4⟩ :=
-    hF.post r hA E0 w f0 tps0 tpl0 t0 pc0 S0 live0 E s f tps tpl t pc S live hpre0 ⟨R, hin, hl, h1⟩ h2 h3
+    hF.post r hA E0 w f0 tps0 tpl0 t0 pc0 S0 live0 E s f tps tpl t pc S live hpre0 ⟨R, hin, hl, h1, h2⟩ h2 h3
       (hw.trans hJ'.symm) hpost
   refine ⟨k', pc', fee, hb, sb', cid', a1, a2, a3, fun hg => ?_⟩
   obtain ⟨c0, c1, c2⟩ := a4 hg
