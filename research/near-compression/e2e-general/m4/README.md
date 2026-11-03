@@ -185,3 +185,157 @@ from a forged state) would verify on its own and is rejected by the chain check
 5. Not built: the boundary for host calls in flight (a cut never splits a step, so none is needed),
    the in-circuit outer `bdigest(BndRec)` (the node's job, M8), one key per segment *template* across
    contracts (CODE/FUNC are cached per contract), `memory.grow` (memRoot depth change).
+
+Items 1–3 of this list are addressed in §8 (M4b).
+
+## 8. M4b (2026-11-03, fourth session)
+
+Six sub-lanes (V, S1–S4, C, M2), merged onto lane A's branch. All Lean is [K] (`propext`,
+`Classical.choice`, `Quot.sound` only, no `sorry`); `lake build WasmBase wasmbase-tool` green
+(433 jobs). Nothing under `spec/` changed. `wasm-base-lean` now requires lane B's `StateM5a`
+(its `Sha512If` chip contract and SHA-384 Merkle lemmas are reused, not copied).
+
+### 8.1 Two soundness findings, both fixed
+
+* **`Holds (wasmBaseSegAir …)` is unsatisfiable** (`seg_holds_false`, `Main/SegHoldsX.lean`):
+  `Holds` balances bus 103 over the Lean tables only, and the SHA-512 chip that sends on it is
+  native. Every M4 theorem stated from `Holds` was vacuous. The segment relation is now `HoldsX`
+  (`Holds` without the external bus-103 balance; the chip enters as the named contract `ChipIf`),
+  and every segment lemma (SegRows, SegMpath, SegMemb, SegSend and everything below) is stated over
+  it.
+* **CUTO's odd-stream filler row was not forced to the zero message**
+  (`cuto_filler_counterexample`): `ctx_out` could be SHA-384 of prover-chosen filler words, so the
+  boundary digest was not a function of the boundary state. **Fix:** `Cut.rowWords` gates the
+  message limbs by `act` instead of `kD` (degree unchanged; `cuto_filler_fixed`). Honest traces are
+  unchanged; the AIR json and key change.
+
+### 8.2 Tampers and re-validation [M]
+
+| AIR | runs | result | logs |
+|---|---|---|---|
+| `wasmBaseSegAir` after the `r16 gl` fix (item 1) | tamper battery, refill segments 0 and 2 | **26/26 + 28/28 rejected**, honest verifies | `logs/m4b-segtamper-final-s*.log` |
+| + filler fix | bench 5 segments segcheck + chain; refill 4 segments proved (1.33–1.34 MB, 42–59 s, verify 65–99 ms) and chained; tampers | **26/26 + 28/28 rejected** | `logs/m4b-fix-*` |
+| `wasmBaseSegAirMP` (§8.4) | bench segprove segs 1, 4; refill 4/4 proved; tampers incl. 17 / 21 new MPATH-MP cases | **39/39 + 46/46 rejected** | `logs/m4b-segprove-*-mp.log`, `logs/m4b-segtamper-refill-mp-s*.log` |
+| `wasmBaseSegAirMP` + filler fix | bench 5 + refill 4 segcheck + chain; tampers | **39/39 + 46/46 rejected** | `logs/m4b-mpfix-*` |
+
+### 8.3 Lean: segment soundness as one theorem, and the Wasm view
+
+**`seg_sound`** (`Main/SegSoundX.lean`, cut case). From `HoldsX (wasmBaseSegAir …) pub tr`, the chip
+contract `ChipIf compressW` (lane B's `Sha512IfContract` with the spec's `SHA512.compress`, plus the
+bus-103 balance including the chip's sends), `X : M2Ctx`, a cut (`halted_out = 0`), and `s0`
+related by `BndC` to SEGB's first STATE message and the in-boundary live list `initS` (CUTI ∪ MEMB
+∪ SEGB gas register): `t_out = t_in + n`, `seg n s0 = .cont sN` (and `run` continues from `sN`),
+`BndC` at the out cut for `finS` (CUTO ∪ MEMB ∪ SEGB ∪ DROP), `cutoList tr = cutView X sN`, and
+**the public `ctx_out` limbs are `cutDigest (cutView X sN)`, the SHA-384 of the spec state's
+boundary view**, every view entry `MsgWF`. The `CutSeg` (rows, STATE and CH permutations) is built
+from the trace (`SegBus.lean`: `seg_hst`, `seg_hch`, `seg_finSplit`; `SegRowsX.lean`:
+`seg_rowfacts`).
+
+The four facts the state relation lacked (§7.1) are in **`BndC`** (= `Bnd` + register clause `RegC`
++ space clause `SpC`, layered on `RelW`, `Main/SegView.lean`): registers via
+`StepRegs.step_registers` (a non-host step keeps the register file; every `exec` arm) and
+`seg_instr_regKeep` (an instruction row is not a host call); spaces as a per-row invariant
+(`exec_of_rows_cutQ`); `X.M.fns.Nodup` proved for both checkers (`CtxNodup.lean`); field bounds
+from CUTO at the out cut (`cuto_wf`). `cutView_eq`/`cutView_eqL`: the relabelled kept live list is
+`cutView X s`. `cuto_link` (`SegLink.lean`): CUTO's hashed list is exactly the depth-relabelled
+kept live messages (CIDMAP functional on the ids that occur, `cuto_k4_dep`). `ctx_out_sha`
+(`SegCutWords.lean`): the CUTO stream words are `cutWords (cutoList tr)`.
+
+SHA streams (`SegSha*.lean`, the chip as `ChipIf`): `consumer_sound` / `consumer_node_sha384`
+(layout-independent); **`memb_leaf_in`/`memb_leaf_out`: a MEMB leaf digest is `sha384` of the
+block's 1024 bytes in address order** (`memb_leaf_out` assumes the `bo` columns are bytes: they are
+memory-channel values, not range-checked by MEMB); `mpath_block_sha`, `memRoot_in_sha`,
+`memRoot_out_sha` (MPATH node = `sha384 (l48 ‖ r48)`); `cut_stream_digest`.
+
+Named premises of `seg_sound`: `CodeOK`/`FuncOK` (commitment bindings), `HostBLinked`,
+`RegCLinked`, `SegKeepM2`, `HoldRowS` (HOST-row facts incl. the gas register), `HostRely` (the HOST
+rows' register/space clauses: the host-chip contract, M6), `ChipIf` + `CutoHiLimbs` (chip),
+`TombDead` (a taken RET's activation id is not live at the cut: an execution fact that needs
+`exec_of_rows_cut` to export its per-row trace), `(initS tr pub).Nodup` (the MEMB/SEGB parts are
+distinct by construction but unproved; CUTI's part only via the previous segment's view), size
+bounds (`hlen`, `htin`, `hfeeN`, `hstepgas`, `hg64`) and the in-boundary relation `h0`. Not yet
+conjuncts: the memory root (S2's per-block lemmas and C's `mp_tree` hold separately), `ctx_in =
+cutDigest (cutView X s0)` (CUTI side), and the new clauses for halting segments.
+
+**`wasm_base_sound_m2`** (`Main/M2Sound.lean`, item 4): the STATE/CH decomposition of
+`wasmBaseM2Air` (`m2_hst`, `m2_hch`, `Main/M2Bus.lean`; REG-C clear pairs cancel, REG-C net traffic
+is folded into its host call under the named `RegCLinked`) composed with `m2_rowfacts` and
+`exec_of_rows_seg`: `run … s0 = .fin sN` / `.abort sN e` with the gas equation, from `Holds` of that
+AIR alone. Named: `CodeOK`/`FuncOK`, `HostBLinked`, `RegCLinked`, `HoldRowM2`, `SegKeepM2`, boundary.
+
+**The Wasm component of lane E's `ViewImpl`** (`Main/WasmView.lean`, item 2): a concrete
+`wasmD : WmV → Option WasmBnd`; **`wasmD_binding : Coll (wasmD P) → Sha384Coll`**; `viewImpl_hwasm`
+(exactly the `hwasm` premise of `viewImpl_binding_bad`); `wasmD_air` (on the AIR branch
+`framesDigest = (cutDigest (cutView X s)).take 42`, `memRoot = (memRootOf s).take 42`);
+`wasmBnd_ok` (lane E's `WF`). The core is `reconstruct`: `InDom X s`, `InDom X s'`, equal
+`cutView`, equal top pc/base and register-id order give equal stack, frames, globals and registers
+(`off_decode` from the checker's `layoutOk`); `memRoot_binding`/`pages_eq` use lane B's
+`merkle_binding`.
+
+| `WasmBnd` field | value on the AIR branch (fallback: constants, the full `(q, cc)` in the remainder) |
+|---|---|
+| `pc`, `sp` | `X.offOf (X.kOf f.fn) + f.pc` (the AIR's global pc), `f.base` (the AIR's `sb`) |
+| `stackRem`, `fuel`, `memPages` | `s.stackRem`, `n`, `s.pages.size` |
+| `framesDigest` | `bdigest (cutBytes (cutView X s))`: the AIR's `ctxDigest`, 42 bytes |
+| `globalsDigest`, `registersDigest` | `= framesDigest` (**derived**: one ctxDigest covers stack, locals, records, globals, budget, registers) |
+| `memRoot` | the SHA-384 Merkle root over 1 KiB blocks, exactly `seg.rs`'s tree, 42 bytes |
+| `vmCtxDigest` | `bdigest (encRest (q, p, k, s with the viewed parts blanked))` |
+| `promisesDigest` | `bdigest []` (promises are in the remainder) |
+| `codeRoot`, `funcRoot` | params of `(q, p)` |
+
+Params obligations: `ctxOf`, `codeRootOf`/`funcRootOf` (42 B), `encRest` injective (lane E's
+encoders). `InDom`: a running frame, an `MsgWF` view, `FrameOK` frames, numeric stack and globals,
+`PagesOK`, distinct register ids with data `< 2^24`, 64-bit counters.
+
+**The `BndRec` mismatch is resolved on lane A's side: no `BndRec` change is needed for binding.**
+The separate frames/globals/registers digests are instantiated as the single ctxDigest; `t`, `S`,
+the gas segment, `D`, `nblk` and `halted` are AIR-internal or derived. **Proposed to lane E
+(optional, for M8's in-circuit boundary):** add `gasLeft : Nat` (u64, `s.gas.g`) to `WasmBnd`.
+Today `s.gas` sits in the `vmCtxDigest` remainder, which a segment would then have to recompute
+(the AIR has `g = segb − R·(S − S_seg)`). Also for lane E/M6: the remainder carries the register-id
+order (the view is a set), so a segment that creates a register changes `vmCtxDigest`; either the
+AIR adds a digest of the id sequence, or the spec canonicalises the order. Register ids `≥ 64`
+(allowed by the spec; `MsgWF` needs `rid·2^24 + i + 1 < 2^30`) fall to the fallback branch: still
+binding, but not AIR-connected.
+
+### 8.4 Boundary cost: a batched Merkle multiproof [M]
+
+`wasmBaseSegAirMP` (`WasmBase/SegAirMP.lean`) is `wasmBaseSegAir` with table 20 replaced
+(`segMP_same`): MPATH has one row per **touched tree node** (old and new digests, a
+touched/untouched flag per child; an untouched sibling is one witness for both trees; node bus 17;
+the root talks to SEGB over RCH as before), so shared upper levels are hashed once. Exported by
+`airSegMP`; the prover picks the variant from the AIR json. Lean: `mp_tree` (`Main/SegMP.lean`):
+`memIn`/`memOut` are one partial tree `PTree` (leaf/stub/node) evaluated with the old/new leaf
+digests; its leaves are exactly the bus-15 leaf messages, distinct, in `[0, 2^D)`; `pos_unique`
+(one row per node), `root_unique`. The node hash is a hypothesis as in `SegMpath`;
+`consumer_node_sha384` instantiates it.
+
+| `segbench`, 2^18-step segment 1 | M4 (same run conditions) | multiproof |
+|---|---|---|
+| compressions | 1,610 (576 leaf + 1,024 path + 10) | **680** (576 leaf + 94 node + 10) |
+| SHA-512 chip | 2^18 rows, 21.76 M cells | **2^17 rows, 10.88 M cells** |
+| total cells | 38.86 M | **27.91 M (−28 %)** |
+| boundary share (boundary tables + chip) | 59 % | **43 %** |
+| proof / prove / verify / peak RSS | 1,733,431 B / 599 s / 61 ms / 19.4 GB | 1,733,175 B / 586 s / 81 ms / **17.2 GB** |
+
+Proof size and prove time do not move on the current backend: the stacked-WHIR shape
+(`n_stack 22`, `w_stack 8`) has room for about 134 M cells either way, and the next smaller shape
+needs about 21 M cells or fewer. The remaining 576 leaf compressions (in and out per touched block)
+already exceed 512, so the chip cannot drop below 2^17 rows without changing what `memRoot` commits
+to. The other listed levers are worse: 4-ary nodes (192 B + padding = 2 compressions per level, half
+the levels: no gain), a smaller tree (changes the commitment), word-granular messages (rows, not
+compressions). `wasmBaseSegAir` stays the AIR of `seg_sound`; porting the theorem to
+`wasmBaseSegAirMP` means using `mp_tree` instead of `rch_chain` + `mpath_block` (every other table
+is equal).
+
+### 8.5 Open
+
+1. `seg_sound` premises: `TombDead`, `initS` Nodup (the MEMB/SEGB part), the CUTI side
+   (`ctx_in = cutDigest (cutView X s0)`), the memory-root conjunct (compose `memb_leaf_*` with
+   `mp_tree`/`rch_chain`, plus a collision-resistance comparison against the full memory tree),
+   halting segments, and `InDom X sN` from `BndC` (so `wasmD_air` applies and the public boundary is
+   literally `wasmD`'s). The host-side premises are M6.
+2. Port `seg_sound` to `wasmBaseSegAirMP`.
+3. Segments containing `memory.grow` (item 6): not started (`D`/`nblk` change; `wasmBaseM3Air`'s
+   MEMG/MSZ/GINIT chips are not in the segment AIR).
+4. `WasmBnd.gasLeft` and the register-id order (§8.3), for lane E.

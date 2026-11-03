@@ -66,7 +66,7 @@ AIR: `research/near-compression/wasm-base-lean/WasmBase` (Lean, the single sourc
 | control flow: block/loop/br/br_if/return, `if`/`else` | CTRL, IF chip (`IfCheck.lean`, `docs/logs/pq-if-air-2026-10-22.md`) | **B** | IF: 14 cols, 2 constraints | `if_rowfacts` proved; the full IF checker soundness is open |
 | calls (defined functions) | family 4, FUNC table (§13.1) | **B** | – | proved (`step_call`, `call_rowfacts`) |
 | gas (instruction units `S`, `R·S ≤ g0`) | in every chip; per-segment invariant `WasmBase/Main/SegExec.lean`, `R/pq-host-gas` | **B** Wasm-internal; host resynchronisation (`g := remaining`) is **P** | – | Wasm-only proved; `H0`/`HoldRow` open |
-| segmentation of one call | spec: `NearSpecV3/Wasm/Segment.lean` `run_foldSegments` [K]; `wasmBaseSegAir` (`WasmBase/SegAir.lean`, E2E M4) | **B** (2026-11-03): mid-call cuts with SHA-384 `ctxDigest` + `memRoot` boundary; 1.13 M-step call proved as 5 chained segments | boundary per written 1 KiB block 50 SHA-512 compressions (`D = 16`) | `exec_of_rows_cut`, `cuts_csteps` [K]; full segment soundness open |
+| segmentation of one call | spec: `NearSpecV3/Wasm/Segment.lean` `run_foldSegments` [K]; `wasmBaseSegAir` (`WasmBase/SegAir.lean`, E2E M4) | **B** (2026-11-03): mid-call cuts with SHA-384 `ctxDigest` + `memRoot` boundary; 1.13 M-step call proved as 5 chained segments | boundary per written 1 KiB block 50 SHA-512 compressions (`D = 16`); M4b multiproof (`wasmBaseSegAirMP`): 680 per 32-block segment, boundary 43 % | `exec_of_rows_cut`, `cuts_csteps` [K]; M4b: `seg_sound` (cut case, from `HoldsX` + chip contract; host relies, memory-root conjunct open), `wasmD_binding` [K] |
 
 ### 1.3 Host functions (HOST/HOSTO/HOSTT/HOSTB/REG chips, `WasmBase/HostChip.lean`)
 
@@ -622,12 +622,38 @@ See `research/near-compression/e2e-general/m1/README.md` for commands, logs and 
   now equal, 0 different**; remainder 258, all pre-existing generator limits (129 stack-budget
   traps, 91 addresses `≥ 2^27`, 38 out-of-gas at an instruction).
 
+**Done 2026-11-03, fourth session (lane A): M4b** (`m4/README.md` §8; log
+`docs/logs/e2e-laneA-wasm-2026-11-03.md`):
+
+* **Soundness findings, fixed [K][M].** `Holds (wasmBaseSegAir …)` was unsatisfiable (the native
+  chip's bus 103; `seg_holds_false`), so the M4 Lean results were vacuous: everything is restated
+  over `HoldsX` with the chip as the named contract `ChipIf` (lane B's `Sha512IfContract`, reused).
+  CUTO's filler row was not forced to zero (`cuto_filler_counterexample`): fixed by gating the
+  message words with `act`.
+* **Tampers [M].** Final `wasmBaseSegAir` (after `r16 gl`, and again after the filler fix):
+  54/54 rejected; the filler-fixed AIR re-checks the 1.13 M-step benchmark (5 segments, chained)
+  and proves the refill call's 4 segments.
+* **Segment soundness as one theorem [K]: `seg_sound`** (cut case): from `HoldsX` + `ChipIf`, the
+  `CutSeg` built from the trace, `seg n s0 = .cont sN`, the extended relation `BndC` (register and
+  space clauses; `fns` Nodup proved for both checkers; field bounds from CUTO) at the out cut, and
+  the public `ctx_out` = SHA-384 of `cutView X sN`. MEMB leaf = `sha384` of the block bytes and
+  MPATH node = `sha384 (l ‖ r)` under `ChipIf`. Named: host-chip relies (M6), `HostBLinked`,
+  `RegCLinked`, `CodeOK`/`FuncOK`, `TombDead`, the in-boundary `Nodup`; not yet conjuncts: memory
+  root, CUTI side, halting segments.
+* **`ViewImpl.wasmD` [K]:** concrete instance (single ctxDigest as frames/globals/registers digest,
+  SHA-384 memory Merkle root), `wasmD_binding : Coll wasmD → Sha384Coll`, `viewImpl_hwasm`. No
+  `BndRec` change needed; optional proposal to lane E: `WasmBnd.gasLeft`.
+* **`wasm_base_sound_m2` [K]** with the M2 STATE/CH split (`RegCLinked` named).
+* **Boundary cost [M]:** `wasmBaseSegAirMP`, MPATH as a batched Merkle multiproof (`mp_tree` [K]):
+  1,610 → 680 compressions per 2^18-step segment, chip 2^18 → 2^17, cells 38.86 M → 27.91 M (−28 %),
+  boundary 59 % → 43 %, peak RSS 19.4 → 17.2 GB; proof size/time unchanged on the current shape;
+  85/85 tampers rejected.
+
 **Next (lane A):**
-* Segment soundness as one theorem (the `cutView` equality and the LEAF link above), and lane E's
-  `ViewImpl.wasmD` with `Coll wasmD → SHA-384 collision`.
-* Boundary cost levers (tree depth from used pages, write-only leaf re-hash, 4-ary nodes) and
-  segments with `memory.grow` (`wasmBaseM3Air` chips in the segment AIR; `D` changes).
-* `wasm_base_sound_m2` dispatch; the generator limits (stack-budget trap row, out-of-gas row,
+* `seg_sound` remainder: memory-root conjunct, CUTI side, `TombDead`, halting segments, `InDom`
+  from `BndC`; port to `wasmBaseSegAirMP`.
+* Segments with `memory.grow` (`wasmBaseM3Air` chips in the segment AIR; `D` changes).
+* The generator limits (stack-budget trap row, out-of-gas row,
   `≥ 2^27` addresses).
 * **Distinguish the storage key and value bytes in-circuit** when the state side consumes bus 210
   (the `hid + 256` wire convention, M6).
