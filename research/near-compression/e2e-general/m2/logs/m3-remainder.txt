@@ -1,0 +1,15 @@
+remainder -> 813 {'equal': 358, 'trace-failed': 258, 'equal-abort': 197}
+129 ('trace-failed', 'panic: stack budget exhausted: the trap is not provable') out/preps/001084.json
+91 ('trace-failed', 'panic: effective address beyond 2^27') out/preps/001769.json
+34 ('trace-failed', 'panic: host event') out/preps/000045.json
+4 ('trace-failed', "panic: assertion `left == right` failed: spec run did not finish normally   left: 'abort HostError(GasExceeded)'  right: 'fin'") out/preps/001283.json
+transitions {('unchipped', 'equal'): 358, ('no-method-run', 'no-method-run'): 18, ('equal', 'equal'): 1104, ('equal-abort', 'equal-abort'): 185, ('trace-failed', 'trace-failed'): 250, ('unchipped', 'equal-abort'): 197, ('unchipped', 'trace-failed'): 8}
+311 ('panic: unchipped opcode 0x240 at pc 752 (M2: admitted, no ch', 'equal', '')
+120 ('panic: unchipped opcode 0x242 at pc 547 (M2: admitted, no ch', 'equal-abort', '')
+67 ('panic: unchipped opcode 0x240 at pc 752 (M2: admitted, no ch', 'equal-abort', '')
+47 ('panic: unchipped opcode 0x242 at pc 737 (M2: admitted, no ch', 'equal', '')
+10 ('panic: unchipped opcode 0x242 at pc 737 (M2: admitted, no ch', 'equal-abort', '')
+4 ('panic: unchipped opcode 0x240 at pc 752 (M2: admitted, no ch', 'trace-failed', 'panic: stack budget exhausted: the trap is not provable')
+2 ('panic: unchipped opcode 0x240 at pc 752 (M2: admitted, no ch', 'trace-failed', 'panic: effective address beyond 2^27')
+1 ('panic: unchipped opcode 0x240 at pc 752 (M2: admitted, no ch', 'trace-failed', 'panic: assertion `left == right` failed: spec run did not finish norma')
+1 ('panic: unchipped opcode 0x242 at pc 737 (M2: admitted, no ch', 'trace-failed', 'panic: stack budget exhausted: the trap is not provable')
