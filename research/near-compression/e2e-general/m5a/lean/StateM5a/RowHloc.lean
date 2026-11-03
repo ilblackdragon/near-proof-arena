@@ -96,6 +96,7 @@ theorem localOK_br_row {σ : Store} {keyOf : Nat → List Nat}
       (hF.depth (by brfacts hc hg; exact f1)) hF.old
   · exact localOK_oFA hc hg h1 (hF.nib (nib_mult hc hg (gEnd_val hc hg h1 (by simp)))) hF.old
   · exact localOK_oFV hc hg h1 (hF.klen (gEnd_one hc hg h1 (by simp))) hF.old
+      (hF.ranges.2.1 0 (by decide)).1 hF.ranges.2.2
   · exact localOK_oDA hc hg h1 (hF.nib (nib_mult hc hg (gEnd_val hc hg h1 (by simp)))) hF.old
   · exact localOK_oDS hc hg h1 (hF.nib (nib_mult hc hg (gEnd_val hc hg h1 (by simp))))
       (hF.depth (by brfacts hc hg; exact f1)) hF.old

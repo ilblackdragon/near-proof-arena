@@ -30,9 +30,13 @@ def brNewSlot (i : Nat) : Ref :=
 
 def brNewKids : RKids := kidsFrom (fun i => ev tr 2 r pub (Br.c "nf" i)) (brNewSlot tr pub r) 0 16
 
+/-- The new value length, as a natural from its two 16-bit limbs. -/
+def brNVlen : Nat :=
+  (bE tr pub r (limb16 (fun t => Br.c "nvl" t) 0)).toNat + 65536 * (bE tr pub r (limb16 (fun t => Br.c "nvl" t) 1)).toNat
+
 def brNewVal : Option Slot :=
   if ev tr 2 r pub (Br.c "nhv") = 1 then
-    some (.ref (bE tr pub r (limb16 (fun t => Br.c "nvl" t) 0 + sm 65536 (limb16 (fun t => Br.c "nvl" t) 1))).toNat
+    some (.ref (brNVlen tr pub r)
       (bytesOf ((pack2 fun b => Br.c "nvh" b).map (bE tr pub r))))
   else none
 
@@ -46,12 +50,14 @@ def brOut : Ref := refOf (bE tr pub r (Br.c "nref")) ((pack2 fun b => Br.c "hn" 
 
 /-- **Memory range facts of a `BR` row** (premise; from the SHA-256 byte checks, `RNG` and the
 `VER` / `UP` transfer of 16-bit limbs): the 16-bit limbs of `mem`, `nmem`, `nm`, `om`, and the two
-16-bit limbs of the old / new value length. -/
+16-bit limbs of the old / new value length; and the old value length is `< P` (the `UP` answer `alen`
+of a find is one field element; true of every NEAR value, at most 4 MiB). -/
 def BrRanges : Prop :=
   (∀ k, k < 4 → (bE tr pub r (Br.M.getD k 0)).toNat < 65536 ∧ (bE tr pub r (Br.NM.getD k 0)).toNat < 65536 ∧
     (bE tr pub r (Br.c "nm" k)).toNat < 65536 ∧ (bE tr pub r (Br.c "om" k)).toNat < 65536) ∧
   (∀ k, k < 2 → (bE tr pub r (limb16 (fun t => Br.c "vl" t) k)).toNat < 65536 ∧
-    (bE tr pub r (limb16 (fun t => Br.c "nvl" t) k)).toNat < 65536)
+    (bE tr pub r (limb16 (fun t => Br.c "nvl" t) k)).toNat < 65536) ∧
+  brVlen tr pub r < 2013265921
 
 end
 
@@ -171,11 +177,11 @@ theorem carry4_cases {c : Expr} (h : ev tr 2 r pub (c * (c - 1) * (c + 1) * (c -
 
 theorem br_mem_cy (k : Nat) (hk : k < 4) :
     Br.c "cy" k * (Br.c "cy" k - 1) * (Br.c "cy" k + 1) * (Br.c "cy" k - 2) ∈ Br.constraints := by
-  unfold Br.constraints; apply List.mem_append_left; apply List.mem_append_right; unfold Br.memNew
+  unfold Br.constraints; apply List.mem_append_left; apply List.mem_append_left; apply List.mem_append_right; unfold Br.memNew
   exact List.mem_append_right _ (List.mem_map.2 ⟨k, List.mem_range.2 hk, rfl⟩)
 
 theorem br_mem_cy3 : Br.c "gnew" * Br.c "cy" 3 ∈ Br.constraints := by
-  unfold Br.constraints; apply List.mem_append_left; apply List.mem_append_right; unfold Br.memNew
+  unfold Br.constraints; apply List.mem_append_left; apply List.mem_append_left; apply List.mem_append_right; unfold Br.memNew
   exact List.mem_append_left _ (List.mem_append_right _ (List.mem_singleton_self _))
 
 /-- Limb `k` of the `memNew` chain. -/
@@ -190,7 +196,7 @@ def memK (k : Nat) : Expr :=
       (if k = 0 then 0 else Br.c "cy" (k - 1)))
 
 theorem br_mem_k (k : Nat) (hk : k < 4) : memK k ∈ Br.constraints := by
-  unfold Br.constraints; apply List.mem_append_left; apply List.mem_append_right; unfold Br.memNew
+  unfold Br.constraints; apply List.mem_append_left; apply List.mem_append_left; apply List.mem_append_right; unfold Br.memNew
   exact List.mem_append_left _ (List.mem_append_left _ (List.mem_map.2 ⟨k, List.mem_range.2 hk, rfl⟩))
 
 set_option maxHeartbeats 4000000 in

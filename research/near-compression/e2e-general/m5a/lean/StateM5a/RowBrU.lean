@@ -79,18 +79,18 @@ theorem br_val_kept (hc : ∀ e ∈ Br.table.constraints, e.eval tr 2 r pub = 0)
     Fp.ext (FieldVer.eq_of_gate (FieldRows.hold (L := Br.constraints) rfl hc (by
       unfold Br.constraints; simp only [List.mem_append, List.mem_flatMap, List.mem_map, List.mem_range]
       memfind)) (eval_one_ev g))
+  have hlen : brNVlen tr pub r = brVlen tr pub r := by
+    unfold brNVlen brVlen
+    simp only [bE, limb16, eval_add, eval_mul, eval_K]
+    rw [hl 0 (by decide), hl 1 (by decide), hl 2 (by decide), hl 3 (by decide)]
+  have hbytes : (pack2 fun b => Br.c "nvh" b).map (bE tr pub r) = (pack2 fun b => Br.c "vh" b).map (bE tr pub r) := by
+    simp only [pack2, List.map_map]
+    apply List.map_congr_left; intro i hi
+    have h := List.mem_range.1 hi
+    simp only [Function.comp, bE, eval_add, eval_mul]
+    rw [hh (2 * i) (by omega), hh (2 * i + 1) (by omega)]
   unfold brNewVal brVal
-  rw [hv]
-  split
-  · congr 3
-    · simp only [bE, limb16, eval_add, eval_mul, eval_sm, eval_K]
-      rw [hl 0 (by decide), hl 1 (by decide), hl 2 (by decide), hl 3 (by decide)]
-    · simp only [pack2, List.map_map]
-      apply List.map_congr_left; intro i hi
-      have h := List.mem_range.1 hi
-      simp only [Function.comp, bE, eval_add, eval_mul]
-      rw [hh (2 * i) (by omega), hh (2 * i + 1) (by omega)]
-  · rfl
+  rw [hv, hlen, hbytes]
 
 set_option maxHeartbeats 4000000 in
 /-- **The rewritten slots of a descending row**: slot `n` takes the child's result ref. -/

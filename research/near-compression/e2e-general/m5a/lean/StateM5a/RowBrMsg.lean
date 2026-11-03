@@ -32,10 +32,14 @@ def brSlot (i : Nat) : Ref :=
 
 def brKids : RKids := kidsFrom (fun i => ev tr 2 r pub (Br.c "f" i)) (brSlot tr pub r) 0 16
 
+/-- The old value length, as a natural from its two 16-bit limbs (no field wrap). -/
+def brVlen : Nat :=
+  (bE tr pub r (limb16 (fun t => Br.c "vl" t) 0)).toNat + 65536 * (bE tr pub r (limb16 (fun t => Br.c "vl" t) 1)).toNat
+
 /-- The old value slot. -/
 def brVal : Option Slot :=
   if ev tr 2 r pub (Br.c "hasv") = 1 then
-    some (.ref (bE tr pub r (limb16 (fun t => Br.c "vl" t) 0 + sm 65536 (limb16 (fun t => Br.c "vl" t) 1))).toNat
+    some (.ref (brVlen tr pub r)
       (bytesOf ((pack2 fun b => Br.c "vh" b).map (bE tr pub r))))
   else none
 

@@ -36,7 +36,7 @@ structure BrStore (σ : Store) (tr : Trace Fp) (pub : List Fp) (r : Nat) : Prop 
 theorem br_mem_dm {e : Expr}
     (he : e ∈ memChain (Br.c "oDH" + Br.c "oDL") (memLimbs Br.T "dm") Br.M []
       ((List.range 4).map fun k => Br.c "om" k) (fun k => Br.c "cyd" k)) : e ∈ Br.constraints := by
-  unfold Br.constraints; exact List.mem_append_right _ he
+  unfold Br.constraints; exact List.mem_append_left _ (List.mem_append_right _ he)
 
 theorem br_mem_rng_dm : ∀ b, b < 8 → memD (rcv B_RNG (Br.c "oDH" + Br.c "oDL") [Br.c "dm" b]) Br.interactions = true := by
   decide

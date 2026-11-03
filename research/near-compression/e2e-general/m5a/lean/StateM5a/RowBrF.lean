@@ -238,7 +238,9 @@ theorem localOK_oFV {σ : Store} {keyOf : Nat → List Nat}
     (hc : ∀ e ∈ Br.table.constraints, e.eval tr 2 r pub = 0)
     (hg : ev tr 2 r pub Br.gold = 1) (h1 : ev tr 2 r pub (Br.c "oFV") = 1)
     (hklen : (keyOf (ev tr 2 r pub (Br.c "kid"))).length = ev tr 2 r pub (Br.c "d"))
-    (hold : OldOK σ (brIn tr pub r) (brOld tr pub r)) :
+    (hold : OldOK σ (brIn tr pub r) (brOld tr pub r))
+    (hl0 : (bE tr pub r (limb16 (fun t => Br.c "vl" t) 0)).toNat < 65536)
+    (hlP : brVlen tr pub r < P) :
     LocalOK (Sem σ keyOf) (brRow tr pub r) := by
   brfacts hc hg
   have eFD : (Br.c "oFD").eval tr 2 r pub = 0 := f0
@@ -269,7 +271,17 @@ theorem localOK_oFV {σ : Store} {keyOf : Nat → List Nat}
     refine ⟨eval_one_ev (by evg; grind), ?_⟩
     rw [if_pos h1']
     congr 2
-    · apply ev_eq_of_eval; evg; grind
+    · -- `alen` is the field value `vlen = l₀ + 2^16·l₁`; no wrap below `P`
+      have e1 : ((Br.c "oFD" + Br.c "oD1") * Br.c "lvlen" + Br.c "oFV" * Br.vlen).eval tr 2 r pub =
+          bE tr pub r (limb16 (fun t => Br.c "vl" t) 0) + 65536 * bE tr pub r (limb16 (fun t => Br.c "vl" t) 1) := by
+        simp only [bE]; evg; grind
+      unfold ev; rw [e1, Fp.add_def, Fp.toNat_add, Fp.mul_def, Fp.toNat_mul]
+      rw [show (65536 : Fp) = Fp.ofNat 65536 from rfl, Fp.toNat_ofNat]
+      unfold brVlen at hlP
+      simp only [ZkFormal.Algebra.P]
+      rw [Nat.mod_eq_of_lt (show 65536 < 2013265921 by decide)]
+      rw [Nat.mod_eq_of_lt (by omega), Nat.mod_eq_of_lt (by omega)]
+      rfl
     · rw [map_zip_right (Br.c "oFD" + Br.c "oD1") (Br.c "oFV") (fun i => Br.c "lvh" i) _
         (by evg; grind) eFV _ (by simp [pack2])]
 
