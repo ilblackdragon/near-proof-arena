@@ -51,8 +51,8 @@ theorem seg_msgs_air (nloc ngl : Nat) (tr : Trace) (pub : List F) (b : Nat) (s :
       (part Range16.table tr pub 15 b s ++ (part Byte.table tr pub 16 b s ++ (part Code.table tr pub 17 b s ++
       (part Drop.table tr pub 18 b s ++ (part Memb.table tr pub 19 b s ++ (part Mpath.table tr pub 20 b s ++
       (part Func.table tr pub 21 b s ++ (part HostG.table tr pub 22 b s ++ (part HostO.table tr pub 23 b s ++
-      (part HostTab.table tr pub 24 b s ++ (part HostB.table tr pub 25 b s ++ (part IfC.table tr pub 26 b s ++
-      (part RegC.table tr pub 27 b s ++ (part Conv.table tr pub 28 b s ++ (part Unreach.table tr pub 29 b s ++
+      (part HostTab.table tr pub 24 b s ++ (part HostBK.table tr pub 25 b s ++ (part IfC.table tr pub 26 b s ++
+      (part RegCK.table tr pub 27 b s ++ (part Conv.table tr pub 28 b s ++ (part Unreach.table tr pub 29 b s ++
       (part Cut.In.table tr pub 30 b s ++ part Cut.Out.table tr pub 31 b s)))))))))))))))))))))))))))))) := by
   rw [msgs_flatMap]
   simp only [wasmBaseSegAir, List.zipIdx_cons, List.flatMap_cons, List.zipIdx_nil, List.flatMap_nil,
@@ -80,7 +80,8 @@ theorem memb_sc_shape : Memb.table.inters.all (fun i => decide (i.bus ≠ busSta
 def hostGExtra : List Inter :=
   [chRecv (Expr.c spaceGas) 0 (v HostG.gS) (limbsOf HostG.gb) (v HostG.gtp) (v Host.act)] ++
   timeChk (v cTs) (v HostG.gtp) (v HostG.ghi) (v Host.act) ++
-  [chSend (Expr.c spaceGas) 0 (v cS + v cFee) (limbsOf Host.ga) (v cTs) (v Host.act)]
+  [chSend (Expr.c spaceGas) 0 (v cS + v cFee) (limbsOf Host.ga) (v cTs) (v Host.act)] ++
+  [HostG.keyRecv]
 
 theorem hostG_inters_eq : HostG.inters = Host.inters ++ ([⟨busRegRd, true, HostR.rrCnt, HostR.rrMsg⟩] ++ hostGExtra) := by
   simp only [HostG.inters, HostR.inters, hostGExtra, List.append_assoc]
@@ -101,7 +102,7 @@ theorem seg_host_con {r : Nat} (hr : r < tr.height 22) :
   intro e he
   have h := table_constrX H (t := 22) (by simp [seg_air_len]) hr e
   rw [seg_t22] at h
-  exact h (HostR.constraints_prefix.subset he)
+  exact h (HostG.constraints_prefix.subset (HostR.constraints_prefix.subset he))
 
 /-- **Every STATE/CH occurrence of a segment trace has count ≤ 1** (both directions). -/
 theorem seg_occ_bits :
@@ -200,8 +201,8 @@ theorem seg_state_nil (tr : Trace) (pub : List F) (s : Bool) :
     part Code.table tr pub 17 busState s = [] ∧ part Drop.table tr pub 18 busState s = [] ∧
     part Memb.table tr pub 19 busState s = [] ∧ part Mpath.table tr pub 20 busState s = [] ∧
     part Func.table tr pub 21 busState s = [] ∧ part HostO.table tr pub 23 busState s = [] ∧
-    part HostTab.table tr pub 24 busState s = [] ∧ part HostB.table tr pub 25 busState s = [] ∧
-    part RegC.table tr pub 27 busState s = [] ∧ part Cut.In.table tr pub 30 busState s = [] ∧
+    part HostTab.table tr pub 24 busState s = [] ∧ part HostBK.table tr pub 25 busState s = [] ∧
+    part RegCK.table tr pub 27 busState s = [] ∧ part Cut.In.table tr pub 30 busState s = [] ∧
     part Cut.Out.table tr pub 31 busState s = [] := by
   refine ⟨part_nil_of_filter ?_, part_nil_of_filter ?_, part_nil_of_filter ?_, part_nil_of_filter ?_,
     part_nil_of_filter ?_, part_nil_of_filter ?_, part_nil_of_filter ?_, part_nil_of_filter ?_,
@@ -579,7 +580,27 @@ theorem seg_host_ch_recv :
 
 theorem seg_regc_con {r : Nat} (hr : r < tr.height 27) :
     ∀ e ∈ RegC.table.constraints, e.eval (natRow (rowNat tr 27 r) (tr.row pub 27 r)) = 0 :=
-  table_constr_eqX H (t := 27) (by simp [seg_air_len]) RegC.table (seg_t27 nloc ngl) hr
+  table_constr_eqX H (t := 27) (by simp [seg_air_len]) Seg.RegCK.table (seg_t27 nloc ngl) hr
+
+omit H in
+/-- HOSTB with the call-key lookup has HOSTB's CH traffic. -/
+theorem hostBK_part_stk (s : Bool) :
+    part HostBK.table tr pub 25 busStk s = part HostB.table tr pub 25 busStk s :=
+  part_congr_filter (by
+    show (HostB.inters ++ [HostBK.keySend]).filter _ = HostB.inters.filter _
+    rw [List.filter_append]
+    have : [HostBK.keySend].filter (fun i => i.bus = busStk ∧ i.send = s) = [] := by cases s <;> decide +kernel
+    rw [this, List.append_nil])
+
+omit H in
+/-- REG-C with the call-key lookup has REG-C's CH traffic. -/
+theorem regCK_part_stk (s : Bool) :
+    part RegCK.table tr pub 27 busStk s = part RegC.table tr pub 27 busStk s :=
+  part_congr_filter (by
+    show (RegC.inters ++ [RegCK.keySend]).filter _ = RegC.inters.filter _
+    rw [List.filter_append]
+    have : [RegCK.keySend].filter (fun i => i.bus = busStk ∧ i.send = s) = [] := by cases s <;> decide +kernel
+    rw [this, List.append_nil])
 
 theorem seg_regc_part :
     ((part RegC.table tr pub 27 busStk true).map decMsg).Perm
@@ -616,8 +637,8 @@ def restPart (tr : Trace) (pub : List F) (b : Nat) (s : Bool) : List (List F) :=
       part Range16.table tr pub 15 b s ++ (part Byte.table tr pub 16 b s ++ (part Code.table tr pub 17 b s ++
       (part Drop.table tr pub 18 b s ++ (part Memb.table tr pub 19 b s ++ (part Mpath.table tr pub 20 b s ++
       (part Func.table tr pub 21 b s ++ (part HostG.table tr pub 22 b s ++ (part HostO.table tr pub 23 b s ++
-      (part HostTab.table tr pub 24 b s ++ (part HostB.table tr pub 25 b s ++ (part IfC.table tr pub 26 b s ++
-      (part RegC.table tr pub 27 b s ++ (part Conv.table tr pub 28 b s ++ (part Unreach.table tr pub 29 b s ++
+      (part HostTab.table tr pub 24 b s ++ (part HostBK.table tr pub 25 b s ++ (part IfC.table tr pub 26 b s ++
+      (part RegCK.table tr pub 27 b s ++ (part Conv.table tr pub 28 b s ++ (part Unreach.table tr pub 29 b s ++
       (part Cut.In.table tr pub 30 b s ++ part Cut.Out.table tr pub 31 b s)))))))))))))))
 
 omit H in
@@ -658,7 +679,7 @@ theorem seg_rest_dec_true :
   obtain ⟨hn, n18, -, n31⟩ := seg_stk_nil tr pub
   obtain ⟨n15, n16, n17, n20, n21, n23, n24⟩ := hn true
   unfold restPart
-  rw [n15, n16, n17, n18, n20, n21, n23, n24, n31]
+  rw [n15, n16, n17, n18, n20, n21, n23, n24, n31, hostBK_part_stk, regCK_part_stk]
   simp only [List.map_append, List.map_nil, List.nil_append, List.append_nil]
   rw [(uniform_part_dec ifc_uniform tr pub 26).1, (uniform_part_dec conv_uniform tr pub 28).1,
     (uniform_part_dec unreach_uniform tr pub 29).1]
@@ -678,7 +699,7 @@ theorem seg_rest_dec_false :
   obtain ⟨hn, -, n30, -⟩ := seg_stk_nil tr pub
   obtain ⟨n15, n16, n17, n20, n21, n23, n24⟩ := hn false
   unfold restPart
-  rw [n15, n16, n17, n20, n21, n23, n24, n30]
+  rw [n15, n16, n17, n20, n21, n23, n24, n30, hostBK_part_stk, regCK_part_stk]
   simp only [List.map_append]
   rw [(uniform_part_dec ifc_uniform tr pub 26).2, (uniform_part_dec conv_uniform tr pub 28).2,
     (uniform_part_dec unreach_uniform tr pub 29).2]

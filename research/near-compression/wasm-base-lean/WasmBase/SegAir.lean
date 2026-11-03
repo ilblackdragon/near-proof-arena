@@ -149,7 +149,16 @@ def table : Table := ⟨"RET", Ret.cols, Ret.constraints, inters⟩
 theorem inters_prefix : Ret.inters <+: inters := List.prefix_append _ _
 end RetT
 
-/-! ## HOST with the gas register (`HOST'` + 7 columns) -/
+/-! ## The call-key bus (E2E M4c, LINK)
+
+`busHKey` links every active `HOSTB` row and every active `REG-C` row to the HOST row of its call:
+HOST *offers* its call key `[ts, hid]` with a witness multiplicity `nk` (zero on inactive rows),
+`HOSTB` and `REG-C` *look it up* with their activity flag.  So a byte or register group cannot carry
+a key that no active HOST row has (`HostBLinked.linked`, `RegCLinked`; `Main/SegKey.lean`).  The
+honest `nk` is the number of active `HOSTB` and `REG-C` rows of the call. -/
+def busHKey : Nat := 214
+
+/-! ## HOST with the gas register (`HOST'` + 7 columns) and the call-key offer (`nk`) -/
 
 namespace HostG
 open Host
@@ -157,18 +166,47 @@ def gS : Nat := 95
 def gb : Nat := 96     -- 96..99
 def gtp : Nat := 100
 def ghi : Nat := 101
-def cols : List String := HostR.cols ++ ["gS", "gb0", "gb1", "gb2", "gb3", "gtp", "ghi"]
+/-- The call-key multiplicity (E2E M4c): how many `HOSTB`/`REG-C` rows look this call's key up. -/
+def nk : Nat := 102
+def cols : List String := HostR.cols ++ ["gS", "gb0", "gb1", "gb2", "gb3", "gtp", "ghi", "nk"]
+/-- An inactive HOST row offers no key. -/
+def cNk : Expr := (1 - v act) * v nk
+/-- The call-key offer `[ts, hid]` with multiplicity `nk`. -/
+def keyRecv : Inter := ⟨busHKey, false, v nk, [v cTs, v hid]⟩
+def constraints : List Expr := HostR.constraints ++ [cNk]
 def inters : List Inter :=
   HostR.inters ++
   [chRecv (Expr.c spaceGas) 0 (v gS) (limbsOf gb) (v gtp) (v act)] ++
   timeChk (v cTs) (v gtp) (v ghi) (v act) ++
-  [chSend (Expr.c spaceGas) 0 (v cS + v cFee) (limbsOf ga) (v cTs) (v act)]
-def table : Table := ⟨"HOST", cols, HostR.constraints, inters⟩
-theorem cols_len : cols.length = 102 := by decide
+  [chSend (Expr.c spaceGas) 0 (v cS + v cFee) (limbsOf ga) (v cTs) (v act)] ++
+  [keyRecv]
+def table : Table := ⟨"HOST", cols, constraints, inters⟩
+theorem cols_len : cols.length = 103 := by decide
 theorem gS_name : cols[gS]? = some "gS" := by decide
 theorem gtp_name : cols[gtp]? = some "gtp" := by decide
-theorem inters_prefix : HostR.inters <+: inters := List.prefix_append _ _
+theorem nk_name : cols[nk]? = some "nk" := by decide
+theorem inters_prefix : HostR.inters <+: inters := by
+  simp only [inters, List.append_assoc]; exact List.prefix_append _ _
+theorem constraints_prefix : HostR.constraints <+: constraints := List.prefix_append _ _
 end HostG
+
+/-! ## HOSTB and REG-C with the call-key lookup (E2E M4c, LINK) -/
+
+namespace HostBK
+/-- An active `HOSTB` row looks its call key up. -/
+def keySend : Inter := ⟨busHKey, true, v HostB.act, [v HostB.ts, v HostB.hid]⟩
+def inters : List Inter := HostB.inters ++ [keySend]
+def table : Table := ⟨"HOSTB", HostB.cols, HostB.constraints, inters⟩
+theorem inters_prefix : HostB.inters <+: inters := List.prefix_append _ _
+end HostBK
+
+namespace RegCK
+/-- An active `REG-C` row looks its call key up. -/
+def keySend : Inter := ⟨busHKey, true, v Reg.act, [v Reg.ts, v Reg.hid]⟩
+def inters : List Inter := RegC.inters ++ [keySend]
+def table : Table := ⟨"REG", RegC.cols, RegC.constraints, inters⟩
+theorem inters_prefix : RegC.inters <+: inters := List.prefix_append _ _
+end RegCK
 
 /-! ## DROP: tombstones and dead-local drops -/
 
@@ -421,14 +459,15 @@ end Chips
 open Chips in
 /-- **The E2E M4 segment AIR.**  `wasmBaseM2Air`'s table list with BOUNDARY (0) → `SEGB`, RET (14)
 → `RET` + tombstone, DRAIN (18) → `DROP`, MEMINIT (19) → `MEMB`, DATA (20) → `MPATH`, HOST' (22)
-→ `HOST` + gas register, and `CUTI` (30), `CUTO` (31) appended.  Every other table keeps its index
+→ `HOST` + gas register + call-key offer, HOSTB (25) / REG-C (27) → + call-key lookup (`busHKey`,
+E2E M4c), and `CUTI` (30), `CUTO` (31) appended.  Every other table keeps its index
 and definition. -/
 def wasmBaseSegAir (_nloc _ngl : Nat) : Air where
   tables := [Seg.Segb.table, Add.table, Bit.table, Mul.table, Shift.table, Cmp.table,
     Const.table, Stack.table, Ctrl.table, Local.table, Div.table, Load.table, Store.table, Call.table,
     Seg.RetT.table, Range16.table, Byte.table, Code.table, Seg.Drop.table, Seg.Memb.table,
-    Seg.Mpath.table, Func.table, Seg.HostG.table, HostO.table, HostTab.table, HostB.table, IfC.table,
-    RegC.table, Conv.table, Unreach.table, Seg.Cut.In.table, Seg.Cut.Out.table]
+    Seg.Mpath.table, Func.table, Seg.HostG.table, HostO.table, HostTab.table, Seg.HostBK.table, IfC.table,
+    Seg.RegCK.table, Conv.table, Unreach.table, Seg.Cut.In.table, Seg.Cut.Out.table]
   numPub := Seg.numPub
 
 theorem seg_air_len (nloc ngl : Nat) : (wasmBaseSegAir nloc ngl).tables.length = 32 := by
@@ -436,11 +475,11 @@ theorem seg_air_len (nloc ngl : Nat) : (wasmBaseSegAir nloc ngl).tables.length =
 
 /-- The instruction chips other than RET/HOST are `wasmBaseM2Air`'s, at the same indices. -/
 theorem seg_air_same (nloc ngl t : Nat)
-    (ht : t ∈ [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 15, 16, 17, 21, 23, 24, 25, 26, 27, 28, 29]) :
+    (ht : t ∈ [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 15, 16, 17, 21, 23, 24, 26, 28, 29]) :
     (wasmBaseSegAir nloc ngl).tables[t]? = (wasmBaseM2Air nloc ngl).tables[t]? := by
   simp only [List.mem_cons, List.not_mem_nil, or_false] at ht
   rcases ht with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl |
-    rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;>
+    rfl | rfl | rfl | rfl | rfl | rfl | rfl <;>
     simp [wasmBaseSegAir, wasmBaseM2Air, wasmBaseAir]
 
 end WasmBase

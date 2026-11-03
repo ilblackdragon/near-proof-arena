@@ -22,7 +22,7 @@ theorem seg_host_conS {r : Nat} (hr : r < tr.height 22) :
   intro e he
   have h := table_constrXS H (t := 22) (by simp [seg_air_len]) hr e
   rw [seg_t22] at h
-  exact h (HostR.constraints_prefix.subset he)
+  exact h (HostG.constraints_prefix.subset (HostR.constraints_prefix.subset he))
 
 /-- **Every STATE/CH occurrence of a segment trace has count ≤ 1** (both directions). -/
 theorem seg_occ_bitsS :
@@ -298,7 +298,7 @@ theorem seg_host_ch_recvS :
 
 theorem seg_regc_conS {r : Nat} (hr : r < tr.height 27) :
     ∀ e ∈ RegC.table.constraints, e.eval (natRow (rowNat tr 27 r) (tr.row pub 27 r)) = 0 :=
-  table_constr_eqXS H (t := 27) (by simp [seg_air_len]) RegC.table (seg_t27 nloc ngl) hr
+  table_constr_eqXS H (t := 27) (by simp [seg_air_len]) Seg.RegCK.table (seg_t27 nloc ngl) hr
 
 theorem seg_regc_partS :
     ((part RegC.table tr pub 27 busStk true).map decMsg).Perm
