@@ -1,4 +1,4 @@
-import StateM5a.DecodeShape
+import StateM5a.Tape
 
 /-!
 # StateM5a.RowDec — a concrete decoder of the walk messages, and the `BR` / `SN` walk messages
@@ -24,14 +24,11 @@ open StateM5a.DecodeWalk StateM5a.DecodeM5a StateM5a.Store StateM5a.BusWalk Near
 
 /-! ## The decoder -/
 
-def limbBytes (l : Fp) : Bytes := [UInt8.ofNat (l.toNat / 256), UInt8.ofNat (l.toNat % 256)]
+/-- Bytes of 16-bit big-endian limbs (`Tape.limbBytes` of the limbs as naturals). -/
+def bytesOf (ls : List Fp) : Bytes := Tape.limbBytes (ls.map Fp.toNat)
 
-/-- Bytes of 16-bit big-endian limbs. -/
-def bytesOf (ls : List Fp) : Bytes := ls.flatMap limbBytes
-
-/-- A ref from its flag and limbs. -/
-def refOf (fl : Fp) (ls : List Fp) : Ref :=
-  if fl.toNat = 1 then .vid (ls.getD 0 0).toNat else .dig (bytesOf ls)
+/-- A ref from its flag and limbs (`Tape.refDec`: flag `0` a digest, otherwise a version id). -/
+def refOf (fl : Fp) (ls : List Fp) : Ref := Tape.refDec (fl :: ls)
 
 /-- Four 16-bit limbs, little-endian. -/
 def le4 (ls : List Fp) : Nat :=
@@ -42,14 +39,28 @@ def payOf (m : List Fp) : Pay :=
   ⟨(m.getD 0 0).toNat, (m.getD 1 0).toNat, (m.getD 2 0).toNat, bytesOf ((m.drop 3).take 16)⟩
 
 def resOf (m : List Fp) : Res :=
-  ⟨(m.getD 0 0).toNat, refOf (m.getD 1 0) ((m.drop 2).take 16), le4 ((m.drop 18).take 4),
+  ⟨(m.getD 0 0).toNat, Tape.refDec (m.drop 1), le4 ((m.drop 18).take 4),
     le4 ((m.drop 22).take 4), (m.getD 26 0).toNat, (m.getD 27 0).toNat, (m.getD 28 0).toNat,
     bytesOf ((m.drop 29).take 16), (m.getD 45 0).toNat⟩
 
 /-- **The concrete decoder.** -/
 def cDc : Dec Ref Pay Res where
-  dp m := (refOf (m.getD 0 0) ((m.drop 1).take 16), payOf (m.drop 17))
+  dp m := (Tape.refDec m, payOf (m.drop 17))
   dr := resOf
+
+theorem getD_drop' (m : List Fp) (n i : Nat) : (m.drop n).getD i 0 = m.getD (n + i) 0 := by
+  simp [List.getD_eq_getElem?_getD, List.getElem?_drop]
+
+/-- **`cDc` is a standard decoder** (`Tape.StdDec`), so `Tape.air_final` / `FinalOrder.air_final_sorted`
+apply to it. -/
+theorem cDc_std : Tape.StdDec cDc where
+  ref _ := rfl
+  kid m := by show ((m.drop 17).getD 0 0).toNat = _; rw [getD_drop']
+  mode m := by show ((m.drop 17).getD 1 0).toNat = _; rw [getD_drop']
+  vlen m := by show ((m.drop 17).getD 2 0).toNat = _; rw [getD_drop']
+  vh m := by show Tape.limbBytes ((((m.drop 17).drop 3).take 16).map Fp.toNat) = _; rw [List.drop_drop]
+  rk _ := rfl
+  rref _ := rfl
 
 /-! ## The `BR` / `SN` walk messages -/
 

@@ -1,0 +1,6 @@
+# M5a-5 (wsLen AIR)
+791b0bef33f9c5da2b1ef02d05bbee7baff1a92eaf17fb21b6e53c76e6ff77c6  m5a-d4.json (m5a-tool air 4)
+b0e1ceea00e50dc9aa9cc51e119d498ad0b24ce9370247de17791e47ae9ec661  m5a-d5.json (m5a-tool air 5)
+5f1e864773203c22480397a4c6690dcedd4caea50b31dba1d8d4a713b84171fb  m5a-d6.json (m5a-tool air 6)
+0a77dcbe6800cf14002217d6a800c614e1582bb2198271bb0e57472776bce25d  nearproof-e2e-m5a (prover, unchanged from M5a-3)
+fff93967151aa0f5c6fa7e072160e013acf8d688b6b83fc77cf5100b672e0d6d  lean/.lake/build/bin/m5a-tool

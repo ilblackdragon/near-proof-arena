@@ -3,28 +3,35 @@ import StateM5a.SerInj
 import StateM5a.Merkle
 
 /-!
-# StateM5a.StateView — the state component `stD` of lane E's `ViewImpl` (M5a-4 item 4)
+# StateM5a.StateView — the state component `stD` of lane E's `ViewImpl` (M5a-4 item 4, M5a-5)
 
 `NearSpecV3.E2E.Bnd.ViewImpl` has one commitment function per configuration component; the
 state component is `stD : StV → Bytes`, and `viewImpl_binding_bad` needs `Coll V.stD → Bad`.
-This file fixes the **shape** of the state lane's `stD`, proves its binding modulo named hash
-collisions, and names every obligation it cannot discharge yet as a field of `StViewParams`.
+This file fixes the **shape** of the state lane's `stD` and proves its binding modulo named hash
+collisions from the fields of `StViewParams`; `StateViewParams.stViewParams_B` instantiates
+every field that is lane B's and leaves lane E an explicit, small argument (`StViewE`).
 
 ## The shape
 
-A state commitment is the record `StCommit`:
+A state commitment has two forms, chosen by the Boolean `P.fits v`:
+
+* **circuit form** (`fits v`): `stD P v = bdigest (ser (commitOf P v))`, the record `StCommit`:
 
 | field | width | value (`commitOf P v`) |
 |---|---|---|
 | `tag` | 1 B | the `StV` constructor (`none` 0, `eng` 1, `fin` 2), `tagOf` |
 | `ws` | 48 B | the working-set root (`RCH`): `wsRoot P (P.wsOf v)` |
-| `wsLen` | `u64` | the number of working-set entries `(P.wsOf v).length` |
-| `trie` | 32 B | the trie root (`TCH`): `(P.trieOf v).hashOf` (SHA-256, `RawTrieNodeWithSize`) |
+| `wsLen` | `u64` | the number of working-set entries `(P.wsOf v).length` (public value 16) |
+| `trie` | 32 B | the root hash of the (partial) trie `(P.trieOf v).hashOf` (`TCH`; SHA-256, `RawTrieNodeWithSize`) |
 | `idx` | `u64` | the change index `P.idxOf v` |
-| `rest` | 42 B | `bdigest (P.encRest (P.restOf v))`: everything the three state-lane parts do not cover |
+| `rest` | 42 B | `bdigest (P.encRest (P.restOf v))`: everything the state-lane parts do not cover, including the trie's reveal shape |
 
-`ser c = [tag] ‖ ws ‖ u64 wsLen ‖ trie ‖ u64 idx ‖ rest` (fixed widths, 139 bytes), and
-`stD P v = bdigest (ser (commitOf P v))`.
+  `ser c = [tag] ‖ ws ‖ u64 wsLen ‖ trie ‖ u64 idx ‖ rest` (fixed widths, 139 bytes);
+* **raw form** (`¬ fits v`): `stD P v = bdigest (0xFF ‖ P.raw v)`, `P.raw` injective. The circuit
+  never produces it; it exists so that `stD` is binding on **every** `StV` (the circuit form
+  cannot represent values `≥ 2^24` bytes, more than `2^depth` entries, an ill-formed trie or an
+  index `≥ 2^64`, and `Coll V.stD` quantifies over all `StV`, reachable or not). The tag byte
+  (`≤ 2` vs `0xFF`) separates the two forms (`ser_ne_raw`).
 
 **The working-set root.** The working set is a list of plain entries `(key, pre, cur, written)`
 (`Entry`; values `Option Bytes`, `none` = absent). Each entry becomes a circuit leaf
@@ -35,23 +42,39 @@ The tree has the fixed depth `P.depth`; leaves `≥ n` are the zero digest `0⁴
 `nodeH l r = sha384 (l ‖ r)` (`Ws.nodeBlock`); `wsRoot P es` is `Merkle.root nodeH P.depth` of the
 `2^depth` leaf digests.
 
+**The entry count `wsLen` is in the circuit (M5a-5).** It is public value 16 (`Ws.wsLenE`):
+`WSB`'s `real` flag is exactly `i < wsLen` in both phases and a touched leaf (`WSL`) has
+`i < wsLen`, so the leaves `< wsLen` are exactly the real entries and the leaves `≥ wsLen` are
+the zero padding. It stays in the commitment, and `wsRoot_binding` is the binding statement with
+no padding caveat: equal `(root, wsLen)` give equal entry lists, or a `Sha384Coll ∨ Sha256Coll ∨
+LeafColl` (no preimage event "a real leaf digest equals `0⁴⁸`" is needed, since the count fixes
+where the padding starts).
+
+**The trie is committed as a partial trie: root hash plus reveal shape.** `shape_binding`: two
+well-formed partial tries with the same `erase` (the trie with keys, memory counts, hashes and
+values erased: constructors, child positions, hash stubs and value-slot kinds kept) and the same
+`hashOf` are equal, or a `Sha256Coll`. So `trieOf` may be the spec's own partial `Ovl.trie`
+(no "full expansion", which is not a function of `StV`: the stubs' preimages are not in it), with
+`erase` of it in the remainder (`rest_shape`). The overlay's trie is never modified after
+`Ovl.ofTrie` (`set`/`remove`/`commit`/`rollback` only touch the change lists), so the root and
+the shape are chunk constants.
+
 ## Proved here
 
 * `ser_inj` — the serialization is injective on well-formed records (`StCommit.WF`);
-  `commitOf_wf` — every `commitOf P v` is well-formed.
+  `commitOf_wf` — `commitOf P v` is well-formed when `fits v`.
 * `merkle_binding` — equal roots of two depth-`D` trees of 48-byte digests have equal leaves,
   or there is a `Sha384Coll` (a `nodeH` collision on 96-byte inputs is a full SHA-384 collision,
   hence a collision of its 42-byte truncation `bdigest`).
-* `trie_binding` — two fully revealed (`Rev`: no hash stub, every value slot revealed),
-  well-formed tries with the same `hashOf` are equal, or there is a `Sha256Coll`
-  (through `SerInj.nodeSerInj` applied to the one-level stubbed node `shal t`).
+* `shape_binding` (partial tries, above); `trie_binding` — its special case for fully revealed
+  tries (`Rev`), both through `SerInj.nodeSerInj` applied to the one-level stubbed node `shal t`.
 * `leafOf_inj` — `leafOf` is injective modulo `Sha256Coll`.
 * `wsRoot_binding` — equal working-set roots and lengths give equal entry lists, modulo
   `Sha384Coll ∨ Sha256Coll ∨ LeafColl`.
-* `stD_binding` — `Coll (stD P) → Sha384Coll ∨ Sha256Coll ∨ LeafColl`; `stD_binding_bad` the
-  same into a caller's `Bad`; `viewImpl_hst` — for any `V : ViewImpl` with `V.stD = stD P`,
-  `Coll V.stD → Bad`: exactly the `hst` premise of `viewImpl_binding_bad`;
-  `viewImpl_binding_st` — `viewImpl_binding_bad` with it plugged in.
+* `circuit_binding` (circuit form) and **`stD_binding`** — `Coll (stD P) → Sha384Coll ∨
+  Sha256Coll ∨ LeafColl`; `stD_binding_bad` the same into a caller's `Bad`; `viewImpl_hst` — for
+  any `V : ViewImpl` with `V.stD = stD P`, `Coll V.stD → Bad`: exactly the `hst` premise of
+  `viewImpl_binding_bad`; `viewImpl_binding_st` — `viewImpl_binding_bad` with it plugged in.
 
 ## Named collision events (the only cryptographic content)
 
@@ -62,23 +85,15 @@ The tree has the fixed depth `P.depth`; leaves `≥ n` are the zero digest `0⁴
 * `LeafColl`: a collision of `cmp384` (the truncated SHA-512 compression from `IV384` on one
   block), the working-set leaf digest.
 
-## Parameters (`StViewParams`): obligations for later milestones
+## Parameters (`StViewParams`)
 
-* `wsOf`, `trieOf`, `idxOf`, `Rest`/`restOf`: the projection of `StV` onto the three state-lane
-  parts and the remainder. **`proj_inj`**: tag, working set, trie, index and remainder together
-  determine the `StV` (lane E / M5b: the choice of `restOf` must cover the position, the receipt
-  state without what `wsOf`/`trieOf` cover, the recorder state, and the `fin` output).
-  Note that the working set is a chunk-level key set, so `wsOf` must be a function of `StV`
-  alone (e.g. the overlay's touched keys plus whatever `restOf` pins).
-* **`encRest_inj`**: the remainder's byte encoder is injective (M5b/M5d: encoders for `RS`,
-  `Recording`, `MainOutD2`).
-* **`trie_ok`**: `trieOf v` is fully revealed and well-formed. The spec's `Ovl.trie` is a partial
-  trie (`revealTrie`); lane E takes its full expansion here and puts the reveal shape (a function
-  of the chunk's witness) in `restOf`.
-* **`ws_ok`**, **`ws_len`**, **`depth_lt`**, **`idx_lt`**: range facts (value lengths `< 2^24`,
-  the list fits the tree, `depth < 64`, the change index `< 2^64`).
-* `leafBlock` and **`leafBlock_inj`**: the 128-byte leaf block (`Ws.leafBlock`, field limbs as
-  bytes) is injective on well-formed leaves (M5b: from `WsCost.leafLimb_inj`).
+The projection `wsOf`, `trieOf`, `idxOf`, `restOf`/`encRest`, the leaf block, the predicate
+`fits` and the raw encoder, with: `leafBlock_inj`; `fits_*` (on `fits` states: the list fits the
+tree, value lengths `< 2^24`, the trie is well-formed, the index `< 2^64`); `raw_inj` (on
+non-`fits` states); `encRest_inj`, `rest_shape`, `proj_inj` (on `fits` states). All of them are
+discharged by `StateViewParams.stViewParams_B E` for **any** lane-E argument `E : StViewE`
+(`depth`, `keysOf`, `idxOf`, and an encoder `encE` of the stripped component with `encE_inj`);
+see that module for the projection and for what lane E must still provide.
 
 Axioms: `propext`, `Classical.choice`, `Quot.sound` only.
 -/
@@ -462,6 +477,120 @@ theorem trie_binding (t t' : PTrie) (r : Rev t) (r' : Rev t') (w : t.wf = true) 
   · exact .inr hc
   · exact .inl (rev_eq (sha256CR_of_not hc) t t' r r' w w' h)
 
+/-! ## Partial tries: root hash plus reveal shape -/
+
+/-- A value slot's reveal shape: revealed value or `ValueRef`. -/
+def eraseS : Slot → Slot
+  | .val _ => .val []
+  | .ref _ _ => .ref 0 []
+
+mutual
+/-- **The reveal shape** of a partial trie: the trie with every key, memory count, hash and value
+erased, keeping the constructors, the child positions, the hash stubs and the value-slot kinds. -/
+def erase : PTrie → PTrie
+  | .hash _ => .hash []
+  | .leaf _ s _ => .leaf [] (eraseS s) 0
+  | .ext _ c _ => .ext [] (erase c) 0
+  | .branch v cs _ => .branch (v.map eraseS) (eraseK cs) 0
+def eraseK : Kids → Kids
+  | .nil => .nil
+  | .none r => .none (eraseK r)
+  | .some c r => .some (erase c) (eraseK r)
+end
+
+theorem slot_shape_eq (hCR : Sha256CR) (s s' : Slot) (he : eraseS s = eraseS s')
+    (h : SlotRefines (sref s) s') : s = s' := by
+  cases s with
+  | val x =>
+    cases s' with
+    | val y => rw [slot_eq hCR h]
+    | ref => simp [eraseS] at he
+  | ref l hh =>
+    cases s' with
+    | val => simp [eraseS] at he
+    | ref l' hh' =>
+      rcases h with h | ⟨w, -, h2⟩
+      · exact h
+      · cases h2
+
+mutual
+/-- **Partial tries with the same reveal shape are determined by their hash** (under
+`Sha256CR`). -/
+theorem shape_eq (hCR : Sha256CR) : ∀ t t' : PTrie, t.wf = true → t'.wf = true →
+    erase t = erase t' → t.hashOf = t'.hashOf → t = t'
+  | .hash h, .hash h', _, _, _, hh => by simp only [PTrie.hashOf] at hh; rw [hh]
+  | .leaf k s m, .leaf k' s' m', w, w', he, hh => by
+    have hr := refinedBy_of_hash' hCR (wf_shal _ w) w' (by intro h e; cases e)
+      (by intro h e; cases e) (shallow_shal _) (by rw [hashOf_shal]; exact hh)
+    simp only [shal, PTrie.refinedBy] at hr
+    obtain ⟨rfl, rfl, hs⟩ := hr
+    simp only [erase, PTrie.leaf.injEq, true_and, and_true] at he
+    rw [slot_shape_eq hCR s s' he hs]
+  | .ext k c m, .ext k' c' m', w, w', he, hh => by
+    have hr := refinedBy_of_hash' hCR (wf_shal _ w) w' (by intro h e; cases e)
+      (by intro h e; cases e) (shallow_shal _) (by rw [hashOf_shal]; exact hh)
+    simp only [shal, PTrie.refinedBy] at hr
+    obtain ⟨rfl, rfl, hc⟩ := hr
+    simp only [erase, PTrie.ext.injEq, true_and, and_true] at he
+    simp only [PTrie.wf, Bool.and_eq_true] at w w'
+    rw [shape_eq hCR c c' w.1.1.2 w'.1.1.2 he hc]
+  | .branch v cs m, .branch v' cs' m', w, w', he, hh => by
+    have hr := refinedBy_of_hash' hCR (wf_shal _ w) w' (by intro h e; cases e)
+      (by intro h e; cases e) (shallow_shal _) (by rw [hashOf_shal]; exact hh)
+    simp only [shal, PTrie.refinedBy] at hr
+    obtain ⟨rfl, hv, hk⟩ := hr
+    simp only [erase, PTrie.branch.injEq, and_true] at he
+    simp only [PTrie.wf, Bool.and_eq_true] at w w'
+    have hcs := kshape_eq hCR cs cs' 16 16 w.1.2 w'.1.2 he.2 hk
+    subst hcs
+    have : v = v' := by
+      cases v with
+      | none => cases v' with
+        | none => rfl
+        | some => simp [Option.map, OptSlotRefines] at hv
+      | some s => cases v' with
+        | none => simp [Option.map, OptSlotRefines] at hv
+        | some s' =>
+          simp only [Option.map, OptSlotRefines] at hv
+          simp only [Option.map, Option.some.injEq] at he
+          rw [slot_shape_eq hCR s s' he.1 hv]
+    rw [this]
+  | .hash _, .leaf .., _, _, he, _ | .hash _, .ext .., _, _, he, _
+  | .hash _, .branch .., _, _, he, _ | .leaf .., .hash _, _, _, he, _
+  | .leaf .., .ext .., _, _, he, _ | .leaf .., .branch .., _, _, he, _
+  | .ext .., .hash _, _, _, he, _ | .ext .., .leaf .., _, _, he, _
+  | .ext .., .branch .., _, _, he, _ | .branch .., .hash _, _, _, he, _
+  | .branch .., .leaf .., _, _, he, _ | .branch .., .ext .., _, _, he, _ => by
+    simp [erase] at he
+theorem kshape_eq (hCR : Sha256CR) : ∀ (cs cs' : Kids) (n n' : Nat),
+    Kids.wf cs n = true → Kids.wf cs' n' = true → eraseK cs = eraseK cs' →
+    Kids.refinedBy (stubK cs) cs' → cs = cs'
+  | .nil, .nil, _, _, _, _, _, _ => rfl
+  | .none r, .none r', n, n', w, w', he, h => by
+    simp only [stubK, Kids.refinedBy] at h
+    simp only [Kids.wf, Bool.and_eq_true] at w w'
+    simp only [eraseK, Kids.none.injEq] at he
+    rw [kshape_eq hCR r r' _ _ w.2 w'.2 he h]
+  | .some c r, .some c' r', n, n', w, w', he, h => by
+    simp only [stubK, Kids.refinedBy, PTrie.refinedBy] at h
+    simp only [Kids.wf, Bool.and_eq_true] at w w'
+    simp only [eraseK, Kids.some.injEq] at he
+    rw [shape_eq hCR c c' w.1.2 w'.1.2 he.1 h.1, kshape_eq hCR r r' _ _ w.2 w'.2 he.2 h.2]
+  | .nil, .none _, _, _, _, _, he, _ | .nil, .some .., _, _, _, _, he, _
+  | .none _, .nil, _, _, _, _, he, _ | .none _, .some .., _, _, _, _, he, _
+  | .some .., .nil, _, _, _, _, he, _ | .some .., .none _, _, _, _, _, he, _ => by
+    simp [eraseK] at he
+end
+
+/-- **Partial-trie binding.** Two well-formed partial tries with the same reveal shape and the
+same root hash are equal, or there is a SHA-256 collision. -/
+theorem shape_binding (t t' : PTrie) (w : t.wf = true) (w' : t'.wf = true)
+    (he : erase t = erase t') (h : t.hashOf = t'.hashOf) : t = t' ∨ Sha256Coll := by
+  classical
+  by_cases hc : Sha256Coll
+  · exact .inr hc
+  · exact .inl (shape_eq (sha256CR_of_not hc) t t' w w' he h)
+
 /-! ## The commitment record and its serialization -/
 
 /-- **The state commitment.** -/
@@ -511,32 +640,51 @@ def tagOf : StV → Nat
   | .fin .. => 2
 
 /-- **The parameters of the state view**: the projection of `StV` onto the state lane's parts and
-the remainder, with the obligations later milestones discharge. -/
+the remainder, with the obligations they carry.
+
+A state is committed in one of two forms, chosen by the Boolean `fits`: the **circuit form**
+`bdigest (ser (commitOf P v))` (the record above, which the AIR maintains), or the **raw form**
+`bdigest (0xFF ‖ raw v)` (an injective encoding of the whole `StV`; never produced by the circuit,
+it only makes `stD` binding on states the circuit form cannot represent: values `≥ 2^24` bytes,
+more than `2^depth` entries, an ill-formed trie, an index `≥ 2^64`, or an overlay that violates
+the working-set invariants). Every obligation below is stated for `fits` states only, so a
+concrete instance can prove all of them for **every** `StV` — no reachability invariant is
+needed for binding; "reachable ⇒ `fits`" is a segment-soundness fact, not a binding one. -/
 structure StViewParams where
   /-- working-set tree depth -/
   depth : Nat
   depth_lt : depth < 64
-  /-- the working set (key-sorted entries) -/
+  /-- the working set (entries) -/
   wsOf : StV → List Entry
-  ws_len : ∀ v, (wsOf v).length ≤ 2 ^ depth
-  ws_ok : ∀ v, ∀ e ∈ wsOf v, e.Ok
-  /-- the (fully revealed) trie whose root `TCH` carries -/
+  /-- the (partial) trie whose root `TCH` carries -/
   trieOf : StV → PTrie
-  trie_ok : ∀ v, Rev (trieOf v) ∧ (trieOf v).wf = true
   /-- the change index -/
   idxOf : StV → Nat
-  idx_lt : ∀ v, idxOf v < 2 ^ 64
   /-- the remainder -/
   Rest : Type
   restOf : StV → Rest
   encRest : Rest → Bytes
-  encRest_inj : ∀ a b, encRest a = encRest b → a = b
   /-- the 128-byte leaf block (`Ws.leafBlock`) -/
   leafBlock : WsLeaf → List Nat
   leafBlock_inj : ∀ a b, a.WF → b.WF → leafBlock a = leafBlock b → a = b
+  /-- the circuit form applies -/
+  fits : StV → Bool
+  fits_ws_len : ∀ v, fits v = true → (wsOf v).length ≤ 2 ^ depth
+  fits_ws_ok : ∀ v, fits v = true → ∀ e ∈ wsOf v, e.Ok
+  fits_trie : ∀ v, fits v = true → (trieOf v).wf = true
+  fits_idx : ∀ v, fits v = true → idxOf v < 2 ^ 64
+  /-- the raw form -/
+  raw : StV → Bytes
+  raw_inj : ∀ a b, fits a = false → fits b = false → raw a = raw b → a = b
+  /-- the remainder's encoder is injective on the remainders of `fits` states -/
+  encRest_inj : ∀ a b, fits a = true → fits b = true →
+    encRest (restOf a) = encRest (restOf b) → restOf a = restOf b
+  /-- the remainder carries the trie's reveal shape -/
+  rest_shape : ∀ a b, fits a = true → fits b = true → restOf a = restOf b →
+    erase (trieOf a) = erase (trieOf b)
   /-- the parts determine the component -/
-  proj_inj : ∀ a b, tagOf a = tagOf b → wsOf a = wsOf b → trieOf a = trieOf b →
-    idxOf a = idxOf b → restOf a = restOf b → a = b
+  proj_inj : ∀ a b, fits a = true → fits b = true → tagOf a = tagOf b → wsOf a = wsOf b →
+    trieOf a = trieOf b → idxOf a = idxOf b → restOf a = restOf b → a = b
 
 variable (P : StViewParams)
 
@@ -559,8 +707,23 @@ def commitOf (v : StV) : StCommit where
   idx := P.idxOf v
   rest := bdigest (P.encRest (P.restOf v))
 
-/-- **The state commitment** (`ViewImpl.stD`). -/
-def stD (v : StV) : Bytes := bdigest (commitOf P v).ser
+/-- **The state commitment** (`ViewImpl.stD`): the circuit form for `fits` states, the raw form
+otherwise. -/
+def stD (v : StV) : Bytes :=
+  if P.fits v then bdigest (commitOf P v).ser else bdigest ((255 : UInt8) :: P.raw v)
+
+theorem ser_cons (c : StCommit) :
+    c.ser = UInt8.ofNat c.tag :: (c.ws ++ u64 c.wsLen ++ c.trie ++ u64 c.idx ++ c.rest) := by
+  simp [StCommit.ser]
+
+/-- The two forms never share a preimage (the first byte is the tag `≤ 2`, resp. `0xFF`). -/
+theorem ser_ne_raw (v : StV) (r : Bytes) : (commitOf P v).ser ≠ (255 : UInt8) :: r := by
+  rw [ser_cons]
+  intro h
+  simp only [List.cons.injEq] at h
+  have := congrArg UInt8.toNat h.1
+  rw [ofNat_toNat] at this
+  cases v <;> simp [commitOf, tagOf] at this
 
 theorem wsLeaves_length (es : List Entry) (h : es.length ≤ 2 ^ P.depth) :
     (wsLeaves P es).length = 2 ^ P.depth := by
@@ -588,11 +751,11 @@ theorem wsRoot_length (es : List Entry) (h : es.length ≤ 2 ^ P.depth) :
   simp only [wsRoot, hx, Option.getD_some]
   exact root_mem _ _ x (wsLeaves_mem P es) hx
 
-theorem commitOf_wf (v : StV) : (commitOf P v).WF := by
+theorem commitOf_wf (v : StV) (hf : P.fits v = true) : (commitOf P v).WF := by
   have hd : 2 ^ P.depth < 2 ^ 64 := Nat.pow_lt_pow_right (by decide) P.depth_lt
-  refine ⟨by cases v <;> simp [commitOf, tagOf], wsRoot_length P _ (P.ws_len v), ?_,
-    hashOf_length _ (P.trie_ok v).2, P.idx_lt v, bdigest_length _⟩
-  have := P.ws_len v
+  refine ⟨by cases v <;> simp [commitOf, tagOf], wsRoot_length P _ (P.fits_ws_len v hf), ?_,
+    hashOf_length _ (P.fits_trie v hf), P.fits_idx v hf, bdigest_length _⟩
+  have := P.fits_ws_len v hf
   simp only [commitOf]; omega
 
 /-- Equal leaf-digest lists of well-formed entries: equal entries, or a collision. -/
@@ -636,31 +799,46 @@ theorem wsRoot_binding (es es' : List Entry) (l1 : es.length ≤ 2 ^ P.depth)
     · exact .inr (.inr (.inr h))
   · exact .inr (.inl h)
 
+/-- Two `fits` states with the same circuit-form preimage are equal, or there is a collision. -/
+theorem circuit_binding (a b : StV) (fa : P.fits a = true) (fb : P.fits b = true)
+    (hs : (commitOf P a).ser = (commitOf P b).ser) : a = b ∨ Sha384Coll ∨ Sha256Coll ∨ LeafColl := by
+  have hc := ser_inj _ _ (commitOf_wf P a fa) (commitOf_wf P b fb) hs
+  have e1 : tagOf a = tagOf b := congrArg StCommit.tag hc
+  have e2 : wsRoot P (P.wsOf a) = wsRoot P (P.wsOf b) := congrArg StCommit.ws hc
+  have e3 : (P.wsOf a).length = (P.wsOf b).length := congrArg StCommit.wsLen hc
+  have e4 : (P.trieOf a).hashOf = (P.trieOf b).hashOf := congrArg StCommit.trie hc
+  have e5 : P.idxOf a = P.idxOf b := congrArg StCommit.idx hc
+  have e6 : bdigest (P.encRest (P.restOf a)) = bdigest (P.encRest (P.restOf b)) :=
+    congrArg StCommit.rest hc
+  classical
+  by_cases hr : P.encRest (P.restOf a) = P.encRest (P.restOf b)
+  · have hr := P.encRest_inj _ _ fa fb hr
+    rcases shape_binding _ _ (P.fits_trie a fa) (P.fits_trie b fb) (P.rest_shape a b fa fb hr) e4
+      with ht | ht
+    · rcases wsRoot_binding P _ _ (P.fits_ws_len a fa) (P.fits_ws_len b fb) (P.fits_ws_ok a fa)
+        (P.fits_ws_ok b fb) e3 e2 with hw | hw
+      · exact .inl (P.proj_inj a b fa fb e1 hw ht e5 hr)
+      · exact .inr hw
+    · exact .inr (.inr (.inl ht))
+  · exact .inr (.inl ⟨_, _, hr, e6⟩)
+
 /-- **The binding lemma.** A collision of the state commitment is a SHA-384 (42-byte) collision,
 a SHA-256 collision, or a leaf-compression collision. -/
 theorem stD_binding (h : Coll (stD P)) : Sha384Coll ∨ Sha256Coll ∨ LeafColl := by
   obtain ⟨a, b, hne, he⟩ := h
   classical
-  by_cases hs : (commitOf P a).ser = (commitOf P b).ser
-  · have hc := ser_inj _ _ (commitOf_wf P a) (commitOf_wf P b) hs
-    have e1 : tagOf a = tagOf b := congrArg StCommit.tag hc
-    have e2 : wsRoot P (P.wsOf a) = wsRoot P (P.wsOf b) := congrArg StCommit.ws hc
-    have e3 : (P.wsOf a).length = (P.wsOf b).length := congrArg StCommit.wsLen hc
-    have e4 : (P.trieOf a).hashOf = (P.trieOf b).hashOf := congrArg StCommit.trie hc
-    have e5 : P.idxOf a = P.idxOf b := congrArg StCommit.idx hc
-    have e6 : bdigest (P.encRest (P.restOf a)) = bdigest (P.encRest (P.restOf b)) :=
-      congrArg StCommit.rest hc
-    by_cases hr : P.encRest (P.restOf a) = P.encRest (P.restOf b)
-    · have hr := P.encRest_inj _ _ hr
-      rcases trie_binding _ _ (P.trie_ok a).1 (P.trie_ok b).1 (P.trie_ok a).2 (P.trie_ok b).2 e4
-        with ht | ht
-      · rcases wsRoot_binding P _ _ (P.ws_len a) (P.ws_len b) (P.ws_ok a) (P.ws_ok b) e3 e2
-          with hw | hw
-        · exact absurd (P.proj_inj a b e1 hw ht e5 hr) hne
-        · exact hw
-      · exact .inr (.inl ht)
-    · exact .inl ⟨_, _, hr, e6⟩
-  · exact .inl ⟨_, _, hs, he⟩
+  cases fa : P.fits a <;> cases fb : P.fits b <;>
+    simp only [stD, fa, fb, Bool.false_eq_true, ite_true, ite_false] at he
+  · by_cases hr : P.raw a = P.raw b
+    · exact absurd (P.raw_inj a b fa fb hr) hne
+    · exact .inl ⟨_, _, fun h => hr (List.cons.inj h).2, he⟩
+  · exact .inl ⟨_, _, fun h => ser_ne_raw P b _ h.symm, he⟩
+  · exact .inl ⟨_, _, ser_ne_raw P a _, he⟩
+  · by_cases hs : (commitOf P a).ser = (commitOf P b).ser
+    · rcases circuit_binding P a b fa fb hs with h | h
+      · exact absurd h hne
+      · exact h
+    · exact .inl ⟨_, _, hs, he⟩
 
 /-- `stD_binding` into a caller's `Bad`. -/
 theorem stD_binding_bad (Bad : Prop) (hsha : Sha384Coll → Bad) (h256 : Sha256Coll → Bad)

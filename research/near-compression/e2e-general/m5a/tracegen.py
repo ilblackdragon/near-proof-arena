@@ -39,6 +39,7 @@ Working-set count mutants (M5a-5: `wsLen` is public value 16):
   wslen     the statement claims one working-set entry more than the trace has (a padding leaf
             would have to count as real)
   wslenlo   the statement claims one entry fewer (the last real leaf would have to be padding)
+  dmono     a branch-keeping delete (`oDH`/`oDL`) whose `mem - om` witness is off by one
 Branch-value mutants (synthetic case `bval`):
   bvalue    a branch-value write (`oUV`) storing another value-hash byte than the walk's value
   bvmem     a branch-value delete (`oDV`) with memory usage + 1
@@ -386,6 +387,15 @@ class Gen:
         self.carries(T, r, [mem_limbs(base)[k] + mem_limbs(nm)[k] + mem_limbs(nm2)[k] + vl(vplus)[k]
                             for k in range(4)],
                      [mem_limbs(om)[k] + vl(vminus)[k] for k in range(4)], mem_limbs(m2), 'cy', (-1, 0, 1, 2))
+        if op in ('oDH', 'oDL'):
+            # M5a-5: the spec's truncated `m - old + new` is exact only for `old <= m`; the row
+            # proves it with the bytes of `dm = m - old` (RNG) on a no-final-borrow chain
+            dm = node[3] - om
+            assert dm >= 0, (node[3], om)
+            T.setv(r, 'dm', le(dm, 8))
+            for x in le(dm, 8):
+                self.rng(x)
+            self.carries(T, r, mem_limbs(node[3]), mem_limbs(om), mem_limbs(dm), 'cyd')
         hn = self.new_ref(T, r, 'BR', rid, new_node, False)
         nkn = sum(1 for c in kids2 if c is not None)
         if op in ('oDH', 'oDL', 'oDN'):
@@ -1520,7 +1530,15 @@ def _t_wsleaf(g):
     g.comps[T.get(r, 'cidO') // 128] = dict(h=[str(x) for x in S5.IV384], block=[str(x) for x in words])
     T.setv(r, 'dgO', g.l18(out[:6])); T.setv(r, 'dxO', g.l18(out[6:]))
 
-TAMPERS = dict(absent=_t_absent, extabsent=_t_extabsent, branchval=_t_branchval, split=_t_split,
+def _t_dmono(g):
+    # M5a-5: a branch-keeping delete (`oDH`/`oDL`) claims `mem - om` one larger (its memory-order
+    # witness no longer matches the row's memory and the child's old memory)
+    T = g.T['BR']
+    r = next(r for r in T.rows if T.get(r, 'oDH') + T.get(r, 'oDL') == 1)
+    T.set(r, 'dm', T.get(r, 'dm', 0) + 1, 0)
+
+
+TAMPERS = dict(dmono=_t_dmono, absent=_t_absent, extabsent=_t_extabsent, branchval=_t_branchval, split=_t_split,
                splitext=_t_splitext, absdel=_t_absdel, squash=_t_squash, chain=_t_chain,
                verslot=_t_verslot, vernid=_t_vernid, vmcount=_t_vmcount, finroot=_t_finroot,
                nidforge=_t_nidforge, bvalue=_t_bvalue, bvmem=_t_bvmem, wsstale=_t_wsstale,

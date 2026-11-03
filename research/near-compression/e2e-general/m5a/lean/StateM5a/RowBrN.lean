@@ -171,11 +171,11 @@ theorem carry4_cases {c : Expr} (h : ev tr 2 r pub (c * (c - 1) * (c + 1) * (c -
 
 theorem br_mem_cy (k : Nat) (hk : k < 4) :
     Br.c "cy" k * (Br.c "cy" k - 1) * (Br.c "cy" k + 1) * (Br.c "cy" k - 2) ∈ Br.constraints := by
-  unfold Br.constraints; apply List.mem_append_right; unfold Br.memNew
+  unfold Br.constraints; apply List.mem_append_left; apply List.mem_append_right; unfold Br.memNew
   exact List.mem_append_right _ (List.mem_map.2 ⟨k, List.mem_range.2 hk, rfl⟩)
 
 theorem br_mem_cy3 : Br.c "gnew" * Br.c "cy" 3 ∈ Br.constraints := by
-  unfold Br.constraints; apply List.mem_append_right; unfold Br.memNew
+  unfold Br.constraints; apply List.mem_append_left; apply List.mem_append_right; unfold Br.memNew
   exact List.mem_append_left _ (List.mem_append_right _ (List.mem_singleton_self _))
 
 /-- Limb `k` of the `memNew` chain. -/
@@ -190,7 +190,7 @@ def memK (k : Nat) : Expr :=
       (if k = 0 then 0 else Br.c "cy" (k - 1)))
 
 theorem br_mem_k (k : Nat) (hk : k < 4) : memK k ∈ Br.constraints := by
-  unfold Br.constraints; apply List.mem_append_right; unfold Br.memNew
+  unfold Br.constraints; apply List.mem_append_left; apply List.mem_append_right; unfold Br.memNew
   exact List.mem_append_left _ (List.mem_append_left _ (List.mem_map.2 ⟨k, List.mem_range.2 hk, rfl⟩))
 
 set_option maxHeartbeats 4000000 in
