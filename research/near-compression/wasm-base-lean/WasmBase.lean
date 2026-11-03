@@ -145,3 +145,5 @@ import WasmBase.Main.SegChain
 import WasmBase.Main.SegChainMP
 import WasmBase.Main.SegGrowMerkle
 import WasmBase.Main.SegGrow
+import WasmBase.Main.SegKey
+import WasmBase.Main.SegSoundK
