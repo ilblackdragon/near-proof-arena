@@ -1,11 +1,17 @@
 import StateM5a.Steps
 import StateM5a.StepsT2
 import StateM5a.Walk
+import StateM5a.SerInj
+import StateM5a.Refine
 import StateM5a.FieldRows
+import StateM5a.FieldRows2
 import StateM5a.Layout
 import StateM5a.Order
 import StateM5a.Merkle
 import StateM5a.KeyField
+import StateM5a.Store
+import StateM5a.FieldVer
+import StateM5a.StepsBV
 
 /-! Axiom audit of the M5a lemmas (`lake build StateM5a.Audit` prints them): every theorem must
 depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
@@ -63,3 +69,57 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.FieldRows.memChain_sound
 #print axioms StateM5a.FieldRows.onehot_of_sum
 #print axioms StateM5a.FieldRows.limb_eq
+-- batched FINAL (M5a-2): the version store
+#print axioms StateM5a.Store.exp_functional
+#print axioms StateM5a.Store.rv_refinedBy
+#print axioms StateM5a.Store.rv_collapse
+#print axioms StateM5a.Store.change_step
+#print axioms StateM5a.Store.upsert_step
+#print axioms StateM5a.Store.find_step
+#print axioms StateM5a.Store.batched_upserts
+#print axioms StateM5a.FieldVer.br_vm_gsha
+#print axioms StateM5a.FieldVer.br_vmn_gnew
+#print axioms StateM5a.FieldVer.br_gsha_dig
+#print axioms StateM5a.FieldVer.br_gsha_isn
+#print axioms StateM5a.FieldVer.br_vid
+#print axioms StateM5a.FieldVer.sn_vm_gsha
+#print axioms StateM5a.FieldVer.sn_vmn_gnew
+#print axioms StateM5a.FieldVer.sn_gsha_dig
+#print axioms StateM5a.FieldVer.sn_vid
+#print axioms StateM5a.FieldVer.sn_cont
+#print axioms StateM5a.StepsBV.br_upsert_value
+#print axioms StateM5a.StepsBV.br_del_value_keep
+#print axioms StateM5a.StepsBV.br_del_value_absent
+#print axioms StateM5a.SerInj.leN_inj
+#print axioms StateM5a.SerInj.hexPrefix_inj
+#print axioms StateM5a.SerInj.packNibbles_inj
+#print axioms StateM5a.SerInj.kids_inj
+#print axioms StateM5a.SerInj.slot_of_valueRef
+#print axioms StateM5a.SerInj.nodeSerInj
+#print axioms StateM5a.SerInj.refinedBy_of_hash'
+#print axioms StateM5a.Refine.del_refinedBy
+#print axioms StateM5a.Refine.kids_delAt_refinedBy
+#print axioms StateM5a.Refine.squashBranch_refinedBy
+#print axioms StateM5a.Refine.extendChild_refinedBy
+#print axioms StateM5a.Refine.del_some
+#print axioms StateM5a.Refine.dchain_witness
+#print axioms StateM5a.Refine.change_del_witness
+#print axioms StateM5a.Refine.findRef_refinedBy
+#print axioms StateM5a.Refine.rows_refinedBy
+#print axioms StateM5a.Refine.find_spec
+#print axioms StateM5a.Refine.upsert_spec
+#print axioms StateM5a.Refine.del_spec
+#print axioms StateM5a.FieldRows2.prefix_flags
+#print axioms StateM5a.FieldRows2.half_eq
+#print axioms StateM5a.FieldRows2.sn_flags
+#print axioms StateM5a.FieldRows2.sn_odd
+#print axioms StateM5a.FieldRows2.sn_ha
+#print axioms StateM5a.FieldRows2.sn_hplen
+#print axioms StateM5a.FieldRows2.keyOf_getD
+#print axioms StateM5a.FieldRows2.sn_hp
+#print axioms StateM5a.FieldRows2.sn_hexPrefix
+#print axioms StateM5a.FieldRows2.sum_one
+#print axioms StateM5a.FieldRows2.sum_single
+#print axioms StateM5a.FieldRows2.br_sel
+#print axioms StateM5a.Store.del_step
+#print axioms StateM5a.Store.batched_changes

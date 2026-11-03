@@ -500,5 +500,27 @@ chain constructors. Std axioms only, no `sorry`; the Lean spec and checker are u
 **Boundary:** the state side carries `(RCH working-set root, TCH trie root, change index)`; it
 maps to §3.2's `stRoot` and will follow lane E's `CM` boundary record when §3.5 publishes it.
 
-**Next:** batched FINAL in the AIR, `NodeSerInj` and the chain refinement, then M5b (STATE rows
-produce the writes now on the public tape).
+**M5a-2 (third session, 2026-11-03) [M][K]:** log
+[`docs/logs/e2e-m5a2-state-2026-11-03.md`](../logs/e2e-m5a2-state-2026-11-03.md).
+* **Batched FINAL in the AIR.** Each trie node is hashed once: a pre-state node by its first
+  reader, published on a new `VER` bus under its digest for every other reader (INTAKE is batched
+  too); a node a later change rewrites is published under a version id (the producing row's id)
+  and never hashed; a final node is hashed by its row. Child slots, `DOWN`/`UP` and `TCH` carry
+  refs (digest | version id); the public `TCH` ends are digests. Immutable records with unique ids
+  make `VER` a persistent store: no timestamps.
+* **T1 / T2 re-proved**, roots = the Lean runs' `stateRoot` and the Lean spec oracle
+  (`m5a-tool apply`: `revealTrie` → `applyChanges` → `rootHash`): T1 1,258,042 B, prove 260 s;
+  T2 1,296,042 B (was 1,533,468), prove 478 s, 2.7 GB (was 16.4 GB); 268.2-bit. Trie-row SHA-256
+  cells −67 % / −86 %; T2 committed cells 47.3 M → 16.2 M (the SHA-512 working-set chip is now
+  the largest term). Mutants: T2 17/17, T1 9/9, synthetic 7/7 rejected (5 new ones for the
+  version store).
+* **Completeness:** branch values (`BR.oUV`/`oDV`/`oDZ`), proved on a synthetic NEAR-shaped case.
+* **Lean:** `Store.batched_changes` (through every upsert and delete the post root is
+  `rootHash (applyChanges …)` on the witness; premises `Sha256CR` and `KeepsFW`, a spec property),
+  `FieldVer`, `StepsBV`; `NodeSerInj` **proved** (`SerInj`), `del_refinedBy` (general `del`),
+  `rows_refinedBy`, `sn_hexPrefix`, `br_sel`.
+* **Open:** the bus-level step (row traffic ⇒ reveal / chain / store expansion); `KeepsFW`;
+  squash after a value delete / onto a non-leaf sibling, splits where a key ends at the branch,
+  mismatch past 63 nibbles, the empty trie.
+
+**Next:** the bus-level step, then M5b (STATE rows produce the writes now on the public tape).

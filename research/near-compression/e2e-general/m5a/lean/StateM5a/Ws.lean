@@ -75,7 +75,7 @@ def L : Layout :=
   [("ph", 1), ("i", 1), ("e", 1), ("real", 1), ("kid", 1), ("kd", 16), ("pp", 1), ("pl", 1),
    ("pv", 16), ("cp", 1), ("cl", 1), ("cv", 16), ("wr", 1), ("mid", 24), ("dg", 18), ("dx", 6),
    ("cid1", 1), ("cid2", 1), ("so", 1), ("j", 1), ("rin", 16), ("rout", 16), ("rk", 1),
-   ("rnm", 4), ("rom", 4)]
+   ("rnm", 4), ("rom", 4), ("rif", 1), ("rof", 1)]
 def T : Cols := ⟨L⟩
 def c (s : String) (j : Nat := 0) : Expr := T.c s j
 def nx (s : String) (j : Nat := 0) : Expr := T.n s j
@@ -87,7 +87,7 @@ def leaf : List W3 :=
 
 def constraints (D : Nat) : List Expr :=
   let ph := c "ph"; let e := c "e"; let real := c "real"
-  (["ph", "e", "real", "pp", "cp", "wr", "so"].map fun s => bool (c s)) ++
+  (["ph", "e", "real", "pp", "cp", "wr", "so", "rif", "rof"].map fun s => bool (c s)) ++
   [.isFirst * c "i", .isFirst * ph, .isFirst * c "j", .isLast * (1 - e), .isLast * (1 - ph),
    .isTransition * (nx "i" - (1 - e) * (c "i" + 1)),
    .isTransition * (nx "ph" - ph - e),
@@ -114,16 +114,19 @@ def interactions : List Interaction :=
     wordsOf (fun t => c "dx" t) 2) ++
   [snd B_TREE 1 ([ph, 0, c "i"] ++ vec "dg" 18),
    -- INTAKE: the pre-value is the trie's answer at `prev_state_root` (public values 0..15)
-   snd B_DOWN g0 ([c "i", 0] ++ ((List.range 16).map fun t => Expr.pub t) ++ [c "kid", 0, 0] ++
+   snd B_DOWN g0 ([c "i", 0, 0] ++ ((List.range 16).map fun t => Expr.pub t) ++ [c "kid", 0, 0] ++
      List.replicate 16 0),
-   rcv B_UP g0 ([c "i", 0, 0] ++ List.replicate 16 0 ++ List.replicate 4 0 ++ List.replicate 4 0 ++
+   rcv B_UP g0 ([c "i", 0, 0, 0] ++ List.replicate 16 0 ++ List.replicate 4 0 ++ List.replicate 4 0 ++
      [0, 0, c "pl"] ++ vec "pv" 16 ++ [c "pp"]),
    -- FINAL: apply the written leaf's final value (upsert if present, else delete)
-   snd B_DOWN gw ([K W_FINAL + c "i", 0] ++ vec "rin" 16 ++ [c "kid", 2 - c "cp", c "cl"] ++ vec "cv" 16),
-   rcv B_UP gw ([K W_FINAL + c "i", 0, c "rk"] ++ vec "rout" 16 ++ vec "rnm" 4 ++ vec "rom" 4 ++
+   snd B_DOWN gw ([K W_FINAL + c "i", 0, c "rif"] ++ vec "rin" 16 ++ [c "kid", 2 - c "cp", c "cl"] ++
+     vec "cv" 16),
+   rcv B_UP gw ([K W_FINAL + c "i", 0, c "rk", c "rof"] ++ vec "rout" 16 ++ vec "rnm" 4 ++ vec "rom" 4 ++
      [0, 0, 0] ++ List.replicate 16 0 ++ [0]),
-   rcv B_TCH gw (c "j" :: vec "rin" 16),
-   snd B_TCH gw ((c "j" + 1) :: vec "rout" 16)]
+   -- the trie root between changes: a ref (flag 1: an in-memory version, batched FINAL); the
+   -- public ends `TCH(0, 0, prev_state_root)`, `TCH(n, 0, post_state_root)` are digests
+   rcv B_TCH gw ([c "j", c "rif"] ++ vec "rin" 16),
+   snd B_TCH gw ([c "j" + 1, c "rof"] ++ vec "rout" 16)]
 
 def table (D : Nat) : Table :=
   { width := L.width, constraints := constraints D, interactions, maxLog := 20 }

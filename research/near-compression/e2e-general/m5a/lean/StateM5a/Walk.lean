@@ -23,10 +23,8 @@ collision resistance enters: two nodes with the same SHA-256 hash and well-forme
 are equal (`refinedBy_of_hash`, from the named hypotheses `Sha256CR` and `NodeSerInj`).
 `Sha256CR` is the cryptographic assumption (never an axiom: a premise of the theorems that use
 it); `NodeSerInj` (the node serialization is injective on well-formed nodes) is a statement about
-the spec's encoder, stated here and not yet proved (open: decode ∘ encode of `PTrie.hashOf`'s
-preimage).  Lifting `refinedBy_of_hash` from each row node to the whole rows' trie (an
-induction along the chain: on-path child by the chain, off-path stubs by `stub_refinedBy`) is the
-next step; so is the delete refinement (`del` on `t₂`; no `del_refinedBy` yet).
+the spec's encoder, stated here and proved in `StateM5a.SerInj` (`nodeSerInj`).  The lift to
+the whole rows' trie and the delete refinement are in `StateM5a.Refine`.
 -/
 
 namespace StateM5a.Walk
@@ -56,16 +54,18 @@ theorem hashOf_ser (n : PTrie) (hn : ∀ h, n ≠ .hash h) : n.hashOf = sha256 (
   | ext => rfl
   | branch v cs m => cases v <;> rfl
 
-/-- A row's node: its children are hash stubs. -/
+/-- A row's node: its children are hash stubs and its value slot is a `ValueRef` (the row holds
+`(len, sha256 value)`, never the value bytes). -/
 def Shallow : PTrie → Prop
   | .hash _ => True
-  | .leaf .. => True
+  | .leaf _ s _ => ∃ len h, s = .ref len h
   | .ext _ c _ => ∃ h, c = .hash h
-  | .branch _ cs _ => ∀ n c, Kids.at cs n = some c → ∃ h, c = .hash h
+  | .branch v cs _ => (∀ s, v = some s → ∃ len h, s = .ref len h) ∧
+      ∀ n c, Kids.at cs n = some c → ∃ h, c = .hash h
 
 /-- Node serialization injectivity on well-formed revealed nodes, up to refinement of the
 children and value slots (`refinedBy` one level deep): the statement lane B needs from the spec's
-encoder.  Open (not proved here). -/
+encoder.  Proved: `SerInj.nodeSerInj`. -/
 def NodeSerInj : Prop :=
   ∀ n₁ n₂ : PTrie, n₁.wf = true → n₂.wf = true → (∀ h, n₁ ≠ .hash h) → (∀ h, n₂ ≠ .hash h) →
     Shallow n₁ → ser n₁ = ser n₂ → n₁.refinedBy n₂
