@@ -129,3 +129,4 @@ import WasmBase.Main.SegIface
 import WasmBase.Main.HostSpace
 import WasmBase.Main.HostFoot
 import WasmBase.Main.HostArms
+import WasmBase.Main.HostRegWF
