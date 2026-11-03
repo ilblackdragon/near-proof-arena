@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """M5a trace generator: INTAKE + working-set tree + FINAL for one transition's state accesses.
 
-  tracegen.py STATE_JSON NAMES_JSON OUT_DIR [--mutant NAME]
+  tracegen.py STATE_JSON NAMES_JSON OUT_DIR [--mutant NAME] [--segs S] [--extra-writes N]
 
 STATE_JSON is `extract_state.py`'s output (pre-state root, the witness nodes the checker read, the
 keys looked up, and the committed overlay at finalize, cross-checked against the Lean run).
@@ -38,6 +38,18 @@ Batched-FINAL mutants (M5a-2: in-memory node versions on `VER`):
 Branch-value mutants (synthetic case `bval`):
   bvalue    a branch-value write (`oUV`) storing another value-hash byte than the walk's value
   bvmem     a branch-value delete (`oDV`) with memory usage + 1
+Working-set segment mutants (M5a-3: write accesses on the `WM` memory chain, batched path update):
+  wsstale   a write access consumes another value than the entry's latest
+  wsorder   two accesses to one entry chained in the wrong time order (needs --extra-writes)
+  wsseg     a write access attributed to another segment than the write log's (needs --segs ≥ 2)
+  wssib     a segment path node changes an untouched sibling between the old and the new tree
+  wsdrop    a segment path node that receives no touched child
+  wsabsorb  an inactive path-node row absorbs a touched child without hashing it
+  wsleaf    a touched leaf claims another pre-value length (consistently hashed)
+
+Options: --segs S cuts the write log into S segments (default 1: the whole M5a write tape is one
+STATE segment); --extra-writes N writes an intermediate value to each of the first N written keys
+before its final one (exercises the memory chain).
 """
 import hashlib
 import json
@@ -125,7 +137,8 @@ class Table:
 
 
 class Gen:
-    def __init__(self, st, names, mutant=None, plan=None):
+    def __init__(self, st, names, mutant=None, plan=None, segs=1, extra_writes=0):
+        self.segs, self.extra_writes = segs, extra_writes
         # Batched FINAL: `plan` (from a first pass, `make_plan`) says, for every node version,
         # whether it is published under a version id (`nref`: rewritten by a later change) or
         # hashed (final), how many rows read it, and which row hashes each pre-state node.
@@ -138,7 +151,7 @@ class Gen:
         self.names = names
         self.D = names['D']
         self.mutant = mutant
-        self.T = {t: Table(t, names[t]) for t in ['KEY', 'BR', 'SN', 'KCMP', 'WSB', 'WSN', 'WSA', 'SNC', 'RNG']}
+        self.T = {t: Table(t, names[t]) for t in ['KEY', 'BR', 'SN', 'KCMP', 'WSB', 'WSN', 'WSA', 'SNC', 'RNG', 'WSL', 'WSP']}
         self.rng_count = {}
         self.sha_msgs = []
         self.comps = []
@@ -955,19 +968,23 @@ class Gen:
         self.build_rng()
 
     # ------------------------------------------------------------------ working set
+    @staticmethod
+    def len_chunks(n):
+        assert 0 <= n < 1 << 24, ('value length', n)
+        return [(n >> (6 * k)) & 63 for k in range(4)]
+
     def leaf_words(self, kd, pre, cur, wr):
+        """The one-compression leaf block (`Ws.leafBlock`): word t < 8 = (pv_2t, pv_2t+1,
+        kd_t + 2^16 x_t), word 8+t = (cv_2t, cv_2t+1, kd_8+t + 2^16 x_8+t)."""
         kdl, pvl, cvl = pack2(kd), pack2(pre[2]), pack2(cur[2])
-        hi = [pre[0], pre[1], cur[0], cur[1], wr, 0, 0, 0]
-        ws = [(kdl[2 * t], kdl[2 * t + 1], hi[t]) for t in range(8)]
-        ws += [(pvl[2 * t], pvl[2 * t + 1], 0) for t in range(8)]
-        ws += [(cvl[2 * t], cvl[2 * t + 1], 0) for t in range(8)]
-        ws += [(0, 0, 0)] * 8
-        return [S5.word(*x) for x in ws]
+        x = [pre[0] + 2 * cur[0] + 4 * wr] + self.len_chunks(pre[1]) + self.len_chunks(cur[1]) + [0] * 7
+        ws = [(pvl[2 * t], pvl[2 * t + 1], kdl[t] + (x[t] << 16)) for t in range(8)]
+        ws += [(cvl[2 * t], cvl[2 * t + 1], kdl[8 + t] + (x[8 + t] << 16)) for t in range(8)]
+        return [S5.word(*w) for w in ws]
 
     def leaf_hash(self, words):
-        c1, mid = self.comp(S5.IV384, words[:16])
-        c2, out = self.comp(mid, words[16:])
-        return c1, c2, mid, out
+        cid, out = self.comp(S5.IV384, words)
+        return cid, out
 
     def node_hash(self, l6, r6):
         blk = list(l6) + list(r6) + [1 << 63, 0, 0, 768]
@@ -977,6 +994,33 @@ class Gen:
     @staticmethod
     def l18(ws):
         return [x for w in ws for x in S5.limbs(w)]
+
+    @staticmethod
+    def tree_levels(D, leafd):
+        lv = [list(x) for x in leafd]
+        levels = [lv]
+        for _ in range(D):
+            lv = [S5.compress(S5.IV384, list(lv[2 * x]) + list(lv[2 * x + 1]) + [1 << 63, 0, 0, 768])[:6]
+                  for x in range(len(lv) // 2)]
+            levels.append(lv)
+        return levels
+
+    def write_log(self):
+        """The write accesses `(t, seg, key, ref)`: the committed changes in key order (one per
+        written key, as the tape of M5a), optionally preceded by `extra` intermediate writes of
+        the first written keys (an overwritten value, to exercise the memory chain), at times
+        1, 2, …; cut into `segs` contiguous segments."""
+        ws = []
+        for n, (key, ref) in enumerate(sorted(self.final.items())):
+            if n < self.extra_writes:
+                v = b'm5a3-intermediate-%d' % n
+                ws.append((key, (1, len(v), sha(v))))
+            ws.append((key, ref))
+        S = min(self.segs, len(ws))
+        out = []
+        for t, (key, ref) in enumerate(ws):
+            out.append((t + 1, t * S // len(ws), key, ref))
+        return out, S
 
     def build_ws(self):
         D, N = self.D, 1 << self.D
@@ -1011,9 +1055,11 @@ class Gen:
                     Tb.set(r, 'pp', p[0]); Tb.set(r, 'pl', p[1]); Tb.setv(r, 'pv', pack2(p[2]))
                     Tb.set(r, 'cp', c[0]); Tb.set(r, 'cl', c[1]); Tb.setv(r, 'cv', pack2(c[2]))
                     Tb.set(r, 'wr', wr)
-                    c1, c2, mid, out = self.leaf_hash(self.leaf_words(kdi, p, c, wr))
-                    Tb.set(r, 'cid1', c1); Tb.set(r, 'cid2', c2)
-                    Tb.setv(r, 'mid', self.l18(mid))
+                    Tb.setv(r, 'plx', self.len_chunks(p[1])); Tb.setv(r, 'clx', self.len_chunks(c[1]))
+                    for x in self.len_chunks(p[1]) + self.len_chunks(c[1]):
+                        self.rng(x)
+                    cid, out = self.leaf_hash(self.leaf_words(kdi, p, c, wr))
+                    Tb.set(r, 'cid', cid)
                     Tb.setv(r, 'dg', self.l18(out[:6]))
                     Tb.setv(r, 'dx', self.l18(out[6:]))
                     dig[ph].append(out[:6])
@@ -1030,13 +1076,12 @@ class Gen:
                         j += 1
                 else:
                     dig[ph].append([0] * 6)
-        # inner nodes, and the path state for the write accesses
+        # inner nodes of both full trees
         Tn = self.T['WSN']
-        self.nw = len(self.final)
+        self.writes, self.nseg = self.write_log()
 
         def build(ph, leafd):
             lv = [list(x) for x in leafd]
-            levels = [lv]
             for l in range(D):
                 nxt = []
                 for idx in range(len(lv) // 2):
@@ -1049,77 +1094,100 @@ class Gen:
                     Tn.set(r, 'cid', cid)
                     Tn.setv(r, 'o', self.l18(out[:6])); Tn.setv(r, 'ox', self.l18(out[6:]))
                     if top and ph == 1:
-                        Tn.set(r, 'nw', self.nw)
+                        Tn.set(r, 'nw', self.nseg)
                     nxt.append(out[:6])
                 lv = nxt
-                levels.append(lv)
-            return levels
 
         build(0, dig[0])
-        # write accesses: the tree evolves leaf by leaf from phase 0 to phase 1
-        Ta = self.T['WSA']
+        # segments: write accesses on the memory chain, one batched path update per segment
+        Ta, Tl, Tp = self.T['WSA'], self.T['WSL'], self.T['WSP']
         state = [list(x) for x in leaves0]
         digs = [list(x) for x in dig[0]]
-        jj = 0
-        for i, k in enumerate(self.keys):
-            if k not in self.final:
-                continue
-            r = Ta.new()
-            Ta.set(r, 'act', 1)
-            Ta.set(r, 'jj', jj)
-            kdi, p, c, wr = state[i]
-            nc = self.final[k]
-            Ta.setv(r, 'kd', pack2(kdi))
-            Ta.set(r, 'pp', p[0]); Ta.set(r, 'pl', p[1]); Ta.setv(r, 'pv', pack2(p[2]))
-            Ta.set(r, 'cp', c[0]); Ta.set(r, 'cl', c[1]); Ta.setv(r, 'cv', pack2(c[2]))
-            Ta.set(r, 'wr', wr)
-            Ta.set(r, 'ncp', nc[0]); Ta.set(r, 'ncl', nc[1]); Ta.setv(r, 'ncv', pack2(nc[2]))
-            cO1, cO2, midO, outO = self.leaf_hash(self.leaf_words(kdi, p, c, wr))
-            cN1, cN2, midN, outN = self.leaf_hash(self.leaf_words(kdi, p, nc, 1))
-            Ta.setv(r, 'cidL', [cO1, cO2, cN1, cN2])
-            Ta.setv(r, 'midO', self.l18(midO)); Ta.setv(r, 'dgO', self.l18(outO[:6])); Ta.setv(r, 'dxO', self.l18(outO[6:]))
-            Ta.setv(r, 'midN', self.l18(midN)); Ta.setv(r, 'dgN', self.l18(outN[:6])); Ta.setv(r, 'dxN', self.l18(outN[6:]))
-            assert digs[i] == outO[:6]
-            # path
-            lv = digs
-            levels = [lv]
+        idx_of = {k: i for i, k in enumerate(self.keys)}
+        rch = [self.tree_levels(D, digs)[D][0]]
+        for s in range(self.nseg):
+            seg_w = [w for w in self.writes if w[1] == s]
+            touched = sorted(set(idx_of[w[2]] for w in seg_w))
+            seg_start = list(state)
+            last_t = {}
+            for (t, _, key, ref) in seg_w:
+                i = idx_of[key]
+                kdi, p, c, wr = state[i]
+                r = Ta.new()
+                Ta.set(r, 'act', 1); Ta.set(r, 'seg', s); Ta.set(r, 't', t)
+                Ta.setv(r, 'kd', pack2(kdi))
+                Ta.set(r, 'cp', c[0]); Ta.set(r, 'cl', c[1]); Ta.setv(r, 'cv', pack2(c[2])); Ta.set(r, 'wr', wr)
+                idp = last_t.get(i, 0)
+                Ta.set(r, 'idp', idp)
+                Ta.set(r, 'ncp', ref[0]); Ta.set(r, 'ncl', ref[1]); Ta.setv(r, 'ncv', pack2(ref[2]))
+                gap = t - idp - 1
+                assert 0 <= gap < 1 << 24
+                dt = [(gap >> (8 * k)) & 255 for k in range(3)]
+                Ta.setv(r, 'dt', dt)
+                for x in dt:
+                    self.rng(x)
+                last_t[i] = t
+                state[i] = (kdi, p, ref, 1)
+            # touched leaves: old → new
+            old_d = list(digs)
+            new_d = list(digs)
+            for i in touched:
+                kdi, p, c, wr = seg_start[i]
+                nk, np_, nc, nwr = state[i]
+                r = Tl.new()
+                Tl.set(r, 'act', 1); Tl.set(r, 'seg', s); Tl.set(r, 'i', i)
+                Tl.setv(r, 'kd', pack2(kdi)); Tl.setv(r, 'kb', list(kdi))
+                Tl.set(r, 'pp', p[0]); Tl.set(r, 'pl', p[1]); Tl.setv(r, 'pv', pack2(p[2]))
+                Tl.setv(r, 'plx', self.len_chunks(p[1]))
+                Tl.set(r, 'cp', c[0]); Tl.set(r, 'cl', c[1]); Tl.setv(r, 'cv', pack2(c[2])); Tl.set(r, 'wr', wr)
+                Tl.setv(r, 'clx', self.len_chunks(c[1]))
+                Tl.set(r, 'ncp', nc[0]); Tl.set(r, 'ncl', nc[1]); Tl.setv(r, 'ncv', pack2(nc[2])); Tl.set(r, 'nwr', nwr)
+                Tl.setv(r, 'nclx', self.len_chunks(nc[1]))
+                Tl.set(r, 'idl', last_t[i])
+                for x in list(kdi) + self.len_chunks(p[1]) + self.len_chunks(c[1]) + self.len_chunks(nc[1]):
+                    self.rng(x)
+                cO, outO = self.leaf_hash(self.leaf_words(kdi, p, c, wr))
+                cN, outN = self.leaf_hash(self.leaf_words(kdi, p, nc, nwr))
+                assert outO[:6] == digs[i]
+                Tl.set(r, 'cidO', cO); Tl.setv(r, 'dgO', self.l18(outO[:6])); Tl.setv(r, 'dxO', self.l18(outO[6:]))
+                Tl.set(r, 'cidN', cN); Tl.setv(r, 'dgN', self.l18(outN[:6])); Tl.setv(r, 'dxN', self.l18(outN[6:]))
+                new_d[i] = outN[:6]
+            # the union of the touched paths, level by level
+            cur_t = set(touched)
+            lo_lv, ln_lv = old_d, new_d
             for l in range(D):
-                lv = [None] * (len(lv) // 2)
-                levels.append(lv)
-            # recompute the current tree levels (old)
-            cur_levels = [list(digs)]
-            for l in range(D):
-                prev = cur_levels[-1]
-                cur_levels.append([S5.compress(S5.IV384, list(prev[2 * x]) + list(prev[2 * x + 1]) +
-                                               [1 << 63, 0, 0, 768])[:6] for x in range(len(prev) // 2)])
-            idx = i
-            curO, curN = outO[:6], outN[:6]
-            for l in range(D):
-                side = idx & 1
-                sib = cur_levels[l][idx ^ 1]
-                Ta.set(r, 'side', side, l)
-                for t, x in enumerate(self.l18(sib)):
-                    Ta.set(r, 'sib', x, 18 * l + t)
-                lo, ro = (sib, curO) if side else (curO, sib)
-                ln, rn = (sib, curN) if side else (curN, sib)
-                co, outPO = self.node_hash(lo, ro)
-                cn, outPN = self.node_hash(ln, rn)
-                Ta.set(r, 'cO', co, l); Ta.set(r, 'cN', cn, l)
-                for t, x in enumerate(self.l18(outPO[:6])):
-                    Ta.set(r, 'pO', x, 18 * l + t)
-                for t, x in enumerate(self.l18(outPO[6:])):
-                    Ta.set(r, 'xO', x, 6 * l + t)
-                for t, x in enumerate(self.l18(outPN[:6])):
-                    Ta.set(r, 'pN', x, 18 * l + t)
-                for t, x in enumerate(self.l18(outPN[6:])):
-                    Ta.set(r, 'xN', x, 6 * l + t)
-                curO, curN = outPO[:6], outPN[:6]
-                idx >>= 1
-            state[i] = (kdi, p, nc, 1)
-            digs[i] = outN[:6]
-            jj += 1
-        assert digs == [list(x) for x in dig[1]]
+                par = sorted(set(i >> 1 for i in cur_t))
+                no, nn = list(lo_lv[::2]), list(ln_lv[::2])
+                for j in par:
+                    r = Tp.new()
+                    top = int(l == D - 1)
+                    Tp.set(r, 'act', 1); Tp.set(r, 'seg', s); Tp.set(r, 'lvl', l); Tp.set(r, 'idx', j)
+                    Tp.set(r, 'top', top)
+                    Tp.set(r, 'tl', int(2 * j in cur_t)); Tp.set(r, 'tr', int(2 * j + 1 in cur_t))
+                    a_o, a_n, b_o, b_n = lo_lv[2 * j], ln_lv[2 * j], lo_lv[2 * j + 1], ln_lv[2 * j + 1]
+                    Tp.setv(r, 'lo', self.l18(a_o)); Tp.setv(r, 'ln', self.l18(a_n))
+                    Tp.setv(r, 'ro', self.l18(b_o)); Tp.setv(r, 'rn', self.l18(b_n))
+                    cO, oO = self.node_hash(a_o, b_o)
+                    cN, oN = self.node_hash(a_n, b_n)
+                    Tp.set(r, 'cidO', cO); Tp.set(r, 'cidN', cN)
+                    Tp.setv(r, 'oo', self.l18(oO[:6])); Tp.setv(r, 'oox', self.l18(oO[6:]))
+                    Tp.setv(r, 'on', self.l18(oN[:6])); Tp.setv(r, 'onx', self.l18(oN[6:]))
+                    no[j], nn[j] = oO[:6], oN[:6]
+                # untouched parents keep their old digest (recompute from the old tree)
+                full_o = self.tree_levels(1, lo_lv)[1]
+                full_n = self.tree_levels(1, ln_lv)[1]
+                for j in range(len(full_o)):
+                    if j in par:
+                        assert full_o[j] == no[j] and full_n[j] == nn[j]
+                lo_lv, ln_lv = full_o, full_n
+                cur_t = set(par)
+            assert lo_lv[0] == rch[-1]
+            rch.append(ln_lv[0])
+            digs = new_d
+        assert digs == [list(x) for x in dig[1]], 'segments end at the FINAL leaves'
+        assert rch[-1] == self.tree_levels(D, dig[1])[D][0]
         build(1, dig[1])
+        self.rch = rch
         if self.mutant == 'omitwrite':
             # the dishonest prover leaves one write access out of the trace
             Ta.rows.pop(0)
@@ -1215,8 +1283,8 @@ class Gen:
         with open(os.path.join(out, 'pubs.bin'), 'wb') as f:
             f.write(struct.pack('<16I', *pubs))
         tape = []
-        for key, ref in sorted(self.final.items()):
-            tape.append([13, True, pack2(sha(key)) + [ref[0], ref[1]] + pack2(ref[2])])
+        for (t, seg, key, ref) in self.writes:
+            tape.append([13, True, [seg, t] + pack2(sha(key)) + [ref[0], ref[1]] + pack2(ref[2])])
         post = self.post_root
         if self.mutant == 'postroot':
             post = bytes([post[0] ^ 1]) + post[1:]
@@ -1226,7 +1294,8 @@ class Gen:
         stats = dict(heights=heights, sha_msgs=len(self.sha_msgs),
                      sha_blocks=sum((len(m['bytes']) // 2 + 9 + 63) // 64 for m in self.sha_msgs),
                      compressions=len(self.comps), keys=len(self.keybytes), ws_keys=len(self.keys),
-                     changes=len(self.final), rows={k: len(T.rows) for k, T in self.T.items()},
+                     changes=len(self.final), writes=len(self.writes), segments=self.nseg,
+                     rch=[bytes(b for w in r for b in w.to_bytes(8, 'big')).hex() for r in self.rch], rows={k: len(T.rows) for k, T in self.T.items()},
                      ops=self.op_census, pre_root=self.pre_root.hex(), post_root=bytes(self.roots[-1][1]).hex(),
                      versions=dict(published=sum(self.plan['nref'].values()) if self.plan else 0,
                                    hashed_old=sum(1 for m in self.sha_msgs if m['id'] >= ID_BR and m['id'] % 2 == 0),
@@ -1357,14 +1426,95 @@ def _t_bvmem(g):
     T.set(r, 'nmem', T.get(r, 'nmem', 0) + 1, 0)
 
 
+# ---- M5a-3 working-set segment mutants
+def _t_wsstale(g):
+    # a write access consumes another value than the entry's latest (its old `cv` limb + 1)
+    T = g.T['WSA']
+    r = T.rows[0]
+    T.set(r, 'cv', T.get(r, 'cv', 0) + 1, 0)
+
+
+def _t_wsorder(g):
+    # two accesses to one entry (needs --extra-writes): the later one (final value) is put first
+    # on the chain (it consumes the opening value) and the earlier one consumes the later one's
+    # value — its gap t - idp - 1 is negative, so no bytes `dt` exist (written mod 2^24)
+    T = g.T['WSA']
+    rows = T.rows
+    pair = next((a, b) for a in rows for b in rows
+                if a is not b and T.get(a, 'kd') == T.get(b, 'kd') and T.get(b, 'idp') == T.get(a, 't'))
+    a, b = pair            # a: earlier (t1), b: later (t2), b consumed a
+    t1, t2 = T.get(a, 't'), T.get(b, 't')
+    for nm, n in (('cp', 1), ('cl', 1), ('cv', 16), ('wr', 1), ('idp', 1)):
+        for j in range(n):
+            T.set(b, nm, T.get(a, nm, j if n > 1 else None), j if n > 1 else None)
+    T.set(a, 'cp', T.get(b, 'ncp')); T.set(a, 'cl', T.get(b, 'ncl')); T.set(a, 'wr', 1)
+    T.setv(a, 'cv', [T.get(b, 'ncv', j) for j in range(16)])
+    T.set(a, 'idp', t2)
+    gap = (t1 - t2 - 1) % (1 << 24)
+    T.setv(a, 'dt', [(gap >> (8 * k)) & 255 for k in range(3)])
+    T.setv(b, 'dt', [((t2 - 1) >> (8 * k)) & 255 for k in range(3)])
+
+
+def _t_wsseg(g):
+    # a write access attributed to another segment than the one the write log states
+    T = g.T['WSA']
+    r = T.rows[-1]
+    T.set(r, 'seg', T.get(r, 'seg') - 1)
+
+
+def _t_wssib(g):
+    # a segment path node changes an untouched sibling between the old and the new tree
+    T = g.T['WSP']
+    r = next(r for r in T.rows if T.get(r, 'tr') == 0 or T.get(r, 'tl') == 0)
+    nm = 'rn' if T.get(r, 'tr') == 0 else 'ln'
+    T.set(r, nm, T.get(r, nm, 0) ^ 1, 0)
+
+
+def _t_wsdrop(g):
+    # a segment path node that receives no touched child (a free subtree)
+    T = g.T['WSP']
+    r = next(r for r in T.rows if T.get(r, 'top') == 0)
+    T.set(r, 'tl', 0); T.set(r, 'tr', 0)
+
+
+def _t_wsabsorb(g):
+    # an inactive path-node row absorbs a touched child without hashing (drops its update)
+    T = g.T['WSP']
+    r = next(r for r in T.rows if T.get(r, 'top') == 0)
+    T.set(r, 'act', 0)
+
+
+def _t_wsleaf(g):
+    # a touched leaf claims another pre-value length (+1), consistently hashed: its old digest is
+    # not the working set's leaf, so the segment's old path does not reach `RCH(seg)`
+    T = g.T['WSL']
+    r = T.rows[0]
+    pl = T.get(r, 'pl') + 1
+    for x in g.len_chunks(pl - 1):
+        g.rng_count[x] -= 1
+    for x in g.len_chunks(pl):
+        g.rng(x)
+    T.set(r, 'pl', pl); T.setv(r, 'plx', g.len_chunks(pl))
+    g.T['RNG'].rows = []
+    g.build_rng()
+    kd = bytes(T.get(r, 'kb', j) for j in range(32))
+    pv = b''.join(T.get(r, 'pv', j).to_bytes(2, 'big') for j in range(16))
+    cv = b''.join(T.get(r, 'cv', j).to_bytes(2, 'big') for j in range(16))
+    words = g.leaf_words(kd, (T.get(r, 'pp'), pl, pv), (T.get(r, 'cp'), T.get(r, 'cl'), cv), T.get(r, 'wr'))
+    out = S5.compress(S5.IV384, words)
+    g.comps[T.get(r, 'cidO') // 128] = dict(h=[str(x) for x in S5.IV384], block=[str(x) for x in words])
+    T.setv(r, 'dgO', g.l18(out[:6])); T.setv(r, 'dxO', g.l18(out[6:]))
+
 TAMPERS = dict(absent=_t_absent, extabsent=_t_extabsent, branchval=_t_branchval, split=_t_split,
                splitext=_t_splitext, absdel=_t_absdel, squash=_t_squash, chain=_t_chain,
                verslot=_t_verslot, vernid=_t_vernid, vmcount=_t_vmcount, finroot=_t_finroot,
-               nidforge=_t_nidforge, bvalue=_t_bvalue, bvmem=_t_bvmem)
+               nidforge=_t_nidforge, bvalue=_t_bvalue, bvmem=_t_bvmem, wsstale=_t_wsstale,
+               wsorder=_t_wsorder, wsseg=_t_wsseg, wssib=_t_wssib, wsdrop=_t_wsdrop, wsabsorb=_t_wsabsorb,
+               wsleaf=_t_wsleaf)
 
 
-def make_gen(st, names, mutant, plan):
-    g = Gen(st, names, mutant, plan)
+def make_gen(st, names, mutant, plan, segs=1, extra_writes=0):
+    g = Gen(st, names, mutant, plan, segs, extra_writes)
     if mutant == 'node':
         # A tampered pre-state node: the leaf of the first written key carries memory usage + 1
         # (still a well-formed node), while its parent keeps the true child hash.  Every row that
@@ -1403,17 +1553,19 @@ def main():
     out = sys.argv[3]
     args = sys.argv[4:]
     mutant = args[args.index('--mutant') + 1] if '--mutant' in args else None
+    segs = int(args[args.index('--segs') + 1]) if '--segs' in args else 1
+    extra = int(args[args.index('--extra-writes') + 1]) if '--extra-writes' in args else 0
     # pass 1: every node hashed (the unbatched trace, still a valid one); pass 2: batched FINAL
-    g = make_gen(st, names, mutant, None)
+    g = make_gen(st, names, mutant, None, segs, extra)
     if '--unbatched' not in args:
         plan = g.make_plan()
         PT.OVERRIDE.clear()
-        g = make_gen(st, names, mutant, plan)
+        g = make_gen(st, names, mutant, plan, segs, extra)
     if mutant in TAMPERS:
         TAMPERS[mutant](g)
     stats = g.write(out)
     print(json.dumps(dict((k, stats[k]) for k in ('rows', 'heights', 'sha_msgs', 'sha_blocks', 'compressions',
-                                                  'ops', 'versions'))))
+                                                  'ops', 'versions', 'writes', 'segments'))))
 
 
 if __name__ == '__main__':

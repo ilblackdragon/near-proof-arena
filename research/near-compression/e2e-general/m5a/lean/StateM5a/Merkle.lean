@@ -11,6 +11,15 @@ then the row's old leaf *is* leaf `i` of the working set and its new root is the
 working set with leaf `i` replaced, for any new leaf.  So the `RCH` chain of write rows walks the
 working set from the INTAKE tree to the FINAL tree one leaf at a time.  (`H` is SHA-384 of
 `left48 ‖ right48`; a collision of it is the only way around this lemma.)
+
+**M5a-3: a segment's batched update** (`WSL` / `WSP`).  A segment no longer walks one path per
+write: it rehashes the union of its touched paths once.  `Upd` describes that union — an
+untouched subtree is one digest shared by both trees (`keep h`), a touched leaf has an old and a
+new digest (`leaf o n`), a node on a touched path has both children described (`node l r`).
+`batch_update_sound`: if the old digest of the description is the working-set root and `H` has
+no collision, then every touched leaf's old digest *is* the working set's leaf at its position
+(`Agrees`) and the new digest is the root of the working set with exactly the touched leaves
+replaced (`apply`).  `root_succ_split` relates the level-by-level root (`WSN`) to the top-down one.
 -/
 
 namespace StateM5a.Merkle
@@ -146,5 +155,149 @@ theorem write_access_sound (hinj : ∀ a b c d, H a b = H c d → a = c ∧ b = 
         simp only [root, pathRoot, Bool.false_eq_true, ite_false]
         rw [hi', up_set_even H l (i / 2) x' b hb]
         exact hupd (H x' b)
+
+/-! ## M5a-3: the batched update of one segment -/
+
+theorem up_take : ∀ (k : Nat) (l : List α), up H (l.take (2 * k)) = (up H l).take k
+  | 0, l => by simp [up]
+  | k + 1, a :: b :: r => by
+    have e : 2 * (k + 1) = 2 * k + 1 + 1 := by omega
+    rw [e]
+    simp only [List.take_succ_cons, up, up_take k r]
+  | k + 1, [a] => by
+    have e : 2 * (k + 1) = 2 * k + 1 + 1 := by omega
+    rw [e]; simp [up]
+  | k + 1, [] => by simp [up]
+
+theorem up_drop : ∀ (k : Nat) (l : List α), up H (l.drop (2 * k)) = (up H l).drop k
+  | 0, l => by simp
+  | k + 1, a :: b :: r => by
+    have e : 2 * (k + 1) = 2 * k + 1 + 1 := by omega
+    rw [e]
+    simp only [List.drop_succ_cons, up, up_drop k r]
+  | k + 1, [a] => by
+    have e : 2 * (k + 1) = 2 * k + 1 + 1 := by omega
+    rw [e]; simp [up]
+  | k + 1, [] => by simp [up]
+
+/-- The level-by-level root is the hash of the two halves' roots. -/
+theorem root_succ_split : ∀ (D : Nat) (l : List α), l.length = 2 ^ (D + 1) →
+    root H (D + 1) l =
+      (root H D (l.take (2 ^ D))).bind fun a => (root H D (l.drop (2 ^ D))).map fun b => H a b
+  | 0, l, hl => by
+    match l, hl with
+    | [a, b], _ => simp [root, up]
+    | [], h => simp at h
+    | [_], h => simp at h
+    | _ :: _ :: _ :: _, h => simp at h
+  | D + 1, l, hl => by
+    have hu : (up H l).length = 2 ^ (D + 1) := by rw [up_length, hl, Nat.pow_succ]; omega
+    have h1 : root H (D + 1 + 1) l = root H (D + 1) (up H l) := rfl
+    rw [h1, root_succ_split D (up H l) hu]
+    have e : 2 ^ (D + 1) = 2 * 2 ^ D := by rw [Nat.pow_succ]; omega
+    rw [e, ← up_take, ← up_drop]
+    rfl
+
+/-- A segment's update of a subtree (the union of its touched paths). -/
+inductive Upd (α : Type) where
+  /-- an untouched subtree: one digest in the old and the new tree (`WSP`'s `(1 − tl)(lo − ln)`) -/
+  | keep (h : α)
+  /-- a touched leaf (`WSL`): old and new leaf digest -/
+  | leaf (o n : α)
+  /-- a node on a touched path (`WSP`) -/
+  | node (l r : Upd α)
+
+namespace Upd
+
+/-- Old / new digest of a described subtree (`WSP`'s two compressions). -/
+def old : Upd α → α
+  | keep h => h
+  | leaf o _ => o
+  | node l r => H (old l) (old r)
+
+def new : Upd α → α
+  | keep h => h
+  | leaf _ n => n
+  | node l r => H (new l) (new r)
+
+/-- The description fits a depth-`D` subtree (leaves only at depth `0`). -/
+def Fits : Nat → Upd α → Prop
+  | _, keep _ => True
+  | 0, leaf _ _ => True
+  | D + 1, node l r => Fits D l ∧ Fits D r
+  | _, _ => False
+
+/-- The touched leaves' old digests are the list's leaves at their positions. -/
+def Agrees : Nat → Upd α → List α → Prop
+  | _, keep _, _ => True
+  | 0, leaf o _, l => l = [o]
+  | D + 1, node a b, l => Agrees D a (l.take (2 ^ D)) ∧ Agrees D b (l.drop (2 ^ D))
+  | _, _, _ => False
+
+/-- The leaf list with every touched leaf replaced by its new digest. -/
+def apply : Nat → Upd α → List α → List α
+  | _, keep _, l => l
+  | 0, leaf _ n, _ => [n]
+  | D + 1, node a b, l => apply D a (l.take (2 ^ D)) ++ apply D b (l.drop (2 ^ D))
+  | _, _, l => l
+
+theorem apply_length : ∀ (D : Nat) (u : Upd α) (l : List α), Fits D u → l.length = 2 ^ D →
+    (apply D u l).length = 2 ^ D
+  | _, keep _, l, _, hl => by simp [apply, hl]
+  | 0, leaf _ _, _, _, _ => by simp [apply]
+  | D + 1, node a b, l, hf, hl => by
+    simp only [Fits] at hf
+    have e : 2 ^ (D + 1) = 2 ^ D + 2 ^ D := by rw [Nat.pow_succ]; omega
+    have h1 : (l.take (2 ^ D)).length = 2 ^ D := by simp [hl, e]
+    have h2 : (l.drop (2 ^ D)).length = 2 ^ D := by simp [hl, e]
+    simp only [apply, List.length_append, apply_length D a _ hf.1 h1, apply_length D b _ hf.2 h2, e]
+  | D + 1, leaf _ _, _, hf, _ => by simp [Fits] at hf
+  | 0, node _ _, _, hf, _ => by simp [Fits] at hf
+
+end Upd
+
+/-- **A segment's batched update.**  With a collision-free `H`: if the description's old digest is
+the root of the working set `l`, the touched leaves' old digests are `l`'s leaves at their
+positions, and its new digest is the root of `l` with exactly the touched leaves replaced. -/
+theorem batch_update_sound (hinj : ∀ a b c d, H a b = H c d → a = c ∧ b = d) :
+    ∀ (D : Nat) (u : Upd α) (l : List α), u.Fits D → l.length = 2 ^ D →
+      root H D l = some (u.old H) → u.Agrees D l ∧ root H D (u.apply D l) = some (u.new H)
+  | D, .keep h, l, _, _, hr => by
+    refine ⟨by cases D <;> simp [Upd.Agrees], ?_⟩
+    cases D <;> simpa [Upd.apply, Upd.old, Upd.new] using hr
+  | 0, .leaf o n, l, _, hl, hr => by
+    match l, hl with
+    | [x], _ =>
+      simp only [root, Upd.old, Option.some.injEq] at hr
+      subst hr
+      exact ⟨rfl, rfl⟩
+    | [], h => simp at h
+    | _ :: _ :: _, h => simp at h
+  | D + 1, .node a b, l, hf, hl, hr => by
+    simp only [Upd.Fits] at hf
+    have e : 2 ^ (D + 1) = 2 ^ D + 2 ^ D := by rw [Nat.pow_succ]; omega
+    have h1 : (l.take (2 ^ D)).length = 2 ^ D := by simp [hl, e]
+    have h2 : (l.drop (2 ^ D)).length = 2 ^ D := by simp [hl, e]
+    rw [root_succ_split H D l hl] at hr
+    cases hx : root H D (l.take (2 ^ D)) with
+    | none => simp [hx] at hr
+    | some x =>
+      cases hy : root H D (l.drop (2 ^ D)) with
+      | none => simp [hx, hy] at hr
+      | some y =>
+        simp only [hx, hy, Option.bind_some, Option.map_some, Option.some.injEq, Upd.old] at hr
+        obtain ⟨rfl, rfl⟩ := hinj _ _ _ _ hr
+        obtain ⟨ha1, ha2⟩ := batch_update_sound hinj D a _ hf.1 h1 hx
+        obtain ⟨hb1, hb2⟩ := batch_update_sound hinj D b _ hf.2 h2 hy
+        refine ⟨⟨ha1, hb1⟩, ?_⟩
+        have la := Upd.apply_length D a _ hf.1 h1
+        have lb := Upd.apply_length D b _ hf.2 h2
+        have hlen : (Upd.apply D a (l.take (2 ^ D)) ++ Upd.apply D b (l.drop (2 ^ D))).length =
+            2 ^ (D + 1) := by simp [la, lb, e]
+        simp only [Upd.apply]
+        rw [root_succ_split H D _ hlen, List.take_left' la, List.drop_left' la, ha2, hb2]
+        rfl
+  | D + 1, .leaf _ _, _, hf, _, _ => by simp [Upd.Fits] at hf
+  | 0, .node _ _, _, hf, _, _ => by simp [Upd.Fits] at hf
 
 end StateM5a.Merkle
