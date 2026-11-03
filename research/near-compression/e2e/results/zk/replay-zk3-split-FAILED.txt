@@ -1,0 +1,2 @@
+thread 'main' (1488948) panicked at /data/illia/nearproof-deps/pq-e2e-d/openvm-sha384/crates/recursion/src/nv/circuit.rs:473:32:
+called `Result::unwrap()` on an `Err` value: StackedReductionError(FinalSumMismatch { claim: BinomialExtensionField { value: [881369234, 1065074248, 1872982199, 881908400, 1223273194, 88064996, 658717177, 811773519, 1268211387, 1545278815, 963010571, 751084655], _phantom: PhantomData<p3_monty_31::monty_31::MontyField31<p3_baby_bear::baby_bear::BabyBearParameters>> }, final_sum: BinomialExtensionFi

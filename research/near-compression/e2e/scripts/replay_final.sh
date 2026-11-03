@@ -9,7 +9,7 @@ D=${NEARPROOF_PQ_DEPS:-/data/illia/nearproof-deps/pq-e2e-d}
 OUT=$(realpath "${1:?OUT}"); N=${2:?N}; CLAIM=$(realpath "${3:?claim.bin}")
 AIR=$ROOT/examples/np-udr-stark-v2/source/near-air-v3.json
 K=$ROOT/research/near-compression/final-soundness
-B=$D/target/release/nearproof-chunk-e2e
+B=${PROVER:-$D/target/release/nearproof-chunk-e2e}
 SP=$D/target-classical/release/examples/statepublic
 export NEARPROOF_CHAIN_GEOM=${NEARPROOF_CHAIN_GEOM:-ns19lb6} NEARPROOF_TAPE_EVAL=${NEARPROOF_TAPE_EVAL:-1}
 export HEAVY_MEM=${HEAVY_MEM:-32G} RAYON_NUM_THREADS=${RAYON_NUM_THREADS:-10}

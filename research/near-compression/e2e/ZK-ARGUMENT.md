@@ -126,7 +126,30 @@ both is a deterministic function of (witness, statement). Results: §6 and `resu
 
 ## 6. Measured (2026-11-03)
 
-@@MEASURED@@
+* **Three chunks end to end with `NEARPROOF_ZK=1`** (base `zk = 1`, FINAL `zk = 2`): packets
+  325,613 / 324,534 / 326,243 B vs 306,839 / 307,314 / 307,427 B non-ZK (+17.2 to +18.8 KB);
+  23/23 negatives each; fresh-process verify 129–283 ms on one core under host load 20–22, of
+  which the FINAL protocol check is 20–48 ms (README §0).
+* **Where the bytes go** (FINAL, chunk 1): stacked width 53 → 95 columns = 12 mask columns + 30
+  columns of packing loss (first-fit with `R` reserved rows cannot place two `2^20` slices in one
+  `2^21` column). Each column costs 4 B × 92 opened rows + one 48 B stacked opening:
+  mask columns ≈ 5.0 KB, packing loss ≈ 12.5 KB, plus Merkle-digest variation. GKR, relations
+  and the WHIR fold rounds are byte-identical in size to the non-ZK proof.
+* **Packing lever (`zk = 3`, halve a slice when no column fits it)**: built, but the FINAL proof
+  fails the prover's own stacking-reduction final-sum check (re-sorting the placed slices by size
+  did not help); suspected: a code path that assumes at most the binary-decomposition chunks of a
+  tight column. Would bring the PCS-ZK overhead to ≈ +5 KB (≈ 312 KB packets).
+* **Versus HVZK-WHIR** (10-31 sweep, 128-bit Johnson, rate 1/64): +222 to +312 KB for the PCS alone.
+  Random-codeword batching costs 12–17× less here because it adds no oracle and no query.
+* **Per-round bits**: unchanged by the lever, min 268.2 (FINAL WHIR query); at a 274-bit FINAL
+  target the packet is 329,505 B (+3.9 KB, queries [47, 43, 31, 25]).
+* **Hiding checks**: `results/zk/zk-diff-replay-same-witness.txt` (two FINAL proofs, same L4):
+  root, all WHIR fields and stacked openings fresh; trace heights identical (no data-dependent
+  shape within a witness); PIOP fields change only through their challenges and stay
+  witness-determined (§4 open). `results/zk/zk-diff-base-same-witness.txt`: two `zk = 1` base
+  proofs of one witness have different roots, hence different `u`.
+* **Full-ZK projection**: 325 KB measured + 6–12 KB PIOP masking (estimate) ≈ 331–338 KB, or
+  ≈ 318–325 KB once the packing lever works: within the ~400 KB budget at 268 bits, and at 274 bits.
 
 ## 7. Obligations to set `zero_knowledge_established = true`
 

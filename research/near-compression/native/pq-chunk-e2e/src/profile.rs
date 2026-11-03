@@ -95,6 +95,13 @@ fn shaped_params_geom(
     }
     assert!(!certs.is_empty(), "no kernel-backed certificates");
     let (l_skip, k) = (2, 4);
+    // [E2E-D] per-round soundness target of the FINAL layer (bits); NEARPROOF_FINAL_RBR overrides
+    // the pinned 268 to measure the size at a higher target (e.g. 274, E2E-SOUNDNESS-BUDGET.md)
+    let rbr_target: usize = if final_layer {
+        std::env::var("NEARPROOF_FINAL_RBR").ok().and_then(|v| v.parse().ok()).unwrap_or(268)
+    } else {
+        268
+    };
     assert!(l_skip + n_stack + log_blowup <= 27, "beyond the BabyBear two-adic domain");
     // Keep four WHIR rounds when the stacked height grows by one bit (ns19): one more bit folded
     // into the final polynomial.
@@ -123,14 +130,14 @@ fn shaped_params_geom(
             mu_pow_bits: 0,
             proximity: WhirProximityStrategy::ListDecoding { m: 64 },
         },
-        268,
+        rbr_target,
         levers,
         15,
     )
     .with_first_order(
         log_blowup,
         l_skip + n_stack,
-        268,
+        rbr_target,
         50,
         64,
         Some(&certs),
