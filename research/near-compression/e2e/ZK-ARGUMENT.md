@@ -934,6 +934,26 @@ statement is §6.5. `security_established` stays `false`.
 
 ## 8. Measured (2026-11-03, `zk = 6`)
 
+**D-4: pinned heights** (`e2e/scripts/run_zk6h.sh`, `results/zk/zk6h/`, `zk6hb/`). The
+protocol and the proof format are the same as D-3. The setup gains `final_heights` (+62 B), and
+V_d checks it first.
+
+| | d1/00-h10006-s3 | d1/00-h10007-s0 | d2/05-h10042-s3 |
+|---|---:|---:|---:|
+| **packet B** | **325,709** | **323,958** | **325,247** |
+| pinned `(log, tight)` AIR0 / AIR1 / AIR2 / AIR3 | (20, 284,408) / (21, 1,056,768) / (7, 128) / (16, 65,536) | (20, 285,060) / (21, 1,056,128) / (7, 128) / (16, 65,536) | (20, 287,032) / (21, 1,055,616) / (7, 128) / (16, 65,536) |
+| FINAL prove, s (10 threads, load 15–32) | 602 | 772 | 579 |
+| verify, fresh process, 1 thread (6 runs) | 38.8–39.8 ms | 43.9–54.4 ms | 41.8–51.4 ms |
+| of which the FINAL check | 23.4–23.9 ms | 26.9–27.3 ms | 25.2–26.0 ms |
+| negatives | 26/26 | 26/26 | 26/26 |
+| min bits / `whir_mu` / `whir_nu` | 268.2 / 283.6 / 295.6 | same | same |
+
+The FINAL heights differ per chunk, as do the setups (§7). On chunk 1:
+* the distinguisher gives 0/287 for both witnesses;
+* a second proof against the first setup is 325,289 B, and its setup is byte-identical;
+* `zk-diff` is clean (only structural and phantom entries agree).
+
+
 FINAL was re-proved with `zk = 6` from each chunk's L4 checkpoint (`e2e/scripts/run_zk6.sh`).
 Raw results are in `results/zk/zk6/`.
 
@@ -971,6 +991,18 @@ D1) cost +8.1 KB. A cheaper variant would use one extension-field mask column wi
 chains (−4.4 KB). Its rank lemma has no hand proof yet (§10).
 
 ## 9. Tests
+
+D-4 additions:
+* **`zk-selftest`, padding case.** For zk 4–6, the sender AIR is committed with a tight floor 8
+  rows above its natural height. The proof declares exactly the floor and verifies.
+  Re-run with the D-4 binary, every tamper is still rejected (`results/zk/selftest-d4.txt`).
+* **`tests/zk_layout_fuzz.rs`** (review-zk6, adopted): no panic and no timeout for any declared
+  heights, zk 1–6 (`results/zk/layout-tests-d4.txt`).
+* **Height negatives in `negatives.py`.** They need the `tamper-height` subcommand, and each
+  rejection must come from the pinned-height check (§8).
+* **Driver negative controls.** The FINAL run asserts that V_d rejects the proof under a setup
+  with changed heights or with no heights (`NEGATIVE_CONTROLS_OK changed_heights
+  unpinned_heights`).
 
 * **`zk-selftest`** (toy AIRs in the FINAL configuration: SHA-384, Ext12, FINAL levers; mixed
   heights, tight chunks, splitting). It covers zk 0–6: prove, verify, codec round trip. The

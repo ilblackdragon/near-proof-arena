@@ -1,0 +1,5 @@
+FINAL_PINNED_HEIGHTS [(20, Some(284408)), (21, Some(1056768)), (7, Some(128)), (16, Some(65536))]
+FINAL_PHASE proved_and_verified seconds=528.304506
+NEGATIVE_CONTROLS_OK changed_heights unpinned_heights
+NEGATIVE_CONTROLS_OK changed_tape_root changed_program
+FINAL_REPLAY wall_s=601.631143729

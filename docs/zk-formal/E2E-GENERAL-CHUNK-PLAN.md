@@ -701,11 +701,54 @@ mutants rejected) is met. The gas equality holds outside the proof (the tape) un
 `lake build WasmBase` breakage reported on 2026-10-31 was fixed on main (`6a1739cd7`), and the build
 is green with the new files.
 
-### 5.0 Lane D (ZK wrap for M9): status, 2026-11-03 (milestone D-3)
+### 5.0 Lane D (ZK wrap for M9): status, 2026-11-03 (milestone D-4)
 
-See `research/near-compression/e2e/README.md` §0 (§0a for D-2) and
+See `research/near-compression/e2e/README.md` §0 (§0a for D-3, §0b for D-2) and
 `research/near-compression/e2e/ZK-ARGUMENT.md`. The log is
 `docs/logs/e2e-zk-lane-d-2026-11-03.md`.
+
+**Done (D-4):**
+* **Obligation H is closed** (the owner decision was adopted).
+  * The setup pins the FINAL heights (`Setup::final_heights`).
+  * V_d checks equality before any other work, and rejects a zk vk with no pinned heights.
+  * The prover pads to the pinned heights.
+  * Setups without ZK are byte-identical.
+* **Re-run on the 3 D0a chunks.**
+  * Packets: 325,709 / 323,958 / 325,247 B.
+  * Verify: 38.8–54.4 ms on one core.
+  * Negatives: 26/26 per chunk, including 4 height negatives (each must hit the pinned-height
+    check) and a re-pinned control.
+  * Distinguisher: 0/287 for both witnesses.
+  * A fixed-setup second proof gives a byte-identical setup.
+* **`zero_knowledge_established = true`**, scoped to:
+  * statistical ZK, classical programmable ROM, ε_ZK ≤ 2^-184.4;
+  * the statement (claim, hint, setup), relative to the per-chunk setup's shape class.
+
+  It is not a QROM claim.
+* **Q (QROM) is partly closed.**
+  * FINAL part: 2^-121.0, via AHU19 O2H Thm 3 and GHHM21 Thm 1, both checked against the
+    papers.
+  * The base point `u` is open: the D0a base commits only 2–4 columns.
+  * Two closures, both owner decisions: base `zk = 2` (2^-103) or a base salt (about 2^-120).
+    Neither reaches 128 bits.
+* **Size option:** one EF stacking mask column is proved impossible for any number of τ chains.
+  Not built.
+* **Review-zk6 N1–N4 folded in.**
+  * N1: joint-list text, minus 3 bits on PIOP terms (minimum 318.9); the floor is unchanged.
+  * N2: mask-count assert.
+  * N3: layout step bound.
+  * N4: no thread-locals.
+  * The fuzzer is adopted.
+* **M9 wrap interface:** §5.0.1 below.
+
+**Open (D-4):**
+* **Owner decision on `u` in the QROM:** base `zk = 2` or a base salt. Either needs a chain
+  re-run. Check: `R` (FS jobs) is estimated at ≤ 2^12, not yet counted.
+* A shape-independent setup for the general wrap (§5.0.1, blockers 2 and 6).
+* An independent review of D-4: §6.5 QROM composition, `check_pinned_heights`, the padding
+  path.
+
+#### D-3 status (superseded by D-4 above)
 
 **Done (D-3):**
 * **`zk = 6` built** (FINAL, `NEARPROOF_ZK_FINAL=6`).

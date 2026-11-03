@@ -1,12 +1,67 @@
-# E2E: real D0a chunks → final PQ proof → fresh-process verification (2026-10-31, ZK updates 2026-11-03: D-1, D-2, D-3)
+# E2E: real D0a chunks → final PQ proof → fresh-process verification (2026-10-31, ZK updates 2026-11-03: D-1 … D-4)
 
-Status: **research run, owner's relaxed targets of 2026-10-31.** `security_established=false`,
-`zero_knowledge_established=false` in every RESULT.json. No GPU was used; GPU latencies are
+Status: **research run, owner's relaxed targets of 2026-10-31.** `security_established=false` in
+every RESULT.json. `zero_knowledge_established=true` only in the D-4 `zk = 6` packets with
+pinned heights (`results/zk/zk6h*`), scoped to the classical ROM (§0); false in every earlier
+RESULT.json. No GPU was used; GPU latencies are
 model projections only (`../prover-budget/model.py`). No Lean spec or checker change.
 
-## 0. Update 2026-11-03, milestone D-3 (lane E2E-D): Lemmas D and E closed (`zk = 6`), review fixes
+## 0. Update 2026-11-03, milestone D-4 (lane E2E-D): obligation H closed, ZK established (classical ROM), QROM part, review-zk6 fixes
 
-The FINAL layer now runs `NEARPROOF_ZK_FINAL=6`. That is `zk = 5` (§0a) with two changes:
+**Obligation H is built.** The owner adopted it on 2026-11-03.
+* The FINAL trace heights `(log, tight)` per AIR are now setup content: `Setup::final_heights`
+  and `VdSetup::heights`.
+* V_d checks equality **before any other work** (`vd::check_pinned_heights`). A zk-masked final
+  vk whose setup pins no heights is rejected.
+* The prover pads to the pinned heights (`NvCircuit::heights`, `tight_floor`) and asserts it
+  hit them exactly. `NEARPROOF_FINAL_HEIGHTS=SETUP.json` proves against an existing setup.
+* Setups without ZK serialize no new field, so their bytes and pins are unchanged.
+* A `zk = 6` setup grows by 62 B. Its pin is the new `SETUP.sha256` in `results/zk/zk6h/`.
+  D-3 packets are rejected by the D-4 verifier ("setup must pin the FINAL trace heights"), as
+  intended.
+
+With the heights in the setup, the simulator argument is complete for the statement
+**(claim, hint, setup)**. So `zero_knowledge_established = true` in `RESULT.json`, with
+`zero_knowledge_scope` naming its scope:
+* statistical ZK, classical programmable ROM, ε_ZK ≤ 2^-184.4;
+* relative to the per-chunk setup, which reveals the chunk's shape class (ZK-ARGUMENT §7);
+* **not** a QROM claim.
+
+`security_established` stays false.
+
+FINAL was re-proved from each chunk's L4 checkpoint (`scripts/run_zk6h.sh`, deps tree
+`pq-e2e-d4h`) and verified in fresh processes. Raw results are in `results/zk/zk6h/`, `zk6hb/`.
+
+| target (D-4) | result | met? |
+|---|---|---|
+| H: heights in the setup, V_d equality, prover pads | built. Pinned heights per chunk: AIR0 tight 284,408 / 285,060 / 287,032, AIR1 tight 1,056,768 / 1,056,128 / 1,055,616, AIR2 128, AIR3 65,536 (log 20 / 21 / 7 / 16) | **yes** |
+| re-run 3 chunks: size, prove, verify | **325,709 / 323,958 / 325,247 B**; FINAL prove 602 / 772 / 579 s (10 threads, load 15–32); verify 38.8–54.4 ms on one core, of which the FINAL check is 23.4–27.3 ms | **yes** |
+| negatives incl. wrong heights | **26/26 per chunk**: the 21 of D-3, plus a proof tight height +4, the review #1 height `2^21` (rejected by the pinned check, before any layout), a setup with changed heights (re-pinned), a setup without heights (re-pinned), and a re-serialized setup control (accepted). Each height rejection must name the pinned-height check | **yes** |
+| distinguisher, fixed-setup prover | witness-guessing distinguisher on chunk 1: 0/287 masked openings for both the right and the wrong witness (public program 4/4 vs 0/4). Second proof of chunk 1 against the first run's setup (`NEARPROOF_FINAL_HEIGHTS`): 325,289 B, verifies, and its `SETUP.json` is **byte-identical**. `zk-diff` of the two proofs: only shape, public values, the zero-bit PoW witness and structural/phantom entries agree | **yes** |
+| `zero_knowledge_established` | **true**, classical ROM, for (claim, hint, setup) | **yes** (scoped) |
+| Q: QROM hiding | FINAL part **2^-121.0** (O2H, AHU19 Thm 3; GHHM21 Thm 1 for the first point). The base point `u` is **not closed**: the D0a base commits 2 / 3 / 4 columns, so the O2H term is vacuous / 2^-12.7 / 2^-43.6. Closure is an owner decision: base `zk = 2` gives 2^-103, a base salt about 2^-120. Not 128 bits either way (ZK-ARGUMENT §6.5) | **partly** |
+| single EF mask column (−4.4 KB) | **impossible** for every number of τ chains: the last stacking round has one fresh dimension and needs two (ZK-ARGUMENT §6.6). Not built | **no** (proved negative) |
+| M9 wrap interface | plan §5.0.1: what the wrap consumes from the 8-ary aggregation, the ZK requirements on lower layers, and 12 ordered blockers | **yes** |
+
+**Independent review of `zk = 6` (review-zk6, main fd502fedb).** No soundness break and no new
+ZK leak; fixes #1, #2 and #5–#8 confirmed. Its findings, all folded into D-4:
+* **N1:** joint-list size. ZK-ARGUMENT §5 corrected: `L_J ≈ 2^12` before `μ`, an injectivity
+  event of 2^-334.9 at `μ`. PIOP terms lose 3 bits (minimum 318.9); the floor is unchanged.
+* **N2:** `[EF:F] == ZK_MASK_COLS` asserted in `zk::mask_columns_ef`.
+* **N3:** the layout loop has a step bound proportional to `entries × log height`.
+* **N4:** `verify_with_points` returns `r` and `u`, and both thread-locals are removed.
+* The reviewer's layout fuzzer is adopted as `tests/zk_layout_fuzz.rs`: 0 panics and
+  0 timeouts over 1,800 shapes.
+
+Tests:
+* `zk-selftest`: zk 0–6 in 4 configurations, every tamper rejected. A new padding case commits
+  an AIR 8 rows above its natural tight height and verifies (`results/zk/selftest-d4.txt`).
+* `zk_layout` (4) and `zk_layout_fuzz` (2) pass (`results/zk/layout-tests-d4.txt`).
+* `make pin-check` passes.
+
+## 0a. Update 2026-11-03, milestone D-3 (lane E2E-D): Lemmas D and E closed (`zk = 6`), review fixes
+
+The FINAL layer now runs `NEARPROOF_ZK_FINAL=6`. That is `zk = 5` (§0b) with two changes:
 * **No stacked opening is sent.** WHIR batches the stacked columns with `μ^j + ν·c_j`, where
   `c_j` are the stacking reduction's final coefficients. The prover sends one value
   `B = Σ μ^j q̂_j(u)` after `μ`, and `ν` is sampled after `B`.
@@ -14,7 +69,7 @@ The FINAL layer now runs `NEARPROOF_ZK_FINAL=6`. That is `zk = 5` (§0a) with tw
   there are 37 mask columns in place of 15.
 
 With these, every lemma of the simulator argument is proved (`ZK-ARGUMENT.md` §6). The
-independent review's findings were fixed in the same patch (§0.3).
+independent review's findings were fixed in the same patch (§0a.3).
 
 FINAL was re-proved from each chunk's L4 checkpoint (`scripts/run_zk6.sh`), and every packet
 was verified in fresh processes. Raw logs are in `results/zk/zk6/`, `zk6b/` and `zk6r274/`.
@@ -30,7 +85,7 @@ was verified in fresh processes. Raw logs are in `results/zk/zk6/`, `zk6b/` and 
 | verify < 200 ms, one core | 41–67 ms in fresh processes, host load 14–30; the FINAL check is 25–36 ms | **yes** |
 | negatives, hiding tests | 21/21 per chunk. Witness-guessing distinguisher: 0/287 for both the right and the wrong witness. `zk-diff` of two proofs of the same L4: no witness-dependent field is equal | **yes** |
 
-### 0.1 Results (`zk = 6`)
+### 0a.1 Results (`zk = 6`)
 
 | | d1/00-h10006-s3 | d1/00-h10007-s0 | d2/05-h10042-s3 |
 |---|---:|---:|---:|
@@ -48,14 +103,14 @@ Bytes against `zk = 5`:
 The provable mask costs about 6 KB. A single extension-field mask column with three τ chains
 would save about 4.4 KB, but its rank lemma has no hand proof yet.
 
-### 0.2 268 and 274 bits per round (chunk 1)
+### 0a.2 268 and 274 bits per round (chunk 1)
 
 | FINAL target | queries | min bits | packet B | verify |
 |---|---|---:|---:|---:|
 | 268 (pinned) | [46, 41, 31, 25] | 268.2 | 325,751 (second proof of the same L4: 325,289) | 41–52 ms |
 | 274 | [47, 43, 31, 25] | 274.0 | **330,485** (+4.7 KB) | 53 ms |
 
-### 0.3 Independent review of the `zk = 5` verifier (2026-11-03): fixes
+### 0a.3 Independent review of the `zk = 5` verifier (2026-11-03): fixes
 
 The review found no soundness break, and it agreed that Lemmas D and E were the open ZK steps.
 Its findings, and what was done:
@@ -76,9 +131,9 @@ Regression tests:
   configuration), plus a maximum-tight-height tamper per AIR
   (`results/zk/zk-selftest-d3.txt`).
 
-## 0a. Update 2026-11-03, milestone D-2 (lane E2E-D): full zero-knowledge masking of the FINAL proof
+## 0b. Update 2026-11-03, milestone D-2 (lane E2E-D): full zero-knowledge masking of the FINAL proof
 
-The FINAL layer now runs `NEARPROOF_ZK_FINAL=5`. That is the PCS-level hiding of §0b plus PIOP
+The FINAL layer now runs `NEARPROOF_ZK_FINAL=5`. That is the PCS-level hiding of §0c plus PIOP
 masking: masked GKR, masked batch sumcheck with column masks, and masked stacking reduction
 (`ZK-ARGUMENT.md` §4, `native/recursion/patches/zk-piop.patch`). It also uses the
 slice-splitting packing, which is now fixed. For each of the 3 D0a chunks, the FINAL layer was
@@ -90,7 +145,7 @@ processes. `zero_knowledge_established=false` (reason below).
 |---|---|---|
 | mask the core proof steps of FINAL | built, see the list below | **yes** |
 | one simulator plus a concrete hiding error | `ZK-ARGUMENT.md` §6: ε_ZK ≤ 2^-185 + ε_D + ε_E, where ε_D and ε_E are two composition lemmas (base-field cells absorbing extension-field functionals) that are argued but not proved | **written; not established** |
-| two-witness test, witness-guessing distinguisher | `zk = 2` packet: the right witness matches 287/287 openings; full-ZK packet: 0/287 for both witnesses (§0a.3) | **passes** |
+| two-witness test, witness-guessing distinguisher | `zk = 2` packet: the right witness matches 287/287 openings; full-ZK packet: 0/287 for both witnesses (§0b.3) | **passes** |
 | split packing (`zk = 3`) | fixed. FINAL layout is 68 stacked columns (`zk = 4` would be 98; non-ZK 53 + 15 mask columns), with 1,537 slices | **yes** |
 | proof ≤ ~400 KB with ZK | **319,695 / 320,464 / 319,779 B** | **yes** |
 | verify < 200 ms, one core | **40–50 ms** fresh process, 5 runs per chunk, host load 13–19; the FINAL check itself is 24–26 ms | **yes** |
@@ -105,12 +160,12 @@ What is masked:
   them.
 * **Masked stacking reduction.** Sparse mask claims plus a committed-column Libra mask.
 
-### 0a.1 Results (full ZK, `zk = 5`)
+### 0b.1 Results (full ZK, `zk = 5`)
 
 | | d1/00-h10006-s3 | d1/00-h10007-s0 | d2/05-h10042-s3 |
 |---|---:|---:|---:|
 | **packet B (full ZK)** | **319,695** | **320,464** | **319,779** |
-| packet B, PCS-ZK only (`zk = 2`, §0b) | 325,613 | 324,534 | 326,243 |
+| packet B, PCS-ZK only (`zk = 2`, §0c) | 325,613 | 324,534 | 326,243 |
 | packet B, non-ZK (10-31) | 306,839 | 307,314 | 307,427 |
 | FINAL sections: gkr / relations / stacking / whir | 42,828 / 24,436 / 5,440 / 243,960 | 42,828 / 24,436 / 5,440 / 244,590 | 42,828 / 24,436 / 5,440 / 244,044 |
 | FINAL prove, including 2 self-verifications, s (10 threads, load 13–19) | 637 | 528 | 763 |
@@ -127,9 +182,9 @@ Where the bytes went, relative to `zk = 2`:
 
 Relative to non-ZK, full ZK costs +12.4 to +13.2 KB. Raw logs: `results/zk/zk5/`, with sha256
 manifests of each packet, proof and setup. Verify now runs public-input preparation in process
-(see §0a.4).
+(see §0b.4).
 
-### 0a.2 Sizes at 268 and 274 bits per round (FINAL layer)
+### 0b.2 Sizes at 268 and 274 bits per round (FINAL layer)
 
 Chunk 1, full ZK, same L4 (`results/zk/zk5`, `zk5b`, `zk5r274`, `zk5-extra.log`):
 
@@ -142,7 +197,7 @@ Only the FINAL layer was re-targeted; the inner levels and the base stay at 268.
 268-bit proofs differ by 0.9 KB because Merkle multiproof deduplication depends on the query
 positions.
 
-### 0a.3 Hiding tests
+### 0b.3 Hiding tests
 
 * **Same witness, fresh randomness.** `results/zk/zk-diff-zk5-same-witness.txt` compares two
   full-ZK FINAL proofs of the same L4. Every value field differs, except the shape, the public
@@ -162,15 +217,15 @@ positions.
 
   With masking, the right witness is no more consistent with the proof than the wrong one. This
   is the test the 11-02 log called "only meaningful after PIOP masking", and it now passes. It is
-  a necessary condition, not a proof of ZK (§0a table).
+  a necessary condition, not a proof of ZK (§0b table).
 
-### 0a.4 Verify in process (sub-agent)
+### 0b.4 Verify in process (sub-agent)
 
 `statepublic` is now a library call, and the TAPE evaluation is folded.
 `results/zk/verify-inprocess.txt` has 32–34 ms on the `zk = 2` packets. The FINAL protocol check
 is 16–18 ms with `zk = 2` and 24–26 ms with `zk = 5`.
 
-## 0b. Update 2026-11-03 (lane E2E-D, D-1): PCS-level ZK lever on
+## 0c. Update 2026-11-03 (lane E2E-D, D-1): PCS-level ZK lever on
 
 Owner targets (2026-11-03): 128-bit PQ, SHA-384, proven bounds; ZK with only the chunk-header
 outputs plus trusted facts public; proof **~400 KB accepted with ZK**; verify < 200 ms.
@@ -183,7 +238,7 @@ outputs plus trusted facts public; proof **~400 KB accepted with ZK**; verify < 
 | verify < 200 ms | 129–283 ms single core on a host at load 20–22 (5 fresh processes per chunk); the FINAL protocol check is 20–48 ms of it, the rest is `statepublic` (45–118 ms) and claim/TAPE preparation, both unchanged by ZK. 10-31 idle-host figure for the same pipeline: 104–112 ms | **yes on an idle host; no under the current contention for 2 of 3 chunks** (the ZK lever adds ≈ 1–5 ms) |
 | 128-bit PQ, proven bounds | unchanged: min 268.2 RBR bits (FINAL WHIR query); the ZK lever adds no round, challenge or claim (`results/zk/soundness-final-zk2.txt`) | parameters yes; `security_established=false` |
 
-### 0b.1 Results table (ZK lever on)
+### 0c.1 Results table (ZK lever on)
 
 | | d1/00-h10006-s3 | d1/00-h10007-s0 | d2/05-h10042-s3 |
 |---|---:|---:|---:|
@@ -205,7 +260,7 @@ outputs plus trusted facts public; proof **~400 KB accepted with ZK**; verify < 
 during the runs), so CPU times are as measured. Every level natively re-verified before the next.
 Per-run numbers `results/zk/<run>.json`, sha256 manifests `results/zk/<run>.manifest.json`.
 
-### 0b.2 ZK size levers measured
+### 0c.2 ZK size levers measured
 
 | lever | FINAL packet | Δ vs non-ZK (306,839 B, same chunk) | source |
 |---|---:|---:|---|
@@ -220,7 +275,7 @@ Grinding on mask spot checks and fewer HVZK masks were the 10-31 candidates for 
 HVZK-WHIR overhead; they are moot: the batching construction has no mask oracles and no extra
 queries, so its cost is the width of the opened rows, not a security-level-dependent query count.
 
-### 0b.3 Per-round soundness of the ZK wrap (FINAL, pinned), and the 274-bit variant
+### 0c.3 Per-round soundness of the ZK wrap (FINAL, pinned), and the 274-bit variant
 
 `results/zk/soundness-final-zk2.txt` (pinned FINAL, `zk = 2`): LogUp 321.9, GKR sumcheck 369.3,
 GKR batching 370.9, zerocheck 355.0, constraint batching 350.8, stacked reduction 351.5, WHIR
@@ -234,7 +289,7 @@ is not instantiated): queries [47, 43, 31, 25], min **274.0** bits, FINAL packet
 325,613 B at 268 (same chunk, same L4): **+3.9 KB, not material** (`results/zk/replay-zk2-rbr274.txt`).
 Only the FINAL layer was re-targeted here; the inner levels and the base stay at 268.
 
-### 0b.4 Hiding checks run
+### 0c.4 Hiding checks run
 
 * `zk-diff` of two FINAL proofs from the same L4 (same witness, fresh randomness):
   `results/zk/zk-diff-replay-same-witness.txt`. Root, every WHIR field, stacked openings differ; the
