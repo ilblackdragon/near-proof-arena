@@ -95,3 +95,4 @@ import WasmBase.RipemdRound
 import WasmBase.Main.SegRows
 import WasmBase.Main.SegMpath
 import WasmBase.Main.SegMemb
+import WasmBase.Main.R16Audit
