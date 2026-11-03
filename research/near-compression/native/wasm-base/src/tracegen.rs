@@ -244,6 +244,9 @@ pub struct Gen {
     pub result: Option<(u64, u64)>,
     pub steps: u64,
     pub s_units: u64,
+    /// the trace's final budget: `g_after` of the last host call minus `R` per unit charged since,
+    /// or `g0 − R·S` without host calls (E2E M3: compared with the chunk's burnt gas)
+    pub g_final_trace: u128,
 }
 
 struct St {
@@ -420,6 +423,10 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
     // The register wire (channel space 6): present only in `wasmBaseRegAir` (table index 26).
     let has_reg = air.tables.iter().any(|x| x.name == "REG");
     let mut reg = if has_reg { Some(Tab::new(&air.tables[air.index("REG")])) } else { None };
+    // `wasmBaseIfRegAir` (E2E M1-a, `WasmBase/RegMem.lean`): REG' carries the `read_register`
+    // memory write (`wr, ptrHi, mtp, mhp, ob`) and HOST' the `read_register` selector (`rr, rrInv`).
+    let has_regw = has_reg && air.tables[air.index("REG")].cols.iter().any(|c| c == "wr");
+    let has_rr = has_host && air.tables[air.index("HOST")].cols.iter().any(|c| c == "rr");
     let shat = if has_sha { Some(Tab::new(&air.tables[air.index("SHA256")])) } else { None };
     // indexed by **host id**: the table's ids are not contiguous (`abort`/`write_register`
     // reserve 11/14), so the vector must reach the largest id, not the row count
@@ -441,7 +448,7 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
     // (every access re-produces its own kind; a `register_len` does not touch the bytes)
     let mut reg_bts: HashMap<u64, u64> = HashMap::new();
     let mut reg_lts: HashMap<u64, u64> = HashMap::new();
-    let mut reg_rows: Vec<[u64; 16]> = vec![];
+    let mut reg_rows: Vec<[u64; 21]> = vec![];
     let mut func_calls: Vec<u64> = vec![0; prep.funcs.len()];
     // dead callee locals `(space, slot, entry)`, left over in the channel after their frame returned
     let mut dead: Vec<(u64, u64, Ent)> = vec![];
@@ -467,6 +474,9 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
         .map(|&(tag, l)| Ent { tag, val: l[0] | (l[1] << 16) | (l[2] << 32) | (l[3] << 48), tp: 0 })
         .collect();
     let (mut pc, mut ts, mut s) = (0u64, 1u64, 0u64);
+    // `(S after the row, g_after)` of the last host call, for `g_final_trace`
+    let mut host_g: Option<u64> = None;
+    let mut last_host: Option<(u64, u64)> = None;
     let halt_pc;
     loop {
         let rec = prep.records[pc as usize];
@@ -510,11 +520,20 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
                     argTp[j] = a.tp;                }
                 assert_eq!(stack.len() as u64, sb2, "host call stack height");
                 let ga = ev.g_after;
+                host_g = Some(ga);
                 let gl = limbs(ga);
                 let rl = limbs(ev.word);
                 let mut r = host.as_mut().unwrap().row();
                 hdr(&mut r);
                 r.u("act", 1).u("hid", hid).u("np", np).u("ar", ar).u("st", ev.st).u("nres", ev.ar * (1 - ev.st));
+                if has_rr {
+                    // the is-zero gadget of `Chips.HostR`: `rr = [hid = 49]`
+                    if hid == 49 {
+                        r.u("rr", 1).u("rrInv", 0);
+                    } else {
+                        r.u("rr", 0).s("rrInv", (fe(hid) - fe(49)).inverse());
+                    }
+                }
                 r.limbs("ga", gl);
                 r.limbs("r", rl);
                 for j in 0..HOST_NARGS {
@@ -566,66 +585,88 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
                         ));
                     }
                 }
-                // The register wire.  `input` (host id 48) fills register 0 with the spec's
-                // `ctx.input`; `read_register` (49) reads one; `register_len` (6) reads only a
-                // length.  The bytes come from the spec's own post-call register file (`ev.regs`),
-                // so the trace is exactly what the spec did.
+                // The register wire.  A call that leaves a register the trace has not seen yet
+                // (`input` = 48, the context getters, `storage_read`/`storage_write`/
+                // `storage_remove` returning an old value, hash outputs, ...) **fills** it: one
+                // REG fill row per byte plus a length row, and the state-side half of each byte on
+                // HOSTB (`reg = 1`).  `read_register` (49) reads one; `register_len` (6) reads only
+                // a length.  The bytes come from the spec's own post-call register file
+                // (`ev.regs`), so the trace is exactly what the spec did.
                 // The ids are `Chips.Host.hostLogFns`/`hostFnsBase`, NOT the pre-canonical 12/13:
                 // those arms never fired, so every REG row in every KAT was padding.
                 if has_reg && ev.st == 0 {
-                    match hid {
-                        48 => {
-                            // the register the call filled (the only one present in `ev.regs`)
-                            if let Some((rid, bs)) = ev.regs.first() {
-                                let rid = *rid;
-                                let blen = bs.len() as u64;
-                                regs.insert(rid, bs.clone());
-                                // fill rows: one per byte, plus one length row
-                                for (pos, &b) in bs.iter().enumerate() {
-                                    // [act, kind, rd, rid, pos, len, byte, hid, ts, dir, gap,
-                                    //  fresh, tp, hp, ptr, f]; f marks the group's first row
-                                    reg_rows.push([1, 0, 0, rid, pos as u64, blen, b, hid, ts, 1,
-                                        blen - pos as u64 - 1, 0, 0, 0, 0, (pos == 0) as u64]);
-                                    // the HOSTB byte of a fill is the state-side half, `reg = 1`:
-                                    // `memCnt = act*(1-dir)*(1-reg) = 0`, so this row has no space-3
-                                    // message and its byteQ/r16 queries all have count 0; only the
-                                    // bus-210 send `act*reg` remains (REG receives it).  The memory
-                                    // columns are therefore inert and stay zero.
-                                    hostb_rows.push([ts, 1, pos as u64, b, blen, hid,
-                                        blen - pos as u64 - 1, 1, (pos == 0) as u64, 1, 0, 0, 0, 0]);
-                                    st.byte(0, b, 0);
-                                    // HOSTB's `gap` query (`reg = 1` makes its count 0, so this
-                                    // answer is consumed by REG, which queries gap too)
-                                    st.r16(blen - pos as u64 - 1);
-                                    st.r16(blen);
-                                    st.r16(rid);
-                                    st.r16(pos as u64);
-                                }
-                                reg_rows.push([1, 1, 0, rid, 0, blen, 0, hid, ts, 0, 0, 0, 0, 0, 0, 0]);
-                                st.r16(blen);
-                                st.r16(rid);
-                                st.r16(0);
-                                // the fill re-produces both messages at `ts`
-                                reg_bts.insert(rid, ts);
-                                reg_lts.insert(rid, ts);
-                            }
+                    for (rid, bs) in ev.regs.iter() {
+                        let rid = *rid;
+                        match regs.get(&rid) {
+                            Some(old) if old == bs => continue,
+                            // A fill row creates a register (`cFreshFill`: it consumes nothing), so
+                            // overwriting a live register would leave two live messages in its slot.
+                            // Out of the modelled domain: refuse rather than emit an unsound trace.
+                            Some(_) => panic!("register {rid} refilled by host {hid}: register refill is not modelled"),
+                            None => {}
                         }
+                        let blen = bs.len() as u64;
+                        regs.insert(rid, bs.clone());
+                        // fill rows: one per byte, plus one length row
+                        for (pos, &b) in bs.iter().enumerate() {
+                            // [act, kind, rd, rid, pos, len, byte, hid, ts, dir, gap,
+                            //  fresh, tp, hp, ptr, f, wr, ptrHi, mtp, mhp, ob]; f marks the group's first row
+                            reg_rows.push([1, 0, 0, rid, pos as u64, blen, b, hid, ts, 1,
+                                blen - pos as u64 - 1, 0, 0, 0, 0, (pos == 0) as u64, 0, 0, 0, 0, 0]);
+                            // the HOSTB byte of a fill is the state-side half, `reg = 1`:
+                            // `memCnt = act*(1-dir)*(1-reg) = 0`, so this row has no space-3
+                            // message and its byteQ/r16 queries all have count 0; only the
+                            // bus-210 send `act*reg` remains (REG receives it).
+                            hostb_rows.push([ts, 1, pos as u64, b, blen, hid,
+                                blen - pos as u64 - 1, 1, (pos == 0) as u64, 1, 0, 0, 0, 0]);
+                            st.byte(0, b, 0);
+                            st.r16(blen - pos as u64 - 1);
+                            st.r16(blen);
+                            st.r16(rid);
+                            st.r16(pos as u64);
+                        }
+                        reg_rows.push([1, 1, 0, rid, 0, blen, 0, hid, ts, 0, 0, 0, 0, 0, 0,
+                            (blen == 0) as u64, 0, 0, 0, 0, 0]);
+                        st.r16(blen);
+                        st.r16(rid);
+                        st.r16(0);
+                        // the fill produces both messages at `ts`
+                        reg_bts.insert(rid, ts);
+                        reg_lts.insert(rid, ts);
+                    }
+                    match hid {
                         49 => {
-                            // `read_register(id, ptr)`: consumes byte `i` of register `id`
+                            // `read_register(id, ptr)`: consumes every byte of register `id`, and
+                            // (REG', `has_regw`) writes it to linear memory at `ptr + pos`.
                             if let Some(bs) = regs.get(&args[0]).cloned() {
                                 let rid = args[0];
                                 let blen = bs.len() as u64;
-                                let ft = *reg_bts.get(&rid).unwrap();
+                                let ft = reg_bts.get(&rid).copied().unwrap_or(0);
                                 let ptr = args[1];
+                                let (plo, phi) = (ptr & 0xffff, ptr >> 16);
+                                if has_regw {
+                                    assert!(phi < 2048, "read_register destination {ptr} beyond 2^27");
+                                }
                                 for (pos, &b) in bs.iter().enumerate() {
                                     let h = st.tchk(ts, ft);
-                                    // the memory write at `ptr + pos` is the deferred MEMIO link;
-                                    // this slice only records the address
-                                    reg_rows.push([1, 0, 1, rid, pos as u64, blen, b, hid, ts, 0,
-                                        blen - pos as u64 - 1, 1, ft, h, ptr, (pos == 0) as u64]);
+                                    let mut row = [1, 0, 1, rid, pos as u64, blen, b, hid, ts, 0,
+                                        blen - pos as u64 - 1, 1, ft, h, ptr, (pos == 0) as u64, 0, 0, 0, 0, 0];
+                                    if has_regw {
+                                        // the STORE shape: consume the live memory byte at its
+                                        // producer time, produce the register byte at `ts`
+                                        let a = ptr + pos as u64;
+                                        let (ob, mtp) = mem.get(a);
+                                        let mh = st.tchk(ts, mtp);
+                                        mem.cur.insert(a, (b, ts));
+                                        row[14] = plo;
+                                        row[16] = 1;
+                                        row[17] = phi;
+                                        row[18] = mtp;
+                                        row[19] = mh;
+                                        row[20] = ob;
+                                    }
+                                    reg_rows.push(row);
                                     st.byte(0, b, 0);
-                                    // HOSTB's `gap` query (`reg = 1` makes its count 0, so this
-                                    // answer is consumed by REG, which queries gap too)
                                     st.r16(blen - pos as u64 - 1);
                                     st.r16(blen);
                                     st.r16(rid);
@@ -633,14 +674,22 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
                                 }
                                 let lt = *reg_lts.get(&rid).unwrap();
                                 let hl = st.tchk(ts, lt);
-                                reg_rows.push([1, 1, 1, rid, 0, blen, 0, hid, ts, 0, 0, 1, lt, hl, ptr, 0]);
+                                let mut row = [1, 1, 1, rid, 0, blen, 0, hid, ts, 0, 0, 1, lt, hl, ptr,
+                                    (blen == 0) as u64, 0, 0, 0, 0, 0];
+                                if has_regw {
+                                    row[14] = plo;
+                                    row[16] = 1;
+                                    row[17] = phi;
+                                    st.r16(plo);
+                                    st.r16(32 * phi);
+                                }
+                                reg_rows.push(row);
                                 st.r16(blen);
                                 st.r16(rid);
                                 st.r16(0);
                                 // the read re-produces both messages at `ts`
                                 reg_bts.insert(rid, ts);
                                 reg_lts.insert(rid, ts);
-                                let _ = ft;
                             }
                         }
                         6 => {
@@ -651,7 +700,8 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
                                 let lt = *reg_lts.get(&rid).unwrap();
                                 let h = st.tchk(ts, lt);
                                 // a length-only access is a complete group: the row starts it
-                                reg_rows.push([1, 1, 1, rid, 0, blen, 0, hid, ts, 0, 0, 1, lt, h, 0, 1]);
+                                reg_rows.push([1, 1, 1, rid, 0, blen, 0, hid, ts, 0, 0, 1, lt, h, 0, 1,
+                                    0, 0, 0, 0, 0]);
                                 st.r16(blen);
                                 st.r16(rid);
                                 st.r16(0);
@@ -670,7 +720,7 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
                 // The byte payload of the log/return functions: a `dir = 0` request group
                 // (Wasm -> state) carrying the memory bytes at `(len, ptr)`, taken from the trace's
                 // own memory at the time of the call.  `(ts, hid)` is the host call's, so the group
-                // cannot be spliced onto another call.  `len` is capped at 40 bytes (the KAT's
+                // cannot be spliced onto another call.  Pre-M1 AIRs cap `len` at 40 bytes (the KAT's
                 // payloads).
                 //
                 // The ids are `Chips.hostByteIds` (`HostChip.lean`): `log_utf8 = 45`,
@@ -687,26 +737,47 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
                 // a LOAD row would re-time it.  The row therefore needs, per byte: `byteQ`, `r16`
                 // gap/pos/len, `r16` ptrLo and `r16 (32*ptrHi)` (the AIR's five), plus the two
                 // `timeChk` limbs.
+                // The request groups `(wire hid, len, ptr)`: the payload of the log/return
+                // functions and (`wasmBaseIfRegAir`, E2E M1-b) the key and value of the storage
+                // functions.  `storage_write(key_len, key_ptr, value_len, value_ptr, reg)` sends two
+                // groups at the same `ts`; the value group's wire id is `hid + 256`
+                // (`Chips.hostbValueHid`), so a state-side consumer of bus 210 can tell key bytes
+                // from value bytes.  `len = u64::MAX` reads a register (`memOrRegH`): no memory
+                // bytes, no group.  A buffer outside memory is the call's abort (no bytes moved).
+                let mut groups: Vec<(u64, u64, u64)> = vec![];
                 if has_host && [45u64, 46, 47, 50].contains(&hid) {
-                    let (blen, ptr) = (args[0], args[1]);
-                    let blen = blen.min(40);
-                    if blen > 0 {
-                        assert!(ptr < (1u64 << 27), "buffer base {ptr} beyond 2^27");
-                        let (ptr_lo, ptr_hi) = (ptr & 0xffff, ptr >> 16);
-                        assert!(ptr_hi < 2048, "buffer base {ptr} beyond 2^27");
-                        for pos in 0..blen {
-                            let (b, mtp) = mem.get(ptr + pos);
-                            let hp = st.tchk(ts, mtp);
-                            mem.cur.insert(ptr + pos, (b, ts));
-                            hostb_rows.push([ts, 0, pos, b, blen, hid, blen - pos - 1, 1,
-                                (pos == 0) as u64, 0, ptr_lo, ptr_hi, mtp, hp]);
-                            st.byte(0, b, 0);
-                            st.r16(blen - pos - 1);
-                            st.r16(pos);
-                            st.r16(blen);
-                            st.r16(ptr_lo);
-                            st.r16(32 * ptr_hi);
-                        }
+                    groups.push((hid, args[0], args[1]));
+                }
+                if has_regw && [57u64, 58, 59, 60].contains(&hid) {
+                    groups.push((hid, args[0], args[1]));
+                    if hid == 58 {
+                        groups.push((hid + 256, args[2], args[3]));
+                    }
+                }
+                for (whid, blen, ptr) in groups {
+                    if blen == u64::MAX || blen == 0 {
+                        continue;
+                    }
+                    // pre-M1 AIRs keep their 40-byte KAT cap; the M1 AIR moves the whole buffer
+                    let blen = if has_regw { blen } else { blen.min(40) };
+                    if ptr.checked_add(blen).map_or(true, |e| e > prep.mem) {
+                        continue;
+                    }
+                    assert!(blen < 65536, "host buffer of {blen} bytes: HOSTB len is 16-bit");
+                    assert!(ptr < (1u64 << 27), "buffer base {ptr} beyond 2^27");
+                    let (ptr_lo, ptr_hi) = (ptr & 0xffff, ptr >> 16);
+                    for pos in 0..blen {
+                        let (b, mtp) = mem.get(ptr + pos);
+                        let hp = st.tchk(ts, mtp);
+                        mem.cur.insert(ptr + pos, (b, ts));
+                        hostb_rows.push([ts, 0, pos, b, blen, whid, blen - pos - 1, 1,
+                            (pos == 0) as u64, 0, ptr_lo, ptr_hi, mtp, hp]);
+                        st.byte(0, b, 0);
+                        st.r16(blen - pos - 1);
+                        st.r16(pos);
+                        st.r16(blen);
+                        st.r16(ptr_lo);
+                        st.r16(32 * ptr_hi);
                     }
                 }
                 // The placeholder byte stream belongs to the minimum slice.  With the REG table the
@@ -1403,6 +1474,9 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
             _ => panic!("unknown op {op:#x}"),
         }
         s += fee + extra;
+        if let Some(ga) = host_g.take() {
+            last_host = Some((s, ga));
+        }
         ts += 1;
         if halted || trapped {
             halt_pc = if trapped { pc + 1 } else { pc };
@@ -1652,6 +1726,11 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
                     "dir", "gap", "fresh", "tp", "hp", "ptr", "f"].iter().enumerate() {
                     r.u(name, rec[k]);
                 }
+                if has_regw {
+                    for (k, name) in ["wr", "ptrHi", "mtp", "mhp", "ob"].iter().enumerate() {
+                        r.u(name, rec[16 + k]);
+                    }
+                }
             }
             // Padding: a closed empty group (`f = 1`, `kind = 1`, `pos = 0`, `len = 0`), which is
             // what `cLast`/`cLenEnds`/`cStartPos` accept.  `act = 0` keeps every interaction count 0.
@@ -1674,7 +1753,11 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
         rows_per_table.push((spec.name.clone(), n));
         mats.push(RowMajorMatrix::new(data, w));
     }
-    Gen { mats, pubs, rows_per_table, result, steps, s_units: s }
+    let g_final_trace = match last_host {
+        Some((sa, ga)) => ga as u128 - prep.regular * (s - sa) as u128,
+        None => prep.g0 - prep.regular * s as u128,
+    };
+    Gen { mats, pubs, rows_per_table, result, steps, s_units: s, g_final_trace }
 }
 
 /// The canonical CODE rows: the records in pc order, padded to a power of two (≥ 4) by repeating the
