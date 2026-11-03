@@ -277,6 +277,46 @@ It decomposes into four obligations, none of whose premises is its conclusion:
 This has the same shape as `certified_run_or_hash_collision`, already proved for the Boundary
 model.
 
+**Status (lane E, 2026-11-03) [K].** In `spec/lean/v3/NearSpecV3/E2E/` (`Engine`, `Machine`, `Statement` in
+`defaultTargets`; `RealChunk` on demand). Only `propext`/`Classical.choice`/`Quot.sound`; no `sorry`;
+no checker semantics changed. Log: [`docs/logs/e2e-lean-join-2026-11-03.md`](../logs/e2e-lean-join-2026-11-03.md).
+
+* **Obligation 3 is proved.** `cm_iff : Tier.rel .allFeatures cb wb ↔ CMAccepts cb wb`. `CM.step`
+  runs verbatim slices of the checker: `INTAKE` = the prefix of `checkReshardCoreObs`
+  (`checkReshardCoreObs_split` is `rfl`); engine steps = slices of `StorageExecution.applyNewChunkD2`
+  (`applyNewChunkD2_split` is `rfl`; `den_step`, `engine_run_ok_iff`); `FINAL` = implicit
+  transitions and the computed `Outputs`; `FinalOut` = `headerOk H o`. Chaining:
+  `steps_of_chain`, `stepsN_of_chain` (the clock adds up). `cm_done_header`: the `H` of a reached
+  `done H o` is the claim's own decoded `chunk_inner`.
+* **Statement.** `assemble ci secB secC`, `E2EStmt s := ∃ secB w, Tier.rel .allFeatures (assemble …) w`,
+  `e2e_statement_iff` (for a well-formed assembled claim: a `CM` run to a configuration passing
+  `FinalOutPub`, the comparison with the **public** `chunk_inner`).
+* **`e2e_sound` is proved from the obligations as hypotheses:** `NvFaithfulE2E` + `WrapFinalFaithful`
+  (obligation 1), `SegSound` (2), `WitnessExtraction` (4), over a parametric `SegSystem`/`WrapCheck`.
+  None of them mentions `Tier.rel` or `checkSuccessor`. Non-vacuity: the re-execution system
+  `reexec` proves obligations 1, 2, 4 from `CM.step` alone and reaches `Tier.rel` only through
+  `cm_iff` (`reexec_sound`, `reexec_complete`, `reexec_rejects_zero_steps`); on a real chunk,
+  `cm_run_06_h10006_s0` (`d3c7/d3/06-h10006-s0`, non-genesis, via the kernel-checked
+  `relAllFeatures_06_h10006_s0`).
+* **Granularity gaps (open).** (a) An engine step is a whole receipt including its instant
+  receipts and Wasm calls; the mid-call cut (`inCall`) must refine one receipt step through
+  `Wasm.run_foldSegments`. (b) A segment that contains a genesis block is one atomic `CM` step
+  (`init → doneG`, exact but uncut). (c) `CM` boundaries are abstract (`Ovl`, `Recording`, lists);
+  the SHA-384 working-set root and accumulators of §3.2 are the circuit's encoding of them, to be
+  related by `SegSystem.abs` and a boundary round-trip (`BoundaryDecodes`-style) in obligation 2.
+
+**The interface the circuit lanes must meet.** A template `k` proves `Holds SegAir_k (B, B') tr`;
+obligation 2 requires `abs B = some c`, `abs B' = some c'` and `Steps c c'` with `Steps` the
+closure of `CM.step : Conf → Except String Conf`, where `Conf` is `init cb wb | eng I ⟨pos, st⟩ |
+fin I out | done H o | doneG`, `pos : EPos` is `start | txs rest acc rs | locals rest rs |
+delayed fuel rs | incoming rest rs | yields yf yn fuel i k rs | done out`, `rs : RS` (overlay =
+working set, `dq`, `bufIdx`, `metas`, `limits`, `cong`, gas/compute/burnt totals, outcomes,
+outgoing, proposals, instant/locals queues, deployed/attempted code, `wasmGas`) and
+`st : Recording` (recorder, cache, pipeline schedule, soft limit). `I : Intake` is fixed from
+`INTAKE` on (claim, witness, walk, env, pre-state trie, receipts, txs). The wrap checks
+`InitOK` (`B_0` abstracts to `init (assemble ci secB secC) w`, obligation 4) and `FinalOK`
+(`B_N` abstracts to an accepting configuration, `headerOk` against the public `chunk_inner`).
+
 ---
 
 ## 4. Milestones to a first general-chunk E2E proof
@@ -317,6 +357,14 @@ hardware is available). M2 does not block T1, so it runs beside M3.
 ---
 
 ## 5. Milestone 1: status
+
+**M11 (lane E, 2026-11-03):** obligation 3 (`cm_iff`), statement assembly (`e2e_statement_iff`) and
+the composition `e2e_sound` are kernel-checked; obligations 1, 2, 4 are stated `Prop`s; see §3.5
+status. Next for lane E: (1) refine engine receipt steps into Wasm `inCall` steps via
+`Wasm.run_foldSegments` (needs a defunctionalised `functionCallRecordedF`); (2) cut the genesis
+path like the reshard path (`checkD2CoreGWith` → `checkD2CoreWithObs` intake/final split); (3) a
+concrete boundary encoding with round-trip (`abs`) shared with lanes A/B; (4) instantiate
+obligation 1 from `ZkFormal.PQ.NvFaithful` once v3 and `zk-formal` share a package boundary.
 
 See `research/near-compression/e2e-general/m1/README.md` for commands, logs and numbers.
 
