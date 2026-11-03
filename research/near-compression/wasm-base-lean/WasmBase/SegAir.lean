@@ -328,7 +328,10 @@ def blockW (pre : String) (s5 s2 : String) : List W3 :=
 def splitR16 (pre s5 s2 : String) (cnt : Expr) : List Inter :=
   (List.range 16).flatMap fun w =>
     [r16 (8192 * c s!"{s5}{w}") cnt, r16 (2048 * (c s!"{pre}{8 * w + 5}" - 32 * c s!"{s5}{w}")) cnt,
-     r16 (1024 * c s!"{s2}{w}") cnt, r16 (16384 * (c s!"{pre}{8 * w + 2}" - 4 * c s!"{s2}{w}")) cnt]
+     r16 (1024 * c s!"{s2}{w}") cnt, r16 (16384 * (c s!"{pre}{8 * w + 2}" - 4 * c s!"{s2}{w}")) cnt,
+     -- the split values themselves are bytes: without this a field element with 8192·s5 < 2^16
+     -- mod P (P ≡ 1 mod 2^13) passes, and the limbs no longer encode the bytes
+     byteQ 0 (c s!"{s5}{w}") (c s!"{s2}{w}") 0 cnt]
 
 def constraints : List Expr :=
   let act := c "act"; let ro := c "ro"

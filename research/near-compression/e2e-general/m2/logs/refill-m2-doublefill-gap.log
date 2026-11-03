@@ -1,0 +1,14 @@
+TAMPER honest proof verifies and its code_root matches
+
+thread 'main' (942048) panicked at src/air.rs:148:57:
+called `Option::unwrap()` on a `None` value
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+TAMPER REGC[clear byte row 11].clr=0 REJECTED (constraint: REG row 11 constraint 41 = 1)
+TAMPER REGC[clear byte row 11].byte+1 REJECTED (bus: unbalanced: [((4, [0, 7, 0, 0]), -1), ((4, [0, 8, 0, 0]), 1), ((2, [6, 1, 0, 7, )
+TAMPER REGC[clear len row 15].clr=0 REJECTED (constraint: REG row 14 constraint 41 = 2013265920)
+TAMPER REGC[clear len row 15].len+1 REJECTED (constraint: REG row 14 constraint 13 = 1)
+TAMPER REGC[fill after clear, row 16].rid+1 REJECTED (constraint: REG row 15 constraint 42 = 1)
+TAMPER REGC[fill after clear, row 16].ts+1 REJECTED (constraint: REG row 15 constraint 43 = 1)
+TAMPER REGC[read len row 5].clr=1   REJECTED (constraint: REG row 5 constraint 43 = 5)
+TAMPER summary 7/7 rejected
+TAMPER-GAP REGA[double fill: clear group ending row 15 -> read + DRAIN] (no absent header) verifies (documented gap) (PRECHECK PASSES)
