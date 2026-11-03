@@ -29,10 +29,10 @@ theorem add_flags_of {pub : List F} {tr : Trace} {r : Nat}
   exact ⟨h5, h6, by omega, bool_nat (rowNat_lt _ _ _ _) b64⟩
 
 theorem add_flags {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 1) :
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 1) :
     (rowNat tr 1 r 5 = 0 ∨ rowNat tr 1 r 5 = 1) ∧ (rowNat tr 1 r 6 = 0 ∨ rowNat tr 1 r 6 = 1) ∧
       rowNat tr 1 r 5 + rowNat tr 1 r 6 ≤ 1 ∧ (rowNat tr 1 r 7 = 0 ∨ rowNat tr 1 r 7 = 1) :=
-  add_flags_of (table_constr H (by simp [air_len]) hr)
+  add_flags_of (table_constrC H (by simp [air_len]) hr)
 
 theorem add_count_eq {i : Inter} (hi : i ∈ Add.inters) : i.count = Add.act :=
   of_decide_eq_true (List.all_eq_true.mp
@@ -52,9 +52,9 @@ theorem add_counts_of {pub : List F} {tr : Trace} {r : Nat}
   rw [add_count_eq hi, add_act_eval, Nat.mod_eq_of_lt (by omega)]; exact hs
 
 theorem add_counts {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 1) :
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 1) :
     ∀ i ∈ Add.inters, (i.count.eval (tr.row pub 1 r)).toNat ≤ 1 :=
-  add_counts_of (table_constr H (by simp [air_len]) hr)
+  add_counts_of (table_constrC H (by simp [air_len]) hr)
 
 theorem add_inactive {pub : List F} {tr : Trace} {r : Nat}
     (hna : ¬ rowAct Add.table tr pub 1 r) :
@@ -69,7 +69,7 @@ theorem add_rnToNat (tr : Trace) (t r i : Nat) : (((rowNat tr t r i : Nat) : F))
 theorem add_zeroToNat : (((0 : Nat) : F)).toNat = 0 := Fp.toNat_cast_of_lt (by rw [P_val]; omega)
 
 theorem add_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) (L : Looks X nloc ncode pub tr) (hpub : PubOK X nloc ncode pub)
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) (L : Looks X nloc ncode pub tr) (hpub : PubOK X nloc ncode pub)
     {r : Nat} (hr : r < tr.height 1) (hact : rowAct Add.table tr pub 1 r) :
     RowFacts X (rowIn Add.table tr pub 1 r) (rowOut Add.table tr pub 1 r)
       (rowCons Add.table tr pub 1 r) (rowProd Add.table tr pub 1 r) := by
@@ -77,7 +77,7 @@ theorem add_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
   have ht : 1 < (wasmBaseAir nloc ncode).tables.length := by simp [air_len]
   have hcP : ∀ i, rowNat tr 1 r i < P := rowNat_lt tr 1 r
   have hcon : ∀ e ∈ Add.constraints, e.eval (natRow (rowNat tr 1 r) (tr.row pub 1 r)) = 0 :=
-    table_constr H ht hr
+    table_constrC H ht hr
   obtain ⟨f5, f6, f56, f7⟩ := add_flags H hr
   have cnt : (Add.act.eval (tr.row pub 1 r)).toNat = 1 := by
     simpa only [rowAct, Add.table, Add.inters, stdState, stateIn, List.cons_append, List.getD_cons_zero] using hact

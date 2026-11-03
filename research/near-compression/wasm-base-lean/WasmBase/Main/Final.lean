@@ -22,8 +22,8 @@ namespace WasmBase
 open ZkFormal.Algebra Chips Local
 open NearSpecV3.Wasm hiding P
 
-theorem chipFacts (X : Ctx) {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) : ChipFacts X nloc ncode pub tr := by
+theorem chipFactsC (X : Ctx) {nloc ncode : Nat} {pub : List F} {tr : Trace}
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) : ChipFacts X nloc ncode pub tr := by
   refine ⟨fun t h1 h9 r hr => ?_, fun t h1 h9 r hr hna => ?_, fun L hpub t h1 h9 r hr ha => ?_⟩ <;>
   rcases (show t = 1 ∨ t = 2 ∨ t = 3 ∨ t = 4 ∨ t = 5 ∨ t = 6 ∨ t = 7 ∨ t = 8 ∨ t = 9 ∨ t = 10 ∨ t = 11 ∨
     t = 12 ∨ t = 13 ∨ t = 14 by omega) with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl |
@@ -70,6 +70,10 @@ theorem chipFacts (X : Ctx) {nloc ncode : Nat} {pub : List F} {tr : Trace}
   · exact (store_rowfacts H L hpub hr ha).two
   · exact (call_rowfacts H L hpub hr ha).two
   · exact (ret_rowfacts H L hpub hr ha).two
+
+theorem chipFacts (X : Ctx) {nloc ncode : Nat} {pub : List F} {tr : Trace}
+    (H : Holds (wasmBaseAir nloc ncode) pub tr) : ChipFacts X nloc ncode pub tr :=
+  chipFactsC X H.toC
 
 /-- **Base-faithful soundness of `wasmBaseAir`** (family F1 + locals + div/rem with traps + linear memory
 + globals).

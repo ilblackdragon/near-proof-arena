@@ -96,11 +96,11 @@ theorem cmp_flags_of {pub : List F} {tr : Trace} {r : Nat}
   omega
 
 theorem cmp_flags {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 5) :
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 5) :
     rowNat tr 5 r 5 + rowNat tr 5 r 6 + rowNat tr 5 r 7 + rowNat tr 5 r 8 + rowNat tr 5 r 9 + rowNat tr 5 r 10 +
       rowNat tr 5 r 11 + rowNat tr 5 r 12 + rowNat tr 5 r 13 + rowNat tr 5 r 14 + rowNat tr 5 r 15 ≤ 1 ∧
     rowNat tr 5 r 5 ≤ 1 :=
-  cmp_flags_of (table_constr H (by simp [air_len]) hr)
+  cmp_flags_of (table_constrC H (by simp [air_len]) hr)
 
 theorem cmp_counts_of {pub : List F} {tr : Trace} {r : Nat}
     (hcon : ∀ e ∈ Cmp.table.constraints, e.eval (natRow (rowNat tr 5 r) (tr.row pub 5 r)) = 0) :
@@ -115,12 +115,12 @@ theorem cmp_counts_of {pub : List F} {tr : Trace} {r : Nat}
     rw [toNat_cast_sub (by omega) (by omega)]; omega
 
 theorem cmp_counts {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 5) :
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 5) :
     ∀ i ∈ Cmp.inters, (i.count.eval (tr.row pub 5 r)).toNat ≤ 1 :=
-  cmp_counts_of (table_constr H (by simp [air_len]) hr)
+  cmp_counts_of (table_constrC H (by simp [air_len]) hr)
 
 theorem cmp_inactive {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 5)
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 5)
     (hna : ¬ rowAct Cmp.table tr pub 5 r) :
     ∀ i ∈ Cmp.inters, (i.count.eval (tr.row pub 5 r)).toNat ≠ 1 := by
   have hP' := P_val
@@ -153,7 +153,7 @@ theorem cmp_enc_b2 (sl tp : Nat) (b : Bool) :
 
 set_option maxHeartbeats 4000000 in
 theorem cmp_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) (L : Looks X nloc ncode pub tr) (hpub : PubOK X nloc ncode pub)
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) (L : Looks X nloc ncode pub tr) (hpub : PubOK X nloc ncode pub)
     {r : Nat} (hr : r < tr.height 5) (hact : rowAct Cmp.table tr pub 5 r) :
     RowFacts X (rowIn Cmp.table tr pub 5 r) (rowOut Cmp.table tr pub 5 r)
       (rowCons Cmp.table tr pub 5 r) (rowProd Cmp.table tr pub 5 r) := by
@@ -161,7 +161,7 @@ theorem cmp_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
   have ht : 5 < (wasmBaseAir nloc ncode).tables.length := by simp [air_len]
   have hcP : ∀ i, rowNat tr 5 r i < P := rowNat_lt tr 5 r
   have hcon : ∀ e ∈ Cmp.table.constraints, e.eval (natRow (rowNat tr 5 r) (tr.row pub 5 r)) = 0 :=
-    table_constr H ht hr
+    table_constrC H ht hr
   obtain ⟨f5, f6, f7, f8, f9, f10, f11, f12, f13, f14, f15, fs, f16, f29, f31, hbz, pinA, pinB⟩ :=
     cmp_facts (rowNat tr 5 r) (tr.row pub 5 r) hcP hcon
   have a1 : rowNat tr 5 r 5 + rowNat tr 5 r 6 + rowNat tr 5 r 7 + rowNat tr 5 r 8 + rowNat tr 5 r 9 +

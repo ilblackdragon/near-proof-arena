@@ -152,7 +152,7 @@ theorem ctrl_filterC :
 theorem ctrl_filterP : Ctrl.inters.filter (fun i => decide (i.bus = busStk ∧ i.send = true)) = [] := by decide
 
 theorem ctrl_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) (L : Looks X nloc ncode pub tr) (hpub : PubOK X nloc ncode pub)
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) (L : Looks X nloc ncode pub tr) (hpub : PubOK X nloc ncode pub)
     {r : Nat} (hr : r < tr.height 8) (hact : rowAct Ctrl.table tr pub 8 r) :
     RowFacts X (rowIn Ctrl.table tr pub 8 r) (rowOut Ctrl.table tr pub 8 r)
       (rowCons Ctrl.table tr pub 8 r) (rowProd Ctrl.table tr pub 8 r) := by
@@ -160,7 +160,7 @@ theorem ctrl_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
   have ht : 8 < (wasmBaseAir nloc ncode).tables.length := by simp [air_len]
   have hcP : ∀ i, rowNat tr 8 r i < P := rowNat_lt tr 8 r
   have hcon : ∀ e ∈ Ctrl.table.constraints, e.eval (natRow (rowNat tr 8 r) (tr.row pub 8 r)) = 0 :=
-    table_constr H ht hr
+    table_constrC H ht hr
   obtain ⟨g5, g6, g7, g8, g9, hsum, hnzF, hcid0⟩ := ctrl_facts (rowNat tr 8 r) (tr.row pub 8 r) hcP hcon
   have cntA0 : (Ctrl.act.eval (tr.row pub 8 r)).toNat =
       rowNat tr 8 r 5 + rowNat tr 8 r 6 + rowNat tr 8 r 7 + rowNat tr 8 r 8 + rowNat tr 8 r 9 := by
@@ -487,20 +487,20 @@ theorem ctrl_counts_of {pub : List F} {tr : Trace} {r : Nat}
   rcases ctrl_count_cases i hi with h | h <;> rw [h] <;> omega
 
 theorem ctrl_count_vals {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 8) :
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 8) :
     rowNat tr 8 r 5 + rowNat tr 8 r 6 + rowNat tr 8 r 7 + rowNat tr 8 r 8 + rowNat tr 8 r 9 ≤ 1 ∧
     (Ctrl.act.eval (tr.row pub 8 r)).toNat =
       rowNat tr 8 r 5 + rowNat tr 8 r 6 + rowNat tr 8 r 7 + rowNat tr 8 r 8 + rowNat tr 8 r 9 ∧
     (Ctrl.cnd.eval (tr.row pub 8 r)).toNat = rowNat tr 8 r 7 + rowNat tr 8 r 9 :=
-  ctrl_count_vals_of (table_constr H (by simp [air_len]) hr)
+  ctrl_count_vals_of (table_constrC H (by simp [air_len]) hr)
 
 theorem ctrl_counts {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 8) :
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 8) :
     ∀ i ∈ Ctrl.inters, (i.count.eval (tr.row pub 8 r)).toNat ≤ 1 :=
-  ctrl_counts_of (table_constr H (by simp [air_len]) hr)
+  ctrl_counts_of (table_constrC H (by simp [air_len]) hr)
 
 theorem ctrl_inactive {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 8)
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 8)
     (hna : ¬ rowAct Ctrl.table tr pub 8 r) :
     ∀ i ∈ Ctrl.inters, (i.count.eval (tr.row pub 8 r)).toNat ≠ 1 := by
   obtain ⟨hs, ha, hc⟩ := ctrl_count_vals H hr

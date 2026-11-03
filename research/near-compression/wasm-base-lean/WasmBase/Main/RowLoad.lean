@@ -142,28 +142,28 @@ theorem load_counts_of {pub : List F} {tr : Trace} {r : Nat}
   Nat.le_trans (load_count_le_of hcon i hi) (load_total_of hcon).2
 
 theorem load_total {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 11) :
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 11) :
     (∀ k, k < 12 → rowNat tr 11 r (Load.fl k) ≤ 1) ∧
     ((List.range 12).map fun k => rowNat tr 11 r (Load.fl k)).sum ≤ 1 :=
-  load_total_of (table_constr H (by simp [air_len]) hr)
+  load_total_of (table_constrC H (by simp [air_len]) hr)
 
 theorem load_count_le {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 11) (i : Inter) (hi : i ∈ Load.inters) :
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 11) (i : Inter) (hi : i ∈ Load.inters) :
     (i.count.eval (tr.row pub 11 r)).toNat ≤
       ((List.range 12).map fun k => rowNat tr 11 r (Load.fl k)).sum :=
-  load_count_le_of (table_constr H (by simp [air_len]) hr) i hi
+  load_count_le_of (table_constrC H (by simp [air_len]) hr) i hi
 
 theorem load_counts {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 11) :
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 11) :
     ∀ i ∈ Load.inters, (i.count.eval (tr.row pub 11 r)).toNat ≤ 1 :=
-  load_counts_of (table_constr H (by simp [air_len]) hr)
+  load_counts_of (table_constrC H (by simp [air_len]) hr)
 
 theorem load_act_eval (tr : Trace) (pub : List F) (r : Nat) (hs : ((List.range 12).map fun k => rowNat tr 11 r (Load.fl k)).sum ≤ 1) :
     (Load.act.eval (tr.row pub 11 r)).toNat = ((List.range 12).map fun k => rowNat tr 11 r (Load.fl k)).sum := by
   unfold Load.act; rw [load_sumF_eval, filter_true_range, Nat.mod_eq_of_lt (by have := P_val; omega)]
 
 theorem load_inactive {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 11)
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 11)
     (hna : ¬ rowAct Load.table tr pub 11 r) :
     ∀ i ∈ Load.inters, (i.count.eval (tr.row pub 11 r)).toNat ≠ 1 := by
   obtain ⟨-, ht⟩ := load_total H hr
@@ -203,7 +203,7 @@ theorem load_filterP :
         [stkSend (v Load.kSb + v cH - 1) Load.is64 (limbsOf Load.r) (v cTs) Load.act] := by decide
 
 theorem load_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) (L : Looks X nloc ncode pub tr) (hpub : PubOK X nloc ncode pub)
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) (L : Looks X nloc ncode pub tr) (hpub : PubOK X nloc ncode pub)
     {r : Nat} (hr : r < tr.height 11) (hact : rowAct Load.table tr pub 11 r) :
     RowFacts X (rowIn Load.table tr pub 11 r) (rowOut Load.table tr pub 11 r)
       (rowCons Load.table tr pub 11 r) (rowProd Load.table tr pub 11 r) := by
@@ -212,7 +212,7 @@ theorem load_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
   have hT : (wasmBaseAir nloc ncode).tables[11]'ht = Load.table := rfl
   have hcP : ∀ i, rowNat tr 11 r i < P := rowNat_lt tr 11 r
   have hcon : ∀ e ∈ Load.constraints, e.eval (natRow (rowNat tr 11 r) (tr.row pub 11 r)) = 0 :=
-    table_constr H ht hr
+    table_constrC H ht hr
   -- the selected op
   obtain ⟨hb, htot⟩ := load_total H hr
   have hsum1 : ((List.range 12).map fun k => rowNat tr 11 r (Load.fl k)).sum = 1 := by
@@ -673,28 +673,28 @@ theorem store_counts_of {pub : List F} {tr : Trace} {r : Nat}
   Nat.le_trans (store_count_le_of hcon i hi) (store_total_of hcon).2
 
 theorem store_total {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 12) :
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 12) :
     (∀ k, k < 7 → rowNat tr 12 r (Store.fl k) ≤ 1) ∧
     ((List.range 7).map fun k => rowNat tr 12 r (Store.fl k)).sum ≤ 1 :=
-  store_total_of (table_constr H (by simp [air_len]) hr)
+  store_total_of (table_constrC H (by simp [air_len]) hr)
 
 theorem store_count_le {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 12) (i : Inter) (hi : i ∈ Store.inters) :
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 12) (i : Inter) (hi : i ∈ Store.inters) :
     (i.count.eval (tr.row pub 12 r)).toNat ≤
       ((List.range 7).map fun k => rowNat tr 12 r (Store.fl k)).sum :=
-  store_count_le_of (table_constr H (by simp [air_len]) hr) i hi
+  store_count_le_of (table_constrC H (by simp [air_len]) hr) i hi
 
 theorem store_counts {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 12) :
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 12) :
     ∀ i ∈ Store.inters, (i.count.eval (tr.row pub 12 r)).toNat ≤ 1 :=
-  store_counts_of (table_constr H (by simp [air_len]) hr)
+  store_counts_of (table_constrC H (by simp [air_len]) hr)
 
 theorem store_act_eval (tr : Trace) (pub : List F) (r : Nat) (hs : ((List.range 7).map fun k => rowNat tr 12 r (Store.fl k)).sum ≤ 1) :
     (Store.act.eval (tr.row pub 12 r)).toNat = ((List.range 7).map fun k => rowNat tr 12 r (Store.fl k)).sum := by
   unfold Store.act; rw [store_sumF_eval, filter_true_range, Nat.mod_eq_of_lt (by have := P_val; omega)]
 
 theorem store_inactive {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 12)
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 12)
     (hna : ¬ rowAct Store.table tr pub 12 r) :
     ∀ i ∈ Store.inters, (i.count.eval (tr.row pub 12 r)).toNat ≠ 1 := by
   obtain ⟨-, ht⟩ := store_total H hr
@@ -720,7 +720,7 @@ theorem store_filterP :
         (Store.cnt i)) := by decide
 
 theorem store_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) (L : Looks X nloc ncode pub tr) (hpub : PubOK X nloc ncode pub)
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) (L : Looks X nloc ncode pub tr) (hpub : PubOK X nloc ncode pub)
     {r : Nat} (hr : r < tr.height 12) (hact : rowAct Store.table tr pub 12 r) :
     RowFacts X (rowIn Store.table tr pub 12 r) (rowOut Store.table tr pub 12 r)
       (rowCons Store.table tr pub 12 r) (rowProd Store.table tr pub 12 r) := by
@@ -729,7 +729,7 @@ theorem store_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
   have hT : (wasmBaseAir nloc ncode).tables[12]'ht = Store.table := rfl
   have hcP : ∀ i, rowNat tr 12 r i < P := rowNat_lt tr 12 r
   have hcon : ∀ e ∈ Store.constraints, e.eval (natRow (rowNat tr 12 r) (tr.row pub 12 r)) = 0 :=
-    table_constr H ht hr
+    table_constrC H ht hr
   obtain ⟨hb, htot⟩ := store_total H hr
   have hsum1 : ((List.range 7).map fun k => rowNat tr 12 r (Store.fl k)).sum = 1 := by
     have : (Store.act.eval (tr.row pub 12 r)).toNat = 1 := by
