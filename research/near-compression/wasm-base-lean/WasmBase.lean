@@ -103,3 +103,4 @@ import WasmBase.Main.SegMemb
 import WasmBase.Main.R16Audit
 import WasmBase.Main.SegSend
 import WasmBase.Main.WasmView
+import WasmBase.Main.SegView
