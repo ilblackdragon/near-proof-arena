@@ -12,7 +12,7 @@ not in the segment AIR.  `wasmBaseSegAirG` is `wasmBaseSegAirMP` (every table at
 unchanged) with three tables appended:
 
 ```
-wasmBaseSegAirG = wasmBaseSegAirMP (0–31) ++ [MEMG (32), SEGG (33), MEMBG (34)]
+wasmBaseSegAirG = wasmBaseSegAirMP (0–31) ++ [MEMG (32), SEGG (33), MEMBG (34), MEMBH (35)]
 ```
 
 ## NEAR's limits: the depth changes at most once, 16 → 17
@@ -35,17 +35,20 @@ change `memRootOf`; changing `D` from `d` to `d + 1` makes the root `nodeH (old 
 field (lane E's `WasmBnd.memPages`, unchanged), and `memRoot` stays `WasmView.memRootOf` (no
 lane-E interface change).
 
-## Public values (numPub 107)
+## Public values (numPub 108)
 
 | index | `wasmBaseSegAirMP` | here |
 |---|---|---|
 | 103 `pubDepth` | `D` | `D_out`: the depth MPATH works at (the out tree's) |
-| 104 `pubNblk` | `nblk` | `nblk_in` (MEMB's bound `blk < nblk_in`) |
-| 105 `pubNblkOut` | — | `nblk_out` |
-| 106 `pubDepthIn` | — | `D_in` |
+| 104 `pubNblk` | `nblk` | `min nblk_in 2^16`: MEMB's bound (`r16 (pub104 − 1 − blk)`, so `≤ 2^16`) |
+| 105 `pubNblkIn` | — | `nblk_in` |
+| 106 `pubNblkOut` | — | `nblk_out` |
+| 107 `pubDepthIn` | — | `D_in` |
 
-The verifier's statement check fixes `D_in = memDepth nblk_in`, `D_out = memDepth nblk_out`
-(public values; `MemGeom` on both sides).  The chain check compares `(memRoot, nblk, D)` across a
+The verifier's statement check fixes `pub104 = min nblk_in 2^16`, `D_in = memDepth nblk_in`,
+`D_out = memDepth nblk_out` (public values; `MemGeom` on both sides).  MEMB's own checks
+`r16 blk`, `r16 (pub104 − 1 − blk)` cannot express a bound above `2^16` (64 MiB): blocks above
+it are MEMBH's.  The chain check compares `(memRoot, nblk, D)` across a
 cut, as before.
 
 ## The size message across the cut: SEGG (33), first row
@@ -70,6 +73,12 @@ block is a **MEMBG** block: 9 rows like MEMB's (8 × 128 bytes + the SHA-384 pad
   (R16); blocks strictly increase (as in MEMB);
 * only the out-bytes are hashed (9 compressions); the **old leaf is the constant `zleaf`** (the
   block is a padding leaf of the in-tree), sent on bus 15 as `[blk, 0] ++ zleaf ++ out`.
+
+**MEMBH (35)** is MEMB for an *old* block above 64 MiB (`2^16 ≤ blk < nblk_in`, i.e. grown in an
+earlier segment): MEMB (table 19, unchanged) range-checks `blk < 2^16` (`r16 blk`), so it only
+covers the initial 64 MiB.  MEMBH is MEMB with those two interactions replaced by
+`r16 (blk − 2^16)`, `r16 (nblk_in − 1 − blk)` (same columns, constraints and every other interaction), so MEMB and MEMBH
+blocks are disjoint and MEMB's lemmas carry over.
 
 So M3's per-byte GINIT is subsumed at block granularity (a touched grown block needs all its 1024
 bytes at the end for the out-leaf hash anyway) and is not included.  An **untouched** grown block
@@ -113,9 +122,10 @@ namespace Seg
 open Expr
 
 /-- Public values added by `wasmBaseSegAirG`. -/
-def pubNblkOut : Nat := 105
-def pubDepthIn : Nat := 106
-def numPubG : Nat := 107
+def pubNblkIn : Nat := 105
+def pubNblkOut : Nat := 106
+def pubDepthIn : Nat := 107
+def numPubG : Nat := 108
 
 namespace Grow
 
@@ -159,7 +169,7 @@ def dig (pre : String) : List Expr := (names pre 18).map c
 def zR : List Expr := Grow.digC (Grow.zrootW Grow.liftFrom)
 def constraints : List Expr :=
   let lift := c "lift"
-  [.first * (64 * c "pin" - pv pubNblk),
+  [.first * (64 * c "pin" - pv pubNblkIn),
    .first * (64 * c "pout" - pv pubNblkOut),
    .first * (lift - pv pubDepth + pv pubDepthIn),
    (1 - Expr.first) * lift,
@@ -235,23 +245,39 @@ def inters : List Inter :=
    r16 (n "blk" - c "blk" - 1) (.trans * p 8 * n "p0"),
    r16 (c "blk" - 64 * c "gold") (p 8),
    r16 (64 * c "gnew" - 1 - c "blk") (p 8),
-   r16 (c "blk" - pv pubNblk) (p 8)]
+   r16 (c "blk" - pv pubNblkIn) (p 8)]
 def table : Table := ⟨"MEMBG", cols, constraints, inters⟩
 set_option maxRecDepth 20000 in
 theorem cols_len : cols.length = 351 := by decide
 end MembG
+
+/-! ## MEMBH (35): MEMB for old blocks `≥ 2^16` (memory above 64 MiB grown in an earlier segment) -/
+
+namespace MembH
+/-- MEMB's range checks `blk < 2^16`, `blk < pub104` (interactions 514, 515) become
+`2^16 ≤ blk < nblk_in`. -/
+def ixBlk : Nat := 514
+set_option maxRecDepth 100000 in
+theorem memb_ixBlk : Memb.inters[ixBlk]? = some (r16 (Memb.c "blk") (Memb.p 8)) := by decide
+set_option maxRecDepth 100000 in
+theorem memb_ixNblk : Memb.inters[ixBlk + 1]? = some (r16 (pv pubNblk - 1 - Memb.c "blk") (Memb.p 8)) := by decide
+def inters : List Inter :=
+  (Memb.inters.set ixBlk (r16 (Memb.c "blk" - 65536) (Memb.p 8))).set (ixBlk + 1)
+    (r16 (pv pubNblkIn - 1 - Memb.c "blk") (Memb.p 8))
+def table : Table := ⟨"MEMBH", Memb.cols, Memb.constraints, inters⟩
+end MembH
 
 end Seg
 end Chips
 
 open Chips in
 /-- **The E2E M4c segment AIR with `memory.grow`**: `wasmBaseSegAirMP` (tables 0–31 unchanged) with
-MEMG (32, `wasmBaseM3Air`'s), SEGG (33) and MEMBG (34) appended; 107 public values. -/
+MEMG (32, `wasmBaseM3Air`'s), SEGG (33), MEMBG (34) and MEMBH (35) appended; 108 public values. -/
 def wasmBaseSegAirG (nloc ngl : Nat) : Air where
-  tables := (wasmBaseSegAirMP nloc ngl).tables ++ [MemG.table, Seg.SegG.table, Seg.MembG.table]
+  tables := (wasmBaseSegAirMP nloc ngl).tables ++ [MemG.table, Seg.SegG.table, Seg.MembG.table, Seg.MembH.table]
   numPub := Seg.numPubG
 
-theorem segG_len (nloc ngl : Nat) : (wasmBaseSegAirG nloc ngl).tables.length = 35 := by
+theorem segG_len (nloc ngl : Nat) : (wasmBaseSegAirG nloc ngl).tables.length = 36 := by
   simp [wasmBaseSegAirG, segMP_len]
 
 /-- Every table of `wasmBaseSegAirMP` keeps its index. -/
@@ -267,6 +293,9 @@ theorem segG_t33 (nloc ngl : Nat) : (wasmBaseSegAirG nloc ngl).tables[33]? = som
   simp only [wasmBaseSegAirG]
   rw [List.getElem?_append_right (by simp [segMP_len]), segMP_len]; rfl
 theorem segG_t34 (nloc ngl : Nat) : (wasmBaseSegAirG nloc ngl).tables[34]? = some Chips.Seg.MembG.table := by
+  simp only [wasmBaseSegAirG]
+  rw [List.getElem?_append_right (by simp [segMP_len]), segMP_len]; rfl
+theorem segG_t35 (nloc ngl : Nat) : (wasmBaseSegAirG nloc ngl).tables[35]? = some Chips.Seg.MembH.table := by
   simp only [wasmBaseSegAirG]
   rw [List.getElem?_append_right (by simp [segMP_len]), segMP_len]; rfl
 
