@@ -39,6 +39,7 @@ Working-set count mutants (M5a-5: `wsLen` is public value 16):
   wslen     the statement claims one working-set entry more than the trace has (a padding leaf
             would have to count as real)
   wslenlo   the statement claims one entry fewer (the last real leaf would have to be padding)
+  bvwrap    a branch-value write (`oUV`) whose 4 length bytes encode |x| + P (field-equal to |x|)
   dmono     a branch-keeping delete (`oDH`/`oDL`) whose `mem - om` witness is off by one
 Branch-value mutants (synthetic case `bval`):
   bvalue    a branch-value write (`oUV`) storing another value-hash byte than the walk's value
@@ -1538,7 +1539,22 @@ def _t_dmono(g):
     T.set(r, 'dm', T.get(r, 'dm', 0) + 1, 0)
 
 
-TAMPERS = dict(dmono=_t_dmono, absent=_t_absent, extabsent=_t_extabsent, branchval=_t_branchval, split=_t_split,
+def _t_bvwrap(g):
+    # M5a-5: a branch-value write (`oUV`) whose length bytes encode |x| + P (= |x| in the field):
+    # the rewritten branch would serialize and charge a wrong u32 length
+    T = g.T['BR']
+    r = next(r for r in T.rows if T.get(r, 'oUV') == 1)
+    n = sum(T.get(r, 'nvl', t) << (8 * t) for t in range(4)) + 2013265921
+    for t in range(4):
+        g.rng_count[T.get(r, 'nvl', t)] -= 1
+    T.setv(r, 'nvl', [(n >> (8 * t)) & 255 for t in range(4)])
+    for t in range(4):
+        g.rng(T.get(r, 'nvl', t))
+    g.T['RNG'].rows = []
+    g.build_rng()
+
+
+TAMPERS = dict(dmono=_t_dmono, bvwrap=_t_bvwrap, absent=_t_absent, extabsent=_t_extabsent, branchval=_t_branchval, split=_t_split,
                splitext=_t_splitext, absdel=_t_absdel, squash=_t_squash, chain=_t_chain,
                verslot=_t_verslot, vernid=_t_vernid, vmcount=_t_vmcount, finroot=_t_finroot,
                nidforge=_t_nidforge, bvalue=_t_bvalue, bvmem=_t_bvmem, wsstale=_t_wsstale,
