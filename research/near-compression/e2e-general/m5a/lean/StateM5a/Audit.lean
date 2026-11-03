@@ -1,3 +1,4 @@
+import StateM5a.KeyDecode
 import StateM5a.Steps
 import StateM5a.StepsT2
 import StateM5a.Walk
@@ -320,3 +321,11 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.BusWalk.localOK_S_of_leaf
 #print axioms StateM5a.BusWalk.localOK_S_of_mode
 #print axioms StateM5a.BusWalk.bus_batched_changesS
+#print axioms StateM5a.KeyDecode.key_inv
+#print axioms StateM5a.KeyDecode.keyOf_eq_nibbles
+#print axioms StateM5a.KeyDecode.key_row_get
+#print axioms StateM5a.KeyDecode.key_row_len
+#print axioms StateM5a.KeyDecode.nib_recv
+#print axioms StateM5a.KeyDecode.klen_recv
+#print axioms StateM5a.KeyDecode.nib_of_rcv
+#print axioms StateM5a.KeyDecode.klen_of_rcv
