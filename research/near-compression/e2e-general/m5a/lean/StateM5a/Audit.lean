@@ -376,3 +376,4 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.WsKey.key_of_block
 #print axioms StateM5a.WsKey.wsl_keys
 #print axioms StateM5a.WsKey.ws_decoded_final3
+#print axioms StateM5a.WsKey.open_eq_close

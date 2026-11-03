@@ -230,4 +230,23 @@ theorem ws_decoded_final3 {D : Nat} {extra : List Table} {nb np : Nat} {tr : Tra
     (fun b b' g g' e => hLCR b b' g g' e) (wsl_keys hH hx4 hcomp hC) (fun l hl => (hT l hl).2.2.1)
     (m := WsLen.wsLen pub) (fun l hl => (hwl l hl).2) hdist0
   exact ws_decoded_final2 hH hx hcomp hC htape hD1 hD hCR hkd
+/-! ## Leaf contents across segments (record level) -/
+
+/-- **A segment opens a leaf with the block the previous touching segment closed it with**: with a
+collision-free leaf digest, if `l'` is the last row touching index `l.i` before `l`'s segment, the
+block of `l`'s old digest is the block of `l'`'s new digest (and with no earlier touch, the INTAKE
+leaf's block: `key_inv` / `wsAt_untouched`). -/
+theorem open_eq_close {Kd V α B : Type} {wsl : List (WslRow Kd V α)} {ws0 : List α} {n : Nat}
+    {G : B → Prop} {LD : B → α}
+    (hCR : ∀ b b', G b → G b' → LD b = LD b' → b = b')
+    (huniq : ∀ l ∈ wsl, ∀ l' ∈ wsl, l.seg = l'.seg → l.i = l'.i → l = l')
+    (hlen : ws0.length = n) (hold : ∀ l ∈ wsl, (wsAt wsl ws0 l.seg)[l.i]? = some l.dgO)
+    {l l' : WslRow Kd V α} (hl : l ∈ wsl) (hl' : l' ∈ wsl) (hi : l'.i = l.i) (hs : l'.seg < l.seg)
+    (hlast : ∀ l'' ∈ wsl, l''.i = l.i → l''.seg < l.seg → l''.seg ≤ l'.seg) (hin : l.i < n)
+    {bo bn : B} (go : G bo) (gn : G bn) (eo : l.dgO = LD bo) (en : l'.dgN = LD bn) : bo = bn := by
+  have h1 := hold l hl
+  have h2 := wsAt_last huniq hlen hl' (hi ▸ hin) l.seg hs (fun l'' h1 h2 h3 => hlast l'' h1 (h2.trans hi) h3)
+  rw [hi, h1, eo, en] at h2
+  exact hCR _ _ go gn (Option.some.inj h2)
+
 end StateM5a.WsKey
