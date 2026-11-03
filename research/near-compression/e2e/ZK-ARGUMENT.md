@@ -1,11 +1,25 @@
 # Zero-knowledge argument for the chunk proof: construction, simulator, hiding error, cost
 
-Status (2026-11-03, lane E2E-D, milestone D-3). **The FINAL layer now runs `zk = 6`. Every
-lemma of the simulator argument is proved in §6, for the statement *(claim, setup, trace
-heights)*.** The concrete hiding error is **ε_ZK ≤ 2^-184.4** (§6.4). `zero_knowledge_established`
-still stays `false`, for one reason that is not a lemma of the simulator. The per-AIR trace
-heights are sent in the clear, and nothing yet shows that they are a function of the claim and
-the setup (independent review, finding #4; §7, obligation H).
+Status (2026-11-03, lane E2E-D, milestone D-4).
+* **Obligation H is closed (§7).** The FINAL trace heights are pinned in the setup. V_d checks
+  them first, and the prover pads to them.
+* The statement is now **(claim, hint, setup)**, and every lemma of the simulator argument (§6)
+  is proved for it.
+* **ε_ZK ≤ 2^-184.4**: statistical, classical programmable ROM (§6.4).
+* `zero_knowledge_established = true` is set for exactly that scope: classical ROM, relative to
+  the per-chunk setup (§7).
+* **QROM (obligation Q, §6.5): partly closed.** The FINAL part is 2^-121.0. The base point `u`
+  is open: the D0a base commits only 2–4 columns. Closure is an owner decision (base `zk = 2`
+  or a salt).
+* `security_established` stays `false`.
+
+D-4 also contains:
+* the independent review of `zk = 6` (review-zk6), with N1–N4 folded in (§5 list sizes, §3.1,
+  §10);
+* the size option "one EF mask column", which is proved impossible (§6.6).
+
+Status at D-3 (superseded): every lemma was proved for *(claim, setup, trace heights)*, but the
+heights were sent in the clear and not pinned (review #4, obligation H).
 
 The D-2 version (`zk = 5`, in git history) left two lemmas open:
 * **Lemma D:** the joint `F`-rank of the extension-field functionals of the base-field stacking
@@ -65,7 +79,7 @@ replay path rejects masked proofs explicitly.
 | per-AIR LogUp terms | — | not sent |
 | `gkr_proof` root, layer claims and rounds | GKR | masked root sumcheck, level masks (Lemma B), Libra masks (Lemma A) |
 | `logup_pow_witness`, PoW witnesses | grinding results | functions of the (simulated) transcript |
-| `trace_vdata` (log and tight heights), public values | shape, level, statement digest | **public input** (§7) |
+| `trace_vdata` (log and tight heights), public values | shape, level, statement digest | heights: **setup content**, V_d checks equality (§7, D-4); public values: functions of the claim and the setup |
 | packet `u` | base stacking point | base `zk = 1` (§3.4) |
 
 ## 3. PCS layer
@@ -94,6 +108,18 @@ replay path rejects masked proofs explicitly.
   terminated the queue was sorted at that point, and there both rules give the same position.
   So no honest layout changes: the 68/1,536 and 90/1,536 layouts are regression tests
   (`stark-backend/tests/zk_layout.rs`).
+  **D-4 (review-zk6 N3):** termination now rests on an explicit step bound,
+  `entries × 4(log_stacked_height + 1)` (88 steps per initial entry at FINAL). Every step
+  places, splits or defers one slice. Exceeding the bound returns `ZkLayoutNoProgress`. The bound
+  also caps the verifier's layout work for any declared heights. With obligation H, V_d never
+  reaches the layout with heights other than the pinned ones. The reviewer's layout fuzzer is
+  adopted as `tests/zk_layout_fuzz.rs`: 300 random shapes per zk mode 1–6 plus the earlier
+  reproducers, asserting no panic and no timeout. Result: 0 panics and 0 timeouts in every
+  mode. The split modes (zk 3/5/6) had 0 errors of any kind, so the bound was never hit there.
+  Worst case 4.7 ms, at most 6,036 slices.
+* **Mask count (review-zk6 N2).** `zk::mask_columns_ef` asserts `[EF : F] == ZK_MASK_COLS`.
+  Every `zk = 6` prover and verifier path derives its mask columns there, and `zk_shape` sizes
+  the pads and `M_1`, `M_2` with `ZK_MASK_COLS`.
 * **No-layout heights are errors (review #2, fixed).** `verify_proof_shape` maps a layout error
   to `StackingProofShapeError::NoLayout` instead of `unwrap()`. This covers zk 1/2/4 with a
   full-height chunk, which also reaches the base layer. That case is a completeness gap: those
@@ -134,9 +160,26 @@ other columns.
 ### 3.4 Base point `u`
 
 With `zk = 1` the base root is an RO hash of leaves that carry fresh randomness. So `u`, which
-is squeezed after the root, is uniform and independent of the witness except with probability
-`q · 2^{-336}`. The simulator samples `u` uniformly and computes `y = T_pub(u)` and the
-statement digest itself.
+is squeezed after the root, is uniform and independent of the witness except with a small
+probability. The simulator samples `u` uniformly and computes `y = T_pub(u)` and the statement
+digest itself.
+
+**The classical bound, made precise in D-4.**
+* One base leaf carries only `k_b = 61.8·c_b` bits of reserved randomness, and the
+  distinguisher may know the witness. The measured common-main widths are `c_b` = 2 / 3 / 4,
+  so `k_b` = 124–247 bits.
+* The base proof is not published, so no base symbol is revealed.
+* `u` is correlated with the witness only if the adversary queried the true root message. That
+  needs, for every node, either a guessed child digest (`≤ q·N_b·2^-336` in total, with
+  `N_b ≤ 2^30` messages) or the true child messages. Ultimately it needs a hit on all `m_b`
+  (`≥ 2^18`) leaves.
+* Each query hits a new leaf with probability `≤ m_b·2^-k_b`. So the number of hits is
+  dominated by `Bin(q, m_b 2^-k_b)`, and all `m_b` are hit with probability
+  `≤ (e·q·2^-k_b)^{m_b} ≤ 2^{-58·2^18}`.
+* Total: **`≤ q·N_b·2^-336 ≈ 2^-242`.** This is the "base `u`" term of §6.4.
+
+In the QROM this all-leaves argument is not available with the lemmas used. §6.5 shows that O2H
+charges a hit on *any* leaf, which is why `u` is the open QROM term.
 
 ## 4. PIOP masking (`zk >= 4`; stacking masks extension-field valued for `zk = 6`)
 
@@ -252,14 +295,21 @@ Notation:
 * `C` is the initial RS code: rate `2^-6`, degree `2^21`.
 * `δ` is the initial proximity parameter.
 * `J` is the joint list: tuples of codewords `(w_j)` that agree with the committed `(col_j)` on a
-  common set of density ≥ `1 − δ`. It has `|J| ≤ ℓ_0` (the calculator's initial list size; the
-  Johnson bound holds for the interleaved code).
+  common set of density ≥ `1 − δ`. **Corrected in D-4 (review-zk6 N1).** D-3 claimed
+  `|J| ≤ ℓ_0`, "by Johnson for the interleaved code". `ℓ_0` (about 2^9) is the calculator's
+  list size for the *base* code `C`. At this radius, the Johnson argument for the interleaved
+  code gives only `|J| ≤ L_J := m/ρ ≈ 2^12`. We now use two conventions:
+  * **Before `μ`** (the stacking reduction and every earlier PIOP move that carries a list
+    factor): charge `L_J`, not `ℓ_0`. That is 3 bits less on each such term, see the end of
+    this section.
+  * **From `μ` on:** add the injectivity event below to the μ move (Lemma 5.1′). After it,
+    `|J| ≤ ℓ_0`.
 * `E_k` is the MCA bad-set size for a degree-`k` curve, from the same theorem
   (BCHKS25 / DKT26 MCA) as every other WHIR move. The calculator computes `E_k/|F|` as
   `log2_err` with `batch_size = k + 1`.
 
 **State before WHIR.** The stacking reduction's rounds are unchanged, with the same error terms
-(the list factor `ℓ_0` included, as before). Its doomed state at the end is:
+(with the list factor, now `L_J`, as corrected above). Its doomed state at the end is:
 
 > **(D0)** for every `w ∈ J`: `Σ_j c_j ŵ_j(u) ≠ S`.
 
@@ -274,8 +324,19 @@ paid `ℓ_0(W−1)/|F|` for the consistency of `q` with `J`. With `zk = 6` there
 *Proof.* This is the MCA theorem for the degree-`(W−1)` curve `(col_0, …, col_{W−1})`. The
 identity `f = Σ μ^j w_j` holds on `S'`, and `|S'| > deg C`, so it holds as codewords. □
 
-The post-μ state is "(D0) and `μ` is good". Its flip probability is `E_{W−1}/|F|` (plus `μ`
-PoW, 0 bits here). This is the calculator's unchanged `whir_mu` term.
+**Lemma 5.1′ (injectivity on `J`, D-4).** Except for `μ` in a set of density
+`≤ |J|²(W−1)/(2|F|) ≤ L_J²(W−1)/|F| ≤ 2^(24+12−370.9) = 2^-334.9`, the map
+`w ↦ Σ_j μ^j w_j` is injective on `J`.
+
+*Proof.* Two distinct tuples `w ≠ w'` collide only if `μ` is a root of the non-zero polynomial
+`Σ_j (w_j − w'_j) X^j`, which has degree ≤ `W − 1`. Take a union over pairs. □
+
+For good `μ`, every `Σ_j μ^j w_j` with `w ∈ J` agrees with `f_μ` on a set of density
+≥ `1 − δ`, so it lies in `f_μ`'s list in `C`. Hence `|J| ≤ ℓ_0`, which is what Lemma 5.2 uses.
+
+The post-μ state is "(D0), `μ` is good, and `w ↦ Σ μ^j w_j` is injective on `J`". Its flip
+probability is `E_{W−1}/|F| + 2^-334.9`, plus the `μ` PoW, which is 0 bits here. The calculator's
+`whir_mu` (283.6 bits) prints only the first term. The sum is still 283.6 bits to one decimal.
 
 **Lemma 5.2 (ν move).** Let `D = Σ_j c_j col_j`, so that `g = f_μ + ν D`. Suppose (D0) holds,
 `μ` is good, and the prover has sent any `B`. Then
@@ -310,14 +371,31 @@ applied there):
 | masked PIOP (GKR deg 5, batch `2d+1`, `T+2`, `K+3` claims) | as D-2 §4.4 | ≥ 2^−321.9 | — |
 | **FINAL `ε_rbr`** | max | **2^−268.2 / 2^−274.0** | unchanged |
 
+**List-size correction (D-4, review-zk6 N1).** These PIOP moves come before `μ`, so they use
+the joint list `J` with `|J| ≤ L_J ≈ 2^12`, not `ℓ_0 ≈ 2^9`. That costs 3 bits on every
+calculator term that subtracts `log2 ℓ_0`.
+
+| term | printed | corrected |
+|---|---:|---:|
+| `logup` | 321.9 | 318.9 |
+| `zerocheck` | 355.0 | 352.0 |
+| `constraint_batching` | 350.8 | 347.8 |
+| `stacked_reduction` | 351.4 | 348.4 |
+
+The calculator itself is unchanged, because it is shared with the pinned non-ZK path. The
+"masked PIOP" row of the table above becomes ≥ 2^-318.9. The FINAL floor is unchanged at
+268.2 / 274.0.
+
 The FINAL `ε_rbr` is still set by the WHIR query move. `zk = 6` adds no term near it.
 `SoundnessCalculator::calculate_whir_soundness` charges the ν move under `levers.zk_batch()`
 (`WhirSoundnessCalculator::nu_batching_bits`, printed as `whir_nu`).
 
 ## 6. Simulator and hiding error
 
-The statement is `(claim, setup, heights)`. Here `heights` are the per-AIR log and tight
-heights of the FINAL proof (§7). Fix `n = 19`, `N = 2^21`, `R = 256`, `|EF| = p^12 ≈ 2^370.9`,
+The statement is `(claim, hint, setup)`. Since D-4 the per-AIR log and tight heights of the
+FINAL proof are part of the setup, and V_d checks them (§7). Until D-3 they were a separate
+input, and the statement was `(claim, setup, heights)`. The simulator reads them from the setup;
+nothing else in §6.1–6.4 changes. Fix `n = 19`, `N = 2^21`, `R = 256`, `|EF| = p^12 ≈ 2^370.9`,
 and `s ≤ 94` opened symbols per column.
 
 ### 6.1 Simulator `S` (random-oracle model with programming)
@@ -462,7 +540,7 @@ aborts if `H` was already queried there.
   Lemma V with `s + 2 ≤ R`, each of the 53 data columns contributes 2 uniform `F` symbols. That
   is ≥ `106·30.9 ≈ 3,276` bits of min-entropy per leaf. Distance
   `≤ q·2^27·2^-3276`.
-* **Base `u`**: `q·2^-336`.
+* **Base `u`**: `q·N_b·2^-336 ≈ 2^-242` (§3.4, made precise in D-4).
 
 H6 is the simulator's output distribution.
 
@@ -475,41 +553,406 @@ H6 is the simulator's output distribution.
 | stacking masks (Lemmas D1 ×2, D2) | `≤ 1,066/|EF| ≈ 2^-360.8` | **proven (D-3)** |
 | opened rows of data columns and `M_s` (Lemma V) | `0` | **proven (D-3), exact** |
 | Libra / level / column / root masks (Lemmas A–C) | `≤ 2^10/|EF| ≈ 2^-360` | proven |
-| Merkle leaves and root (H6), base `u` | `≤ 2^-3185`, `2^-272` | proven |
+| Merkle leaves and root (H6), base `u` | `≤ 2^-3185`, `2^-242` (§3.4) | proven |
 
-**ε_ZK ≤ 2^-184.4**, statistical, in the ROM, for the statement `(claim, setup, heights)`. The
-QROM version (programming a quantum-accessible oracle) is not done. Lane E's single-database QROM
-argument (`E2E-SOUNDNESS-BUDGET.md`) is about soundness; the ZK side would need a
-QROM-programming lemma, e.g. Unruh's adaptive reprogramming. That is listed as obligation Q
-(§10).
+**ε_ZK ≤ 2^-184.4**, statistical, in the classical programmable ROM, for the statement
+`(claim, hint, setup)`, with the heights in the setup (§7). The QROM version is §6.5.
 
-## 7. Public inputs: the trace heights (review #4)
+### 6.5 QROM hiding (obligation Q, D-4): the FINAL part closes at 2^-121; the base point `u` does not close yet
 
-The FINAL proof sends each AIR's `log_height` and tight height in the clear. V_d does not compare
-them with the setup: `check_height_caps` only checks `maxLog`, and the FINAL vk has none. The
-three chunks have different heights, and also different setups (program lengths
-142,654 / 143,132 / 144,468). The simulator of §6 receives the heights as input.
+Written in D-4 by a lane-D sub-agent, then checked and corrected by the lane (the base widths
+were measured). It is not independently reviewed.
 
-* If the heights are a function of the setup, the packet is ZK for `(claim, setup)`. That is
-  plausible: the NV program is straight-line, with no branch opcodes in `nv/isa.rs`, so every
-  AIR's row count is fixed by the program. But tight heights are "last non-zero row", which
-  could in principle depend on data.
-* If they are not, they leak information about L_n (for example multiproof sizes, which depend
-  on query positions), and the simulator cannot produce them.
+**Bottom line.** All lemmas are off the shelf, and their statements were checked against the
+papers (§6.5.2).
+* **FINAL part:** the FINAL transcript, its commitments and its masks are statistically hidden
+  in the QROM with **ε ≤ 2^-121.0** at `q = 2^64`.
+  * The dominant term is T4: O2H over the FS hash chain, with `R ≤ 2^12` jobs (an estimate).
+  * The adaptive-reprogramming term at the first FS point is T3, 2^-136.0. It is tight up to a
+    constant: GHHM §6 gives an attack of that size.
+* **Base point `u`: not closed.** O2H charges a query to *any* hidden base Merkle message. One
+  base leaf holds only `61.8·c_b` bits of reserved randomness: 2 points × `c_b` common-main
+  stacked columns × 30.9 bits.
+  * Measured widths (`probe`, D-4): `c_b` = 2 / 3 / 4 for the three chunks.
+  * So T7 is vacuous, 2^-12.7 or 2^-43.6 for them (§6.5.5).
+  * In the classical ROM this is harmless (§3.4: a distinguisher would have to hit *every*
+    leaf).
+  * Two ways to close it (§6.5.6), both owner decisions:
+    * base `zk = 2`, an existing mode that adds 12 mask columns, giving 2^-103.0;
+    * a ≥ 384-bit secret salt in the base transcript, giving about 2^-120.
+* **So ε_ZK^QROM is not established for the packet.** `zero_knowledge_established` stays scoped
+  to the classical ROM.
 
-**Fix (obligation H, an owner decision because it changes the setup file):**
-1. Record the FINAL heights in the setup.
-2. Have V_d require equality.
-3. Have the FINAL prover pad its tight heights to the recorded values. Zero rows are free: the
-   virtual zero tail.
+Scope (§6.5.1):
+* a two-stage adversary;
+* a statement and witness fixed in advance;
+* `R ≤ 2^12` is an estimate, not a count.
 
-This also removes the layout-amplification surface, review #3 (about 3× verifier work for
-adversarial heights).
+Even when closed, the bound does **not** reach 128 bits (§6.5.6).
 
-Until the fix lands, `zero_knowledge_established=false`. The simulator argument itself is
-complete.
+#### 6.5.1 Model
+
+* **Oracle.** SHA-384 is a quantum-accessible RO, split by `research/near-compression/final-soundness/PROOF.md` Lemma 1.1 into three
+  independent oracles:
+  * `H_L`: leaves, tags 0 and 6, truncated to 336 bits;
+  * `H_N`: 92-B nodes, truncated to 336 bits;
+  * `H_W`: transcript and PoW, tags 2–5 and 7, 384 bits.
+
+  `q = 2^64` counts every evaluation (`E2E-SOUNDNESS-BUDGET.md` A9). That includes the honest
+  prover's, the simulator's and grinding.
+* **Adversary.** `A = (A_0, A_1)`:
+  * `A_0` makes `q_0` quantum queries before the packet exists and outputs a quantum state.
+  * `A_1` gets that state and the packet, and makes `q_1` more queries.
+  * `q_0 + q_1 ≤ q`.
+
+  The statement `(claim, hint, setup)` and the witness are fixed in advance (non-adaptive
+  ZK). No oracle-dependent auxiliary input is allowed beyond what `A_0` computes.
+* **Simulator.** It is §6.1 without the abort.
+  * It samples a fresh 48-B state `y_i` for **every** FINAL transcript job from the
+    main-commitment `commit` job on: each flush, commit and squeeze (`sha_transcript.rs`).
+  * It decodes the challenges exactly as the verifier does (12 words per state, reject
+    `n ≥ 2p`). So they are distributed as honest-verifier coins.
+  * It programs `H_W(x_i) := y_i` at each job input `x_i = P‖tag‖…‖state_{i−1}‖…‖payload_i`.
+    PoW is ground honestly.
+  * For the base it programs nothing: `u` is uniform.
+* **Why CMS19 does not settle this.** CMS19 Lemma 7.3 ("Micali, modified to use salted Merkle
+  trees, … is a zero knowledge non-interactive argument in the QROM") has a one-paragraph proof.
+  Classical *statistical* ZK against verifiers unbounded in queries implies QROM ZK. Its ZK
+  definition (§3.3) gives the distinguisher the whole table, `(h, π)` vs `(h[μ], π)`, and states
+  no concrete bound.
+  * Our classical argument (§6.3) is **query-bounded**: H1 is `q·2^10/2^336` and H6 is
+    `q·2^27·2^-3276`. So the CMS reduction does not apply.
+  * Our leaves are not independently salted: the unopened leaves are correlated RS symbols of
+    a few reserved rows. No unbounded-query hiding claim is made here.
+
+#### 6.5.2 Lemmas used (checked against the papers)
+
+* **[GHHM21] Theorem 1 ("Adaptive reprogramming").**
+  * Setting: `Repro_b`, `O_0 ←$ Y^X`, `O_1 := O_0`. `D` gets quantum access to `O_b` and
+    classical access to `Reprogram(p)`.
+  * `Reprogram(p)` samples `(x, x′) ← p` and `y ←$ Y`, sets `O_1 := O_1^{x↦y}`, and returns
+    `(x, x′)`.
+  * Let `q_r` be the number of queries between Reprogram calls `r−1` and `r`, and
+    `q̂_r := Σ_{i<r} q_i`.
+  * Let `p^{(r)}_max := E[max_x p^{(r)}_X(x)]`, the expectation taken "over D's behaviour until
+    its r-th query to Reprogram".
+  * Then `|Pr[Repro_1^D ⇒ 1] − Pr[Repro_0^D ⇒ 1]| ≤ Σ_{r=1}^R ( √(q̂_r p^{(r)}_max) + ½ q̂_r p^{(r)}_max )`.
+  * It is information-theoretic. `p` may be chosen adaptively. The reprogrammed value `y` is
+    uniform. The position `x` **is returned to D**.
+  * §6, Thm 7: an attack detects reprogramming of one point with advantage `Ω(√(q/2^n))`, so
+    the bound is tight.
+
+  Read in arXiv 2010.15103v2. The ePrint page 2020/1361 is behind Cloudflare. The same statement
+  is restated as Theorem 5 of [Jae25], which says it is GHHM's Theorem 1.
+* **[AHU19] Theorem 3 (O2H, probabilities).**
+  * Let `S ⊆ X` be random, and `G, H: X → Y` random with `G(x) = H(x)` for `x ∉ S`. Let `z` be
+    a random bitstring. **(S, G, H, z) may have an arbitrary joint distribution.**
+  * Let `A` have query depth `d`. `B^H(z)` picks `i ←$ [d]`, runs `A^H(z)` until just before
+    its i-th query, and measures the query registers into a set `T`.
+  * Then `|P_left − P_right| ≤ 2d·√P_guess`, where:
+    * `P_left = Pr[1 ← A^H(z)]`;
+    * `P_right = Pr[1 ← A^G(z)]`;
+    * `P_guess = Pr[S ∩ T ≠ ∅ : T ← B^H(z)]`.
+  * "The same result holds with `B^G` instead of `B^H`."
+  * Extra oracles may be encoded into `z` (remark after Thm 1).
+  * Also checked: Thm 1 (semi-classical O2H, `|P_left − P_right| ≤ 2√((d+1)P_find)`), Thm 2,
+    and Cor. 1 (`Pr[Find] ≤ 4q·P_max` when `S` and `z` are independent).
+
+  Source: ePrint 2018/904, version of 2021-12-09. Its front-page disclaimer: the flaw is in
+  "the security proof of the Fujisaki-Okamoto transform in Appendix B … this only affects the
+  analysis of Fujisaki-Okamoto in Appendix B, and not the main results". [Jae25] fn. 10 agrees.
+* **[Jae25] Jaeger**, "Nonadaptive One-Way to Hiding Implies Adaptive Quantum Reprogramming",
+  ASIACRYPT 2025, arXiv 2511.16009. It derives GHHM Thm 1 from AHU's O2H (its Thm 6, looser
+  constants). It is used here only as a cross-check of the two statements above.
+* Not used:
+  * Unruh's O2H (JACM 2015) is a special case of AHU Thm 3 (AHU §3.1).
+  * Zhandry's compressed oracle (ePrint 2018/276) is used inside the GHHM proof (via AMRS20
+    Lemma 2), not here.
+  * DFM20 is about soundness.
+
+#### 6.5.3 Parameters
+
+* **`R` (FINAL FS jobs from the main commit to the end).** By the job grammar, each sum-check
+  round is one flush plus, with probability `1 − (15/16)^12 ≈ 0.54`, an extra squeeze for one EF
+  challenge. The counts:
+
+  | part | rounds | jobs |
+  |---|---|---|
+  | GKR, 27 layers | `Σ_{k≤27} k = 378` | ≈ 860 (with per-layer claims and λ) |
+  | batch zerocheck | ≈ 21 | ≈ 50 |
+  | stacking | ≈ 20 | ≈ 45 |
+  | WHIR (4 rounds: folds, OOD, query squeezes, PoW) | — | ≈ 60 |
+  | Libra / zk extras | — | ≈ 10 |
+
+  That gives `E[R] ≈ 1.1·10^3`, so we take **`R ≤ 2^12`**. Rejection makes `R` random. Only
+  `E[R]` enters `P_guess` (a union over positions). This is an estimate. Pin it by counting the
+  jobs of `replay_transcript` on the three FINAL packets. The classical H1 used `2^10`, which is
+  probably slightly low. At `2^12` the ROM term is `2^-260`, which changes nothing. Base, up to
+  the `u` squeeze: `R_b ≤ 2^12`.
+* **Min-entropies.**
+  * **Unopened FINAL leaf: `k_leaf = 3,276` bits**, marginally and conditioned on `π`. Lemma V
+    with `s + 2 ≤ R` gives 106 data symbols. Conditioning on `π` also needs Lemma W's
+    independence of `g` from the non-pad columns, which fails with probability `2^-184.4`
+    (counted).
+  * **Tree node message once its children's digests are fresh: `k_node ≥ 671` bits.** It is a
+    pair of independent uniform 336-bit digests, with `≤ 2^-672` extra for identical children.
+  * **FS job inputs `x_i`, `i ≥ 2`: 384 bits** from the state field `y_{i−1}`.
+  * **First FS job `x_1` (contains the root): 336 bits**, but only after T2. The root is an
+    `H_N` output. With `H_N` known to the adversary, `max_v Pr[root = v]` is a max-load
+    question over a Merkle tree without level separation. The collision-probability route gives
+    only `√(E CP) ≈ 2^-165.6`, which is useless. T2 avoids the question by puncturing `A_0` on
+    the tree first.
+  * **Base leaf: `61.8·c_b` bits**: 2 points, reserved rows, Lemma V. `c_b` is the number of
+    base common-main stacked columns. The TAPE cached tree is public and holds no hidden
+    entropy. T7 needs `c_b ≥ 11`, so that `k_b ≥ 671`. **Measured** (`nearproof-chunk-e2e
+    probe`, D-4): `BASE_STACKED widths = [2, 1] / [3, 1] / [4, 1]` (common main, TAPE), that
+    is `c_b` = 2 / 3 / 4. **The condition fails.**
+* **Sizes.** `N_T ≤ 2^28` messages in the FINAL main tree (`2^27` leaves); `N_b ≤ 2^30` in the
+  base trees.
+
+#### 6.5.4 Hybrids
+
+Q0 is the real experiment. Each step names the lemma and the term it costs.
+
+* **T2 (puncture `A_0` on the FINAL main tree; AHU Thm 3).**
+  * Setup: `S_T` is all leaf and node messages of the main commitment. `A_0` gets `G = H` off
+    `S_T` and fresh values on `S_T`. Prover and `A_1` keep `H`. The post-processing (prover,
+    `A_1`) answers from tables in `z`.
+  * `P_guess` with `B^G`: `A_0`'s view is independent of `ρ` and of `H|_{S_T}`. So
+    `P_guess ≤ 2^27·2^-3276 + 2^28·2^-671`.
+  * Cost: `2q√(N_T 2^-671) = 2^-256.5`. The symmetric un-puncture in the simulated world
+    (opened simulated leaves, nodes over `u`) costs the same.
+  * Result: the root is uniform and independent of `A_0`.
+* **T3 (first FS point; GHHM Thm 1, R = 1).**
+  * `D` runs `A_0`. `D` simulates `H_L` and `H_N` as full tables (allowed, since the lemma is
+    information-theoretic). The game oracle is `H_W`.
+  * `D` calls `Reprogram(p)` with `p = (prefix ‖ U_336)`. It reads the root from the returned
+    `x_1` and sets its node table at `m_root` accordingly.
+  * Here `b = 0` is Q0 and `b = 1` means "`A_0` saw the old `H_W(x_1)`, everything after sees a
+    fresh `y_1`".
+  * Cost: `√(q 2^-336) + q 2^-337 = 2^-136.0`, with `q̂_1 ≤ q` including the honest recursion
+    prover.
+* **T4 (rest of the FS chain; AHU Thm 3).**
+  * Puncture `A_0`'s `H_W` at `x_2..x_R`. `S` is fixed at the start because the statement is
+    fixed.
+  * `P_guess` with `B^G`: `A_0`'s view is independent of `y_1` (T3) and of `y_2..y_{R−1}`
+    (punctured). So `P_guess ≤ E[R]·2^-384`.
+  * Cost: `2q√(R 2^-384) = 2^-121.0` (`2^-121.5` at `R = 2^11`).
+  * GHHM does not apply here, because the reprogrammer knows `y_{i−1}` when `x_i` is formed, so
+    `p_max = 1`.
+  * Now the `y_i` are i.i.d. uniform. So the prover equals the honest-verifier interaction, and
+    `A_1`'s oracle is `H` programmed at the `x_i`, exactly as the simulator does. Position
+    collisions cost `R²2^-385 = 2^-361`.
+* **T5 (unopened leaves vs `A_1`; AHU Thm 3).**
+  * Puncture `A_1` on the unopened leaf messages `S_U`. `z = (A_0 state, π, tables)`.
+  * `P_guess` with `B^G` is at most `2^27·2^-3276`, by the conditional entropy of §6.5.3.
+  * Cost: `2q√(2^27 2^-3276) = 2^-1559.5`. One more equal-size step equalizes `A_0`'s and
+    `A_1`'s values on `S_U`.
+  * After this the unopened digests are uniform strings independent of everything. This is
+    §6.3's H6.
+* **T6 (IOP simulation).** `A_0`'s view and `A_1`'s oracle are now independent of the IOP
+  transcript `τ` (messages, opened rows, `g`), except through `π`. Replace `τ` by the simulated
+  one: H2–H5 of §6.3, i.e. Lemmas W, D1 ×2, D2, V and A–C. Cost: `2^-184.4 + 1,066/|EF| + 2^10/|EF|`.
+* **T7 (base `u`, §3.4; AHU Thm 3 on the whole run).**
+  * The base transcript is evaluated in-circuit by L1, and the simulator does not program it.
+    Instead, puncture **both** phases (and the FINAL simulator's hashing) on
+    `S_b = base tree messages ∪ base FS jobs up to the u-squeeze`.
+  * By Real ≡ Prog, `u` is then uniform and independent of the witness.
+  * `P_guess` with `B^G`:
+    * the first base job holds the hidden root: `2^-336`;
+    * the later jobs: `R_b 2^-384`;
+    * the tree: `N_b 2^-k_b`, with `k_b = 61.8·c_b`.
+  * Cost: `2q√(2^-336 + R_b 2^-384 + N_b 2^-k_b)`. That is 2^-103.0 only if `c_b ≥ 11`; at the measured `c_b` = 2–4 it is vacuous to 2^-43.6 (§6.5.5).
+  * Afterwards the punctured values are fresh and independent of `u`. So "un-puncturing" is an
+    identity (the simulated world has no base proof).
+  * GHHM cannot replace this step. Here `A_1` queries **after** the reprogramming, and the
+    position is never revealed. That is not GHHM's "queries before" charge.
+
+What is left is the simulator's output distribution.
+
+#### 6.5.5 Concrete QROM hiding error
+
+`q = 2^64`, `R = R_b = 2^12`, `N_T = 2^28`, `N_b ≤ 2^30`, `k_b = 61.8·c_b`.
+
+| term | formula | value | status |
+|---|---|---|---|
+| T7 base `u` | `2q√(2^-336 + R_b 2^-384 + N_b 2^-k_b)` | measured `c_b` = 2 / 3 / 4: **2^+18.2 (vacuous) / 2^-12.7 / 2^-43.6**; with `c_b ≥ 14` (base `zk = 2`): 2^-103.0 | **not closed** for the D0a base |
+| T4 FS chain | `2q√(R·2^-384)` | **2^-121.0** | proved (AHU Thm 3); `R` estimated |
+| T3 first FS point | `√(q 2^-336) + q 2^-337` | 2^-136.0 | proved (GHHM Thm 1); tight (GHHM Thm 7) |
+| T6 IOP (Lemma W dominant) | as §6.4 | 2^-184.4 | proved (§6.2) |
+| T2 tree puncture ×2 | `4q√(N_T 2^-671)` | 2^-255.5 | proved |
+| T1 position collisions | `R² 2^-385` | 2^-361 | proved |
+| T5 unopened leaves ×2 | `4q√(2^27 2^-3276)` | 2^-1558.5 | proved |
+
+For the FINAL part (T1–T6) the bound is **ε ≤ 2^-121.0**, for `(claim, hint, setup)`. For the
+whole packet the bound is **not established**: T7 is vacuous or weak at the measured base widths.
+With base `zk = 2` it would be **2^-103.0**, and with a base salt about 2^-120. "Proved" means
+derived here by hand from the quoted statements; none of it is independently reviewed.
+
+#### 6.5.6 Gaps and options
+
+1. **Not 128 bits.** With O2H, `q` stays outside the square root. So a 384-bit state field can
+   give at best `2q·2^-192 = 2^-127` per chain, and T4 cannot reach 2^-128 by recounting `R`.
+   * Expected true values are smaller. GHHM-type per-point `R√(q 2^-384) ≈ 2^-148` would apply
+     to T4 if a chain version of GHHM Thm 1 were proved: one where `p_max` is charged against
+     the adversary's database, not the reprogrammer's knowledge, in the style of the [Jae25]
+     sparse-oracle "backwards" argument.
+   * For T7 the Grover search is `≈ q²2^-336 = 2^-208`.
+   * Neither sharper lemma exists in the cited literature, and both are **open**.
+2. **T7 is the blocker.** The D0a base commits only 2–4 common-main stacked columns, so a base
+   leaf carries 124–247 bits of reserved randomness. O2H's `P_guess` pays for a hit on any of
+   the `N_b` leaves. Two closures, both owner decisions (each changes the base proof, so L1's
+   program and the chain must be re-run):
+   * **(a) Base `zk = 2`.** This existing PCS mode appends 12 uniform mask columns, so
+     `c_b ≥ 14` and `k_b ≥ 865`. T7 becomes `2q√(2^-336) = 2^-103.0`, limited by the 336-bit
+     base root. No new protocol. Cost: 12 more base columns in L1's in-circuit openings.
+   * **(b) A fresh secret salt of ≥ 384 bits**, absorbed into the base transcript before the
+     base commit. It stays inside the base proof, as a witness of L1. T7 becomes
+     `2q√(R_b 2^-384) ≈ 2^-121`, so the total is about **2^-120.0**, independent of `c_b`. This
+     is a protocol change to the base transcript.
+
+   A wider FINAL or base state does not help T3: its 336 bits come from the root digest width.
+   T3 is already 2^-136.
+3. **Model restrictions.**
+   * The statement is non-adaptive: T4/T7 use non-adaptive O2H with `S` fixed at the start.
+   * There is no oracle-dependent advice beyond `A_0`.
+   * `R` and `c_b` are estimates.
+   * Lifting the first restriction needs an adaptive O2H ([Jae25] §5) and has not been done.
+4. **Not affected.** Obligation H (heights) is unchanged. The IOP lemmas (§6.2) are
+   oracle-free and carry over verbatim.
+
+References:
+* [GHHM21] A. B. Grilo, K. Hövelmanns, A. Hülsing, C. Majenz, *Tight adaptive reprogramming in
+  the QROM*. ASIACRYPT 2021; ePrint 2020/1361; arXiv 2010.15103. Thm 1, Thm 7.
+* [AHU19] A. Ambainis, M. Hamburg, D. Unruh, *Quantum security proofs using semi-classical
+  oracles*. CRYPTO 2019; ePrint 2018/904. Thms 1–3, Cor. 1.
+* [Jae25] J. Jaeger, *Nonadaptive one-way to hiding implies adaptive quantum reprogramming*.
+  ASIACRYPT 2025; arXiv 2511.16009. Thms 5–6.
+* [CMS19] A. Chiesa, P. Manohar, N. Spooner, *Succinct arguments in the quantum random oracle
+  model*. TCC 2019; ePrint 2019/834. §3.3 ZK definition, Lemma 7.3.
+
+### 6.6 Size option rejected: one extension-field stacking mask column (D-4)
+
+D-3 suggested replacing `M_1`, `M_2` with one EF column `M` read along `k` τ chains (`G_j =
+M̂(τ_j)`, summand `Σ_j λ_j eq_prism(τ_j,·)·M`). That would save 12 base columns, or
+`12 × 4 B × 92` = 4,416 B. **The required lemma is false for every `k` and every challenge, so
+the variant is not built.**
+
+**Proposition.** Let `M` be any single stacked column with any public weight `W` in the stacking
+summand. Then the mask part of the last round `n` adds at most one dimension to the transcript
+given the earlier rounds. The passing set of that round has dimension 2.
+
+*Proof.* In round `n` no variable is left to sum over, so the mask part of `s_n` is
+`p_n(X) = Ŵ(u_<n, X)·M̂(u_<n, X) = ℓ(X)·f(X)`. Both factors are linear. `ℓ` is public. `f` is
+the same restriction of `M̂` for every chain, because the suffix `τ_{j,>n}` is empty. So `p_n`
+lies in `ℓ·EF[X]_{≤1}`, which has dimension ≤ 2 and is parametrised by `(f(0), f(1))`. The
+identity `p_n(0) + p_n(1) = p_{n−1}(u_{n−1})` holds for every `M`, so `ℓ(0)f(0) + ℓ(1)f(1)` is
+fixed by the history. That leaves ≤ 1 fresh dimension, or none if `ℓ ≡ 0`. □
+
+**Consequence.** At the public root `r*` of `ℓ`, `s_n(r*)` equals the trace part of the round-`n`
+message, with no mask contribution. The simulator template (D1 + D2) cannot be completed. With two
+columns, round `n` gets two independent restrictions `f_1`, `f_2`, which is why D2 works.
+
+**Numeric check** (BabyBear, `n = 2..5`). Rounds `0..n−1` are full rank for `k ≥ 2`. Round `n`
+adds 0 dimensions for `k = 2` and 1 for `k ≥ 3`. The two-column control is full rank everywhere.
+
+**Repairs, none proven, so none built.**
+* A τ chain on the base column `M_s`. This needs a base-field covering lemma of Lemma W's kind.
+* Letting the data columns' reserved rows absorb round `n`. This means revisiting H4.
+
+FINAL keeps the two EF mask columns.
+
+## 7. Trace heights are setup content (obligation H, closed in D-4; review #3/#4)
+
+Until D-3 the FINAL proof sent each AIR's `log_height` and tight height in the clear, and V_d did
+not compare them with anything (`check_height_caps` checks only `maxLog`, which the FINAL vk does
+not set). The simulator therefore took the heights as an extra input. The owner adopted the fix
+on 2026-11-03; it is built in D-4:
+
+1. **The setup records them.** `Setup::final_heights` (driver, `pq-chunk-e2e/src/main.rs`) is
+   the list of `(log_height, tight_height)` per AIR, in vk order. It is written exactly when the
+   FINAL vk is zk-masked (`zk_piop`). Otherwise the field is absent and not serialized, so the
+   bytes and SHA-256 pins of every pre-ZK setup are unchanged. The setup pin covers the field
+   like the rest of the file.
+2. **V_d requires equality, first.** `vd::check_pinned_heights` is the first statement of
+   `verify_final_claim`, before the layout, the transcript or any other work. Every AIR must be
+   present, and its `(log_height, tight_height)` must equal the pinned pair. A zk-masked final vk
+   whose setup pins no heights is rejected. So for a masked FINAL, the declared heights are a
+   function of the setup.
+3. **The prover pads to them.** The FINAL prover sets `NvCircuit::heights` to the pinned trace
+   heights, so the generator pads the matrices, and `tight_floor` to the pinned tight heights, so
+   the commitment holds explicit zero rows up to them. It then asserts that the proof declares
+   exactly the pinned heights. A trace that does not fit is a prover error, never a different
+   shape. With `NEARPROOF_FINAL_HEIGHTS=SETUP.json` the heights come from an existing setup (the
+   fixed-setup prover). Otherwise the run that creates the setup pins its FINAL trace's natural
+   heights.
+
+**What this closes.**
+* **Review #4:** the heights are no longer an input of the simulator beyond the setup.
+* **Review #3 (layout amplification) and the class of #1:** a proof with any other heights is
+  rejected before `verify_proof_shape` builds a layout, so prover-chosen heights reach no
+  layout code in V_d. The `engine.verify` path keeps the D-3 termination fix and the `NoLayout`
+  error for other callers.
+
+**Statement.** The packet is `claim ‖ hint ‖ u ‖ FINAL`. The verifier's public input is the
+claim and the hint: `public_statement(air, claim, hint)`. The hint carries the chunk's refund
+receipts, which are outgoing receipts and public in NEAR. The ZK statement is therefore
+**`(claim, hint, setup)`**, and the simulator of §6 reads the heights from the setup.
+
+**Scope: the per-chunk setup.** In the D0a driver the setup is generated per chunk, from the
+same run. It holds the converged NV program, the final vk and level, and now the FINAL heights.
+We expect none of these to depend on proof values, though this is evidence rather than a proof:
+* the program is the verifier program for a child of a fixed vk and shape, and proof values
+  enter it as witnesses, not as instruction words;
+* at convergence the program is byte-identical at two levels whose child proofs differ in every
+  value (BIND);
+* the heights are those of that program's trace.
+
+They do depend on the chunk's **shape**: the base trace heights, through the tight-height floors
+of L2+ and so through the program, and the FINAL heights. Program lengths are
+142,654 / 143,132 / 144,468 for the three chunks. So the D0a setup reveals the chunk's shape
+class, and ZK holds relative to it. A setup that is the same for every chunk of a tier needs a
+fixed shape, with padding. That belongs to the general-chunk wrap (plan §5.0.1, blocker 2), not
+to this argument.
+
+**Are the heights a function of the program alone?** Probably yes:
+* the NV program is straight-line (there is no branch opcode in `nv/isa.rs`);
+* the SHA jobs are one per program hash instruction (`Builder::jobs`).
+
+This is not needed for the claim, however. With the heights in the setup, a different witness
+for the same setup either fits the pinned heights or cannot be proved. That is a completeness
+question, not a ZK question.
+
+`zero_knowledge_established = true` is now set in `RESULT.json` exactly when all of the
+following hold, with the scope above stated in `zero_knowledge_scope`:
+* FINAL `zk = 6`;
+* `final_heights` pinned;
+* base `zk ≥ 1`.
+
+The claim is statistical ZK in the classical programmable ROM, ε_ZK ≤ 2^-184.4 (§6.4). The QROM
+statement is §6.5. `security_established` stays `false`.
 
 ## 8. Measured (2026-11-03, `zk = 6`)
+
+**D-4: pinned heights** (`e2e/scripts/run_zk6h.sh`, `results/zk/zk6h/`, `zk6hb/`). The
+protocol and the proof format are the same as D-3. The setup gains `final_heights` (+62 B), and
+V_d checks it first.
+
+| | d1/00-h10006-s3 | d1/00-h10007-s0 | d2/05-h10042-s3 |
+|---|---:|---:|---:|
+| **packet B** | **325,709** | **323,958** | **325,247** |
+| pinned `(log, tight)` AIR0 / AIR1 / AIR2 / AIR3 | (20, 284,408) / (21, 1,056,768) / (7, 128) / (16, 65,536) | (20, 285,060) / (21, 1,056,128) / (7, 128) / (16, 65,536) | (20, 287,032) / (21, 1,055,616) / (7, 128) / (16, 65,536) |
+| FINAL prove, s (10 threads, load 15–32) | 602 | 772 | 579 |
+| verify, fresh process, 1 thread (6 runs) | 38.8–39.8 ms | 43.9–54.4 ms | 41.8–51.4 ms |
+| of which the FINAL check | 23.4–23.9 ms | 26.9–27.3 ms | 25.2–26.0 ms |
+| negatives | 26/26 | 26/26 | 26/26 |
+| min bits / `whir_mu` / `whir_nu` | 268.2 / 283.6 / 295.6 | same | same |
+
+The FINAL heights differ per chunk, as do the setups (§7). On chunk 1:
+* the distinguisher gives 0/287 for both witnesses;
+* a second proof against the first setup is 325,289 B, and its setup is byte-identical;
+* `zk-diff` is clean (only structural and phantom entries agree).
+
 
 FINAL was re-proved with `zk = 6` from each chunk's L4 checkpoint (`e2e/scripts/run_zk6.sh`).
 Raw results are in `results/zk/zk6/`.
@@ -549,6 +992,18 @@ chains (−4.4 KB). Its rank lemma has no hand proof yet (§10).
 
 ## 9. Tests
 
+D-4 additions:
+* **`zk-selftest`, padding case.** For zk 4–6, the sender AIR is committed with a tight floor 8
+  rows above its natural height. The proof declares exactly the floor and verifies.
+  Re-run with the D-4 binary, every tamper is still rejected (`results/zk/selftest-d4.txt`).
+* **`tests/zk_layout_fuzz.rs`** (review-zk6, adopted): no panic and no timeout for any declared
+  heights, zk 1–6 (`results/zk/layout-tests-d4.txt`).
+* **Height negatives in `negatives.py`.** They need the `tamper-height` subcommand, and each
+  rejection must come from the pinned-height check (§8).
+* **Driver negative controls.** The FINAL run asserts that V_d rejects the proof under a setup
+  with changed heights or with no heights (`NEGATIVE_CONTROLS_OK changed_heights
+  unpinned_heights`).
+
 * **`zk-selftest`** (toy AIRs in the FINAL configuration: SHA-384, Ext12, FINAL levers; mixed
   heights, tight chunks, splitting). It covers zk 0–6: prove, verify, codec round trip. The
   tamper set for `zk = 6` adds `B`, an appended stacked opening, and opened WHIR rows of the
@@ -574,10 +1029,17 @@ chains (−4.4 KB). Its rank lemma has no hand proof yet (§10).
 | Lemma E (per-column absorption) | **closed**: no stacked openings (§3.2, §5); Lemma V is exact |
 | WHIR batching soundness re-derived | **done** (§5): the μ move is unchanged, the ν move is new at ≥ 2^-295.6, FINAL min unchanged at 268.2 / 274.0 |
 | independent review of the masked verifier (`zk = 5`) | **done** (2026-11-03): no soundness break. Findings #1, #2, #5–#8 are fixed here; #3/#4 become obligation H |
-| **H: heights as public input** | **open**: pin FINAL heights in the setup (owner decision: setup file content), V_d equality check, prover pads. Until then ZK holds for `(claim, setup, heights)` |
-| Q: QROM | open: the hiding error is in the classical ROM. A quantum-accessible programming lemma is needed for the PQ claim |
-| review of the D-3 changes (`zk = 6` verifier: `WhirBatch::Deferred`, `stacking_final_coeffs`) | open |
+| **H: heights as public input** | **closed (D-4, owner decision adopted)**: `Setup::final_heights`, `vd::check_pinned_heights` first in V_d, the prover pads (§7). The statement is `(claim, hint, setup)` |
+| review of the D-3 changes (`zk = 6`), review-zk6 | **done** (2026-11-03): no soundness break, no new ZK leak. N1 (joint-list size, §5) is corrected in the text. N2 (mask-count assert), N3 (layout step bound) and N4 (`verify_with_points`, no thread-locals) are fixed in code. The reviewer's fuzzer is adopted (`tests/zk_layout_fuzz.rs`). N5 = H |
+| **Q: QROM** | **partly closed (D-4, §6.5)**: the FINAL part is 2^-121.0 (O2H, AHU19 Thm 3; GHHM21 Thm 1). The base point `u` is **not** closed at the measured base widths (`c_b` = 2–4). Closure options, both owner decisions: base `zk = 2` (2^-103.0) or a base salt (about 2^-120). Neither reaches 128 bits. Not independently reviewed |
+| single EF stacking mask (−4.4 KB) | **rejected (D-4, §6.6)**: the lemma is false for every number of chains (last-round dimension count) |
 | machine-checked statement | none. Lemmas V, D1 (at the specialization), D2 and W are finite linear algebra |
 
-`zero_knowledge_established = false` until H is closed. Every step of the simulator argument
-for the statement `(claim, setup, heights)` is proved above.
+**`zero_knowledge_established = true` (D-4)**, scoped exactly as follows:
+* statistical ZK of the FINAL packet;
+* for `(claim, hint, setup)`, with the per-chunk setup's shape caveat of §7;
+* in the classical programmable ROM;
+* ε_ZK ≤ 2^-184.4.
+
+It is set in `RESULT.json` only for FINAL `zk = 6` with pinned heights and base `zk ≥ 1`. It is
+**not** a QROM or post-quantum claim; see §6.5. `security_established` stays `false`.

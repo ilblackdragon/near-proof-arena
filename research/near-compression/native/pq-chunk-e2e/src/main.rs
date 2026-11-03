@@ -33,6 +33,12 @@ struct Setup {
     final_vk: MultiStarkVerifyingKey<SC>,
     program: Vec<[u32; 4]>,
     level: u32,
+    /// [E2E-D obligation H, 2026-11-03] FINAL trace heights `(log_height, tight_height)` per AIR,
+    /// in vk order; V_d requires the proof's to be equal. Present exactly when the FINAL layer is
+    /// zk-masked. Absent (and not serialized) otherwise, so the bytes and pins of every pre-ZK
+    /// setup are unchanged.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    final_heights: Option<Vec<vd::PinnedHeight>>,
 }
 // Upstream skips the extended-domain factor in VK serde. Keep it explicitly.
 #[derive(Serialize, Deserialize)]
@@ -65,13 +71,14 @@ fn ef_of_words(w: [u32; 12]) -> Ef {
     assert!(w.iter().all(|&x| x < 0x7800_0001), "noncanonical extension coefficient");
     openvm_recursion_circuit::nv::builder::ef_from(w.map(p3_field::PrimeCharacteristicRing::from_u32))
 }
-/// The base proof's stacking point, recorded by its native verification on this thread.
+/// The base proof's stacking point, returned by its native verification (review-zk6 N4: no
+/// thread-local).
 fn base_point(vk: &MultiStarkVerifyingKey<SC>, p: &Proof<SC>) -> Vec<Ef> {
-    let _ = openvm_stark_backend::verifier::take_last_stacking_point::<Ef>();
-    Sha384CpuEngine::new(vk.inner.params.clone())
-        .verify(vk, p)
-        .expect("base reverify");
-    openvm_stark_backend::verifier::take_last_stacking_point::<Ef>().expect("stacking point")
+    let engine = Sha384CpuEngine::new(vk.inner.params.clone());
+    let mut t = engine.initial_transcript();
+    openvm_stark_backend::verifier::verify_with_points(engine.config(), vk, p, &mut t)
+        .expect("base reverify")
+        .u
 }
 fn hash(bytes: &[u8]) -> String {
     format!("{:x}", Sha256::digest(bytes))
@@ -274,6 +281,17 @@ fn probe(out: &Path) {
         w.len(),
         w.len().next_power_of_two().trailing_zeros()
     );
+    // [E2E-D D-4] the base commitments' stacked widths (one opening per stacked column; the
+    // QROM hiding term of `u` depends on the common-main width, ZK-ARGUMENT.md §6.5)
+    let pr = &vk.inner.params;
+    println!(
+        "BASE_STACKED widths={:?} l_skip={} n_stack={} log_blowup={} zk={}",
+        p.stacking_proof.stacking_openings.iter().map(Vec::len).collect::<Vec<_>>(),
+        pr.l_skip,
+        pr.n_stack,
+        pr.log_blowup,
+        pr.whir.levers.zk
+    );
 }
 fn chain(
     air: &str,
@@ -424,8 +442,45 @@ fn chain(
         return;
     }
     let final_started = std::time::Instant::now();
+    // [E2E-D obligation H] With a zk-masked FINAL the trace heights are setup content: taken from
+    // an existing setup (`NEARPROOF_FINAL_HEIGHTS=SETUP.json`, the fixed-setup prover) or, when
+    // this run creates the setup, the FINAL trace's natural heights. The prover pads to them: the
+    // generator to the pinned trace heights (`NvCircuit::heights`), the commitment to the pinned
+    // tight heights (`tight_floor`; the extra rows are explicit zeros). A trace that does not fit
+    // is a prover error. The unmasked FINAL is unchanged (no pin, natural heights).
+    let pinned: Option<Vec<vd::PinnedHeight>> = {
+        use openvm_stark_backend::StarkProtocolConfig;
+        let fparams = final_engine.config().params().clone();
+        fparams.whir.levers.zk_piop().then(|| match std::env::var("NEARPROOF_FINAL_HEIGHTS") {
+            Ok(path) => {
+                let s: Setup = serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
+                s.final_heights.expect("NEARPROOF_FINAL_HEIGHTS: that setup pins no heights")
+            }
+            Err(_) => {
+                let (mats, _) = fc.generate(&vk, &p);
+                let tight = fparams.whir.levers.tight_heights;
+                natural_tight_heights(&mats, fparams.l_skip)
+                    .iter()
+                    .zip(&mats)
+                    .map(|(&t, m)| (m.height().trailing_zeros() as usize, tight.then_some(t)))
+                    .collect()
+            }
+        })
+    };
+    if let Some(h) = &pinned {
+        fc.heights = Some(h.iter().map(|&(l, _)| 1usize << l).collect());
+        fc.tight_floor = Some(h.iter().map(|&(l, t)| t.unwrap_or(1 << l)).collect());
+        println!("FINAL_PINNED_HEIGHTS {h:?}");
+    }
     println!("FINAL_PHASE start");
     let (fv, fp, b, _) = prove_level(&fc, &final_engine, &vk, &p);
+    if let Some(h) = &pinned {
+        assert_eq!(
+            vd::proof_heights(&fp).as_ref(),
+            Some(h),
+            "FINAL trace does not fit the pinned heights"
+        );
+    }
     println!(
         "FINAL_PHASE proved_and_verified seconds={:.6}",
         final_started.elapsed().as_secs_f64()
@@ -440,11 +495,13 @@ fn chain(
         final_vk: fv,
         program: fw,
         level: levels + 1,
+        final_heights: pinned.clone(),
     };
     let vd = VdSetup {
         vk_final: setup.final_vk.clone(),
         program: setup.program.clone(),
         level: setup.level,
+        heights: setup.final_heights.clone(),
     };
     vd::verify_final_claim(&vd, &final_engine, &claim, &fp, false)
         .expect("final statement + pinned program");
@@ -458,6 +515,15 @@ fn chain(
     let mut bad_setup = vd.clone();
     bad_setup.program[0][0] ^= 1;
     assert!(vd::verify_final_claim(&bad_setup, &final_engine, &claim, &fp, false).is_err());
+    if let Some(h) = &vd.heights {
+        // [E2E-D obligation H] a setup pinning other heights, or none, rejects this proof
+        let mut other = vd.clone();
+        other.heights.as_mut().unwrap()[1].1 = Some(h[1].1.unwrap_or(1 << h[1].0) + 4);
+        assert!(vd::verify_final_claim(&other, &final_engine, &claim, &fp, false).is_err());
+        other.heights = None;
+        assert!(vd::verify_final_claim(&other, &final_engine, &claim, &fp, false).is_err());
+        println!("NEGATIVE_CONTROLS_OK changed_heights unpinned_heights");
+    }
     println!("NEGATIVE_CONTROLS_OK changed_tape_root changed_program");
     let setup_bytes = serde_json::to_vec(&setup).unwrap();
     let setup_size = setup_bytes.len();
@@ -480,7 +546,18 @@ fn chain(
     }
     fp.encode(&mut packet).unwrap();
     std::fs::write(out.join("FINAL.bundle"), &packet).unwrap();
-    let result = serde_json::json!({"scope":"D0a","trusted_setup_bytes":setup_size,"security_established":false,"zero_knowledge_established":false,"proof_bytes":proof_bytes,"hint_bytes":hint.len(),"bundle_bytes":packet.len(),"under_300000":packet.len()<300000,"setup_sha256":pin,"levels":levels+1,"tape_eval":tape_eval()});
+    // [E2E-D D-4] the ZK claim is made only for the configuration ZK-ARGUMENT.md §6 covers: FINAL
+    // zk = 6 with its heights pinned in the setup (obligation H), base zk >= 1 (simulatable u).
+    // Classical ROM only; QROM hiding is ZK-ARGUMENT.md §6.5. Never a security claim.
+    let zk_ok = setup.final_vk.inner.params.whir.levers.zk == 6
+        && setup.final_heights.is_some()
+        && setup.base_params.whir.levers.zk >= 1;
+    let zk_scope = if zk_ok {
+        "statistical zero knowledge of the FINAL packet for the statement (claim, hint, setup), classical programmable ROM (eps_ZK <= 2^-184.4, ZK-ARGUMENT.md 6.4); QROM: ZK-ARGUMENT.md 6.5; the per-chunk setup itself is derived from the chunk's shape (7)"
+    } else {
+        "none"
+    };
+    let result = serde_json::json!({"scope":"D0a","trusted_setup_bytes":setup_size,"security_established":false,"zero_knowledge_established":zk_ok,"zero_knowledge_scope":zk_scope,"proof_bytes":proof_bytes,"hint_bytes":hint.len(),"bundle_bytes":packet.len(),"under_300000":packet.len()<300000,"setup_sha256":pin,"levels":levels+1,"tape_eval":tape_eval()});
     std::fs::write(
         out.join("RESULT.json"),
         serde_json::to_vec_pretty(&result).unwrap(),
@@ -568,6 +645,7 @@ fn verify(air: &str, claim_path: &str, helper: &str, setup_path: &str, pin: &str
             vk_final: setup.final_vk,
             program: setup.program,
             level: setup.level,
+            heights: setup.final_heights,
         },
         &engine,
         &expected,
@@ -695,6 +773,7 @@ fn verify_bench(air: &str, public: &str, setup_path: &str, bundle: &str, reps: u
         vk_final: setup.final_vk.clone(),
         program: setup.program.clone(),
         level: setup.level,
+        heights: setup.final_heights.clone(),
     };
     for _ in 0..reps {
         tv.push(time(&mut || {
@@ -931,6 +1010,20 @@ fn main() {
         }
         Some("zk-diff") if a.len() == 4 => zk_diff(Path::new(&a[2]), Path::new(&a[3])),
         Some("zk-selftest") => zk_selftest::run(&a[2..]),
+        Some("tamper-height") if a.len() == 7 => {
+            // [E2E-D obligation H] negative-test input: the packet with AIR a[4]'s declared tight
+            // height set to a[5] (the proof re-encoded; framing, hint and base point unchanged)
+            let setup: Setup = serde_json::from_slice(&std::fs::read(&a[2]).unwrap()).unwrap();
+            let packet = std::fs::read(&a[3]).unwrap();
+            let (_, _, body) = bundle_parts(&packet, setup.version == 2, setup.base_params.n_stack);
+            let mut fp = decode_proof(&packet[body..]);
+            let air: usize = a[4].parse().unwrap();
+            fp.trace_vdata[air].as_mut().unwrap().tight_height = Some(a[5].parse().unwrap());
+            let mut out = packet[..body].to_vec();
+            fp.encode(&mut out).unwrap();
+            std::fs::write(&a[6], &out).unwrap();
+            println!("TAMPERED_HEIGHT air={air} tight={}", a[5]);
+        }
         Some("zk-layout") if a.len() == 4 => {
             // [E2E-D] stacked layout of a FINAL proof's shape under every zk packing mode
             let setup: Setup = serde_json::from_slice(&std::fs::read(&a[2]).unwrap()).unwrap();

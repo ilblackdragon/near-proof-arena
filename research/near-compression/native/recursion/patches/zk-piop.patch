@@ -1,6 +1,6 @@
 --- a/stark-backend-unified/crates/stark-backend/src/zk.rs
 +++ b/stark-backend-unified/crates/stark-backend/src/zk.rs
-@@ -0,0 +1,288 @@
+@@ -0,0 +1,293 @@
 +//! [E2E-D zk-piop] PIOP-level masking of a proof (`WhirLevers::zk >= 4`): definitions shared by
 +//! the prover and the verifier. Construction, simulator and error bounds:
 +//! `research/near-compression/e2e/ZK-ARGUMENT.md` (§4).
@@ -41,6 +41,11 @@
 +/// (`M_j = Σ_b e_b · col[start_j + b]`, `e_b` the basis of [`BasedVectorSpace`]). Appended order:
 +/// `ZK_MASK_COLS` pure pad columns, `M_2`, `M_1`, `M_s` (`config::WhirLevers::zk_shape`).
 +pub fn mask_columns_ef(width: usize, d: usize) -> (usize, usize, usize) {
++    // [review-zk6 N2] `zk_shape` sizes the 6-mode mask block (pads and `M_1`, `M_2`) with
++    // `ZK_MASK_COLS`; the layout, Lemma W (pads span EF) and Lemma D1 need it to equal
++    // `d = [EF : F]`. Every zk = 6 prover and verifier path derives its mask columns here.
++    // A configuration fact (vk/engine), not prover input: a mismatch is a build error in effect.
++    assert_eq!(d, crate::config::ZK_MASK_COLS, "zk = 6 needs [EF : F] == ZK_MASK_COLS");
 +    (width - 1, width - 1 - d, width - 1 - 2 * d)
 +}
 +
@@ -714,7 +719,7 @@
  }
 --- a/stark-backend-unified/crates/stark-backend/src/prover/stacked_pcs.rs
 +++ b/stark-backend-unified/crates/stark-backend/src/prover/stacked_pcs.rs
-@@ -503,11 +503,20 @@
+@@ -503,11 +503,24 @@
          // two 2^(h-1) slices can share a column of capacity 2^h - R (zk = 1, 2 never split).
          // The placed slices are re-sorted by size afterwards: the stacking-reduction provers group
          // trace views into contiguous same-height windows.
@@ -723,10 +728,14 @@
          let mut queue: std::collections::VecDeque<(usize, usize, StackedSlice)> = entries.into();
          let mut placed = Vec::with_capacity(queue.len());
          let mut fill: Vec<usize> = Vec::new();
-+        // [E2E-D review #1] The heights come from the proof (`verify_proof_shape`), so the loop
-+        // must terminate on every input. An honest FINAL layout takes a few thousand steps
-+        // (1,537 slices); more than the bound below is an error, never a hang.
-+        let max_steps = queue.len().saturating_mul(64).max(1 << 20);
++        // [E2E-D review #1, review-zk6 N3] The heights come from the proof (`verify_proof_shape`),
++        // so the loop must terminate on every input. Termination is by this explicit step bound,
++        // proportional to (initial entries) x (log stacked height): every step places, splits or
++        // defers one slice, and an honest layout needs O(1) splits and defers per entry (the
++        // honest FINAL layouts are well inside it: regression tests `tests/zk_layout.rs`).
++        // Exceeding the bound is `ZkLayoutNoProgress`, never a hang, and it also bounds the
++        // verifier's layout work on adversarial heights (review #3).
++        let max_steps = queue.len().max(1).saturating_mul(4 * (log_stacked_height + 1));
 +        let mut steps = 0usize;
          while let Some((m, j, mut s)) = queue.pop_front() {
 +            steps += 1;
@@ -736,7 +745,7 @@
              let len = s.len(l_skip);
              let c = match fill.iter().position(|&f| f + len <= cap) {
                  Some(c) => c,
-@@ -516,10 +525,27 @@
+@@ -516,10 +529,27 @@
                      if can_split && (len > cap || fill.iter().any(|&f| f + len / 2 <= cap)) {
                          let (e, off, cl) = (s.log_height - 1, s.src_row, s.col_log_height());
                          let mk = |o| StackedSlice { col_idx: 0, row_idx: 0, log_height: e, src_row: o, col_log_height: cl };
@@ -764,7 +773,7 @@
                      if len > cap {
                          return Err(StackedPcsError::LayoutHeightExceeded { log_height: s.log_height, log_stacked_height });
                      }
-@@ -527,7 +553,7 @@
+@@ -527,7 +557,7 @@
                      fill.len() - 1
                  }
              };
@@ -922,16 +931,52 @@
  }
  
  pub mod batch_constraints;
-@@ -91,6 +95,21 @@
- where
-     SC::EF: p3_field::TwoAdicField,
- {
-+    verify_with_point(config, mvk, proof, transcript).map(|_| ())
-+}
-+
+@@ -59,35 +63,50 @@
+ mod transcript_extractor;
+ pub mod whir;
+ 
+-thread_local! {
+-    /// [e2e tape-eval] The stacking point `u_prism` of the last proof verified on this thread
+-    /// (a `Vec<SC::EF>`). Observation only: verification never reads it.
+-    pub static LAST_STACKING_POINT: core::cell::RefCell<Option<Box<dyn core::any::Any>>> =
+-        const { core::cell::RefCell::new(None) };
+-}
+-
+-thread_local! {
+-    /// [e2e verify] The batch (zerocheck) point `r` of the last proof verified on this thread.
+-    pub static LAST_ZEROCHECK_POINT: core::cell::RefCell<Option<Box<dyn core::any::Any>>> =
+-        const { core::cell::RefCell::new(None) };
++/// [E2E-D review #6, review-zk6 N4] The points a verification derived for its proof, returned by
++/// [`verify_with_points`]: the batch (zerocheck) point `r` (V_d's program check opens at it) and
++/// the stacking point `u_prism` (the tape-eval statement binds the base's cached openings at it).
++/// The former thread-locals `LAST_ZEROCHECK_POINT` / `LAST_STACKING_POINT` are removed: a
++/// verification on another thread could not hand them over.
++#[derive(Clone, Debug)]
++pub struct VerifiedPoints<EF> {
++    pub r: Vec<EF>,
++    pub u: Vec<EF>,
+ }
+ 
+-/// [e2e verify] Take the batch point recorded by the last `verify` on this thread.
+-pub fn take_last_zerocheck_point<EF: 'static + Clone>() -> Option<Vec<EF>> {
+-    LAST_ZEROCHECK_POINT.with(|c| c.borrow_mut().take()).and_then(|b| b.downcast::<Vec<EF>>().ok().map(|v| *v))
++pub fn verify<SC: StarkProtocolConfig, TS: FiatShamirTranscript<SC>>(
++    config: &SC,
++    mvk: &MultiStarkVerifyingKey<SC>,
++    proof: &Proof<SC>,
++    transcript: &mut TS,
++) -> Result<(), VerifierError<SC::EF>>
++where
++    SC::EF: p3_field::TwoAdicField,
++{
++    verify_with_points(config, mvk, proof, transcript).map(|_| ())
+ }
+ 
+-/// [e2e tape-eval] Take the stacking point recorded by the last `verify` on this thread.
+-pub fn take_last_stacking_point<EF: 'static + Clone>() -> Option<Vec<EF>> {
+-    LAST_STACKING_POINT.with(|c| c.borrow_mut().take()).and_then(|b| b.downcast::<Vec<EF>>().ok().map(|v| *v))
 +/// [`verify`], returning the batch (zerocheck) point `r` it derived for this proof. [E2E-D review
-+/// #6] callers that check openings at `r` (V_d's program check) take it from here, not from the
-+/// thread-local `LAST_ZEROCHECK_POINT` (still recorded, for observation only).
++/// #6] callers that check openings at `r` (V_d's program check) take it from here.
 +pub fn verify_with_point<SC: StarkProtocolConfig, TS: FiatShamirTranscript<SC>>(
 +    config: &SC,
 +    mvk: &MultiStarkVerifyingKey<SC>,
@@ -941,9 +986,21 @@
 +where
 +    SC::EF: p3_field::TwoAdicField,
 +{
-     if config.params() != &mvk.inner.params {
-         return Err(VerifierError::SystemParamsMismatch);
-     }
++    verify_with_points(config, mvk, proof, transcript).map(|p| p.r)
+ }
+ 
+-pub fn verify<SC: StarkProtocolConfig, TS: FiatShamirTranscript<SC>>(
++/// [`verify`], returning both points it derived for this proof ([`VerifiedPoints`]).
++pub fn verify_with_points<SC: StarkProtocolConfig, TS: FiatShamirTranscript<SC>>(
+     config: &SC,
+     mvk: &MultiStarkVerifyingKey<SC>,
+     proof: &Proof<SC>,
+     transcript: &mut TS,
+-) -> Result<(), VerifierError<SC::EF>>
++) -> Result<VerifiedPoints<SC::EF>, VerifierError<SC::EF>>
+ where
+     SC::EF: p3_field::TwoAdicField,
+ {
 @@ -125,7 +144,14 @@
          return Err(VerifierError::EmptyTraces);
      }
@@ -959,7 +1016,7 @@
  
      let mut trace_id_to_air_id: Vec<usize> = (0..num_airs).collect();
      trace_id_to_air_id.sort_by_key(|&air_id| {
-@@ -200,19 +226,52 @@
+@@ -200,19 +226,51 @@
          .iter()
          .map(|&air_id| trace_vdata[air_id].as_ref().unwrap().log_height as isize - l_skip as isize)
          .collect();
@@ -1016,13 +1073,14 @@
 +        (r, None)
 +    };
  
-     // [e2e verify] record the batch point r for callers that check openings at it.
-     LAST_ZEROCHECK_POINT.with(|c| *c.borrow_mut() = Some(Box::new(r.clone())));
+-    // [e2e verify] record the batch point r for callers that check openings at it.
+-    LAST_ZEROCHECK_POINT.with(|c| *c.borrow_mut() = Some(Box::new(r.clone())));
++    // [e2e verify] the batch point r, returned for callers that check openings at it
 +    let r_point = r.clone();
      // Per commit, per matrix, per column: rotated opening present (opening masks).
      let masks_per_trace = trace_id_to_air_id
          .iter()
-@@ -236,7 +295,8 @@
+@@ -236,7 +294,8 @@
          }
      }
  
@@ -1032,7 +1090,7 @@
          transcript,
          stacking_proof,
          &layouts,
-@@ -246,7 +306,9 @@
+@@ -246,10 +305,12 @@
          &proof.batch_constraint_proof.column_openings,
          &r,
          &omega_skip_pows,
@@ -1040,9 +1098,14 @@
      )?;
 +    let u_prism = stacked_out.u;
  
-     // [e2e tape-eval] record the stacking point for callers that bind cached openings at it.
-     LAST_STACKING_POINT.with(|c| *c.borrow_mut() = Some(Box::new(u_prism.clone())));
-@@ -265,14 +327,25 @@
+-    // [e2e tape-eval] record the stacking point for callers that bind cached openings at it.
+-    LAST_STACKING_POINT.with(|c| *c.borrow_mut() = Some(Box::new(u_prism.clone())));
++    // [e2e tape-eval] the stacking point, returned for callers that bind cached openings at it
++    let u_point = u_prism.clone();
+     let (&u0, u_rest) = u_prism.split_first().unwrap();
+     let u_cube = u0
+         .exp_powers_of_2()
+@@ -265,14 +326,25 @@
          commits.extend(&trace_vdata[air_id].as_ref().unwrap().cached_commitments);
      }
  
@@ -1070,7 +1133,7 @@
 +    whir_res?;
  
 -    Ok(())
-+    Ok(r_point)
++    Ok(VerifiedPoints { r: r_point, u: u_point })
  }
 --- a/stark-backend-unified/crates/stark-backend/src/verifier/proof_shape.rs
 +++ b/stark-backend-unified/crates/stark-backend/src/verifier/proof_shape.rs
@@ -2213,6 +2276,141 @@
 +        5,
 +    );
 +    assert!(matches!(r, Some(Ok(_)) | Some(Err(_))) && r != Some(Err("PANIC".into())), "{r:?}");
++}
+--- a/stark-backend-unified/crates/stark-backend/tests/zk_layout_fuzz.rs
++++ b/stark-backend-unified/crates/stark-backend/tests/zk_layout_fuzz.rs
+@@ -0,0 +1,132 @@
++// [review-zk6, adopted by E2E-D in D-4] fuzz StackedLayout::new_tight_zk with prover-chosen
++// heights (proof-shape rules: 0 < h <= 2^lh, h % 4 == 0, lh <= 21). Reports panics, timeouts,
++// Errs, worst time / slices; fails on any panic or timeout (an Err is an allowed rejection).
++use openvm_stark_backend::prover::stacked_pcs::StackedLayout;
++use std::time::{Duration, Instant};
++
++type Meta = Vec<(usize, usize, Option<usize>)>;
++
++fn run(meta: Meta, zk: u8) -> (Option<Result<(usize, usize), String>>, Duration) {
++    let (tx, rx) = std::sync::mpsc::channel();
++    let t = Instant::now();
++    std::thread::spawn(move || {
++        let r = std::panic::catch_unwind(|| {
++            StackedLayout::new_tight_zk(2, 21, meta, zk)
++                .map(|l| (l.width(), l.sorted_cols.len()))
++                .map_err(|e| format!("{e:?}"))
++        });
++        let _ = tx.send(r.unwrap_or_else(|p| {
++            let s = p.downcast_ref::<String>().cloned().or(p.downcast_ref::<&str>().map(|s| s.to_string()));
++            Err(format!("PANIC {s:?}"))
++        }));
++    });
++    let r = rx.recv_timeout(Duration::from_secs(30)).ok();
++    (r, t.elapsed())
++}
++
++struct Rng(u64);
++impl Rng {
++    fn next(&mut self) -> u64 {
++        self.0 ^= self.0 << 13;
++        self.0 ^= self.0 >> 7;
++        self.0 ^= self.0 << 17;
++        self.0
++    }
++    fn below(&mut self, n: u64) -> u64 {
++        self.next() % n
++    }
++}
++
++fn rand_height(rng: &mut Rng, lh: usize) -> usize {
++    let full = 1usize << lh;
++    let h = match rng.below(8) {
++        0 => full,
++        1 => full - 4,
++        2 => full - 4 - 256,
++        3 if lh > 2 => (full - 4) & !(1 << (2 + rng.below((lh - 2) as u64) as usize)),
++        4 => (full >> 1) + (full >> 2) + 4,
++        5 => full - 4 * (1 + rng.below(128) as usize),
++        6 => ((rng.below(((full >> 2).max(1)) as u64) as usize) + 1) << 2,
++        _ => full >> 1,
++    };
++    h.clamp(4, full.max(4)) / 4 * 4
++}
++
++#[test]
++fn review6_fuzz() {
++    let iters: usize = std::env::var("FUZZ_ITERS").ok().and_then(|s| s.parse().ok()).unwrap_or(300);
++    let widths_sets: Vec<Vec<usize>> = vec![vec![83, 76, 9, 5], vec![1, 1], vec![200, 3], vec![2, 2, 2, 2, 2, 2]];
++    let mut rng = Rng(0x9e3779b97f4a7c15);
++    for zk in [1u8, 2, 3, 4, 5, 6] {
++        let (mut worst_t, mut worst_meta, mut worst_res) = (Duration::ZERO, vec![], None);
++        let (mut panics, mut timeouts, mut errs, mut oks, mut max_slices) = (0, 0, 0, 0, 0);
++        for it in 0..iters {
++            let widths = &widths_sets[it % widths_sets.len()];
++            let mut meta: Meta = widths
++                .iter()
++                .map(|&w| {
++                    let lh = [19usize, 20, 21, 21, 21, 2, 3, 10][rng.below(8) as usize];
++                    (w, lh, Some(rand_height(&mut rng, lh)))
++                })
++                .collect();
++            meta.sort_by_key(|m| std::cmp::Reverse(m.1));
++            let (r, t) = run(meta.clone(), zk);
++            match &r {
++                None => {
++                    timeouts += 1;
++                    println!("zk={zk} TIMEOUT {meta:?}");
++                }
++                Some(Err(e)) if e.starts_with("PANIC") => {
++                    panics += 1;
++                    println!("zk={zk} {e} {meta:?}");
++                }
++                Some(Err(_)) => errs += 1,
++                Some(Ok((_, s))) => {
++                    oks += 1;
++                    max_slices = max_slices.max(*s);
++                }
++            }
++            if t > worst_t {
++                worst_t = t;
++                worst_meta = meta;
++                worst_res = r;
++            }
++        }
++        println!(
++            "zk={zk}: ok={oks} err={errs} panic={panics} timeout={timeouts} max_slices={max_slices} worst={worst_t:?} {worst_res:?} {worst_meta:?}"
++        );
++        assert_eq!((panics, timeouts), (0, 0), "zk={zk}: layout panicked or did not terminate");
++    }
++}
++
++/// `run`, failing on a panic or a timeout.
++fn chk(meta: Meta, zk: u8) -> (Option<Result<(usize, usize), String>>, Duration) {
++    let (r, t) = run(meta, zk);
++    match &r {
++        None => panic!("zk={zk}: layout timeout"),
++        Some(Err(e)) if e.starts_with("PANIC") => panic!("zk={zk}: {e}"),
++        _ => {}
++    }
++    (r, t)
++}
++
++#[test]
++fn review6_prior_reproducers() {
++    let run = chk;
++    let honest: Meta = vec![(83, 21, Some(1056768)), (76, 20, Some(284408)), (9, 7, Some(128)), (5, 4, Some(16))];
++    for zk in [1u8, 2, 3, 4, 5, 6] {
++        println!("zk={zk} honest      : {:?}", run(honest.clone(), zk));
++        let mut m = honest.clone();
++        m[0].2 = Some(1 << 21);
++        println!("zk={zk} tight=2^21  : {:?}", run(m, zk));
++        println!("zk={zk} single full : {:?}", run(vec![(83, 21, Some(1 << 21))], zk));
++        println!(
++            "zk={zk} worst#3     : {:?}",
++            run(vec![(76, 21, Some(2097148)), (83, 21, Some(2097148)), (5, 21, Some(2096892)), (9, 20, Some(1048316))], zk)
++        );
++        // many full-height chunks
++        println!("zk={zk} 4x full     : {:?}", run(vec![(83, 21, Some(1 << 21)), (76, 21, Some(1 << 21)), (9, 21, Some(1 << 21)), (5, 21, Some(1 << 21))], zk));
++        // no-tight path
++        println!("zk={zk} no tight    : {:?}", run(vec![(83, 21, None), (76, 20, None)], zk));
++    }
 +}
 --- a/stark-backend-unified/crates/cpu-backend/src/device.rs
 +++ b/stark-backend-unified/crates/cpu-backend/src/device.rs
@@ -3595,7 +3793,61 @@
  /// Split an NvAir trace into (common main without P0..P3, the program part P0..P3).
 --- a/openvm-sha384/crates/recursion/src/nv/vd.rs
 +++ b/openvm-sha384/crates/recursion/src/nv/vd.rs
-@@ -71,6 +71,11 @@
+@@ -16,12 +16,52 @@
+ 
+ pub type SC = Sha384Config;
+ 
+-/// What V_d pins: the final vk (final domain), the NV program (its words) and the final level.
++/// [E2E-D obligation H] One AIR's FINAL trace height as the setup pins it: `(log_height,
++/// tight_height)`, exactly as `TraceVData` carries them.
++pub type PinnedHeight = (usize, Option<usize>);
++
++/// What V_d pins: the final vk (final domain), the NV program (its words), the final level and
++/// (obligation H) the FINAL trace heights.
+ #[derive(Clone)]
+ pub struct VdSetup {
+     pub vk_final: MultiStarkVerifyingKey<SC>,
+     pub program: Vec<[u32; 4]>,
+     pub level: u32,
++    /// [E2E-D obligation H] the FINAL proof's per-AIR heights, in vk AIR order. Required when the
++    /// final vk is zk-masked (`zk_piop`): the heights are then a function of the setup, not of
++    /// the witness. V_d checks them before any other work on the proof, which also removes the
++    /// layout-amplification surface (review #3). `None` is accepted only for an unmasked final
++    /// vk (the pre-ZK setups, whose pinned bytes are unchanged).
++    pub heights: Option<Vec<PinnedHeight>>,
++}
++
++/// The heights a proof declares, in the form the setup pins (`None` if an AIR is absent).
++pub fn proof_heights(proof: &Proof<SC>) -> Option<Vec<PinnedHeight>> {
++    proof.trace_vdata.iter().map(|td| td.as_ref().map(|t| (t.log_height, t.tight_height))).collect()
++}
++
++/// [E2E-D obligation H] The proof's declared heights equal the setup's, AIR by AIR, with every
++/// AIR present. A zk-masked final vk without pinned heights is rejected.
++pub fn check_pinned_heights(setup: &VdSetup, proof: &Proof<SC>) -> Result<(), String> {
++    let Some(pinned) = &setup.heights else {
++        if setup.vk_final.inner.params.whir.levers.zk_piop() {
++            return Err("zk-masked final vk: the setup must pin the FINAL trace heights".into());
++        }
++        return Ok(());
++    };
++    if pinned.len() != setup.vk_final.inner.per_air.len() || proof.trace_vdata.len() != pinned.len() {
++        return Err("pinned heights: AIR count".into());
++    }
++    for (a, (td, &(log, tight))) in proof.trace_vdata.iter().zip(pinned).enumerate() {
++        let td = td.as_ref().ok_or_else(|| format!("AIR {a}: absent, the setup pins its height"))?;
++        if td.log_height != log || td.tight_height != tight {
++            return Err(format!(
++                "AIR {a}: height ({}, {:?}) differs from the pinned ({log}, {tight:?})",
++                td.log_height, td.tight_height
++            ));
++        }
++    }
++    Ok(())
+ }
+ 
+ fn eq_uni(l_skip: usize, x: EF, y: EF) -> EF {
+@@ -71,6 +111,11 @@
          let open = openvm_stark_backend::proof::column_openings_by_mask(&proof.batch_constraint_proof.column_openings[ti][0], &mask);
          return Ok((r, n as usize, open));
      }
@@ -3607,7 +3859,7 @@
      let mut t = ShaTranscript::new_layer(true);
      t.observe_commit(vk.pre_hash);
      t.observe_commit(proof.common_main_commit);
-@@ -184,10 +189,15 @@
+@@ -184,10 +229,18 @@
  /// chain only carries a root the base proof actually committed to, so this is what turns "the
  /// base proof verified" into "the base proof verified *for this TAPE table*".
  pub fn verify_final_claim(setup: &VdSetup, engine_final: &Sha384CpuEngine, claim: &super::circuit::StatementClaim, proof: &Proof<SC>, skip_program: bool) -> Result<(), String> {
@@ -3615,6 +3867,9 @@
 -    engine_final.verify(&setup.vk_final, proof).map_err(|e| format!("final proof: {e:?}"))?;
 -    // the batch point the verification above derived for this proof (same thread, just now)
 -    let r_known = openvm_stark_backend::verifier::take_last_zerocheck_point::<EF>();
++    // [E2E-D obligation H] heights first: they are public input pinned by the setup. A proof
++    // whose shape is not the pinned one is rejected before the layout or any other verifier work.
++    check_pinned_heights(setup, proof)?;
 +    // [E2E-D review #6] the batch point the verification derived for this proof, returned by
 +    // `verify_with_point` (no thread-local)
 +    let r_known = {
@@ -3627,6 +3882,48 @@
      let pvs = &proof.public_values[0];
      if pvs.len() != super::uair::NV_NUM_PVS {
          return Err("final public values".into());
+--- a/openvm-sha384/crates/recursion/src/nv/tests.rs
++++ b/openvm-sha384/crates/recursion/src/nv/tests.rs
+@@ -553,7 +553,7 @@
+         }
+     }
+     assert_eq!(words_f, last_words, "FINAL runs the same (fixed-point) program as its child");
+-    let setup = super::vd::VdSetup { vk_final: vkf, program: words_f, level: levels as u32 + 1 };
++    let setup = super::vd::VdSetup { vk_final: vkf, program: words_f, level: levels as u32 + 1, heights: None };
+     super::vd::verify_final(&setup, &fe, &p0.public_values, &pf, false).expect("V_d (pinned program) accepts the final proof");
+     println!("NV_VD final accepted: level {}, pinned program {} rows", setup.level, setup.program.len());
+ }
+@@ -1399,7 +1399,7 @@
+     assert_eq!(bf.instrs, b2.instrs, "FINAL runs the uniform NV program (bound to L2's)");
+     assert!(pf.trace_vdata[0].as_ref().unwrap().cached_commitments.is_empty(), "FINAL has one commitment");
+     let program: Vec<[u32; 4]> = bf.instrs.iter().map(|i| i.words()).collect();
+-    let setup = VdSetup { vk_final: vkf.clone(), program, level: 3 };
++    let setup = VdSetup { vk_final: vkf.clone(), program, level: 3, heights: None };
+     verify_final(&setup, &engine_final, &p0.public_values, &pf, false).expect("V_d accepts the honest chain");
+     println!("NV_VD honest final accepted ({} program rows)", setup.program.len());
+     let mut other = p0.public_values.clone();
+@@ -1561,10 +1561,10 @@
+     );
+ 
+     // 5. V_d: the same check against the pinned final vk
+-    let setup_bad = super::vd::VdSetup { vk_final: vk_bad.clone(), program: vec![], level: 1 };
++    let setup_bad = super::vd::VdSetup { vk_final: vk_bad.clone(), program: vec![], level: 1, heights: None };
+     let e = super::vd::check_height_caps(&setup_bad.vk_final, &proof_bad).expect_err("V_d accepted a height above maxLog");
+     assert!(e.contains("exceeds its maxLog"), "{e}");
+-    let setup_ok = super::vd::VdSetup { vk_final: vk_ok.clone(), program: vec![], level: 1 };
++    let setup_ok = super::vd::VdSetup { vk_final: vk_ok.clone(), program: vec![], level: 1, heights: None };
+     super::vd::check_height_caps(&setup_ok.vk_final, &proof_ok).expect("V_d accepts a height at the cap");
+     println!("NV_HEIGHT_CAP V_d rejected: {e}");
+ 
+@@ -1669,7 +1669,7 @@
+     let (vkf, pf, bf, _) = super::circuit::prove_level(&circf, &engine_final, &vk2, &p2);
+     assert_eq!(bf.statement, Some(d_p4), "FINAL exposes the same statement");
+     let program: Vec<[u32; 4]> = bf.instrs.iter().map(|i| i.words()).collect();
+-    let setup = VdSetup { vk_final: vkf, program, level: 3 };
++    let setup = VdSetup { vk_final: vkf, program, level: 3, heights: None };
+     verify_final_claim(&setup, &engine_final, &claim, &pf, false).expect("V_d accepts the chain with the TAPE root");
+     check_final_program(&setup, &pf).expect("pinned program");
+     println!("NV_TAPE V_d accepted the chain with the TAPE root in the statement");
 --- a/openvm-sha384/crates/recursion/src/nv/circuit.rs
 +++ b/openvm-sha384/crates/recursion/src/nv/circuit.rs
 @@ -168,6 +168,13 @@

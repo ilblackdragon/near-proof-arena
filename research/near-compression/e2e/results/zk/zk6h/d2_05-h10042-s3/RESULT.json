@@ -1,0 +1,14 @@
+{
+  "bundle_bytes": 325247,
+  "hint_bytes": 16,
+  "levels": 5,
+  "proof_bytes": 324299,
+  "scope": "D0a",
+  "security_established": false,
+  "setup_sha256": "4cf87f9f221addd8a0b0e1bd46ca85522db5990fdba32c0d4c1e09b63c71ff6d",
+  "tape_eval": true,
+  "trusted_setup_bytes": 3870568,
+  "under_300000": false,
+  "zero_knowledge_established": true,
+  "zero_knowledge_scope": "statistical zero knowledge of the FINAL packet for the statement (claim, hint, setup), classical programmable ROM (eps_ZK <= 2^-184.4, ZK-ARGUMENT.md 6.4); QROM: ZK-ARGUMENT.md 6.5; the per-chunk setup itself is derived from the chunk's shape (7)"
+}

@@ -701,11 +701,54 @@ mutants rejected) is met. The gas equality holds outside the proof (the tape) un
 `lake build WasmBase` breakage reported on 2026-10-31 was fixed on main (`6a1739cd7`), and the build
 is green with the new files.
 
-### 5.0 Lane D (ZK wrap for M9): status, 2026-11-03 (milestone D-3)
+### 5.0 Lane D (ZK wrap for M9): status, 2026-11-03 (milestone D-4)
 
-See `research/near-compression/e2e/README.md` §0 (§0a for D-2) and
+See `research/near-compression/e2e/README.md` §0 (§0a for D-3, §0b for D-2) and
 `research/near-compression/e2e/ZK-ARGUMENT.md`. The log is
 `docs/logs/e2e-zk-lane-d-2026-11-03.md`.
+
+**Done (D-4):**
+* **Obligation H is closed** (the owner decision was adopted).
+  * The setup pins the FINAL heights (`Setup::final_heights`).
+  * V_d checks equality before any other work, and rejects a zk vk with no pinned heights.
+  * The prover pads to the pinned heights.
+  * Setups without ZK are byte-identical.
+* **Re-run on the 3 D0a chunks.**
+  * Packets: 325,709 / 323,958 / 325,247 B.
+  * Verify: 38.8–54.4 ms on one core.
+  * Negatives: 26/26 per chunk, including 4 height negatives (each must hit the pinned-height
+    check) and a re-pinned control.
+  * Distinguisher: 0/287 for both witnesses.
+  * A fixed-setup second proof gives a byte-identical setup.
+* **`zero_knowledge_established = true`**, scoped to:
+  * statistical ZK, classical programmable ROM, ε_ZK ≤ 2^-184.4;
+  * the statement (claim, hint, setup), relative to the per-chunk setup's shape class.
+
+  It is not a QROM claim.
+* **Q (QROM) is partly closed.**
+  * FINAL part: 2^-121.0, via AHU19 O2H Thm 3 and GHHM21 Thm 1, both checked against the
+    papers.
+  * The base point `u` is open: the D0a base commits only 2–4 columns.
+  * Two closures, both owner decisions: base `zk = 2` (2^-103) or a base salt (about 2^-120).
+    Neither reaches 128 bits.
+* **Size option:** one EF stacking mask column is proved impossible for any number of τ chains.
+  Not built.
+* **Review-zk6 N1–N4 folded in.**
+  * N1: joint-list text, minus 3 bits on PIOP terms (minimum 318.9); the floor is unchanged.
+  * N2: mask-count assert.
+  * N3: layout step bound.
+  * N4: no thread-locals.
+  * The fuzzer is adopted.
+* **M9 wrap interface:** §5.0.1 below.
+
+**Open (D-4):**
+* **Owner decision on `u` in the QROM:** base `zk = 2` or a base salt. Either needs a chain
+  re-run. Check: `R` (FS jobs) is estimated at ≤ 2^12, not yet counted.
+* A shape-independent setup for the general wrap (§5.0.1, blockers 2 and 6).
+* An independent review of D-4: §6.5 QROM composition, `check_pinned_heights`, the padding
+  path.
+
+#### D-3 status (superseded by D-4 above)
 
 **Done (D-3):**
 * **`zk = 6` built** (FINAL, `NEARPROOF_ZK_FINAL=6`).
@@ -775,6 +818,173 @@ The log is `docs/logs/e2e-zk-lane-d-2026-11-03.md`.
   individual stacked opening is sent, and use an EF-valued stacking mask. It would also save
   about 5 KB.
 * An independent review of the masked verifier is still needed.
+
+#### 5.0.1 M9 wrap interface (lane D draft, 2026-11-03)
+
+This section defines what the M9 wrap consumes from M8 (the heterogeneous 8-ary aggregation)
+and what it requires of the lanes below it. Tags used:
+* **[main]**: on main.
+* **[patch]**: on main only as a patch file, not rebased onto the current recursion tree.
+* **[D-4]**: lane D milestone D-4 (this branch).
+* **[plan]**: not built.
+
+**Reference point: the D0a chain [main].** It is
+`base (zk=1) → L1..L4 NV (zk=0) → FINAL (zk=6, final domain)`. V_d (`nv/vd.rs::verify_final_claim`)
+checks five things:
+* the pinned `vk_final`;
+* `pvs[0] == level`;
+* `check_height_caps`;
+* the FINAL program columns against the pinned program (`check_final_program_at`, at the batch
+  point from `verify_with_point`);
+* `pvs[1..19] == digest_cells(StatementClaim::digest())`.
+
+`StatementClaim::digest()` is the tag-8 SHA-384 of the base proof's public values. Cached roots
+are folded in by `node`, or, with tape-eval, `node(G1, tape_eval_digest(u, openings))`.
+
+The packet is `hint ‖ u ‖ FINAL`. The setup (`main.rs::Setup`) is
+`{air_sha256, base_params, final_vk, program, level}`. D-4 adds `final_heights` [D-4].
+
+**The setup is per chunk today.** The NV program is straight-line and specialised to the
+child's vk and committed heights. The three D0a chunks have three setups (program lengths
+142,654 / 143,132 / 144,468; ZK-ARGUMENT §7; README §7 item 3).
+
+##### 1. What the wrap consumes
+
+**(a) One proof: the root node `π_root`.** It is an NV proof over the node AIR set (NvAir, SHA
+compress, table, byte). Its public values are `[level, D]`.
+
+The [patch] statement is `RangeStmt` (`openvm-recursion-agg.patch`, `nv/agg.rs`):
+
+```
+D = SHA-384(tag 9 = TAG_RANGE, [n_ctx, n_state, ctx.., a, e, s_a.., s_e..])
+```
+
+with:
+* `ctx` = `claimDigest` (identical in every child; the node asserts it);
+* `[a, e)` = the segment index range;
+* `s_a` = `B_0`, `s_e` = `B_N`.
+
+A node takes its children's preimages as witness, hashes them in-circuit, and asserts:
+* `ctx_i = ctx_0`;
+* `a_{i+1} = e_i`;
+* `s_a(i+1) = s_e(i)`.
+
+The Lean counterpart is `nodeOK_agg` / `Stmt.compose` (`ZkFormal/PQ/E2EAgg.lean`).
+
+**(b) The wrap program [plan]. Its wrap-specific asserts are all in-circuit.** It is one NV
+program, run under the final domain (`ShaTranscript::new_layer(true)`, `Sha384CpuEngine::new_final`).
+It does the following:
+1. Verifies `π_root` (`build_verifier`, `child_nv`).
+2. Binds the root's program: its cached program root equals a pinned constant `C_node` (see 1d).
+3. Witnesses the root preimage `(ctx, a, e, B_0, B_N)`, hashes it with tag 9, and compares the
+   result with the root's `D` (as `ChildKind::Node` does).
+4. Asserts `a = 0`. `e = N` stays a witness and is never exposed.
+5. Asserts **Init**: `B_0.phase = init`, position, clock and accumulators zero, and
+   `B_0.claimDigest = ctx`. The witness-commitment part of `B_0` stays free. Lean `InitOK` has
+   `secB` and `w` existential, so only the public-derived fields are checked.
+6. Asserts **done**: `B_N.phase = done`.
+7. Asserts **FinalOut**, in one of two ways:
+   * **(i) in the wrap:** witness the public-statement bytes `S` (`chunk_inner` + section C +
+     `epoch_id`/`protocol_version`/`chain_id`, decision D-2), check `SHA-384(S) = ctx`, and
+     compare the header fields with `FinalOut(B_N)`.
+   * **(ii) in the `FINAL` template (lane B, M5d):** the template takes `S` as a witness hashed
+     to `B.claimDigest` and checks `headerOk`, so `phase = done` already implies FinalOut.
+
+   **Recommendation: (ii).** It keeps the wrap template-agnostic and the same size as the D0a
+   FINAL, and it matches lane E's `cm_done_header` / `FinalOutPub`.
+8. Exposes `[LEVEL_WRAP, D_wrap]`, with `LEVEL_WRAP` a setup constant and `D_wrap` the
+   `claimDigest` under a wrap-only tag (domain-separated from tags 8 and 9). The root's own level
+   is **not** re-exposed, because it would reveal the tree depth.
+
+Nothing else leaves the tree. `B_0`, `B_N`, `N`, the per-segment boundaries and every segment or
+node FS value stay witness. This matches plan §3.4 ("No boundary leaves the tree") and lane E's
+`aggWrapV`. **Verified:** no field of §3.2 `B` is needed natively once FinalOut is in-circuit.
+
+**(c) Native V_d [plan], a variant of today's.** The pinned vk, `LEVEL_WRAP`, the pinned heights
+(D-4 equality), the pinned wrap program (public program columns), and
+`pvs[1..19] == digest_cells(H(tag_wrap, SHA-384(S)))`. V_d computes this from the public
+statement alone:
+* no hint, no `prepD*`, no `statepublic` over private data (D-2);
+* no `u`, no `base_params`, no `air_sha256` of a base AIR.
+
+The packet is `S ‖ FINAL`.
+
+**(d) The setup must pin one setup for all chunks:**
+* `vk_wrap`, `program_wrap`, `LEVEL_WRAP`, `heights_wrap` (D-4 form);
+* the constants embedded in those programs, for audit only (V_d does not read them):
+  * per template `t`: `(vk_t, fixed per-AIR log and tight heights_t, C_t)`;
+  * the node vk and pinned node heights;
+  * `C_node`;
+  * `d_min` and arity 8.
+
+`program_wrap` is a function only of the root's vk, its heights, and `C_node`. So a single wrap
+setup exists **iff every possible root has the same vk, the same committed heights, and the same
+program commitment, independent of N and of the template mix.** Today that holds for none of the
+three. The requirements:
+
+* **Leaf heterogeneity.** A level-1 node's program unrolls each child's vk and heights, so a node
+  over 8 mixed templates has up to `T^8` programs. Two options:
+  * **(A) per-template normaliser [plan].** A one-child NV over each template leaf, with program
+    `P_t` and the template's vk as a constant. It maps the template's raw public values (lane A's
+    `wasmBaseSegAirMP` has 108, M5a's are different) into a canonical tag-9 `RangeStmt`. Every
+    normaliser proof shares the NV vk and pinned heights. Level-1 nodes check that the child
+    program root is in `{C_t}`, using a pinned constant set and a witness selector. This costs one
+    extra NV proof per segment.
+  * **(B) one universal leaf verifier with the vk as witness.** It does not exist. The NV builder
+    is straight-line per vk.
+* **Fixed template shape.** Each template's per-AIR heights (log and tight) must be fixed, by
+  padding to `heights_t`, or `P_t` varies per segment. The D0a chain needed `tight_floor` for the
+  same reason. Lane A's segments are about 2^20 rows each, but the per-table heights are not
+  pinned.
+* **Node uniformity (program self-reference).** NV binds a child's program either to a constant
+  of an earlier program (anchor `(M, C_M)`) or to its own program (BIND). So a fixpoint program
+  `P*` across levels needs uniform children:
+  * one arity, 8, at every node;
+  * `d ≥ d_min` so that the root is a converged level (`> M`);
+  * node heights pinned (`tight_floor`, as in D0a).
+
+  The D0a chain's levels have byte-identical vks, and the program converges by about L4 (agg-tail
+  log: only L4 and L5 are admissible children of FINAL). Mixed arities would need a set of node
+  programs that refer to each other, which is circular unless the program commitment is moved
+  into the statement (a design change, lane D).
+* **Measured caveat [patch].** Two sibling production depth-2 nodes over different leaves had
+  different program lengths (232,318 vs 232,702 rows; `docs/logs/pq-agg-depth2-legal-2026-10-24.md`
+  §5.5). The log attributes it to the different leaves each node covers; the mechanism (most likely the children's committed heights) was not isolated. It must be removed before BIND across siblings can be relied
+  on.
+
+##### 2. ZK requirements on the lower layers
+
+| item | requirement | status |
+|---|---|---|
+| masking | only the wrap is masked (`zk = 6`). Every leaf, normaliser and node is `zk = 0`. The NV generator asserts unmasked children (review #7), and ZK at an inner level is impossible because the parent recomputes the RO in-circuit (ZK-ARGUMENT §1) | [main] for the chain; the same holds for the tree |
+| transcript domains | leaves and nodes use the non-final domain. The wrap alone uses `new_layer(true)`, so programming the RO at the wrap's points stays consistent with every in-circuit evaluation. Node children each start a fresh transcript (`restart_transcript`) | [patch] for nodes |
+| PCS hiding at segments (`zk = 1` analogue) | **not needed** if no FS-derived segment value leaves the tree. D0a needs it only because `u` is in the packet (tape-eval). In the general design, `u` (if any template keeps a tape-eval cached table) and the cached roots stay inside the node and normaliser statements. **Condition:** no `StatementClaim::tape_point` or cached root may reach V_d | holds by the design of 1(b); must be kept |
+| private "public tapes" | lane A's HOSTO host tape (until M6) and M5a's `WRITE`/`TCH` public tape are segment public values today. In the tree they are hidden by the wrap, but they must not be needed natively. M6 and M5b bind them in-circuit. The cached CODE/FUNC roots that lane A's segment check verifies natively (`check_code_root`) must instead be compared in-circuit with `B.codeRoot`/`funcRoot` (from PREP) by the normaliser or node | [plan] (M6, M5b, M8) |
+| unsalted digests of private data | `B_0`, `B_N`, `stRoot`, `memRoot`, `ctxDigest` and the accumulators are deterministic digests of private data. Publishing any of them would allow witness guessing. 1(b) keeps them in-circuit | holds by design |
+| heights (obligation H analogue) | the wrap's heights are a function of its program, which is a function of the root's shape. **If N changes the depth or the top arity, the root's vk, heights and program change, and `level` changes, so the depth (⌈log₈ N⌉) and the arity leak.** ZK for `(claim, setup)` needs a chunk-independent root shape: fixed arity 8, depth `≥ d_min`, the root level not exposed, and the root and wrap heights pinned. N must then be padded to `8^d` for the chosen `d`, with **PAD leaves**: an identity template `B_out = B_in`, admissible only when `B_in.phase = done` (a PAD template is not in plan §3.1's menu). Alternatively, depth classes can be published as setup variants, with ZK for `(claim, setup, d)`; `gasUsed` is already public, so this leaks a size class (owner decision). The plan provides neither padding nor PAD; §2 says "the number of segments grows with the chunk" | **open** |
+| wrap parameters | the wrap must meet the 268-bit per-round target with pinned params (E2E-SOUNDNESS-BUDGET §1 item 1). D0a's `zk = 6` FINAL meets 268.2 / 274.0 | [main] for D0a; must be re-pinned for a root child |
+
+Size: the D0a wrap over L4 is 325.2–325.8 KB [main]. The production agg roots, not ZK, are
+316 KB (depth 2) and 322 KB (depth 3) [patch]. A wrap over an agg root has not been measured
+(agg log §4 item 2). It should be close to D0a's if the root's geometry equals L4's (both are
+NV children, the same verifier program shape).
+
+##### 3. Blockers and open questions, in order
+
+| # | item | owner |
+|---|---|---|
+| 1 | **Rebase the agg overlay** (`agg.rs`, `build_agg`, `RangeStmt`, per-child BIND, `restart_transcript`) onto the current stack: `e2e-verify` + `zk-pcs` + `zk-piop` + tape-eval + D-4. Today it exists only as `openvm-recursion-agg.patch` on `f08bf28`. The d4h tree has no `nv/agg.rs` and no `TAG_RANGE` | D (M8) |
+| 2 | **A chunk-independent root shape:** fixed arity 8, `d_min`, pinned node heights, the `P*` fixpoint across levels and siblings (find the cause of the 232,318 vs 232,702 row difference), and the root level not exposed. Without this, `setup` is per chunk (D0a README §7.3) | D (M8) |
+| 3 | **Template heterogeneity:** the per-template normaliser with `{C_t}` set binding (option A), or a design change that moves the program commitment into the statement | D (M8) |
+| 4 | **Fixed shape per template** (pinned per-AIR log and tight heights, prover pads) | A (WASM), B (INTAKE/STATE/FINAL), C (CRYPTO), with A+B for PREP |
+| 5 | **Canonical boundary statement:** every template exposes, or its normaliser derives, `(claimDigest, h(B_in), h(B_out))` with `h = bdigest ∘ BndRec.codec` (lane E M11b). This replaces lane A's 108 raw fields and M5a's `(RCH, TCH, change index)`. Hashing inside the AIR is cheap, because the SHA-512 chip is in every template | A, B; E for the codec |
+| 6 | **Padding policy for N:** PAD template plus `8^d` padding, or published depth classes. This is an owner decision, because it changes the ZK statement or the prover cost (up to 8× leaves at a class boundary) | owner; then B (PAD template), D |
+| 7 | **Init and FinalOut placement:** recommendation 1(b)(ii), with `headerOk` in the FINAL template and Init in INTAKE. There is also an ambiguity in plan §3.4: "`B_0 = Init(claimDigest)` … `stRoot` = the working-set root INTAKE committed" is circular if INTAKE is the first segment. Proposed fix: `B_0` is the pre-INTAKE configuration (`init`, with the witness commitment free) | B (M5d), E (`InitOK`/`FinalOK` wording) |
+| 8 | **In-circuit cached-root binding:** CODE/FUNC (lane A `check_code_root`, today native) and any tape-eval cached table bound to `B` fields inside the normaliser or node; no cached root or `u` in the wrap statement | A, D |
+| 9 | **M6/M5b:** HOSTO tape and M5a public `WRITE` tape replaced by in-circuit producers. Not a ZK leak inside the tree, but needed for soundness without native checks | A, B |
+| 10 | **Wrap ZK obligations carried over:** H is closed for D0a in D-4 (`final_heights` in the setup, V_d equality check first, prover pads); Q (QROM hiding, ZK-ARGUMENT §6.5); the review of the D-3 verifier changes. With #2, H becomes "the root shape is a setup constant" | D |
+| 11 | **Soundness budget:** the wrap is pinned at 268 bits per round. The QROM union fails at depth 6 (121.8 bits). If padding fixes `d`, pick `d ≤ 3`; 137 leaves at 1 Pgas gives depth 3 | E, D |
+| 12 | **Lean:** `aggWrapV` has no `a = 0` check and no wrap tag. Align it with 1(b), and add PAD-leaf soundness to `SegSound` (identity at `done`) | E |
 
 ### 5.1 M5a (state lane B): status, 2026-11-03
 

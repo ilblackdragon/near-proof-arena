@@ -1,0 +1,50 @@
+test honest_layouts_unchanged ... ok
+test full_height_without_split_is_an_error ... ok
+test full_height_tight_chunk_terminates ... ok
+test adversarial_heights_terminate ... ok
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+zk=1 honest      : (Some(Ok((83, 940))), 215.748µs)
+zk=1 tight=2^21  : (Some(Err("LayoutHeightExceeded { log_height: 21, log_stacked_height: 21 }")), 70.033µs)
+zk=1 single full : (Some(Err("LayoutHeightExceeded { log_height: 21, log_stacked_height: 21 }")), 79.952µs)
+zk=1 worst#3     : (Some(Ok((169, 3264))), 1.554258ms)
+zk=1 4x full     : (Some(Err("LayoutHeightExceeded { log_height: 21, log_stacked_height: 21 }")), 13.827µs)
+zk=1 no tight    : (Some(Err("LayoutHeightExceeded { log_height: 21, log_stacked_height: 21 }")), 48.381µs)
+zk=2 honest      : (Some(Ok((95, 940))), 313.963µs)
+zk=2 tight=2^21  : (Some(Err("LayoutHeightExceeded { log_height: 21, log_stacked_height: 21 }")), 29.686µs)
+zk=2 single full : (Some(Err("LayoutHeightExceeded { log_height: 21, log_stacked_height: 21 }")), 24.917µs)
+zk=2 worst#3     : (Some(Ok((181, 3264))), 1.189518ms)
+zk=2 4x full     : (Some(Err("LayoutHeightExceeded { log_height: 21, log_stacked_height: 21 }")), 12.604µs)
+zk=2 no tight    : (Some(Err("LayoutHeightExceeded { log_height: 21, log_stacked_height: 21 }")), 18.465µs)
+zk=3 honest      : (Some(Ok((65, 1536))), 227.47µs)
+zk=3 tight=2^21  : (Some(Ok((106, 2032))), 569.767µs)
+zk=3 single full : (Some(Ok((96, 1162))), 288.084µs)
+zk=3 worst#3     : (Some(Ok((181, 5108))), 1.908658ms)
+zk=3 4x full     : (Some(Ok((186, 2422))), 1.492321ms)
+zk=3 no tight    : (Some(Ok((134, 1694))), 513.611µs)
+zk=4 honest      : (Some(Ok((98, 940))), 148.971µs)
+zk=4 tight=2^21  : (Some(Err("LayoutHeightExceeded { log_height: 21, log_stacked_height: 21 }")), 60.294µs)
+zk=4 single full : (Some(Err("LayoutHeightExceeded { log_height: 21, log_stacked_height: 21 }")), 115.458µs)
+zk=4 worst#3     : (Some(Ok((184, 3264))), 1.283766ms)
+zk=4 4x full     : (Some(Err("LayoutHeightExceeded { log_height: 21, log_stacked_height: 21 }")), 29.155µs)
+zk=4 no tight    : (Some(Err("LayoutHeightExceeded { log_height: 21, log_stacked_height: 21 }")), 32.03µs)
+zk=5 honest      : (Some(Ok((68, 1536))), 177.115µs)
+zk=5 tight=2^21  : (Some(Ok((109, 2032))), 547.856µs)
+zk=5 single full : (Some(Ok((99, 1162))), 169.21µs)
+zk=5 worst#3     : (Some(Ok((184, 5108))), 1.081103ms)
+zk=5 4x full     : (Some(Ok((189, 2422))), 548.617µs)
+zk=5 no tight    : (Some(Ok((137, 1694))), 295.018µs)
+zk=6 honest      : (Some(Ok((90, 1536))), 174.58µs)
+zk=6 tight=2^21  : (Some(Ok((131, 2032))), 413.722µs)
+zk=6 single full : (Some(Ok((121, 1162))), 166.475µs)
+zk=6 worst#3     : (Some(Ok((206, 5108))), 1.40743ms)
+zk=6 4x full     : (Some(Ok((211, 2422))), 365.541µs)
+zk=6 no tight    : (Some(Ok((159, 1694))), 176.974µs)
+test review6_prior_reproducers ... ok
+zk=1: ok=248 err=52 panic=0 timeout=0 max_slices=3854 worst=4.660891ms Some(Err("LayoutHeightExceeded { log_height: 21, log_stacked_height: 21 }")) [(2, 21, Some(2097152)), (2, 20, Some(1048404)), (2, 20, Some(786436)), (2, 20, Some(1048576)), (2, 10, Some(764)), (2, 3, Some(8))]
+zk=2: ok=255 err=45 panic=0 timeout=0 max_slices=3654 worst=3.192214ms Some(Ok((19, 148))) [(2, 21, Some(42448)), (2, 21, Some(2096888)), (2, 21, Some(2096928)), (2, 21, Some(369208)), (2, 21, Some(1668684)), (2, 20, Some(1048316))]
+zk=3: ok=300 err=0 panic=0 timeout=0 max_slices=6031 worst=3.280922ms Some(Ok((20, 327))) [(9, 21, Some(1048576)), (5, 20, Some(1048572)), (76, 3, Some(8)), (83, 2, Some(4))]
+zk=4: ok=256 err=44 panic=0 timeout=0 max_slices=3845 worst=1.508321ms Some(Ok((57, 808))) [(9, 21, Some(1572868)), (5, 21, Some(2096892)), (83, 20, Some(524288)), (76, 10, Some(1020))]
+zk=5: ok=300 err=0 panic=0 timeout=0 max_slices=6015 worst=1.69303ms Some(Ok((218, 5873))) [(200, 21, Some(2096892)), (3, 21, Some(1572860))]
+zk=6: ok=300 err=0 panic=0 timeout=0 max_slices=6036 worst=3.226649ms Some(Ok((143, 2929))) [(76, 21, Some(1966076)), (83, 20, Some(786436)), (5, 20, Some(524288)), (9, 19, Some(524284))]
+test review6_fuzz ... ok
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.28s
