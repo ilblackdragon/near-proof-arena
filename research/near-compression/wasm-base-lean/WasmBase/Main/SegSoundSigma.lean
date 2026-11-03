@@ -267,6 +267,28 @@ theorem seg_sound_σ (X : M2Ctx) {nloc ngl : Nat} {pub : List F} {tr : Trace}
     cutView_wf (cuto_wf H hl) hset, h6, ?_⟩
   rw [hlenEq]; exact hJ
 
+/-! ## 4. `HostRelyσ` from the register contract and the size cap -/
+
+/-- **The size half of `RegWF` at a HOST row, σ-pinned** (`HostRegCap` restricted to pre-states on
+the thread). -/
+def HostRegCapσ (X : Ctx) (σ : Nat → St) (inS : List F) : Prop :=
+  ∀ (E : Env) (s : St) (f : Frame) (tps tpl : Nat → Nat) (t pc S : Nat) (live : Msg → Prop) (a b : Nat)
+    (s' : St), RelW X E s f tps tpl t pc S live a b → SigJ σ t s →
+    inS = stMsg (X.offOf E.k + pc) t S 0 E.sb E.cid →
+    step X.cfg X.p s = .cont s' → RegWF s → ∀ e ∈ s'.registers.toList, e.2.size < Register.cap
+
+/-- **`HostRelyσ` from the σ-pinned register contract and size cap** (`hostRely_of`, σ-pinned: the
+distinct-ids half of `RegWF` is `step_regIds`). -/
+theorem hostRelyσ_of {X : Ctx} {tr : Trace} {pub : List F} {σ : Nat → St}
+    (hreg : ∀ ρ ∈ actListM2 tr pub, ρ.1 = 22 →
+      RowQJ X (SigJ σ) (fun s live => RegC live s) (rowInM tr pub ρ) (consCHS tr pub ρ) (prodCHS tr pub ρ))
+    (hcap : ∀ ρ ∈ actListM2 tr pub, ρ.1 = 22 → HostRegCapσ X σ (rowInM tr pub ρ)) :
+    HostRelyσ X tr pub σ where
+  reg := hreg
+  wf := fun ρ hρ h22 E s f tps tpl t pc S live a b s' R hJ hin _ hs hw =>
+    ⟨step_regIds hs hw.1, hcap ρ hρ h22 E s f tps tpl t pc S live a b s' R hJ hin hs hw⟩
+
+#print axioms hostRelyσ_of
 #print axioms seg_instr_codeNonHost
 #print axioms rowFactsSegMapJ_seg
 #print axioms seg_sound_σ
