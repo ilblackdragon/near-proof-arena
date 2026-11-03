@@ -1,114 +1,166 @@
-# Zero-knowledge argument for the chunk proof: status, construction, simulation sketch
+# Zero-knowledge argument for the chunk proof: status, construction, simulation, cost
 
-Status (2026-10-31): **not zero-knowledge.** The delivered packet (`FINAL.bundle`) is a
-proof of knowledge of a valid chain, and the e2e runs keep `zero_knowledge_established=false`.
-Nothing in the main PQ stack (`stark-backend-unified` SWIRL prover, the NV recursion circuit) masks
-anything today. This file records what leaks, what each component needs, which published
-constructions give HVZK, how the simulator would go, what was measured, and the gap.
+Status (2026-11-03, lane E2E-D): **not zero-knowledge yet; `zero_knowledge_established=false`.**
+The PCS layer of the FINAL proof and the published base point `u` are now hidden (§3, built and
+measured: `NEARPROOF_ZK=1`). The PIOP layer of the FINAL proof (GKR, batch zerocheck, stacking
+sumcheck, column openings) still leaks; its construction is specified in §4 with its size cost
+estimated, not built. The 2026-10-31 version of this file (leakage inventory, HVZK-WHIR sweep) is in
+git history; its §4 measurements stay valid and are reused in §6.
 
-## 1. What the verifier sees
+## 1. What must be hidden, level by level
 
-| item | source | public by design? | leaks witness information today? |
+Only the packet is published: `claim.bin` (statement), the hint (derived outputs, checked against
+the claim), the base point `u`, and the FINAL proof. The setup is trusted and public.
+
+| level | published? | must hide | why |
 |---|---|---|---|
-| `claim.bin` | chunk-header outputs + the claim's trusted facts | yes | no (it is the statement) |
-| hint (16–155 B) | refund receipts the chunk produced; `statepublic` checks it against the claim | yes (derived output) | no, provided the hint is a function of the claim's outputs; it is checked, not trusted |
-| `SETUP.json` (pinned) | final vk, program, level, base params | yes (trusted setup) | reveals the chunk *shape* class (trace heights fixed per setup) — a size leak any per-shape setup has |
-| base stacking point `u` (v2 packets, 19 x 48 B) | Fiat–Shamir output of the base transcript | yes (needed to evaluate the public TAPE) | **yes**: `u` is a hash of the base proof's commitments, i.e. a deterministic function of the base witness. Without hiding base commitments it is a witness fingerprint (it lets anyone test a guessed witness). |
-| `common_main_commit` (final) | Merkle root of the final NV trace codeword | — | yes: unsalted leaves, so the root is a deterministic function of the trace |
-| GKR proof | layer claims + sumcheck round polynomials | — | yes: every round polynomial is a fixed polynomial function of the trace |
-| batch-constraint proof | univariate-skip and zerocheck rounds, **column openings at r** | — | yes: openings are trace MLE evaluations |
-| stacking proof | round polynomials, stacked openings at u_F | — | yes |
-| WHIR proof | sumcheck rounds, OOD answers, **opened codeword rows** (~131 queries per round 0 commit), final polynomial | — | yes: opened rows are raw codeword symbols of the trace |
-| public values of the final proof | level + statement digest | yes | no |
+| base | only `u` (and `y = T_pub(u)`, computed by the verifier) | `u` must be simulatable | `u` is the RO output of the base transcript; without randomness in the base commitment it is a deterministic function of the witness (lets anyone test a guessed witness) |
+| L1 … L_n | no | nothing | each is only the witness of the next level. The FINAL proof is ZK for *any* witness, so whatever the inner proofs contain is covered by the FINAL simulator |
+| FINAL | yes | everything except its public values (level, statement digest) | its trace is the NV verifier run on L_n; leaking it leaks L_n, hence the chain |
 
-The final trace is the NV verifier's execution on the L5 proof, so leaking it leaks L5, which is a
-proof about L4, and so on down to the base witness. There is no argument that the leakage
-attenuates with depth; a ZK statement needs the final layer to be ZK.
+Why ZK at an inner level would not do: a ZK simulator for an inner proof programs the random
+oracle, but the next level recomputes that oracle (SHA-384) *inside its circuit*, which a
+programmed oracle cannot satisfy. FINAL is the one proof whose transcript and Merkle hashes are
+only ever evaluated natively (by the verifier), and it uses its own transcript domain
+(`ShaTranscript::new_layer(true)`), so programming the oracle at FINAL's points is consistent with
+every in-circuit SHA-384 evaluation of the inner levels. This is why ZK in the FINAL prover and
+native verifier, plus the base randomisation for `u`, is enough; the recursion circuit is unchanged.
 
-## 2. What ZK needs, by component (final layer only; plus one base-layer item)
+Shape: the FINAL trace heights (`tight_height` per AIR) are fixed by the converged program and the
+child shape (`zk-diff` across chunks and across replays, §5); they are part of the per-shape setup.
 
-Inner layers (base, L1–L5) are never published, so they need no ZK — with one exception created by
-this run's verifier fix: the base point `u` is now public (item Z6).
+## 2. Leakage inventory of the FINAL proof (after this change)
 
-| # | component | construction | HVZK basis | status |
+| field | content | hidden now? | by |
+|---|---|---|---|
+| `common_main_commit` | Merkle root of the stacked trace codeword | **yes** | random reserved rows + mask columns in every leaf (Z1, §3) |
+| `whir_proof.*` (sumcheck rounds, fold commits, OOD values, opened codewords, final poly, PoW) | functions of the batched polynomial `g` and of the opened initial rows | **yes** | `g` is a one-time pad (§3.2); opened rows by reserved-row randomness (§3.3) |
+| `stacking_proof.stacking_openings` | stacked columns at `u_F` | **yes** (given §4) | reserved rows |
+| `stacking_proof` round messages | stacking sumcheck | no | §4 Z3 |
+| `batch_constraint_proof.*` | uni-skip + zerocheck rounds, per-AIR logup terms, **column openings at r** | no | §4 Z2, Z3 |
+| `gkr_proof.*` | layer claims and round messages | no | §4 Z3-GKR |
+| `trace_vdata`, public values | shape, level, digest | public | – |
+| packet `u` | base stacking point | **yes** | base `zk = 1` (Z6) |
+
+## 3. Built: PCS-level hiding (`WhirLevers::zk`, `patches/zk-pcs.patch`)
+
+### 3.1 Construction
+
+* `zk = 1` (base): the common-main stacked layout keeps the last `R = 256` rows of every stacked
+  column free (first-fit-decreasing packing of the power-of-two slices into `2^h − R` rows) and
+  the prover fills them with fresh uniform field elements (rejection sampling of `/dev/urandom`).
+  No trace slice lies there, so no PIOP claim (zerocheck, stacking weights) gives them weight:
+  soundness is unchanged (they are simply unconstrained committed cells).
+* `zk = 2` (FINAL): as `zk = 1`, plus `M = 12` appended stacked columns of uniform elements.
+* Both sides compute the layout from the vk (`StackedLayout::new_tight_zk`, called by the prover
+  and by `verify_proof_shape`); the lever is in the vk (`params.whir.levers.zk`, serialized only
+  when non-zero, so every existing key's pre-hash is unchanged) and in the proof's lever header
+  (bits 1–2 of the keep_domain byte; upstream bytes unchanged at `zk = 0`). Cached commitments
+  (the base TAPE) are never randomised: the verifier evaluates the public TAPE at `u`.
+
+### 3.2 Why WHIR is hidden: `g` is a one-time pad
+
+WHIR batches the stacked columns of the FINAL commitment as `g = Σ_j μ^j c_j` (μ ∈ EF from the
+transcript, after the root). With `M = 12` uniform base-field columns `h_0..h_11` among them,
+`Σ_i μ^{w+i} h_i` is uniform in `EF^{2^h}` whenever `1, μ, …, μ^11` are linearly independent over
+`F` (μ outside every proper subfield of `F_{p^12}`: failure ≤ p^6/p^12 = 2^-185). So `g` is
+uniform conditioned on everything else, except for the linear functionals of `g` the view fixes
+(the claimed `g(u)` from the stacking openings, and `g` on the opened positions). Every WHIR
+message after batching — round polynomials, fold oracles and their roots, OOD answers, opened fold
+values, final polynomial, PoW witnesses — is a deterministic function of `g` and the verifier's
+challenges. Simulator: sample `g'` uniform subject to those linear constraints (linear algebra on
+≈ 100 constraints) and run the honest WHIR prover on `g'`. This is the classical "batch with a
+random codeword" ZK of linear-code PCSs (Ligero, Ames–Hazay–Ishai–Venkitasubramaniam CCS'17 §5;
+Aurora, Ben-Sasson et al. EUROCRYPT'19, ZK low-degree test via a random masking polynomial;
+Plonky3's `HidingFriPcs`). Unlike HVZK-WHIR (eprint 2026/391) it needs no mask oracles and no
+extra queries: its cost is `M` columns in the initial opened rows.
+
+### 3.3 Why the opened initial rows and the root are hidden
+
+Each query reveals, for every stacked column, the codeword symbols at its coset (`2^{k_first} = 2`
+points), and the PIOP reveals one opening per column at `u_F`: 46·2 + 1 = 93 linear functionals
+per column. The `R = 256` reserved cells occupy the top block of the column's hypercube (high
+bits all 1); under the eval→coefficient transform they map bijectively onto the coefficients of
+that block, whose contribution to a codeword symbol at `α` is `α^{2^h−R} · Σ_{s<R} c_s α^s`
+(Vandermonde rows for distinct `α`) and to the opening at `u_F` a multilinear evaluation. For
+distinct query points these 93 functionals restricted to the 256 random coordinates are linearly
+independent except with probability ≤ 93·256/|EF| (generic position of `u_F`), so the revealed
+values of every column are uniform and independent of the trace. The `M` mask columns are uniform
+outright. Every Merkle leaf (a codeword row) therefore carries ≥ 12·31 = 372 bits of fresh entropy
+(the mask columns' symbols), which makes unopened leaves and the root hiding in the ROM without a
+separate salt: the mask columns double as leaf salts (Z1 at zero extra bytes).
+
+### 3.4 Base point `u` (Z6)
+
+With `zk = 1` the base root is a RO hash of leaves carrying fresh randomness, so `u` (squeezed
+after the root) is uniform and independent of the witness except with probability
+`q · 2^{-min(336, 31·R·w)}` (q oracle queries; `w` = base stacked width). The simulator samples `u`
+uniformly and computes `y = T_pub(u)` and the statement digest itself.
+
+### 3.5 Error terms (statistical, ROM)
+
+`ε_PCS ≤ 2^-185 (μ basis) + 93·256/2^370 (rank) + q·2^-336 (root/leaf hiding)`; `ε_u ≤ q·2^-336`.
+With q = 2^64: ≤ 2^-185 overall. Soundness: unchanged — no new challenge, no new round, no new
+claim; the reserved and mask cells are unconstrained committed data, which WHIR already batches.
+The per-component bits from `soundness` on the ZK setups are in §6.
+
+## 4. Specified, not built: PIOP-level hiding of the FINAL proof
+
+| # | leak | construction | reference | size cost (estimate) |
 |---|---|---|---|---|
-| Z1 | Merkle commitments of the final trace and every WHIR fold oracle | salted leaves: each leaf hashes `salt_i ‖ row_i` with a fresh λ-bit salt; the salt is sent with each opened leaf | hiding of a salted RO commitment (statistical, ≤ q·2^-λ_salt for q RO queries) | not implemented. Cost estimate: one 32-B salt per opened leaf; with `multiproof` openings ≈ (sum of queries) x commitments ≈ 131 x 2 + 90 ≈ 350 leaves ≈ **11 KB** |
-| Z2 | trace evaluations (column openings at r, GKR input claims, stacked openings) | randomize every final-layer column off the hypercube: commit f̂ = f + Z·m, Z vanishing on {0,1}^n (e.g. X_1(1-X_1)), m uniform with at least as many coefficients as evaluation claims made about f̂; or append random rows gated out by a selector column | an opening of f̂ at a point outside the hypercube is uniform given fewer claims than mask coefficients (linear independence of the evaluation functionals) | not implemented; needs prover kernels for a degree-2 first variable (the fast `cpu-backend` zerocheck/GKR kernels assume multilinear columns) |
-| Z3 | sumcheck round messages: GKR (≈ 30 layers), zerocheck, stacking | Libra / Chiesa–Forbes–Spooner masking: prover commits a random g = Σ_i g_i(X_i) per sumcheck (hiding commitment), sends σ = Σ g, verifier sends ρ, the sumcheck runs on F + ρ·g; g(r) is opened at the end through the PCS | round messages are simulatable from F(r) (Libra Thm. 3; CFS17) and F(r) is uniform by Z2 | not implemented |
-| Z4 | WHIR (the PCS) | HVZK-WHIR, eprint 2026/391: masked WHIR sumcheck (Constr. 6.3), zero-evader pad on OOD answers, ZK Reed–Solomon encodings with a randomness budget ≥ queries per oracle, masked base case (Constr. 7.2), code switching (Constr. 9.7) | the paper's simulator (implemented in Plonky3 `sumcheck/src/zk/simulator.rs`, `whir/src/pcs/zk`) | not ported; overhead measured in Plonky3 (§4) |
-| Z5 | Fiat–Shamir | the HVZK interactive protocol with salted commitments, compiled in the (Q)ROM | standard: NIZK in the programmable ROM from HVZK + hiding commitments (simulator programs the oracle) | follows once Z1–Z4 exist |
-| Z6 | the published base point `u` | either (a) salt the base layer's commitments (main and TAPE) so `u` is a fresh RO output on high-entropy input, simulatable as uniform; or (b) move the TAPE-evaluation check into the final circuit so `u` is never published | (a) RO output on an unpredictable input is uniform and independent of the claim; the simulator samples `u` and computes the public TAPE opening itself | not implemented; (a) costs nothing in the packet |
+| Z2 | column openings at `r` (and rotations) | mask each FINAL trace column off the domain: `f̂_j = f_j + Z_D(X)(a_j + b_j X)` in the univariate-skip variable (`Z_D = X^4 − 1` vanishes on the skip subgroup, so every hypercube value and every constraint is unchanged); two coefficients per column hide the opening and the rotated opening. The coefficients live in reserved rows; the stacking reduction gives those cells the weight `Z_D(r_0)·(1, r_0)` times the column's batching coefficient, so `f_j(r)` itself is never sent | low-degree masking, Chiesa–Forbes–Spooner 2017; Libra (Xie et al., CRYPTO'19) §4 | uni-skip round degree 27 → 45 at constraint degree 9: ≈ +1 KB |
+| Z3 | sumcheck round messages (batch zerocheck, stacking) | Libra masked sumcheck: `g = Σ_i g_i(X_i)` of the round degree, coefficients in reserved rows, prover sends `G = Σ_H g`, verifier ρ, sumcheck on `F + ρ g`; `g(r)` is a linear functional of reserved cells, opened through the stacking reduction | CFS17 Thm; Libra Thm 3 | +1 EF per sumcheck |
+| Z3-GKR | GKR layer claims `p, q` at `ξ_i` and layer round messages | Libra's zero-knowledge GKR: mask each layer's `p_i, q_i` with `Z(x_1)·R_i` (small random `R_i`), masked layer sumchecks; the extra cross terms raise the degree of the rounds in the masked variables only | Libra §4.2 (multiplication-gate layers; the fractional layer relation is the same bilinear form) | ≈ 22 layers × (1 mask sum + ≈ 3 extra coefficients) ≈ 4–8 KB |
+| – | per-AIR logup input terms | covered by Z2 (they are functions of the masked openings) | – | 0 |
 
-Public inputs after Z1–Z6: exactly `claim.bin` (chunk-header outputs + trusted facts), the hint
-(derived outputs checked against the claim), and the pinned setup. `u` would be part of the proof
-string, not a public input.
+Total (A) ≈ 6–12 KB (estimate). Each adds a prover step in the FINAL layer only and changes the
+FINAL verifier's checks; none touches the NV circuit (it never verifies FINAL). Soundness: the
+masked rounds' degree increase costs ≤ 2 bits per affected sumcheck (all ≥ 350 bits today); must be
+recomputed in `SoundnessCalculator`.
 
-## 3. Simulation sketch (for the construction of §2)
+## 5. Hiding sanity test (`nearproof-chunk-e2e zk-diff A B`)
 
-Sim(claim, hint, setup):
-1. Sample `u` uniform in EF^19 (Z6a). Compute y = TAPE_pub(u) from the claim (as the verifier does).
-   The statement digest d = node(G1(pvs), H(u, y)) is then a public function of (claim, u).
-2. Final layer: run the HVZK simulators in transcript order, programming the random oracle:
-   * commitments (Z1): output uniform roots; salts make the real roots RO outputs on unpredictable
-     inputs, so the two are identical except with probability ≤ q·2^-λ_salt;
-   * PIOP (Z2+Z3): sample the masked column openings uniform (Z2), sample each masked sumcheck's
-     round polynomials uniformly subject to the round-consistency equations, set the final value to
-     match the (uniform) openings; this is the Libra simulator;
-   * PCS (Z4): the HVZK-WHIR simulator given the claimed evaluations (it needs only the
-     evaluations, which step 2 fixed).
-3. Output (hint, u, π_F). The verifier's checks pass by construction; indistinguishability is
-   statistical, error ≤ q·2^-λ_salt + Σ (per-component masking failure: e.g. a challenge landing in
-   the hypercube coordinate set {0,1}, or more evaluation claims than mask coefficients).
+Field-level test, necessary not sufficient: two FINAL proofs of the same statement from the same
+witness (same `L_n` checkpoint, fresh prover randomness) are compared leaf by leaf; a field equal in
+both is a deterministic function of (witness, statement). Results: §6 and `results/zk-diff-*.txt`.
 
-The per-component failure terms have not been computed; that is part of the obligation below.
+## 6. Measured (2026-11-03)
 
-## 4. Measured cost of the PCS part (Plonky3 HVZK-WHIR, this host)
+* **Three chunks end to end with `NEARPROOF_ZK=1`** (base `zk = 1`, FINAL `zk = 2`): packets
+  325,613 / 324,534 / 326,243 B vs 306,839 / 307,314 / 307,427 B non-ZK (+17.2 to +18.8 KB);
+  23/23 negatives each; fresh-process verify 129–283 ms on one core under host load 20–22, of
+  which the FINAL protocol check is 20–48 ms (README §0).
+* **Where the bytes go** (FINAL, chunk 1): stacked width 53 → 95 columns = 12 mask columns + 30
+  columns of packing loss (first-fit with `R` reserved rows cannot place two `2^20` slices in one
+  `2^21` column). Each column costs 4 B × 92 opened rows + one 48 B stacked opening:
+  mask columns ≈ 5.0 KB, packing loss ≈ 12.5 KB, plus Merkle-digest variation. GKR, relations
+  and the WHIR fold rounds are byte-identical in size to the non-ZK proof.
+* **Packing lever (`zk = 3`, halve a slice when no column fits it)**: built, but the FINAL proof
+  fails the prover's own stacking-reduction final-sum check (re-sorting the placed slices by size
+  did not help); suspected: a code path that assumes at most the binary-decomposition chunks of a
+  tight column. Would bring the PCS-ZK overhead to ≈ +5 KB (≈ 312 KB packets).
+* **Versus HVZK-WHIR** (10-31 sweep, 128-bit Johnson, rate 1/64): +222 to +312 KB for the PCS alone.
+  Random-codeword batching costs 12–17× less here because it adds no oracle and no query.
+* **Per-round bits**: unchanged by the lever, min 268.2 (FINAL WHIR query); at a 274-bit FINAL
+  target the packet is 329,505 B (+3.9 KB, queries [47, 43, 31, 25]).
+* **Hiding checks**: `results/zk/zk-diff-replay-same-witness.txt` (two FINAL proofs, same L4):
+  root, all WHIR fields and stacked openings fresh; trace heights identical (no data-dependent
+  shape within a witness); PIOP fields change only through their challenges and stay
+  witness-determined (§4 open). `results/zk/zk-diff-base-same-witness.txt`: two `zk = 1` base
+  proofs of one witness have different roots, hence different `u`.
+* **Full-ZK projection**: 325 KB measured + 6–12 KB PIOP masking (estimate) ≈ 331–338 KB, or
+  ≈ 318–325 KB once the packing lever works: within the ~400 KB budget at 268 bits, and at 274 bits.
 
-`results/zk128-sweep.txt`, from `whir/examples/zk128.rs` (patch `patches/plonky3-zk128-example.patch`
-against Plonky3 `3acc8b7`), KoalaBear^8, SHA-384 Merkle with an 11-element (341-bit) digest — the
-closest serializable analogue of the PQ track's 42-byte truncation — one committed column.
+## 7. Obligations to set `zero_knowledge_established = true`
 
-| n (vars) | target | regime | rate | grinding | ell_zk / mask rate | plain B | HVZK B | **ZK delta** |
-|---:|---:|---|---:|---:|---|---:|---:|---:|
-| 16 | 100 | capacity | 1/4 | 16 | 16 / 1/32 | 44,966 | 149,439 | +104,473 |
-| 18 | 100 | capacity | 1/4 | 16 | 16 / 1/32 | 52,086 | 156,563 | +104,477 |
-| 18 | 128 | Johnson | 1/2 | 0 | 3 / 1/8 | 187,534 | 480,858 | +293,324 |
-| 18 | 128 | Johnson | 1/64 | 30 | 16 / 1/32 | 71,512 | 293,598 | **+222,086** |
-| 18 | 128 | Johnson | 1/64 | 30 | 3 / 1/8 | 71,512 | 323,626 | +252,114 |
-| 20 | 128 | Johnson | 1/64 | 20 | 16 / 1/32 | 99,847 | 412,254 | **+312,407** |
-
-Readings:
-* The 100-bit point reproduces `bench/RESULTS.md`'s *additive, size-independent* overhead; with
-  341-bit digests instead of 8-element Poseidon2 digests it is 104 KB instead of 72.6 KB.
-* **At the PQ track's level (128-bit Johnson, rate 1/64) the overhead is 222–312 KB, not the
-  model's 92.9 KB.** The mask oracles are spot-checked without grinding at the full security level
-  (`mask_queries = queries(λ + log(2·rounds+2), mask rate)`), so they do not get the z-bit discount
-  the main oracle gets, and Johnson-regime bits per query are about half of capacity's.
-* Applied to this run's 306–307 KB non-ZK packets, a ZK final layer would be ≈ 530–620 KB, over
-  the ~400 KB the owner accepted. Levers, none measured here: grinding on mask spot checks (a
-  Plonky3 change), a lower-rate mask code, fewer WHIR rounds in the wrap (fewer mask oracles), or a
-  ZK layer over a smaller (compressed) inner proof.
-* Prover time: 1.03–1.6× at 100-bit; the 128-bit rows' single-core times are dominated by grinding
-  and are not comparable. The 128-bit Johnson-bound octic configuration that panicked in
-`bench/RESULTS.md` constructs and proves at this Plonky3 revision (`zk128 18 128 1 0 3 3`), so the
-"crash" is resolved upstream; the remaining ZK overhead number is the one in the table.
-
-## 5. Machine-checkability
-
-The repo's zk-formal pattern (Lean, `docs/zk-formal`) specifies and proves *the relation* (what a
-valid chunk is) and the checker; it does not model the proof system, let alone its zero-knowledge.
-There is no Lean model of SWIRL, WHIR, or a sumcheck here to state HVZK against. The pieces that
-could be formalised in that pattern at moderate cost are the finite linear-algebra lemmas: (i)
-Libra masking makes the round messages a function of F(r) and uniform randomness, (ii) k
-evaluations of f + Z·m at points outside the hypercube are uniform when the evaluation functionals
-on m are independent. Neither is done. **Gap: no machine-checked ZK statement exists for any layer.**
-
-## 6. Obligation list to set `zero_knowledge_established=true`
-
-1. Z1–Z4 in the final layer prover and native verifier (the NV circuit never verifies a final proof,
-   so the recursion circuit does not change); Z6 in the base layer.
-2. The concrete HVZK error bound per component (§3) at the final layer's parameters.
-3. Soundness re-derived for the masked protocol (masks add rounds and oracles; the 268-bit RBR
-   budget of every component must be re-checked, HVZK-WHIR has its own RBR analysis).
-4. A test that the simulator's output and real proofs have identical shape and pass the verifier,
-   and statistical tests on opened values (necessary, not sufficient).
+1. Z2, Z3, Z3-GKR (§4) in the FINAL prover and native verifier.
+2. The simulator of §3.2–3.4 composed with the PIOP simulators of §4 into one simulator for the
+   FINAL proof plus `u`, with the concrete error bound at the FINAL parameters (§3.5 gives the PCS
+   and `u` terms).
+3. Soundness re-derived for the masked PIOP (§4 last paragraph).
+4. `zk-diff` on two FINAL proofs from the same witness reports no deterministic field other than the
+   public values and the shape; plus a simulated transcript that the verifier accepts under a
+   programmed oracle (shape test).
+5. No machine-checked ZK statement exists for any layer (the zk-formal pattern models the relation,
+   not the proof system); the finite linear-algebra lemmas of §3.2–3.3 are the cheapest to
+   formalise first.

@@ -1,0 +1,123 @@
+{
+ "run": "d1_00-h10007-s0",
+ "case_inputs": {
+  "/data/illia/nearproof/.claude/worktrees/agent-a8275f20d47790cd7/examples/np-udr-stark-v2/source/near-air-v3.json": "fa599b3b0c2dc786c295959ce92cfbbe73d74c4414b77979b436512a8ae3b452",
+  "/data/illia/nearproof-deps/corpora/d1run/d1/00-h10007-s0/claim.bin": "9c4c08f7e14343b35450d4d7b87dc7627ac7f1e7564d2dbd61e722c2b7ffc5eb",
+  "/data/illia/nearproof-deps/corpora/d1run/d1/00-h10007-s0/witness.bin": "aaecc3ba34b794d5b55a13526c8cdaeaeb9e49c3811675f8732d555209af7f36",
+  "/data/illia/nearproof-deps/pq-e2e-d/e2e/d1_00-h10007-s0/tools/prover": "c69d2afb827e653c542bdbe5c1b9c48f2c2c61346f4d1a346f30a4fae867cefb",
+  "/data/illia/nearproof-deps/pq-e2e-d/e2e/d1_00-h10007-s0/tools/statepublic": "70d4bca0c0092ab17f05654ba500bd0fba0f5548c7880e80abd8af96bd23cd72",
+  "/data/illia/nearproof-deps/pq-e2e-d/e2e/d1_00-h10007-s0/tools/statedump": "35511d36e393ff32b0a5d4c30dabcc86a64d59a7c0a15443b843a1d2e037a962",
+  "/data/illia/nearproof/.claude/worktrees/agent-a8275f20d47790cd7/research/near-compression/native/pq-chunk-e2e/Cargo.lock": "25edf82c12736012c42a5db8f260e4e6f80d48460b9ca76e6b8f6ce52ed1b435"
+ },
+ "env": {
+  "NEARPROOF_CHAIN_GEOM": "ns19lb6",
+  "NEARPROOF_TAPE_EVAL": "1",
+  "NEARPROOF_ZK": "1",
+  "CPUSET": "8-15,24-25",
+  "RAYON_NUM_THREADS": "10",
+  "HEAVY_MEM": "32G"
+ },
+ "base_proof_bytes": 513042,
+ "levels": [
+  {
+   "level": "L1",
+   "program_rows": 232258,
+   "shapes": "[(1048576, 76), (2097152, 83), (128, 9), (65536, 5)]",
+   "proof_bytes": 360873,
+   "prove_s": 1100.99
+  },
+  {
+   "level": "L2",
+   "program_rows": 143824,
+   "shapes": "[(1048576, 76), (2097152, 83), (128, 9), (65536, 5)]",
+   "proof_bytes": 357555,
+   "prove_s": 1539.79
+  },
+  {
+   "level": "L3",
+   "program_rows": 143132,
+   "shapes": "[(1048576, 76), (2097152, 83), (128, 9), (65536, 5)]",
+   "proof_bytes": 355077,
+   "prove_s": 1099.92
+  },
+  {
+   "level": "L4",
+   "program_rows": 143132,
+   "shapes": "[(1048576, 76), (2097152, 83), (128, 9), (65536, 5)]",
+   "proof_bytes": 358143,
+   "prove_s": 569.83
+  }
+ ],
+ "final_prove_s": 555.825159,
+ "result": {
+  "bundle_bytes": 324534,
+  "hint_bytes": 155,
+  "levels": 5,
+  "proof_bytes": 323447,
+  "scope": "D0a",
+  "security_established": false,
+  "setup_sha256": "27c61e5739be281e385737627dd3556555a5f72981a87c6bfcb45cfa9f7ec6e2",
+  "tape_eval": true,
+  "trusted_setup_bytes": 3842481,
+  "under_300000": false,
+  "zero_knowledge_established": false
+ },
+ "stages": {
+  "dump": {
+   "wall_s": 14.9,
+   "peak_rss_gib": 1.38
+  },
+  "public": {
+   "wall_s": 0.08,
+   "peak_rss_gib": null
+  },
+  "base": {
+   "wall_s": 387.09,
+   "peak_rss_gib": 8.78
+  },
+  "chain": {
+   "wall_s": 4952.27,
+   "peak_rss_gib": 15.08
+  },
+  "verify": {
+   "wall_s": 0.2,
+   "peak_rss_gib": null
+  }
+ },
+ "verify_profile_ms": {
+  "total": "97.73",
+  "setup_read_pin": "2.75",
+  "setup_parse": "5.47",
+  "air_pin_bundle_read": "1.30",
+  "statepublic_subprocess": "32.67",
+  "expected_claim_tape": "36.10",
+  "proof_decode": "0.25",
+  "final_verify": "19.19"
+ },
+ "verify_ok": true,
+ "negatives": {
+  "untouched": "PASS (accepted)",
+  "claim_byte_128_flipped": "PASS (rejected)",
+  "claim_byte_1604_flipped": "PASS (rejected)",
+  "claim_byte_3209_flipped": "PASS (rejected)",
+  "claim_byte_4814_flipped": "PASS (rejected)",
+  "claim_byte_6290_flipped_ref_accepts": "PASS (accepted)",
+  "claim_of_other_chunk": "PASS (rejected)",
+  "hint_byte_flipped": "PASS (rejected)",
+  "base_point_u_flipped": "PASS (rejected)",
+  "base_point_u_last_flipped": "PASS (rejected)",
+  "proof_byte_0pct_flipped": "PASS (rejected)",
+  "proof_byte_10pct_flipped": "PASS (rejected)",
+  "proof_byte_33pct_flipped": "PASS (rejected)",
+  "proof_byte_50pct_flipped": "PASS (rejected)",
+  "proof_byte_66pct_flipped": "PASS (rejected)",
+  "proof_byte_90pct_flipped": "PASS (rejected)",
+  "proof_last_byte_flipped": "PASS (rejected)",
+  "trailing_byte": "PASS (rejected)",
+  "truncated_proof": "PASS (rejected)",
+  "truncated_to_hint": "PASS (rejected)",
+  "untrusted_setup_pin": "PASS (rejected)",
+  "wrong_witness_base_proof": "PASS (rejected)",
+  "wrong_witness_prover_precheck": "PASS (rejected)"
+ }
+}

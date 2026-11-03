@@ -5,7 +5,7 @@
 set -euo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
 ROOT=$(cd "$HERE/../../../.." && pwd)
-D=${NEARPROOF_PQ_DEPS:-/data/illia/nearproof-deps/pq-e2e-zk}
+D=${NEARPROOF_PQ_DEPS:-/data/illia/nearproof-deps/pq-e2e-d}
 OUT=$(realpath -m "${1:?OUT}")
 CASE=$(realpath "${2:?CASE}")
 SRC=${3:-}
@@ -24,7 +24,7 @@ python3 - "$OUT" "$ROOT" "$AIR" "$CASE/claim.bin" "$CASE/witness.bin" "$B" "$C/s
 import hashlib,json,os,pathlib,subprocess,sys
 out,root,*inputs=sys.argv[1:]
 meta={'git_head':subprocess.check_output(['git','-C',root,'rev-parse','HEAD'],text=True).strip(),
-      'env':{k:os.environ.get(k) for k in ['NEARPROOF_CHAIN_GEOM','NEARPROOF_TAPE_EVAL','RAYON_NUM_THREADS','HEAVY_MEM']},
+      'env':{k:os.environ.get(k) for k in ['NEARPROOF_CHAIN_GEOM','NEARPROOF_TAPE_EVAL','NEARPROOF_ZK','CPUSET','RAYON_NUM_THREADS','HEAVY_MEM']},
       'inputs':{p:hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest() for p in inputs}}
 pathlib.Path(out,'RUN.json').write_text(json.dumps(meta,indent=2)+'\n')
 PYMETA

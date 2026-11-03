@@ -1,10 +1,87 @@
-# E2E: real D0a chunks → final PQ proof → fresh-process verification (2026-10-31)
+# E2E: real D0a chunks → final PQ proof → fresh-process verification (2026-10-31, ZK update 2026-11-03)
 
 Status: **research run, owner's relaxed targets of 2026-10-31.** `security_established=false`,
 `zero_knowledge_established=false` in every RESULT.json. No GPU was used; GPU latencies are
 model projections only (`../prover-budget/model.py`). No Lean spec or checker change.
 
-## 1. Verdict against the relaxed targets
+## 0. Update 2026-11-03 (lane E2E-D): ZK lever on
+
+Owner targets (2026-11-03): 128-bit PQ, SHA-384, proven bounds; ZK with only the chunk-header
+outputs plus trusted facts public; proof **~400 KB accepted with ZK**; verify < 200 ms.
+
+| target | result (`NEARPROOF_ZK=1`, 3 chunks re-run end to end) | met? |
+|---|---|---|
+| verifier patch reviewed, argued, in the patch stack | `VERIFIER-PATCH.md` (TAPE binding ≤ 2^-289.5 at 2^64 queries under list decoding; reused batch point equivalent, hardened); `native/recursion/patches/e2e-verify.patch` via `setup_e2e_verify_deps.sh`; clean-checkout build OK; v1 path kept, deprecated | **yes** |
+| zero knowledge | **partial**: PCS layer of FINAL hidden (root, WHIR, opened rows, stacked openings) and the published base point `u` simulatable (`zk-pcs.patch`); the FINAL PIOP layer (GKR, batch zerocheck, stacking sumcheck, column openings) is **not** masked yet (`ZK-ARGUMENT.md` §4) | **no** — `zero_knowledge_established=false` |
+| proof ≤ ~400 KB with ZK | packets 325,613 / 324,534 / 326,243 B with the PCS-ZK layer (+17.2 to +18.8 KB over non-ZK, of which ≈ 13 KB is a packing loss; the splitting fix does not work yet); PIOP masking estimated +6–12 KB ⇒ **≈ 330–340 KB projected with full ZK** | **yes (projected)**: measured for what is built, estimated for the rest |
+| verify < 200 ms | 129–283 ms single core on a host at load 20–22 (5 fresh processes per chunk); the FINAL protocol check is 20–48 ms of it, the rest is `statepublic` (45–118 ms) and claim/TAPE preparation, both unchanged by ZK. 10-31 idle-host figure for the same pipeline: 104–112 ms | **yes on an idle host; no under the current contention for 2 of 3 chunks** (the ZK lever adds ≈ 1–5 ms) |
+| 128-bit PQ, proven bounds | unchanged: min 268.2 RBR bits (FINAL WHIR query); the ZK lever adds no round, challenge or claim (`results/zk/soundness-final-zk2.txt`) | parameters yes; `security_established=false` |
+
+### 0.1 Results table (ZK lever on)
+
+| | d1/00-h10006-s3 | d1/00-h10007-s0 | d2/05-h10042-s3 |
+|---|---:|---:|---:|
+| base proof B (zk = 1) / prove s | 512,410 / 766 | 513,042 / 387 | 515,954 / 434 |
+| L1 … L4 proof B | 362,217; 355,959; 357,009; 356,673 | 360,873; 357,555; 355,077; 358,143 | 364,023; 357,429; 357,975; 358,605 |
+| L1 … L4 prove s | 1,118; 1,225; 618; 859 | 1,101; 1,540; 1,100; 570 | 799; 863; 678; 745 |
+| FINAL (zk = 2) prove s | 1,250 | 556 | 806 |
+| chain wall s / peak GiB | 5,234 / 15.3 | 4,952 / 15.1 | 4,072 / 15.1 |
+| **packet B with PCS-ZK** | **325,613** | **324,534** | **326,243** |
+| packet B non-ZK (10-31) / Δ | 306,839 / +18.8 KB | 307,314 / +17.2 KB | 307,427 / +18.8 KB |
+| FINAL proof sections: gkr / relations / stacking / whir | 37,592 / 24,772 / 6,736 / 255,366 | 37,592 / 24,772 / 6,736 / 254,148 | 37,592 / 24,772 / 6,736 / 255,996 |
+| verify, fresh process, 1 thread (5 runs, host load 20–22) | 171–203 ms | 194–283 ms | 129–137 ms |
+| of which FINAL protocol check (`final_verify`) | 20–42 ms | 21–48 ms | 20–21 ms |
+| verify at 10 threads (in-run) | 133 ms | 98 ms | 102 ms |
+| verifier peak RSS | 57 MB | 57 MB | 57 MB |
+| negatives (fresh verifier each, incl. wrong-witness base) | 23/23 | 23/23 | 23/23 |
+
+10 threads (CPUs 8-15,24-25), `HEAVY_MEM=32G`, host shared with three sibling lanes (load 20–50
+during the runs), so CPU times are as measured. Every level natively re-verified before the next.
+Per-run numbers `results/zk/<run>.json`, sha256 manifests `results/zk/<run>.manifest.json`.
+
+### 0.2 ZK size levers measured
+
+| lever | FINAL packet | Δ vs non-ZK (306,839 B, same chunk) | source |
+|---|---:|---:|---|
+| HVZK-WHIR (eprint 2026/391, Plonky3) at 128-bit Johnson, rate 1/64 — PCS overhead alone | ≈ 529–619 KB (projected) | +222 to +312 KB | `results/zk128-sweep.txt` (10-31) |
+| **random-codeword batching** (Ligero/Aurora-style: 12 uniform mask columns make WHIR's batched polynomial a one-time pad; reserved random rows per column; mask columns double as leaf salts) — `zk = 2`, measured | **325,403 / 325,571** (two replays) | **+18.6 KB** | `results/zk/replay-*` |
+| … of which packing loss (first-fit with reserved rows cannot put two 2^20 slices in one column: 30 extra stacked columns) | | ≈ +14 KB | stacking openings 95 vs 53 |
+| … of which mask columns + their openings (12 × 4 B × 92 opened rows + 12 × 48 B) | | ≈ +5 KB | arithmetic |
+| slice-splitting packing (`zk = 3`) | not obtained | expected ≈ +5 KB (−14 KB) | `zk = 3` fails the stacking reduction final-sum check (`results/zk/replay-zk3-split-FAILED.txt`); open |
+| PIOP masking (Libra masked sumchecks, low-degree column masks, ZK-GKR), not built | estimate | +6 to +12 KB | `ZK-ARGUMENT.md` §4 |
+
+Grinding on mask spot checks and fewer HVZK masks were the 10-31 candidates for cutting the
+HVZK-WHIR overhead; they are moot: the batching construction has no mask oracles and no extra
+queries, so its cost is the width of the opened rows, not a security-level-dependent query count.
+
+### 0.3 Per-round soundness of the ZK wrap (FINAL, pinned), and the 274-bit variant
+
+`results/zk/soundness-final-zk2.txt` (pinned FINAL, `zk = 2`): LogUp 321.9, GKR sumcheck 369.3,
+GKR batching 370.9, zerocheck 355.0, constraint batching 350.8, stacked reduction 351.5, WHIR
+query/shift **268.2**, proximity/fold 283.1, sumcheck 353.8, OOD 329.0, γ 348.7, μ 283.6 bits ⇒
+**min 268.2 bits per round**, queries [46, 41, 31, 25], query grinding 32 bits. The ZK lever leaves
+every term unchanged (no new round, challenge or claim).
+
+At a 274-bit per-round target (`NEARPROOF_FINAL_RBR=274`; lane E's budget
+`docs/zk-formal/E2E-SOUNDNESS-BUDGET.md` asks ≥ ≈ 274 bits/round if the single-database QROM theorem
+is not instantiated): queries [47, 43, 31, 25], min **274.0** bits, FINAL packet **329,505 B** vs
+325,613 B at 268 (same chunk, same L4): **+3.9 KB, not material** (`results/zk/replay-zk2-rbr274.txt`).
+Only the FINAL layer was re-targeted here; the inner levels and the base stay at 268.
+
+### 0.4 Hiding checks run
+
+* `zk-diff` of two FINAL proofs from the same L4 (same witness, fresh randomness):
+  `results/zk/zk-diff-replay-same-witness.txt`. Root, every WHIR field, stacked openings differ; the
+  shape (trace heights) and public values are identical. The PIOP fields also differ, but only
+  because their Fiat–Shamir challenges change with the root; they remain deterministic functions of
+  (witness, challenges), i.e. a witness-guessing distinguisher still works (open, `ZK-ARGUMENT.md` §4).
+* `zk-diff` of two `zk = 1` base proofs of the same witness: `results/zk/zk-diff-base-same-witness.txt`
+  (the root, hence `u`, differs).
+* This is not the "two witnesses, no distinguishing field" test the owner asked for: that test can
+  only pass once the PIOP masking of §4 exists.
+
+
+## 1. Verdict against the relaxed targets (2026-10-31 run, non-ZK)
 
 | target (2026-10-31) | result here | met? |
 |---|---|---|
@@ -186,9 +263,13 @@ In order of how soon they bite:
 ## 8. Reproduction
 
 ```sh
-# deps: pinned cpu-fast tree + patches/e2e-verify.patch, then build (8 jobs, CPUs 8-15,24-31)
-research/near-compression/e2e/scripts/setup_e2e.sh /data/illia/nearproof-deps/pq-e2e-zk
-NEARPROOF_PQ_DEPS=/data/illia/nearproof-deps/pq-e2e-zk research/near-compression/native/pq-chunk-e2e/build.sh
+# deps: cpu-fast tree + native/recursion/patches/{e2e-verify,zk-pcs}.patch (setup_e2e_verify_deps.sh), then build
+research/near-compression/e2e/scripts/setup_e2e.sh /data/illia/nearproof-deps/pq-e2e-d
+NEARPROOF_PQ_DEPS=/data/illia/nearproof-deps/pq-e2e-d research/near-compression/native/pq-chunk-e2e/build.sh
+# 2026-11-03 ZK run (NEARPROOF_ZK=1 is the driver default; =0 reproduces 10-31): replay pair + 3 chunks + negatives
+research/near-compression/e2e/scripts/run_zk_batch.sh
+# levers: zk=3 split packing, 274-bit FINAL, second zk base; then 1-thread verify timing + collection
+research/near-compression/e2e/scripts/run_zk_levers.sh; research/near-compression/e2e/scripts/bench_zk_verify.sh
 # one chunk end to end (witness, public inputs, base, L1..L5, FINAL, fresh-process verify)
 research/near-compression/e2e/scripts/e2e_case.sh OUT /data/illia/nearproof-deps/corpora/d1run/d1/00-h10006-s3
 # the three chunks of this run

@@ -1,0 +1,5 @@
+PROOF_SECTIONS total=324455 common_main_commit=48 trace_vdata=40 gkr=37592 relations=24772 stacking=6736 whir=255156 vd_present=4 vd_per_air=[8, 8, 8, 8] pv_entries=[19, 0, 0, 0] whir_commits=1 whir_init_rows=92 whir_init_digests=1089 whir_later_queries=[41, 31, 25] whir_later_digests=[853, 662, 533] whir_final_poly=256 whir_init_commits=1 whir_init_queries=[46] whir_later_queries_n=[41, 31, 25] whir_digest_count=3137 whir_bytes_overhead=123402 whir_init_all_digests=1089 whir_init_shape=[1] whir_init_lens=[[1089]] whir_later_lens=[[853], [662], [533]]
+VERIFY_PROFILE_MS total=234.13 setup_read_pin=8.42 setup_parse=17.71 air_pin_bundle_read=2.45 statepublic_subprocess=76.50 expected_claim_tape=101.44 proof_decode=0.46 final_verify=27.13
+INDEPENDENT_VERIFY_OK bundle_bytes=325403 under_300000=false
+FINAL_PHASE start
+FINAL_PHASE proved_and_verified seconds=5293.620748

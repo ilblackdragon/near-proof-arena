@@ -19,9 +19,22 @@ pub fn chain_geom() -> (usize, usize) {
 
 /// Same real-settings tail as the G2 gate, with the production 2^30 interaction budget.
 /// No environment variable may silently reduce the security target.
+/// [E2E-D] `NEARPROOF_ZK=1` (the driver's default): PCS-level hiding where it is needed for a
+/// published packet. The base commits with `zk = 1` (random reserved rows: its root, hence the
+/// published stacking point u, is a random-oracle output on an unpredictable input); the FINAL
+/// layer with `zk = 2` (reserved rows + 12 uniform mask columns). Inner NV levels are never
+/// published and stay `zk = 0`. `NEARPROOF_ZK=0` reproduces the 2026-10-31 parameters exactly.
+pub fn zk_lever() -> bool {
+    std::env::var("NEARPROOF_ZK").map(|v| v == "1").unwrap_or(false)
+}
+
 pub fn params(final_layer: bool, cert_file: &str, exclusions: &str) -> SystemParams {
     let (n_stack, log_blowup) = chain_geom();
+    // NEARPROOF_ZK_FINAL overrides the FINAL mode (3 = 2 + slice splitting in the packing)
+    let zk_final = std::env::var("NEARPROOF_ZK_FINAL").ok().and_then(|v| v.parse().ok()).unwrap_or(2u8);
+    let zk = if final_layer && zk_lever() { zk_final } else { 0 };
     shaped_params_geom(
+        zk,
         final_layer,
         n_stack,
         log_blowup,
@@ -44,10 +57,14 @@ pub fn shaped_params(
         n_stack <= 18,
         "chunk shape exceeds the supported BabyBear extended domain"
     );
-    shaped_params_geom(final_layer, n_stack, 7, w_stack, degree, cert_file, exclusions)
+    // only the base calls this (`chunk_bridge::prove_base`)
+    let zk = if !final_layer && zk_lever() { 1 } else { 0 };
+    shaped_params_geom(zk, final_layer, n_stack, 7, w_stack, degree, cert_file, exclusions)
 }
 
+#[allow(clippy::too_many_arguments)]
 fn shaped_params_geom(
+    zk: u8,
     final_layer: bool,
     n_stack: usize,
     log_blowup: usize,
@@ -78,6 +95,13 @@ fn shaped_params_geom(
     }
     assert!(!certs.is_empty(), "no kernel-backed certificates");
     let (l_skip, k) = (2, 4);
+    // [E2E-D] per-round soundness target of the FINAL layer (bits); NEARPROOF_FINAL_RBR overrides
+    // the pinned 268 to measure the size at a higher target (e.g. 274, E2E-SOUNDNESS-BUDGET.md)
+    let rbr_target: usize = if final_layer {
+        std::env::var("NEARPROOF_FINAL_RBR").ok().and_then(|v| v.parse().ok()).unwrap_or(268)
+    } else {
+        268
+    };
     assert!(l_skip + n_stack + log_blowup <= 27, "beyond the BabyBear two-adic domain");
     // Keep four WHIR rounds when the stacked height grows by one bit (ns19): one more bit folded
     // into the final polynomial.
@@ -93,6 +117,7 @@ fn shaped_params_geom(
         wide_query_pow: true,
         tight_heights: true,
         whir_y: true,
+        zk,
     };
     let whir = WhirConfig::new_full(
         log_blowup,
@@ -105,14 +130,14 @@ fn shaped_params_geom(
             mu_pow_bits: 0,
             proximity: WhirProximityStrategy::ListDecoding { m: 64 },
         },
-        268,
+        rbr_target,
         levers,
         15,
     )
     .with_first_order(
         log_blowup,
         l_skip + n_stack,
-        268,
+        rbr_target,
         50,
         64,
         Some(&certs),

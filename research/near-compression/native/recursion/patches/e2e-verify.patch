@@ -183,7 +183,7 @@
  }
 --- a/openvm-sha384/crates/recursion/src/nv/vd.rs
 +++ b/openvm-sha384/crates/recursion/src/nv/vd.rs
-@@ -38,10 +38,30 @@
+@@ -38,10 +38,39 @@
  /// The final proof's batch point r and its NvAir openings, re-derived natively under the final
  /// domain (the preamble of `verifier::verify`, then `verify_zerocheck_and_logup`).
  fn final_point_and_openings(vk: &MultiStarkVerifyingKey<SC>, proof: &Proof<SC>) -> Result<(Vec<EF>, usize, Vec<(EF, EF)>), String> {
@@ -198,10 +198,19 @@
      let l_skip = mvk.params.l_skip;
      let num_airs = mvk.per_air.len();
 +    if let Some(r) = r_known {
-+        for avk in &mvk.per_air {
++        // Same preconditions as the replay path below: no preprocessed/cached traces, every AIR
++        // present (so the trace order is the verifier's, and `ti` indexes the same openings).
++        for (avk, td) in mvk.per_air.iter().zip(&proof.trace_vdata) {
 +            if avk.preprocessed_data.is_some() || !avk.params.width.cached_mains.is_empty() {
 +                return Err("final vk has preprocessed/cached traces".into());
 +            }
++            if td.is_none() {
++                return Err("final proof: AIR absent".into());
++            }
++        }
++        // program_eval reads r[0..=n] for the NvAir's n; a shorter point was not derived here
++        if r.len() < 1 + proof.trace_vdata[0].as_ref().unwrap().log_height.saturating_sub(l_skip) {
++            return Err("recorded batch point too short".into());
 +        }
 +        let mut tid: Vec<usize> = (0..num_airs).collect();
 +        tid.sort_by_key(|&a| (Reverse(proof.trace_vdata[a].as_ref().map_or(0, |t| t.log_height)), a));
@@ -214,7 +223,7 @@
      let mut t = ShaTranscript::new_layer(true);
      t.observe_commit(vk.pre_hash);
      t.observe_commit(proof.common_main_commit);
-@@ -90,24 +110,43 @@
+@@ -90,24 +119,43 @@
      let tp = super::uair::tau_pows();
      let omega = F::two_adic_generator(l_skip);
      let lv: Vec<EF> = (0..1usize << l_skip).map(|i| eq_uni(l_skip, r[0], EF::from(omega.exp_u64(i as u64)))).collect();
@@ -264,7 +273,7 @@
      let l_skip = setup.vk_final.inner.params.l_skip;
      if setup.program.len() > 1usize << (l_skip + n) {
          return Err("program longer than the NvAir trace".into());
-@@ -136,7 +175,10 @@
+@@ -136,7 +184,10 @@
  /// chain only carries a root the base proof actually committed to, so this is what turns "the
  /// base proof verified" into "the base proof verified *for this TAPE table*".
  pub fn verify_final_claim(setup: &VdSetup, engine_final: &Sha384CpuEngine, claim: &super::circuit::StatementClaim, proof: &Proof<SC>, skip_program: bool) -> Result<(), String> {
@@ -275,7 +284,7 @@
      let pvs = &proof.public_values[0];
      if pvs.len() != super::uair::NV_NUM_PVS {
          return Err("final public values".into());
-@@ -146,7 +188,7 @@
+@@ -146,7 +197,7 @@
      }
      check_height_caps(&setup.vk_final, proof)?;
      if !skip_program {
