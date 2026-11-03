@@ -71,6 +71,7 @@ import WasmBase.Census
 import WasmBase.Main.M2Link
 import WasmBase.Main.RegWalkG
 import WasmBase.Main.RegSendM2
+import WasmBase.M2Ctx
 import WasmBase.ShaAir
 import WasmBase.ShaSound
 import WasmBase.ShaVectors
