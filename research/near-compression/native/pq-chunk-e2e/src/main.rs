@@ -2,6 +2,7 @@
 //! Research protocol: cryptographic security and zero-knowledge masking are not established here.
 mod perf_check;
 mod profile;
+mod zk_selftest;
 #[path = "../../pq-state-port/src/main.rs"]
 #[allow(dead_code)]
 mod state;
@@ -845,6 +846,7 @@ fn main() {
             println!("PROOF_SECTIONS {}", proof_sections(&p));
         }
         Some("zk-diff") if a.len() == 4 => zk_diff(Path::new(&a[2]), Path::new(&a[3])),
+        Some("zk-selftest") => zk_selftest::run(&a[2..]),
         _ => panic!(
             "usage: base AIR DUMP OUT CERTS EXCLUSIONS | probe OUT | validate-base AIR PUBLIC OUT | chain AIR PUBLIC OUT CERTS EXCLUSIONS [RESUME_LEVEL] | replay-final AIR PUBLIC OUT CERTS EXCLUSIONS LEVEL | verify AIR CLAIM STATEPUBLIC(ignored: in-process) SETUP TRUSTED_SHA256 BUNDLE | claim-parity AIR CLAIM STATEPUBLIC SETUP BUNDLE | proof-sections PROOF | zk-diff PROOF_A PROOF_B"
         ),

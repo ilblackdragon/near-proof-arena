@@ -7,6 +7,10 @@
 #   patches/zk-pcs.patch      (only with E2E_ZK=1) PCS-level hiding for a layer whose WHIR lever
 #                             `zk` is set: random reserved rows in every stacked column and random
 #                             mask columns in the common-main commitment. Off (zk = 0) it is inert.
+#   patches/zk-piop.patch     (only with E2E_ZK=1) PIOP masking (`zk >= 4`): masked GKR, masked
+#                             batch sumcheck with column masks, masked stacking reduction
+#                             (research/near-compression/e2e/ZK-ARGUMENT.md). Inert for zk < 4.
+#                             Regenerate with make_zk_piop_patch.sh.
 # Applied with `patch -p1` from the deps root. Idempotent: an overlaid tree is checked by
 # reverse-applying each patch in a dry run (the tree must contain exactly the patch's hunks).
 set -euo pipefail
@@ -15,7 +19,7 @@ export NEARPROOF_PQ_DEPS=${NEARPROOF_PQ_DEPS:-/data/illia/nearproof-deps/pq-e2e-
 D=$NEARPROOF_PQ_DEPS
 case "$D" in */pq-recursion|*/pq-native|*/pq-stream|*/openvm) echo "refusing shared tree" >&2; exit 1;; esac
 PATCHES="e2e-verify"
-[ "${E2E_ZK:-1}" = 1 ] && PATCHES="$PATCHES zk-pcs"
+[ "${E2E_ZK:-1}" = 1 ] && PATCHES="$PATCHES zk-pcs zk-piop"
 "$HERE/setup_cpu_fast_deps.sh"
 for p in $PATCHES; do
   f="$HERE/patches/$p.patch"
@@ -23,6 +27,14 @@ for p in $PATCHES; do
     (cd "$D" && patch -s -p1 --no-backup-if-mismatch < "$f")
     touch "$D/.$p-overlay"
   fi
-  (cd "$D" && patch -s -p1 -R --dry-run < "$f" >/dev/null) || { echo "$D: tree does not contain $p.patch" >&2; exit 1; }
+done
+# check: a copy of the touched files must reverse-apply every patch, last first
+CHK=$(mktemp -d /data/illia/nearproof-deps/.e2echk.XXXX); trap 'rm -rf "$CHK"' EXIT
+for f in $(for p in $PATCHES; do grep -h '^+++ b/' "$HERE/patches/$p.patch"; done | sed 's|^+++ b/||' | sort -u); do
+  [ -f "$D/$f" ] && { mkdir -p "$CHK/$(dirname "$f")"; cp "$D/$f" "$CHK/$f"; }
+done
+for p in $(echo $PATCHES | tr ' ' '\n' | tac); do
+  (cd "$CHK" && patch -s -p1 -R --no-backup-if-mismatch -E < "$HERE/patches/$p.patch" >/dev/null) \
+    || { echo "$D: tree does not contain $p.patch" >&2; exit 1; }
 done
 echo "e2e verify deps OK ($PATCHES): $D"
