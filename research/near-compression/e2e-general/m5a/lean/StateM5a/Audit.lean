@@ -47,6 +47,7 @@ import StateM5a.WsLen
 import StateM5a.WsRaw
 import StateM5a.WsSeg
 import StateM5a.WsEntries
+import StateM5a.ChipStub
 
 /-! Axiom audit of the M5a lemmas (`lake build StateM5a.Audit` prints them): every theorem must
 depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
@@ -504,3 +505,10 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.VerStore.brVers_nodup
 #print axioms StateM5a.VerAssembly.air_final_sorted_ver
 #print axioms StateM5a.VerRead.br_ver_head
+#print axioms StateM5a.ChipStub.holds_of_holdsX
+#print axioms StateM5a.ChipStub.m5a_ifOK
+#print axioms StateM5a.ChipStub.tape_ifOK
+#print axioms StateM5a.ChipStub.precheck_holds
+#print axioms StateM5a.ChipStub.precheck_holds_tape
+#print axioms StateM5a.ChipStub.stub_bus_premise
+#print axioms StateM5a.ChipStub.stub_sendsOn_premise

@@ -72,3 +72,4 @@ import StateM5a.VerDec
 import StateM5a.VerRead
 import StateM5a.VerStore
 import StateM5a.VerAssembly
+import StateM5a.ChipStub
