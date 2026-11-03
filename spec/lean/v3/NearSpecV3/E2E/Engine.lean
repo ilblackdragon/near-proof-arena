@@ -247,6 +247,7 @@ macro_rules
         | (refine congrArg (_ >>= ·) (funext fun _ => ?_); nat_walk)
         | (split <;> nat_walk)
         | (simp only [pure_bind]; nat_walk)
+        | (cases ‹_ × _›; nat_walk)
         | skip))
 
 theorem preludeK_nat {β γ : Type} (fl : Flags) (prims : Prims) (env : Env) (t : PTrie)
