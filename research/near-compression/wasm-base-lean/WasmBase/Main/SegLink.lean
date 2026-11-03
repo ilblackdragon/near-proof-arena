@@ -452,4 +452,184 @@ theorem cuto_k4_mono (hl : CutoHiLimbs tr)
 
 end
 
+/-! ## 5. List lemmas: counting a filtered range -/
+
+theorem sum_map_bits {g : Nat → Nat} : ∀ l : List Nat, (∀ x ∈ l, g x ≤ 1) →
+    (l.map g).sum = (l.filter (fun x => g x = 1)).length
+  | [], _ => rfl
+  | x :: l, h => by
+    have hx := h x List.mem_cons_self
+    have ih := sum_map_bits l (fun y hy => h y (List.mem_cons_of_mem _ hy))
+    simp only [List.map_cons, List.sum_cons, List.filter_cons]
+    rcases (by omega : g x = 0 ∨ g x = 1) with h0 | h1
+    · simp [h0, ih]
+    · simp [h1, ih]; omega
+
+/-- The `j`-th element `r` of a filtered range has exactly `j + 1` filtered elements `≤ r`. -/
+theorem filter_range_idx (p : Nat → Bool) (h j : Nat) (hj : j < ((List.range h).filter p).length) :
+    ((List.range (((List.range h).filter p)[j] + 1)).filter p).length = j + 1 := by
+  generalize hr : ((List.range h).filter p)[j] = r
+  have hmem : r ∈ (List.range h).filter p := by rw [← hr]; exact List.getElem_mem hj
+  have hrh : r < h := List.mem_range.mp (List.mem_filter.mp hmem).1
+  have hpr : p r = true := (List.mem_filter.mp hmem).2
+  have e1 : List.range h = List.range r ++ r :: (List.range (h - (r + 1))).map ((r + 1) + ·) := by
+    have eh : h = (r + 1) + (h - (r + 1)) := by omega
+    have ra := @List.range_add (r + 1) (h - (r + 1))
+    rw [← eh] at ra
+    rw [ra, List.range_succ]
+    simp only [List.append_assoc, List.singleton_append]
+  have hK : (List.range h).filter p =
+      (List.range r).filter p ++ r :: ((List.range (h - (r + 1))).map ((r + 1) + ·)).filter p := by
+    rw [e1, List.filter_append, List.filter_cons, hpr]; rfl
+  have hnd : ((List.range h).filter p).Nodup := List.nodup_range.filter _
+  have hidx : ((List.range h).filter p).idxOf r = ((List.range r).filter p).length := by
+    have hn : r ∉ (List.range r).filter p := by
+      intro hm; have := List.mem_range.mp (List.mem_filter.mp hm).1; omega
+    rw [hK, List.idxOf_append, ite_eq_right_iff.mpr (fun h => absurd h hn), List.idxOf_cons_self]; simp
+  have hj' : ((List.range h).filter p).idxOf r = j := by
+    rw [← hr]; exact List.Nodup.idxOf_getElem hnd j hj
+  rw [List.range_succ, List.filter_append, List.filter_cons, hpr]
+  simp only [List.filter_nil, List.length_append, List.length_cons, List.length_nil]
+  simp only [ite_true, List.length_singleton]
+  omega
+
+/-! ## 6. The consumed message of a CUTO row; `dep` is the depth -/
+
+/-- The CH message an active CUTO row consumes (its first interaction), decoded. -/
+def cutoMsg (tr : Trace) (pub : List F) (r : Nat) : Msg :=
+  decMsg ([Cut.Out.c "space", Cut.Out.c "slot", Cut.Out.F 2, Cut.Out.F 3, Cut.Out.F 4, Cut.Out.c "x2",
+    Cut.Out.F 6, Cut.Out.c "tp"].map (·.eval (tr.row pub 31 r)))
+
+/-- `cutoMsg` is the decoded message of CUTO's channel receive. -/
+theorem cutoMsg_recv (tr : Trace) (pub : List F) (r : Nat) :
+    cutoMsg tr pub r = decMsg ((chRecv (Cut.Out.c "space") (Cut.Out.c "slot") (Cut.Out.F 2)
+      [Cut.Out.F 3, Cut.Out.F 4, Cut.Out.c "x2", Cut.Out.F 6] (Cut.Out.c "tp") (Cut.Out.c "act")).msg.map
+        (·.eval (tr.row pub 31 r))) := rfl
+
+theorem cutoMsg_head : Cut.Out.inters.head? = some (chRecv (Cut.Out.c "space") (Cut.Out.c "slot") (Cut.Out.F 2)
+      [Cut.Out.F 3, Cut.Out.F 4, Cut.Out.c "x2", Cut.Out.F 6] (Cut.Out.c "tp") (Cut.Out.c "act")) := rfl
+
+/-- **How the final live list meets CUTO** (the bus-split facts the link uses): every active CUTO row's
+consumed message is in the final live list, and every live call record (space 4) is consumed by an
+active CUTO row. -/
+structure CutoFin (tr : Trace) (pub : List F) (fin : List Msg) : Prop where
+  mem : ∀ r, r < tr.height 31 → rowNat tr 31 r 0 = 1 → cutoMsg tr pub r ∈ fin
+  cov4 : ∀ x ∈ fin, x.space = 4 → ∃ r, r < tr.height 31 ∧ rowNat tr 31 r 0 = 1 ∧ x = cutoMsg tr pub r
+
+section
+variable {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsX (wasmBaseSegAir nloc ngl) pub tr)
+include H
+
+/-- The fields of an active row's consumed message. -/
+theorem cutoMsg_fields (hl : CutoHiLimbs tr) {r : Nat} (hr : r < tr.height 31) (ha : rowNat tr 31 r 0 = 1) :
+    (cutoMsg tr pub r).space = rowNat tr 31 r 47 ∧ (cutoMsg tr pub r).slot = rowNat tr 31 r 48 ∧
+      (cutoMsg tr pub r).tag = cutoF tr r 2 ∧ (cutoMsg tr pub r).l0 = cutoF tr r 3 ∧
+      (cutoMsg tr pub r).l1 = cutoF tr r 4 ∧ (cutoMsg tr pub r).l2 = rowNat tr 31 r 49 ∧
+      (cutoMsg tr pub r).l3 = cutoF tr r 6 := by
+  obtain ⟨i47, i48, i49, -⟩ := cuto_ix2
+  have hP := P_val
+  have hF := fun k (hk : k < 7) => cutoF_lt H hl hr ha hk
+  have t2 : (((cutoF tr r 2 : Nat) : F)).toNat = cutoF tr r 2 := Fp.toNat_cast_of_lt (by have := hF 2 (by omega); omega)
+  have t3 : (((cutoF tr r 3 : Nat) : F)).toNat = cutoF tr r 3 := Fp.toNat_cast_of_lt (by have := hF 3 (by omega); omega)
+  have t4 : (((cutoF tr r 4 : Nat) : F)).toNat = cutoF tr r 4 := Fp.toNat_cast_of_lt (by have := hF 4 (by omega); omega)
+  have t6 : (((cutoF tr r 6 : Nat) : F)).toNat = cutoF tr r 6 := Fp.toNat_cast_of_lt (by have := hF 6 (by omega); omega)
+  simp only [t2, t3, t4, t6, cutoMsg, decMsg, List.map_cons, List.map_nil, List.getD_cons_zero, List.getD_cons_succ,
+    cuto_evalc tr pub r i47, cuto_evalc tr pub r i48, cuto_evalc tr pub r i49,
+    cuto_evalF tr pub r (show 2 < 7 by omega), cuto_evalF tr pub r (show 3 < 7 by omega),
+    cuto_evalF tr pub r (show 4 < 7 by omega), cuto_evalF tr pub r (show 6 < 7 by omega),
+    Fp.toNat_cast_of_lt (rowNat_lt tr 31 r _), t2, t3, t4, t6, and_self]
+
+/-- An active row consumes a call record (space 4) exactly when it is a `k4` row. -/
+theorem cutoMsg_space4 (hl : CutoHiLimbs tr) {r : Nat} (hr : r < tr.height 31) (ha : rowNat tr 31 r 0 = 1) :
+    (cutoMsg tr pub r).space = 4 ↔ rowNat tr 31 r 53 = 1 := by
+  rw [(cutoMsg_fields H hl hr ha).1]
+  obtain ⟨b51, b52, b53, b54, b55, b56, hs⟩ := cuto_kinds H hr
+  rcases (by omega : rowNat tr 31 r 56 = 0 ∨ rowNat tr 31 r 56 = 1) with h0 | h1
+  · rw [((cuto_fieldfacts H hl hr ha).1 h0).1]; omega
+  · rw [(cuto_kL_lookup H hl hr ha h1).1]; omega
+
+theorem cuto_dep_count {r : Nat} (hr : r < tr.height 31) :
+    rowNat tr 31 r 59 = ((List.range (r + 1)).filter (fun x => decide (rowNat tr 31 x 53 = 1))).length := by
+  rw [cuto_dep H r hr, sum_map_bits (List.range (r + 1)) (fun x hx => by
+    have := List.mem_range.mp hx; exact (cuto_kinds H (by omega)).2.2.1)]
+
+/-- **`dep` is the depth.**  Given the id facts of the final live list (`IdsOK`, spec side) and how it
+meets CUTO (`CutoFin`), every record row's slot is a live id `I[i]` whose caller is `I[i+1]`, and its
+`dep` is `σ` of the slot. -/
+theorem cuto_k4_dep (hl : CutoHiLimbs tr) {fin : List Msg} {I : List Nat} {σ : Nat → Nat}
+    (hI : IdsOK fin I σ) (hF : CutoFin tr pub fin) {r : Nat} (hr : r < tr.height 31)
+    (h4 : rowNat tr 31 r 53 = 1) :
+    rowNat tr 31 r 59 = σ (rowNat tr 31 r 48) ∧
+      ∃ i, ∃ hi : i + 1 < I.length, rowNat tr 31 r 48 = I[i] ∧ rowNat tr 31 r 49 = I[i + 1] := by
+  -- every record row's slot and caller are ids
+  have slotI : ∀ x, x < tr.height 31 → rowNat tr 31 x 53 = 1 →
+      ∃ i, ∃ hi : i + 1 < I.length, rowNat tr 31 x 48 = I[i] ∧ rowNat tr 31 x 49 = I[i + 1] := by
+    intro x hx h4x
+    have hax := cuto_act_of_k4 H hx h4x
+    obtain ⟨f1, f2, -, -, -, f6, -⟩ := cutoMsg_fields H hl hx hax
+    obtain ⟨i, hi, e1, e2⟩ := hI.recs _ (hF.mem x hx hax) ((cutoMsg_space4 H hl hx hax).mpr h4x)
+    exact ⟨i, hi, by rw [← f2, e1], by rw [← f6, e2]⟩
+  have hsl : ∀ x, x < tr.height 31 → rowNat tr 31 x 53 = 1 → rowNat tr 31 x 48 < 2 ^ 30 := by
+    intro x hx h4x
+    obtain ⟨i, hi, e1, -⟩ := slotI x hx h4x
+    have := hI.lt _ (List.getElem_mem (by omega : i < I.length)); omega
+  let p : Nat → Bool := fun x => decide (rowNat tr 31 x 53 = 1)
+  let K := (List.range (tr.height 31)).filter p
+  let S := K.map (fun x => rowNat tr 31 x 48)
+  let R := (I.take (I.length - 1)).reverse
+  have hK : K.Pairwise (· < ·) := List.pairwise_lt_range.filter _
+  have hS : S.Pairwise (· < ·) := by
+    refine List.pairwise_map.mpr (hK.imp_of_mem fun {a b} ha hb hab => ?_)
+    obtain ⟨ha1, ha2⟩ := List.mem_filter.mp ha
+    obtain ⟨hb1, hb2⟩ := List.mem_filter.mp hb
+    have := cuto_k4_mono H hl hsl (b - a - 1) a (by have := List.mem_range.mp hb1; omega) (by simpa [p] using ha2)
+      (by rw [show a + (b - a - 1) + 1 = b by omega]; simpa [p] using hb2)
+    rwa [show a + (b - a - 1) + 1 = b by omega] at this
+  have hR : R.Pairwise (· < ·) :=
+    List.pairwise_reverse.mpr ((hI.desc.sublist (List.take_sublist _ _)).imp fun h => h)
+  have memR : ∀ y, y ∈ R ↔ ∃ i, ∃ hi : i + 1 < I.length, I[i] = y := by
+    intro y
+    rw [List.mem_reverse, List.mem_iff_getElem]
+    simp only [List.length_take, List.getElem_take]
+    constructor
+    · rintro ⟨i, hi, rfl⟩; exact ⟨i, by omega, rfl⟩
+    · rintro ⟨i, hi, rfl⟩; exact ⟨i, by omega, rfl⟩
+  have hSR : S = R := by
+    refine pairwise_eq_of_mem_iff (· < ·) (fun a b h h' => by omega) S R hS hR fun y => ?_
+    rw [memR]
+    constructor
+    · intro hy
+      obtain ⟨x, hx, rfl⟩ := List.mem_map.mp hy
+      obtain ⟨hx1, hx2⟩ := List.mem_filter.mp hx
+      obtain ⟨i, hi, e1, -⟩ := slotI x (List.mem_range.mp hx1) (by simpa [p] using hx2)
+      exact ⟨i, hi, e1.symm⟩
+    · rintro ⟨i, hi, rfl⟩
+      obtain ⟨x, hx, hx4, hxs⟩ := hI.recEx i hi
+      obtain ⟨r', hr', ha', rfl⟩ := hF.cov4 x hx hx4
+      have h4' := (cutoMsg_space4 H hl hr' ha').mp hx4
+      refine List.mem_map.mpr ⟨r', List.mem_filter.mpr ⟨List.mem_range.mpr hr', by simpa [p] using h4'⟩, ?_⟩
+      rw [← (cutoMsg_fields H hl hr' ha').2.1, hxs]
+  -- `r` is the `j`-th record row
+  have hrK : r ∈ K := List.mem_filter.mpr ⟨List.mem_range.mpr hr, by simpa [p] using h4⟩
+  obtain ⟨j, hj, hKj⟩ := List.mem_iff_getElem.mp hrK
+  have hdep : rowNat tr 31 r 59 = j + 1 := by
+    rw [cuto_dep_count H hr, ← hKj]; exact filter_range_idx p _ j hj
+  have hjS : j < S.length := by simp [S]; exact hj
+  have hSj : S[j] = rowNat tr 31 r 48 := by simp only [S, List.getElem_map, hKj]
+  have hlenR : R.length = I.length - 1 := by simp [R]
+  have hjR : j < R.length := by rw [← hSR]; exact hjS
+  have hRj : R[j] = I[I.length - 2 - j]'(by omega) := by
+    simp only [R, List.getElem_reverse, List.getElem_take, List.length_take]
+    congr 1; omega
+  obtain ⟨i, hi, e1, e2⟩ := slotI r hr h4
+  have hnd : I.Nodup := hI.desc.imp fun h => Nat.ne_of_gt h
+  have hii : i = I.length - 2 - j := by
+    have : I[i] = I[I.length - 2 - j]'(by omega) := by
+      rw [← e1, ← hRj, ← hSj]; simp only [hSR]
+    exact (List.Nodup.getElem_inj hnd).mp this
+  refine ⟨?_, i, hi, e1, e2⟩
+  rw [e1, hI.dep i (by omega), hdep]; omega
+
+end
+
 end WasmBase
