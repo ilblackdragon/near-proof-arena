@@ -167,3 +167,6 @@ import WasmBase.Main.SegSigma
 import WasmBase.Main.SegSoundSigma
 import WasmBase.Main.SegSoundSigmaMP
 import WasmBase.Main.SegChainSigma
+import WasmBase.Main.HostTwoRun
+import WasmBase.Main.HostTwoRunArms
+import WasmBase.Main.HostTwoRunCall
