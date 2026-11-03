@@ -32,7 +32,9 @@ top `k`, the caller frames, globals, static fields, the bytes outside `A`) is fr
 because after `get` the continuations capture *different* states (`rel_get_bind`).  Rules: `pure`,
 `bind`, `get`-`bind`, `set`, `modify`, `throw`, `if`, `dite`, `for` over lists/ranges, `<$>`; the
 primitives (`withGas` and the gas ops, `readMemH` **with its read-set side condition**, `writeMemH`,
-`regGetH`, `regSetH`, `pushRet`, `memOrRegH`) are proved in `HostTwoRunPrims`.
+`regGetH`, `regSetH`, `pushRet`) are proved in §6–7 below; `rel_auto` (§5) walks two copies of a program in
+lock step, aligning host reads of the captured states (`tw_host`, `relAlign`) and leaving the read-set
+side goals of `readMemH`.
 -/
 
 namespace WasmBase
