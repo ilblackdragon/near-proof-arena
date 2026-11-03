@@ -101,3 +101,5 @@ import WasmBase.Main.SegMpath
 import WasmBase.Main.SegMemb
 import WasmBase.Main.R16Audit
 import WasmBase.Main.SegSend
+import WasmBase.Main.BusCount
+import WasmBase.Main.SegMP
