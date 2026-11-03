@@ -179,3 +179,4 @@ import WasmBase.Main.HostCover
 import WasmBase.Main.HostIfCover
 import WasmBase.Main.HostEffTwin
 import WasmBase.Main.HostCoverAir
+import WasmBase.Main.HostTwinP
