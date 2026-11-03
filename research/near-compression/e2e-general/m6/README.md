@@ -99,3 +99,86 @@ Obligations, by owner:
 * **σ-pinned restatement [K]:** `HostVacuity.lean` (mechanised counterexample), `SegSigma.lean`,
   `SegSoundSigma(MP).lean`, `SegChainSigma.lean` (`seg_sound_σ`, `seg_sound_cσ`, `seg_chain_σ`).
   The thread `sideR` is the host side plus the register file.
+
+## 6. Proposed `WasmBnd` diff for lane E (gasLeft, register-id order) [S]
+
+The integrator routes this to lane E; lane A does not edit `spec/`. Target file:
+`spec/lean/v3/NearSpecV3/E2E/Boundary.lean`. Lane A's matching side is
+`wasm-base-lean/WasmBase/Main/WasmView.lean` (`airBnd`, `fbBnd`, `blank`).
+
+**Why.** Today the AIR branch puts `blank s` in the `vmCtxDigest` remainder, and `blank s` keeps
+two things that move:
+
+* (a) the whole `s.gas`, including the Wasm gas register `gas.g`;
+* (b) the register ids in insertion order (`regIds`).
+
+Every instruction changes `gas.g`. A segment would therefore have to recompute the remainder digest
+at every cut, although nothing else in the remainder moves between host calls. The register-id
+order moves when a host call creates a register (`regSetH` appends). The view (`cutView`) is a set,
+so it cannot carry that order.
+
+With the σ-thread (§4), the remainder becomes the host side `sideR` without `gas.g` and without the
+registers. It changes only at HOST rows (`step_sideG`), and there the state side produces it (M6.4).
+
+### 6.1 Lane E diff (Boundary.lean)
+
+```diff
+ /-- The Wasm part of a boundary (present iff `inCall`). -/
+ structure WasmBnd where
+   pc : Nat
+   sp : Nat
+   stackRem : Nat
+   fuel : Nat
++  /-- the Wasm gas register `s.gas.g` (u64); the AIR has it as `segb − R·(S − S_seg)` -/
++  gasLeft : Nat
+   framesDigest : ArenaCore.Bytes
+   memRoot : ArenaCore.Bytes
+   memPages : Nat
+   globalsDigest : ArenaCore.Bytes
+   registersDigest : ArenaCore.Bytes
+   vmCtxDigest : ArenaCore.Bytes
+   promisesDigest : ArenaCore.Bytes
+   codeRoot : ArenaCore.Bytes
+   funcRoot : ArenaCore.Bytes
+   deriving DecidableEq
+
+ def WasmBnd.codec : Codec WasmBnd :=
+-  mapC (pairC u64C (pairC u64C (pairC u64C (pairC u64C (pairC digC (pairC digC (pairC u64C
+-      (pairC digC (pairC digC (pairC digC (pairC digC (pairC digC digC))))))))))))
+-    (fun w => (w.pc, w.sp, w.stackRem, w.fuel, w.framesDigest, w.memRoot, w.memPages,
++  mapC (pairC u64C (pairC u64C (pairC u64C (pairC u64C (pairC u64C (pairC digC (pairC digC
++      (pairC u64C (pairC digC (pairC digC (pairC digC (pairC digC (pairC digC digC)))))))))))))
++    (fun w => (w.pc, w.sp, w.stackRem, w.fuel, w.gasLeft, w.framesDigest, w.memRoot, w.memPages,
+       w.globalsDigest, w.registersDigest, w.vmCtxDigest, w.promisesDigest, w.codeRoot, w.funcRoot))
+-    (fun (a, b, c, d, e, f, g, h, i, j, k, l, m) => ⟨a, b, c, d, e, f, g, h, i, j, k, l, m⟩)
++    (fun (a, b, c, d, g0, e, f, g, h, i, j, k, l, m) => ⟨a, b, c, d, g0, e, f, g, h, i, j, k, l, m⟩)
+     (fun _ => rfl)
+```
+
+The following do not change: `BndRec`, `BndRec.codec`, `WF`, `decode_encode`, `encode_inj`. The
+record grows by 8 bytes. `registersDigest` keeps its type and gets a new value on lane A's side
+(§6.2), so the register-id order needs no structural change.
+
+### 6.2 Lane A side (WasmView.lean, after lane E lands 6.1)
+
+| field | today | proposed |
+|---|---|---|
+| `gasLeft` | n/a | AIR branch `s.gas.g`; fallback `0` |
+| `registersDigest` | `fd` (= `framesDigest`, redundant) | `bdigest (regIdBytes s.registers)`: the u64 ids in order, as a counted list |
+| `blank s` (remainder) | `gas` whole; `registers := regIds s.registers` | `gas := {s.gas with g := 0}`; `registers := #[]` |
+
+* `InDom` gains `s.gas.g < 2^64`. This follows from `RelW` (`g ≤ segb < 2^64`).
+* Binding:
+  * `blank_inj` takes `gas.g` from `gasLeft`.
+  * It takes the register order from `registersDigest`. `regIdBytes` is injective on id sequences,
+    so a mismatch is a `bdigest` collision (`Sha384Coll`).
+  * `reconstruct` is unchanged.
+* What a segment must produce:
+  * `gasLeft` comes from the AIR's `(S, S_seg, segb)`.
+  * `registersDigest` changes only at a HOST row that creates a register. The state side produces
+    it together with σ (M6.4). An AIR without host calls copies it from in to out.
+  * `vmCtxDigest` is then constant across host-free segments.
+
+**Alternative for the order (not preferred).** Canonicalise the spec's register file, sorted by id,
+with `regSetH` inserting in order. That is a semantic spec change, even though behaviour does not
+depend on the order once ids are distinct (`step_regIds`). §6.2 avoids it.
