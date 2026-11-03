@@ -497,6 +497,9 @@ def constraints : List Expr :=
     c "xh" i - c "oEX" * (c "z" * (sm 256 (c "x" (2 * i)) + c "x" (2 * i + 1)) + (1 - c "z") * c "sxh" i)) ++
   ((List.range 4).map fun t => c "xm" t - c "oEX" * (c "z" * CM.getD t 0 + (1 - c "z") * c "sxm" t)) ++
   ((List.range 4).map fun t => (c "oLR" + c "oLM") * c "nmem" (4 + t)) ++
+  -- M5a-5: the new leaf's memory is `< 2^25` (top byte 0 or 1), so its two 16-bit limbs equal
+  -- `100 + 2·hplen + vlen` without wrap-around (`2^32 > P`)
+  [(c "oLR" + c "oLM") * c "nmem" 3 * (c "nmem" 3 - 1)] ++
   ((List.range KMAX).flatMap fun j =>
     [bool (a j), a (j + 1) * (1 - a j), (1 - a j) * k j,
      bool (b j), b (j + 1) * (1 - b j), b j * (1 - a j), (1 - c "gA") * (b j - a j)]) ++

@@ -40,6 +40,7 @@ Working-set count mutants (M5a-5: `wsLen` is public value 16):
             would have to count as real)
   wslenlo   the statement claims one entry fewer (the last real leaf would have to be padding)
   bvwrap    a branch-value write (`oUV`) whose 4 length bytes encode |x| + P (field-equal to |x|)
+  lmwrap    a new leaf (`oLR`) whose memory bytes encode leafMem + P (field-equal in its equation)
   vbyte     a version-published leaf holding a non-byte value-hash cell (same 16-bit pair sum)
   dmono     a branch-keeping delete (`oDH`/`oDL`) whose `mem - om` witness is off by one
 Branch-value mutants (synthetic case `bval`):
@@ -1586,7 +1587,25 @@ def _t_vbyte(g):
     g.build_rng()
 
 
-TAMPERS = dict(vbyte=_t_vbyte, dmono=_t_dmono, bvwrap=_t_bvwrap, absent=_t_absent, extabsent=_t_extabsent, branchval=_t_branchval, split=_t_split,
+def _t_lmwrap(g):
+    # M5a-5: a new leaf (`SN` `oLR`) whose memory bytes encode leafMem + P (field-equal to the
+    # honest value in the memory equation)
+    T = g.T['SN']
+    r = next(r for r in T.rows if T.get(r, 'oLR') == 1)
+    old = [T.get(r, 'nmem', t) for t in range(8)]
+    n = sum(old[t] << (8 * t) for t in range(4)) + 2013265921
+    new = [(n >> (8 * t)) & 255 for t in range(4)] + old[4:]
+    if T.get(r, 'nref') == 1:
+        for x in old:
+            g.rng_count[x] -= 1
+        for x in new:
+            g.rng(x)
+        g.T['RNG'].rows = []
+        g.build_rng()
+    T.setv(r, 'nmem', new)
+
+
+TAMPERS = dict(lmwrap=_t_lmwrap, vbyte=_t_vbyte, dmono=_t_dmono, bvwrap=_t_bvwrap, absent=_t_absent, extabsent=_t_extabsent, branchval=_t_branchval, split=_t_split,
                splitext=_t_splitext, absdel=_t_absdel, squash=_t_squash, chain=_t_chain,
                verslot=_t_verslot, vernid=_t_vernid, vmcount=_t_vmcount, finroot=_t_finroot,
                nidforge=_t_nidforge, bvalue=_t_bvalue, bvmem=_t_bvmem, wsstale=_t_wsstale,
