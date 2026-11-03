@@ -108,3 +108,5 @@ import WasmBase.Main.StepRegs
 import WasmBase.Main.CtxNodup
 import WasmBase.Main.SegView
 import WasmBase.Main.SegCuto
+import WasmBase.Main.SegShaSpec
+import WasmBase.Main.SegSha
