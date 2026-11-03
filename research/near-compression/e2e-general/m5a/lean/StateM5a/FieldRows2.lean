@@ -11,6 +11,9 @@ import StateM5a.Layout
 * `odd = klen mod 2`, `ha_m = [m < 1 + klen/2]`, `hplen = 1 + klen/2`;
 * every `hp_m` (`m < 33`) is `Layout.hpAt key leaf m`, `key = [k_0 … k_{klen−1}]`, `leaf = isL`.
 
+`br_sel`: on a descending `BR` row (`act = 1`, `oFV = 0`, `gdn = 1`) exactly one selector
+`sel_i` is set, slot `i` is present (`f_i = 1`) and the looked-up nibble `nib = Σ i·sel_i` is `i`.
+
 With `Layout.hexPrefix_eq` this is `sn_hexPrefix`: the bytes the row sends at serialization
 offsets `5 … 4 + hplen` are exactly `hexPrefix key leaf` (`PTrie.hashOf`'s key bytes) and
 `hplen` is its length.  Membership of each constraint is found by `mem_search` (robust to
@@ -31,7 +34,7 @@ macro_rules
   | `(tactic| mem_search $j $hj) => `(tactic| first
       | exact Or.inl rfl
       | exact rfl
-      | exact ⟨$j, $hj, by simp [*]⟩
+      | (refine ⟨$j, $hj, ?_⟩; simp [*]; done)
       | (apply Or.inr; mem_search $j $hj)
       | (apply Or.inl; mem_search $j $hj))
 
@@ -362,6 +365,119 @@ theorem sn_hexPrefix (hA : ev tr t r pub (Sn.c "act") = 1) (hcont : ev tr t r pu
   apply List.map_congr_left
   intro m hm; simp only [List.mem_range] at hm
   exact (sn_hp hc hcont hk m (by omega)).symm
+
+end
+
+/-! ## `BR`: the selected slot -/
+
+/-- 0/1 values summing to 1 on `[0, n)`: a unique index carries the 1. -/
+theorem sum_one (g : Nat → Nat) : ∀ n, (∀ j, j < n → g j ≤ 1) → ((List.range n).map g).sum = 1 →
+    ∃ i, i < n ∧ g i = 1 ∧ ∀ j, j < n → j ≠ i → g j = 0
+  | 0, _, h => by simp at h
+  | n + 1, hb, h => by
+    rw [List.range_succ, List.map_append, List.sum_append] at h
+    simp only [List.map_cons, List.map_nil, List.sum_cons, List.sum_nil, Nat.add_zero] at h
+    have hn := hb n (by omega)
+    rcases Nat.lt_or_ge (g n) 1 with h0 | h1
+    · obtain ⟨i, hi, hg, hu⟩ := sum_one g n (fun j hj => hb j (by omega)) (by omega)
+      refine ⟨i, by omega, hg, fun j hj hji => ?_⟩
+      rcases Nat.lt_or_ge j n with hj' | hj'
+      · exact hu j hj' hji
+      · have : j = n := by omega
+        subst this; omega
+    · have hz : ((List.range n).map g).sum = 0 := by omega
+      refine ⟨n, by omega, by omega, fun j hj hjn => ?_⟩
+      have hm : g j ∈ (List.range n).map g := List.mem_map.2 ⟨j, List.mem_range.2 (by omega), rfl⟩
+      have := le_sum_of_mem' hm
+      omega
+
+theorem sum_zero (F : Nat → Nat) : ∀ n, (∀ j, j < n → F j = 0) → ((List.range n).map F).sum = 0
+  | 0, _ => by simp
+  | n + 1, hz => by
+    rw [List.range_succ, List.map_append, List.sum_append, sum_zero F n (fun j hj => hz j (by omega))]
+    simp [hz n (by omega)]
+
+/-- A sum over `[0, n)` that vanishes off `i` is its value at `i`. -/
+theorem sum_single (F : Nat → Nat) (i : Nat) : ∀ n, i < n → (∀ j, j < n → j ≠ i → F j = 0) →
+    ((List.range n).map F).sum = F i
+  | 0, h, _ => by omega
+  | n + 1, hi, hz => by
+    rw [List.range_succ, List.map_append, List.sum_append]
+    simp only [List.map_cons, List.map_nil, List.sum_cons, List.sum_nil, Nat.add_zero]
+    rcases Nat.lt_or_ge i n with h | h
+    · rw [sum_single F i n h (fun j hj hji => hz j (by omega) hji), hz n (by omega) (by omega),
+        Nat.add_zero]
+    · have : i = n := by omega
+      subst this
+      rw [sum_zero F i (fun j hj => hz j (by omega) (by omega))]
+      omega
+
+section
+variable (hc : ∀ e ∈ Br.table.constraints, e.eval tr t r pub = 0)
+include hc
+
+theorem br_hold {e : Expr} (he : e ∈ Br.constraints) : ev tr t r pub e = 0 := hold rfl hc he
+
+theorem br_bool_sel (i : Nat) (hi : i < 16) : ev tr t r pub (Br.c "sel" i) ≤ 1 := by
+  apply bool_le; apply br_hold hc
+  unfold Br.constraints
+  simp only [List.mem_append, List.mem_flatMap, List.mem_range, List.mem_cons]
+  mem_search i hi
+
+theorem br_bool_f (i : Nat) (hi : i < 16) : ev tr t r pub (Br.c "f" i) ≤ 1 := by
+  apply bool_le; apply br_hold hc
+  unfold Br.constraints
+  simp only [List.mem_append, List.mem_flatMap, List.mem_range, List.mem_cons]
+  mem_search i hi
+
+/-- **`BR` selected slot**: on a descending row (`act = 1`, `oFV = 0`, `gdn = 1`) exactly one
+selector `sel_i` is `1`, slot `i` is present (`f_i = 1`), and the nibble the row looks up against
+the walk key (`nib = Σ i·sel_i`) is `i`: the row descends into child `Kids.at cs i`. -/
+theorem br_sel (hA : ev tr t r pub (Br.c "act") = 1) (hv : ev tr t r pub (Br.c "oFV") = 0)
+    (hg : ev tr t r pub (Br.c "gdn") = 1) :
+    ∃ i, i < 16 ∧ ev tr t r pub (Br.c "sel" i) = 1 ∧
+      (∀ j, j < 16 → j ≠ i → ev tr t r pub (Br.c "sel" j) = 0) ∧
+      ev tr t r pub (Br.c "f" i) = 1 ∧ ev tr t r pub Br.nib = i := by
+  have bs := br_bool_sel hc
+  have bf := br_bool_f hc
+  -- Σ sel = 1
+  have h1 := br_hold hc (e := sumE ((List.range 16).map fun i => Br.c "sel" i) -
+      (Br.c "act" - Br.c "oFV")) (by unfold Br.constraints; simp)
+  have h1' := eq_of_sub h1
+  rw [ev_sumE, List.map_map] at h1'
+  have hs16 : ((List.range 16).map fun i => ev tr t r pub (Br.c "sel" i)).sum ≤ 16 := by
+    have := sum_le_length ((List.range 16).map fun i => ev tr t r pub (Br.c "sel" i))
+      (by intro x hx; simp only [List.mem_map, List.mem_range] at hx
+          obtain ⟨j, hj, rfl⟩ := hx; exact bs j hj)
+    simpa using this
+  have hsum : ((List.range 16).map fun i => ev tr t r pub (Br.c "sel" i)).sum = 1 := by
+    have e : ev tr t r pub (Br.c "act" - Br.c "oFV") = 1 := by rw [ev_sub, hA, hv]; try simp
+    rw [e, Function.comp_def, Nat.mod_eq_of_lt (by omega)] at h1'
+    exact h1'
+  obtain ⟨i, hi, h1i, hu⟩ := sum_one (fun j => ev tr t r pub (Br.c "sel" j)) 16 bs hsum
+  refine ⟨i, hi, h1i, hu, ?_, ?_⟩
+  · -- Σ sel·f = gdn = 1
+    have h2 := br_hold hc (e := sumE ((List.range 16).map fun i => Br.c "sel" i * Br.c "f" i) -
+        Br.c "gdn") (by unfold Br.constraints; simp)
+    have h2' := eq_of_sub h2
+    rw [ev_sumE, List.map_map, hg] at h2'
+    have hF : ((List.range 16).map (ev tr t r pub ∘ fun i => Br.c "sel" i * Br.c "f" i)).sum =
+        ev tr t r pub (Br.c "f" i) := by
+      rw [sum_single _ i 16 hi (fun j hj hji => by
+        simp only [Function.comp, ev_hmul, hu j hj hji, Nat.zero_mul, Nat.zero_mod])]
+      simp only [Function.comp, ev_hmul, h1i, Nat.one_mul]
+      exact Nat.mod_eq_of_lt (ev_lt _)
+    rw [hF, Nat.mod_eq_of_lt (ev_lt _)] at h2'
+    exact h2'
+  · unfold Br.nib
+    rw [ev_sumE, List.map_map]
+    have hN : ((List.range 16).map (ev tr t r pub ∘ fun i => sm i (Br.c "sel" i))).sum = i := by
+      rw [sum_single _ i 16 hi (fun j hj hji => by
+        simp only [Function.comp, sm, ev_mul, ev_const, hu j hj hji, Nat.mul_zero, Nat.zero_mod])]
+      simp only [Function.comp, sm, ev_mul, ev_const, h1i, Nat.mul_one]
+      have hP : i < 2013265921 := Nat.lt_of_lt_of_le hi (by decide)
+      rw [Nat.mod_eq_of_lt hP, Nat.mod_eq_of_lt hP]
+    rw [hN]; exact Nat.mod_eq_of_lt (Nat.lt_of_lt_of_le hi (by decide))
 
 end
 

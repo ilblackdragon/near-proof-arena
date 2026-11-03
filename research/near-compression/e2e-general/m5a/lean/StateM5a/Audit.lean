@@ -119,3 +119,6 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.FieldRows2.keyOf_getD
 #print axioms StateM5a.FieldRows2.sn_hp
 #print axioms StateM5a.FieldRows2.sn_hexPrefix
+#print axioms StateM5a.FieldRows2.sum_one
+#print axioms StateM5a.FieldRows2.sum_single
+#print axioms StateM5a.FieldRows2.br_sel
