@@ -20,7 +20,27 @@ of `kD` (`act ≤ kD`; data rows have `act = 1`), so a filler row hashes the zer
 
 The padding block is as FIPS 180-4 requires (`r16 gl` is in place since `gl_padding_counterexample`):
 word 0 of the `j = 0` padding row is `2^63`, word 15 of the `j = 1` row is `1024·gl + 2^21·gh =
-1024·gi` with `gl < 2^11`, `gh < 2^16`, and `gi` the number of data groups.
+1024·gi` with `gl < 2^11`, `gh < 2^16`, and `gi` the number of data groups — proved inside
+`cut_stream_digest` (`hpad : … = padBlk (1024·N)`, then `pad_whole`).
+
+## What is proved (both CUTI, `t = 30`, `ctx_in` = pub 31–48, and CUTO, `t = 31`, `ctx_out` = pub 49–66)
+
+* `cut_shape` / `cut_rows`: the table is `2N` data rows (`kD = 1`, `j = r mod 2`, `gi = r / 2`, a group
+  shares `cid`, the chaining value passes from row `2g + 1` to `2g + 2`, row 0 starts at `IV384`),
+  then the padding group at rows `2N`, `2N + 1`, then dead rows (from the stream constraints alone);
+* `cut_group`: under `HoldsX` + `ChipIf compressW`, rows `2g`, `2g + 1` are one chip compression;
+* **`cut_stream_digest`**: the public digest limbs are `limbsF d` with
+  `wbytes d = sha384 (wbytes Ws)`, `Ws = (List.range (2N)).flatMap (streamW …)` the 8 decoded block
+  words of every data row in row order (all `< 2^64`).
+
+## Open
+
+* Linking `Ws` to `cutWords L` for CUTO's consumed list `L` (fields `F_k = lo_k + 2^16·hi_k` of the
+  `act` rows in row order): an `act` row's `streamW` is `msgWords` of its fields (needs `lo < 2^16` from
+  `r16 lo`, `hi < 2^14` from `r16 (4·hi)` and the chip limb bound — `cut_hi`), and `cutBytes = wbytes ∘
+  cutWords` (`wordBytes = beN 8`).  With the filler as in the AIR today, `Ws = L.flatMap msgWords ++
+  fillerWords` with prover-chosen `fillerWords` (`cuto_filler_counterexample`), so `ctx_out = cutDigest L`
+  holds only after the `act`-for-`kD` fix (or under the hypothesis that the filler row's `lo`, `hi` are 0).
 -/
 
 namespace WasmBase
