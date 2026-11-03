@@ -203,7 +203,7 @@ theorem seg_r16_send_only (nloc ngl : Nat) :
 theorem seg_t15 (nloc ngl : Nat) :
     (wasmBaseSegAir nloc ngl).tables[15]'(by simp [seg_air_len]) = Range16.table := rfl
 theorem seg_t27 (nloc ngl : Nat) :
-    (wasmBaseSegAir nloc ngl).tables[27]'(by simp [seg_air_len]) = RegC.table := rfl
+    (wasmBaseSegAir nloc ngl).tables[27]'(by simp [seg_air_len]) = Seg.RegCK.table := rfl
 
 /-- **REG-C at index 27 of the segment AIR satisfies the walk's interface** (so `RegWalkG` applies
 to segment traces too, and its `regG_r16_recv` is the RANGE16 answer characterisation). -/
@@ -212,7 +212,7 @@ theorem regAt_seg (nloc ngl : Nat) : RegAt (wasmBaseSegAir nloc ngl) 27 where
   cons := fun e he => by
     rw [seg_t27]; exact List.mem_append_left _ (List.mem_append_left _ he)
   inters := fun i hi => by
-    rw [seg_t27]; exact List.mem_append_left _ (List.mem_append_left _ hi)
+    rw [seg_t27]; exact List.mem_append_left _ (List.mem_append_left _ (List.mem_append_left _ hi))
   r16only := by
     intro T hT hne i hi hb
     obtain ⟨t, ht, rfl⟩ := List.mem_iff_getElem.mp hT
