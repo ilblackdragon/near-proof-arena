@@ -124,7 +124,10 @@ end
 
 /-- Field values of composite expressions, goal only. -/
 macro "evg" : tactic => `(tactic| simp only [eval_add, eval_sub, eval_mul, eval_sm, eval_K, eval_lit,
-  Br.gSame, Br.gKeep, Br.gEnd, Br.vlen, Br.mode, Br.gold, limb16])
+  Br.gSame, Br.gKeep, Br.gEnd, Br.vlen, Br.mode, Br.gold, limb16, RK_SAME, RK_H, RK_HB, RK_HE, RK_LD, RK_NONE])
+/-- `evg` at every hypothesis too. -/
+macro "evga" : tactic => `(tactic| simp only [eval_add, eval_sub, eval_mul, eval_sm, eval_K, eval_lit,
+  Br.gSame, Br.gKeep, Br.gEnd, Br.vlen, Br.mode, Br.gold, limb16, RK_SAME, RK_H, RK_HB, RK_HE, RK_LD, RK_NONE] at *)
 
 /-- A flag's field value `0` / `1`, by `omega` from the op-bundle facts in context. -/
 macro "f0" : term => `(fp_of_ev0 (by omega))

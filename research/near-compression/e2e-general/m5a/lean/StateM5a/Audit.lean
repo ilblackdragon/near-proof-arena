@@ -1,5 +1,6 @@
 import StateM5a.Steps
 import StateM5a.RowBrF
+import StateM5a.RowHloc
 import StateM5a.StepsT2
 import StateM5a.Walk
 import StateM5a.SerInj
@@ -336,3 +337,13 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.RowBrF.localOK_oFD
 #print axioms StateM5a.RowBrF.localOK_oFA
 #print axioms StateM5a.RowBrF.localOK_oFV
+#print axioms StateM5a.RowBrD.localOK_oDA
+#print axioms StateM5a.RowBrD.localOK_oDS
+#print axioms StateM5a.RowBrD.localOK_oDZ
+#print axioms StateM5a.RowBrU.localOK_oUD
+#print axioms StateM5a.RowBrK.localOK_oDH
+#print axioms StateM5a.RowBrK.localOK_oDN
+#print axioms StateM5a.RowBrN.br_mem_desc
+#print axioms StateM5a.RowHloc.hloc_br
+#print axioms StateM5a.RowHloc.hloc_cDc
+#print axioms StateM5a.RowHloc.air_batched_changes_cDc

@@ -35,3 +35,8 @@ import StateM5a.RowDec
 import StateM5a.RowBr
 import StateM5a.RowBrMsg
 import StateM5a.RowBrF
+import StateM5a.RowBrD
+import StateM5a.RowBrN
+import StateM5a.RowBrU
+import StateM5a.RowBrK
+import StateM5a.RowHloc
