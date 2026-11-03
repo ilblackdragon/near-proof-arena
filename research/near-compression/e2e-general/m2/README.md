@@ -206,3 +206,71 @@ HOSTO `g_after` change verifies (the oracle is free until M6).
 
 Still open from §5: the domain bounds `ts, mtp < 2^29` are hypotheses (not derived from the AIR),
 the M2 `Ctx`/row dispatch, and forcing a clear before a refill.
+
+## Update: M2 soundness (2026-11-03)
+
+Plan item "full soundness theorem for `wasmBaseM2Air`: successor facts from the checker, not
+hypotheses". Delivered: steps 1–2 (the context, and the CONV/UNREACH rows, non-vacuously). **Not**
+delivered: the 30-table dispatch and `wasm_base_sound_m2`. All [K]. Axioms are `propext`,
+`Classical.choice` and `Quot.sound` only, with no `sorry`.
+
+**Step 1: `WasmBase/M2Ctx.lean`.** `M2Ctx` carries `hM : checkModuleM2 cfg p fn = some MH`, and every
+code fact is derived from it:
+* `checkM2_sound`/`CheckFactsM2` and `checkModuleM2_sound`/`ModFactsM2`;
+* the accessors `factsOf`, `recG`, `loc_unique`, `off_bound` and `maxFee_ge`;
+* the successor facts: `M2Ctx.conv_succ` (exactly `step_conv`'s `hstk`/`hnext`/`hL1`/`hH1`),
+  `M2Ctx.if_succ`, `M2Ctx.ifres_succ` and `M2Ctx.else_succ`;
+* the records `M2Ctx.conv_record`/`unreach_record`;
+* the FETCH converse `recordAtM2_conv_op`/`recordAtM2_unreach_op`/`M2Ctx.recG_conv`/`recG_unreach`.
+  A record with opcode 0xA7/0xAC/0xAD, or 0x00, is the record of that instruction.
+
+**Step 2: `WasmBase/Main/M2Rows.lean`.** It works against `Holds (wasmBaseM2Air …)` itself, using
+that AIR's own bus balance and not the base AIR's:
+* lookups: `m2_fetch` (FETCH soundness; all 29 non-CODE tables only send on FETCH), `m2_r16` and
+  `m2_time_chk`, plus the FETCH pins `m2_fetch_conv`/`m2_fetch_unreach`;
+* `conv_row_m2`: an active CONV row's pc is a checked `(k, pc)` with `code[pc] = .num op`
+  (`op = convOpN`, `isConvOp op`), and its fee and height are the pc's. Its CH effect is `convVal op` of
+  the consumed value (`conv_row_spec`, with the R16 bound from the lookup). It also gives `halt0`,
+  `tsOut`, `gasOut`, `consT`, `prodT` and `prodNd`;
+* `unreach_row_m2`: the same pin with `.unreachable`, no CH traffic, `halted = 2`, and
+  `halt0`/`tsOut`/`gasOut`;
+* the spec side over `M2Ctx`: `M2Ctx.step_eq_exec`, `step_conv_spec` and `step_unreach_spec`;
+* the joins: `conv_row_step_m2` (the spec step continues, and the row's produced message is the new
+  stack top at the same slot) and `unreach_row_step_m2` (the spec step aborts with
+  `WasmTrap(Unreachable)`).
+
+Named hypotheses:
+* `hsendF`: FETCH send counts are ≤ 1, the same kind of fact as `hsend`;
+* `hsend`: the R16 bound, being proved in `RegSendM2.lean`;
+* `CodeOKM2`: the commitment binding of the CODE table to the M2 records, as `CodeOK` is for the
+  base records.
+
+**Why `RowFacts2` and the dispatch are not done: the base stack is tied to `checkModule`.**
+`RowSpec2`, `RowFacts2`, `RelW`, `Chain`, `CallsOK` and `exec_of_rows` take `X : Ctx` with
+`Ctx.hM : checkModule … = some M`. `checkModule` rejects every conversion and every `unreachable`
+(`ctx_no_conv`, `ctx_no_unreach` [K]), and also `if`, `else` and import calls. So a `RowFacts2 X` for a
+CONV row would quantify over contexts that do not exist for the modules it is meant for. The same
+holds for the existing `if_rowfacts`/`IfRowData` (IF) and for the host theorem
+(`wasm_base_exec_host_holds`) on an `if`/host module.
+
+The fix is not local to M2. The base row lemmas must be restated over a context whose code facts are
+`verifyAtM2`/`recordAtM2`. About 24 files use `factsOf`/`X.mf`/`fetch_rec`: `Rows.lean:fetch_rec`
+takes `CheckFacts.recs`, and the `Step*` files take `CheckFacts.verify`, which is the base `verifyAt`.
+For base instructions, `verifyAtM2`/`recordAtM2` reduce to `verifyAt`/`recordOf`, except for `.call`
+of an import. The restatement also needs FETCH opcode separation: no base chip's opcode may be an
+opcode that only M2 records carry. `recordOf_op_not_m2` is one direction of this.
+
+The steps, in order:
+1. Split `Ctx` into data plus a code-facts predicate that both `checkModule` and `checkModuleM2`
+   satisfy.
+2. Re-thread the uses of `verify`/`recs` (about 45 sites).
+3. Then `RowFacts2` for CONV/UNREACH is `conv_row_m2` plus `step_conv`'s relation update
+   (`step_straight`). The dispatch then covers:
+   * tables 0–21 of the M2 AIR, through the base `chipFacts`, with FETCH and R16 coming from
+     `m2_fetch`/`m2_r16` instead of the base `Looks`;
+   * IF (26), through `if_rowSpec`, with `IfRowData` discharged by `M2Ctx.if_succ`/`ifres_succ`;
+   * CONV (28) and UNREACH (29);
+   * HOST (22), still under `HoldRow`;
+   * REG-C (27), with the refill clear/absent gap still open;
+   * a STATE/CH bus split of the M2 AIR, because the host stack's `host_buses` covers only tables
+     0–22.
