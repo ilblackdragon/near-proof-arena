@@ -1,6 +1,6 @@
 # End-to-end ZK proof of general NEAR chunk validation: build plan
 
-Status: **plan, 2026-10-31**; milestone 1 done and M3 (host tape) done for the covered calls (§5, 2026-11-03). No Lean spec, checker or signed
+Status: **plan, 2026-10-31**; milestone 1 done, M3 (host tape) done, M2 corpus coverage 25,918 / 26,731 method calls equal (§5, 2026-11-03). No Lean spec, checker or signed
 challenge file is changed by this document or by the milestone-1 code.
 
 Labels: **[M]** measured (in this repo, cited), **[K]** kernel-checked Lean, **[S]** stated only
@@ -62,7 +62,7 @@ AIR: `research/near-compression/wasm-base-lean/WasmBase` (Lean, the single sourc
 | integer ALU (i32/i64 add…rotr, compare, const, div/rem with traps) | `WasmBase/Chips.lean`, `Local/*`, `Main/Row*.lean` | **B** | 28.5 committed cells, 12.6 fractions per op ⇒ 349 cell-eq/op at E=12 (529 padded) [M, `R/pq-wasm-base/README.md` §6]; SHIFT 886, MUL 799 | proved: `WasmBase.wasm_base_sound` (`Main/Final.lean`) against `NearSpecV3.Wasm.run`, std axioms, explicit domain conditions |
 | locals, globals, operand stack (channel argument) | `Channel.lean`, LOCAL, globals family §12 | **B**, under the **no-discard-branch** domain condition (D3) | CH traffic 3–5 fractions per binop | proved (`Channel.lean`) under D3 |
 | linear memory: load/store | family 2 (§11), running producer/consumer channel space 3 | **B** for integer loads/stores within the initial pages | – | proved |
-| `memory.grow` / `memory.size`, bulk memory, `call_indirect`, discarding branches, floats | – | **–**. This blocks `d3rich` (77 `if`, 6 `loop`/`memory.grow` at entry) and every compiled Rust contract | – | – |
+| `memory.grow` / `memory.size`, bulk memory, `call_indirect`, discarding branches, floats | `WasmBase/M2Check.lean` | **P**: `memory.grow`/`memory.size` are admitted without a chip (a run executing one is not provable: 385 `d3rich` calls); the others do not occur in d3c7–d3c10 and are **–** (they block compiled Rust contracts, T3). Wrap/extend (CONV), `unreachable` (UNREACH) and `if` with a result are **B** (`wasmBaseM2Air`, 2026-11-03) | – | CONV/UNREACH row lemmas (`Main/M2Link.lean`) |
 | control flow: block/loop/br/br_if/return, `if`/`else` | CTRL, IF chip (`IfCheck.lean`, `docs/logs/pq-if-air-2026-10-22.md`) | **B** | IF: 14 cols, 2 constraints | `if_rowfacts` proved; the full IF checker soundness is open |
 | calls (defined functions) | family 4, FUNC table (§13.1) | **B** | – | proved (`step_call`, `call_rowfacts`) |
 | gas (instruction units `S`, `R·S ≤ g0`) | in every chip; per-segment invariant `WasmBase/Main/SegExec.lean`, `R/pq-host-gas` | **B** Wasm-internal; host resynchronisation (`g := remaining`) is **P** | – | Wasm-only proved; `H0`/`HoldRow` open |
@@ -468,14 +468,41 @@ See `research/near-compression/e2e-general/m1/README.md` for commands, logs and 
   * **T1 proof.** T1 (evicted `storage_write`, register-1 fill) proves with its chunk tape
     (1,476,278 B).
 
+**Done 2026-11-03, second session (lane A): M2 corpus coverage** (`research/near-compression/e2e-general/m2/README.md`):
+
+* **Census** (`wasmbase-tool census`). The 23,317 uncovered calls need wrap/extend, `if` with a
+  result, `unreachable`, `ed25519_verify`, and (`d3rich` only) `memory.grow`, `abort` (`i32`
+  parameters) and `promise_yield_resume` (`i32` result). **No discarding branch, `call_indirect`,
+  bulk memory or float occurs in d3c7–d3c10**; those are T3 (compiled Rust) work.
+* **`checkModuleM2` + `wasmBaseM2Air`** (tables 0–26 of `wasmBaseIfRegAir`, REG-C 27, CONV 28,
+  UNREACH 29). `memory.grow`/`memory.size` and hosts the HOST row cannot type are admitted with
+  opcodes no chip can fetch: sound, and a run that executes one is not provable.
+* **Register refill.** REG-C's clear group consumes a live register before a refill (and is bound
+  to the following fill); the generator no longer refuses refills.
+* **Sweep at `wasmBaseM2Air`** (19,007 cases, 27,197 calls, 0 replay mismatches, **0 different**):
+  **21,438 equal** (status, burnt gas, logs, return) + **4,480 equal-abort** (status, logs, trace
+  final budget = spec's) = 25,918 of the 26,731 calls that run a method; every call of `d3tiny`,
+  `3b1ad423`, `e1fe4f9c`, `d3ed`, `d3hostx`; 17,409 / 18,222 `d3rich` calls. Remainder (813, all
+  `d3rich.run`): `memory.grow` 385, `abort` 120, `promise_yield_resume` 58 (no chip); stack-budget
+  trap 124, address `≥ 2^27` 89, out-of-gas at a Wasm instruction 37 (generator domain).
+* **Mutants**: CONV/UNREACH/REG-C 37 / 37 rejected on three corpus calls; the full battery at
+  `wasmBaseM2Air` on a refill call 211 / 211 (the HOSTO `g_after` gap reported, not counted).
+* **Lean** (standard axioms): `Main/M2Link.lean` (`conv_row_spec`, `step_conv`, `execNum_conv`,
+  `unreach_row`, `regc_clear_cancels`, `regc_clear_next`); `Main/RegWalkG.lean`: the REG group
+  walk and `RegLenAgree` for any AIR with REG's constraints at an index, instantiated at index 27 of
+  `wasmBaseIfRegAir` and `wasmBaseM2Air`.
+
 **Next (lane A):**
-* **M2.** `memory.grow`/`memory.size`, `call_indirect`, bulk memory, discarding branches. 23,317 of
-  the 27,197 corpus calls are outside `checkModuleIfH`: `d3rich.run/cb`, `e1fe4f9c`, `3b1ad423.run`,
-  `d3ed`.
-* **Re-instantiate the REG walk and R16 send bound at `wasmBaseIfRegAir`**, so that `mtp < ts` and the
-  group walk are theorems about `Holds` of the new AIR.
-* **Register refill.** A fill row never consumes, so overwriting a live register is refused by the
-  trace generator today. It needs a consume-on-refill row shape.
+* **R16 send bound at `wasmBaseIfRegAir`/`wasmBaseM2Air`** (`RegSend`'s argument over HOST', IF,
+  REG-C, CONV, UNREACH), which turns `RegWalkG`'s `hsend` hypothesis and REG' 's `mtp < ts`
+  (`regw_time_lt`) into theorems about `Holds`. The walk itself is done.
+* **An M2 `Ctx`** and the row-to-step dispatch over the 30 tables (`wasm_base_sound` for M2).
+* **The `d3rich` remainder**: a `memory.grow` chip (dynamic memory size consumed by LOAD/STORE, or
+  MEMINIT rows timed at the grow), `i32` HOST argument/result tags, a stack-budget trap row, an
+  out-of-gas abort row, the `≥ 2^27` address range.
+* **Force a clear before a refill** (an absent length message per register id that every fill
+  consumes), needed once M6 binds the fill bytes.
+* **M4** (Wasm segment cuts): not started.
 * **Distinguish the storage key and value bytes in-circuit** when the state side consumes bus 210
   (the `hid + 256` wire convention, M6).
 * **M6.** Replace HOSTO so the tape is bound inside the proof.

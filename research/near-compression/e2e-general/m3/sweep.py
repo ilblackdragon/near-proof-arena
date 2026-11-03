@@ -8,7 +8,7 @@ unmodified Lean checker `Schema.checkVersioned (Tier.cfg .allFeatures)` run on t
 Wasm call it made, with the call's host tape (`prep`, the `wasmbase-tool prepIf` format) recorded from
 the checker's own CallCtx and trie-backed store.
 
-For every call whose code the current Wasm AIR covers (`prep.eligible`, i.e. `checkModuleIfH`), this
+For every call whose code the current Wasm AIR covers (`prep.eligible`: `checkModuleM2` since E2E M2, `checkModuleIfH` before), this
 script writes the prep, exports `wasmBaseIfRegAir` for its (nloc, ngl), and runs
 `nearproof-wasm-base check-tape`: the Rust trace generator builds the trace from the tape, the full
 constraint and bus pre-check runs, and the trace's own final budget and HOSTB payloads are read back.
@@ -38,10 +38,22 @@ PROVER = "/data/illia/nearproof-deps/e2e-laneA/target/release/nearproof-wasm-bas
 D3TINY = "8152bed25554d521d3fcdd919f4457b66e06b720906fdd40fd6fd0723ed36bf9"
 
 
+def trace_logs(t):
+    """The trace's logs in order: `log_utf8` payloads as they are, `log_utf16` payloads decoded from
+    UTF-16LE (the host's `String::from_utf16`) and re-encoded as UTF-8, as the outcome stores them."""
+    if "logx" not in t:
+        return t["logs"]
+    out = []
+    for hid, h in t["logx"]:
+        b = bytes.fromhex(h)
+        out.append(h if hid == 45 else b.decode("utf-16-le").encode("utf-8").hex())
+    return out
+
+
 def main():
     args = sys.argv[1:]
-    jobs, tool, prover = 8, TOOL, PROVER
-    for flag in ("--jobs", "--tool", "--prover"):
+    jobs, tool, prover, airc = 8, TOOL, PROVER, "airM2"
+    for flag in ("--jobs", "--tool", "--prover", "--air"):
         if flag in args:
             i = args.index(flag)
             val = args[i + 1]
@@ -50,6 +62,8 @@ def main():
                 jobs = int(val)
             elif flag == "--tool":
                 tool = val
+            elif flag == "--air":
+                airc = val
             else:
                 prover = val
     tape, out = args
@@ -91,7 +105,7 @@ def main():
         path = os.path.join(out, "airs", "air-%d-%d.json" % key)
         if not os.path.exists(path):
             with open(path, "w") as f:
-                subprocess.run([tool, "airIfR", str(key[0]), str(key[1])], stdout=f, check=True)
+                subprocess.run([tool, airc, str(key[0]), str(key[1])], stdout=f, check=True)
         return path
 
     batches = []
@@ -123,7 +137,9 @@ def main():
         t, real = r["trace"], r["real"]
         c = calls[r["k"]]
         if not t.get("ok"):
-            r["class"] = "trace-failed"
+            # M2: a run that reaches an admitted-but-unchipped instruction (memory.grow, abort, ...)
+            r["class"] = "unchipped" if "unchipped opcode" in str(t.get("err")) else "trace-failed"
+            r["err"] = str(t.get("err"))[:300]
             continue
         if "burnt" not in real:
             r["class"] = "real-is-line"
@@ -131,14 +147,31 @@ def main():
         status_ok = (real["err"] is None) == (c["prep"]["status"] == "fin")
         pre = c["preSync"]
         cmp = dict(status=status_ok)
+        # M2: logs are compared for aborted calls too (only successful log calls are outputs).  The
+        # burnt gas of an aborted call is the host's abort accounting (`burn`, `used` vs `burnt`,
+        # `GasExceeded` caps), which the Wasm trace does not carry; what the trace does claim is its
+        # final budget, so an abort compares `g_final_trace` with the spec replay's final `g`
+        # (`prep.gFinal`, the run the replay check ties to the chunk's result).
+        burnt_eq = pre["burnt"] + pre["remaining"] - t["g_final_trace"] == real["burnt"]
         if real["err"] is None:
-            cmp["burnt"] = pre["burnt"] + pre["remaining"] - t["g_final_trace"] == real["burnt"]
-            cmp["logs"] = t["logs"] == real["logs"]
-            cmp["ret"] = (t["rets"][-1] if t["rets"] else None) == real["ret"]
+            cmp["burnt"] = burnt_eq
+        else:
+            cmp["g_final"] = t["g_final_trace"] == c["prep"]["gFinal"]
+            r["burnt_formula_eq"] = burnt_eq
+        cmp["logs"] = trace_logs(t) == real["logs"]
+        if real["err"] is None:
+            lr = t.get("lastret")
+            if isinstance(real["ret"], str) and real["ret"].startswith("receipt"):
+                # `promise_return(p)`: the outcome names the receipt the promise became; the Wasm
+                # trace carries the promise index (the receipt numbering is the state side's, M6)
+                cmp["ret"] = lr is not None and lr[0] == 30
+                r["promise_ret"] = [lr[1] if lr else None, real["ret"]]
+            else:
+                cmp["ret"] = (t["rets"][-1] if t["rets"] else None) == real["ret"] and (lr is None or lr[0] == 50)
         r["cmp"] = cmp
         r["class"] = "equal" if all(cmp.values()) else "DIFFERENT"
-        if real["err"] is not None and status_ok:
-            r["class"] = "equal-abort-status"
+        if real["err"] is not None and all(cmp.values()):
+            r["class"] = "equal-abort"
 
     with open(os.path.join(out, "rows.jsonl"), "w") as f:
         for r in rows:

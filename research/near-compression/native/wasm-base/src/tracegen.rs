@@ -18,6 +18,12 @@ pub const OP_HALT: u64 = 0x104;
 pub const OP_HIF: u64 = 0x105;
 /// `Chips.IfC.opIf`: the `if` row (falls through on non-zero, jumps on zero).
 pub const OP_IF: u64 = 0x106;
+/// E2E M2 (`WasmBase/M2Check.lean`): admitted instructions with **no chip** (`memory.grow`,
+/// `memory.size`, a host call the HOST row cannot carry).  No chip's FETCH query can produce these
+/// opcodes, so no satisfied trace passes through them; the generator refuses such a run.
+pub const OP_MEMGROW_X: u64 = 0x240;
+pub const OP_MEMSIZE_X: u64 = 0x241;
+pub const OP_HOST_X: u64 = 0x242;
 
 /// The HOST argument window (`Chips.Host.nArgs`): every D3α host function has `np ≤ 9`.
 pub const HOST_NARGS: u64 = 9;
@@ -405,6 +411,10 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
     // paths are byte-identical to before.
     let has_if = air.tables.iter().any(|x| x.name == "IF");
     let mut ift = if has_if { Some(Tab::new(&air.tables[air.index("IF")])) } else { None };
+    // E2E M2 (`wasmBaseM2Air`): CONV (wrap / extend) and UNREACH, only in that AIR
+    let has_m2 = air.tables.iter().any(|x| x.name == "CONV");
+    let mut conv = if has_m2 { Some(Tab::new(&air.tables[air.index("CONV")])) } else { None };
+    let mut unr = if has_m2 { Some(Tab::new(&air.tables[air.index("UNREACH")])) } else { None };
     let mut loc = Tab::new(t("LOCAL"));
     let mut div = Tab::new(t("DIV"));
     let mut ld = Tab::new(t("LOAD"));
@@ -427,6 +437,9 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
     // memory write (`wr, ptrHi, mtp, mhp, ob`) and HOST' the `read_register` selector (`rr, rrInv`).
     let has_regw = has_reg && air.tables[air.index("REG")].cols.iter().any(|c| c == "wr");
     let has_rr = has_host && air.tables[air.index("HOST")].cols.iter().any(|c| c == "rr");
+    // E2E M2 (`Chips.RegC`): REG-C's `clr` column, the clear group of a register refill
+    let has_clr = has_reg && air.tables[air.index("REG")].cols.iter().any(|c| c == "clr");
+    let mut clr_rows: std::collections::HashSet<usize> = Default::default();
     let shat = if has_sha { Some(Tab::new(&air.tables[air.index("SHA256")])) } else { None };
     // indexed by **host id**: the table's ids are not contiguous (`abort`/`write_register`
     // reserve 11/14), so the vector must reach the largest id, not the row count
@@ -601,8 +614,36 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
                             Some(old) if old == bs => continue,
                             // A fill row creates a register (`cFreshFill`: it consumes nothing), so
                             // overwriting a live register would leave two live messages in its slot.
-                            // Out of the modelled domain: refuse rather than emit an unsound trace.
-                            Some(_) => panic!("register {rid} refilled by host {hid}: register refill is not modelled"),
+                            // Without REG-C this is out of the modelled domain: refuse rather than
+                            // emit an unsound trace.
+                            Some(_) if !has_clr => panic!("register {rid} refilled by host {hid}: register refill is not modelled"),
+                            // REG-C: a **clear group** first consumes the old bytes and length (a
+                            // read group, `clr = 1`, whose re-production the extra receives cancel);
+                            // its length row is followed by the fill below (same rid, ts, hid).
+                            Some(old) => {
+                                let old = old.clone();
+                                let olen = old.len() as u64;
+                                let ft = reg_bts.get(&rid).copied().unwrap_or(0);
+                                for (pos, &b) in old.iter().enumerate() {
+                                    let h = st.tchk(ts, ft);
+                                    clr_rows.insert(reg_rows.len());
+                                    reg_rows.push([1, 0, 1, rid, pos as u64, olen, b, hid, ts, 0,
+                                        olen - pos as u64 - 1, 1, ft, h, 0, (pos == 0) as u64, 0, 0, 0, 0, 0]);
+                                    st.byte(0, b, 0);
+                                    st.r16(olen - pos as u64 - 1);
+                                    st.r16(olen);
+                                    st.r16(rid);
+                                    st.r16(pos as u64);
+                                }
+                                let lt = *reg_lts.get(&rid).unwrap();
+                                let hl = st.tchk(ts, lt);
+                                clr_rows.insert(reg_rows.len());
+                                reg_rows.push([1, 1, 1, rid, 0, olen, 0, hid, ts, 0, 0, 1, lt, hl, 0,
+                                    (olen == 0) as u64, 0, 0, 0, 0, 0]);
+                                st.r16(olen);
+                                st.r16(rid);
+                                st.r16(0);
+                            }
                             None => {}
                         }
                         let blen = bs.len() as u64;
@@ -1471,6 +1512,39 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
                 r.u("off0", rec[4]).u("off1", rec[5]).u("e0", e0).u("e1", e1).u("cyE", cye);
                 r.bytes("ob", ob).bytes("tob", tob).bytes("hob", hob);
             }
+            0xA7 | 0xAC | 0xAD if has_m2 => {
+                // CONV: i32.wrap_i64 / i64.extend_i32_s / i64.extend_i32_u (`Chips.Conv`)
+                let a = stack.pop().unwrap();
+                let wrap = op == 0xA7;
+                assert_eq!(a.tag, wrap as u64, "conversion operand type");
+                let al = limbs(a.val);
+                let ha = st.tchk(ts, a.tp);
+                let (sgn, rl) = (al[1] >> 15, al[1] & 0x7fff);
+                let res = match op {
+                    0xA7 => a.val & 0xffff_ffff,
+                    0xAD => a.val,
+                    _ => if sgn == 1 { a.val | 0xffff_ffff_0000_0000 } else { a.val },
+                };
+                let mut r = conv.as_mut().unwrap().row();
+                hdr(&mut r);
+                r.u(match op { 0xA7 => "f_wrap", 0xAD => "f_extu", _ => "f_exts" }, 1);
+                r.limbs("a", al).u("ta", a.tp).u("ha", ha);
+                if op == 0xAC {
+                    r.u("sgn", sgn).u("rl", rl);
+                    st.r16(2 * rl);
+                }
+                stack.push(Ent { tag: (!wrap) as u64, val: res, tp: ts });
+            }
+            0x00 if has_m2 => {
+                // UNREACH: `unreachable` traps (`halted = 2`)
+                let mut r = unr.as_mut().unwrap().row();
+                hdr(&mut r);
+                r.u("act", 1);
+                trapped = true;
+            }
+            OP_MEMGROW_X | OP_MEMSIZE_X | OP_HOST_X => {
+                panic!("unchipped opcode {op:#x} at pc {pc} (M2: admitted, no chip; the run is out of the proved domain)")
+            }
             _ => panic!("unknown op {op:#x}"),
         }
         s += fee + extra;
@@ -1652,6 +1726,10 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
     }
     // `IF` only when the AIR has it; padded by inactive rows so `first`/`last` never land mid-row
     // and the selector constraint `f_if · (f_if − 1) = 0` holds on the padding.
+    if let (Some(c), Some(u)) = (conv, unr) {
+        tabs.insert("CONV".into(), c);
+        tabs.insert("UNREACH".into(), u);
+    }
     if let Some(mut ift) = ift {
         let hgt = (ift.rows.len() + 1).max(4).next_power_of_two();
         while ift.rows.len() < hgt {
@@ -1720,8 +1798,11 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
         }
         if let Some(rg) = reg {
             let mut rg = rg;
-            for rec in reg_rows.iter() {
+            for (ri, rec) in reg_rows.iter().enumerate() {
                 let mut r = rg.row();
+                if has_clr {
+                    r.u("clr", clr_rows.contains(&ri) as u64);
+                }
                 for (k, name) in ["act", "kind", "rd", "rid", "pos", "len", "byte", "hid", "ts",
                     "dir", "gap", "fresh", "tp", "hp", "ptr", "f"].iter().enumerate() {
                     r.u(name, rec[k]);

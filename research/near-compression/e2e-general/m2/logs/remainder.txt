@@ -1,0 +1,7 @@
+385 ('fbc015a8', 'run', 'unchipped', 'null', 'panic: unchipped opcode 0x240 at pc 752 (M2: admitted, no chip; the run is out o')
+124 ('fbc015a8', 'run', 'trace-failed', 'null', 'panic: stack budget exhausted: the trap is not provable')
+120 ('fbc015a8', 'run', 'unchipped', 'null', 'panic: unchipped opcode 0x242 at pc 547 (M2: admitted, no chip; the run is out o')
+89 ('fbc015a8', 'run', 'trace-failed', 'null', 'panic: effective address beyond 2^27')
+58 ('fbc015a8', 'run', 'unchipped', 'null', 'panic: unchipped opcode 0x242 at pc 737 (M2: admitted, no chip; the run is out o')
+34 ('fbc015a8', 'run', 'trace-failed', 'null', 'panic: host event')
+3 ('fbc015a8', 'run', 'trace-failed', 'null', 'panic: assertion `left == right` failed: spec run did not finish normally   left')

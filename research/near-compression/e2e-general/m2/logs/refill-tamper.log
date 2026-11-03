@@ -1,0 +1,23 @@
+TAMPER honest proof verifies and its code_root matches
+
+thread 'main' (738184) panicked at src/air.rs:148:57:
+called `Option::unwrap()` on a `None` value
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+TAMPER CONV[f_wrap row 0].a0+1      REJECTED (bus: unbalanced: [((2, [0, 0, 0, 5, 0, 0, 0, 5]), 1), ((2, [0, 0, 1, 4, 0, 0, 0, 4]),)
+TAMPER CONV[f_wrap row 0].a1+1      REJECTED (bus: unbalanced: [((2, [0, 0, 1, 4, 0, 0, 0, 4]), 1), ((2, [0, 0, 0, 4, 1, 0, 0, 5]),)
+TAMPER CONV[f_wrap row 0].ta+1      REJECTED (bus: unbalanced: [((2, [0, 0, 1, 4, 0, 0, 0, 5]), -1), ((2, [0, 0, 1, 4, 0, 0, 0, 4]))
+TAMPER CONV[f_wrap row 0] as f_extu REJECTED (bus: unbalanced: [((1, [4, 173, 1, 5, 0, 0, 0, 0]), 1), ((2, [0, 0, 0, 4, 0, 0, 0, 4])
+TAMPER CONV[f_wrap row 0] all flags 0 REJECTED (bus: unbalanced: [((3, [0]), -2), ((1, [4, 167, 1, 5, 0, 0, 0, 0]), -1), ((2, [0, 0, )
+TAMPER CONV[f_extu row 1].a0+1      REJECTED (bus: unbalanced: [((2, [0, 0, 0, 2, 0, 0, 0, 56]), 1), ((2, [0, 0, 1, 3, 0, 0, 0, 57])
+TAMPER CONV[f_extu row 1].a1+1      REJECTED (bus: unbalanced: [((2, [0, 0, 0, 2, 0, 0, 0, 56]), 1), ((2, [0, 0, 1, 2, 0, 0, 0, 57])
+TAMPER CONV[f_extu row 1].ta+1      REJECTED (bus: unbalanced: [((3, [0]), -1), ((2, [0, 0, 0, 2, 0, 0, 0, 56]), 1), ((2, [0, 0, 0,)
+TAMPER CONV[f_extu row 1] as f_wrap REJECTED (bus: unbalanced: [((2, [0, 0, 0, 2, 0, 0, 0, 56]), 1), ((2, [0, 0, 1, 2, 0, 0, 0, 56])
+TAMPER CONV[f_extu row 1] all flags 0 REJECTED (bus: unbalanced: [((3, [0]), -2), ((0, [187, 58, 65, 0, 0, 55]), -1), ((0, [186, 57, )
+TAMPER REGC[clear byte row 11].clr=0 REJECTED (constraint: REG row 11 constraint 41 = 1)
+TAMPER REGC[clear byte row 11].byte+1 REJECTED (bus: unbalanced: [((2, [6, 1, 0, 7, 0, 0, 0, 9]), 1), ((2, [6, 1, 0, 8, 0, 0, 0, 9]),)
+TAMPER REGC[clear len row 15].clr=0 REJECTED (constraint: REG row 14 constraint 41 = 2013265920)
+TAMPER REGC[clear len row 15].len+1 REJECTED (constraint: REG row 14 constraint 13 = 1)
+TAMPER REGC[fill after clear, row 16].rid+1 REJECTED (constraint: REG row 15 constraint 42 = 1)
+TAMPER REGC[fill after clear, row 16].ts+1 REJECTED (constraint: REG row 15 constraint 43 = 1)
+TAMPER REGC[read len row 5].clr=1   REJECTED (constraint: REG row 5 constraint 43 = 5)
+TAMPER summary 17/17 rejected

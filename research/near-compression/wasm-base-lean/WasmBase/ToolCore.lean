@@ -4,6 +4,8 @@ import WasmBase.RegChip
 import WasmBase.RegMem
 import WasmBase.HostCheck
 import WasmBase.IfCheck
+import WasmBase.M2Check
+import WasmBase.M2Air
 import WasmBase.ShaAir
 import WasmBase.ShaSound
 /-!
@@ -105,7 +107,8 @@ def hostEvJson (e : HostEv) : String :=
 def hostSigOf (p : Prepared) (fi : Nat) : Option (Nat × Nat × Nat) :=
   match hostOf p fi, sigOfH p fi with
   | some hid, some (np, ar) => some (hid, np, ar)
-  | _, _ => none
+  -- E2E M2: a host with a HOST row that only the M2 table lists (`ed25519_verify`)
+  | _, _ => (importName p fi).bind hostChipM2
 
 /-- The host call at the current pc, if any. -/
 def hostAt (p : Prepared) (s : St) : Option (Nat × Nat × Nat) :=
@@ -224,7 +227,8 @@ def prep (path exportName : String) (g0 : Nat) (inputHex : String := "") : IO Un
 /-- `if`-aware eligibility **and run**: identical to `prep` except the checker is `checkModuleIfH`,
 so a module whose only blocker is `if`/`else` is accepted.  The emitted JSON has the same fields as
 `prep`, so the Rust trace generator consumes it unchanged. -/
-def prepIf (path exportName : String) (g0 : Nat) (inputHex : String := "") : IO Unit := do
+def prepIf (path exportName : String) (g0 : Nat) (inputHex : String := "")
+    (chk : NearCfg → Prepared → Nat → Option ModOutH := checkModuleIfH) : IO Unit := do
   let code ← IO.FS.readBinFile path
   let cfg := pv86
   match prepare cfg code with
@@ -233,7 +237,7 @@ def prepIf (path exportName : String) (g0 : Nat) (inputHex : String := "") : IO 
     let some (_, _, fi) := p.m.exports.find? (fun (n, k, _) => n = exportName && k = 0)
       | throw (IO.userError "export not found")
     let fn := fi - nImp
-    match checkModuleIfH cfg p fn with
+    match chk cfg p fn with
     | none => IO.println "{\"eligible\":false}"
     | some MH =>
       let M := MH.mod
@@ -278,6 +282,7 @@ def evalPoints (nloc ncode : Nat) (path : String) (which : Nat := 0) : IO Unit :
     | 2 => wasmBaseRegAir nloc ncode
     | 3 => Chips.wasmBaseHashAir nloc ncode
     | 4 => wasmBaseIfRegAir nloc ncode
+    | 5 => wasmBaseM2Air nloc ncode
     | _ => wasmBaseAir nloc ncode
   let lines ← IO.FS.lines path
   for ln in lines do

@@ -1,0 +1,12 @@
+TAMPER honest proof verifies and its code_root matches
+
+thread 'main' (734145) panicked at src/air.rs:148:57:
+called `Option::unwrap()` on a `None` value
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+TAMPER CONV[f_wrap row 0].a0+1      REJECTED (bus: unbalanced: [((2, [0, 0, 1, 0, 0, 0, 0, 6]), 1), ((2, [0, 0, 1, 1, 0, 0, 0, 6]),)
+TAMPER CONV[f_wrap row 0].a1+1      REJECTED (bus: unbalanced: [((2, [0, 0, 1, 0, 1, 0, 0, 6]), -1), ((2, [0, 0, 1, 0, 0, 0, 0, 6]))
+TAMPER CONV[f_wrap row 0].ta+1      REJECTED (bus: unbalanced: [((3, [0]), -1), ((2, [0, 0, 1, 0, 0, 0, 0, 7]), -1), ((3, [20132659)
+TAMPER CONV[f_wrap row 0] as f_extu REJECTED (bus: unbalanced: [((2, [0, 0, 1, 0, 0, 0, 0, 7]), 1), ((1, [6, 167, 1, 6, 0, 0, 0, 0])
+TAMPER CONV[f_wrap row 0] all flags 0 REJECTED (bus: unbalanced: [((0, [7, 8, 12, 0, 0, 0]), -1), ((3, [0]), -2), ((0, [6, 7, 6, 0, 0)
+TAMPER REGC[read len row 1].clr=1   REJECTED (constraint: REG row 1 constraint 43 = 9)
+TAMPER summary 6/6 rejected
