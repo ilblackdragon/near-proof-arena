@@ -10,9 +10,9 @@ The tools `WsDecode2` uses to turn `Holds` of the AIR into the record-level prem
 
 * **Bus membership** (`mem_busList`, `busList_inv`): a row's message with multiplicity bit `1` is
   on the bus list; every message on a bus list is some row's message.
-* **`RNG`** (`rng_v`, `rng_lt`): the `RNG` table's rows are `v = r` (`isFirst`, `isTransition`,
-  height `≤ 2^8`), so with no extra table sending on `RNG`, every value a table looks up in `RNG`
-  is `< 256` (`rng_rcv_lt`).
+* **`RNG`** (`rng_v`): the `RNG` table's rows are `v = r` (`isFirst`, `isTransition`, height
+  `≤ 2^8`); with no extra table sending on `RNG`, every value a table looks up in `RNG` is `< 256`
+  (`WsDecode3.rng_send_lt`, `WsDecode3.rng_rcv`).
 * **`IF384`** (`comp_mem`): under `IF384` balance, the 16 receives of a consumer row's compression
   `Ws.comp g cid ws` (`g = 1`), decoded (`decIf`, limbs as naturals), are among the decoded chip
   sends — the membership premise of `Sha512If.comp_sound` / `comp_iv` / `comp_node`.
