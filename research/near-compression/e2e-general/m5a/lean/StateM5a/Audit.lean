@@ -1,3 +1,4 @@
+import StateM5a.KeyDigest
 import StateM5a.KcChain
 import StateM5a.KeyLookups
 import StateM5a.Tape
@@ -438,3 +439,8 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.KcChain.snc_tot
 #print axioms StateM5a.KcChain.sncDeeper
 #print axioms StateM5a.KcChain.air_final'
+#print axioms StateM5a.KeyDigest.snc_rid
+#print axioms StateM5a.KeyDigest.key_byte
+#print axioms StateM5a.KeyDigest.key_digest
+#print axioms StateM5a.KeyDigest.kdig_recv
+#print axioms StateM5a.KeyDigest.wsb_kd
