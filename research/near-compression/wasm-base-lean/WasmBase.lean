@@ -161,3 +161,5 @@ import WasmBase.Main.HostSpace
 import WasmBase.Main.HostFoot
 import WasmBase.Main.HostArms
 import WasmBase.Main.HostRegWF
+import WasmBase.Main.StepSide
+import WasmBase.Main.HostVacuity
