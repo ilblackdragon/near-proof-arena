@@ -30,7 +30,9 @@ pub fn zk_lever() -> bool {
 
 pub fn params(final_layer: bool, cert_file: &str, exclusions: &str) -> SystemParams {
     let (n_stack, log_blowup) = chain_geom();
-    let zk = if final_layer && zk_lever() { 2 } else { 0 };
+    // NEARPROOF_ZK_FINAL overrides the FINAL mode (3 = 2 + slice splitting in the packing)
+    let zk_final = std::env::var("NEARPROOF_ZK_FINAL").ok().and_then(|v| v.parse().ok()).unwrap_or(2u8);
+    let zk = if final_layer && zk_lever() { zk_final } else { 0 };
     shaped_params_geom(
         zk,
         final_layer,
