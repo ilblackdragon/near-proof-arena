@@ -154,3 +154,4 @@ import WasmBase.Main.SegMemFrameMP
 import WasmBase.Main.SegMembS
 import WasmBase.Main.SegMemMembS
 import WasmBase.Main.SegMemRootMP
+import WasmBase.Main.SegChainMemMP
