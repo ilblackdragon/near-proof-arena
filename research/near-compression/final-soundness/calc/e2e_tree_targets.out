@@ -1,0 +1,32 @@
+CDHZ at eps = 2^-268.01: 2^-130.22; eps-free floor 2^-130.87
+CMS19 Thm 8.6 constants at eps = 2^-268.01: 2^-137.10
+
+== D0a chain: N = 7 (2^2.81)
+   per-proof, constants 1 (Q^2 eps per proof, Q^3/2^336 once): eps <= 2^-258.81
+   per-proof, CMS19 constants, whole bound per proof: total 2^-134.29
+   per-proof, CDHZ, whole bound per proof: total 2^-127.41 (floor alone 2^-128.06)
+   per-proof, CDHZ, eps term per proof, floor once: eps <= 2^-267.34
+== 1 Pgas design (137 leaves, fan-in 8): N = 160 (2^7.32)
+   per-proof, constants 1 (Q^2 eps per proof, Q^3/2^336 once): eps <= 2^-263.32
+   per-proof, CMS19 constants, whole bound per proof: total 2^-129.78
+   per-proof, CDHZ, whole bound per proof: total 2^-122.90 (floor alone 2^-123.55)
+   per-proof, CDHZ, eps term per proof, floor once: eps <= 2^-271.86
+== depth 6, fan-in 8 + wrap: N = 299594 (2^18.19)
+   per-proof, constants 1 (Q^2 eps per proof, Q^3/2^336 once): eps <= 2^-274.19
+   per-proof, CMS19 constants, whole bound per proof: total 2^-118.91
+   per-proof, CDHZ, whole bound per proof: total 2^-112.03 (floor alone 2^-112.68)
+   per-proof, CDHZ, eps term per proof, floor once: eps <= 2^-282.73
+
+WHIR queries per round needed (z = 32 kept); delta vs the bound.out schedules:
+   target 268.00  final  q = [38, 35, 29, 24]  delta = [0, 0, 0, 0] (+0)
+   target 268.00  inner  q = [45, 41, 31, 24]  delta = [0, 0, 0, 0] (+0)
+   target 268.00  base   q = [48, 44, 32, 25]  delta = [0, 0, 0, 0] (+0)
+   target 268.00  z-only alternative: z = 32
+   target 274.19  final  q = [39, 36, 30, 25]  delta = [1, 1, 1, 1] (+4)
+   target 274.19  inner  q = [47, 43, 32, 25]  delta = [2, 2, 1, 1] (+6)
+   target 274.19  base   q = [50, 45, 33, 26]  delta = [2, 1, 1, 1] (+5)
+   target 274.19  z-only alternative: z = 39
+   target 282.73  final  q = [41, 38, 31, 26]  delta = [3, 3, 2, 2] (+10)
+   target 282.73  inner  q = [48, 44, 33, 26]  delta = [3, 3, 2, 2] (+10)
+   target 282.73  base   q = [51, 47, 34, 27]  delta = [3, 3, 2, 2] (+10)
+   target 282.73  z-only alternative: z = 47

@@ -25,6 +25,30 @@ All logarithms are base 2. "b bits" means an error of 2^−b.
 
 ## 0. Bottom line
 
+> **M11e update (2026-11-03): the one-database argument does not go through for the tree. §9
+> has the details.**
+>
+> * **Only the outermost proof is checked against the oracle.** In the deployed construction,
+>   only the ZK wrap is a transcript against the oracle H. Every inner proof of the tree is
+>   checked inside a circuit, with the concrete SHA-384. So "one database across all proofs" has
+>   no referent, and no query-only QROM theorem can cover the tree (Theorem O / NF-5).
+> * **No published QROM theorem exists even in an idealised model.** That model would treat the
+>   circuit's hash as the oracle. The only published depth-free theorem (CGSY24) is classical.
+> * **What can be instantiated** is one family-QROM bound for the wrap alone: CDHZ Thm 11.3
+>   gives 2^−130.2 (§9.2). The inner levels need a named computational assumption on the
+>   concrete-hash inner system (endpoint (c)).
+> * **Per-round targets under the per-proof union**, for 128 bits at depth 6, fan-in 8
+>   (N = 2^18.19 proofs):
+>   * **ε_rbr ≤ 2^−274.19** at constants 1. On the model shapes this costs +4/+6/+5 WHIR queries
+>     for final/inner/base, a second OOD sample in final rounds 1 and 3, and about 6.3 KB on the
+>     final proof.
+>   * **ε_rbr ≤ 2^−282.73** at CDHZ's published constants. Parameters alone cannot reach this:
+>     LogUp, fold-MCA and μ terms sit at 279–283 bits.
+>   * At CDHZ constants, charging the whole bound per proof fails 128 bits for every N ≥ 7
+>     whatever ε is.
+>
+>   No pinned parameter has changed; these are owner decisions (§9.4).
+
 The adversary budget is **Q = 2^64 quantum (or classical) SHA-384 queries** [R: U-6,
 `docs/zk-formal/V3-D3A-STUDY.md:45`]. Every pinned vk is at **ε_rbr ≤ 2^−268.0** per
 round-by-round move.
@@ -419,6 +443,203 @@ ways to get there:
 
 ---
 
+## 9. M11e: the single-database argument for the whole tree and the wrap
+
+Date: 2026-11-03. Lane E. The task was to instantiate GAPS S-19 as one oracle database across
+every proof of the tree plus the ZK wrap, or else to say exactly why it fails and what per-round
+bits are needed instead. Pinned parameters are **not** changed here.
+
+The new arithmetic is in `research/near-compression/final-soundness/calc/e2e_tree_targets.py`,
+with output in `e2e_tree_targets.out`. It imports `bound.py`'s `cms19`/`cdhz` and the U-13
+shapes.
+
+**Status of the citations.** The ePrint landing pages were checked on 2026-11-03 for title,
+authors and venue. The full PDFs could not be fetched from this host (HTTP 403 and refused
+mirrors). Theorem numbers therefore come from the repo's own verified reading in
+`research/novelty/PRIOR-ART.md` §2, §4, §8 and `PROOF.md`, and are marked "(per PRIOR-ART)".
+
+| key | paper | checked |
+|---|---|---|
+| CMS19 | Chiesa, Manohar, Spooner. *Succinct Arguments in the Quantum Random Oracle Model.* TCC 2019, ePrint 2019/834 | landing page: title, authors, TCC 2019; IOP extension with rbr soundness |
+| CDHZ | Chiesa, Di, Hu, Zheng. *How to Prove Post-Quantum Security for Succinct Non-Interactive Reductions.* ePrint 2025/2166 (rev. 2 Mar 2026; Eurocrypt 2026) | landing page: title, authors, venue; "adaptively-secure straightline quantum extraction in the QROM" for BCS-type reductions |
+| CGSY24 | Chiesa, Guan, Samocha, Yogev. *Security Bounds for Proof-Carrying Data from Straightline Extractors.* TCC 2024 (LNCS 15365), ePrint 2023/1646 | landing page and search: main result "PCD from SNARKs with straightline knowledge soundness has essentially the same security as the underlying SNARK"; prior analyses lose exponentially in depth; relativized-SNARK models are presented as an idealised-model heuristic; no quantum result found |
+| CCGOS23 | ePrint 2023/587, Thm 9.4: classical AROM unbounded-depth PCD; quantum left open | (per PRIOR-ART) |
+| BCG24 | ePrint 2024/728 (TCC 2025): relativized-argument limits | (per PRIOR-ART) |
+
+### 9.1 Why it does not go through
+
+The one-database argument needs one statement: except with probability p, the measured database
+contains no accepting transcript whose extraction fails, for **every** vk v and statement x at
+once. Every proof of the tree whose transcript lies in that database is then extracted with no
+extra charge. CGSY24's Thm 5.1 is the classical template for this; PRIOR-ART §4.2 says its knowledge
+error has "no factor of depth or graph size". The repo's NF-4 is the intended QROM analogue.
+Instantiating it for our tree fails at three separate points, (A) to (C) below.
+
+**(A) The inner proofs are not oracle transcripts. This is the decisive reason.**
+
+* The native final verifier queries H only on the transcript of the **outermost** proof, the ZK
+  wrap.
+* Each inner proof (leaves, nodes, root) is verified *inside* an NV trace. Its Fiat–Shamir
+  challenges and Merkle hashes are rows of the SHA AIR, i.e. the concrete function SHA-384, not
+  H.
+* So the inner transcripts are not entries of the adversary's H-database, and the
+  database-property bound says nothing about them.
+* Identifying the two is the withdrawn A-IC. It is false as an identification (`PROOF.md` §7.1;
+  `Qrom.OracleBridge`, `OracleBridgeSet`): at a fixed input, Pr[H(m) = SHA384(m)] = 2^−384.
+* Further, **Theorem O** (`aic-research/LEMMA.md` §2; NF-5) shows that, under its premises
+  (H-ex, completeness, linkage), any model that bounds only oracle queries lets an unbounded-time
+  adversary hard-code a false concrete inner proof and wrap it honestly.
+
+Hence **no QROM (query-bounded) theorem can give a tree-wide bound for the deployed
+construction.** Any bound needs a time-bounded computational assumption on the concrete inner
+system. This is endpoint (c) of `aic-research/ENDPOINTS.md`, with its reduction shape
+kernel-checked as `HashBridge.Endpoint.inner_computational_soundness`.
+
+**(B) Even in the idealised model there is no published QROM theorem.**
+
+* The idealised model is the relativized circuit, in which the circuit's hash gates *are* H
+  (ENDPOINTS (d); `LEMMA.md` Def 1.1(b)).
+* The depth-free PCD theorem exists only classically (CGSY24). CGSY24 itself calls the
+  relativized-SNARK step an idealisation (its §1.1.2 per PRIOR-ART), and BCG24 gives limits on
+  relativized arguments.
+* CCGOS23 is classical too.
+* CDHZ is QROM, but it proves straight-line extraction for **one** BCS step (Thm 11.3, per
+  PRIOR-ART). Its composition theorem (Thm 10.6, per PRIOR-ART) is sequential and roughly doubles
+  the error per step; it is not a depth-free PCD theorem.
+* NF-4 would be the QROM analogue. It is unpublished and unreviewed, and it rests on (C).
+* Worse, if the hash gates are left unchecked (Def 1.1(b)), false proofs exist (Lemma E.1). The
+  model therefore also needs an argument that checks oracle gates, which is not our
+  construction.
+
+**(C) The single-proof family bound S-19 is itself still open.** `PROOF.md` §6.4 lists five
+obligations: parsing/framing, canonical Merkle extraction under database edits, crossing blocks,
+long-output fanout, and a uniform g over the family. None is discharged. One sub-gap can be
+closed on paper, and the argument for it is written below [W, unreviewed]:
+
+* **S-17, the sampler cap**, can be removed without changing the implementation.
+* Fix J. For the move with key κ, call it "exhausted" when the first J counter blocks
+  H(5, κ‖1..J) do not supply the K accepted candidates the move needs.
+* Put exhaustion **into the move's bad set**. The rbr error of that move becomes
+  ε_move + δ_J, where δ_J = Pr[Binomial(N_J, p_acc) < K] for a uniformly random G(κ). Here N_J is
+  the number of candidate words in J blocks after the PoW-reserved words are removed, and p_acc is
+  the per-word acceptance rate.
+* On non-exhausted keys, the verifier's challenge is a function of G(κ) alone, so Lemma 6.3's
+  t → 2t simulation applies with no cap in the implementation. Queries with counter > J are
+  ordinary other-domain queries.
+* At J = 2^20, δ_J is far below 2^−1000 for every pinned move, so ε_rbr is unchanged.
+* This replaces the old `(1/16)^(12J)` expression, which (per `PROOF.md` §6.3) was not this
+  event.
+
+### 9.2 What can be instantiated today
+
+**The wrap alone, as one proof under a vk family.**
+
+* Fold the family into one IOP whose statement carries the vk pre-hash v. The vk pre-hash is
+  absorbed first (`PROOF.md` §6.5), so the rbr error of the folded IOP is the maximum over the
+  family.
+* T\* challenges are single long-output oracle calls. That is CDHZ's long-output model (Def 6.1,
+  per PRIOR-ART), with the exhaustion event of §9.1(C).
+* CDHZ Thm 11.3 + 6.10 + 8.3 at ε_rbr = 2^−268.01 and k = 200 rounds then gives **2^−130.22**
+  (`bound.py` `cdhz`). That is ≥ 128 bits, with 2.2 bits of margin.
+* Of this, 2^−130.87 is the ε-free floor: cubic t³/2^336 extraction, offline and online terms.
+* For comparison: the CMS19 Thm 8.6 constants give 2^−137.10, and constants 1 give 2^−139.9
+  (§4).
+
+This bound is about membership in the wrap's **NV relation** (L_air of ENDPOINTS §0). It is not
+about the base statement. It still assumes:
+
+* the wrap is pinned at the 268-bit rbr target with z = 32 under T\* (it is not pinned: §0 item 1);
+* S-28 holds;
+* the O-2 certificates are regenerated for the wrap's shape;
+* CDHZ's hypotheses hold for the masked HVZK-WHIR. That has not been checked: masking adds
+  moves.
+
+**The rest of the tree.** Adopt endpoint (c). For every inner level ℓ, name the assumption
+*InnerSound(ℓ, τ = 2^128)*: the concrete-SHA-384 inner argument at that level accepts a false
+statement with probability ≤ ε_inner(ℓ) against τ-time adversaries. The total is then
+`ε_wrap + Σ_ℓ ε_inner(ℓ) + δ_sim`, in the shape of `Qrom.Peeling.bound`.
+
+* No value of ε_inner follows from any theorem.
+* The usual heuristic sets ε_inner equal to the QROM figure of the same argument, at Q = 2^64
+  per proof. That heuristic is exactly where the per-proof union below comes from.
+* Whether the heuristic may be used once for the whole tree (one-database) or once per proof is
+  part of what the assumption says. Only the per-proof form follows from applying a single-proof
+  assumption N times.
+
+### 9.3 Per-round bits needed instead (per-proof union, N proofs)
+
+Take hash collisions as one global event (charged once) and the extraction term per proof. The
+table gives the largest per-move ε_rbr that keeps the total ≤ 2^−128 at Q = 2^64 [C,
+`e2e_tree_targets.out`].
+
+| accounting | N = 7 (D0a chain) | N = 160 (1 Pgas design) | N = 299,594 (depth 6, fan-in 8, + wrap) |
+|---|---:|---:|---:|
+| constants 1: N·Q²ε + Q³/2^336 | 2^−258.8 | 2^−263.3 | **2^−274.19** |
+| CDHZ, ε-term per proof, ε-free floor once | 2^−267.3 | 2^−271.9 | **2^−282.73** |
+| CDHZ, whole bound per proof (black-box use) | fails: floor ×7 = 2^−128.06 | fails | fails (2^−112.7 from the floor alone) |
+| CMS19 constants, whole bound per proof, at today's 2^−268.01 | 134.3 bits ✓ | 129.8 bits ✓ | **118.9 bits ✗** |
+
+Reading the table:
+
+* Applied **black-box** per proof, CDHZ's published constants cannot reach 128 bits for any
+  N ≥ 7, at any ε. The cubic terms at σ = 336 would need wider digests: at 48 B every floor term
+  drops by 48 bits.
+* Charging the floor only once is a database argument for the collision events. It is
+  elementary, since those events are properties of one database, but it is not stated in CDHZ.
+
+**Parameter deltas** [C]. These are the WHIR queries per round, at z = 32, that meet each target
+on the U-13 model shapes of `bound.out`. Per-query bits are −log₂ a_i: final 6.214 / 6.743 /
+8.140 / 9.834; inner 5.245 / 5.759 / 7.614 / 9.835; base 4.942 / 5.442 / 7.442 / 9.442.
+
+| target | final [38, 35, 29, 24] | inner [45, 41, 31, 24] | base [48, 44, 32, 25] | z-only alternative |
+|---|---|---|---|---|
+| 2^−274.19 | [39, 36, 30, 25] (+4) | [47, 43, 32, 25] (+6) | [50, 45, 33, 26] (+5) | z = 39 |
+| 2^−282.73 | [41, 38, 31, 26] (+10) | [48, 44, 33, 26] (+10) | [51, 47, 34, 27] (+10) | z = 47 |
+
+The non-query moves must also meet the target (values from `bound.out`):
+
+* **At 2^−274.19:**
+  * Final OOD r1 (271.91) and r3 (273.14) are short. A second OOD sample in those rounds fixes
+    them, at 48 B each (`size_mca.py`'s reserve).
+  * Inner OOD r1 is at 274.25, which passes by 0.06 bits.
+  * LogUp with ℓ₀ (279.16 / 279.64), fold MCA (280.74) and μ (282.1+) all pass.
+  * Proof-size cost on the final layer is about 4 × 1.56 KB + 96 B ≈ **6.3 KB**.
+    * The 1.56 KB per query comes from `size_mca.out`, extrapolate_nv2 O12: +4 final queries
+      give +6,242 B.
+    * Inner and base layers do not reach the shipped proof size, but they pay in prover time.
+* **At 2^−282.73: not reachable by query or z changes.** These moves stay above the target:
+  * LogUp α/β with the list factor: 2^−279.16 / 2^−279.64;
+  * fold MCA: 2^−280.74;
+  * final μ batching: 2^−282.1;
+  * OOD: final r2 279.79, inner r1 274.25, inner r3 279.15.
+
+  The OOD terms can be fixed with more samples. The LogUp, fold and μ terms are E/|F| and ℓ/|F|
+  terms set by the field and the list size, so they need a protocol change: for example two
+  LogUp challenge pairs, or a smaller ℓ₀ via a tighter certificate.
+* **z-only:** z = 39 multiplies grinding by 2^7 per round. That is about 2^41 compressions per
+  proof, and 2^59 for a 299,594-proof tree. It is not practical at depth 6.
+
+These schedules are for the `bound.out` **model shapes**. The deployed vks of §1.2 have their
+own O-2 tables, so their deltas must be recomputed from those tables once they are pinned
+(S-24/S-27).
+
+### 9.4 What this needs, and the owner decisions
+
+* **Deployed construction, honest claim:**
+  * the wrap at 2^−130.2 (CDHZ) under §9.2's conditions;
+  * plus a named InnerSound assumption per inner level.
+  * No tree-wide QROM number exists, and none can for this construction (§9.1 A).
+* **Under the per-proof heuristic, depth 6:**
+  * raise every vk to ε_rbr ≤ 2^−274.19 (constants 1); see §9.3 for queries and OOD;
+  * or cap the depth. Under the CMS19 constants at today's 2^−268.01, 128 bits holds up to
+    N ≤ 2^9.10 ≈ 548 proofs, which is enough for the 160-proof design point.
+* **Under CDHZ's published constants:** wider digests or a protocol change for the LogUp, fold
+  and μ terms are needed before any N ≥ 7 tree reaches 128 bits.
+* **A tree-wide one-database number** needs a QROM PCD theorem in a model that matches the
+  construction. Today that is research (NF-4, endpoint (b)).
+
+---
+
 ## 8. References
 
 * [ACFY24] Arnon, Chiesa, Fenzi, Yogev. WHIR: Reed–Solomon proximity testing with super-fast
@@ -428,6 +649,12 @@ ways to get there:
 * [BCS16] Ben-Sasson, Chiesa, Spooner. Interactive oracle proofs. TCC 2016-B.
 * [CMS19] Chiesa, Manohar, Spooner. Succinct arguments in the quantum random oracle model. TCC
   2019, ePrint 2019/834. Thm 8.6.
+* [CDHZ] Chiesa, Di, Hu, Zheng. How to prove post-quantum security for succinct
+  non-interactive reductions. ePrint 2025/2166 (Eurocrypt 2026). Thms 6.10, 8.3, 10.6, 11.3.
+* [CGSY24] Chiesa, Guan, Samocha, Yogev. Security bounds for proof-carrying data from
+  straightline extractors. TCC 2024, ePrint 2023/1646. Thm 5.1.
+* [CCGOS23] ePrint 2023/587, Thm 9.4. [BCG24] ePrint 2024/728. (Theorem numbers per
+  `research/novelty/PRIOR-ART.md`.)
 * [DFM20] Don, Fehr, Majenz. The measure-and-reprogram technique 2.0. ePrint 2020/282.
 * [BHT98] Brassard, Høyer, Tapp. Quantum cryptanalysis of hash and claw-free functions.
 * [Zha15] Zhandry. A note on the quantum collision and set equality problems. QIC 2015,
