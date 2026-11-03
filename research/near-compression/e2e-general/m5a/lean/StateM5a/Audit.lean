@@ -30,6 +30,10 @@ import StateM5a.WsBus
 import StateM5a.Sha512If
 import StateM5a.StateView
 import StateM5a.StateViewParams
+import StateM5a.WsLen
+import StateM5a.WsRaw
+import StateM5a.WsSeg
+import StateM5a.WsDecode3
 
 /-! Axiom audit of the M5a lemmas (`lake build StateM5a.Audit` prints them): every theorem must
 depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
@@ -345,3 +349,41 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.StateViewParams.proj_injB
 #print axioms StateM5a.StateViewParams.stD_binding_B
 #print axioms StateM5a.StateViewParams.viewImpl_hst_B
+#print axioms StateM5a.WsLen.wsb_height
+#print axioms StateM5a.WsLen.wsb_pos
+#print axioms StateM5a.WsLen.wsb_real_iff
+#print axioms StateM5a.WsLen.wsb_wsLen_le
+#print axioms StateM5a.WsLen.wsb_leaves
+#print axioms StateM5a.WsLen.wsl_ix
+#print axioms StateM5a.WsLen.wsl_lt_wsLen
+#print axioms StateM5a.WsRaw.descent
+#print axioms StateM5a.WsRaw.lvl_lt
+#print axioms StateM5a.WsRaw.pos_bound
+#print axioms StateM5a.WsRaw.wsl_i_lt
+#print axioms StateM5a.WsRaw.seg_lt
+#print axioms StateM5a.WsRaw.pt_eq
+#print axioms StateM5a.WsRaw.rch_eq
+#print axioms StateM5a.WsSeg.root_inj
+#print axioms StateM5a.WsSeg.seg_chain
+#print axioms StateM5a.WsSeg.tops_lt
+#print axioms StateM5a.WsSeg.wsl_top
+#print axioms StateM5a.WsSeg.ws_compose
+#print axioms StateM5a.WsSeg.wsAt_untouched
+#print axioms StateM5a.WsSeg.wsAt_last
+#print axioms StateM5a.WsSeg.ws_final
+#print axioms StateM5a.WsDecode.comp_mem
+#print axioms StateM5a.WsDecode.busList_ws
+#print axioms StateM5a.WsDecode.rng_v
+#print axioms StateM5a.WsDecode.rowDig_of
+#print axioms StateM5a.WsDecode2.pt_traffic
+#print axioms StateM5a.WsDecode2.rch_traffic
+#print axioms StateM5a.WsDecode2.wm_traffic
+#print axioms StateM5a.WsDecode3.rng_send_lt
+#print axioms StateM5a.WsDecode3.wsp_rowF
+#print axioms StateM5a.WsDecode3.wsp_ok
+#print axioms StateM5a.WsDecode3.x_lt64
+#print axioms StateM5a.WsDecode3.wsa_gap_rec
+#print axioms StateM5a.WsDecode3.wsl_ok
+#print axioms StateM5a.WsDecode3.wsl_leaf
+#print axioms StateM5a.WsDecode3.ws_decoded
+#print axioms StateM5a.WsDecode3.ws_decoded_final
