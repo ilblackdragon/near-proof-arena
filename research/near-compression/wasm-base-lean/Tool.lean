@@ -1,6 +1,7 @@
 import WasmBase.ToolCore
 import WasmBase.Census
 import WasmBase.Check.TraceDump
+import WasmBase.SegAirG
 /-!
 `wasmbase-tool` — exporter and verifier-side preparation for the direct-Wasm base layer.
 
@@ -27,6 +28,9 @@ import WasmBase.Check.TraceDump
   REG-A and RINIT, `WasmBase/M2RegAbsent.lean`).
 * `wasmbase-tool airM3 <nloc> <ngl>` / `evalM3` / `prepM3`: `wasmBaseM3Air` (HOST-W tags, MEMG, MSZ,
   GINIT, `WasmBase/M3Air.lean`) and its checker `checkModuleM3`.
+* `wasmbase-tool airSegG <nloc> <ngl>`: `wasmBaseSegAirG` (E2E M4c: `wasmBaseSegAirMP` + MEMG, SEGG,
+  MEMBG — segments containing `memory.grow`, `WasmBase/SegAirG.lean`); the full-run AIR is `airM3`
+  and the prep `prepM3`.
 -/
 
 open NearSpecV3.Wasm WasmBase ZkFormal.Algebra
@@ -66,6 +70,7 @@ def main (args : List String) : IO Unit := do
   | ["airM2", l, n] => IO.println (airJson (wasmBaseM2Air l.toNat! n.toNat!))
   | ["airSeg", l, n] => IO.println (airJson (wasmBaseSegAir l.toNat! n.toNat!))
   | ["airSegMP", l, n] => IO.println (airJson (wasmBaseSegAirMP l.toNat! n.toNat!))
+  | ["airSegG", l, n] => IO.println (airJson (wasmBaseSegAirG l.toNat! n.toNat!))
   | ["evalM2", l, n, path] => evalPoints l.toNat! n.toNat! path 5
   | ["airM2r", l, n] => IO.println (airJson (wasmBaseM2rAir l.toNat! n.toNat!))
   | ["airM3", l, n] => IO.println (airJson (wasmBaseM3Air l.toNat! n.toNat!))
