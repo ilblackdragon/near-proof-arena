@@ -245,35 +245,55 @@ Named hypotheses:
 * `CodeOKM2`: the commitment binding of the CODE table to the M2 records, as `CodeOK` is for the
   base records.
 
-**The `Ctx` split (done).** `Ctx.hM` is now `ModFacts cfg p fn M` (moved to `CheckFacts.lean`)
-instead of `checkModule cfg p fn = some M`. Its per-function `CheckFacts` state the base obligations
-(`verifyAt`, `recordOf`) only at pcs that are not M2 additions (`m2Special`: conversions,
-`unreachable`, `if`, `else`, `memory.grow`/`size`, import calls). Both checkers produce it:
-* `checkModule_sound` / `Ctx.ofCheck` for the base checker;
-* `checkModuleM2_modFacts` / **`M2Ctx.toCtx`** for the M2 checker (`verifyAtM2_base`,
-  `recordAtM2_base`: off the M2 pcs the M2 obligations and records are the base ones).
+**The `Ctx` split.** `Ctx.hM` is now `ModFacts cfg p fn M` (moved to `CheckFacts.lean`) instead of
+`checkModule … = some M`. Its per-function `CheckFacts` carry three kinds of fact:
+* the base obligations `verifyAt`/`recordOf`, only at pcs that are not M2 additions (`m2Special`:
+  conversions, `unreachable`, `if`, `else`, `memory.grow`/`size`, import calls);
+* `special`: an M2 addition's record carries an M2 opcode (`m2OpNat`), and `opJump` only for
+  `else`;
+* `elseF`: an `else`'s successor facts and its jump record.
 
-The base step lemmas discharge `m2Special = false` locally (their instruction is known; `m2_ns`),
-and `verify_call` takes `imports.size ≤ fi`. One premise is new: **`Ctx.Base`** (no checked pc is an
-M2 addition), as `Looks.base`, and so as `hB : X.Base` of `looks_of`, `wasm_base_exec`,
-`wasm_base_sound`, `rowFactsSegMap_of` and `wasm_base_exec_host_holds`. For a base context it is
-`Ctx.ofCheck_base`, so those theorems say exactly what they said before. It is used in one place,
-`fetch_rec`/`fetch_pc`/`RowCall`, where a fetched record has to be a base `recordOf` record.
+Both checkers produce these facts:
+* the base checker through `checkModule_sound` / `Ctx.ofCheck` (`special`/`elseF` are vacuous for
+  it: `verifyAt_special`);
+* the M2 checker through `checkModuleM2_modFacts` / **`M2Ctx.toCtx`** (`verifyAtM2_base`,
+  `recordAtM2_base`).
 
-The steps, in order:
-1. Split `Ctx` into data plus a code-facts predicate that both `checkModule` and `checkModuleM2`
-   satisfy.
-2. Re-thread the uses of `verify`/`recs` (about 45 sites).
-3. Then `RowFacts2` for CONV/UNREACH is `conv_row_m2` plus `step_conv`'s relation update
-   (`step_straight`). The dispatch then covers:
-   * tables 0–21 of the M2 AIR, through the base `chipFacts`, with FETCH and R16 coming from
-     `m2_fetch`/`m2_r16` instead of the base `Looks`;
-   * IF (26), through `if_rowSpec`, with `IfRowData` discharged by `M2Ctx.if_succ`/`ifres_succ`;
-   * CONV (28) and UNREACH (29);
-   * HOST (22), still under `HoldRow`;
-   * REG-C (27), with the refill clear/absent gap still open;
-   * a STATE/CH bus split of the M2 AIR, because the host stack's `host_buses` covers only tables
-     0–22.
+**The base row lemmas hold for M2 contexts.**
+* `fetch_rec` takes `hns` (the fetched opcode is not an M2 opcode). Each base chip discharges it
+  from its own flag constraints: the `m2ns` macro does so, with custom proofs for CMP, LOAD and
+  STORE.
+* CTRL goes through `fetch_rec_ctrl`, which handles the case where its jump opcode fetches an M2
+  `else` record. That case is a new arm proved with `step_else`.
+* `Looks.base` and the `hB : X.Base` premises are gone. `wasm_base_sound`, `wasm_base_exec`,
+  `rowFactsSegMap_of` and `wasm_base_exec_host_holds` have their original statements again, and
+  now cover every `Ctx`.
+* The 14 row files take `HoldsC` (the row constraints only, with no bus balance) instead of
+  `Holds`. `chipFacts X H := chipFactsC X H.toC`.
+
+**What is proved for a `Holds (wasmBaseM2Air …)` trace** (all [K]; the axioms are `propext`,
+`Classical.choice` and `Quot.sound`):
+
+| theorem | content |
+|---|---|
+| `m2_holdsC`, `looks_m2` (`Main/M2Looks.lean`) | the base tables' constraints and their FETCH/R16/BYTE/FUNC answers, for `M2.toCtx` |
+| `m2_hsend_fetch` (= `hsendF`), `m2_hsend_bus` | FETCH/BYTE/FUNC send counts ≤ 1 (the `RegSendM2` bit argument, for any bus) |
+| `conv_rowfacts_m2`, `unreach_rowfacts_m2` (`Main/M2Rows.lean`) | `RowFacts2` of CONV/UNREACH rows |
+| `if_rowfacts_m2` (`Main/M2If.lean`) | `RowFacts` of IF rows; `IfRowData` is built from the M2 checker (`recordAtM2_if_op`, `M2Ctx.if_succ`, `ifStepM2_spec`) |
+| **`m2_rowfacts`** (`Main/M2Dispatch.lean`) | `RowFacts2 X.toCtx` of every active instruction row other than HOST (tables 1–14, 26, 28, 29), from `Holds`, `M2Ctx`, `PubOK`, `CodeOK` and `FuncOK` only |
+
+**Still open: `wasm_base_sound_m2` itself.** It needs the STATE/CH bus decomposition of
+`wasmBaseM2Air`, the analogue of `host_buses`/`HostBLinked` (`HostBus.lean`, `MemIOBus.lean`, which
+cover only the 26 tables of `wasmBaseHostAir`):
+* the STATE perm, over an action list containing tables 1–14, 22, 26, 28 and 29 (the current
+  `actListHost`/`chipTHost` cover 1–14 and 22);
+* the CH perm, which must also account for REG-C's space-6 register messages. Nothing yet links
+  those to host calls the way `HostBLinked` links the HOSTB bytes; the honest options are a
+  `RegCLinked`-style named premise, or a proof through the REG group walk.
+
+Then `exec_of_rows_seg` composes with `m2_rowfacts` plus `HoldRow` (HOST). The named premises that
+stay are `HoldRow`, the HOSTO answers, `HostBLinked`, `CodeOK`/`FuncOK` (commitment bindings), and
+the REG refill gap, which `wasmBaseM2rAir` closes at the AIR level.
 
 ## Update: absent-register header (`wasmBaseM2rAir`)
 
@@ -318,33 +338,6 @@ register 0). Honest: `check-tape` passes at `wasmBaseM2rAir` with the same outco
 
 `TAMPER_ONLY=REGA,RINIT,REGC,CONV` at `wasmBaseM2rAir`: **25 / 25 rejected** (the pre-existing
 REG-C and CONV cases included); header-only rerun after the `atp = 0` case was made R16-clean: 8 / 8.
-**`RowFacts2` for CONV and UNREACH (done).** `conv_rowfacts_m2` and `unreach_rowfacts_m2` [K] give
-`RowFacts2 X.toCtx …` for the active rows of `Holds (wasmBaseM2Air …)`. For CONV the spec part is
-`step_conv` on the base `RelW`, with the successor facts from `M2Ctx.conv_succ`; for UNREACH it is
-the abort with the segment gas. Named hypotheses: `hsendF`, `hsend` and `CodeOKM2`. `hsend` is
-`m2_hsend_r16` (`RegSendM2.lean`), but that lemma takes a `PubOK X` for an `X : Ctx`, so it applies
-with `X := M2.toCtx`.
-
-**Still open, in order:**
-1. **`Looks.base` off for M2 contexts.** For an M2 trace, `fetch_rec` must get "base record" per
-   row, not from `Ctx.Base`. Two parts:
-   * a FETCH opcode separation for each of the 14 instruction tables: under its constraints an
-     active row's opcode is in the chip's own set, which avoids 0, 0xA7/0xAC/0xAD, `opIf`, `opHost`
-     and 0x240–0x242;
-   * an `.else_` arm in `RowCtrl`, because CTRL's jump opcode `opJump` *is* the M2 `else` record's
-     opcode. `step_else` (`StepIf.lean`) and `M2Ctx.else_succ` are the ingredients.
-2. **The base row lemmas on an M2 trace.** They take `H : Holds (wasmBaseAir …)` and `Looks` over
-   the base AIR's occurrences. The M2 AIR's FETCH and R16 lookups are `m2_fetch`/`m2_r16`; BYTE
-   and FUNC need the same recv-only argument over the 30 tables. The row lemmas use `H` for their
-   constraints, which hold on an M2 trace (tables 0–21 are a prefix), but `H` itself (the base
-   balance) does not follow from the M2 `Holds`. The host stack works around this with `H0`.
-3. **IF (26).** Use `if_rowfacts`, discharging `IfRowData` from `M2Ctx.if_succ`/`ifres_succ` and an
-   `opIf` FETCH pin (`recordAtM2`'s `.if_` arm).
-4. **The STATE/CH bus split of `wasmBaseM2Air`** (the analogue of `host_buses`, which covers tables
-   0–22). The instruction rows are those of tables 1–14, 22, 26, 28 and 29, with the REG-C, HOSTO,
-   HOSTT and HOSTB contributions.
-5. **The dispatch and `wasm_base_sound_m2`** over `exec_of_rows_seg`. `HoldRow` (HOST), the HOSTO
-   answers and the REG-C refill gap stay as named hypotheses.
 
 ## Update: coverage chips for the admitted-but-unchipped instructions (`wasmBaseM3Air`)
 
