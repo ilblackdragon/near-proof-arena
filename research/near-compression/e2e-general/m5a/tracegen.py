@@ -474,6 +474,8 @@ class Gen:
     # ------------------------------------------------------------------ the run
     def run(self):
         st_pre = PT.reveal_all(self.store, self.pre_root)
+        if getattr(self, "tamper_fn", None):
+            st_pre = self.tamper_fn(st_pre)
         assert PT.hash_of(st_pre) == self.pre_root
         n = len(self.keys)
         N = 1 << self.D
@@ -510,7 +512,8 @@ class Gen:
             cur = res['node']
             roots.append(res['h'])
         spec_t, _ = PT.apply_changes(st_pre, [(k, None if v is None else (len(v), sha(v))) for k, v in self.changes])
-        assert PT.root_hash(spec_t) == roots[-1] == self.post_root, 'post-state root'
+        if self.mutant is None:
+            assert PT.root_hash(spec_t) == roots[-1] == self.post_root, 'post-state root'
         self.roots = roots
         self.pre, self.final = pre, final
         self.build_ws()
@@ -793,12 +796,6 @@ def main():
         # A tampered pre-state node: the leaf of the first written key carries memory usage + 1
         # (still a well-formed node), while its parent keeps the true child hash.  Every row that
         # visits the leaf holds and hashes the tampered content.
-        orig_reveal = PT.reveal_all
-        k0 = g.changes[0][0]
-
-        def reveal(store, h, fuel=10000):
-            t = orig_reveal(store, h, fuel)
-            return tamper(t, PT.nibbles(k0), 0)
 
         def tamper(t, K, d):
             if t[0] == 'leaf':
@@ -810,7 +807,8 @@ def main():
             kids = list(t[2])
             kids[K[d]] = tamper(kids[K[d]], K, d + 1)
             return ('branch', t[1], kids, t[3])
-        PT.reveal_all = reveal
+        k0 = g.changes[0][0]
+        g.tamper_fn = lambda t: tamper(t, PT.nibbles(k0), 0)
     g.root_rk, g.root_mem = [], []
     orig_walk = g.walk
 
