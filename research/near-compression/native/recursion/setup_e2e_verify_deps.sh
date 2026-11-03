@@ -14,6 +14,13 @@
 #                             stacked openings), extension-field stacking masks; plus the review
 #                             fixes (layout termination, proof-shape errors, verify_with_point).
 #                             Regenerate with make_zk_piop_patch.sh.
+#   patches/e2e-heights.patch (only with E2E_ZK=1; D-5, review-D4) FINAL heights pinned from the
+#                             shape (HeightProfile, shape_pinned_heights), the FS job counter, a
+#                             loud per-proof tight floor. Regenerate with make_e2e_heights_patch.sh.
+#   patches/e2e-tree.patch    (only with E2E_ZK=1 E2E_TREE=1; D-5) the aggregation overlay rebased
+#                             onto this stack with program binding restored and multi-child, the
+#                             chunk-independent tree + wrap (nv/tree.rs), shape-pinned heights,
+#                             the FS job counter. Regenerate with make_e2e_tree_patch.sh.
 # Applied with `patch -p1` from the deps root. Idempotent: an overlaid tree is checked by
 # reverse-applying each patch in a dry run (the tree must contain exactly the patch's hunks).
 set -euo pipefail
@@ -22,7 +29,8 @@ export NEARPROOF_PQ_DEPS=${NEARPROOF_PQ_DEPS:-/data/illia/nearproof-deps/pq-e2e-
 D=$NEARPROOF_PQ_DEPS
 case "$D" in */pq-recursion|*/pq-native|*/pq-stream|*/openvm) echo "refusing shared tree" >&2; exit 1;; esac
 PATCHES="e2e-verify"
-[ "${E2E_ZK:-1}" = 1 ] && PATCHES="$PATCHES zk-pcs zk-piop"
+[ "${E2E_ZK:-1}" = 1 ] && PATCHES="$PATCHES zk-pcs zk-piop e2e-heights"
+[ "${E2E_ZK:-1}" = 1 ] && [ "${E2E_TREE:-0}" = 1 ] && PATCHES="$PATCHES e2e-tree"
 "$HERE/setup_cpu_fast_deps.sh"
 for p in $PATCHES; do
   f="$HERE/patches/$p.patch"

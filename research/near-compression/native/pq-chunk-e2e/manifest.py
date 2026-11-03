@@ -10,8 +10,10 @@ version = "0.1.0"
 edition = "2024"
 [workspace]
 [features]
-default = ["chunk-recursion"]
+default = ["chunk-recursion", "tree"]
 chunk-recursion = []
+# [E2E-D D-5] the aggregation tree + wrap (needs a deps tree with patches/e2e-tree.patch)
+tree = []
 perf-experiments = []
 [[bin]]
 name = "nearproof-chunk-e2e"

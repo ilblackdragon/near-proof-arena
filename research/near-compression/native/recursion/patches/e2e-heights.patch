@@ -1,0 +1,408 @@
+--- a/stark-backend-unified/crates/stark-backend/src/prover/stacked_pcs.rs
++++ b/stark-backend-unified/crates/stark-backend/src/prover/stacked_pcs.rs
+@@ -691,10 +691,20 @@
+ static TIGHT_FLOOR: std::sync::Mutex<Option<Vec<(usize, usize, usize)>>> = std::sync::Mutex::new(None);
+ 
+ /// Set (or clear with `None`) the prover-side tight-height floor; see [`TIGHT_FLOOR`].
++///
++/// [E2E-D D-5, review-D4 prover note] The floor is consumed by the first tight commit that reads
++/// it (one proof), and a floor that does not match that commit's traces one to one by
++/// `(width, log_height)` is a prover panic, not a silent fallback to natural heights.
++/// [`tight_floor_pending`] tells the caller whether a set floor was left unused.
+ pub fn set_tight_floor(floor: Option<Vec<(usize, usize, usize)>>) {
+     *TIGHT_FLOOR.lock().unwrap() = floor;
+ }
+ 
++/// [E2E-D D-5] True iff a floor was set and no tight commit has consumed it yet.
++pub fn tight_floor_pending() -> bool {
++    TIGHT_FLOOR.lock().unwrap().is_some()
++}
++
+ /// [`stacked_matrix`] with the tight-heights lever: when `tight`, each trace commits only
+ /// [`tight_height`] rows (its tail must be zero, which `tight_height` guarantees).
+ pub fn stacked_matrix_tight<F: Field>(
+@@ -756,15 +766,18 @@
+ ) -> Result<(ColMajorMatrix<F>, StackedLayout), StackedPcsError> {
+     let floor: Option<Vec<usize>> = if tight {
+         // match each trace to an unused floor entry with its (width, log_height), in any order
+-        TIGHT_FLOOR.lock().unwrap().as_ref().and_then(|f| {
++        TIGHT_FLOOR.lock().unwrap().take().map(|f| {
+             let mut used = vec![false; f.len()];
+             let mut out = Vec::with_capacity(traces.len());
+             for t in traces {
+-                let j = (0..f.len()).find(|&j| !used[j] && f[j].0 == t.width() && 1usize << f[j].1 == t.height())?;
++                let j = (0..f.len())
++                    .find(|&j| !used[j] && f[j].0 == t.width() && 1usize << f[j].1 == t.height())
++                    .unwrap_or_else(|| panic!("tight floor: no entry for a trace of width {} height {}", t.width(), t.height()));
+                 used[j] = true;
+                 out.push(f[j].2);
+             }
+-            (f.len() == traces.len()).then_some(out)
++            assert_eq!(f.len(), traces.len(), "tight floor: entry count differs from the committed traces");
++            out
+         })
+     } else {
+         None
+--- a/openvm-sha384/crates/recursion/src/nv/builder.rs
++++ b/openvm-sha384/crates/recursion/src/nv/builder.rs
+@@ -145,6 +145,9 @@
+     /// program depends on the child's committed heights, so M is the last level whose program
+     /// differs from the converged one (levels <= M each anchor at their own child level).
+     pub anchor: Option<(u32, Digest)>,
++    /// [E2E-D D-5, review-D4 F1] the rejection-sampling profile of the executed trace (set by
++    /// `NvCircuit::generate_*`): which trace rows depend on the child's transcript draws.
++    pub height_profile: Option<super::circuit::HeightProfile>,
+     /// open flush job (job id, t_start, observed felts)
+     tr_pending: Option<(u32, u32, u32)>,
+     /// static transcript jobs allocated so far
+@@ -185,6 +188,7 @@
+             statement: None,
+             child_nv: false,
+             anchor: None,
++            height_profile: None,
+             tr_pending: None,
+             tr_static: 0,
+             tr_started: false,
+--- a/openvm-sha384/crates/recursion/src/nv/circuit.rs
++++ b/openvm-sha384/crates/recursion/src/nv/circuit.rs
+@@ -262,6 +262,7 @@
+             self.layout(),
+             self.heights.as_ref().map(|_| hh(1)),
+         );
++        let profile = HeightProfile::of(&log, &[], &tr_jobs);
+         let tr = tr2_traces(&tr_jobs);
+         let mut counts = sha.byte_counts.clone();
+         for (c, t) in counts.iter_mut().zip(&tr.byte_counts) {
+@@ -269,6 +270,7 @@
+         }
+         let nv = nv_trace(&b.instrs, &b.vals, &b.wits, &b.wits_x, &sha.glue_rows, &tr.hash, &tr.samp, self.log_rows, &mut counts);
+         let mats = vec![nv, sha.compress, sha.table, byte_table2(&counts)];
++        b.height_profile = Some(profile);
+         if let Some(h) = &self.heights {
+             use p3_matrix::Matrix;
+             for (i, m) in mats.iter().enumerate() {
+@@ -468,8 +470,14 @@
+         openvm_stark_backend::prover::stacked_pcs::set_tight_floor(Some(f));
+     }
+     let proof = engine.prove(&d_pk, ProvingContext::new(ctxs.into_iter().enumerate().collect()));
++    // [E2E-D D-5] a set floor must have been consumed by this proof's tight commit (fail loudly)
++    let unused_floor = openvm_stark_backend::prover::stacked_pcs::tight_floor_pending();
+     openvm_stark_backend::prover::stacked_pcs::set_tight_floor(None);
+     let proof = proof.unwrap();
++    assert!(
++        !(unused_floor && engine.config().params().whir.levers.tight_heights),
++        "tight floor set but not consumed by the proof's tight commit"
++    );
+     if let Some(fl) = &circ.tight_floor {
+         for (i, &m) in fl.iter().enumerate() {
+             if let Some(h) = proof.trace_vdata[i].as_ref().and_then(|v| v.tight_height) {
+@@ -480,3 +488,245 @@
+     engine.verify(&vk, &proof).unwrap();
+     (vk, proof, b, shapes)
+ }
++
++/// [E2E-D D-5, review-D4 F1] Which rows of an NV level's traces depend on the rejection sampling
++/// of the child's (verified) transcript, and a shape-only height bound.
++///
++/// The in-circuit transcript replays every squeeze / PoW-run block the child's transcript drew.
++/// `sample()` accepts a 32-bit word iff it is `< 2p` (`SAMPLE_BOUND`), so each draw rejects with
++/// probability `rho = 1 - 2p/2^32` (about 1/16), and the number of blocks (one SHA job each: a
++/// hash-chain row, its GLUE rows and its compression rows) and of sample-role rows depends on the
++/// child transcript, i.e. on the witness and the oracle. Everything else in the trace is fixed by
++/// the program (the program is pinned, so the Merkle and leaf jobs are too).
++///
++/// `of` counts, per sample run (consecutive draws with no absorb between them), the blocks and
++/// the sample rows actually used, and the same counts with every word accepted (the shape
++/// minimum). The shape-only part of a trace's used rows is `used - delta_actual`; the pinned
++/// height is that plus `delta_max(J_max)`, the most the rows can grow when the draws reject at
++/// most `J_max` words in total, with `Pr[J > J_max] <= 2^-eps_bits` (Chernoff). A trace above the
++/// pin is a prover abort, an event of probability `<= 2^-eps_bits` (a completeness error, and a
++/// statistical ZK term of the same size).
++#[derive(Clone, Debug, Default)]
++pub struct HeightProfile {
++    /// draws (samples) in the replayed transcript, a function of the program
++    pub k_samples: usize,
++    /// sample runs (fixed by the program)
++    pub n_runs: usize,
++    /// rejected words in this trace
++    pub j_actual: usize,
++    /// squeeze / PoW-run jobs: actual and shape minimum (all draws accepted)
++    pub jobs_actual: usize,
++    pub jobs_min: usize,
++    /// sample-role rows (`ceil(reads / 2)` per job): actual and shape minimum
++    pub samp_actual: usize,
++    pub samp_min: usize,
++    /// per extra block: NvAir rows (hash-chain row + GLUE rows) and SHA compressions, maximised
++    /// over the run types present
++    pub nv_rows_per_job: usize,
++    pub comps_per_job: usize,
++    /// NvAir rows and SHA compressions the actual extra blocks and reads contribute
++    pub nv_delta_actual: usize,
++    pub comps_delta_actual: usize,
++}
++
++fn job_costs(j: &super::transcript2::TrJob2) -> (usize, usize) {
++    let job = j.job();
++    let blocks = super::hash::sha384_blocks(&job.message());
++    let mut cnt = vec![0u32; super::hash::BYTE_TABLE];
++    let nc = blocks.0.len();
++    let g = super::glue::glue_rows(&[job], &[blocks], 0, &mut cnt).len();
++    (1 + g, nc)
++}
++
++impl HeightProfile {
++    pub fn of(log: &crate::sha384::config::ShaTranscriptLog, starts: &[usize], jobs: &[super::transcript2::TrJob2]) -> Self {
++        use super::transcript2::Op2;
++        use crate::sha384::config::{pow_skip_words, KIND_POW, KIND_POW_CONT, KIND_SAMPLE};
++        // shape minimum: walk the log kinds with every draw accepted.
++        // run state: (squeeze jobs, closed sample rows, next word, reads in the current job)
++        type Run = (usize, usize, usize, usize);
++        let mut runs_min: Vec<(usize, usize)> = vec![];
++        let close = |c: &mut Option<Run>, out: &mut Vec<(usize, usize)>| {
++            if let Some((j, s, _, r)) = c.take() {
++                out.push((j, s + r.div_ceil(2)));
++            }
++        };
++        let mut k_samples = 0usize;
++        let (mut i, n) = (0usize, log.kinds.len());
++        let mut cur: Option<Run> = None;
++        let mut pow_pending: Option<usize> = None;
++        while i < n {
++            if i > 0 && starts.contains(&i) {
++                close(&mut cur, &mut runs_min);
++                pow_pending = None;
++            }
++            match log.kinds[i] {
++                KIND_SAMPLE => {
++                    k_samples += 1;
++                    let c = cur.get_or_insert_with(|| match pow_pending.take() {
++                        Some(skip) => (0, 0, skip, 0),
++                        None => (0, 0, 12, 0),
++                    });
++                    if c.2 == 12 {
++                        c.1 += c.3.div_ceil(2);
++                        c.3 = 0;
++                        c.0 += 1;
++                        c.2 = 0;
++                    }
++                    c.2 += 1;
++                    c.3 += 1;
++                    i += 1;
++                }
++                KIND_POW => {
++                    close(&mut cur, &mut runs_min);
++                    pow_pending = Some(pow_skip_words(1));
++                    i += 1;
++                    while i < n && log.kinds[i] == KIND_POW_CONT {
++                        i += 1;
++                    }
++                }
++                _ => {
++                    close(&mut cur, &mut runs_min);
++                    pow_pending = None;
++                    i += 1;
++                }
++            }
++        }
++        close(&mut cur, &mut runs_min);
++        // actual: a run = the reads a PoW job carries itself, then the maximal sequence of
++        // squeeze / PoW-run jobs after it (or after an absorb)
++        let mut runs_act: Vec<(usize, usize, Option<usize>)> = vec![];
++        let mut j_actual = 0usize;
++        let mut open = false;
++        for (x, j) in jobs.iter().enumerate() {
++            let rows = j.reads.len().div_ceil(2);
++            j_actual += j.reads.iter().filter(|r| !r.acc).count();
++            match j.op {
++                Op2::Squeeze | Op2::PowQ => {
++                    if !open {
++                        runs_act.push((0, 0, None));
++                        open = true;
++                    }
++                    let r = runs_act.last_mut().unwrap();
++                    r.0 += 1;
++                    r.1 += rows;
++                    r.2.get_or_insert(x);
++                }
++                Op2::Pow => {
++                    open = rows > 0;
++                    if open {
++                        runs_act.push((0, rows, None));
++                    }
++                }
++                _ => open = false,
++            }
++        }
++        assert_eq!(runs_act.len(), runs_min.len(), "height profile: sample runs do not pair up");
++        let any_sq = jobs.iter().position(|j| matches!(j.op, Op2::Squeeze | Op2::PowQ));
++        let (mut nv_rows_per_job, mut comps_per_job) = any_sq.map_or((0, 0), |x| job_costs(&jobs[x]));
++        let (mut nv_delta_actual, mut comps_delta_actual) = (0usize, 0usize);
++        let (mut jobs_actual, mut jobs_min, mut samp_actual, mut samp_min) = (0, 0, 0, 0);
++        for (ra, rm) in runs_act.iter().zip(&runs_min) {
++            assert!(ra.0 >= rm.0 && ra.1 >= rm.1, "height profile: a run below its shape minimum");
++            jobs_actual += ra.0;
++            jobs_min += rm.0;
++            samp_actual += ra.1;
++            samp_min += rm.1;
++            let (g, c) = ra.2.map_or((0, 0), |x| job_costs(&jobs[x]));
++            nv_rows_per_job = nv_rows_per_job.max(g);
++            comps_per_job = comps_per_job.max(c);
++            nv_delta_actual += (ra.0 - rm.0) * g + (ra.1 - rm.1);
++            comps_delta_actual += (ra.0 - rm.0) * c;
++        }
++        HeightProfile {
++            k_samples,
++            n_runs: runs_min.len(),
++            j_actual,
++            jobs_actual,
++            jobs_min,
++            samp_actual,
++            samp_min,
++            nv_rows_per_job,
++            comps_per_job,
++            nv_delta_actual,
++            comps_delta_actual,
++        }
++    }
++
++    /// Smallest `J_max` with `Pr[J > J_max] <= 2^-eps_bits`, where `J` (rejected words before
++    /// `k` accepted draws) is negative binomial with reject probability `rho`:
++    /// `Pr[J >= t] = Pr[Bin(k + t - 1, rho) >= t] <= exp(-n KL(t/n || rho))`, `n = k + t - 1`.
++    pub fn j_max(k: usize, eps_bits: f64) -> usize {
++        if k == 0 {
++            return 0; // no draws (a program without a child transcript, e.g. a PAD leaf)
++        }
++        let p = crate::sha384::config::SAMPLE_BOUND as f64;
++        let rho = 1.0 - p / 4294967296.0;
++        let target = -eps_bits * std::f64::consts::LN_2;
++        let mut t = (k as f64 * rho / (1.0 - rho)).ceil() as usize + 1;
++        loop {
++            let nn = (k + t - 1) as f64;
++            let a = t as f64 / nn;
++            let kl = a * (a / rho).ln() + (1.0 - a) * ((1.0 - a) / (1.0 - rho)).ln();
++            if -nn * kl <= target {
++                return t - 1;
++            }
++            t += 1;
++        }
++    }
++
++    /// The most NvAir rows and SHA compressions the rejection-dependent part can add over the
++    /// shape minimum when at most `j_max` words are rejected in total: per run, `J_r` rejections
++    /// add at most `ceil(J_r / 12)` blocks, so in total at most `ceil(j_max / 12) + min(j_max,
++    /// runs)` extra blocks; reads add half-rows, at most `ceil(j_max / 2) + (extra blocks) +
++    /// min(j_max, runs)` sample rows.
++    pub fn delta_max(&self, j_max: usize) -> (usize, usize) {
++        let extra_jobs = j_max.div_ceil(12) + j_max.min(self.n_runs);
++        let extra_samp = j_max.div_ceil(2) + extra_jobs + j_max.min(self.n_runs);
++        (extra_jobs * self.nv_rows_per_job + extra_samp, extra_jobs * self.comps_per_job)
++    }
++}
++
++/// [E2E-D D-5, review-D4 F1] Pinned `(log, tight)` heights of a level's traces from its shape
++/// alone: per AIR, the used rows minus the rows the actual rejections contributed, plus the
++/// rejection slack `delta_max(J_max(eps_bits))` (NvAir: AIR 0; SHA compression: AIR 1, at
++/// `compress4_air::ROWS` rows per compression). The table and byte AIRs have fixed heights.
++/// Also returns `(J_max, NvAir slack rows, SHA slack rows, NvAir base rows, SHA base rows)`.
++pub fn shape_pinned_heights(
++    mats: &[RowMajorMatrix<F>],
++    b: &Builder,
++    l_skip: usize,
++    eps_bits: f64,
++) -> (Vec<super::vd::PinnedHeight>, [usize; 5]) {
++    use p3_matrix::Matrix;
++    let hp = b.height_profile.as_ref().expect("height profile (NvCircuit::generate_*)");
++    let jm = HeightProfile::j_max(hp.k_samples, eps_bits);
++    let (nv_slack, comps_slack) = hp.delta_max(jm);
++    let sha_rows = crate::sha384::compress4_air::ROWS;
++    let used = |m: &RowMajorMatrix<F>| -> usize {
++        let w = m.width();
++        (0..m.height()).rev().find(|&r| m.values[r * w..(r + 1) * w].iter().any(|v| *v != F::ZERO)).map_or(0, |r| r + 1)
++    };
++    let mut out = vec![];
++    let mut base = [0usize; 2];
++    for (a, m) in mats.iter().enumerate() {
++        let (log, tight) = match a {
++            0 | 1 => {
++                let (delta_act, slack) = if a == 0 {
++                    (hp.nv_delta_actual, nv_slack)
++                } else {
++                    (hp.comps_delta_actual * sha_rows, comps_slack * sha_rows)
++                };
++                let u = used(m);
++                assert!(u >= delta_act, "AIR {a}: used rows below the rejection rows");
++                base[a] = u - delta_act;
++                let t = (base[a] + slack).max(1).next_multiple_of(1 << l_skip);
++                let log = (m.height().trailing_zeros() as usize).max(t.next_power_of_two().trailing_zeros() as usize);
++                (log, Some(t.min(1 << log)))
++            }
++            _ => (m.height().trailing_zeros() as usize, Some(used(m).max(1).next_multiple_of(1 << l_skip))),
++        };
++        out.push((log, tight));
++    }
++    (out, [jm, nv_slack, comps_slack * sha_rows, base[0], base[1]])
++}
+--- a/openvm-sha384/crates/recursion/src/sha384/config.rs
++++ b/openvm-sha384/crates/recursion/src/sha384/config.rs
+@@ -540,6 +540,29 @@
+     }
+ }
+ 
++/// [E2E-D D-5, review-D4 F5] Fiat-Shamir job counter: every SHA-384 evaluation a `ShaTranscript`
++/// makes (flush, commit absorb, squeeze / PoW-run block, PoW block), process-wide. Counting only
++/// (no effect on any hash); read with [`fs_jobs`], reset with [`fs_jobs_reset`]. Used to count
++/// `R` (ZK-ARGUMENT 6.5) on a real verification instead of estimating it.
++pub static FS_JOBS: [std::sync::atomic::AtomicU64; 4] = [
++    std::sync::atomic::AtomicU64::new(0),
++    std::sync::atomic::AtomicU64::new(0),
++    std::sync::atomic::AtomicU64::new(0),
++    std::sync::atomic::AtomicU64::new(0),
++];
++fn fs_count(k: usize) {
++    FS_JOBS[k].fetch_add(1, std::sync::atomic::Ordering::Relaxed);
++}
++/// `[flush, commit, squeeze or PoW-run block, PoW block]` jobs since the last reset.
++pub fn fs_jobs() -> [u64; 4] {
++    core::array::from_fn(|k| FS_JOBS[k].load(std::sync::atomic::Ordering::Relaxed))
++}
++pub fn fs_jobs_reset() {
++    for c in &FS_JOBS {
++        c.store(0, std::sync::atomic::Ordering::Relaxed);
++    }
++}
++
+ impl ShaTranscript {
+     /// Fresh transcript of the inner or the final layer (U-12).
+     pub fn new_layer(final_layer: bool) -> Self {
+@@ -577,6 +600,7 @@
+     pub fn flush(&mut self) {
+         if !self.pending.is_empty() {
+             let k = hash_parts(TAG_FLUSH, &[&self.state, &self.pending]);
++            fs_count(0);
+             self.pending.clear();
+             self.absorbed(k);
+         }
+@@ -597,6 +621,7 @@
+         }
+         self.flush();
+         let (s, ok) = pow_step(&self.state, w, bits);
++        fs_count(3);
+         if sha_levers().tstar {
+             self.src = SqueezeSrc::Pow(self.state, w.iter().flat_map(|x| x.to_le_bytes()).collect());
+             self.ctr = 1;
+@@ -618,6 +643,7 @@
+     fn observe_commit(&mut self, d: Digest) {
+         self.flush();
+         let k = hash_parts(TAG_COMMIT, &[&self.state, &digest_wire(d)]);
++        fs_count(1);
+         self.absorbed(k);
+     }
+     fn check_witness(&mut self, bits: usize, witness: F) -> bool {
+@@ -648,6 +674,7 @@
+         self.flush();
+         loop {
+             if self.next_word == 12 {
++                fs_count(2);
+                 self.state = if sha_levers().tstar {
+                     self.ctr += 1;
+                     self.src.block(self.ctr)
