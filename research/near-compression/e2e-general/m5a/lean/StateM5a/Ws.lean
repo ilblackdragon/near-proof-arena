@@ -99,7 +99,7 @@ def constraints (D : Nat) : List Expr :=
    (1 - c "pp") * c "pl", (1 - c "cp") * c "cl",
    (1 - real) * c "pp", (1 - real) * c "cp", (1 - real) * c "wr", (1 - real) * c "pl",
    (1 - real) * c "cl",
-   ph * c "wr" * (c "rk" - K RK_H) * (c "rk" - K RK_HB) * (c "rk" - K RK_HE)] ++
+   ph * c "wr" * (c "rk" - K RK_H) * (c "rk" - K RK_HB) * (c "rk" - K RK_HE) * (c "rk" - K RK_SAME)] ++
   ((List.range 16).flatMap fun t =>
     [(1 - ph) * (c "cv" t - c "pv" t), (1 - c "pp") * c "pv" t, (1 - c "cp") * c "cv" t,
      (1 - real) * c "kd" t]) ++

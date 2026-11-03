@@ -42,7 +42,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
 use std::time::Instant;
 
-const NAMES: &[&str] = &["SHA", "KEY", "BR", "SN", "KCMP", "WSB", "WSN", "WSA"];
+const NAMES: &[&str] = &["SHA", "KEY", "BR", "SN", "KCMP", "WSB", "WSN", "WSA", "SNC", "RNG"];
 const P: u64 = 0x7800_0001;
 const LEAN_IF: u16 = 16;
 

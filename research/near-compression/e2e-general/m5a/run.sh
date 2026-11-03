@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # E2E M5a: INTAKE + working-set tree + FINAL for one corpus chunk's main transition.
-#   run.sh CASE_DIR OUT_DIR [check|prove|mutants]      (D=5: working set ≤ 32 keys)
+#   run.sh CASE_DIR OUT_DIR [check|prove|mutants]      (D=5: working set ≤ 32 keys; D=6 for T2)
+#   MUTANTS="…" picks the mutant battery (default: the four statement-level ones + the T2 row tampers)
 # Box rules: ≤ 8 threads, HEAVY_MEM=32G, temp files under /data/illia/nearproof-deps.
 set -euo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
@@ -20,7 +21,7 @@ mkdir -p "$OUT"
 BIN=$DEPS/target/release/nearproof-e2e-m5a
 gen() { python3 "$HERE/tracegen.py" "$OUT/state.json" "$OUT/names.json" "$1" "${@:2}"; }
 if [ "$MODE" = mutants ]; then
-  for m in node prevalue omitwrite postroot; do
+  for m in ${MUTANTS:-node prevalue omitwrite postroot absent extabsent branchval split splitext absdel squash chain}; do
     gen "$OUT/mut-$m" --mutant "$m" > "$OUT/mut-$m.gen.txt"
     nice -n 10 $HEAVY "$BIN" "$OUT/m5a.json" "$OUT/mut-$m" mutant | tee "$OUT/mut-$m.log" | grep -E "PRECHECK|REJECTED|ACCEPTED|VERIFY"
   done

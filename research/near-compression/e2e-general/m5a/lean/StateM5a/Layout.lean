@@ -148,4 +148,24 @@ theorem hexPrefix_eq (k : List Nat) (leaf : Bool) (hk : ∀ x ∈ k, x < 16) :
       have e2 : 2 * (m + 1) = (2 * m + 1) + 1 := by omega
       simp [e1, e2, List.getD_cons_succ]
 
+/-- **Continuation chunks** (`SNC`): `hexPrefix` byte `32c + m` (`c ≥ 1`, `m < 32`) is the nibble
+pair at key offset `64c − 2 + odd + 2m`; so chunk `c` holds the 64 key nibbles from `64c − 2 + odd`
+on and sends bytes `32c .. 32c + 31` as `16·k_{2m} + k_{2m+1}` of its own nibbles, and the head
+row (`62 + odd` nibbles) sends bytes `0 .. 31`. -/
+theorem hpAt_chunk (k : List Nat) (leaf : Bool) (c m : Nat) (hc : 1 ≤ c) :
+    hpAt k leaf (32 * c + m) =
+      16 * k.getD (64 * c - 2 + k.length % 2 + 2 * m) 0 + k.getD (64 * c - 2 + k.length % 2 + 2 * m + 1) 0 := by
+  unfold hpAt
+  have h0 : 32 * c + m ≠ 0 := by omega
+  simp only [h0, ite_false]
+  rcases Nat.mod_two_eq_zero_or_one k.length with hev | hodd
+  · rw [hev]
+    have e1 : 2 * (32 * c + m) - 2 = 64 * c - 2 + 0 + 2 * m := by omega
+    have e2 : 2 * (32 * c + m) - 1 = 64 * c - 2 + 0 + 2 * m + 1 := by omega
+    rw [e1, e2]; omega
+  · rw [hodd]
+    have e1 : 2 * (32 * c + m) - 1 = 64 * c - 2 + 1 + 2 * m := by omega
+    have e2 : 2 * (32 * c + m) = 64 * c - 2 + 1 + 2 * m + 1 := by omega
+    rw [e1, e2]; omega
+
 end StateM5a.Layout
