@@ -1,0 +1,33 @@
+TRACE steps 96 cuts 3 tracegen 0.06s
+SEGBUILD 0 0.27s
+SEGBUILD 1 0.23s
+SEGBUILD 2 0.24s
+SEGBUILD 3 0.23s
+HONEST segment 0 verifies
+REJECTED pub ctx_out limb+1 (rows honest): verifier: BatchConstraintError(SumClaimMismatch { sum_claim: BinomialExtensionField { value: [64664789, 1311141077, 1617029717, 1127659071, 1233493937, 394538845, 1945092176, 1587446699, 259862757, 1737652594, 1133614509, 1404559557], _phantom: PhantomData<p3_monty_31::monty_31::MontyField31<p3_baby_bear::baby_bear::BabyBearParameters>> }, sum_univ_domain_s_0: BinomialExtensionField { value: [1658028299, 1429850023, 1914683589, 1479260560, 552982721, 3467742, 1080388757, 208466785, 774095425, 499171042, 1549397643, 452400054], _phantom: PhantomData<p3_monty_31::monty_31::MontyField31<p3_baby_bear::baby_bear::BabyBearParameters>> } }) [precheck: CUTO row 13 constraint 75 = 2013265920]
+REJECTED pub ctx_in limb+1 (rows honest): verifier: BatchConstraintError(SumClaimMismatch { sum_claim: BinomialExtensionField { value: [612808753, 710568604, 10512892, 1487145318, 159833299, 1995295904, 128909766, 1275384756, 737503218, 1445554620, 669203486, 1449658853], _phantom: PhantomData<p3_monty_31::monty_31::MontyField31<p3_baby_bear::baby_bear::BabyBearParameters>> }, sum_univ_domain_s_0: BinomialExtensionField { value: [264153145, 1224055020, 942171776, 1847312285, 2008329106, 809008601, 194947852, 261918604, 958349061, 591703944, 1688475114, 1326506932], _phantom: PhantomData<p3_monty_31::monty_31::MontyField31<p3_baby_bear::baby_bear::BabyBearParameters>> } }) [precheck: CUTI row 9 constraint 72 = 2013265920]
+REJECTED pub mem_out limb+1 (rows honest): prover error [precheck: 2 unbalanced messages by bus {16: 2}; first [((16, [1, 225393, 1230553, 1437274, 76458, 583040, 3010088, 978725, 331459, 1359468, 164499, 11]
+REJECTED pub mem_in limb+1 (rows honest): prover error [precheck: 2 unbalanced messages by bus {16: 2}; first [((16, [0, 220105, 1774383, 4128247, 442817, 1915756, 2734015, 430846, 17724, 2116068, 1712022, ]
+REJECTED pub pc_out+1 (rows honest): prover error [precheck: 2 unbalanced messages by bus {0: 2}; first [((0, [75, 31, 29, 0, 0, 0]), 1), ((0, [76, 31, 29, 0, 0, 0]), -1)]]
+REJECTED pub S_out+1 (rows honest): prover error [precheck: 2 unbalanced messages by bus {0: 2}; first [((0, [75, 31, 29, 0, 0, 0]), 1), ((0, [75, 31, 30, 0, 0, 0]), -1)]]
+REJECTED pub t_out+1 (rows honest): prover error [precheck: 2 unbalanced messages by bus {0: 2}; first [((0, [75, 31, 29, 0, 0, 0]), 1), ((0, [75, 32, 29, 0, 0, 0]), -1)]]
+REJECTED pub segb_out limb+1 (rows honest): prover error [precheck: 2 unbalanced messages by bus {2: 2}; first [((2, [7, 0, 9, 57753, 46902, 23280, 0, 9]), 1), ((2, [7, 0, 9, 57754, 46902, 23280, 0, 9]), -1)]]
+REJECTED pub cid_in+1 (rows honest): prover error [precheck: 2 unbalanced messages by bus {0: 2}; first [((0, [0, 1, 0, 0, 0, 0]), -1), ((0, [0, 1, 0, 0, 0, 1]), 1)]]
+REJECTED pub sb_in+1 (rows honest): prover error [precheck: 2 unbalanced messages by bus {0: 2}; first [((0, [0, 1, 0, 0, 0, 0]), -1), ((0, [0, 1, 0, 0, 1, 0]), 1)]]
+REJECTED pub halted+1 (rows honest): prover error [precheck: 2 unbalanced messages by bus {0: 2}; first [((0, [75, 31, 29, 0, 0, 0]), 1), ((0, [75, 31, 29, 1, 0, 0]), -1)]]
+REJECTED CUTI message value+1 (digest unchanged): prover error [precheck: 4 unbalanced messages by bus {2: 2, 103: 2}; first [((2, [2, 0, 0, 0, 0, 0, 0, 0]), -1), ((2, [2, 0, 0, 1, 0, 0, 0, 0]), 1), ((103, [0, 5, 0]
+REJECTED CUTO hashed value+1: prover error [precheck: 6 unbalanced messages by bus {2: 2, 3: 2, 103: 2}; first [((2, [2, 0, 0, 0, 0, 0, 0, 0]), 1), ((2, [2, 0, 0, 0, 1, 0, 0, 0]), -1), ((3, [0])]
+REJECTED CUTO message not consumed (act=0): prover error [precheck: CUTO row 0 constraint 18 = 1]
+REJECTED CUTO local relabelled to another depth: prover error [precheck: CUTO row 6 constraint 108 = 1]
+REJECTED MEMB bi7+1: prover error [precheck: 6 unbalanced messages by bus {2: 2, 4: 2, 103: 2}; first [((2, [3, 7, 0, 0, 0, 0, 0, 0]), -1), ((2, [3, 7, 0, 1, 0, 0, 0, 0]), 1), ((4, [0, ]
+REJECTED MEMB bo7+1: prover error [precheck: 4 unbalanced messages by bus {2: 2, 103: 2}; first [((2, [3, 7, 0, 0, 0, 0, 0, 0]), 1), ((2, [3, 7, 0, 1, 0, 0, 0, 0]), -1), ((103, [1664, 4]
+REJECTED MEMB tq7+1: prover error [precheck: 2 unbalanced messages by bus {2: 2}; first [((2, [3, 7, 0, 0, 0, 0, 0, 0]), 1), ((2, [3, 7, 0, 0, 0, 0, 0, 1]), -1)]]
+REJECTED MEMB blk+1: prover error [precheck: MEMB row 0 constraint 17 = 2013265920]
+REJECTED MEMB read-only flag flipped: prover error [precheck: MEMB row 0 constraint 18 = 2013265920]
+REJECTED MPATH sb0 changed: prover error [precheck: 4 unbalanced messages by bus {103: 4}; first [((103, [3840, 7, 84982, 882225, 3356648, 688007, 356054, 3595565]), 1), ((103, [3840, 7, 84983]
+REJECTED MPATH bit changed: prover error [precheck: MPATH row 0 constraint 23 = 2013265920]
+REJECTED MPATH ri0 changed: verifier: BatchConstraintError(SumClaimMismatch { sum_claim: BinomialExtensionField { value: [36918764, 63539428, 1433228581, 1226883834, 1457359863, 309619099, 120238450, 537623845, 580170884, 1296639983, 1086947756, 314910819], _phantom: PhantomData<p3_monty_31::monty_31::MontyField31<p3_baby_bear::baby_bear::BabyBearParameters>> }, sum_univ_domain_s_0: BinomialExtensionField { value: [1827217508, 1753004265, 1011723627, 379812897, 281532017, 1396921042, 1902566254, 434899315, 1836032926, 476455249, 1172323985, 1439019087], _phantom: PhantomData<p3_monty_31::monty_31::MontyField31<p3_baby_bear::baby_bear::BabyBearParameters>> } }) [precheck: MPATH row 0 constraint 28 = 2013265920]
+REJECTED MPATH rt0 changed: verifier: BatchConstraintError(SumClaimMismatch { sum_claim: BinomialExtensionField { value: [2000815746, 1931284581, 814263492, 1260084766, 236921665, 1629007217, 305677731, 977079090, 813671129, 980912865, 2001428411, 1231390060], _phantom: PhantomData<p3_monty_31::monty_31::MontyField31<p3_baby_bear::baby_bear::BabyBearParameters>> }, sum_univ_domain_s_0: BinomialExtensionField { value: [90627233, 1087235935, 1234681178, 98274657, 199792747, 975904473, 1690010294, 247319404, 683158459, 666327471, 1594051023, 1741597775], _phantom: PhantomData<p3_monty_31::monty_31::MontyField31<p3_baby_bear::baby_bear::BabyBearParameters>> } }) [precheck: MPATH row 0 constraint 29 = 2013265920]
+REJECTED SEGB final cid+1: prover error [precheck: 4 unbalanced messages by bus {0: 2, 14: 2}; first [((0, [75, 31, 29, 0, 0, 0]), 1), ((0, [75, 31, 29, 0, 0, 1]), -1), ((14, [0, 0]), 1)]]
+REJECTED HOST gas register segb limb+1: prover error [precheck: 2 unbalanced messages by bus {2: 2}; first [((2, [7, 0, 0, 4167, 53152, 23282, 0, 0]), 1), ((2, [7, 0, 0, 4168, 53152, 23282, 0, 0]), -1)]]
+SEGTAMPER 26 rejected, 0 accepted
