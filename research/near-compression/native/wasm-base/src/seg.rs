@@ -11,6 +11,10 @@
 //!   register columns;
 //! * the lookup multiplicities (RANGE16, BYTE, CODE, FUNC, HOSTT), recounted from the rows;
 //! * the SHA-512 compressions every hashing row consumes (the native chip's input).
+//!
+//! The seg AIR may also be `wasmBaseSegAirMP` (`WasmBase/SegAirMP.lean`, E2E M4b; detected by an
+//! `idx` column in MPATH): MPATH is then the batched Merkle multiproof, one row per touched tree
+//! node (`multiproof_rows`), and SEGB's `nbt` is 1 (a root row) or 0.
 use crate::air::{AirSpec, TableSpec};
 use crate::s384::reference::{Comp, SHA384_IV, sha2_compress};
 use crate::tracegen::{CutSnap, Gen, Live, Prep, image_byte, limbs};
