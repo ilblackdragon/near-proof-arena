@@ -692,23 +692,31 @@
          let mut queue: std::collections::VecDeque<(usize, usize, StackedSlice)> = entries.into();
          let mut placed = Vec::with_capacity(queue.len());
          let mut fill: Vec<usize> = Vec::new();
-@@ -516,8 +516,13 @@
+@@ -516,10 +516,23 @@
                      if can_split && (len > cap || fill.iter().any(|&f| f + len / 2 <= cap)) {
                          let (e, off, cl) = (s.log_height - 1, s.src_row, s.col_log_height());
                          let mk = |o| StackedSlice { col_idx: 0, row_idx: 0, log_height: e, src_row: o, col_log_height: cl };
--                        queue.push_front((m, j, mk(off + (1 << e))));
--                        queue.push_front((m, j, mk(off)));
-+                        // [E2E-D 2026-11-03 fix] re-queue the halves behind every remaining larger
-+                        // slice: placing them at the front let a later full-size slice land at a
-+                        // fill pointer aligned only to the half size (misaligned slice, wrong
-+                        // stacking-reduction indices: the zk = 3 FinalSumMismatch).
-+                        let pos = queue.iter().position(|(_, _, t)| t.log_height <= e).unwrap_or(queue.len());
-+                        queue.insert(pos, (m, j, mk(off + (1 << e))));
-+                        queue.insert(pos, (m, j, mk(off)));
++                        // [E2E-D 2026-11-03 fix] The halves are tried right away, but only gaps of
++                        // existing columns take them (every such gap is < len, so no later
++                        // full-size slice can follow them into that column); a piece that needs a
++                        // new column waits behind every larger slice (below). Placements per
++                        // column are therefore non-increasing and aligned. (The first version
++                        // placed halves anywhere at the front: misaligned slices, the zk = 3
++                        // FinalSumMismatch; re-queueing all halves behind larger slices instead
++                        // shredded slices into gap-sized pieces: 10^4+ slices, 60 s verifier.)
+                         queue.push_front((m, j, mk(off + (1 << e))));
+                         queue.push_front((m, j, mk(off)));
                          continue;
                      }
++                    if queue.iter().any(|(_, _, t)| t.log_height > s.log_height) {
++                        let pos = queue.iter().position(|(_, _, t)| t.log_height <= s.log_height).unwrap_or(queue.len());
++                        queue.insert(pos, (m, j, s));
++                        continue;
++                    }
                      if len > cap {
-@@ -527,7 +532,7 @@
+                         return Err(StackedPcsError::LayoutHeightExceeded { log_height: s.log_height, log_stacked_height });
+                     }
+@@ -527,7 +540,7 @@
                      fill.len() - 1
                  }
              };

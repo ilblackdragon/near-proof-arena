@@ -929,6 +929,30 @@ fn main() {
         }
         Some("zk-diff") if a.len() == 4 => zk_diff(Path::new(&a[2]), Path::new(&a[3])),
         Some("zk-selftest") => zk_selftest::run(&a[2..]),
+        Some("zk-layout") if a.len() == 4 => {
+            // [E2E-D] stacked layout of a FINAL proof's shape under every zk packing mode
+            let setup: Setup = serde_json::from_slice(&std::fs::read(&a[2]).unwrap()).unwrap();
+            let p = read_proof(Path::new(&a[3]));
+            let mvk = &setup.final_vk.inner;
+            let mut per: Vec<_> = mvk
+                .per_air
+                .iter()
+                .zip(&p.trace_vdata)
+                .filter_map(|(vk, td)| td.as_ref().map(|td| (vk.params.width.common_main, td.log_height, td.tight_height)))
+                .collect();
+            per.sort_by_key(|x| std::cmp::Reverse(x.1));
+            for zk in [0u8, 2, 3, 4, 5] {
+                let t = std::time::Instant::now();
+                let l = openvm_stark_backend::prover::stacked_pcs::StackedLayout::new_tight_zk(
+                    mvk.params.l_skip,
+                    mvk.params.l_skip + mvk.params.n_stack,
+                    per.clone(),
+                    zk,
+                )
+                .unwrap();
+                println!("ZK_LAYOUT zk={zk} width={} slices={} ms={:.1}", l.width(), l.sorted_cols.len(), t.elapsed().as_secs_f64() * 1e3);
+            }
+        }
         _ => panic!(
             "usage: base AIR DUMP OUT CERTS EXCLUSIONS | probe OUT | validate-base AIR PUBLIC OUT | chain AIR PUBLIC OUT CERTS EXCLUSIONS [RESUME_LEVEL] | replay-final AIR PUBLIC OUT CERTS EXCLUSIONS LEVEL | verify AIR CLAIM STATEPUBLIC(ignored: in-process) SETUP TRUSTED_SHA256 BUNDLE | claim-parity AIR CLAIM STATEPUBLIC SETUP BUNDLE | proof-sections PROOF | zk-diff PROOF_A PROOF_B"
         ),
