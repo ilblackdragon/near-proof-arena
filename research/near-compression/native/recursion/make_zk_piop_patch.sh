@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
-# Regenerate patches/zk-piop.patch (lane E2E-D, 2026-11-03: PIOP masking, `WhirLevers::zk >= 4`)
+# Regenerate patches/zk-piop.patch (lane E2E-D, 2026-11-03: PIOP masking, `WhirLevers::zk >= 4`;
+# milestone D-3: `zk = 6` WHIR batching with the stacking coefficients, extension-field stacking
+# masks, and the fixes of the independent review (layout termination, proof-shape errors, r from
+# verify_with_point, zk guards))
 #   = PRISTINE + e2e-verify.patch + zk-pcs.patch  ->  DEPS   over PIOP_FILES
 # PRISTINE = a fresh setup_cpu_fast_deps.sh tree, DEPS = the live e2e tree. Applied by
 # setup_e2e_verify_deps.sh after zk-pcs.patch (E2E_ZK=1). Construction and argument:
@@ -28,13 +31,19 @@ $SB/stark-backend/src/verifier/proof_shape.rs
 $SB/stark-backend/src/verifier/batch_constraints.rs
 $SB/stark-backend/src/verifier/fractional_sumcheck_gkr.rs
 $SB/stark-backend/src/verifier/stacked_reduction.rs
+$SB/stark-backend/src/verifier/whir.rs
+$SB/stark-backend/src/prover/whir.rs
+$SB/stark-backend/src/prover/error.rs
+$SB/stark-backend/tests/zk_layout.rs
 $SB/cpu-backend/src/device.rs
 $SB/cpu-backend/src/fast/gkr.rs
 $SB/cpu-backend/src/logup_zerocheck/mod.rs
 openvm-sha384/crates/recursion/src/batch_constraint/mod.rs
 openvm-sha384/crates/recursion/src/gkr/mod.rs
 openvm-sha384/crates/recursion/src/stacking/mod.rs
-openvm-sha384/crates/recursion/src/nv/uair.rs"
+openvm-sha384/crates/recursion/src/nv/uair.rs
+openvm-sha384/crates/recursion/src/nv/vd.rs
+openvm-sha384/crates/recursion/src/nv/circuit.rs"
 T=$(mktemp -d /data/illia/nearproof-deps/.mkpatch.XXXX); trap 'rm -rf "$T"' EXIT
 mkdir -p "$T/b"
 # every file the two earlier patches or this one touch, from PRISTINE (absent = new file)

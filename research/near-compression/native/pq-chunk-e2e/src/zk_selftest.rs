@@ -1,6 +1,10 @@
-//! [E2E-D zk-piop] Self-test of the masked protocol (`WhirLevers::zk = 4`) on small AIRs with the
+//! [E2E-D zk-piop] Self-test of the masked protocol (`WhirLevers::zk >= 4`) on small AIRs with the
 //! FINAL configuration (SHA-384, Ext12, the FINAL levers): prove, verify, codec round trip, and
-//! tamper tests on every zk field (each must be rejected). `zk-selftest [LOG_FIB] [N_STACK]`.
+//! tamper tests on every zk field (each must be rejected). `zk = 6` (D-3): no stacked openings,
+//! `B` in `stacking_proof.zk[2]`, extension-field stacking masks; the tampers also cover opened
+//! WHIR rows of every mask column. Every zk mode also declares a full-height tight chunk
+//! (review #1/#2: must be rejected, never hang or panic).
+//! `zk-selftest [LOG_FIB] [N_STACK] [ZKS] [LOG_SEND] [SEND_LIVE]`.
 use std::sync::Arc;
 
 use openvm_recursion_circuit::sha384::config::{Sha384Config as SC, Sha384CpuEngine};
@@ -156,6 +160,33 @@ pub fn run(args: &[String]) {
             proof.batch_constraint_proof.zk.len(),
             proof.stacking_proof.zk.len()
         );
+        // [E2E-D review #1/#2] each AIR declares its largest tight height `2^log_height` (a changed
+        // layout): must be a plain rejection, no panic or hang. The full-stacked-height case
+        // (zk 1/2/4: no layout; zk 3/5/6: used to loop forever) is `stark-backend/tests/zk_layout.rs`.
+        if zk > 0 {
+            for t in 0..proof.trace_vdata.len() {
+                let Some(Some(vd)) = proof.trace_vdata.get(t) else { continue };
+                if vd.tight_height.is_none() || vd.tight_height == Some(1 << vd.log_height) {
+                    continue;
+                }
+                let mut p = proof.clone();
+                if let Some(v) = p.trace_vdata[t].as_mut() {
+                    // the largest declarable tight height (full-height layouts: unit tests
+                    // `stark-backend/tests/zk_layout.rs`)
+                    v.tight_height = Some(1 << v.log_height);
+                }
+                let t0 = std::time::Instant::now();
+                let r = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| engine.verify(&vk, &p)));
+                match r {
+                    Ok(Err(e)) => println!(
+                        "ZK_SELFTEST_MAX_TIGHT zk={zk} air={t} rejected in {:.1} ms: {e:?}",
+                        t0.elapsed().as_secs_f64() * 1e3
+                    ),
+                    Ok(Ok(())) => panic!("zk={zk}: max tight height accepted"),
+                    Err(_) => panic!("zk={zk}: max tight height panicked the verifier"),
+                }
+            }
+        }
         if zk < 4 {
             continue;
         }
@@ -172,7 +203,7 @@ pub fn run(args: &[String]) {
             p.batch_constraint_proof.zk[i] += one;
             cases.push((format!("batch.zk[{i}]"), p));
         }
-        for i in 0..2 {
+        for i in 0..proof.stacking_proof.zk.len() {
             let mut p = proof.clone();
             p.stacking_proof.zk[i] += one;
             cases.push((format!("stack.zk[{i}]"), p));
@@ -215,10 +246,27 @@ pub fn run(args: &[String]) {
             cases.push((format!("stack.round[{r}]"), p));
         }
         let w = proof.stacking_proof.stacking_openings[0].len();
-        for c in [0, w - 3, w - 2, w - 1] {
+        if w > 0 {
+            for c in [0, w - 3, w - 2, w - 1] {
+                let mut p = proof.clone();
+                p.stacking_proof.stacking_openings[0][c] += one;
+                cases.push((format!("stack.opening[{c}]"), p));
+            }
+        } else {
+            // zk = 6: a stacked opening appended to the (empty) list must be rejected
             let mut p = proof.clone();
-            p.stacking_proof.stacking_openings[0][c] += one;
-            cases.push((format!("stack.opening[{c}]"), p));
+            p.stacking_proof.stacking_openings[0].push(one);
+            cases.push(("stack.opening[appended]".into(), p));
+        }
+        // opened WHIR rows: first trace column, every pad / M_2 / M_1 / M_s column (zk = 6: 37 mask
+        // columns; zk = 4, 5: 15) of the first query
+        let rows = &proof.whir_proof.initial_round_opened_rows[0][0][0];
+        let width = rows.len();
+        let nmask = if zk >= 6 { 37 } else { 15 };
+        for c in std::iter::once(0).chain(width - nmask..width) {
+            let mut p = proof.clone();
+            p.whir_proof.initial_round_opened_rows[0][0][0][c] += F::ONE;
+            cases.push((format!("whir.row0[{c}]"), p));
         }
         let mut rejected = 0;
         for (name, p) in &cases {

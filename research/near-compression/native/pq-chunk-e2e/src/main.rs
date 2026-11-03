@@ -735,9 +735,11 @@ fn zk_guess(fc: &NvCircuit, vk: &MultiStarkVerifyingKey<SC>, p: &Proof<SC>, dir:
     setup.final_vk.inner.params.whir.domain_odd_factor = setup.domain_odd_factor;
     let fp = read_proof(&dir.join("FINAL.proof"));
     let engine = Sha384CpuEngine::new_final(setup.final_vk.inner.params.clone());
-    let _ = openvm_stark_backend::verifier::take_last_zerocheck_point::<Ef>();
-    engine.verify(&setup.final_vk, &fp).expect("final proof");
-    let r = openvm_stark_backend::verifier::take_last_zerocheck_point::<Ef>().expect("batch point");
+    let r = {
+        use openvm_stark_backend::StarkEngine;
+        let mut t = engine.initial_transcript();
+        openvm_stark_backend::verifier::verify_with_point(engine.config(), &setup.final_vk, &fp, &mut t).expect("final proof")
+    };
     let (mats, _) = fc.generate(vk, p);
     let mvk = &setup.final_vk.inner;
     let l_skip = mvk.params.l_skip;

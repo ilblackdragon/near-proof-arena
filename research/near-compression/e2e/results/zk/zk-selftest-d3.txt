@@ -1,0 +1,44 @@
+## zk-selftest 9 12 0,1,2,3,4,5,6
+ZK_SELFTEST zk=0 ok bytes=69461 prove_ms=1671 verify_ms=1.0 gkr_zk=0 batch_zk=0 stack_zk=0
+ZK_SELFTEST zk=1 ok bytes=69293 prove_ms=1683 verify_ms=0.8 gkr_zk=0 batch_zk=0 stack_zk=0
+ZK_SELFTEST zk=2 ok bytes=71663 prove_ms=1808 verify_ms=0.9 gkr_zk=0 batch_zk=0 stack_zk=0
+ZK_SELFTEST zk=3 ok bytes=71915 prove_ms=1702 verify_ms=0.6 gkr_zk=0 batch_zk=0 stack_zk=0
+ZK_SELFTEST zk=4 ok bytes=74223 prove_ms=1514 verify_ms=0.8 gkr_zk=27 batch_zk=10 stack_zk=2
+ZK_SELFTEST_TAMPER zk=4 rejected=125/125
+ZK_SELFTEST zk=5 ok bytes=73971 prove_ms=1654 verify_ms=0.8 gkr_zk=27 batch_zk=10 stack_zk=2
+ZK_SELFTEST_TAMPER zk=5 rejected=125/125
+ZK_SELFTEST zk=6 ok bytes=76561 prove_ms=2133 verify_ms=0.8 gkr_zk=27 batch_zk=10 stack_zk=3
+ZK_SELFTEST_TAMPER zk=6 rejected=145/145
+rc=0
+## zk-selftest 9 11 2,3,4,5,6 13 6144
+ZK_SELFTEST zk=2 ok bytes=77551 prove_ms=1028 verify_ms=0.8 gkr_zk=0 batch_zk=0 stack_zk=0
+ZK_SELFTEST_MAX_TIGHT zk=2 air=1 rejected in 0.0 ms: ProofShapeError(InvalidStackingProofShape(NoLayout("StackedLayout::new: column height 13 exceeds stacked height 13")))
+ZK_SELFTEST zk=3 ok bytes=76753 prove_ms=961 verify_ms=0.8 gkr_zk=0 batch_zk=0 stack_zk=0
+ZK_SELFTEST_MAX_TIGHT zk=3 air=1 rejected in 0.0 ms: ProofShapeError(InvalidStackingProofShape(InvalidStackOpeningsPerMatrix { commit_idx: 0, expected: 16, actual: 15 }))
+ZK_SELFTEST zk=4 ok bytes=80213 prove_ms=879 verify_ms=1.1 gkr_zk=45 batch_zk=10 stack_zk=2
+ZK_SELFTEST_MAX_TIGHT zk=4 air=1 rejected in 0.0 ms: ProofShapeError(InvalidStackingProofShape(NoLayout("StackedLayout::new: column height 13 exceeds stacked height 13")))
+ZK_SELFTEST_TAMPER zk=4 rejected=221/221
+ZK_SELFTEST zk=5 ok bytes=81179 prove_ms=819 verify_ms=1.5 gkr_zk=45 batch_zk=10 stack_zk=2
+ZK_SELFTEST_MAX_TIGHT zk=5 air=1 rejected in 0.0 ms: ProofShapeError(InvalidStackingProofShape(InvalidStackOpeningsPerMatrix { commit_idx: 0, expected: 19, actual: 18 }))
+ZK_SELFTEST_TAMPER zk=5 rejected=221/221
+ZK_SELFTEST zk=6 ok bytes=83127 prove_ms=1115 verify_ms=1.1 gkr_zk=45 batch_zk=10 stack_zk=3
+ZK_SELFTEST_MAX_TIGHT zk=6 air=1 rejected in 0.0 ms: ProofShapeError(InvalidWhirProofShape(InvalidInitialRoundOpenedRowWidth { row_idx: 0, commit_idx: 0, expected: 41, actual: 40 }))
+ZK_SELFTEST_TAMPER zk=6 rejected=241/241
+rc=0
+## zk-selftest 12 11 3,5,6 12 3000
+ZK_SELFTEST zk=3 ok bytes=74665 prove_ms=933 verify_ms=0.8 gkr_zk=0 batch_zk=0 stack_zk=0
+ZK_SELFTEST_MAX_TIGHT zk=3 air=1 rejected in 0.2 ms: BatchConstraintError(GkrNumeratorMismatch { claim: BinomialExtensionField { value: [1940668503, 1619523487, 1360931165, 1581234583, 823433289, 1540800205, 1625146710, 84502223, 1612489753, 967613311, 1406129956, 702926074], _phantom: PhantomData<p3_monty_31::monty_31::MontyField31<p3_baby_bear::baby_bear::BabyBearParameters>> } })
+ZK_SELFTEST zk=5 ok bytes=79175 prove_ms=886 verify_ms=1.1 gkr_zk=42 batch_zk=7 stack_zk=2
+ZK_SELFTEST_MAX_TIGHT zk=5 air=1 rejected in 0.4 ms: BatchConstraintError(SumClaimMismatch { sum_claim: BinomialExtensionField { value: [1998859130, 1047248757, 828964041, 1441286816, 92758713, 975067502, 1063661266, 752209016, 701722285, 1200373509, 1940825781, 1635572765], _phantom: PhantomData<p3_monty_31::monty_31::MontyField31<p3_baby_bear::baby_bear::BabyBearParameters>> }, sum_univ_domain_s_0: BinomialExtensionField { value: [1697968147, 1386300752, 518719780, 283557268, 1613831807, 982507852, 1021296306, 476053446, 1398421039, 1942024990, 290541592, 79657715], _phantom: PhantomData<p3_monty_31::monty_31::MontyField31<p3_baby_bear::baby_bear::BabyBearParameters>> } })
+ZK_SELFTEST_TAMPER zk=5 rejected=199/199
+ZK_SELFTEST zk=6 ok bytes=81711 prove_ms=1054 verify_ms=1.2 gkr_zk=42 batch_zk=7 stack_zk=3
+ZK_SELFTEST_MAX_TIGHT zk=6 air=1 rejected in 0.4 ms: BatchConstraintError(SumClaimMismatch { sum_claim: BinomialExtensionField { value: [1381703117, 538447744, 868503518, 131977380, 1468307317, 860446018, 1087590193, 465081741, 1226752966, 1512340466, 693257370, 1939713127], _phantom: PhantomData<p3_monty_31::monty_31::MontyField31<p3_baby_bear::baby_bear::BabyBearParameters>> }, sum_univ_domain_s_0: BinomialExtensionField { value: [695371073, 1018296162, 1278662044, 721954526, 1757133471, 1484139221, 1697405014, 976405454, 627643490, 1859338763, 1140955460, 551476759], _phantom: PhantomData<p3_monty_31::monty_31::MontyField31<p3_baby_bear::baby_bear::BabyBearParameters>> } })
+ZK_SELFTEST_TAMPER zk=6 rejected=219/219
+rc=0
+## zk-selftest 13 12 3,5,6
+ZK_SELFTEST zk=3 ok bytes=72387 prove_ms=1417 verify_ms=0.7 gkr_zk=0 batch_zk=0 stack_zk=0
+ZK_SELFTEST zk=5 ok bytes=75409 prove_ms=1400 verify_ms=0.9 gkr_zk=27 batch_zk=10 stack_zk=2
+ZK_SELFTEST_TAMPER zk=5 rejected=129/129
+ZK_SELFTEST zk=6 ok bytes=78329 prove_ms=2106 verify_ms=0.9 gkr_zk=27 batch_zk=10 stack_zk=3
+ZK_SELFTEST_TAMPER zk=6 rejected=149/149
+rc=0
