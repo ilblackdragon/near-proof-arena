@@ -30,6 +30,8 @@ import StateM5a.WsBus
 import StateM5a.Sha512If
 import StateM5a.StateView
 import StateM5a.WsLen
+import StateM5a.WsRaw
+import StateM5a.WsSeg
 
 /-! Axiom audit of the M5a lemmas (`lake build StateM5a.Audit` prints them): every theorem must
 depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
@@ -328,3 +330,18 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.WsLen.wsb_leaves
 #print axioms StateM5a.WsLen.wsl_ix
 #print axioms StateM5a.WsLen.wsl_lt_wsLen
+#print axioms StateM5a.WsRaw.descent
+#print axioms StateM5a.WsRaw.lvl_lt
+#print axioms StateM5a.WsRaw.pos_bound
+#print axioms StateM5a.WsRaw.wsl_i_lt
+#print axioms StateM5a.WsRaw.seg_lt
+#print axioms StateM5a.WsRaw.pt_eq
+#print axioms StateM5a.WsRaw.rch_eq
+#print axioms StateM5a.WsSeg.root_inj
+#print axioms StateM5a.WsSeg.seg_chain
+#print axioms StateM5a.WsSeg.tops_lt
+#print axioms StateM5a.WsSeg.wsl_top
+#print axioms StateM5a.WsSeg.ws_compose
+#print axioms StateM5a.WsSeg.wsAt_untouched
+#print axioms StateM5a.WsSeg.wsAt_last
+#print axioms StateM5a.WsSeg.ws_final

@@ -32,3 +32,5 @@ import StateM5a.WsBus
 import StateM5a.Sha512If
 import StateM5a.StateView
 import StateM5a.WsLen
+import StateM5a.WsRaw
+import StateM5a.WsSeg
