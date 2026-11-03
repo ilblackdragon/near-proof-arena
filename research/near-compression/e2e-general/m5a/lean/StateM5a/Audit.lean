@@ -1,3 +1,5 @@
+import StateM5a.SnFinal4
+import StateM5a.SnSplitBus
 import StateM5a.FinalOrder
 import StateM5a.IntakeKeys
 import StateM5a.KeyOrder
@@ -50,6 +52,9 @@ import StateM5a.WsSeg
 import StateM5a.WsEntries
 import StateM5a.ChipStub
 import StateM5a.SnResp
+import StateM5a.WalkEnd
+import StateM5a.BrOsl
+import StateM5a.BrOslSplit
 
 /-! Axiom audit of the M5a lemmas (`lake build StateM5a.Audit` prints them): every theorem must
 depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
@@ -259,6 +264,7 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.WsCost.chain_sound_any
 #print axioms StateM5a.WsCost.leafLimb_inj
 #print axioms StateM5a.WsCost.wsa_gap
+#print axioms StateM5a.WsCost.wsa_t_lt
 #print axioms StateM5a.WsCost.wsp_keep
 #print axioms StateM5a.WsCost.wsp_child
 #print axioms StateM5a.WsCost.wsp_off
@@ -409,6 +415,7 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.WsDecode3.wsp_rowF
 #print axioms StateM5a.WsDecode3.wsp_ok
 #print axioms StateM5a.WsDecode3.x_lt64
+#print axioms StateM5a.WsDecode3.wsa_t_rng
 #print axioms StateM5a.WsDecode3.wsa_gap_rec
 #print axioms StateM5a.WsDecode3.wsl_ok
 #print axioms StateM5a.WsDecode3.wsl_leaf
@@ -555,3 +562,55 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.SnResp.snSibOK_of
 #print axioms StateM5a.SnResp.snMatOK_of
 #print axioms StateM5a.SnResp.air_final_sorted_sn2
+#print axioms StateM5a.WalkEnd.terminal_deepest
+#print axioms StateM5a.WalkEnd.sn_term_unique
+#print axioms StateM5a.WalkEnd.br_above_term
+#print axioms StateM5a.WalkEnd.oslApart
+#print axioms StateM5a.BrOsl.osl_same
+#print axioms StateM5a.BrOsl.split_kid_ne
+#print axioms StateM5a.BrOsl.osl_mat
+#print axioms StateM5a.BrOsl.osl_mat2
+#print axioms StateM5a.BrOslSplit.osl_mem
+#print axioms StateM5a.BrOslSplit.osl_kids
+#print axioms StateM5a.BrOslSplit.osl_split
+#print axioms StateM5a.BrVl.br_vl_pubOld
+#print axioms StateM5a.BrVl.br_nvl_pubNew
+#print axioms StateM5a.BrVl.br_vl_limbs
+#print axioms StateM5a.BrVl.hVl_of
+#print axioms StateM5a.BrVl.hVP_of
+#print axioms StateM5a.SnSer.sn_ser_ok
+#print axioms StateM5a.SnDigest.snc_cont
+#print axioms StateM5a.SnDigest.sn_byte
+#print axioms StateM5a.SnDigest.sn_node
+#print axioms StateM5a.SnHashed.sn_ops
+#print axioms StateM5a.SnHashed.sn_k16
+#print axioms StateM5a.SnRec.grecS_hashed
+#print axioms StateM5a.SnRec.sn_old_node
+#print axioms StateM5a.SnRec.sn_new_node
+#print axioms StateM5a.SnVer.sn_rd_part
+#print axioms StateM5a.SnStore.fields0
+#print axioms StateM5a.SnStore.key_of_parts
+#print axioms StateM5a.SnStore.grec_of_fields
+#print axioms StateM5a.SnStore2.snVid_val
+#print axioms StateM5a.SnStore2.vers_nodup
+#print axioms StateM5a.SnStore2.snVers_hv
+#print axioms StateM5a.SnStore2.sn_newOK
+#print axioms StateM5a.SnStore2.sn_oldOK
+#print axioms StateM5a.SnRange.sn_nmem_bytes
+#print axioms StateM5a.SnRange.sn_nx_bytes
+#print axioms StateM5a.SnRange.sn_NM_lt
+#print axioms StateM5a.SnRange.sn_M_lt
+#print axioms StateM5a.SnRange.sn_leafMem_lt
+#print axioms StateM5a.SnFinal4.snOldAll_of
+#print axioms StateM5a.SnFinal4.snOldAny_of
+#print axioms StateM5a.SnFinal4.snNewAll_of
+#print axioms StateM5a.SnFinal4.snNewAny_of
+#print axioms StateM5a.SnFinal4.snLimbs3_of
+#print axioms StateM5a.SnFinal4.snLeafMemLt_of
+#print axioms StateM5a.SnFinal4.snMatLeaf_of
+#print axioms StateM5a.SnFinal4.air_final_sorted_sn4
+#print axioms StateM5a.SnSplitBus.spr_src
+#print axioms StateM5a.SnSplitBus.epq_src
+#print axioms StateM5a.SnSplitBus.sxq_src
+#print axioms StateM5a.SnSplitBus.sxr_src
+#print axioms StateM5a.SnSplitBus.oslQ_eq

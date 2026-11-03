@@ -33,8 +33,8 @@ set_option maxRecDepth 100000
 
 /-- **Premise**: every active `SN` walk row with a new node publishes it (`VER` / SHA-256). -/
 def SnNewAll (σ : Store) (tr : Trace Fp) (pub : List Fp) : Prop :=
-  ∀ r, r < tr.height 3 → snW.g.eval tr 3 r pub = 1 → ev tr 3 r pub (Sn.c "gnew") = 1 →
-    NewOK σ (snOut tr pub r) (snNew tr pub r)
+  ∀ r, r < tr.height 3 → snW.g.eval tr 3 r pub = 1 → ev tr 3 r pub (Sn.c "cont") = 0 →
+    ev tr 3 r pub (Sn.c "gnew") = 1 → NewOK σ (snOut tr pub r) (snNew tr pub r)
 
 /-- The range facts of one active `SN` walk row. -/
 structure SnLimbsAt (tr : Trace Fp) (pub : List Fp) (r : Nat) : Prop where
@@ -47,11 +47,11 @@ structure SnLimbsAt (tr : Trace Fp) (pub : List Fp) (r : Nat) : Prop where
 
 /-- **Premise**: the range facts of every active `SN` walk row. -/
 def SnLimbs (tr : Trace Fp) (pub : List Fp) : Prop :=
-  ∀ r, r < tr.height 3 → snW.g.eval tr 3 r pub = 1 → SnLimbsAt tr pub r
+  ∀ r, r < tr.height 3 → snW.g.eval tr 3 r pub = 1 → ev tr 3 r pub (Sn.c "cont") = 0 → SnLimbsAt tr pub r
 
 /-- **Premise (not implied by the AIR)**: the new leaf's memory of an `oLR` row is `< P`. -/
 def SnLeafMemLt (tr : Trace Fp) (pub : List Fp) : Prop :=
-  ∀ r, r < tr.height 3 → snW.g.eval tr 3 r pub = 1 → ev tr 3 r pub (Sn.c "oLR") = 1 → snNMem tr pub r < P
+  ∀ r, r < tr.height 3 → snW.g.eval tr 3 r pub = 1 → ev tr 3 r pub (Sn.c "cont") = 0 → ev tr 3 r pub (Sn.c "oLR") = 1 → snNMem tr pub r < P
 
 /-- **Premise**: the `SN` rows not covered — continued keys and splits. -/
 def SnRest2 (σ : Store) (keyOf : Nat → List Nat) (tr : Trace Fp) (pub : List Fp) : Prop :=
@@ -86,8 +86,6 @@ theorem hloc_sn2 {D : Nat} {extra : List Table} {nb np : Nat} {tr : Trace Fp} {p
   have hc := tbl_sn D extra nb np hH r (List.mem_range.2 hr)
   have hg' : ev tr 3 r pub (Sn.c "mF" + Sn.c "mU" + Sn.c "mD") = 1 := eval_one_ev hg
   have hd' := hd r hr hg
-  have ho := hold r hr hg
-  have hl := hlim r hr hg
   have hnib : ∀ j < 64, (Sn.b j).eval tr 3 r pub = 1 →
       (keyOf tr (ev tr 3 r pub (Sn.c "kid")))[ev tr 3 r pub (Sn.c "d" + K j)]? = some (ev tr 3 r pub (Sn.k j)) :=
     fun j hj hgj => (sn_nib hH hN j hj hr hgj).1
@@ -99,15 +97,17 @@ theorem hloc_sn2 {D : Nat} {extra : List Table} {nb np : Nat} {tr : Trace Fp} {p
     fun h => sn_klen_leaf hH hL hr h
   have hcb := FieldRows2.sn_bool hc "cont" (by simp)
   by_cases hcont : ev tr 3 r pub (Sn.c "cont") = 0
-  · rcases hops with h | h | h | h | h | h | h | h
+  · have ho := hold r hr hg hcont
+    have hl := hlim r hr hg hcont
+    rcases hops with h | h | h | h | h | h | h | h
     · omega
     · exact localOK_oES hc hg' hcont hd' hnib ho h
-    · exact localOK_oLR hc hg' h hcont hd' hnib hklen ho (hnew r hr hg (sn_gnew hc hg' (Or.inl rfl) h))
-        (hl.nmem (sn_gnew hc hg' (Or.inl rfl) h)) (hlm r hr hg h) (hl.nx h)
-    · exact localOK_oEU hc hg' h hcont hd' hnib ho (hnew r hr hg (sn_gnew hc hg' (Or.inr (Or.inl rfl)) h))
+    · exact localOK_oLR hc hg' h hcont hd' hnib hklen ho (hnew r hr hg hcont (sn_gnew hc hg' (Or.inl rfl) h))
+        (hl.nmem (sn_gnew hc hg' (Or.inl rfl) h)) (hlm r hr hg hcont h) (hl.nx h)
+    · exact localOK_oEU hc hg' h hcont hd' hnib ho (hnew r hr hg hcont (sn_gnew hc hg' (Or.inr (Or.inl rfl)) h))
         hl.mem (hl.nmem (sn_gnew hc hg' (Or.inr (Or.inl rfl)) h)) (hl.unm (Or.inl h)) (hl.uom h)
     · exact localOK_oED hc hg' hcont hd' hnib ho h hnib2 (RowFacts.keyOf_bounds hH)
-    · exact localOK_oEB hc hg' hcont hd' hnib ho h (hnew r hr hg (sn_gnew hc hg' (Or.inr (Or.inr rfl)) h))
+    · exact localOK_oEB hc hg' hcont hd' hnib ho h (hnew r hr hg hcont (sn_gnew hc hg' (Or.inr (Or.inr rfl)) h))
         (hl.nmem (sn_gnew hc hg' (Or.inr (Or.inr rfl)) h)) (hl.unm (Or.inr h))
     · exact hrest r hr hg (Or.inr (Or.inl h))
     · exact hrest r hr hg (Or.inr (Or.inr h))

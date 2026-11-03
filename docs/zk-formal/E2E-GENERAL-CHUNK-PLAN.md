@@ -1144,3 +1144,30 @@ circuit change.
 
 **Next:** the remaining `SN` premises (splits, continued keys, `SN` records), then M5b (STATE
 rows produce the writes now on the public tape; range-check `WSA` times).
+
+**M5a-6 / M5b first STATE rows (2026-11-03) [M][K][S]:** README §"M5b", §"M5a-6".
+* **AIR range checks:** `BR` version-published value-length bytes in `RNG`; `WSA` time `t` as 3
+  `RNG` bytes (`WsDecode3.wsa_t_rng`: `t < 2^24` from `Holds`; the tape-time premise of
+  `ws_entries` / `FinalOrder.Prem` is gone). T1/T2/synthetic/T2-seg3x5 + synthetic `bvnref`
+  re-proved, roots = Lean oracle, 83/83 mutants (new `nvlbyte`, `tbig`, `twrap`).
+* **M5b design** (Wasm ↔ state join, §3.3): the execution side sends `SREQ [ts, pr, seg, klen,
+  kptr, vlen, vptr]` (lane A's `HOSTQ` with `pr` from the host id) and the bytes `HB [ts, pos,
+  byte]` (= `HOSTB`); STATE rows `STB` (one per byte, one run per message, `DESC` descriptor) and
+  `STW` (one per write) hash key and value in a second SHA-256 instance (`SB2`/`SD2`, ids
+  `ID_ST + m`) and send `WRITE(seg, ts, kd, pr, |v|, vh)` to `WSA`; `t = ts` is ranged by `WSA`
+  and ordered per entry by `WM`. Reads (`WM` read access, value bytes back through the same
+  machinery) are design only. ≈ 145 cells per hashed byte, ≈ 36 k used cells per T1 write.
+* **Implemented on T1 [M]:** writes and removes from the raw bytes (public `HTAPE` stands in for
+  lane A), proves (1,526,081 B, 80 s), root = Lean oracle, 9/9 mutants (tampered key / value
+  byte, dropped write, …). **Lean [K]:** `M5b.prem` — every M5a theorem applies to the M5b AIR the
+  prover runs (static extra-table premises discharged); the STATE rows' own soundness (`WRITE` =
+  digests of the `HB` bytes) and `committed ~ cs` are open.
+* **Lean, premises from `Holds` [K]:** `SnFinal4.air_final_sorted_sn4` — batched FINAL in the
+  spec's order with, newly from `Holds`: distinct version ids (`snVers`, `vers_nodup`), `BR` `hVl`/`hVP`
+  (`BrVl`, using the new `RNG [nvl]`), `OslApart` (`WalkEnd`), the `SN` records `SnOldAll`/`SnNewAll`/
+  `SnOldAny`/`SnNewAny` (`SnStore2.sn_oldOK`/`sn_newOK`; `SN` nodes `Hashed` from the SHA-256 contract,
+  `SnRec`), `SnLimbs3`/`SnLeafMemLt`/`SnMatLeaf` (`SnRange`) — for heads with `cont = 0`; these
+  premises are restated for `cont = 0` rows (as stated before they were unsatisfiable on
+  continued-key rows and unused there). Left: `SnRest2` (split rows — partly done in
+  `lean-wip/`, over the memory budget as written — and continued keys), `SnUpLimbs`/`SnMatLimbs`,
+  `hlongS`/`hlongM`.

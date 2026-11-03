@@ -372,7 +372,10 @@ def interactions : List Interaction :=
   ((List.range 8).map fun b => rcv B_RNG (c "oDH" + c "oDL") [c "dm" b]) ++
   -- M5a-5: a version-published (unhashed) branch's value-hash bytes are bytes (a hashed one's are
   -- checked by the SHA-256 table)
-  (List.range 32).map fun b => rcv B_RNG (c "nref") [c "nvh" b]
+  ((List.range 32).map fun b => rcv B_RNG (c "nref") [c "nvh" b]) ++
+  -- M5a-6: and its value-length bytes (a kept value copies `vl`, which a `VER` reader holds only
+  -- as two limbs; with these, every `BR` record on `VER` has byte-ranged length limbs)
+  (List.range 4).map fun t => rcv B_RNG (c "nref") [c "nvl" t]
 
 def table : Table := { width := L.width, constraints, interactions, maxLog := 20 }
 end Br
