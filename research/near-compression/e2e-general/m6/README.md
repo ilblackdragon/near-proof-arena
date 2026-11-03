@@ -77,4 +77,21 @@ Obligations, by owner:
 
 ## 4. Status
 
-* 2026-11-03: scope (this file). First proofs: see `m4/README.md` §9 and the lane log.
+* 2026-11-03: scope (this file).
+* **Finding [K/S]:** `RelW` reads a state only through its Wasm-visible part and `gas.g`
+  (`relW_of_vis`, `relW_sigma`, `Main/HostFoot.lean`). The HOST-row premises quantify over every
+  related pre-state, so they fail whenever a continuing host call's answer depends on `σ` (always:
+  `g := remaining`). Until `σ` is pinned per call, every segment theorem is vacuous on host
+  traces. This makes §3's `HostIf` (σ-indexed) the necessary shape, not just a convenient one.
+* **First proofs [K]:**
+  * `hostRely_sp`: the space clause at HOST rows, no premises (`Main/HostSpace.lean`).
+  * M6.1 footprint, stability half: `Inv`/`Stab` framework, the `inv_auto` tactic, all 75
+    `hostCall` arms and 14 curve arms. `callHost_hinv`: frames, globals, tables, stack budget and
+    page count unchanged; pages well-sized; register ids distinct; stack integer
+    (`Main/HostFoot.lean`, `HostArms.lean`).
+  * `step_regIds`: every step keeps register ids distinct; `HostRely.wf` ⇐ `HostRegCap`
+    (`Main/HostRegWF.lean`).
+* **Open:**
+  * Noninterference half of M6.1: an arm's result factors through `σ` + bytes/registers read.
+  * The σ-pinned restatement (SIGMA sub-lane; see the lane log).
+  * M6.2–M6.5.

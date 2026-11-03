@@ -213,3 +213,53 @@ requires `StateM5a` (lane B's `Sha512If` and Merkle lemmas, reused).
 * `seg_sound`: memory-root conjunct, CUTI side, `TombDead`, halting segments, `InDom` from `BndC`;
   port to `wasmBaseSegAirMP`.
 * `memory.grow` segments; generator limits; M6 (replace HOSTO, discharge the host relies).
+
+## Fifth session: M4c
+
+Details: `research/near-compression/e2e-general/m4/README.md` §9; M6 scope
+`research/near-compression/e2e-general/m6/README.md`. The lead fixed a shared interface first
+(`Main/SegIface.lean`). Nine sub-lanes ran in worktrees and were cherry-picked onto the lane branch:
+CORE, CUTI, MEM, MP, NV, GROW, LINK, M6, SIGMA.
+
+* **Finding (M6 sub-lane):** the HOST-row premises (`HoldRowS`, `HostRegRely`, `HostRely.wf`)
+  quantify over every `RelW`-related pre-state. `RelW` does not pin the host-side state
+  (`relW_sigma` [K]), so these premises are unsatisfiable on any trace with a continuing host call,
+  and the segment theorems and `wasm_base_sound_m2` are vacuous there. The fix is σ pinning (SIGMA
+  sub-lane, below).
+* **Item 1 [K]:**
+  * `seg_tombDead`, `seg_inDom`, `seg_sound_halt`/`_any`, `seg_sound_c` (CORE).
+  * `cuti_view`, `initS_nodup`, `seg_reentry`, `seg_chain(_csteps)` (CUTI).
+  * `seg_membIn`, `seg_mem_frame`, `seg_memRootOut`, `seg_chain_mem` (MEM).
+  * Discharge attempts:
+    * `HostBLinked.unique` is a theorem.
+    * `HostBLinked.linked`/`RegCLinked`: AIR change, item LINK.
+    * `CodeOK`/`FuncOK` reduce to the verifier's canonical-matrix check (`CodeIs`/`FuncIs`).
+* **Item 2 [K][M] (MP):** generic `HoldsXS` layer (generated copies, `gen/segS`). `seg_sound_mp`,
+  `seg_sound_c_mp`, `seg_chain_mp`, `seg_chain_mem_mp` and `seg_chain_k_mp` are proved. MP is the
+  default segment AIR (`SEG_AIR`). Refill call: re-check passes and 39/39 tampers are rejected.
+* **Item 3 [K][M] (NV):** sound executable `Holds`/`HoldsX`/`ChipIf` checkers plus premise
+  checkers.
+  * Honest dumps satisfy every trace-level relation the live theorems use.
+  * `wasm_base_exec_host_holds` (pre-M2) looks vacuous on host traces.
+* **Item 4 [M][K] (GROW):** `wasmBaseSegAirG`.
+  * 7-segment grow call chains; 2 segments proved; 49/49 tampers rejected.
+  * `memRootOf_memGrow` [K]; `segG_hsend_r16`, `membg_grow_link` [K].
+  * `seg_sound` for it is open: the relation needs a size clause.
+* **LINK [M][K]:** call-key bus 214 in the segment AIRs.
+  * `seg_hostBLinkedL`/`seg_regCLinked` [K]; `seg_sound_k`/`seg_chain_k` (`_mp`).
+  * Refill: 4 segments proved; tampers MP 45/45, M4 32/32; benchmark re-checks; grow re-checks;
+    non-vacuity rerun.
+* **Item 5 (M6) [S][K]:** scope (`m6/README.md`).
+  * `hostRely_sp` (space clause, no premises).
+  * Host footprint for all 75 + 14 arms (`callHost_hinv`, `inv_auto` tactic).
+  * `step_regIds` (`RegWF` kept by every step); `HostRely.wf` ⇐ `HostRegCap`.
+* Builds: `lake build WasmBase wasmbase-tool` green (standard axioms, no `sorry`); prover release
+  build green; `make pin-check` ok; nothing under `spec/` changed. Heavy jobs ran in
+  `systemd-run --user --scope` (Lean ≤ 12 G / 4 CPUs; provers ≤ 24 G under one `flock`).
+
+### Next
+
+* M6: σ-pinned host premises (if SIGMA did not finish them), `HostIf ⇒ HoldRowS ∧ HostRely`, the
+  noninterference half of the host footprint.
+* One combined chain statement; the first segment's `h0` from `enter`; `seg_sound` for the grow AIR
+  (size clause); the corpus grow calls.

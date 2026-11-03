@@ -66,7 +66,7 @@ AIR: `research/near-compression/wasm-base-lean/WasmBase` (Lean, the single sourc
 | control flow: block/loop/br/br_if/return, `if`/`else` | CTRL, IF chip (`IfCheck.lean`, `docs/logs/pq-if-air-2026-10-22.md`) | **B** | IF: 14 cols, 2 constraints | `if_rowfacts` proved; the full IF checker soundness is open |
 | calls (defined functions) | family 4, FUNC table (§13.1) | **B** | – | proved (`step_call`, `call_rowfacts`) |
 | gas (instruction units `S`, `R·S ≤ g0`) | in every chip; per-segment invariant `WasmBase/Main/SegExec.lean`, `R/pq-host-gas` | **B** Wasm-internal; host resynchronisation (`g := remaining`) is **P** | – | Wasm-only proved; `H0`/`HoldRow` open |
-| segmentation of one call | spec: `NearSpecV3/Wasm/Segment.lean` `run_foldSegments` [K]; `wasmBaseSegAir` (`WasmBase/SegAir.lean`, E2E M4) | **B** (2026-11-03): mid-call cuts with SHA-384 `ctxDigest` + `memRoot` boundary; 1.13 M-step call proved as 5 chained segments | boundary per written 1 KiB block 50 SHA-512 compressions (`D = 16`); M4b multiproof (`wasmBaseSegAirMP`): 680 per 32-block segment, boundary 43 % | `exec_of_rows_cut`, `cuts_csteps` [K]; M4b: `seg_sound` (cut case, from `HoldsX` + chip contract; host relies, memory-root conjunct open), `wasmD_binding` [K] |
+| segmentation of one call | spec: `NearSpecV3/Wasm/Segment.lean` `run_foldSegments` [K]; `wasmBaseSegAir` (`WasmBase/SegAir.lean`, E2E M4) | **B** (2026-11-03): mid-call cuts with SHA-384 `ctxDigest` + `memRoot` boundary; 1.13 M-step call proved as 5 chained segments | boundary per written 1 KiB block 50 SHA-512 compressions (`D = 16`); M4b multiproof (`wasmBaseSegAirMP`): 680 per 32-block segment, boundary 43 % | `exec_of_rows_cut`, `cuts_csteps` [K]; M4b: `seg_sound`, `wasmD_binding` [K]; M4c: `seg_chain_mem`/`seg_chain_k` (chained segments → `CSteps` or `Sha384Coll`; memory roots, CUTI side, halting, MP AIR default) [K]; host relies vacuous on host traces until M6's σ pinning |
 
 ### 1.3 Host functions (HOST/HOSTO/HOSTT/HOSTB/REG chips, `WasmBase/HostChip.lean`)
 
@@ -649,10 +649,43 @@ See `research/near-compression/e2e-general/m1/README.md` for commands, logs and 
   boundary 59 % → 43 %, peak RSS 19.4 → 17.2 GB; proof size/time unchanged on the current shape;
   85/85 tampers rejected.
 
+**Done 2026-11-03, fifth session (lane A): M4c** (`m4/README.md` §9; M6 scope `m6/README.md`):
+
+* **Finding [K/S].** The HOST-row premises (`HoldRowS`, `HostRegRely`, `HostRely.wf`) quantify over
+  every related pre-state, but `RelW` does not pin the host-side state (`gas.remaining`, `ctx`, …;
+  `relW_sigma` [K]). On any segment with a continuing host call they cannot hold, so the segment
+  theorems (and `wasm_base_sound_m2`) are **vacuous on host traces**. The fix is to pin `σ` per host
+  call (the `HostIf` contract, `m6/README.md` §3); it is the first M6 item. Host-free segments are
+  unaffected.
+* **Segment soundness [K]:**
+  * `TombDead` discharged (`seg_tombDead`); `InDom` at the out-boundary (`seg_inDom`, `seg_wasmD`).
+  * Halting segments (`seg_sound_halt`/`seg_sound_any`).
+  * CUTI side (`cuti_view`: `ctx_in` = digest of a canonical list ⇒ CUTI = that list or
+    `Sha384Coll`), `initS_nodup`, re-entry (`seg_reentry`).
+  * Memory roots and memory frame (`seg_membIn`, `seg_mem_frame`, `seg_memRootOut`).
+  * **The chained-segments theorem** `seg_chain_mem` / `seg_chain_k`: `Sha384Coll` or a `CSteps`
+    run of lane E's call machine from `s0` to `sN`, with only ChipIf, CodeOK/FuncOK
+    (→ `CodeIs`/`FuncIs`), host relies (M6), size bounds and the first segment's in-boundary named.
+  * Everything is also proved for `wasmBaseSegAirMP` via a generic `HoldsXS` layer; **MP is now the
+    default segment AIR**.
+* **AIR change [M][K]:** call-key bus 214 (HOST `nk` offer; HOSTB/REG-C lookups) makes
+  `HostBLinked`/`RegCLinked` theorems (`seg_hostBLinkedL`, `seg_regCLinked`). Re-proved the refill
+  call (4 segments); tampers MP 45/45 and M4 32/32 rejected; the benchmark re-checks.
+* **`memory.grow` segments [M]:** `wasmBaseSegAirG` (MEMG, SEGG size message + depth-lift root,
+  MEMBG grown blocks, MEMBH above 64 MiB). A 7-segment grow call chains, two segments prove, and
+  49/49 tampers are rejected. `memRootOf` is unchanged by grows except `nodeH root Z_16` at the
+  one possible 16 → 17 lift [K]. Its `seg_sound` is open (needs a size clause).
+* **Non-vacuity [K][M]:** sound executable checkers for `Holds`/`HoldsX`/`ChipIf` and the
+  trace-level premises. Honest dumps satisfy every relation the live theorems use.
+  `wasm_base_exec_host_holds` (pre-M2) looks vacuous on host traces.
+* **M6 [S][K]:** scope (`m6/README.md`). `HostRely.sp` is a theorem; the host footprint is proved
+  for all 89 arms (`callHost_hinv`); `RegWF` is preserved by every step.
+
 **Next (lane A):**
-* `seg_sound` remainder: memory-root conjunct, CUTI side, `TombDead`, halting segments, `InDom`
-  from `BndC`; port to `wasmBaseSegAirMP`.
-* Segments with `memory.grow` (`wasmBaseM3Air` chips in the segment AIR; `D` changes).
+* M6: the σ-pinned host-row premises, then `HostIf ⇒ HoldRowS ∧ HostRely` (M6.2) and the
+  noninterference half of the footprint (M6.1).
+* One combined chain statement (memory + key bus + MP); the first segment's `h0` from `enter`.
+* `seg_sound` for `wasmBaseSegAirG`; the corpus grow calls.
 * The generator limits (stack-budget trap row, out-of-gas row,
   `≥ 2^27` addresses).
 * **Distinguish the storage key and value bytes in-circuit** when the state side consumes bus 210

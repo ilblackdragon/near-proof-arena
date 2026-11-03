@@ -30,7 +30,7 @@ No bus carries a `HOSTB` row's or a `REG-C` row's call key `(ts, hid)` to a HOST
   no `hid`), and its other rows talk only to `HOSTB` (210) and CH.  So a register group with a
   foreign key is likewise unconstrained.
 
-**Minimal AIR change that makes both derivable** (proposal, not applied): a call-key lookup bus
+**Minimal AIR change that makes both derivable** (applied in M4c as bus 214, `Main/SegKey.lean`: `seg_hostBLinkedL`, `seg_regCLinked`): a call-key lookup bus
 `busHKey` (new id, e.g. 212) with
 * HOST (table 22, `HostG`): one new column `nk` with the constraint `(1 − act)·nk = 0` and the
   interaction `⟨busHKey, false, v nk, [v cTs, v Host.hid]⟩` (HOST *offers* its key with a witness
