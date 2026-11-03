@@ -298,10 +298,10 @@ no checker semantics changed. Log: [`docs/logs/e2e-lean-join-2026-11-03.md`](../
   `cm_iff` (`reexec_sound`, `reexec_complete`, `reexec_rejects_zero_steps`); on a real chunk,
   `cm_run_06_h10006_s0` (`d3c7/d3/06-h10006-s0`, non-genesis, via the kernel-checked
   `relAllFeatures_06_h10006_s0`).
-* **Granularity gaps.** (a) *Closed by M11b (below)*: mid-call cuts. (b) *Open*: a segment that
-  contains a genesis block is one atomic `CM` step (`init → doneG`, exact but uncut). (c) *Closed
-  by M11b up to the commitment*: the concrete §3.2 boundary encoding and `abs`; what each
-  configuration commits to (`view`) is the circuit lanes' part.
+* **Granularity gaps.** (a) *Closed by M11b (below)*: mid-call cuts. (b) *Closed by M11c
+  (below)*: a segment that contains a genesis block is no longer one atomic `CM` step. (c) *Closed
+  by M11b/M11c up to the per-component commitments*: the concrete §3.2 boundary encoding, `abs`,
+  and what each configuration commits to (`View.lean`); the commitments themselves are lanes A/B's.
 
 **M11b (lane E, 2026-11-03) [K].** New modules, all in `defaultTargets`, standard axioms only, no
 checker definition changed. Log: [`docs/logs/e2e-lean-m11b-2026-11-03.md`](../logs/e2e-lean-m11b-2026-11-03.md).
@@ -345,6 +345,41 @@ checker definition changed. Log: [`docs/logs/e2e-lean-m11b-2026-11-03.md`](../lo
   `NvFaithfulE2E`. `e2e_sound_of_nv` is the composition. The file is on demand (like
   `NvFaithful.lean`, not in `ZkFormal.lean`).
   Build: `cd zk-formal && lake env lean ZkFormal/PQ/E2EBridge.lean`.
+
+**M11c (lane E, 2026-11-03) [K].** Standard axioms only, no `sorry`, no checker definition changed.
+Log: [`docs/logs/e2e-lean-m11c-2026-11-03.md`](../logs/e2e-lean-m11c-2026-11-03.md).
+
+* **`NodeOK`/`WrapOK` from the pinned aggregation program (`zk-formal/ZkFormal/PQ/E2EAgg.lean`).**
+  `aggNodeV` is the native meaning of `build_agg` (`openvm-recursion-agg.patch`): `k ≥ 2` children,
+  each accepted by its own native verifier, and `Stmt.compose` (the Lean `RangeStmt::compose`) of
+  their range statements is `some out` with `D(out)` the exposed tag-9 digest. `nodeOK_agg` proves
+  that acceptance gives accepted children chaining from `out.s_a` to `out.s_e` (`compose_chain`).
+  `aggWrapV` (verify the root against its preimage statement, `ctx` = claim digest, `InitOK`,
+  `FinalOK`) gives `wrapOK_agg` from `NvFaithful` of the wrap circuit and the wrap's extraction.
+  `ExtractWG` states the WHIR / LogUp-GKR straight-line extractor per key (leaf template `k`:
+  `HoldsLogUp (segAir k)` at `segPub π` decoding to the statement; node: `HoldsLogUp Pin.air` with
+  `D.stmt = D(st)` and lower-level children), with the bad events `hashColl`, `whirBad`, `gkrBad`,
+  `rangeColl` (`BadEvents`; their QROM bounds are recorded, not Lean theorems).
+  `nvFaithfulE2E_of_agg`/`e2e_sound_of_agg`: obligation 1 and the E2E statement from `NvFaithful`
+  of the node and wrap circuits, `ExtractWG`, `ExtractW`, `LeafHolds` (the definition of `S.Holds`
+  for the circuit's segment system) and `RangeBinding`, with `Bad := BE.Any`.
+* **Genesis segments are cut (`Intake.lean`, `Machine.lean`).** `checkD2CoreGWith` is sliced
+  verbatim (`checkD2CoreGWith_split`, `gRest_eq`, `checkD2CoreWithObs_split`, all `rfl`). If the
+  main block is not genesis, `INTAKE` is the prefix plus `checkD2CoreWithObs`'s intake
+  (`d2IntakeK`), producing an `Intake` with `d2 = some ⟨b2i, sched⟩`; the **same engine steps**
+  follow (so receipts and mid-call Wasm cuts apply), and `FINAL` is `finD2K`/`tailD2New`
+  (`finStep` dispatches on `d2`). If it is genesis, `INTAKE` (`genAK`) ends in the new
+  configuration `gfin G` and `FINAL` (`genB`: implicit transitions and the header comparison)
+  steps to `doneG`. `cm_iff_gen` proves both paths against `checkD2CoreGWith`; `cm_iff`, `rcm_iff`
+  and `e2e_sound_r` are unchanged in statement.
+* **The commitment view (`View.lean`).** `split : RConf → Parts` (tag, `CtxV`, `StV`, `OutV`,
+  `VmV`, `WmV`) is injective (`unsplit_split`, `split_inj`). `ViewImpl` (what lanes A/B
+  implement) gives one commitment per component: `ctxD` → the new `BndRec.ctxRoot`, `stD` →
+  `stRoot`, `outD` → the four accumulators, `vmD` → `vmAcc`, `wasmD` → `wasm`/`inCall`; the tag is
+  `phase` (`gfin` is tag 3). `viewImpl_binding`: a boundary collision is a SHA-384 (42-B)
+  collision or a collision of one component commitment; `viewImpl_binding_bad` closes it with the
+  lanes' per-component reductions. `chainD`/`chainD_binding`: a running list commitment over an
+  injective item encoding is binding modulo `bdigest` collisions.
 
 **The interface the circuit lanes must meet.** A template `k` proves `Holds SegAir_k (B, B') tr`;
 obligation 2 requires `abs B = some c`, `abs B' = some c'` and `Steps c c'` with `Steps` the
@@ -410,13 +445,20 @@ status.
 * obligation 1 derived from `ZkFormal.PQ.NvFaithful` plus `NodeOK`/`Extract`/`WrapOK`
   (`E2EBridge.lean`).
 
+**M11c (lane E, 2026-11-03) [K]:** see §3.5. Done:
+* `NodeOK` and `WrapOK` proved for the pinned aggregation node/wrap programs (`E2EAgg.lean`);
+  `Extract` stated against the WHIR / LogUp-GKR extractor with named bad events;
+* genesis segments cut (`gfin`, delegated engine path, `cm_iff_gen`);
+* the commitment view: injective component split, `ViewImpl`, the binding lemma.
+
 Open for lane E:
-1. Cut the genesis path like the reshard path (`checkD2CoreGWith` → intake/final split).
-2. The commitment `view` (working-set root, accumulators, Wasm digests) and its binding, with
-   lanes A/B.
-3. The honest prover's `K` (the call tape) as a function of the step. It exists by computation
+1. The honest prover's `K` (the call tape) as a function of the step. It exists by computation
    (lane A's `wasmbase-tape`); it is not a Lean theorem.
-4. Instantiate `NodeOK`/`Extract` against the pinned NV circuit (with `pq-nv-faithful`).
+2. `NvFaithful` for the node and wrap circuits (5 of 6 sub-obligations, lane `pq-nv-faithful`) and
+   the QROM bound behind `ExtractWG`/`ExtractW` (not expressible in this library).
+3. The per-component binding lemmas `Coll stD → …`, `Coll outD → …` (lane B: `StateM5a` `Ws`
+   Merkle root, accumulators), `Coll wasmD → …` (lane A), and instances of `ViewImpl` with `WF`
+   records.
 
 See `research/near-compression/e2e-general/m1/README.md` for commands, logs and numbers.
 
