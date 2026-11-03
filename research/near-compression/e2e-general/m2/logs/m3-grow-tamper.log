@@ -1,0 +1,13 @@
+TAMPER honest proof verifies and its code_root matches
+
+thread 'main' (1075221) panicked at src/air.rs:148:57:
+called `Option::unwrap()` on a `None` value
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+TAMPER MEMG[grow row 0] ok=0 (claim failure) REJECTED (constraint: MEMG row 0 constraint 8 = 1744830467)
+TAMPER MEMG[grow row 0].d+1         REJECTED (constraint: MEMG row 0 constraint 7 = 2013265920)
+TAMPER MEMG[grow row 0].old+1       REJECTED (constraint: MEMG row 0 constraint 7 = 2013265920)
+TAMPER MEMG[grow row 0].n0+1, d-1   REJECTED (bus: unbalanced: [((3, [255]), -1), ((3, [769]), -1), ((0, [753, 215, 514, 0, 0, 0]),)
+TAMPER MEMG[grow row 0].lin=0 (skip the linear fee) REJECTED (bus: unbalanced: [((1, [752, 64, 1, 32, 1, 0, 0, 0]), -1), ((0, [753, 215, 513, 0, 0,)
+TAMPER MEMG[grow row 0].gm+1        REJECTED (bus: unbalanced: [((213, [214, 1024, 1279]), -1)])
+TAMPER MSZ[row 0].pg+1              REJECTED (constraint: MSZ row 0 constraint 3 = 65536)
+TAMPER summary 7/7 rejected

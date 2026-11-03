@@ -1,0 +1,9 @@
+TAMPER honest proof verifies and its code_root matches
+
+thread 'main' (1087290) panicked at src/air.rs:148:57:
+called `Option::unwrap()` on a `None` value
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+TAMPER HOSTW[row 7].ri=0 (result as i64) REJECTED (bus: unbalanced: [((9, [26, 4, 1, 0, 1, 0, 0, 0]), -1), ((2, [0, 1, 1, 0, 0, 0, 0, 27)
+TAMPER HOSTW[row 7].r2+1 (i32 result upper limb) REJECTED (constraint: HOST row 7 constraint 133 = 1)
+TAMPER MSZ[row 0].pg+1              REJECTED (constraint: MSZ row 0 constraint 3 = 65536)
+TAMPER summary 3/3 rejected

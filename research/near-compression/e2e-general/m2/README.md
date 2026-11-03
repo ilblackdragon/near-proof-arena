@@ -345,3 +345,91 @@ with `X := M2.toCtx`.
    HOSTT and HOSTB contributions.
 5. **The dispatch and `wasm_base_sound_m2`** over `exec_of_rows_seg`. `HoldRow` (HOST), the HOSTO
    answers and the REG-C refill gap stay as named hypotheses.
+
+## Update: coverage chips for the admitted-but-unchipped instructions (`wasmBaseM3Air`)
+
+A new AIR value (`WasmBase/M3Air.lean`) on top of `wasmBaseM2rAir`; every existing table and AIR is
+unchanged:
+
+```
+wasmBaseM3Air = base (0–21) ++ [HOST-W (22), HOSTO, HOSTT, HOSTB, IF, REG-A (27), CONV, UNREACH, RINIT (30),
+                                MEMG (31), MSZ (32), GINIT (33)]
+```
+
+* **HOST-W** (`i32` host signatures: `abort`, `promise_yield_resume`): HOST' with the argument tag
+  `tagP j = pf j·(1 − ti j)` and the result tag `1 − ri` instead of the fixed `1`; an `i32` argument
+  or result has zero upper limbs; `tmask = Σ 2^j·ti j` and `ri` go into the HOSTT lookup
+  `[hid, np, ar, tmask, ri, 0, 0, 0]`, so the statement's host table (`hostRowM3`, from the spec's
+  `hostSigs`) fixes them per host. For all-`i64` hosts the table row is the M2 one.
+* **Memory size as a channel message** (space 8; space 7 is the segment AIR's gas register):
+  **MSZ** produces `[8, 0, 0, pages, …, 0]` at time 0 (`65536·pages = pubMem`, only row 0 active);
+  **MEMG** (`memory.size` 0x3F, `memory.grow` 0x40) consumes and re-produces it. A grow pops `n`
+  (`i32`, `n < 2^27`) and either succeeds (`old + n + d = 2048`) or fails
+  (`old + n = 2049 + e`, pushes `2^32 − 1`). `S` advances by `fee + lin·n`, which is
+  `charge`'s linear fee in units of `R`. `lin` is record field 4; PV86 has
+  `linearOpUnitCost = regularOpCost`.
+* **GINIT**: a grown byte's channel message `[3, ad, 0, 0…, tg]` is produced at the grow's time,
+  one row per touched grown byte, addresses strictly increasing, in a range `[65536·old, 65536·new)`
+  that a successful MEMG row offers on bus 213 (multiplicity `gm`, with `gm·(1 − ok) = 0`; without
+  that constraint a padding row's free message would let a GINIT row create a byte anywhere at any
+  time). LOAD/STORE stay unchanged: in bounds = the message exists, and a grown byte's message only
+  exists from the grow on.
+* **`checkModuleM3`** (`WasmBase/M3Check.lean`) emits chip records instead of the M2 no-chip ones
+  (`0x242` → HOST-W's `0x1FF`, `0x241` → `0x3F`, `0x240` → `[pc, 0x40, h, c/R, lin, 0, 0, 0]`) and
+  requires `cfg.maxMemoryPages = 2048`. Tools: `wasmbase-tool airM3/evalM3/prepM3`,
+  `WASMBASE_TAPE_CHECKER=M3 wasmbase-tape`.
+* `abort`'s message is an output: the trace now moves its two length prefixes and UTF-16 strings on
+  HOSTB (request groups `51 + 256·k`). `check-tape` reports `abortx` and `m3/sweep.py` rebuilds the
+  `ABORT: …` log from it, so an `abort` call is compared on its logs too.
+
+**Lean [K]** (`WasmBase/Main/M3Facts.lean`, standard axioms only):
+* `regAt_m3`, `m3_hsend_r16` (via `hsend_r16_of_tail`), `m3_regLenAgree_group`;
+* HOST-W: `m3_host_arg_tag`, `m3_host_arg_i32`, `m3_host_res_i32`;
+* MEMG: `m3_grow_ok`, `m3_grow_fail`, `m3_grow_gm`;
+* MSZ: `m3_msz_only_first`, `m3_msz_pages`;
+* GINIT: `m3_ginit_range`, `m3_ginit_step`;
+* checker: `abort_tags`, `yield_resume_tags`.
+
+`r16 (32·x)` alone does **not** bound `x`: for `x ≈ P/32`, `32·x mod P` can be tiny. So every such
+limb in the new tables is also checked as `r16 x` (`m3_col32_lt` takes that premise).
+
+**Measured [M]** — the M2 remainder: the M3 tape (`WASMBASE_TAPE_CHECKER=M3`) over the 798 cases
+holding the 813 remainder calls, then `sweep.py --air airM3`
+(`logs/m3-remainder.txt`, `logs/m3-remainder-summary.json`, script `m3rem.py`). The full d3c7–d3c10
+sweep was **not** rerun at M3; the other 1,289 calls of those 798 cases stay equal / equal-abort.
+
+| M2 remainder reason | calls | at M3 |
+|---|---|---|
+| `memory.grow` (0x240) | 385 | **378 equal** (311 equal + 67 equal-abort); 7 now stop at a pre-existing limit (4 stack budget, 2 address ≥ 2^27, 1 GasExceeded) |
+| `abort` (0x242, pc 547) | 120 | **120 equal-abort** (status, final budget and logs incl. the `ABORT:` message) |
+| `promise_yield_resume` (0x242, pc 737) | 58 | **57 equal** (47 + 10 equal-abort); 1 stack budget |
+| stack budget exhausted (pre-existing) | 124 | 124 (unchanged) |
+| effective address ≥ 2^27 (pre-existing) | 89 | 89 |
+| GasExceeded at an instruction charge (pre-existing; 34 reported as `host event`, 3 as spec-not-finished) | 37 | 37 |
+
+**555 of the 813 become equal (0 different).** What is left: 258 calls, all pre-existing
+trace-generator limits:
+* 129 stack-budget traps;
+* 91 effective addresses ≥ 2^27;
+* 34 + 4 gas exhaustion at an instruction charge.
+
+**Mutants [M]**: 25 / 25 rejected (`TAMPER_ONLY=HOSTW,MEMG,MSZ,GINIT`). The honest proof verifies in
+each run.
+
+| run | cases | rejected |
+|---|---|---|
+| abort call (`logs/m3-abort-tamper.log`) | `abort`'s argument 0 claimed `i64` with `ti0`, `tagP0` and `tmask` mutually consistent (caught by the HOSTT lookup and the stack tag); `ti0 = 0`; `tmask = 0`; MSZ `pg+1` | 4 / 4 |
+| `promise_yield_resume` call (`logs/m3-yield-tamper.log`) | result as `i64` (`ri = 0`); `i32` result upper limb + 1; MSZ | 3 / 3 |
+| grow call (`logs/m3-grow-tamper.log`) | claim failure (`ok = 0` with the matching `e`); `d+1`; `old+1`; `n0+1, d−1`; `lin = 0` (skip the linear fee); `gm+1`; MSZ | 7 / 7 |
+| `growkat.wat` (`logs/m3-growkat-tamper.log`) — grow 1024 → 1026 pages, stores and loads in the grown pages, an untouched grown byte, a failing grow, `memory.size` | the grow cases; `memory.size` `old+1`; MSZ `pg+1`; GINIT `act = 0`, `tg − 1` (a zero byte before the grow), `ad + 1` | 11 / 11 |
+
+`growkat`'s honest trace has the spec's final budget (`g_final_trace = gFinal`), so the linear fee is
+charged exactly.
+
+**Open:**
+* the bus-level memory lemma, i.e. that grown bytes are unique and disjoint from MEMINIT's, which
+  follows from the size-message chain, GINIT's order and `m3_ginit_range`, but is not composed;
+* GINIT's `m3_ginit_range` takes the MEMG-side bounds (`old, new ≤ 2048`) as hypotheses; the bus-213
+  lookup soundness that supplies them is not composed;
+* a segmented (M4) run with `memory.grow` (the size message would be a hashed live message; not
+  tested).
