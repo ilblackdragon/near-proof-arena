@@ -509,3 +509,10 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.BrDigest.br_byte
 #print axioms StateM5a.BrDigest.node_hashed
 #print axioms StateM5a.BrDigest.brHashed
+#print axioms StateM5a.BrDigest.br_old_node
+#print axioms StateM5a.BrDigest.br_new_node
+#print axioms StateM5a.RowHloc.BrRangesW.full
+#print axioms StateM5a.BrRange.br_NM_lt
+#print axioms StateM5a.BrRange.br_M_lt
+#print axioms StateM5a.BrRange.br_nmom_lt
+#print axioms StateM5a.BrRange.brRangesW_of

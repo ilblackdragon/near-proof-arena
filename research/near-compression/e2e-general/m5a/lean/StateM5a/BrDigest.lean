@@ -179,7 +179,8 @@ theorem node_hashed (hH : Holds (fullAir D extra nb np) pub tr)
     (hg : ev tr 2 r pub g = 1) (hgv : ev tr 2 r pub gv = 1 → ev tr 2 r pub hv = 1)
     (hhv : ev tr 2 r pub hv ≤ 1) (hfl : ∀ i, i < 16 → ev tr 2 r pub (fl i) ≤ 1)
     (hisn : ∀ i, i < 16 → ev tr 2 r pub (fl i) = 1 → ev tr 2 r pub (isn i) = 0) :
-    Hashed (gRec tr pub r hv vl vh fl isn cb mb) (bytesOf ((pack2 hb).map (bE tr pub r))) := by
+    SerBytes tr pub r hv vl vh fl cb mb ∧
+      Hashed (gRec tr pub r hv vl vh fl isn cb mb) (bytesOf ((pack2 hb).map (bE tr pub r))) := by
   have hH2 : tr.height 2 ≤ 2 ^ 20 :=
     Nat.pow_le_pow_right (by decide) (hH.logBound 2 (by rw [fullAir_len]; omega)).2
   -- the digest receive and the SHA-256 contract
@@ -275,7 +276,7 @@ theorem node_hashed (hH : Holds (fullAir D extra nb np) pub tr)
         List.getElem?_eq_getElem (show b < dg.length by omega)]
     · rw [List.getElem?_eq_none (by simp; omega), List.getElem?_eq_none (by omega)]
   rw [hdig]
-  exact hR
+  exact ⟨serBytes_of hS, hR⟩
 
 end
 
@@ -322,35 +323,55 @@ theorem pred_true {i : Interaction} {id : Expr} (hb : i.bus = B_SHA_BYTES) (hs :
     decide (i.bus = B_SHA_BYTES ∧ i.send = true ∧ i.msg.head? = some id) = true := by
   simp [hb, hs, hh]
 
+/-- **A row hashing its old node** (`gsha`): the old node's bytes and its record hashed to `ho`. -/
+theorem br_old_node (hH : Holds (fullAir D extra nb np) pub tr)
+    (hxB : ∀ T ∈ extra, sendsOn T.interactions B_SHA_BYTES = false)
+    (hxD : ∀ T ∈ extra, sendsOn T.interactions B_SHA_DIGEST = false)
+    (hxK : ∀ T ∈ extra, sendsOn T.interactions B_KC = false)
+    {r : Nat} (hr : r < tr.height 2) (hg : ev tr 2 r pub (Br.c "gsha") = 1) :
+    SerBytes tr pub r (Br.c "hasv") (fun t => Br.c "vl" t) (fun t => Br.c "vh" t) (fun i => Br.c "f" i) Br.ch
+        (fun b => Br.c "mem" b) ∧
+      Hashed (brOld tr pub r) (bytesOf ((pack2 fun b => Br.c "ho" b).map (E tr 2 r pub))) := by
+  have hH2 : tr.height 2 ≤ 2 ^ 20 :=
+    Nat.pow_le_pow_right (by decide) (hH.logBound 2 (by rw [fullAir_len]; omega)).2
+  have hc := tbl_br D extra nb np hH r (List.mem_range.2 hr)
+  have hrid := br_rid hH r hr
+  rw [brOld_eq]
+  exact node_hashed hH hxB hxD hxK hr (par := 0) (Nat.zero_le _)
+    (by show ev tr 2 r pub (K ID_BR + sm 2 (Br.c "rid")) = _
+        rw [ev_id2 _ _ (by omega) (by decide), hrid]; rfl)
+    rfl br_sd_old (fun i hi hb hs hh => mem_of_filter br_sb_old hi (pred_true hb hs hh))
+    hg (fun h => ev_gate_one hg h) (bool_le (FieldRows.hold rfl hc RowBrF.br_bool_hasv)) (FieldRows2.br_bool_f hc)
+    (fun i hi _ => FieldVer.br_gsha_isn hc i hi hg)
+
+/-- **A row hashing its new node** (`gfin = gnew − nref`). -/
+theorem br_new_node (hH : Holds (fullAir D extra nb np) pub tr)
+    (hxB : ∀ T ∈ extra, sendsOn T.interactions B_SHA_BYTES = false)
+    (hxD : ∀ T ∈ extra, sendsOn T.interactions B_SHA_DIGEST = false)
+    (hxK : ∀ T ∈ extra, sendsOn T.interactions B_KC = false)
+    {r : Nat} (hr : r < tr.height 2) (hf : ev tr 2 r pub Br.gfin = 1) :
+    SerBytes tr pub r (Br.c "nhv") (fun t => Br.c "nvl" t) (fun t => Br.c "nvh" t) (fun i => Br.c "nf" i)
+        Br.newch (fun b => Br.c "nmem" b) ∧
+      Hashed (brNew tr pub r) (bytesOf ((pack2 fun b => Br.c "hn" b).map (E tr 2 r pub))) := by
+  have hH2 : tr.height 2 ≤ 2 ^ 20 :=
+    Nat.pow_le_pow_right (by decide) (hH.logBound 2 (by rw [fullAir_len]; omega)).2
+  have hc := tbl_br D extra nb np hH r (List.mem_range.2 hr)
+  have hrid := br_rid hH r hr
+  rw [brNew_eq]
+  exact node_hashed hH hxB hxD hxK hr (par := 1) (Nat.le_refl _)
+    (by show ev tr 2 r pub (K ID_BR + sm 2 (Br.c "rid") + 1) = _
+        rw [ev_id2' _ _ (by omega) (by decide), hrid])
+    rfl br_sd_new (fun i hi hb hs hh => mem_of_filter br_sb_new hi (pred_true hb hs hh))
+    hf (fun h => ev_gate_one hf h) (br_bool_nhv hc) (br_bool_nf' hc)
+    (fun i hi _ => br_gfin_nisn hc i hi hf)
+
 /-- **The hashing `BR` rows' records are hashed to their digests**, from `Holds`. -/
 theorem brHashed (hH : Holds (fullAir D extra nb np) pub tr)
     (hxB : ∀ T ∈ extra, sendsOn T.interactions B_SHA_BYTES = false)
     (hxD : ∀ T ∈ extra, sendsOn T.interactions B_SHA_DIGEST = false)
-    (hxK : ∀ T ∈ extra, sendsOn T.interactions B_KC = false) : BrHashed tr pub := by
-  have hH2 : tr.height 2 ≤ 2 ^ 20 :=
-    Nat.pow_le_pow_right (by decide) (hH.logBound 2 (by rw [fullAir_len]; omega)).2
-  constructor
-  · intro r hr hg
-    have hc := tbl_br D extra nb np hH r (List.mem_range.2 hr)
-    have hrid := br_rid hH r hr
-    rw [brOld_eq]
-    exact node_hashed hH hxB hxD hxK hr (par := 0) (Nat.zero_le _)
-      (by show ev tr 2 r pub (K ID_BR + sm 2 (Br.c "rid")) = _
-          rw [ev_id2 _ _ (by omega) (by decide), hrid]; rfl)
-      rfl br_sd_old (fun i hi hb hs hh => mem_of_filter br_sb_old hi (pred_true hb hs hh))
-      hg (fun h => ev_gate_one hg h) (bool_le (FieldRows.hold rfl hc RowBrF.br_bool_hasv)) (FieldRows2.br_bool_f hc)
-      (fun i hi _ => FieldVer.br_gsha_isn hc i hi hg)
-  · intro r hr hg hn
-    have hc := tbl_br D extra nb np hH r (List.mem_range.2 hr)
-    have hrid := br_rid hH r hr
-    have hf := ev_gfin hg hn
-    rw [brNew_eq]
-    exact node_hashed hH hxB hxD hxK hr (par := 1) (Nat.le_refl _)
-      (by show ev tr 2 r pub (K ID_BR + sm 2 (Br.c "rid") + 1) = _
-          rw [ev_id2' _ _ (by omega) (by decide), hrid])
-      rfl br_sd_new (fun i hi hb hs hh => mem_of_filter br_sb_new hi (pred_true hb hs hh))
-      hf (fun h => ev_gate_one hf h) (br_bool_nhv hc) (br_bool_nf' hc)
-      (fun i hi _ => br_gfin_nisn hc i hi hf)
+    (hxK : ∀ T ∈ extra, sendsOn T.interactions B_KC = false) : BrHashed tr pub :=
+  ⟨fun _ hr hg => (br_old_node hH hxB hxD hxK hr hg).2,
+   fun _ hr hg hn => (br_new_node hH hxB hxD hxK hr (ev_gfin hg hn)).2⟩
 
 end
 
