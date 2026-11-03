@@ -127,3 +127,5 @@ import WasmBase.Main.SegRegKeep
 import WasmBase.Main.SegSoundX
 import WasmBase.Main.SegIface
 import WasmBase.Main.HostSpace
+import WasmBase.Main.HostFoot
+import WasmBase.Main.HostArms
