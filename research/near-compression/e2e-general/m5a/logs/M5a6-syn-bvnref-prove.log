@@ -1,0 +1,26 @@
+spec oracle: post-state root 617e704e0109eb5c187060b117f881efb5808f67e2203ce66ad21d1a20787749 (Lean applyChanges)
+{"rows": {"KEY": 25, "BR": 14, "SN": 18, "KCMP": 28, "WSB": 32, "WSN": 30, "WSA": 2, "SNC": 0, "RNG": 256, "WSL": 2, "WSP": 5}, "heights": {"KEY": 32, "BR": 16, "SN": 32, "KCMP": 32, "WSB": 32, "WSN": 32, "WSA": 4, "SNC": 4, "RNG": 256, "WSL": 4, "WSP": 8}, "sha_msgs": 19, "sha_blocks": 25, "compressions": 50, "ops": {"SN.oEF": 8, "BR.oFD": 7, "BR.oFV": 1, "SN.oLF": 2, "SN.oEU": 6, "BR.oUD": 6, "SN.oLR": 2}, "versions": {"published": 6, "hashed_old": 8, "hashed_new": 8}, "writes": 2, "segments": 1}
+TABLE SHA    width  544 height 2^9  cells    278528 constraints  1028 interactions    17 deg 4
+TABLE KEY    width   63 height 2^5  cells      2016 constraints    59 interactions     6 deg 4
+TABLE BR     width  941 height 2^4  cells     15056 constraints  1981 interactions  1243 deg 4
+TABLE SN     width  604 height 2^5  cells     19328 constraints  1317 interactions   507 deg 4
+TABLE KCMP   width   14 height 2^5  cells       448 constraints    26 interactions     6 deg 4
+TABLE WSB    width  136 height 2^5  cells      4352 constraints   152 interactions    33 deg 6
+TABLE WSN    width   67 height 2^5  cells      2144 constraints    27 interactions    21 deg 4
+TABLE WSA    width   63 height 2^2  cells       252 constraints    30 interactions     9 deg 2
+TABLE SNC    width  205 height 2^2  cells       820 constraints   618 interactions   324 deg 6
+TABLE RNG    width   21 height 2^8  cells      5376 constraints    23 interactions     1 deg 2
+TABLE WSL    width  173 height 2^2  cells       692 constraints   108 interactions    82 deg 2
+TABLE WSP    width  129 height 2^3  cells      1032 constraints    83 interactions    37 deg 3
+TABLE TAPE   width   39 height 2^2  cells       156 constraints     0 interactions     2 deg 0
+TABLE SHA512 width   83 height 2^13 cells    679936 (native v4)
+TABLE SHA512T width    9 height 2^7  cells      1152 (native v4)
+CELLS 1011288; compressions 50
+PRECHECK OK: every constraint on every row; every bus balances (2273 distinct messages)
+TIME load+precheck 0.12s
+PARAMS n_stack 14 w_stack 20 degree 9
+TIME keygen 0.02s
+SOUNDNESS total=268.2 logup=329.3 proximity=326.2 query=268.2
+PROOF total=974892 gkr=25544 relations=272688 stacking=2516 whir=673726
+TIME prove 19.08s verify 0.0873s threads 8 peak_rss_kib 187572 proof_bytes 974892
+VERIFY OK (native SWIRL verifier); statement check (TAPE root + prev_state_root): OK

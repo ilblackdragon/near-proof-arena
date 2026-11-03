@@ -4,6 +4,44 @@ Plan: `docs/zk-formal/E2E-GENERAL-CHUNK-PLAN.md` §3.2 (the `stRoot` working set
 Date 2026-11-03. Labels: **[M]** measured here, **[K]** kernel-checked Lean (std axioms),
 **[S]** stated / design only.
 
+## M5a-6 (seventh session, 2026-11-03): two range checks, re-proved
+
+### AIR changes [M][K]
+
+| change | why | constraint / lookup |
+|---|---|---|
+| `BR`: version-published value-length bytes `nvl` in `RNG` (gate `nref`; commit 7e176cb9a) | a kept branch value copies `vl`, which a `VER` reader holds only as two 16-bit limbs; a non-byte cell with the same limb (`vl₀ + 256`, `vl₁ − 1 mod P`) passed every other check of an unhashed node | `RNG [nvl t]`, `t < 4`, multiplicity `nref` |
+| `WSA`: the access time `t` is 3 bytes | before M5b makes times prover-chosen: the gap bytes give `idp < t` only for times `< 2^24`, and with a free `t` a closed `WM` cycle of ~120 accesses whose gaps sum to `0 mod P` balances on its own | `act·(t − Σ 256^k tb_k) = 0`, `RNG [tb_k]` |
+
+Lean [K]: `WsCost.wsa_t_lt` (field level: bytes ⇒ `t < 2^24`), `WsDecode3.wsa_t_rng` (from
+`Holds`: every active `WSA` row has `t < 2^24`). The tape-time premise `htape` is **gone**:
+`wsa_gap_rec`, `ws_decoded`, `ws_decoded_final`, `WsDecode4.ws_decoded_final2`,
+`WsKey.ws_decoded_final3`, `WsEntries.ws_entries` and `FinalOrder.Prem` no longer take it (no
+theorem has a premise on where the `WRITE` times come from). The old `wsa_t` (from the tape) is
+kept. `lake build StateM5a` green, std axioms.
+
+Results on the final AIR [M] (same stack and parameters as M5a-5, 8 threads, shared host):
+
+| | T1 (D = 5) | T2 (D = 6) | synthetic `bval` (D = 4) | T2 seg 3 × 5 | synthetic `bvnref` (D = 4, new) |
+|---|---|---|---|---|---|
+| committed cells | 5,152,964 | 10,733,472 | 1,988,684 | 10,733,472 | 1,011,288 |
+| proof (268.2-bit) | 1,238,006 B | 1,264,046 B | 1,214,996 B | 1,263,542 B | 974,892 B |
+| prove / verify / peak RSS | 78 s / 97 ms / 1.29 GB | 123 s / 102 ms / 1.70 GB | 42 s / 92 ms / 1.01 GB | 124 s / 105 ms / 1.78 GB | 19 s / 87 ms / 0.19 GB |
+| root (= `m5a-tool apply`, Lean) | `1db48e38…249628` | `61f5330a…07993006` | `b2142cc9…bd07895` | `61f5330a…07993006` | `617e704e…20787749` |
+
+`synth.py bvnref` (new): two changes below the branch holding `alice`'s value, so the first
+rewrite of that branch keeps the value under a version id and the second reads it from `VER` —
+the only trace with a row the `nvlbyte` mutant can tamper (T1, T2 and `bval` have no
+version-published branch with a value).
+
+Mutants (`logs/M5a6-mutants.txt`): **83/83 rejected** — T2 29, T1 21, synthetic 19, T2-seg3x5 7,
+`bvnref` 7: all 68 of M5a-5 plus `tbig` (an access at time `2^24`, time cells encoding it exactly,
+one cell 256 → `RNG`), `twrap` (the same with bytes encoding `t mod 2^24` → the new `WSA`
+constraint) on T2, T1, synthetic, T2-seg3x5, `bvnref`, and `nvlbyte` on `bvnref` (rejected by
+`RNG` alone: 2 unbalanced `RNG` messages, nothing else catches it). Logs `logs/M5a6-*-prove.log`,
+hashes `logs/SHA256SUMS-v6` (the prover binary there is the M5b one; for the M5a AIR it only
+differs in where it inserts `TAPE`, which is the same position).
+
 ## M5a-5 (sixth session, 2026-11-03)
 
 Log `docs/logs/e2e-m5a5-state-2026-11-03.md`. Six AIR changes (`wsLen`, and five soundness

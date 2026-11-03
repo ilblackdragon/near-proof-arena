@@ -13,6 +13,7 @@ Cases (NEAR-shaped keys: `0x00 ‖ account id`, so `alice` is a prefix of `alice
   bval   upsert at a branch value (over a value and a new one: `BR.oUV`), delete of a branch value
          keeping the branch (`BR.oDV`), an absent delete at a branch without value (`BR.oDZ`), finds
          ending at a branch value (`BR.oFV`)
+  bvnref two changes below a branch with a value (the kept value of a version-published branch, M5a-6)
 """
 import hashlib
 import json
@@ -45,6 +46,12 @@ CASES = {
         changes=[('alice', 'alice-2'), ('bob', None), ('carl', None), ('dave', None), ('frank', 'frank-2'),
                  ('gina', 'gina-2'), ('erin', 'erin-2')],
         reads=['dave', 'bob.near']),
+    # M5a-6: two changes below the branch holding `alice`'s value: the first rewrite of that branch
+    # keeps the value and is published under a version id (`nref`), the second reads it from `VER`
+    'bvnref': dict(
+        pre=['alice', 'alice.near', 'alice.x', 'bob', 'bob.near', 'carl1', 'carl2'],
+        changes=[('alice.near', 'alice.near-2'), ('alice.x', 'alice.x-2')],
+        reads=['alice']),
 }
 
 
