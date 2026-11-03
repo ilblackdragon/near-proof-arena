@@ -123,4 +123,5 @@ import WasmBase.Main.BusCount
 import WasmBase.Main.SegMP
 import WasmBase.Main.SegBus
 import WasmBase.Main.SegRowsX
+import WasmBase.Main.SegRegKeep
 import WasmBase.Main.SegSoundX
