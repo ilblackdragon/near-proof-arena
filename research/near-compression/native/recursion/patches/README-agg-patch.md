@@ -53,3 +53,21 @@ So a tree built from base + this patch alone will **not** be byte-identical to
 itself — including `agg.rs`, `agg_tests.rs`, and every `build_agg`/`ChildKind`/`RangeStmt`
 wiring — is reproduced exactly. A run that needs `stream_tests.rs` or `mb.rs` must also apply
 those lanes' overlays.
+
+## 2026-11-03 comment edit (lane E, M11e)
+One comment in `agg.rs` changed in this patch only: the two lines above `b.bind_child = …` in
+`build_agg`. `pq-agg/openvm-sha384` still has the old text, so `agg.rs` now differs from that tree
+by that comment and by nothing else.
+
+The old comment said a level ≥ 2 child's program is bound to the node's. In this tree that is
+false. `verifier.rs` reads:
+
+    if b.bind || b.bind_child { /* comments only */ } else if false { … bind_child_program(…) }
+
+So setting `bind_child` emits none of the following: the level flag, the `C_M` anchor check, or
+the `bind_child_program` region. The header line "program binding of NV children is not emitted
+by this node" is therefore **accurate**, not stale.
+
+`agg_node_program_binding`'s "positive control" adds 1 to the node's **own** `P0..P3` on row 0
+(`mats[0].values[U_P + j]`). That breaks the node's own ALU row; it does not tamper with a
+child's program. See `docs/logs/e2e-lean-m11e-2026-11-03.md` §2.

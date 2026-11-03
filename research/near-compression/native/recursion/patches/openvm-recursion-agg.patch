@@ -160,8 +160,8 @@ index 0000000..e235d08
 +        if i > 0 {
 +            b.restart_transcript();
 +        }
-+        // Level >= 2 child: bind its program to this node's (DESIGN-BASE §5.1).  Level-1 children
-+        // are base/app proofs, which have no NV program to bind.
++        // Requests NV-child program binding, but verifier.rs emits nothing for it: its binding
++        // branch is `else if false` (dead code), so the header's prototype limit still holds.
 +        b.bind_child = matches!(kind, ChildKind::Node { .. });
 +        let pv = build_verifier(b, vk, proof);
 +        b.bind_child = false;
