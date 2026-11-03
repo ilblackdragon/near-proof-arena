@@ -100,7 +100,25 @@ def B_ORD : Nat := 15
 /-- The native SHA-512 compression chip's interface `(cid, pair, 3 limbs, 3 limbs)`. -/
 def B_IF384 : Nat := 16
 
-def NUM_BUSES : Nat := 17
+/-- Split request `(w, e, kid, kid2, xl, A1[16], L, A2[4], vlen, vh16)`: an old leaf / extension
+visited at a walk's depth asks for the new branch at depth `e` (the first differing nibble); the
+old-side child is a leaf `K_kid2[e+1..] ↦ (L, A1)` (`xl = 1`) or a node `(A1 hash, A2 memory)`. -/
+def B_SPQ : Nat := 17
+/-- Split result `(w, depth, hash16, mem4)`: the new subtree rooted at `depth`. -/
+def B_SPR : Nat := 18
+/-- `(w, d, e, kid)`: a new extension over `K_kid[d..e)` above the split branch at `e`. -/
+def B_EPQ : Nat := 19
+/-- `(w, d, kid, end, childHash16, childMem4)`: a re-keyed extension `K_kid[d..end)` (split). -/
+def B_SXQ : Nat := 20
+def B_SXR : Nat := 21
+/-- Key continuation `(rid, c, p, kA, fA, kB, gB, gO, gN)`: chunk `c` of row `rid`'s node key. -/
+def B_KC : Nat := 22
+/-- `(rid, c, nibbles from chunk c on)`. -/
+def B_KCR : Nat := 23
+/-- `(v)`: `v < 256` (the `RNG` table). -/
+def B_RNG : Nat := 24
+
+def NUM_BUSES : Nat := 25
 
 /-! ## Result kinds on `UP` -/
 def RK_ANS : Nat := 0
@@ -109,6 +127,9 @@ def RK_HB : Nat := 2
 def RK_HE : Nat := 3
 def RK_LD : Nat := 4
 def RK_NONE : Nat := 5
+/-- The subtree is unchanged (`PTrie.del` returned `deleted = false`); the hash field is the
+node's own (old) hash. -/
+def RK_SAME : Nat := 6
 
 /-! ## SHA-256 message-id spaces -/
 def ID_KEY : Nat := 2 ^ 24

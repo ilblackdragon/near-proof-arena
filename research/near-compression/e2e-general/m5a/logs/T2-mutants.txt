@@ -1,0 +1,12 @@
+node | PRECHECK FAIL: 6 unbalanced messages by bus {5: 4, 14: 2} | REJECTED (prover error) after 27.6s
+prevalue | PRECHECK FAIL: 2 unbalanced messages by bus {6: 2} | REJECTED (prover error) after 27.7s
+omitwrite | PRECHECK FAIL: 259 unbalanced messages by bus {12: 2, 13: 1, 103: 256} | REJECTED (prover error) after 27.2s
+postroot | PRECHECK FAIL: 2 unbalanced messages by bus {14: 2} | REJECTED (prover error) after 27.3s
+split | PRECHECK FAIL: 132 unbalanced messages by bus {0: 130, 2: 2} | REJECTED (prover error) after 26.2s
+chain | PRECHECK FAIL: 6 unbalanced messages by bus {0: 2, 24: 4} | REJECTED (prover error) after 28.0s
+absent | PRECHECK FAIL: SN: constraint 59 fails on row 2 | REJECTED (prover error) after 28.3s
+extabsent | PRECHECK FAIL: SN: constraint 62 fails on row 65 | REJECTED (prover error) after 30.1s
+branchval | PRECHECK FAIL: BR: constraint 111 fails on row 87 | REJECTED (prover error) after 31.7s
+splitext | PRECHECK FAIL: SN: constraint 115 fails on row 195 | REJECTED (prover error) after 31.6s
+absdel | PRECHECK FAIL: SN: constraint 67 fails on row 157 | REJECTED (prover error) after 33.1s
+squash | PRECHECK FAIL: SN: constraint 668 fails on row 166 | REJECTED (prover error) after 31.2s
