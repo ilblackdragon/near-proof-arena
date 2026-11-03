@@ -43,6 +43,7 @@ import WasmBase.Local.Call
 import WasmBase.HostChip
 import WasmBase.RegisterSpace
 import WasmBase.RegChip
+import WasmBase.RegMem
 import WasmBase.HostCheck
 import WasmBase.StepHost
 import WasmBase.Main.RowHost
@@ -62,6 +63,7 @@ import WasmBase.Main.RegFacts
 import WasmBase.Main.RegWalk
 import WasmBase.Main.RegSend
 import WasmBase.Main.MemIOLink
+import WasmBase.Main.RegMemLink
 import WasmBase.ShaAir
 import WasmBase.ShaSound
 import WasmBase.ShaVectors

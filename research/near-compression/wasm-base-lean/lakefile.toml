@@ -14,6 +14,14 @@ name = "WasmBase"
 name = "wasmbase-tool"
 root = "Tool"
 
+# E2E M3: the chunk's own host tape.  The checker's compiled Wasm entry is wrapped at link time so
+# each call is observed (and returned unchanged); see `Tape.lean`.  Build with `build-tape.sh`
+# (it compiles the C wrapper `tape_shim.c` first).
+[[lean_exe]]
+name = "wasmbase-tape"
+root = "Tape"
+moreLinkArgs = [".lake/build/tape_shim.o", "-Wl,--wrap=lp_NearSpecV3_NearSpecV3_Wasm_runCallWithLimitsFast"]
+
 [[require]]
 name = "NearSpecV3"
 path = "../../../spec/lean/v3"

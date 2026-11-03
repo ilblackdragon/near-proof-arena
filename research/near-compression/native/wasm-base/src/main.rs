@@ -182,6 +182,10 @@ fn compare_with_spec(prep: &Prep, g: &Gen) {
         assert_eq!(prep.status, "fin", "spec run did not finish normally");
     }
     assert_eq!(g.steps, prep.steps, "step count vs spec");
+    if !trapped {
+        // the trace's own final budget (host `g_after` resynchronisation + `R` per charged unit)
+        assert_eq!(g.g_final_trace, prep.g_final, "trace final gas vs spec");
+    }
     if prep.hosts.is_empty() {
         let spent = prep.g0 - prep.g_final;
         assert_eq!(spent, prep.regular * g.s_units as u128, "gas vs spec");
@@ -227,6 +231,7 @@ fn cmd_check(air_path: &str, prep_path: &str) {
     tracegen::check_constraints(&spec, &g).expect("constraints");
     tracegen::check_buses(&spec, &g).expect("buses");
     report_shape(&spec, &g);
+    println!("TRACE_GFINAL {}", g.g_final_trace);
     println!("CHECK OK result {:?}", g.result);
 }
 
@@ -261,6 +266,63 @@ fn cmd_hostb_dump(air_path: &str, prep_path: &str) {
         }
     }
     println!("HOSTB_ROWS {printed}");
+}
+
+/// The request payloads a trace carries on HOSTB, by `(ts, wire hid)`, in `ts` order.
+fn hostb_payloads(spec: &AirSpec, g: &Gen) -> Vec<(u64, u64, Vec<u8>)> {
+    let Some((idx, w)) = spec.tables.iter().enumerate().find(|(_, t)| t.name == "HOSTB").map(|(i, t)| (i, t.cols.len()))
+    else {
+        return vec![];
+    };
+    let m = &g.mats[idx];
+    let col = |r: usize, c: usize| m.values[r * w + c].as_canonical_u32() as u64;
+    let mut groups: std::collections::BTreeMap<(u64, u64), std::collections::BTreeMap<u64, u8>> = Default::default();
+    for r in 0..m.values.len() / w {
+        // act (7) = 1, dir (1) = 0: a request byte
+        if col(r, 7) == 1 && col(r, 1) == 0 {
+            groups.entry((col(r, 0), col(r, 5))).or_default().insert(col(r, 2), col(r, 3) as u8);
+        }
+    }
+    groups.into_iter().map(|((ts, hid), b)| (ts, hid, b.into_values().collect())).collect()
+}
+
+/// `check-tape <air.json> <prep.json>...`: E2E M3.  For each prep (one call's chunk host tape,
+/// `wasmbase-tape`), generate the trace, run the full constraint and bus pre-check, and print one JSON
+/// line: the trace's final budget `g_final_trace`, and the `log_utf8` (45) / `value_return` (50) /
+/// storage key (57–60) / storage value (314) payloads it carries.  A failure (out of the trace
+/// generator's domain, or a failed check) is reported on the line, not fatal.
+fn cmd_check_tape(air_path: &str, preps: &[String]) {
+    let spec = load(air_path);
+    for p in preps {
+        let r = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            let (_prep, g) = generate(&spec, p);
+            let c = tracegen::check_constraints(&spec, &g).err();
+            let b = tracegen::check_buses(&spec, &g).err();
+            (g.g_final_trace, hostb_payloads(&spec, &g), c, b, g.steps)
+        }));
+        match r {
+            Ok((gf, pl, c, b, steps)) => {
+                let hx = |v: &Vec<u8>| v.iter().map(|x| format!("{x:02x}")).collect::<String>();
+                let pick = |h: u64| -> Vec<String> {
+                    pl.iter().filter(|(_, hid, _)| *hid == h).map(|(_, _, v)| format!("\"{}\"", hx(v))).collect()
+                };
+                let skeys: Vec<String> = pl.iter().filter(|(_, hid, _)| (57..=60).contains(hid)).map(|(_, _, v)| format!("\"{}\"", hx(v))).collect();
+                let err = match (c, b) {
+                    (None, None) => "null".to_string(),
+                    (Some(e), _) => format!("\"constraint: {}\"", e.replace('"', "'")),
+                    (_, Some(e)) => format!("\"bus: {}\"", e[..e.len().min(200)].replace('"', "'")),
+                };
+                println!(
+                    "{{\"prep\":\"{p}\",\"ok\":{},\"steps\":{steps},\"g_final_trace\":{gf},\"logs\":[{}],\"rets\":[{}],\"skeys\":[{}],\"svals\":[{}],\"err\":{err}}}",
+                    err == "null", pick(45).join(","), pick(50).join(","), skeys.join(","), pick(314).join(",")
+                );
+            }
+            Err(e) => {
+                let msg = e.downcast_ref::<String>().cloned().or_else(|| e.downcast_ref::<&str>().map(|s| s.to_string())).unwrap_or_default();
+                println!("{{\"prep\":\"{p}\",\"ok\":false,\"err\":\"panic: {}\"}}", msg.replace('"', "'").replace('\n', " "));
+            }
+        }
+    }
 }
 
 fn choose_shape(g: &Gen, which: &str, degree: usize) -> SystemParams {
@@ -810,6 +872,126 @@ fn cmd_tamper(air_path: &str, prep_path: &str) {
             cases.push((format!("REG[row {r}].ts+1 mid-group"), cell(tr, r, ts, plus1())));
         }
     }
+    // ---- E2E M1-a (`wasmBaseIfRegAir`): the `read_register` memory write and its binding ----
+    // Only an AIR whose REG has the write columns (REG', `WasmBase/RegMem.lean`).
+    let mut expected_accept: Vec<(String, Mut)> = vec![];
+    let regw = std::panic::catch_unwind(|| tb("REG")).ok().filter(|&t| spec.tables[t].cols.iter().any(|c| c == "wr"));
+    if let Some(tr) = regw {
+        let w = g.mats[tr].width;
+        let nrows = g.rows_per_table[tr].1;
+        let at = |r: usize, c: &str| g.mats[tr].values[r * w + col(tr, c)];
+        let wbytes: Vec<usize> = (0..nrows).filter(|&r| at(r, "wr") == F::ONE && at(r, "kind") == F::ZERO).collect();
+        if let Some(&r) = wbytes.first() {
+            // wrong register byte written to memory (and on the register wire): the forged return
+            // bytes `value_return` would read
+            cases.push((format!("REGW[write row {r}].byte+1 (forged return byte)"), cell(tr, r, col(tr, "byte"), plus1())));
+            // the overwritten memory byte / its producer time / the time witness
+            for c in ["ob", "mtp", "mhp", "ptr", "ptrHi"] {
+                cases.push((format!("REGW[write row {r}].{c}+1"), cell(tr, r, col(tr, c), plus1())));
+            }
+            let (mtp, ts) = (col(tr, "mtp"), col(tr, "ts"));
+            cases.push((format!("REGW[write row {r}].mtp=ts (vacuous pair)"), Box::new(move |g: &mut Gen| {
+                let w = g.mats[tr].width;
+                g.mats[tr].values[r * w + mtp] = g.mats[tr].values[r * w + ts];
+            })));
+            // drop the write on one byte (memory keeps its old byte)
+            cases.push((format!("REGW[write row {r}].wr=0 (skip the write)"), cell(tr, r, col(tr, "wr"), Box::new(|_| F::ZERO))));
+            // the whole group stops writing: memory unchanged by read_register
+            let grp: Vec<usize> = (0..nrows).filter(|&q| at(q, "wr") == F::ONE).collect();
+            let wc = col(tr, "wr");
+            cases.push(("REGW[group].wr=0 (read_register writes nothing)".into(), Box::new(move |g: &mut Gen| {
+                let w = g.mats[tr].width;
+                for &q in grp.iter() {
+                    g.mats[tr].values[q * w + wc] = F::ZERO;
+                }
+            })));
+            // forged register bytes: the read row produces without consuming (`fresh = 0`)
+            cases.push((format!("REGW[write row {r}].fresh=0 (forged register byte)"), cell(tr, r, col(tr, "fresh"), Box::new(|_| F::ZERO))));
+            let (fc, bc) = (col(tr, "fresh"), col(tr, "byte"));
+            cases.push((format!("REGW[write row {r}].fresh=0,byte+1 (forged register content)"), Box::new(move |g: &mut Gen| {
+                let w = g.mats[tr].width;
+                g.mats[tr].values[r * w + fc] = F::ZERO;
+                g.mats[tr].values[r * w + bc] += F::ONE;
+            })));
+            // a write-group row whose hid is not read_register
+            cases.push((format!("REGW[write row {r}].hid+1"), cell(tr, r, col(tr, "hid"), plus1())));
+        }
+        if let Some(r) = (0..nrows).find(|&r| at(r, "wr") == F::ONE && at(r, "kind") == F::ONE) {
+            // the request message: time, register id, destination
+            cases.push((format!("REGW[write length row {r}].ts+1"), cell(tr, r, col(tr, "ts"), plus1())));
+            cases.push((format!("REGW[write length row {r}].ptr+1"), cell(tr, r, col(tr, "ptr"), plus1())));
+            cases.push((format!("REGW[write length row {r}].rid+1"), cell(tr, r, col(tr, "rid"), plus1())));
+        }
+        // an orphan write group: a register read (`register_len` or a plain read) turned into a write
+        if let Some(r) = (0..nrows).find(|&r| at(r, "act") == F::ONE && at(r, "rd") == F::ONE && at(r, "wr") == F::ZERO) {
+            cases.push((format!("REGW[read row {r}].wr=1 (orphan write)"), cell(tr, r, col(tr, "wr"), Box::new(|_| F::ONE))));
+        }
+        // a fill row's `fresh` (fills create the register)
+        // the public result of a void function / a trapped run (`cPubR`, `cPubRTrap`)
+        cases.push(("pub.result+1 (any status)".into(), Box::new(|g: &mut Gen| g.pubs[4] += F::ONE)));
+        cases.push(("pub.result.l3+1 (any status)".into(), Box::new(|g: &mut Gen| g.pubs[7] += F::ONE)));
+    }
+    if let Ok(th) = std::panic::catch_unwind(|| tb("HOST")) {
+        if spec.tables[th].cols.iter().any(|c| c == "rr") {
+            let w = g.mats[th].width;
+            let (hidc, rrc, invc) = (col(th, "hid"), col(th, "rr"), col(th, "rrInv"));
+            let rows = g.rows_per_table[th].1;
+            if let Some(r) = (0..rows).find(|&r| g.mats[th].values[r * w + hidc] == F::from_u64(49)) {
+                // a read_register call that claims it is not one: no write group is requested
+                cases.push((format!("HOST[read_register row {r}].rr=0"), cell(th, r, rrc, Box::new(|_| F::ZERO))));
+                cases.push((format!("HOST[read_register row {r}].rr=0,rrInv=1"), Box::new(move |g: &mut Gen| {
+                    let w = g.mats[th].width;
+                    g.mats[th].values[r * w + rrc] = F::ZERO;
+                    g.mats[th].values[r * w + invc] = F::ONE;
+                })));
+                // the pointer argument of the call moved (the write would land elsewhere)
+                cases.push((format!("HOST[read_register row {r}].P1_0+1"), cell(th, r, col(th, "P1_0"), plus1())));
+            }
+            if let Some(r) = (0..rows).find(|&r| {
+                let h = g.mats[th].values[r * w + hidc];
+                h != F::from_u64(49) && h != F::ZERO
+            }) {
+                cases.push((format!("HOST[other row {r}].rr=1 (request a write)"), cell(th, r, rrc, Box::new(|_| F::ONE))));
+                cases.push((format!("HOST[other row {r}].rrInv+1"), cell(th, r, invc, plus1())));
+            }
+        }
+    }
+    // wrong host answers: the value_return payload byte, the input fill byte
+    if let Ok(thb) = std::panic::catch_unwind(|| tb("HOSTB")) {
+        let w = g.mats[thb].width;
+        let rows = g.rows_per_table[thb].1;
+        let at = |r: usize, c: &str| g.mats[thb].values[r * w + col(thb, c)];
+        if let Some(r) = (0..rows).find(|&r| at(r, "act") == F::ONE && at(r, "hid") == F::from_u64(50)) {
+            cases.push((format!("HOSTB[value_return row {r}].byte+1 (wrong return byte)"), cell(thb, r, col(thb, "byte"), plus1())));
+        }
+        if let Some(r) = (0..rows).find(|&r| at(r, "act") == F::ONE && at(r, "reg") == F::ONE) {
+            cases.push((format!("HOSTB[register fill row {r}].byte+1 (wrong host answer byte)"), cell(thb, r, col(thb, "byte"), plus1())));
+        }
+        if let Some(r) = (0..rows).find(|&r| at(r, "act") == F::ONE && at(r, "hid") == F::from_u64(314)) {
+            cases.push((format!("HOSTB[storage value row {r}].byte+1"), cell(thb, r, col(thb, "byte"), plus1())));
+        }
+    }
+    // wrong gas: the host's g_after, changed on the HOST row only (the oracle disagrees)
+    if let (Ok(th), Ok(to)) = (std::panic::catch_unwind(|| tb("HOST")), std::panic::catch_unwind(|| tb("HOSTO"))) {
+        if g.rows_per_table[th].1 > 0 {
+            cases.push(("HOST.ga1+1 (wrong gas)".into(), cell(th, 0, col(th, "ga1"), plus1())));
+            // the same wrong gas on BOTH the call and the oracle: a different oracle answer.  The
+            // oracle is free until the state side replaces it (plan M6), and the Wasm gas output is
+            // not in this statement, so this is EXPECTED to verify; it is reported, not counted.
+            let (hg, og) = (col(th, "ga1"), col(to, "g1"));
+            let t16 = tb("RANGE16");
+            let m16 = col(t16, "m");
+            expected_accept.push(("HOST.ga1+1 and HOSTO.g1+1 (consistent oracle answer, M6 gap)".into(), Box::new(move |g: &mut Gen| {
+                let old = g.mats[th].values[hg].as_canonical_u32() as usize;
+                g.mats[th].values[hg] += F::ONE;
+                g.mats[to].values[og] += F::ONE;
+                // keep the RANGE16 multiplicities consistent with the moved limb
+                let w16 = g.mats[t16].width;
+                g.mats[t16].values[old * w16 + m16] -= F::ONE;
+                g.mats[t16].values[(old + 1) * w16 + m16] += F::ONE;
+            })));
+        }
+    }
     // swap two ADD rows' timestamps (reorders execution)
     let ta = tb("ADD");
     if g.rows_per_table[ta].1 >= 2 {
@@ -825,7 +1007,7 @@ fn cmd_tamper(air_path: &str, prep_path: &str) {
     let mut rejected = 0;
     let total = cases.len();
     for (name, m) in cases {
-        let mut gt = Gen { mats: g.mats.clone(), pubs: g.pubs.clone(), rows_per_table: g.rows_per_table.clone(), result: g.result, steps: g.steps, s_units: g.s_units };
+        let mut gt = Gen { mats: g.mats.clone(), pubs: g.pubs.clone(), rows_per_table: g.rows_per_table.clone(), result: g.result, steps: g.steps, s_units: g.s_units, g_final_trace: g.g_final_trace };
         m(&mut gt);
         let pre = match (tracegen::check_constraints(&spec, &gt), tracegen::check_buses(&spec, &gt)) {
             (Err(e), _) => format!("constraint: {e}"),
@@ -845,6 +1027,24 @@ fn cmd_tamper(air_path: &str, prep_path: &str) {
         println!("TAMPER {name:<28} {} ({pre})", if ok { "REJECTED" } else { "ACCEPTED!" });
     }
     println!("TAMPER summary {rejected}/{total} rejected");
+    // documented gaps: mutants the current statement does not cover (reported, not counted)
+    for (name, m) in expected_accept {
+        let mut gt = Gen { mats: g.mats.clone(), pubs: g.pubs.clone(), rows_per_table: g.rows_per_table.clone(), result: g.result, steps: g.steps, s_units: g.s_units, g_final_trace: g.g_final_trace };
+        m(&mut gt);
+        let pre = match (tracegen::check_constraints(&spec, &gt), tracegen::check_buses(&spec, &gt)) {
+            (Err(e), _) => format!("constraint: {e}"),
+            (_, Err(e)) => format!("bus: {}", &e[..e.len().min(80)]),
+            _ => "PRECHECK PASSES".into(),
+        };
+        let verdict = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            match eng.prove(&d_pk, ctx(&eng, &spec, &gt)) {
+                Ok(p) => eng.verify(&vk, &p).is_err() || !check_code_root(&eng, &spec, &p, &prep),
+                Err(_) => true,
+            }
+        }));
+        let rej = matches!(verdict, Ok(true) | Err(_));
+        println!("TAMPER-GAP {name:<28} {} ({pre})", if rej { "rejected" } else { "verifies (documented gap)" });
+    }
     assert_eq!(rejected, total);
 }
 
@@ -991,6 +1191,7 @@ fn main() {
         Some("tamper") => cmd_tamper(&a[2], &a[3]),
         Some("difftest") => cmd_difftest(&a[2], &a[3], &a[4], a.get(5).map(|s| s.parse().unwrap()).unwrap_or(16)),
         Some("hostb-dump") => cmd_hostb_dump(&a[2], &a[3]),
+        Some("check-tape") => cmd_check_tape(&a[2], &a[3..]),
         Some("sha-difftest") => cmd_sha_difftest(a.get(2).map(|s| s.as_str())),
         _ => eprintln!("usage: see source header"),
     }

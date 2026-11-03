@@ -1,0 +1,163 @@
+#!/usr/bin/env python3
+"""E2E milestone M3: replay every corpus FunctionCall with the chunk's own host answers.
+
+    sweep.py TAPE.jsonl OUT_DIR [--jobs N] [--tool WASMBASE_TOOL] [--prover NEARPROOF_WASM_BASE]
+
+TAPE.jsonl is the output of `wasmbase-tape` (research/near-compression/wasm-base-lean/Tape.lean): the
+unmodified Lean checker `Schema.checkVersioned (Tier.cfg .allFeatures)` run on the cases, one line per
+Wasm call it made, with the call's host tape (`prep`, the `wasmbase-tool prepIf` format) recorded from
+the checker's own CallCtx and trie-backed store.
+
+For every call whose code the current Wasm AIR covers (`prep.eligible`, i.e. `checkModuleIfH`), this
+script writes the prep, exports `wasmBaseIfRegAir` for its (nloc, ngl), and runs
+`nearproof-wasm-base check-tape`: the Rust trace generator builds the trace from the tape, the full
+constraint and bus pre-check runs, and the trace's own final budget and HOSTB payloads are read back.
+It then compares, per call, against the checker's own outcome of that call (`real`):
+
+  * status       trace finished  <-> checker `err` is null;
+  * burnt gas    preSync.burnt + preSync.remaining - g_final_trace == real.burnt
+                 (`sync` burns `remaining - g`; `g_final_trace` is the trace's g_after
+                 resynchronisation plus R per charged unit);
+  * logs         the `log_utf8` payloads on HOSTB == real.logs;
+  * return       the last `value_return` payload on HOSTB == real.ret.
+
+Prints a summary table (also written to OUT_DIR/summary.json) and writes per-call rows to
+OUT_DIR/rows.jsonl.
+"""
+import collections
+import json
+import os
+import subprocess
+import sys
+from concurrent.futures import ThreadPoolExecutor
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.abspath(os.path.join(HERE, "..", "..", "..", ".."))
+TOOL = os.path.join(ROOT, "research/near-compression/wasm-base-lean/.lake/build/bin/wasmbase-tool")
+PROVER = "/data/illia/nearproof-deps/e2e-laneA/target/release/nearproof-wasm-base"
+D3TINY = "8152bed25554d521d3fcdd919f4457b66e06b720906fdd40fd6fd0723ed36bf9"
+
+
+def main():
+    args = sys.argv[1:]
+    jobs, tool, prover = 8, TOOL, PROVER
+    for flag in ("--jobs", "--tool", "--prover"):
+        if flag in args:
+            i = args.index(flag)
+            val = args[i + 1]
+            del args[i:i + 2]
+            if flag == "--jobs":
+                jobs = int(val)
+            elif flag == "--tool":
+                tool = val
+            else:
+                prover = val
+    tape, out = args
+    os.makedirs(os.path.join(out, "preps"), exist_ok=True)
+    os.makedirs(os.path.join(out, "airs"), exist_ok=True)
+
+    calls, verdicts, case = [], {}, None
+    for ln in open(tape):
+        o = json.loads(ln)
+        if "case" in o:
+            case = o["case"]
+            if "verdict" in o:
+                verdicts[case] = o["verdict"]
+            continue
+        o["case"] = case
+        calls.append(o)
+
+    rows = []
+    by_air = collections.defaultdict(list)
+    for k, c in enumerate(calls):
+        r = dict(k=k, case=c["case"], seq=c["seq"], code=c["code_sha256"], method=c["method"],
+                 real=c["real"], replay=c["replayMatches"])
+        p = c.get("prep")
+        if p is None:
+            r["class"] = "no-method-run"      # preparation/loading/link/resolve outcome
+        elif not p.get("eligible"):
+            r["class"] = "not-eligible"        # outside checkModuleIfH (the AIR's coverage)
+        else:
+            r["class"] = "eligible"
+            path = os.path.join(out, "preps", "%06d.json" % k)
+            with open(path, "w") as f:
+                json.dump(p, f)
+            r["prep"] = path
+            key = (len(p["localTags"]), p["ngl"])
+            by_air[key].append(r)
+        rows.append(r)
+
+    def air(key):
+        path = os.path.join(out, "airs", "air-%d-%d.json" % key)
+        if not os.path.exists(path):
+            with open(path, "w") as f:
+                subprocess.run([tool, "airIfR", str(key[0]), str(key[1])], stdout=f, check=True)
+        return path
+
+    batches = []
+    for key, rs in by_air.items():
+        a = air(key)
+        for i in range(0, len(rs), 64):
+            batches.append((a, rs[i:i + 64]))
+
+    def run(batch):
+        a, rs = batch
+        res = subprocess.run([prover, "check-tape", a] + [r["prep"] for r in rs],
+                             capture_output=True, text=True,
+                             env=dict(os.environ, RAYON_NUM_THREADS="1"))
+        got = {}
+        for ln in res.stdout.splitlines():
+            if ln.startswith("{"):
+                o = json.loads(ln)
+                got[o["prep"]] = o
+        return [(r, got.get(r["prep"], dict(ok=False, err="no output: " + res.stderr[-300:]))) for r in rs]
+
+    with ThreadPoolExecutor(jobs) as ex:
+        for done in ex.map(run, batches):
+            for r, t in done:
+                r["trace"] = t
+
+    for r in rows:
+        if r["class"] != "eligible":
+            continue
+        t, real = r["trace"], r["real"]
+        c = calls[r["k"]]
+        if not t.get("ok"):
+            r["class"] = "trace-failed"
+            continue
+        if "burnt" not in real:
+            r["class"] = "real-is-line"
+            continue
+        status_ok = (real["err"] is None) == (c["prep"]["status"] == "fin")
+        pre = c["preSync"]
+        cmp = dict(status=status_ok)
+        if real["err"] is None:
+            cmp["burnt"] = pre["burnt"] + pre["remaining"] - t["g_final_trace"] == real["burnt"]
+            cmp["logs"] = t["logs"] == real["logs"]
+            cmp["ret"] = (t["rets"][-1] if t["rets"] else None) == real["ret"]
+        r["cmp"] = cmp
+        r["class"] = "equal" if all(cmp.values()) else "DIFFERENT"
+        if real["err"] is not None and status_ok:
+            r["class"] = "equal-abort-status"
+
+    with open(os.path.join(out, "rows.jsonl"), "w") as f:
+        for r in rows:
+            f.write(json.dumps(r) + "\n")
+
+    def tally(rs):
+        return dict(collections.Counter(r["class"] for r in rs))
+
+    tiny = [r for r in rows if r["code"] == D3TINY]
+    summary = dict(
+        cases=len(verdicts), verdicts=dict(collections.Counter(verdicts.values())),
+        calls=len(rows), replay_mismatch=sum(1 for r in rows if r["replay"] is False),
+        classes=tally(rows), d3tiny_calls=len(tiny), d3tiny_classes=tally(tiny),
+        by_code={code: tally([r for r in rows if r["code"] == code])
+                 for code in sorted(set(r["code"] for r in rows))})
+    with open(os.path.join(out, "summary.json"), "w") as f:
+        json.dump(summary, f, indent=1)
+    print(json.dumps(summary, indent=1))
+
+
+if __name__ == "__main__":
+    main()

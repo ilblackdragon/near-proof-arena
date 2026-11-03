@@ -1,6 +1,6 @@
 # End-to-end ZK proof of general NEAR chunk validation: build plan
 
-Status: **plan, 2026-10-31**, plus milestone 1 started (§5). No Lean spec, checker or signed
+Status: **plan, 2026-10-31**; milestone 1 done and M3 (host tape) done for the covered calls (§5, 2026-11-03). No Lean spec, checker or signed
 challenge file is changed by this document or by the milestone-1 code.
 
 Labels: **[M]** measured (in this repo, cited), **[K]** kernel-checked Lean, **[S]** stated only
@@ -335,15 +335,55 @@ See `research/near-compression/e2e-general/m1/README.md` for commands, logs and 
   * *(b) Wrong host gas.* Host gas comes from the default context. T2 differs from the chunk by
     exactly 5 × `read_cached_trie_node` (11.4 Ggas), T1 by 28.1 Ggas (evicted path).
 
-**Next (milestone 1 continues):**
-* M1-a: a `wasmBaseIfRegAir` with the REG → space-3 write link and its Lean lemma;
-* M1-b: storage request bytes;
-* then M3: the real host tape, so gas matches.
+**Done 2026-11-03 (lane A) [M]** (`research/near-compression/e2e-general/m1/README.md` update, `../m3/README.md`):
 
-The exit test is unchanged: return bytes, logs and gas equal the chunk's outcome on T1 and T2, with
-mutants rejected. Also found: `lake build WasmBase` fails on main at
-`WasmBase/HostCtx.lean:547`, a stale `current_contract_code_h` after `a286d805f`; the tool target
-still builds.
+* **M1-a.** `wasmBaseIfRegAir` (`WasmBase/RegMem.lean`) is the first AIR with both `IF` and the
+  register table.
+  * **Memory write.** A `read_register` group writes the register bytes into linear memory at
+    `ptr + pos` (STORE's shape: consume the old byte at `mtp`, produce the new one at `ts`).
+  * **Binding.** Bus 211 ties each write group to a successful `read_register` HOST row; HOST'
+    carries an `rr = [hid = 49]` selector.
+  * **Forged register bytes.** Every register read must consume. This closes a hole in REG, where a
+    read row could forge register bytes.
+  * **Arity-0 gap closed.** The public result is 0 unless returned.
+  * **Result.** `d3tiny.run("hello")` (T2) proves with `value_return = 68656c6c6f`:
+    1,474,766 B, 268.2-bit, prove 18.1 s, verify 29 ms.
+  * **Mutants.** 136/136 rejected. One documented oracle gap is reported, not counted: a consistent
+    HOST + HOSTO `g_after` change (M6).
+  * **Lean** (`WasmBase/Main/RegMemLink.lean`, standard axioms): `read_register_run` (the spec's
+    post-state is `writeBytes s4 ptr d`), `heap_read_register`, `regw_write_msgs`,
+    `read_register_rows_heap`, `regw_pub_result`.
+  * **Named open.** The REG' group walk at index 27, and R16-backed `mtp < ts` (`regw_time_lt` is
+    the algebraic step).
+* **M1-b.** The key bytes of `storage_read/write/remove/has_key` and the value bytes of
+  `storage_write` are on HOSTB with the MEMIO link. The value group's wire id is `hid + 256`.
+* **M3.**
+  * **Tape.** `wasmbase-tape` records each Wasm call's host answers from the unmodified
+    `allFeatures` checker run: a link-time wrapper of the compiled call entry returns the real
+    result and replays the call from the checker's own context and trie-backed store.
+  * **Corpus.** Over d3c7–d3c10 (19,007 cases, 27,197 calls) every call the AIR covers equals the
+    chunk's outcome when traced with its own answers: status, burnt gas, logs and return value.
+    That is **3,414 / 3,414** calls, including all **1,755** `d3tiny` calls, T1 and T2. There are
+    0 differences and 0 trace failures.
+  * **T1 proof.** T1 (evicted `storage_write`, register-1 fill) proves with its chunk tape
+    (1,476,278 B).
+
+**Next (lane A):**
+* **M2.** `memory.grow`/`memory.size`, `call_indirect`, bulk memory, discarding branches. 23,317 of
+  the 27,197 corpus calls are outside `checkModuleIfH`: `d3rich.run/cb`, `e1fe4f9c`, `3b1ad423.run`,
+  `d3ed`.
+* **Re-instantiate the REG walk and R16 send bound at `wasmBaseIfRegAir`**, so that `mtp < ts` and the
+  group walk are theorems about `Holds` of the new AIR.
+* **Register refill.** A fill row never consumes, so overwriting a live register is refused by the
+  trace generator today. It needs a consume-on-refill row shape.
+* **Distinguish the storage key and value bytes in-circuit** when the state side consumes bus 210
+  (the `hid + 256` wire convention, M6).
+* **M6.** Replace HOSTO so the tape is bound inside the proof.
+
+The milestone-1 exit test (return bytes, logs and gas equal the chunk's outcome on T1 and T2, with
+mutants rejected) is met. The gas equality holds outside the proof (the tape) until M6. The
+`lake build WasmBase` breakage reported on 2026-10-31 was fixed on main (`6a1739cd7`), and the build
+is green with the new files.
 
 ### 5.1 M5a (state lane B): status, 2026-11-03
 
