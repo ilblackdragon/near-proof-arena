@@ -269,7 +269,10 @@ def constraints : List Expr :=
   -- `m − old + new` (`Kids.delAt` / `squashBranch`); the row checks `old ≤ m` (`dm = mem − om`,
   -- 8 bytes in `RNG`, no final borrow), so the exact chain `memNew` is the spec's value
   memChain (c "oDH" + c "oDL") (memLimbs T "dm") M [] ((List.range 4).map fun k => c "om" k)
-    (fun k => c "cyd" k)
+    (fun k => c "cyd" k) ++
+  -- M5a-5: a written branch value's length is `< 2^24` (as `SN`'s 3 length bytes), so its four
+  -- `RNG` bytes are the walk's `dvlen` without wrap-around (`2^32 > P`)
+  [c "oUV" * c "nvl" 3]
 
 def idO : Expr := K ID_BR + sm 2 (c "rid")
 def idN : Expr := K ID_BR + sm 2 (c "rid") + 1
