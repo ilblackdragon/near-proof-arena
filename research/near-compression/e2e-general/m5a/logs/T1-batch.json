@@ -1,0 +1,14 @@
+{
+ "now_msgs": 119,
+ "now_cells": 2820640,
+ "open_msgs": 40,
+ "open_cells": 789344,
+ "open_not_in_intake_msgs": 0,
+ "open_not_in_intake_cells": 0,
+ "fin_msgs": 36,
+ "fin_cells": 713184,
+ "batched_cells": 1502528,
+ "batched_reuse_cells": 713184,
+ "saving": 0.467,
+ "saving_reuse": 0.747
+}

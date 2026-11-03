@@ -376,7 +376,41 @@ exactly one leaf of the working set (`Merkle.write_access_sound`, collision-free
 over the witness trie (needs `del` refinement and the no-collision identification), and the
 SHA-512 chip's interface in Lean.
 
-**Not yet:** T2 (`d3c9/d3/00-h10018-s0`, 52 keys / 42 changes) needs absent finds at a leaf or
-extension, branch-value finds, `splitLeaf`/`splitExt` inserts, absent deletes, `extendChild` onto a
-branch, and keys > 64 nibbles per node. Next: those rows, batched FINAL (one rewrite per touched
-node), the field-level lemmas, then M5b (STATE rows produce the writes now on the public tape).
+**Second session (same day): T2 [M].** The menu now covers every spec case of T2
+(`d3c9/d3/00-h10018-s0`, 52 keys / 42 changes): absent finds and deletes at a leaf / extension
+(a mismatch witness: matching prefix, then another nibble with an inverse, or a key end), a find
+ending at a branch value, `splitLeaf`/`splitExt` upserts (new branch `BR.oSL`, `wrapExt` row,
+re-keyed extension), absent deletes (result kind `SAME`, root repeated on `TCH`), the delete whose
+child is a kept branch (`extendChild k (branch …)`), and node keys past one row's capacity
+(`SNC` continuation rows, 64 nibbles each; the 90-nibble key). Nibbles no key lookup covers are
+range-checked by a new 256-row `RNG` table. **T2 proves and verifies** on the main stack:
+1,533,468 B, 268.2-bit, verify 158 ms; post-state root `61f5330a…` = the Lean run's `stateRoot`.
+(Prove 4,392 s on 8 threads while the shared build slice was memory-throttled; T2 is 47.3 M cells,
+3.3× T1.) T1 still prechecks with the same rows. Mutants **12/12 rejected**: the four
+statement-level ones plus one tampered row per new row type (README, `logs/T2-mutants.txt`).
+
+**FINAL batching [M, model]:** hashing each touched node once in nearcore's order (which is the
+spec's: `upsert`/`del` never hash, `rootHash` hashes the final trie once) cuts FINAL's SHA-256 work
+by 46.7 % on T1 and 81.9 % on T2 (74.7 % / 89.4 % reusing INTAKE's digests of the pre-state nodes);
+on T2 that is ~12 M of 34.2 M used cells. Not yet in the AIR: it needs an offline-memory node store
+(timestamped `NODE(nid, t, record)` messages) in place of hash-addressed node versions (README,
+next steps).
+
+**Lean [K], second session:** `StepsT2` (one spec step per new row: absent finds/deletes from the
+mismatch witness `k[jm]? ≠ key[jm]?`, `br_findValue`, `ext_del_branch`, `leaf_split`, `ext_split`,
+`kids2_at`), `Layout.hpAt_chunk` (continuation rows' `hexPrefix` bytes); **field level from the
+tables' constraints** (`FieldRows`): `KCMP` order, `SN` mismatch, `BR` keep condition, and the
+16-bit memory chains as exact 64-bit equations; **walk composition** (`Walk`): chains of row steps
+(`FChain`/`UChain`/`DChain`, one constructor per row op) are `findRef`/`upsert`/`del`/`applyChange`
+on the rows' trie, and for finds and upserts the same answer / new root hash on any trie the rows'
+trie refines (`PTrie.upsert_refinedBy`); `refinedBy_of_hash` takes `Sha256CR` and `NodeSerInj` as
+named premises (no axioms). Open: `NodeSerInj` (decode ∘ encode of the node preimage), the
+refinement of the whole rows' trie along a chain, `del_refinedBy`, the `SN` key layout / `BR`
+children block / `SNC` / `WS*` at field level, and the bus-level step from `DOWN`/`UP` balance to the
+chain constructors. Std axioms only, no `sorry`; the Lean spec and checker are unchanged.
+
+**Boundary:** the state side carries `(RCH working-set root, TCH trie root, change index)`; it
+maps to §3.2's `stRoot` and will follow lane E's `CM` boundary record when §3.5 publishes it.
+
+**Next:** batched FINAL in the AIR, `NodeSerInj` and the chain refinement, then M5b (STATE rows
+produce the writes now on the public tape).
