@@ -503,9 +503,9 @@ See `research/near-compression/e2e-general/m1/README.md` for commands, logs and 
   1 KiB blocks: touched blocks produced at `t_in`, consumed and re-hashed at the end, old and new
   paths, root chain), HOST with the gas register `(S_seg, segb)`, and the native SHA-512 chip v4 on
   bus 103. **A 1,128,011-step call proved as 5 segments of 2^18 steps (≈ 2^20 trace rows each),
-  one verifying key, chained by hand** (`B_out(k) = B_in(k+1)`): SEGPROVE_SUMMARY. A corpus call
+  one verifying key, chained by hand** (`B_out(k) = B_in(k+1)`): 1.73–1.75 MB per segment proof, prove 596–823 s each (8 threads, shared host), verify 63–223 ms, 268.2-bit calculator. A corpus call
   with host calls and a register refill (`3b1ad423.run`) proves as 4 segments. **Tampers:**
-  SEGTAMPER_SUMMARY. **Boundary cost:** per touched block 18 leaf + 2·D path compressions (`D = 16`
+  54 / 54 rejected (forged public boundary fields, CUT/MEMB/MPATH/DROP/SEGB/gas-register cells) on two segments of the refill call; a Lean audit found two unsound range checks in the new tables (MEMB split, CUT padding length), both fixed. **Boundary cost:** per touched block 18 leaf + 2·D path compressions (`D = 16`
   for NEAR's 64 MiB initial memory: 50 compressions ≈ 0.53 M cells per written block); 59 % of a
   2^18-step segment's cells in the memory-heavy benchmark (fixed per cut).
 * **M4 [K]** (sub-lanes): `exec_of_rows_cut` (rows from an arbitrary related boundary to a cut or
@@ -513,13 +513,18 @@ See `research/near-compression/e2e-general/m1/README.md` for commands, logs and 
   E's call machine), `RelW.relabel`/`Bnd.relabel`, `cutView` + `cutDigest_binds`, MEMB/CUT/DROP row
   lemmas, `mpath_block` + `rch_chain`. A Lean counterexample (`memb_split_counterexample`) found an
   unsound MEMB split check, fixed in the AIR. Open: `cutView` = the relabelled live list (needs
-  `RelW` register clause, spaces 1/7–15, `fns` Nodup, field bounds), the MEMB→MPATH LEAF link, a
-  Lean model of the SHA-512 chip, lane E's `wasmD` instance (this AIR has one `ctxDigest`).
+  `RelW` register clause, spaces 1/7–15, `fns` Nodup, field bounds), leaf = SHA-384 of the
+  block bytes, a Lean model of the SHA-512 chip, lane E's `wasmD` instance (this AIR has one
+  `ctxDigest`). Done besides: `leaf_link`, `seg_hsend_r16`, touched blocks distinct, an R16 audit
+  of every AIR (`R16Audit.lean`).
 * **M2 gaps [K].** R16 send bound for `wasmBaseIfRegAir`/`wasmBaseM2Air` (`m2_hsend_r16`), so the
   REG walk and `mtp < ts` are theorems about `Holds` (`m2_regw_mtp_lt_ts`, with `ts, mtp < 2^29`
   explicit). `Ctx` split (`ModFacts`; `M2Ctx.toCtx`), successor facts derived from `checkModuleM2`,
-  `RowFacts2` for CONV/UNREACH (`conv_rowfacts_m2`, `unreach_rowfacts_m2`). Not yet: the 30-table
-  dispatch and `wasm_base_sound_m2` (steps listed in the m2 README).
+  base row lemmas on constraints only (`HoldsC`) and for every `Ctx` (the `else` arm in CTRL),
+  `m2_hsend_fetch`, and **`m2_rowfacts`**: `RowFacts2` for every active non-HOST instruction row
+  of a `wasmBaseM2Air` trace (tables 1–14, IF 26, CONV 28, UNREACH 29) from `Holds`, `M2Ctx`,
+  `PubOK`, `CodeOK`, `FuncOK`. Not yet: the STATE/CH bus split over the M2 tables (REG-C's space-6
+  messages need a `RegCLinked`-style link), then `wasm_base_sound_m2` with `HoldRow`/HOSTO named.
 * **Absent-register header [M][K]** (`wasmBaseM2rAir`): `RINIT` + REG-A force a clear before a
   refill; the double fill verifies at `wasmBaseM2Air` and is rejected at `wasmBaseM2rAir`
   (25/25 tampers). Open: the bus-level one-header-per-register count.

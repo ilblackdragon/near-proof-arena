@@ -1,4 +1,4 @@
-# E2E lane A (Wasm), 2026-11-03: M1-a, M1-b, M3, M2 corpus coverage
+# E2E lane A (Wasm), 2026-11-03: M1-a, M1-b, M3, M2 corpus coverage, M4 segment cuts
 
 Plan: `docs/zk-formal/E2E-GENERAL-CHUNK-PLAN.md` §5 (owner adopted D-1..D-7 the same day).
 Details and logs:
@@ -107,3 +107,71 @@ No Lean spec, checker or signed file changed. `make pin-check` ok.
 * Force a clear before every refill (absent-register messages) before M6 binds fill bytes.
 * M4 (segment cuts): not started this session.
 * M6: replace HOSTO.
+
+## Third session: M4 segment cuts, M2 gaps, coverage
+
+Details: `research/near-compression/e2e-general/m4/README.md`; m2 README sections "Update: R16
+send bound", "Update: M2 soundness", "Update: absent-register header", "Update: coverage chips".
+Lean work by four sub-lanes (worktree branches), cherry-picked onto the lane branch.
+
+### M4 (priority 1)
+
+* **AIR** `wasmBaseSegAir` (`WasmBase/SegAir.lean`): M2's chips unchanged at their indices, plus
+  SEGB (boundary STATE + gas register from public values), CUTI/CUTO (SHA-384 `ctxDigest` of the
+  sorted live non-memory channel messages, ids relabelled to depths via the CIDMAP lookup), DROP
+  (dead locals of tombstoned activations; RET sends the tombstone), MEMB/MPATH (SHA-384 Merkle
+  `memRoot` over 1 KiB blocks, old and new paths, root chain), HOST with the gas register, and the
+  native SHA-512 chip v4 (copied from `native/sha384-air4` via M5a's prover) on bus 103.
+* **Prover** (`native/wasm-base`: `seg.rs`, `segcmd.rs`, `tracegen::generate_cuts`):
+  `segcheck`/`segprove`/`segtamper`. The call is traced once; at each cut the generator snapshots
+  the machine, resets every live message's time to the cut and relabels ids to depths.
+* **Result [M]:** `segbench(24000)` (1,128,011 steps; stores/loads over 32 blocks, a global, calls
+  of depth 2) as 5 segments of 2^18 steps (≈ 2^20 trace rows each), one key, chained by hand:
+  1.73–1.75 MB per proof, prove 596–823 s each (8 threads), verify 63–223 ms, 268.2-bit. The corpus
+  call `3b1ad423.run` (host calls, register refill) as 4 segments: 1.33–1.35 MB, ~60 s each.
+* **Boundary cost [M]:** a written 1 KiB block costs 18 leaf + 32 path compressions (`D = 16`:
+  NEAR prepares 1,024 initial pages), ≈ 0.53 M chip cells; 59 % of a 2^18-step segment in the
+  benchmark. Levers listed in the README.
+* **Tampers [M]:** 54 / 54 rejected on two segments of the refill call (forged public boundary
+  fields; CUT/MEMB/MPATH/DROP/SEGB/gas-register cells).
+* **Two AIR soundness bugs found by the Lean sub-lanes and fixed:** MEMB's split values (`r16(8192·s5)`
+  admits `s5 = 245761`, `memb_split_counterexample`; fixed with a BYTE pair lookup) and CUT's padding
+  length limb (`gl_padding_counterexample`; fixed with `r16 gl`). The five benchmark proofs ran
+  before the `gl` fix; on the final AIR the benchmark re-pre-checks and chains, the refill call's 4
+  segments and the benchmark's last segment re-prove (`m4/recheck.sh`).
+* **Lean [K]:** `exec_of_rows_cut`, `cuts_foldSegments`/`cuts_halt`/`cuts_csteps`/`cuts_cden`,
+  `RelW.relabel`/`Bnd.relabel` (`SegCut`); MEMB/CUT/DROP lemmas, `cutView`, `cutDigest_binds`
+  (`SegRows`); `mpath_block`, `rch_chain` (`SegMpath`); `leaf_link`, MEMB block walk and byte
+  messages (`SegMemb`); `seg_hsend_r16` and distinct touched blocks (`SegSend`); `R16Audit`.
+  Open: `cutView` = relabelled live list (four `RelW` facts missing), leaf = SHA-384 of the bytes,
+  a Lean SHA-512 chip model, the composed segment-soundness theorem, lane E's `wasmD`.
+
+### M2 gaps (priority 2)
+
+* R16 send bound `m2_hsend_r16` (and for IfReg); REG walk and `mtp < ts` unconditional.
+* `Ctx` split (`ModFacts`, `M2Ctx.toCtx`); base row lemmas on constraints only and for every `Ctx`;
+  `m2_hsend_fetch`; `m2_rowfacts` (every non-HOST instruction row of a `wasmBaseM2Air` trace).
+  Open: the STATE/CH bus split over the M2 tables, then `wasm_base_sound_m2`.
+* Absent-register header `wasmBaseM2rAir` (RINIT + REG-A): the double fill verifies at
+  `wasmBaseM2Air` and is rejected here; 25 / 25 tampers; row lemmas. Open: the bus-level count.
+
+### Coverage (priority 3)
+
+* `wasmBaseM3Air`: i32 host tags (HOST-W), `memory.grow`/`memory.size` (size message MEMG/MSZ,
+  grown bytes GINIT), `checkModuleM3`. **555 / 813** M2 remainder calls now equal (0 different),
+  25 / 25 tampers. Remainder 258, all pre-existing generator limits: 129 stack-budget traps, 91
+  addresses `≥ 2^27`, 38 out-of-gas at an instruction. The full sweep was not rerun (only the
+  798 cases holding the remainder).
+
+### Builds
+
+`wasm-base-lean` `lake build WasmBase wasmbase-tool` green (393 jobs; standard axioms, no
+`sorry`); prover release build green; `make pin-check` ok; no file under `spec/` changed (checker
+sha256 `644495ff…` untouched). Heavy jobs in `systemd-run --user --scope` with `MemoryMax ≤ 24G`,
+`taskset` ≤ 8 CPUs; sub-lanes 12 G / 6 CPUs.
+
+### Next
+
+* Compose segment soundness (the `cutView` equality, leaf = SHA-384 of bytes), lane E's `wasmD`.
+* Boundary cost levers; segments with `memory.grow`.
+* M2 bus split and `wasm_base_sound_m2`; the generator limits; M6 (replace HOSTO).

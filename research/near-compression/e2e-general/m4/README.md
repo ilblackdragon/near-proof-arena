@@ -9,7 +9,7 @@ only, no `sorry`), **[S]** stated / design only.
 A **1,128,011-step** Wasm call is proved as **5 segments of 2^18 steps** (each segment trace about
 2^20 rows in total: 574,656 rows of Wasm and boundary tables + 262,144 SHA-512 chip rows),
 chained by hand: each segment proof verifies against its own public boundary, and
-`B_out(k) = B_in(k+1)` for every `k` [M]. Forged boundaries are rejected (§5). The boundary cost
+`B_out(k) = B_in(k+1)` for every `k` [M]. Forged boundaries are rejected: 54 / 54 tampers (§5). The boundary cost
 is measured (§4).
 
 Exit test from the plan: "a 10^6-step call proved as 2^20-row segments chained by hand; a forged
@@ -75,7 +75,21 @@ calculator, 8 threads, `MemoryMax=24G` scope, shared host. Logs: `logs/`.
 
 **`segbench(24000)`, 1,128,011 steps, 2^18 steps per segment** (`n_stack 22`, one key):
 
-SEGPROVE_TABLE
+| segment | steps | boundary msgs in/out | blocks (ro) | dead locals / tombs | compressions | cells (total) | proof | prove | verify |
+|---|---|---|---|---|---|---|---|---|---|
+| 0 | 262,144 | 4 / 11 | 32 (0) | 22,308 / 11,154 | 1,610 | 38.86 M | 1,738,471 B | 822.8 s | 63 ms |
+| 1 | 262,144 | 11 / 4 | 32 (0) | 22,312 / 11,156 | 1,610 | 38.86 M | 1,737,085 B | 609.0 s | 208 ms |
+| 2 | 262,144 | 4 / 9 | 32 (0) | 22,308 / 11,154 | 1,609 | 38.86 M | 1,746,535 B | 596.1 s | 63 ms |
+| 3 | 262,144 | 9 / 8 | 32 (0) | 22,312 / 11,156 | 1,611 | 38.86 M | 1,734,061 B | 712.9 s | 65 ms |
+| 4 (returns) | 79,435 | 8 / 5 | 32 (0) | 6,760 / 3,380 | 1,609 | 27.39 M | 1,733,109 B | 748.1 s | 223 ms |
+
+Total prove 3,489 s (8 threads, shared host, load from sibling lanes), peak RSS 19.8 GB; one
+verifying key (`n_stack 22`), every statement check ok, `B_out(k) = B_in(k+1)` for all k.
+Pre-check (every constraint on every row, every bus incl. the chip interface) 0.9–4.2 s per
+segment. These five proofs ran on the AIR before the last fix (`r16 gl`, §5); on the final AIR the
+whole benchmark re-pre-checks and chains (`logs/final-segcheck-bench.log`), the refill call's 4
+segments re-prove (`logs/final-segprove-refill.log`) and the benchmark's last segment re-proves
+(`recheck.sh`).
 
 Per segment (seg 1, 262,144 steps): instruction + lookup tables 16.02 M cells; boundary tables
 1.08 M cells (`MEMB` 286 k, `MPATH` 77 k, `DROP` 721 k (22,312 dead locals + 11,156 tombstones),
@@ -101,7 +115,23 @@ segment carries 40 boundary messages (registers) [M].
 tombstones). Each case is re-proved; it counts as rejected if the prover fails, the verifier fails,
 or the statement check (the public boundary the chain requires) fails.
 
-SEGTAMPER_TABLE
+| case (each on segment 0 and segment 2 of the refill call) | rejected by |
+|---|---|
+| public boundary +1, honest rows: `ctx_out`, `ctx_in` limb | verifier (the CUT digest constraint reads the public value) |
+| `mem_out`, `mem_in` limb | prover (RCH bus 16 unbalanced) |
+| `pc_out`, `S_out`, `t_out`, `halted`, `cid_in`, `sb_in` | prover (STATE bus 0) |
+| `segb_out` limb | prover (gas register, CH space 7) |
+| CUTI message value +1 (digest kept) | prover (CH + SHA interface) |
+| CUTO hashed value +1; message not consumed (`act = 0`); local relabelled to another depth | prover (CH/R16/IF; row constraints) |
+| DROP a local of another activation (`c + 1`); tomb multiplicity +1 (seg 2) | prover (bus 13 / CH) |
+| MEMB in-byte, out-byte, out-tp, `blk` +1; read-only flag flipped | prover (CH, BYTE, IF; row constraints) |
+| MPATH sibling limb, direction bit, `ri`, `rt` | prover (IF) or verifier |
+| SEGB final `cid` +1; HOST gas-register limb +1 | prover (STATE + CIDMAP; CH space 7) |
+
+**Segment 0: 26 / 26 rejected; segment 2: 28 / 28 rejected; 0 accepted** (`logs/segtamper-refill-s*.log`).
+The honest segment verifies in both runs. A self-consistent forged in-boundary (rows re-generated
+from a forged state) would verify on its own and is rejected by the chain check
+`B_out(k) = B_in(k+1)` (the digest differs unless SHA-384 collides).
 
 ## 6. Lean [K]
 
@@ -123,6 +153,16 @@ SEGTAMPER_TABLE
   old leaf under the siblings, new root of the new leaf, `ro → rt = ri`, `blk = Σ bit·2^l`), `mp_kb`,
   `rch_chain` (bus level: `memIn` → … → `memOut`, `nbt` = #blocks). The SHA-512 compression is a
   hypothesis on the limbs MPATH sends (no Lean model of the native chip).
+* `WasmBase/Main/SegMemb.lean` (sub-lane): `leaf_link` (every MPATH bottom row's
+  `[blk, ro, old, new]` is a MEMB padding row's, bus 15), `regAt_seg` (the REG walk on segment
+  traces), the MEMB block walk (`memb_pos`, `memb_blk_const`), `memb_byte_msg` (each data row
+  produces exactly `[3, 1024·blk + 128·k + i, 0, b_i, 0,0,0, t_in]`), `memb_addr_inj`.
+* `WasmBase/Main/SegSend.lean` (sub-lane): `seg_hsend_r16` (R16 send bound of `wasmBaseSegAir`
+  from `Holds` alone), hence `memb_blk_strict_of_holds` / `memb_blk_distinct_of_holds` (touched
+  blocks strictly increasing, distinct).
+* `WasmBase/Main/R16Audit.lean` (sub-lane): every scaled range check `r16(2^k·x)` of every AIR
+  classified sound (exact / combined / time check / sign split, with lemmas) or not: the CUT
+  padding length limb `gl` was not (`gl_padding_counterexample`), fixed by `r16 gl`.
 
 ## 7. Open
 
@@ -130,7 +170,9 @@ SEGTAMPER_TABLE
    (space 6 ↔ `Register.view`), (b) a rule for spaces 1, 7–15 (space 7, the gas register, must be
    split off), (c) `X.M.fns` Nodup (caller index), (d) the `< 2^30` field bounds. Then the segment
    soundness statement is `exec_of_rows_cut` + `Bnd.relabel` + `cutDigest_binds` + `rch_chain` +
-   MEMB/LEAF (the LEAF link and MEMB's block order/distinctness are not yet lemmas).
+   `leaf_link` + `memb_blk_distinct_of_holds` + `memb_byte_msg`; what is missing besides `cutView` is
+   the leaf = SHA-384 of the block's bytes (via `dataW_eq_wl`, modulo the chip hypothesis) and the
+   composition itself.
 2. **Lean model of the SHA-512 chip** (the compression hypothesis of `SegMpath`, and of the CUT and
    MEMB streams).
 3. **Lane E's `WasmBnd`** has separate frames/globals/registers digests; this AIR has one
