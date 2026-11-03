@@ -1,3 +1,4 @@
+import StateM5a.KcChain
 import StateM5a.KeyLookups
 import StateM5a.Tape
 import StateM5a.DepthBound
@@ -433,3 +434,7 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.WsKey.wsl_keys
 #print axioms StateM5a.WsKey.ws_decoded_final3
 #print axioms StateM5a.WsKey.open_eq_close
+#print axioms StateM5a.KcChain.snc_c_range
+#print axioms StateM5a.KcChain.snc_tot
+#print axioms StateM5a.KcChain.sncDeeper
+#print axioms StateM5a.KcChain.air_final'
