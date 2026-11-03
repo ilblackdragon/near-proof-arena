@@ -1,4 +1,4 @@
-import StateM5a.Refine
+import StateM5a.Keep
 
 /-!
 # StateM5a.Store — batched FINAL: the version store replaces the hash link
@@ -396,7 +396,12 @@ theorem del_step (k : Bytes) :
     refine ⟨T', ?_, ho⟩
     simp [stepOf, applyChange, hd]
 
-/-- Applied changes keep the witness revealed and well-formed (a spec property; premise). -/
+/-- Applied changes keep the witness revealed and well-formed (a spec property; premise of the
+original `batched_changes`).  **False as stated** (`wf` bounds a written value's length, every
+recomputed memory usage and every merged key; see `StateM5a.Keep`): kept for the code built on
+`batched_changes`.  The provable replacement is `keepsFWRows` (revealed: unconditionally,
+`full_applyChange`; well-formed: where the rows' new trie is, `Keep.applyChange_wf_of_rows`), and
+`batched_changes'` needs no such premise. -/
 def KeepsFW : Prop :=
   ∀ (T T' : PTrie) (k : Bytes) (v : Option Bytes), Full T ∧ T.wf = true →
     applyChange (some T) k v = some (some T') → Full T' ∧ T'.wf = true
@@ -439,5 +444,171 @@ theorem batched_changes (hCR : Sha256CR) (hKeep : KeepsFW) :
         simp only [List.getElem_cons_succ] at this
         exact this) post (by simpa using hn)
     exact ⟨T'', by simp [applyChanges, hA, h2], h3⟩
+
+/-! ## `KeepsFW`, weakened and proved -/
+
+/-- **`KeepsFW` is false**: writing a `2^32`-byte value into a well-formed revealed leaf gives a
+leaf whose slot breaks `slotOk`. -/
+theorem not_keepsFW : ¬ KeepsFW := by
+  intro h
+  obtain ⟨x, hx⟩ : ∃ x : Bytes, x.length = 4294967296 := ⟨List.replicate _ 0, List.length_replicate⟩
+  have := h (.leaf [] (.val []) 100) (newLeaf [] x) [] (some x) ⟨trivial, by decide⟩
+    (by simp [applyChange, nibbles, PTrie.upsert])
+  simp [newLeaf, PTrie.wf, slotOk, hx] at this
+
+section Keep
+open StateM5a.Keep
+
+mutual
+theorem full_rp : ∀ t : PTrie, Full t → RP NoP t t
+  | .hash _, h => h.elim
+  | .leaf k s m, _ => rp_leaf k s m
+  | .ext k c m, h => by
+    simp only [Full] at h
+    simp only [RP, true_and]; exact full_rp c h
+  | .branch v cs m, h => by
+    simp only [Full] at h
+    simp only [RP, true_and]
+    refine ⟨?_, kfull_rp cs h⟩
+    cases v <;> simp [OptSlotRefines, SlotRefines]
+theorem kfull_rp : ∀ cs : Kids, KFull cs → KRP NoP cs cs
+  | .nil, _ => by simp [KRP]
+  | .none r, h => by simp only [KFull] at h; simp only [KRP]; exact kfull_rp r h
+  | .some c r, h => by
+    simp only [KFull] at h; simp only [KRP]; exact ⟨full_rp c h.1, kfull_rp r h.2⟩
+end
+
+mutual
+theorem rp_full : ∀ a b : PTrie, RP NoP a b → Full b
+  | .hash _, _, h => h.elim
+  | .leaf .., b, h => by
+    cases b <;> simp only [RP] at h
+    simp [Full]
+  | .ext k c m, b, h => by
+    cases b <;> simp only [RP] at h
+    rename_i k' c' m'
+    simp only [Full]; exact rp_full c c' h.2.2
+  | .branch v cs m, b, h => by
+    cases b <;> simp only [RP] at h
+    rename_i v' cs' m'
+    simp only [Full]; exact krp_full cs cs' h.2.2
+theorem krp_full : ∀ a b : Kids, KRP NoP a b → KFull b
+  | .nil, b, h => by cases b <;> simp only [KRP] at h; simp [KFull]
+  | .none r, b, h => by
+    cases b <;> simp only [KRP] at h
+    rename_i r'
+    simp only [KFull]; exact krp_full r r' h
+  | .some c r, b, h => by
+    cases b <;> simp only [KRP] at h
+    rename_i c' r'
+    simp only [KFull]; exact ⟨rp_full c c' h.1, krp_full r r' h.2⟩
+end
+
+/-- **Upsert keeps the trie revealed** (no premise). -/
+theorem full_upsert {T T' : PTrie} {key : List Nat} {x : Bytes} (hF : Full T)
+    (h : T.upsert key x = some T') : Full T' := by
+  obtain ⟨T'', h2, hr⟩ := upsert_rp T T key x T' (full_rp T hF) h
+  rw [h] at h2; cases h2
+  exact rp_full _ _ hr
+
+/-- **Delete keeps the trie revealed** (no premise). -/
+theorem full_del {T T' : PTrie} {key : List Nat} {b : Bool} (hF : Full T)
+    (h : T.del key = some (b, some T')) : Full T' := by
+  obtain ⟨r₂, h2, -, ho⟩ := del_rp T T key _ (full_rp T hF) h
+  rw [h] at h2; cases h2
+  exact rp_full _ _ ho
+
+/-- **A committed change keeps the trie revealed** (no premise). -/
+theorem full_applyChange {T T' : PTrie} {k : Bytes} {v : Option Bytes} (hF : Full T)
+    (h : applyChange (some T) k v = some (some T')) : Full T' := by
+  cases v with
+  | some x =>
+    simp only [applyChange, Option.map_eq_some_iff, Option.some.injEq] at h
+    obtain ⟨a, ha, rfl⟩ := h
+    exact full_upsert hF ha
+  | none =>
+    simp only [applyChange, Option.map_eq_some_iff] at h
+    obtain ⟨⟨b, o⟩, ha, ho⟩ := h
+    simp only at ho; subst ho
+    exact full_del hF ha
+
+/-- **`KeepsFW`, weakened to what holds.**  A committed change on a revealed, well-formed witness
+`T` keeps it revealed (unconditionally) and well-formed provided the rows' new trie is
+well-formed: `t₁` (the rows' revealed trie, refining `T`) takes the same change to `t₁'`, and
+`t₁'.wf` — a fact about the rows: each rewritten node's memory is 8 range-checked bytes
+(`< 2^64`), its key nibbles `< 16` and its hex-prefix length bounded, a written value's length 4
+range-checked bytes (`< 2^32`) — gives `T'.wf`. -/
+def KeepsFWRows : Prop :=
+  ∀ (T T' t₁ t₁' : PTrie) (k : Bytes) (v : Option Bytes), Full T ∧ T.wf = true → t₁.refinedBy T →
+    applyChange (some t₁) k v = some (some t₁') → t₁'.wf = true →
+    applyChange (some T) k v = some (some T') → Full T' ∧ T'.wf = true
+
+theorem keepsFWRows : KeepsFWRows := fun _ _ _ _ _ _ hF hr h hw' hT =>
+  ⟨full_applyChange hF.1 hT, applyChange_wf_of_rows hr hF.2 h hT hw'⟩
+
+/-- One committed change's rows, with the rows' bound facts: as `ChangeRows`, and the rows'
+new trie `t₁'` is well-formed (`t₁'.wf`: range-checked memory limbs, nibbles, key and value
+lengths of the rewritten nodes; the other nodes are revealed pre-state nodes, `wf` by `Rv`). -/
+def ChangeRowsW (P P' : PTrie) (k : Bytes) : Option Bytes → Prop
+  | some x => ∃ t₁ t₁', Rv (.inl P) (.inl t₁) ∧ UChain t₁ (nibbles k) x t₁' ∧
+      Rv (.inl P') (.inl t₁') ∧ t₁'.wf = true
+  | none => ∃ t₁ t₁' b, Rv (.inl P) (.inl t₁) ∧ DChain t₁ (nibbles k) (b, some t₁') ∧
+      Rv (.inl P') (.inl t₁') ∧ t₁'.wf = true
+
+/-- `ChangeRowsW` forgets to `ChangeRows`. -/
+theorem ChangeRowsW.rows {P P' : PTrie} {k : Bytes} {v : Option Bytes} (h : ChangeRowsW P P' k v) :
+    ChangeRows P P' k v := by
+  cases v with
+  | some x => obtain ⟨t₁, t₁', a, b, c, -⟩ := h; exact ⟨t₁, t₁', a, b, c⟩
+  | none => obtain ⟨t₁, t₁', bb, a, b, c, -⟩ := h; exact ⟨t₁, t₁', bb, a, b, c⟩
+
+/-- **One change with its rows' bounds**: the spec's step succeeds on the witness, its result
+is refined by the output expansion, and stays revealed and well-formed. -/
+theorem change_keep (hCR : Sha256CR) {P P' T : PTrie} {k : Bytes} {v : Option Bytes}
+    (hPT : P.refinedBy T) (hF : Full T ∧ T.wf = true) (hrows : ChangeRowsW P P' k v) :
+    ∃ T', applyChange (some T) k v = some (some T') ∧ P'.refinedBy T' ∧ Full T' ∧ T'.wf = true := by
+  cases v with
+  | some x =>
+    obtain ⟨t₁, t₁', hr, hc, hr', hw'⟩ := hrows
+    have h1 := rv_refinedBy hCR StateM5a.SerInj.nodeSerInj hr (.inl T) hPT hF
+    obtain ⟨T', hT', h2⟩ := upsert_step (nibbles k) x t₁ t₁' T hc h1
+    have hA : applyChange (some T) k (some x) = some (some T') := by simp [applyChange, hT']
+    exact ⟨T', hA, rv_collapse hr' (.inl T') h2,
+      keepsFWRows T T' t₁ t₁' k (some x) hF h1 (change_upsert hc) hw' hA⟩
+  | none =>
+    obtain ⟨t₁, t₁', b, hr, hc, hr', hw'⟩ := hrows
+    have h1 := rv_refinedBy hCR StateM5a.SerInj.nodeSerInj hr (.inl T) hPT hF
+    obtain ⟨T', hT', h2⟩ := del_step k t₁ t₁' T ⟨b, hc⟩ h1
+    have hA := stepOf_some hT'
+    exact ⟨T', hA, rv_collapse hr' (.inl T') h2,
+      keepsFWRows T T' t₁ t₁' k none hF h1 (change_del hc) hw' hA⟩
+
+/-- **Batched FINAL, every change, with provable premises.**  As `batched_changes`, with the
+false spec premise `KeepsFW` replaced by the rows' bound facts (`ChangeRowsW`: each change's
+rows leave a well-formed trie).  Premises: `Sha256CR` (a named hypothesis) and facts about the
+rows only. -/
+theorem batched_changes' (hCR : Sha256CR) :
+    ∀ (cs : List (Bytes × Option Bytes)) (P : Nat → PTrie) (T : PTrie),
+      (P 0).refinedBy T → Full T ∧ T.wf = true →
+      (∀ j (hj : j < cs.length), ChangeRowsW (P j) (P (j + 1)) (cs[j]).1 (cs[j]).2) →
+      ∀ post, P cs.length = .hash post →
+      ∃ T', applyChanges (some T) cs = some (some T') ∧ rootHash (some T') = post
+  | [], P, T, h0, _, _, post, hn => by
+    refine ⟨T, rfl, ?_⟩
+    simp only [List.length_nil] at hn
+    rw [hn] at h0
+    simpa [PTrie.refinedBy, rootHash] using h0.symm
+  | (k, v) :: rest, P, T, h0, hF, hrows, post, hn => by
+    have hr0 := hrows 0 (by simp)
+    simp only [List.getElem_cons_zero] at hr0
+    obtain ⟨T₁, hA, h1, hF₁⟩ := change_keep hCR h0 hF hr0
+    obtain ⟨T'', h2, h3⟩ := batched_changes' hCR rest (fun j => P (j + 1)) T₁ h1 hF₁
+      (fun j hj => by
+        have := hrows (j + 1) (by simp; omega)
+        simp only [List.getElem_cons_succ] at this
+        exact this) post (by simpa using hn)
+    exact ⟨T'', by simp [applyChanges, hA, h2], h3⟩
+
+end Keep
 
 end StateM5a.Store
