@@ -12,11 +12,17 @@ HEAVY="env HEAVY_MEM=${HEAVY_MEM:-32G} RAYON_NUM_THREADS=${RAYON_NUM_THREADS:-8}
 LEAN_CHECK=${LEAN_CHECK:-/data/illia/nearproof/spec/lean/v3/.lake/build/bin/nearspec-v3-check-successor}
 mkdir -p "$OUT"
 # 1. the Lean allFeatures run's write log, and the clean-room checker's access set (cross-checked)
-[ -f "$OUT/lean-full.json" ] || "$LEAN_CHECK" --tier allFeatures --emit-full "$CASE" > "$OUT/lean-full.json"
+#    (a synthetic case: write `synth.py NAME OUT_DIR/state.json` first; CASE_DIR is then unused)
+[ -f "$OUT/state.json" ] || [ -f "$OUT/lean-full.json" ] || "$LEAN_CHECK" --tier allFeatures --emit-full "$CASE" > "$OUT/lean-full.json"
 [ -f "$OUT/state.json" ] || python3 "$HERE/extract_state.py" "$CASE" "$OUT/lean-full.json" "$OUT/state.json"
 # 2. the AIR, exported from Lean
 ( cd "$HERE/lean" && lake build m5a-tool >/dev/null )
 "$HERE/lean/.lake/build/bin/m5a-tool" air "$D" "$OUT/m5a.json" "$OUT/names.json" > "$OUT/air.txt"
+# 2b. the spec oracle: the Lean spec's applyChanges on the revealed pre-state reaches the claimed root
+WANT=$(python3 -c "import json,sys; print(json.load(open(sys.argv[1]))['post_root'])" "$OUT/state.json")
+GOT=$("$HERE/lean/.lake/build/bin/m5a-tool" apply "$OUT/state.json")
+[ "$GOT" = "$WANT" ] || { echo "spec oracle: $GOT != $WANT"; exit 1; }
+echo "spec oracle: post-state root $GOT (Lean applyChanges)"
 # 3. prover
 ( cd "$HERE/prover" && CARGO_TARGET_DIR=$DEPS/target nice -n 10 $HEAVY cargo build --release --offline -j 8 2>/dev/null )
 BIN=$DEPS/target/release/nearproof-e2e-m5a

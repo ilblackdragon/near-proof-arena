@@ -35,6 +35,9 @@ Batched-FINAL mutants (M5a-2: in-memory node versions on `VER`):
   vmcount   a pre-state node's hashing row publishes it for one reader more than read it
   finroot   the last change leaves the root in memory (a version id) instead of hashing it
   nidforge  a version published under another row's version id
+Branch-value mutants (synthetic case `bval`):
+  bvalue    a branch-value write (`oUV`) storing another value-hash byte than the walk's value
+  bvmem     a branch-value delete (`oDV`) with memory usage + 1
 """
 import hashlib
 import json
@@ -54,7 +57,7 @@ RK_ANS, RK_H, RK_HB, RK_HE, RK_LD, RK_NONE, RK_SAME = 0, 1, 2, 3, 4, 5, 6
 KMAX, HPMAX = 64, 33
 VBITS = 7
 # ops that read a node version and leave it in place (`del` returned `deleted = false`)
-SAME_OPS = {'BR.oDA', 'BR.oDS', 'SN.oLZ', 'SN.oEZ', 'SN.oES'}
+SAME_OPS = {'BR.oDA', 'BR.oDS', 'BR.oDZ', 'SN.oLZ', 'SN.oEZ', 'SN.oES'}
 
 
 class Unsupported(Exception):
@@ -247,6 +250,8 @@ class Gen:
         vmn = 0 if self.plan is None else self.plan['vmn'].get(k, 0)
         if self.is_vid(k):
             ref = (1, [self.nid(tbl, rid)] + [0] * 31)
+            for x in le(node[3], 8):     # an unhashed node's memory bytes are range-checked
+                self.rng(x)
         else:
             # a final node's children must be final (digests)
             kids = node[2] if node[0] == 'branch' else ([node[2]] if node[0] == 'ext' else [])
@@ -269,7 +274,7 @@ class Gen:
         row that hashes each pre-state node (its first reader)."""
         ops = {}
         for tbl, opl in (('BR', ['oFD', 'oFA', 'oUD', 'oUN', 'oDH', 'oDL', 'oDN', 'oD1', 'oFV', 'oDA',
-                                 'oDS', 'oSL']),
+                                 'oDS', 'oSL', 'oUV', 'oDV', 'oDZ']),
                          ('SN', ['oLF', 'oLR', 'oLD', 'oLS', 'oLM', 'oEF', 'oEU', 'oED', 'oLA', 'oEA',
                                  'oLZ', 'oEZ', 'oES', 'oEB', 'oLX', 'oEX', 'oEP', 'oEM'])):
             T = self.T[tbl]
@@ -312,7 +317,7 @@ class Gen:
         T.set(r, 'dvlen', ctx['vlen'])
         T.setv(r, 'dvh', pack2(ctx['vh']))
         n = None
-        if op != 'oFV':
+        if op not in ('oFV', 'oUV', 'oDV', 'oDZ'):
             n = self.nib(ctx['kid'], d)
             T.set(r, 'sel', 1, n)
         if node is not None:
@@ -337,11 +342,16 @@ class Gen:
 
     def br_gates(self, T, r, op):
         T.set(r, 'gdn', int(op in ('oFD', 'oUD', 'oDH', 'oDL', 'oDN', 'oD1', 'oDS')))
-        T.set(r, 'gnew', int(op in ('oUD', 'oUN', 'oDH', 'oDL', 'oDN', 'oSL')))
+        T.set(r, 'gnew', int(op in ('oUD', 'oUN', 'oDH', 'oDL', 'oDN', 'oSL', 'oUV', 'oDV')))
 
-    def br_new(self, T, r, rid, node, new_node, nh, nm, om, op, nm2=0):
-        """Fill the rewritten branch: flags, new child ref/mem, memory chain, its ref."""
+    def br_new(self, T, r, rid, node, new_node, nh, nm, om, op, nm2=0, vplus=0, vminus=0):
+        """Fill the rewritten branch: flags, new child ref/mem, value, memory chain, its ref.
+        `vplus` / `vminus`: `valueMem` of a written / removed branch value (`oUV`, `oDV`)."""
         _, v2, kids2, m2 = new_node
+        T.set(r, 'nhv', int(v2 is not None))
+        if v2 is not None:
+            T.setv(r, 'nvl', le(v2[0], 4))
+            T.setv(r, 'nvh', list(v2[1]))
         for i in range(16):
             T.set(r, 'nf', 1 if kids2[i] is not None else 0, i)
         if nh is not None:
@@ -352,11 +362,13 @@ class Gen:
         if node is None:
             base = 50
         else:
-            assert v2 == node[1]
+            assert v2 == node[1] or op in ('oUV', 'oDV')
             base = node[3]
-        assert m2 == base + nm + nm2 - om, (m2, base, nm, nm2, om)
-        self.carries(T, r, [mem_limbs(base)[k] + mem_limbs(nm)[k] + mem_limbs(nm2)[k] for k in range(4)],
-                     mem_limbs(om), mem_limbs(m2), 'cy', (-1, 0, 1, 2))
+        assert m2 == base + nm + nm2 + vplus - om - vminus, (m2, base, nm, nm2, om, vplus, vminus)
+        vl = lambda x: [(x - 50) % 65536 + 50, (x - 50) >> 16, 0, 0] if x else [0] * 4
+        self.carries(T, r, [mem_limbs(base)[k] + mem_limbs(nm)[k] + mem_limbs(nm2)[k] + vl(vplus)[k]
+                            for k in range(4)],
+                     [mem_limbs(om)[k] + vl(vminus)[k] for k in range(4)], mem_limbs(m2), 'cy', (-1, 0, 1, 2))
         hn = self.new_ref(T, r, 'BR', rid, new_node, False)
         nkn = sum(1 for c in kids2 if c is not None)
         if op in ('oDH', 'oDL', 'oDN'):
@@ -364,6 +376,9 @@ class Gen:
             T.set(r, 'inv1', pow(nkn, P - 2, P))
             if nkn != 1:
                 T.set(r, 'inv2', (1 - hasv) * pow(nkn - 1, P - 2, P))
+        if op == 'oDV':
+            T.set(r, 'inv1', pow(nkn, P - 2, P))
+            T.set(r, 'inv2', pow(nkn - 1, P - 2, P))
         return hn
 
     def carries(self, T, r, plus, minus, out, col, rng=(-1, 0, 1)):
@@ -681,13 +696,35 @@ class Gen:
         if t[0] == 'branch':
             _, v, kids, m = t
             if d >= len(K):
-                if mode != 0:
-                    raise Unsupported('upsert / delete at a branch value')
-                self.br_row(t, d, ctx, 'oFV')
-                self.klen(ctx['kid'], d)
+                if mode == 0:
+                    self.br_row(t, d, ctx, 'oFV')
+                    self.klen(ctx['kid'], d)
+                    if v is None:
+                        return self.res(RK_ANS)
+                    return self.res(RK_ANS, alen=v[0], avh=v[1], fpres=1)
+                if mode == 1:
+                    # write the branch's value (`oUV`)
+                    T, r, rid, _ = self.br_row(t, d, ctx, 'oUV')
+                    self.klen(ctx['kid'], d)
+                    nv = (ctx['vlen'], ctx['vh'])
+                    old = v[0] + 50 if v is not None else 0
+                    nn = ('branch', nv, kids, m + nv[0] + 50 - old)
+                    for x in le(nv[0], 4):
+                        self.rng(x)
+                    hn = self.br_new(T, r, rid, t, nn, None, 0, 0, 'oUV', vplus=nv[0] + 50, vminus=old)
+                    return self.res(RK_H, h=hn, nm=nn[3], om=m, node=nn)
                 if v is None:
-                    return self.res(RK_ANS)
-                return self.res(RK_ANS, alen=v[0], avh=v[1], fpres=1)
+                    # an absent delete: the key ends at a branch without value (`oDZ`)
+                    T, r, rid, _ = self.br_row(t, d, ctx, 'oDZ')
+                    self.klen(ctx['kid'], d)
+                    return self.res(RK_SAME, h=self.own_ref(T, r), om=m, node=t)
+                if sum(1 for x in kids if x is not None) < 2:
+                    raise Unsupported('squash after a branch-value delete')
+                T, r, rid, _ = self.br_row(t, d, ctx, 'oDV')
+                self.klen(ctx['kid'], d)
+                nn = ('branch', None, kids, m - (v[0] + 50))
+                hn = self.br_new(T, r, rid, t, nn, None, 0, 0, 'oDV', vminus=v[0] + 50)
+                return self.res(RK_HB, h=hn, nm=nn[3], om=m, node=nn)
             n = K[d]
             c = kids[n]
             if mode == 0:
@@ -1308,10 +1345,22 @@ def _t_nidforge(g):
     T.set(rs[1], 'hn', T.get(rs[0], 'hn', 0), 0)
 
 
+def _t_bvalue(g):
+    T = g.T['BR']
+    r = _first(T, 'oUV')
+    T.set(r, 'nvh', T.get(r, 'nvh', 0) ^ 1, 0)
+
+
+def _t_bvmem(g):
+    T = g.T['BR']
+    r = _first(T, 'oDV')
+    T.set(r, 'nmem', T.get(r, 'nmem', 0) + 1, 0)
+
+
 TAMPERS = dict(absent=_t_absent, extabsent=_t_extabsent, branchval=_t_branchval, split=_t_split,
                splitext=_t_splitext, absdel=_t_absdel, squash=_t_squash, chain=_t_chain,
                verslot=_t_verslot, vernid=_t_vernid, vmcount=_t_vmcount, finroot=_t_finroot,
-               nidforge=_t_nidforge)
+               nidforge=_t_nidforge, bvalue=_t_bvalue, bvmem=_t_bvmem)
 
 
 def make_gen(st, names, mutant, plan):

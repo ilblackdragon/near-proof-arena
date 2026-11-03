@@ -8,6 +8,7 @@ import StateM5a.Merkle
 import StateM5a.KeyField
 import StateM5a.Store
 import StateM5a.FieldVer
+import StateM5a.StepsBV
 
 /-! Axiom audit of the M5a lemmas (`lake build StateM5a.Audit` prints them): every theorem must
 depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
@@ -83,3 +84,6 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.FieldVer.sn_gsha_dig
 #print axioms StateM5a.FieldVer.sn_vid
 #print axioms StateM5a.FieldVer.sn_cont
+#print axioms StateM5a.StepsBV.br_upsert_value
+#print axioms StateM5a.StepsBV.br_del_value_keep
+#print axioms StateM5a.StepsBV.br_del_value_absent
