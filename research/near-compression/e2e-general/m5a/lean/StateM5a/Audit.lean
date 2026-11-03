@@ -671,3 +671,12 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.SnContResp.hlongM_of
 #print axioms StateM5a.SnContResp.snFreshLong_of
 #print axioms StateM5a.SnFinal6.air_final_sorted_sn6
+#print axioms StateM5a.SnContLocA.cont_mismatch
+#print axioms StateM5a.SnContLocA.localOK_oLF_K
+#print axioms StateM5a.SnContLocB.localOK_oLR_K
+#print axioms StateM5a.SnContLocB.localOK_oEB_K
+#print axioms StateM5a.SnContLocX.split_keysC
+#print axioms StateM5a.SnContLocX.localOK_oLX_K
+#print axioms StateM5a.SnContLocX.localOK_oEX_K
+#print axioms StateM5a.SnContRestAll.cont_depth
+#print axioms StateM5a.SnContRestAll.snContRest_of
