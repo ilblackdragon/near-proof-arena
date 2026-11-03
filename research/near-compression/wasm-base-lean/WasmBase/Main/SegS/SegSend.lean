@@ -170,6 +170,12 @@ theorem seg_hsend_r16S :
     have : SegT t := ⟨h20⟩
     exact r16_le_of_sendsOkS H ht (seg_sendsOk nloc ngl t ht (by omega) h19) hr hi hb hs
 
+/-- **`memb_blk_distinctS` without `hsend`: the touched blocks of a segment are distinct.** -/
+theorem memb_blk_distinct_of_holdsS {b b' : Nat} (hb : b ≠ b') (hr : 9 * b + 8 < tr.height 19)
+    (hr' : 9 * b' + 8 < tr.height 19) (ha : mbN tr (9 * b + 8) 0 = 1) (ha' : mbN tr (9 * b' + 8) 0 = 1) :
+    mbN tr (9 * b + 8) 10 ≠ mbN tr (9 * b' + 8) 10 :=
+  memb_blk_distinctS H (seg_hsend_r16S H) hb hr hr' ha ha'
+
 end
 
 end WasmBase

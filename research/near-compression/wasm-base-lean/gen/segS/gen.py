@@ -16,7 +16,8 @@ ROOT = sys.argv[1]  # wasm-base-lean dir
 DEPS = sys.argv[2]
 ORDER = ["SegRows", "SegMemb", "SegSend", "SegCuto", "SegLink", "SegSha", "SegShaBytes", "SegShaCut",
          "SegCutWords", "SegSound", "SegBus", "SegRowsX", "SegRegKeep", "SegSoundX",
-         "SegTomb", "SegHalt", "SegLinkage", "SegSoundC"]  # SegRowRel, SegDom: no HoldsX lemma
+         "SegTomb", "SegHalt", "SegLinkage", "SegSoundC",
+         "SegCuti", "SegReentry", "SegChain"]  # SegRowRel, SegDom: no HoldsX lemma
 EXCLUDE = {"WasmBase.SegSha.seg_if_bits", "WasmBase.SegSha.seg_if_send_zero", "WasmBase.SegSha.if_recv_mem"}
 PRELUDE = {}
 pre_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "prelude")
@@ -30,7 +31,8 @@ for line in open(DEPS):
     if not (line.startswith("DEP ") or line.startswith("EXTRA ")):
         continue
     _, mod, full, H, A, a, b = line.split()
-    if H != "H=true" or "._" in full or ".eq_" in full or mod == "WasmBase.Main.SegHoldsX":
+    if H != "H=true" or "._" in full or ".eq_" in full or mod == "WasmBase.Main.SegHoldsX" \
+            or full.startswith("WasmBase.Cuti.SegPrem."):
         continue
     if full in EXCLUDE:
         continue
@@ -66,7 +68,7 @@ def transform(s):
     allmap = dict(names)
     allmap.update(GENERIC)
     keys = sorted(allmap, key=len, reverse=True)
-    pat = re.compile(r"(?<![A-Za-z0-9_'.])((?:SegSha\.)?)(" + "|".join(re.escape(k) for k in keys) + r")(?![A-Za-z0-9_'])")
+    pat = re.compile(r"(?<![A-Za-z0-9_'.])((?:SegSha\.|Cuti\.)?)(" + "|".join(re.escape(k) for k in keys) + r")(?![A-Za-z0-9_'])")
     s = pat.sub(lambda mm: mm.group(1) + allmap[mm.group(2)], s)
     for (mo, old, new) in PATCHES:
         if mo == CURMOD[0] and old in s:
@@ -110,7 +112,7 @@ for m in ORDER:
                 blk.append(src[i])
             if stack:
                 stack[-1][2].append("\n".join(blk))
-        elif re.match(r"^open\b", L):
+        elif re.match(r"^open\b", L) and not L.rstrip().endswith(" in"):
             opens.append(L)
         elif re.match(r"^set_option\b", L) and not L.rstrip().endswith(" in"):
             if stack and len(stack) == 1:
@@ -139,7 +141,7 @@ for m in ORDER:
     cur_ctx = None
     cur_ns = None
     for full, a, b in ds:
-        ns = "SegSha" if full.startswith("WasmBase.SegSha.") else None
+        ns = full.split(".")[1] if len(full.split(".")) > 2 else None
         ctx = ctx_at.get(a, ())
         if ctx != cur_ctx or ns != cur_ns:
             if cur_ctx is not None and cur_ctx:
@@ -155,7 +157,7 @@ for m in ORDER:
                 out.append("")
             cur_ctx, cur_ns = ctx, ns
         k = a - 1
-        while k - 1 >= 0 and re.match(r"^(include|omit|set_option)\b.* in\s*$", src[k - 1]):
+        while k - 1 >= 0 and re.match(r"^(include|omit|set_option|open)\b.* in\s*$", src[k - 1]):
             k -= 1
         text = "\n".join(src[k:b])
         out.append(transform(text))

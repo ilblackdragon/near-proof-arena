@@ -1,4 +1,4 @@
-import WasmBase.Main.SegSoundC
+import WasmBase.Main.SegChain
 open Lean Meta Elab Command
 
 partial def collect (env : Environment) (root : Name) : NameSet := Id.run do
@@ -18,13 +18,13 @@ partial def collect (env : Environment) (root : Name) : NameSet := Id.run do
 
 elab "#deps" : command => do
   let env ← getEnv
-  let s := [`WasmBase.seg_sound, `WasmBase.seg_sound_c, `WasmBase.seg_sound_any].foldl (fun (acc : NameSet) r => (collect env r).foldl (fun a n => a.insert n) acc) ({} : NameSet)
+  let s := [`WasmBase.seg_sound, `WasmBase.seg_sound_c, `WasmBase.seg_sound_any, `WasmBase.Cuti.seg_chain, `WasmBase.Cuti.seg_chain_csteps].foldl (fun (acc : NameSet) r => (collect env r).foldl (fun a n => a.insert n) acc) ({} : NameSet)
   let mut out := #[]
   for n in s.toList do
     match env.find? n with
     | some ci =>
       let mentions := ci.type.getUsedConstants
-      let isH := mentions.contains `WasmBase.HoldsX
+      let isH := mentions.contains `WasmBase.HoldsX || mentions.contains `WasmBase.Cuti.SegPrem
       let isA := mentions.contains `WasmBase.wasmBaseSegAir
       if isH || isA then
         let mod := (env.getModuleIdxFor? n).map (fun i => env.header.moduleNames[i.toNat]!) |>.getD `none
@@ -37,7 +37,7 @@ elab "#deps" : command => do
 
 elab "#ranges" : command => do
   let env ← getEnv
-  for n in [`WasmBase.bitS_sound, `WasmBase.r16_le_of_sendsOk, `WasmBase.SegSha.le_of_sendsOkB] do
+  for n in [`WasmBase.bitS_sound, `WasmBase.r16_le_of_sendsOk, `WasmBase.SegSha.le_of_sendsOkB, `WasmBase.Cuti.SegPrem] do
     let mod := (env.getModuleIdxFor? n).map (fun i => env.header.moduleNames[i.toNat]!) |>.getD `none
     let rg ← findDeclarationRanges? n
     let (a, b) := match rg with | some r => (r.range.pos.line, r.range.endPos.line) | none => (0, 0)

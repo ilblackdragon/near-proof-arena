@@ -141,3 +141,4 @@ import WasmBase.Main.SegSoundCMP
 import WasmBase.Main.SegCuti
 import WasmBase.Main.SegReentry
 import WasmBase.Main.SegChain
+import WasmBase.Main.SegChainMP
