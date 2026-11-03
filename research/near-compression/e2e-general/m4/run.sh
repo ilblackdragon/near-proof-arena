@@ -17,7 +17,8 @@ export RAYON_NUM_THREADS=${RAYON_NUM_THREADS:-8}
 # 1. the benchmark call (24,000 iterations: 1,128,011 Wasm steps) and its spec run
 python3 "$HERE/gen_bench.py" segbench.wasm 24000
 "$TOOL" prepM2 segbench.wasm main 1000000000000000 > segbench.prep.json
-"$TOOL" airSeg 0 0 > airSeg.json
+# the segment AIR: `airSegMP` (wasmBaseSegAirMP, the default since M4c: `seg_sound_mp`) or `airSeg` (M4)
+"$TOOL" "${SEG_AIR:-airSegMP}" 0 0 > airSeg.json
 "$TOOL" airM2 2 1 > airM2-2-1.json
 # 2. check, prove and chain every segment (one verifying key)
 SEG_TABLES=1 "$BIN" segcheck airSeg.json airM2-2-1.json segbench.prep.json "$K" > segcheck-bench.log 2>&1

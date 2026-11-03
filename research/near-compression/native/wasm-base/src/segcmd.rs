@@ -6,8 +6,9 @@
 //!   nearproof-wasm-base segdump   <airSeg.json> <airM2.json> <prep.json> <steps_per_segment> <out_prefix>
 //!     (M4c: write every segment's trace, publics and chip inputs to `<out_prefix>-<i>.bin`, `dump.rs`)
 //!
-//! `<airSeg.json>` is `wasmbase-tool airSeg` (M4) or `airSegMP` (M4b, the multiproof MPATH; its
-//! tamper battery adds the MPATH-MP cases, `tampers_mp`).
+//! `<airSeg.json>` is `wasmbase-tool airSegMP` (M4b, the multiproof MPATH: the default segment AIR
+//! since M4c, sound by `seg_sound_mp`; its tamper battery adds the MPATH-MP cases, `tampers_mp`) or
+//! `airSeg` (M4, still accepted).  The prover picks the variant from the json.
 use crate::air::{AirSpec, JsonAir};
 use crate::config::{F, Sha384Config, Sha384RefEngine};
 use crate::s384;
