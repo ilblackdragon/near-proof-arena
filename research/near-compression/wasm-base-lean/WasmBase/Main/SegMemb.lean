@@ -85,7 +85,7 @@ theorem bdig_eval (tr : Trace) (pub : List F) (r : Nat) (base : Nat) (s : String
   rfl
 
 section leaf
-variable {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : Holds (wasmBaseSegAir nloc ngl) pub tr)
+variable {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsX (wasmBaseSegAir nloc ngl) pub tr)
 include H
 
 /-- **Every LEAF occurrence**: a MEMB row's send `[blk, ro] ++ hoI ++ hoO` (count `p8`) or an MPATH
@@ -222,14 +222,14 @@ theorem regAt_seg (nloc ngl : Nat) : RegAt (wasmBaseSegAir nloc ngl) 27 where
 
 /-- An R16 query with count 1 on a segment trace is `< 2^16`, given the R16 send bound `hsend`. -/
 theorem seg_r16_lt {nloc ngl : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseSegAir nloc ngl) pub tr)
+    (H : HoldsX (wasmBaseSegAir nloc ngl) pub tr)
     (hsend : ∀ o ∈ occs (wasmBaseSegAir nloc ngl) tr pub, o.1 = busR16 → o.2.1 = true → o.2.2.2 ≤ 1)
     {t : Nat} (ht : t < (wasmBaseSegAir nloc ngl).tables.length) {r : Nat} (hr : r < tr.height t)
     {e c : Expr} (hi : r16 e c ∈ ((wasmBaseSegAir nloc ngl).tables[t]'ht).inters)
     (hc : (c.eval (tr.row pub t r)).toNat = 1) :
     (e.eval (tr.row pub t r)).toNat < 65536 := by
   have hocc := occ_of_inter ht hr hi hc
-  obtain ⟨x, hx, hxl⟩ := lookup_r16G H hsend (regG_r16_recv (regAt_seg nloc ngl) H) hocc rfl rfl rfl
+  obtain ⟨x, hx, hxl⟩ := lookup_r16GX H hsend (regG_r16_recvX H (regAt_seg nloc ngl)) hocc rfl rfl rfl
   simp only [r16, List.map_cons, List.map_nil, List.cons.injEq, and_true] at hx
   rw [hx]; exact hxl
 
@@ -238,7 +238,7 @@ theorem seg_r16_lt {nloc ngl : Nat} {pub : List F} {tr : Trace}
 /-- MEMB's cell `i` of row `r` as a natural. -/
 abbrev mbN (tr : Trace) (r i : Nat) : Nat := rowNat tr 19 r i
 
-theorem memb_C {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : Holds (wasmBaseSegAir nloc ngl) pub tr)
+theorem memb_C {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsX (wasmBaseSegAir nloc ngl) pub tr)
     {r : Nat} (hr : r < tr.height 19) : ∀ e ∈ Memb.constraints, e.eval (tr.row pub 19 r) = 0 := by
   intro e he
   exact H.constr 19 (by simp [seg_air_len]) r hr e (by rw [seg_t19]; exact he)
@@ -261,7 +261,7 @@ theorem trans_eval_one (tr : Trace) (pub : List F) (t r : Nat) (hr : r + 1 < tr.
   simp [Expr.eval, Trace.row, this]
 
 section walk
-variable {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : Holds (wasmBaseSegAir nloc ngl) pub tr)
+variable {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsX (wasmBaseSegAir nloc ngl) pub tr)
 include H
 
 /-- **A MEMB row as naturals**: `act` and the nine position flags are bits, and they sum to `act`. -/

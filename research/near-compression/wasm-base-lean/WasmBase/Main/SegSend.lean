@@ -88,7 +88,7 @@ theorem any_mem {α : Type} [DecidableEq α] {l : List α} {a : α} (h : l.any (
 theorem bit01 {x : F} (h : x * (x - 1) = 0) : x = 0 ∨ x = 1 := bool_cases h
 
 /-- **Soundness of `BitS`** on row `r` of table `t` of a satisfied trace. -/
-theorem bitS_sound {A : Air} {pub : List F} {tr : Trace} (H : Holds A pub tr) {t : Nat}
+theorem bitS_sound {A : Air} {pub : List F} {tr : Trace} (H : HoldsC A pub tr) {t : Nat}
     (ht : t < A.tables.length) {r : Nat} (hr : r < tr.height t) :
     ∀ e, BitS (bcOf (A.tables[t]'ht)) (beOf (A.tables[t]'ht)) e = true →
       e.eval (tr.row pub t r) = 0 ∨ e.eval (tr.row pub t r) = 1 := by
@@ -147,7 +147,7 @@ theorem bitS_sound {A : Air} {pub : List F} {tr : Trace} (H : Holds A pub tr) {t
 def R16SendsOk (T : Table) : Bool :=
   T.inters.all (fun i => decide (i.bus ≠ busR16) || !i.send || BitS (bcOf T) (beOf T) i.count)
 
-theorem r16_le_of_sendsOk {A : Air} {pub : List F} {tr : Trace} (H : Holds A pub tr) {t : Nat}
+theorem r16_le_of_sendsOk {A : Air} {pub : List F} {tr : Trace} (H : HoldsC A pub tr) {t : Nat}
     (ht : t < A.tables.length) (hok : R16SendsOk (A.tables[t]'ht) = true) {r : Nat} (hr : r < tr.height t)
     {i : Inter} (hi : i ∈ (A.tables[t]'ht).inters) (hb : i.bus = busR16) (hs : i.send = true) :
     (i.count.eval (tr.row pub t r)).toNat ≤ 1 := by
@@ -186,7 +186,7 @@ theorem memb_r16_shape : Memb.table.inters.all (fun i => decide (i.bus ≠ busR1
   decide +kernel
 
 section send
-variable {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : Holds (wasmBaseSegAir nloc ngl) pub tr)
+variable {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsX (wasmBaseSegAir nloc ngl) pub tr)
 include H
 
 /-- `kD ≤ 1` and `kD·(1 − ro) ≤ 1` on a MEMB row (the one-hot `memb_row`). -/
@@ -231,7 +231,7 @@ theorem seg_hsend_r16 :
   simp only at hb hs ⊢
   by_cases hc : 1 ≤ t ∧ t ≤ 13
   · have hT := seg_chipT nloc ngl t hc.1 hc.2
-    have hcon := table_constr_eq H ht (chipT t) hT hr
+    have hcon := table_constr_eqX H ht (chipT t) hT hr
     rw [hT] at hi
     obtain ⟨h1, h13⟩ := hc
     rcases (show t = 1 ∨ t = 2 ∨ t = 3 ∨ t = 4 ∨ t = 5 ∨ t = 6 ∨ t = 7 ∨ t = 8 ∨ t = 9 ∨ t = 10 ∨
@@ -253,7 +253,7 @@ theorem seg_hsend_r16 :
   by_cases h14 : t = 14
   · subst h14
     have hcon : ∀ e ∈ Ret.table.constraints, e.eval (Local.natRow (rowNat tr 14 r) (tr.row pub 14 r)) = 0 :=
-      table_constr_eq H ht RetT.table (seg_t14' nloc ngl) hr
+      table_constr_eqX H ht RetT.table (seg_t14' nloc ngl) hr
     rw [seg_t14'] at hi
     rcases List.mem_append.mp hi with hi | hi
     · exact ret_counts_of hcon i hi
@@ -270,8 +270,8 @@ theorem seg_hsend_r16 :
     · rw [hc]; exact (memb_kD_le H hr).1
     · rw [hc]; exact (memb_kD_le H hr).2
     · have hT := seg_t19 nloc ngl
-      rcases bitS_sound H ht hr i.count (by rw [hT]; exact hc) with h | h <;> rw [h] <;> decide
-  · exact r16_le_of_sendsOk H ht (seg_sendsOk nloc ngl t ht (by omega) h19) hr hi hb hs
+      rcases bitS_sound H.toC ht hr i.count (by rw [hT]; exact hc) with h | h <;> rw [h] <;> decide
+  · exact r16_le_of_sendsOk H.toC ht (seg_sendsOk nloc ngl t ht (by omega) h19) hr hi hb hs
 
 /-- **`memb_blk_strict` without `hsend`.** -/
 theorem memb_blk_strict_of_holds :
