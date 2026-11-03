@@ -177,6 +177,9 @@ struct Ent {
 struct Frame {
     sb: u64,
     cid: u64,
+    /// producer time of this activation's call record (space 4): the CALL row's `ts`, or the
+    /// segment start after a cut (E2E M4)
+    rtp: u64,
     retpc: u64,
     charge: u64,
     locals: Vec<Ent>,
@@ -243,7 +246,47 @@ impl Row<'_, '_> {
     }
 }
 
+/// E2E M4: one live channel message at a cut (raw activation ids), `[space, slot, tag, v0..v3, tp]`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Live {
+    pub space: u64,
+    pub slot: u64,
+    pub tag: u64,
+    pub v: [u64; 4],
+    pub tp: u64,
+}
+
+/// E2E M4: the machine at a cut `t` (between the rows `ts = t` and `ts = t + 1`), before the
+/// relabelling, plus what the segment ending at `t` did (dead locals, tombstones, touched blocks).
+#[derive(Clone, Debug, Default)]
+pub struct CutSnap {
+    pub t: u64,
+    pub pc: u64,
+    pub s: u64,
+    /// 0 at a cut, 1 returned, 2 trapped (the end of the call)
+    pub halted: u64,
+    pub sb: u64,
+    pub cid: u64,
+    /// the gas register `(S_seg, segb, tp)`
+    pub gas: (u64, u64, u64),
+    /// every live non-memory channel message (spaces 0, 2, 4, 5, 6, 16 + cid), raw ids
+    pub live: Vec<Live>,
+    /// live activation id -> depth (entry frame 0)
+    pub depth_of: Vec<(u64, u64)>,
+    /// locals of activations that returned in the segment ending here (to `DROP`)
+    pub dead: Vec<Live>,
+    /// ids of the activations that returned in the segment ending here (RET tombstones)
+    pub tombs: Vec<u64>,
+    /// 1 KiB blocks the segment ending here accessed, and every byte of them `(value, tp)` at `t`
+    pub touched: Vec<u64>,
+    pub mem_end: std::collections::BTreeMap<u64, (u64, u64)>,
+    /// the memory values at the segment's start for the same blocks
+    pub mem_start: std::collections::BTreeMap<u64, u64>,
+}
+
 pub struct Gen {
+    /// E2E M4: the cut snapshots (index 0 = the call's entry, then one per cut, last = the end)
+    pub cuts: Vec<CutSnap>,
     pub mats: Vec<RowMajorMatrix<F>>,
     pub pubs: Vec<F>,
     pub rows_per_table: Vec<(String, usize)>,
@@ -301,17 +344,22 @@ struct Mem<'p> {
     prep: &'p Prep,
     cur: std::collections::BTreeMap<u64, (u64, u64)>,
     init: std::collections::BTreeMap<u64, u64>,
+    /// E2E M4: producer time of a byte not accessed yet (the current segment's start `t_in`)
+    base_tp: u64,
+    /// E2E M4: 1 KiB blocks accessed since the last cut
+    touched: std::collections::BTreeSet<u64>,
 }
 impl Mem<'_> {
     fn get(&mut self, a: u64) -> (u64, u64) {
         assert!(a < self.prep.mem, "memory access out of bounds at {a}: the trap is not provable");
+        self.touched.insert(a >> 10);
         if let Some(&e) = self.cur.get(&a) {
             return e;
         }
         let b = if a < self.prep.data_end { self.prep.data[a as usize] } else { 0 };
         self.init.insert(a, b);
-        self.cur.insert(a, (b, 0));
-        (b, 0)
+        self.cur.insert(a, (b, self.base_tp));
+        (b, self.base_tp)
     }
 }
 
@@ -398,6 +446,45 @@ const CMP_FLAGS: [&str; 11] = [
 ];
 
 pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
+    generate_cuts(air, prep, &[])
+}
+
+/// The image byte at `a` (the call's initial memory).
+pub fn image_byte(prep: &Prep, a: u64) -> u64 {
+    if a < prep.data_end { prep.data[a as usize] } else { 0 }
+}
+
+/// E2E M4: the live non-memory messages of the machine, raw (`Live`), in no particular order.
+fn live_msgs(stack: &[Ent], frames: &[Frame], budget: &Ent, globals: &[Ent], regs: &HashMap<u64, Vec<u64>>,
+    reg_bts: &HashMap<u64, u64>, reg_lts: &HashMap<u64, u64>) -> Vec<Live> {
+    let mut out = vec![];
+    for (i, e) in stack.iter().enumerate() {
+        out.push(Live { space: 0, slot: i as u64, tag: e.tag, v: limbs(e.val), tp: e.tp });
+    }
+    for (k, f) in frames.iter().enumerate() {
+        if k > 0 {
+            let c = &frames[k - 1];
+            out.push(Live { space: 4, slot: f.cid, tag: 0, v: [f.retpc, c.sb, c.cid, f.charge], tp: f.rtp });
+        }
+        for (j, e) in f.locals.iter().enumerate() {
+            out.push(Live { space: 16 + f.cid, slot: j as u64, tag: e.tag, v: limbs(e.val), tp: e.tp });
+        }
+    }
+    out.push(Live { space: 5, slot: 0, tag: 0, v: [budget.val & 0xffff, budget.val >> 16, 0, 0], tp: budget.tp });
+    for (g, e) in globals.iter().enumerate() {
+        out.push(Live { space: 2, slot: g as u64, tag: e.tag, v: limbs(e.val), tp: e.tp });
+    }
+    for (&rid, bs) in regs.iter() {
+        let (btp, ltp) = (reg_bts[&rid], reg_lts[&rid]);
+        for (pos, &b) in bs.iter().enumerate() {
+            out.push(Live { space: 6, slot: rid * (1u64 << 24) + pos as u64 + 1, tag: 0, v: [b, 0, 0, 0], tp: btp });
+        }
+        out.push(Live { space: 6, slot: rid * (1u64 << 24), tag: 2, v: [bs.len() as u64, 0, 0, 0], tp: ltp });
+    }
+    out
+}
+
+pub fn generate_cuts(air: &AirSpec, prep: &Prep, cut_at: &[u64]) -> Gen {
     let t = |n: &str| &air.tables[air.index(n)];
     let mut add = Tab::new(t("ADD"));
     let mut bit = Tab::new(t("BIT"));
@@ -465,7 +552,15 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
     let mut func_calls: Vec<u64> = vec![0; prep.funcs.len()];
     // dead callee locals `(space, slot, entry)`, left over in the channel after their frame returned
     let mut dead: Vec<(u64, u64, Ent)> = vec![];
-    let mut mem = Mem { prep, cur: Default::default(), init: Default::default() };
+    let mut mem = Mem { prep, cur: Default::default(), init: Default::default(), base_tp: 0, touched: Default::default() };
+    // E2E M4: cut snapshots, the gas register `(S_seg, segb, tp)`, tombstones of this segment,
+    // memory values at this segment's start
+    let mut cuts: Vec<CutSnap> = vec![];
+    let mut cut_ix = 0usize;
+    assert!(prep.g0 < (1u128 << 64));
+    let mut gas_reg: (u64, u64, u64) = (0, prep.g0 as u64, 0);
+    let mut tombs: Vec<u64> = vec![];
+    let mut mem_start: std::collections::BTreeMap<u64, u64> = Default::default();
     let mut trapped = false;
     let mut st = St { r16: vec![0; 65536], byte: vec![vec![0; 65536]; 4] };
     let mut fetch = vec![0u64; prep.records.len()];
@@ -474,6 +569,7 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
     let mut frames = vec![Frame {
         sb: 0,
         cid: 0,
+        rtp: 0,
         retpc: 0,
         charge: 0,
         locals: prep.local_tags.iter().map(|&tag| Ent { tag, val: 0, tp: 0 }).collect(),
@@ -491,7 +587,77 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
     let mut host_g: Option<u64> = None;
     let mut last_host: Option<(u64, u64)> = None;
     let halt_pc;
+    // E2E M4: the snapshot of the machine at the boundary `t` (before relabelling)
+    macro_rules! snap {
+        ($t:expr, $halted:expr, $pc:expr) => {{
+            let tb: Vec<u64> = mem.touched.iter().copied().collect();
+            let mut mem_end = std::collections::BTreeMap::new();
+            let mut ms = std::collections::BTreeMap::new();
+            for &b in tb.iter() {
+                for a in (b << 10)..((b + 1) << 10) {
+                    let st0 = *mem_start.get(&a).unwrap_or(&image_byte(prep, a));
+                    ms.insert(a, st0);
+                    mem_end.insert(a, *mem.cur.get(&a).unwrap_or(&(st0, mem.base_tp)));
+                }
+            }
+            CutSnap {
+                t: $t,
+                pc: $pc,
+                s,
+                halted: $halted,
+                sb: frames.last().unwrap().sb,
+                cid: frames.last().unwrap().cid,
+                gas: gas_reg,
+                live: live_msgs(&stack, &frames, &budget, &globals, &regs, &reg_bts, &reg_lts),
+                depth_of: frames.iter().enumerate().map(|(k, f)| (f.cid, k as u64)).collect(),
+                dead: dead.iter().map(|&(sp, j, e)| Live { space: sp, slot: j, tag: e.tag, v: limbs(e.val), tp: e.tp }).collect(),
+                tombs: tombs.clone(),
+                touched: tb,
+                mem_end,
+                mem_start: ms,
+            }
+        }};
+    }
     loop {
+        // E2E M4: a cut before the row `ts` (boundary `t = ts - 1`), and the entry boundary `t = 0`
+        if ts == 1 || (cut_ix < cut_at.len() && cut_at[cut_ix] == ts - 1) {
+            if ts > 1 {
+                cut_ix += 1;
+            }
+            let tc = ts - 1;
+            cuts.push(snap!(tc, 0, pc));
+            // reset: every live message is produced again at `tc` by the next segment, activation
+            // ids become depths, the segment's own lists start empty
+            for e in stack.iter_mut() {
+                e.tp = tc;
+            }
+            for (k, f) in frames.iter_mut().enumerate() {
+                f.cid = k as u64;
+                f.rtp = tc;
+                for e in f.locals.iter_mut() {
+                    e.tp = tc;
+                }
+            }
+            budget.tp = tc;
+            for e in globals.iter_mut() {
+                e.tp = tc;
+            }
+            for v in reg_bts.values_mut() {
+                *v = tc;
+            }
+            for v in reg_lts.values_mut() {
+                *v = tc;
+            }
+            for v in mem.cur.values_mut() {
+                v.1 = tc;
+            }
+            mem_start = mem.cur.iter().map(|(&a, &(b, _))| (a, b)).collect();
+            mem.base_tp = tc;
+            mem.touched.clear();
+            gas_reg.2 = tc;
+            dead.clear();
+            tombs.clear();
+        }
         let rec = prep.records[pc as usize];
         assert_eq!(rec[0], pc);
         let (op, h, fee) = (rec[1], rec[2], rec[3]);
@@ -924,7 +1090,7 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
                 r.u("r0", budget.val & 0xffff).u("r1", budget.val >> 16).u("tpb", budget.tp).u("hb", hb);
                 r.u("n0", n & 0xffff).u("n1", n >> 16).u("sbn0", sbn & 0xffff).u("sbn1", sbn >> 16);
                 r.u("ts0", ts & 0xffff).u("ts1", ts >> 16);
-                frames.push(Frame { sb: sbn, cid: ts, retpc: pc + 1, charge, locals: locs });
+                frames.push(Frame { sb: sbn, cid: ts, rtp: ts, retpc: pc + 1, charge, locals: locs });
                 budget = Ent { tag: 0, val: n, tp: ts };
                 next = entry;
                 extra = pro;
@@ -948,14 +1114,15 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
                 if taken {
                     let f = frames.pop().unwrap();
                     let caller = frames.last().unwrap();
-                    let hr = st.tchk(ts, f.cid);
+                    let hr = st.tchk(ts, f.rtp);
                     let hb = st.tchk(ts, budget.tp);
                     let n = budget.val + f.charge;
                     st.r16(n & 0xffff);
                     st.r16(n >> 16);
                     st.r16(4 * (n >> 16));
                     r.u("retpc", f.retpc).u("sbc", caller.sb).u("cidc", caller.cid).u("charge", f.charge);
-                    r.u("tpr", f.cid).u("hr", hr);
+                    r.u("tpr", f.rtp).u("hr", hr);
+                    tombs.push(f.cid);
                     r.u("r0", budget.val & 0xffff).u("r1", budget.val >> 16).u("tpb", budget.tp).u("hb", hb);
                     r.u("n0", n & 0xffff).u("n1", n >> 16);
                     budget = Ent { tag: 0, val: n, tp: ts };
@@ -1550,6 +1717,7 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
         s += fee + extra;
         if let Some(ga) = host_g.take() {
             last_host = Some((s, ga));
+            gas_reg = (s, ga, ts);
         }
         ts += 1;
         if halted || trapped {
@@ -1560,6 +1728,7 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
     }
     let steps = ts - 1;
     let status: u64 = if trapped { 2 } else { 1 };
+    cuts.push(snap!(ts - 1, status, halt_pc));
     if !trapped {
         assert_eq!(stack.len() as u64, prep.arity, "final stack size");
     }
@@ -1838,7 +2007,7 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
         Some((sa, ga)) => ga as u128 - prep.regular * (s - sa) as u128,
         None => prep.g0 - prep.regular * s as u128,
     };
-    Gen { mats, pubs, rows_per_table, result, steps, s_units: s, g_final_trace }
+    Gen { cuts, mats, pubs, rows_per_table, result, steps, s_units: s, g_final_trace }
 }
 
 /// The canonical CODE rows: the records in pc order, padded to a power of two (≥ 4) by repeating the
