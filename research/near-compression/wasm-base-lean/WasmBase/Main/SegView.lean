@@ -1037,4 +1037,78 @@ theorem ctx_out_digest {X : Ctx} (hnd : X.M.fns.Nodup) {sg : Nat → Nat × Nat}
   have e := ctx_out_eq hs hset (cutView_nodup X hw)
   exact ⟨e, by rw [hsha, e], fun hwf => cutView_wf hwf hset⟩
 
+/-! ## 10. The in-cut: `BndC` from the previous segment's view
+
+At the in-cut the live list is what `CUTI` (the view's messages, at producer time `t_in`), `MEMB`
+(memory, space 3) and `SEGB` (the gas register, space 7) produce.  If its non-memory, non-gas part
+is exactly `cutView X s` (each view entry as a message at time `tp`) — which is what `CUTI` plus the
+equality of its digest with the previous segment's `ctx_out` give, unless SHA-384 collides — then
+the register and space clauses hold: `Bnd` there is `BndC`. -/
+
+/-- The message with fields `y` and producer time `tp`. -/
+def ofFields (y : List Nat) (tp : Nat) : Msg :=
+  ⟨y.getD 0 0, y.getD 1 0, y.getD 2 0, y.getD 3 0, y.getD 4 0, y.getD 5 0, y.getD 6 0, tp⟩
+
+theorem ofFields_fieldsOf (x : Msg) (tp : Nat) : ofFields (fieldsOf x) tp = { x with tp := tp } := rfl
+
+theorem cutMsgs_space {X : Ctx} {s : St} {x : Msg} (h : x ∈ cutMsgs X s) :
+    x.space = 0 ∨ x.space = 2 ∨ x.space = 4 ∨ x.space = 5 ∨ (x.space = 6 ∧ x ∈ Register.view s.registers (fun _ => 0)) ∨
+      16 ≤ x.space := by
+  simp only [cutMsgs, List.mem_append, List.mem_singleton] at h
+  rcases h with ((((h | h) | h) | h) | h)
+  · obtain ⟨i, -, rfl⟩ := mem_stackView.mp h; simp
+  · obtain ⟨d, -, h⟩ := List.mem_flatMap.mp h
+    have := frame_keys_space (List.mem_map_of_mem (f := kf) h)
+    simp only [kf] at this; omega
+  · obtain ⟨i, -, rfl⟩ := mem_globView.mp h; simp
+  · subst h; simp [budMsg]
+  · have := reg_keys_space (List.mem_map_of_mem (f := kf) h)
+    obtain ⟨-, -, h6, -⟩ := this
+    simp only [kf] at h6
+    exact Or.inr (Or.inr (Or.inr (Or.inr (Or.inl ⟨h6, h⟩))))
+
+theorem regView_retime {regs : Array (Nat × ByteArray)} {tpr : Nat → Nat} {x : Msg} (c : Nat)
+    (h : x ∈ Register.view regs tpr) : { x with tp := c } ∈ Register.view regs (fun _ => c) := by
+  obtain ⟨rid, d, hrd, hx⟩ := Register.mem_view.mp h
+  rcases Register.mem_regMsgs.mp hx with rfl | ⟨i, hi, rfl⟩
+  · exact Register.view_len_mem (tp := fun _ => c) hrd
+  · exact Register.view_byte (tp := fun _ => c) hrd hi
+
+theorem regView_tp {regs : Array (Nat × ByteArray)} {c : Nat} {x : Msg}
+    (h : x ∈ Register.view regs (fun _ => c)) : x.tp = c := by
+  obtain ⟨rid, d, hrd, hx⟩ := Register.mem_view.mp h
+  rcases Register.mem_regMsgs.mp hx with rfl | ⟨i, hi, rfl⟩ <;> rfl
+
+/-- **The in-cut clauses.**  A boundary whose live list is, outside spaces 3 and 7, exactly the
+view `cutView X s` at producer time `tp` satisfies the register and space clauses. -/
+theorem bndC_of_view {X : Ctx} {sg : Nat → Nat × Nat} {s : St} {t S : Nat} {m : List F} {L : List Msg}
+    {tp : Nat} (h : Bnd X sg s t S m L)
+    (hL : ∀ x ∈ L, x.space = 3 ∨ x.space = 7 ∨ ∃ y ∈ cutView X s, x = ofFields y tp)
+    (hV : ∀ y ∈ cutView X s, ofFields y tp ∈ L) : BndC X sg s t S m L := by
+  refine ⟨h, ⟨fun _ => tp, fun x hx => ?_⟩, fun x hx => ?_⟩
+  · have h6 : x.space = 6 := hx
+    constructor
+    · intro hxL
+      rcases hL x hxL with h3 | h7 | ⟨y, hy, rfl⟩
+      · omega
+      · omega
+      · obtain ⟨x', hx', rfl⟩ := mem_cutView.mp hy
+        rw [ofFields_fieldsOf] at h6 ⊢
+        rcases cutMsgs_space hx' with a | a | a | a | ⟨-, a⟩ | a
+        all_goals first | (simp only at h6; omega) | exact regView_retime tp a
+    · intro hxv
+      have hv0 := regView_retime 0 (by simpa using hxv : x ∈ Register.view s.registers (fun _ => tp))
+      have hy : fieldsOf x ∈ cutView X s := by
+        refine mem_cutView.mpr ⟨{ x with tp := 0 }, ?_, rfl⟩
+        simp only [cutMsgs, List.mem_append]; exact Or.inr hv0
+      have := hV _ hy
+      rwa [ofFields_fieldsOf, show ({ x with tp := tp } : Msg) = x by rw [← regView_tp hxv]] at this
+  · rcases hL x hx with h3 | h7 | ⟨y, hy, rfl⟩
+    · unfold SpaceOK; omega
+    · unfold SpaceOK; omega
+    · obtain ⟨x', hx', rfl⟩ := mem_cutView.mp hy
+      rw [ofFields_fieldsOf]
+      unfold SpaceOK
+      rcases cutMsgs_space hx' with a | a | a | a | ⟨a, -⟩ | a <;> simp only <;> omega
+
 end WasmBase
