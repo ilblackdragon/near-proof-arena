@@ -412,8 +412,199 @@ theorem memg_size_rowSpec (X : M3Ctx) (hcode : CodeOK3 X tr) {r : Nat} (hr : r <
   rw [hprod]
   exact ⟨s', hs', hR, hJk E s f tps tpl t pc S live _ _ s' R hin h1 hJ hs'⟩
 
+/-! ## The flat row facts of a MEMG row -/
+
+/-- **R16 lookup soundness on the grow AIR.** -/
+theorem segG_r16 {o : Occ} (ho : o ∈ occs (wasmBaseSegAirG nloc ngl) tr pub) (hb : o.1 = busR16)
+    (hs : o.2.1 = true) (hc : o.2.2.2 = 1) : ∃ x : F, o.2.2.1 = [x] ∧ x.toNat < 65536 :=
+  lookup_r16GX H (segG_hsend_r16 H) (regG_r16_recvX H (regAt_segG nloc ngl)) ho hb hs hc
+
+/-- **A MEMG time check**: the two R16 sends of `timeChk ts tp hi cnt` with `cnt = 1` give
+`ts = tp + 1 + n`, `n < 2^30 + 2^16`. -/
+theorem memg_time {r : Nat} (hr : r < tr.height 32) {tp hi : Nat} {cnt : Expr}
+    (hmem : timeChk (v cTs) (v tp) (v hi) cnt ⊆ MemG.table.inters)
+    (hc : (cnt.eval (tr.row pub 32 r)).toNat = 1) :
+    ∃ n, n < 2 ^ 30 + 2 ^ 16 ∧ ((mgc tr r tp + 1 + n : Nat) : F) = tr.cell 32 r cTs := by
+  have ht := segG_lt nloc ngl 32 (by decide)
+  have h1 := row_occ (pub := pub) ht hr (i := (timeChk (v cTs) (v tp) (v hi) cnt)[0]'(by simp [timeChk]))
+    (by rw [segG_t32']; exact hmem (List.getElem_mem _))
+  have h2 := row_occ (pub := pub) ht hr (i := (timeChk (v cTs) (v tp) (v hi) cnt)[1]'(by simp [timeChk]))
+    (by rw [segG_t32']; exact hmem (List.getElem_mem _))
+  simp only [timeChk, r16, B16, List.getElem_cons_zero, List.getElem_cons_succ, List.map_cons,
+    List.map_nil, Expr.eval_sub', Expr.eval_mul', Expr.eval_ofNat', memg_col_eval, hc] at h1 h2
+  obtain ⟨x, hx, hxl⟩ := segG_r16 H h1 rfl rfl rfl
+  obtain ⟨y, hy, hyl⟩ := segG_r16 H h2 rfl rfl rfl
+  simp only [List.cons.injEq, and_true] at hx hy
+  refine ⟨x.toNat + 16384 * y.toNat, by omega, ?_⟩
+  rw [cell_cast]
+  simp only [Lean.Grind.Semiring.natCast_add, Lean.Grind.Semiring.natCast_mul, Fp.cast_toNat]
+  rw [← hx, ← hy]
+  have : ((65536 : Nat) : F) = ((16384 : Nat) : F) * ((4 : Nat) : F) := by
+    rw [← Lean.Grind.Semiring.natCast_mul]
+  rw [this]; grind
+
+/-- **The flat row facts of a successful MEMG `memory.grow` row** (with the zero bytes `A` handed to
+MEMBG, produced at the row's time). -/
+theorem memg_growOk_flat {r : Nat} (hr : r < tr.height 32)
+    (hg : mgc tr r MemG.fGrow = 1) (hs : mgc tr r MemG.fSize = 0) {mf : Nat}
+    (hmf : mgc tr r cFee + mgc tr r MemG.lin * (mgc tr r MemG.n0 + 65536 * mgc tr r MemG.n1) ≤ mf)
+    (A : List Nat) (hAnd : A.Nodup) :
+    RowFactsFlatM mf (rowIn MemG.table tr pub 32 r) (rowOut MemG.table tr pub 32 r)
+      (rowCons MemG.table tr pub 32 r) (rowProd MemG.table tr pub 32 r ++ zeroBytes A (mgc tr r cTs)) := by
+  have hP := P_val
+  have hPr := rowNat_lt tr 32 r
+  have ha : (MemG.act.eval (tr.row pub 32 r)).toNat = 1 := segG_memg_act_cnt H hr hg
+  have hgc : ((v MemG.fGrow).eval (tr.row pub 32 r)).toNat = 1 := by
+    rw [memg_col_eval, hg]; rfl
+  obtain ⟨hcons, hprod⟩ := memg_grow_msgs (pub := pub) hg hs
+  refine ⟨by rw [memg_rowIn]; rfl, ?_, ?_, ?_, ?_, ?_⟩
+  · rw [memg_rowIn, memg_rowOut]; simp only [lvl, List.getD_cons_succ, List.getD_cons_zero, one_cast]
+  · refine ⟨mgc tr r cFee + mgc tr r MemG.lin * (mgc tr r MemG.n0 + 65536 * mgc tr r MemG.n1), hmf, ?_⟩
+    rw [memg_rowIn, memg_rowOut, memg_nE_eval]
+    simp only [gasF, List.getD_cons_succ, List.getD_cons_zero, cell_cast]
+    simp only [Lean.Grind.Semiring.natCast_add, Lean.Grind.Semiring.natCast_mul]
+    grind
+  · intro x hx
+    rw [hcons] at hx
+    simp only [List.mem_cons, List.mem_nil_iff, or_false] at hx
+    rw [memg_rowIn]
+    simp only [lvl, List.getD_cons_succ, List.getD_cons_zero]
+    rcases hx with rfl | rfl
+    · obtain ⟨n, hn, he⟩ := memg_time H hr (tp := MemG.tn) (hi := MemG.hn) (cnt := v MemG.fGrow)
+        (by intro i hi; simp only [MemG.table, MemG.inters, List.mem_append]; simp_all) hgc
+      refine ⟨n, hn, ?_⟩
+      simp only [decMsg, List.getD_cons_succ, List.getD_cons_zero, Fp.toNat_cast_of_lt (hPr _)]
+      exact he
+    · obtain ⟨n, hn, he⟩ := memg_time H hr (tp := MemG.tz) (hi := MemG.hz) (cnt := MemG.act)
+        (by intro i hi; simp only [MemG.table, MemG.inters, List.mem_append]; simp_all) ha
+      refine ⟨n, hn, ?_⟩
+      simp only [decMsg, List.getD_cons_succ, List.getD_cons_zero, Fp.toNat_cast_of_lt (hPr _)]
+      exact he
+  · intro x hx
+    rw [memg_rowIn]
+    simp only [lvl, List.getD_cons_succ, List.getD_cons_zero]
+    rw [hprod, List.mem_append] at hx
+    rcases hx with hx | hx
+    · simp only [List.mem_cons, List.mem_nil_iff, or_false] at hx
+      rcases hx with rfl | rfl <;>
+        simp only [decMsg, List.getD_cons_succ, List.getD_cons_zero, Fp.toNat_cast_of_lt (hPr _), cell_cast] <;>
+        exact ⟨hPr _, by first | rfl | trivial⟩
+    · obtain ⟨a, -, rfl⟩ := List.mem_map.mp hx
+      simp only [encB, cell_cast]
+      exact ⟨hPr _, by first | rfl | trivial⟩
+  · rw [hprod]
+    refine List.nodup_append.mpr ⟨?_, List.Pairwise.map _ (fun a b hab h => hab (congrArg Msg.slot h)) hAnd, ?_⟩
+    · simp only [List.nodup_cons, List.mem_cons, List.mem_nil_iff, or_false, not_false_eq_true,
+        List.nodup_nil, and_true]
+      intro h
+      have := congrArg Msg.space h
+      simp only [decMsg, List.getD_cons_zero, Fp.toNat_cast_of_lt (show (0 : Nat) < P by omega),
+        Fp.toNat_cast_of_lt (show memSizeSpace < P by simp [memSizeSpace]; omega)] at this
+      exact absurd this (by simp [memSizeSpace])
+    · intro x hx y hy hxy
+      subst hxy
+      obtain ⟨a, -, rfl⟩ := List.mem_map.mp hy
+      simp only [List.mem_cons, List.mem_nil_iff, or_false] at hx
+      rcases hx with h | h <;> have := congrArg Msg.space h <;>
+        simp only [encB, decMsg, List.getD_cons_zero, Fp.toNat_cast_of_lt (show (0 : Nat) < P by omega),
+          Fp.toNat_cast_of_lt (show memSizeSpace < P by simp [memSizeSpace]; omega)] at this <;>
+        simp [memSizeSpace] at this
+
+/-- The flat row facts of a failed grow row (`memg_growOk_flat` with no grown bytes). -/
+theorem memg_grow_flat {r : Nat} (hr : r < tr.height 32)
+    (hg : mgc tr r MemG.fGrow = 1) (hs : mgc tr r MemG.fSize = 0) {mf : Nat}
+    (hmf : mgc tr r cFee + mgc tr r MemG.lin * (mgc tr r MemG.n0 + 65536 * mgc tr r MemG.n1) ≤ mf) :
+    RowFactsFlatM mf (rowIn MemG.table tr pub 32 r) (rowOut MemG.table tr pub 32 r)
+      (rowCons MemG.table tr pub 32 r) (rowProd MemG.table tr pub 32 r) := by
+  have h := memg_growOk_flat H hr hg hs hmf [] List.nodup_nil
+  simpa [zeroBytes] using h
+
+/-- **The flat row facts of a MEMG `memory.size` row.** -/
+theorem memg_size_flat {r : Nat} (hr : r < tr.height 32)
+    (hg : mgc tr r MemG.fGrow = 0) (hs : mgc tr r MemG.fSize = 1) {mf : Nat} (hmf : mgc tr r cFee ≤ mf) :
+    RowFactsFlatM mf (rowIn MemG.table tr pub 32 r) (rowOut MemG.table tr pub 32 r)
+      (rowCons MemG.table tr pub 32 r) (rowProd MemG.table tr pub 32 r) := by
+  have hP := P_val
+  have hPr := rowNat_lt tr 32 r
+  have ha : (MemG.act.eval (tr.row pub 32 r)).toNat = 1 := by
+    simp only [MemG.act, Expr.eval_add', memg_col_eval, hg, hs]; rfl
+  have hok : mgc tr r MemG.ok = 0 := by
+    have h := H.constr 32 (segG_lt nloc ngl 32 (by decide)) r hr (v MemG.ok * (1 - v MemG.fGrow))
+      (by rw [segG_t32']; simp [MemG.table, MemG.constraints])
+    simp only [Expr.eval_mul', Expr.eval_sub', Expr.eval_ofNat', memg_col_eval, hg] at h
+    exact cast_zero_nat (hPr _) (by grind)
+  have hlin : mgc tr r MemG.lin = 0 := by
+    have h := H.constr 32 (segG_lt nloc ngl 32 (by decide)) r hr (v MemG.lin * (1 - v MemG.fGrow))
+      (by rw [segG_t32']; simp [MemG.table, MemG.constraints])
+    simp only [Expr.eval_mul', Expr.eval_sub', Expr.eval_ofNat', memg_col_eval, hg] at h
+    exact cast_zero_nat (hPr _) (by grind)
+  obtain ⟨hcons, hprod⟩ := memg_size_msgs (pub := pub) hg hs hok
+  refine ⟨by rw [memg_rowIn]; rfl, ?_, ?_, ?_, ?_, ?_⟩
+  · rw [memg_rowIn, memg_rowOut]; simp only [lvl, List.getD_cons_succ, List.getD_cons_zero, one_cast]
+  · refine ⟨mgc tr r cFee, hmf, ?_⟩
+    rw [memg_rowIn, memg_rowOut]
+    simp only [gasF, List.getD_cons_succ, List.getD_cons_zero, cell_cast, hlin]
+    grind
+  · intro x hx
+    rw [hcons] at hx
+    simp only [List.mem_cons, List.mem_nil_iff, or_false] at hx
+    rw [memg_rowIn]
+    simp only [lvl, List.getD_cons_succ, List.getD_cons_zero]
+    subst hx
+    obtain ⟨n, hn, he⟩ := memg_time H hr (tp := MemG.tz) (hi := MemG.hz) (cnt := MemG.act)
+      (by intro i hi; simp only [MemG.table, MemG.inters, List.mem_append]; simp_all) ha
+    refine ⟨n, hn, ?_⟩
+    simp only [decMsg, List.getD_cons_succ, List.getD_cons_zero, Fp.toNat_cast_of_lt (hPr _)]
+    exact he
+  · intro x hx
+    rw [memg_rowIn]
+    simp only [lvl, List.getD_cons_succ, List.getD_cons_zero]
+    rw [hprod] at hx
+    simp only [List.mem_cons, List.mem_nil_iff, or_false] at hx
+    rcases hx with rfl | rfl <;>
+      simp only [decMsg, List.getD_cons_succ, List.getD_cons_zero, Fp.toNat_cast_of_lt (hPr _), cell_cast] <;>
+      exact ⟨hPr _, by first | rfl | trivial⟩
+  · rw [hprod]
+    simp only [List.nodup_cons, List.mem_cons, List.mem_nil_iff, or_false, not_false_eq_true,
+      List.nodup_nil, and_true]
+    intro h
+    have := congrArg Msg.space h
+    simp only [decMsg, List.getD_cons_zero, Fp.toNat_cast_of_lt (show (0 : Nat) < P by omega),
+      Fp.toNat_cast_of_lt (show memSizeSpace < P by simp [memSizeSpace]; omega)] at this
+    exact absurd this (by simp [memSizeSpace])
+
 end
 
+/-- **A MEMG row executes a non-host instruction** (`memory.grow` / `memory.size`), so it keeps the
+host side and registers (`rowJKeep_sig`). -/
+theorem memg_codeNonHost {nloc ngl : Nat} {pub : List F} {tr : Trace}
+    (H : HoldsX (wasmBaseSegAirG nloc ngl) pub tr) (X : M3Ctx) (hcode : CodeOK3 X tr) {r : Nat}
+    (hr : r < tr.height 32) (ha : mgc tr r MemG.fGrow = 1 ∧ mgc tr r MemG.fSize = 0 ∨
+      mgc tr r MemG.fGrow = 0 ∧ mgc tr r MemG.fSize = 1) :
+    CodeNonHost X.ctx (rowIn MemG.table tr pub 32 r) := by
+  intro E s f tps tpl t pc S live a b R hin i hi
+  rcases ha with ⟨hg, hs⟩ | ⟨hg, hs⟩
+  · obtain ⟨p0, -, -, -, -⟩ := memg_in R hin
+    obtain ⟨k, l, fee, lin, hk, hl', hoff, hc, -, -, -, -⟩ := memg_fetch_grow H X hcode hr hg hs
+    have hkE : E.k < X.nf := by have := R.kLt; rwa [M3Ctx.ctx_nf] at this
+    have hpcE : pc < (X.pfOf E.k).code.size := by have := R.pcLt; rwa [M3Ctx.ctx_pfOf] at this
+    obtain ⟨rfl, rfl⟩ := X.loc_unique hk hl' hkE hpcE (by rw [hoff, p0])
+    rw [M3Ctx.ctx_pfOf, hc] at hi
+    cases hi; trivial
+  · obtain ⟨p0, -, -, -, -⟩ := memg_in R hin
+    obtain ⟨k, l, fee, hk, hl', hoff, hc, -, -, -⟩ := memg_fetch_size H X hcode hr hg hs
+    have hkE : E.k < X.nf := by have := R.kLt; rwa [M3Ctx.ctx_nf] at this
+    have hpcE : pc < (X.pfOf E.k).code.size := by have := R.pcLt; rwa [M3Ctx.ctx_pfOf] at this
+    obtain ⟨rfl, rfl⟩ := X.loc_unique hk hl' hkE hpcE (by rw [hoff, p0])
+    rw [M3Ctx.ctx_pfOf, hc] at hi
+    cases hi; trivial
+
+#print axioms segG_r16
+#print axioms memg_time
+#print axioms memg_growOk_flat
+#print axioms memg_grow_flat
+#print axioms memg_size_flat
+#print axioms memg_codeNonHost
 #print axioms memg_grow_at
 #print axioms memg_size_at
 #print axioms memg_growOk_rowSpec
