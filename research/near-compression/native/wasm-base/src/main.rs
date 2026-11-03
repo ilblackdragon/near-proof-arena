@@ -12,6 +12,15 @@ mod config;
 mod sha;
 mod air;
 mod tracegen;
+// E2E M4: the segment AIR's builder and commands, and the native SHA-512 compression chip (v4)
+mod seg;
+mod segcmd;
+#[allow(dead_code, clippy::all)]
+mod s384 {
+    pub mod air;
+    pub mod reference;
+    pub mod trace;
+}
 
 use air::{AirSpec, JsonAir};
 use config::{F, Sha384Config, Sha384RefEngine};
@@ -1137,7 +1146,7 @@ fn cmd_tamper(air_path: &str, prep_path: &str) {
     let mut rejected = 0;
     let total = cases.len();
     for (name, m) in cases {
-        let mut gt = Gen { mats: g.mats.clone(), pubs: g.pubs.clone(), rows_per_table: g.rows_per_table.clone(), result: g.result, steps: g.steps, s_units: g.s_units, g_final_trace: g.g_final_trace };
+        let mut gt = Gen { cuts: vec![], mats: g.mats.clone(), pubs: g.pubs.clone(), rows_per_table: g.rows_per_table.clone(), result: g.result, steps: g.steps, s_units: g.s_units, g_final_trace: g.g_final_trace };
         m(&mut gt);
         let pre = match (tracegen::check_constraints(&spec, &gt), tracegen::check_buses(&spec, &gt)) {
             (Err(e), _) => format!("constraint: {e}"),
@@ -1159,7 +1168,7 @@ fn cmd_tamper(air_path: &str, prep_path: &str) {
     println!("TAMPER summary {rejected}/{total} rejected");
     // documented gaps: mutants the current statement does not cover (reported, not counted)
     for (name, m) in expected_accept {
-        let mut gt = Gen { mats: g.mats.clone(), pubs: g.pubs.clone(), rows_per_table: g.rows_per_table.clone(), result: g.result, steps: g.steps, s_units: g.s_units, g_final_trace: g.g_final_trace };
+        let mut gt = Gen { cuts: vec![], mats: g.mats.clone(), pubs: g.pubs.clone(), rows_per_table: g.rows_per_table.clone(), result: g.result, steps: g.steps, s_units: g.s_units, g_final_trace: g.g_final_trace };
         m(&mut gt);
         let pre = match (tracegen::check_constraints(&spec, &gt), tracegen::check_buses(&spec, &gt)) {
             (Err(e), _) => format!("constraint: {e}"),
@@ -1323,6 +1332,9 @@ fn main() {
         Some("hostb-dump") => cmd_hostb_dump(&a[2], &a[3]),
         Some("check-tape") => cmd_check_tape(&a[2], &a[3..]),
         Some("sha-difftest") => cmd_sha_difftest(a.get(2).map(|s| s.as_str())),
+        Some("segcheck") => segcmd::cmd_segcheck(&a[2..]),
+        Some("segprove") => segcmd::cmd_segprove(&a[2..]),
+        Some("segtamper") => segcmd::cmd_segtamper(&a[2..]),
         _ => eprintln!("usage: see source header"),
     }
     let _: Option<RowMajorMatrix<F>> = None;
