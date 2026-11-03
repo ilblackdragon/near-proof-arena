@@ -125,7 +125,8 @@ def L : Layout :=
    ("rk", 1), ("kid2", 1), ("st2", 1), ("lvlen", 1), ("lvh", 16), ("fpres", 1),
    ("xl", 1), ("xk", 1), ("lvlen2", 1), ("lvh2", 16), ("nh2", 32), ("nm2", 4),
    ("gsha", 1), ("oref", 1), ("vm", VBITS), ("isn", 16), ("nref", 1), ("vmn", VBITS), ("nhf", 1),
-   ("nh2f", 1), ("oUV", 1), ("oDV", 1), ("oDZ", 1), ("nhv", 1), ("nvl", 4), ("nvh", 32)]
+   ("nh2f", 1), ("oUV", 1), ("oDV", 1), ("oDZ", 1), ("nhv", 1), ("nvl", 4), ("nvh", 32),
+   ("dm", 8), ("cyd", 4)]
 def T : Cols := ⟨L⟩
 def c (s : String) (j : Nat := 0) : Expr := T.c s j
 def nx (s : String) (j : Nat := 0) : Expr := T.n s j
@@ -263,7 +264,12 @@ def constraints : List Expr :=
     [(c "gnew" - c "oUV" - c "oDV") * (c "nvl" t - c "vl" t), (1 - c "nhv") * c "nvl" t]) ++
   ((List.range 32).flatMap fun t =>
     [(c "gnew" - c "oUV" - c "oDV") * (c "nvh" t - c "vh" t), (1 - c "nhv") * c "nvh" t]) ++
-  memNew
+  memNew ++
+  -- M5a-5: a delete-descend keeping the branch (`oDH`/`oDL`) computes the spec's truncated
+  -- `m − old + new` (`Kids.delAt` / `squashBranch`); the row checks `old ≤ m` (`dm = mem − om`,
+  -- 8 bytes in `RNG`, no final borrow), so the exact chain `memNew` is the spec's value
+  memChain (c "oDH" + c "oDL") (memLimbs T "dm") M [] ((List.range 4).map fun k => c "om" k)
+    (fun k => c "cyd" k)
 
 def idO : Expr := K ID_BR + sm 2 (c "rid")
 def idN : Expr := K ID_BR + sm 2 (c "rid") + 1
@@ -355,7 +361,9 @@ def interactions : List Interaction :=
      [c "oD1" * c "kid2", c "oD1" * d, (c "oFD" + c "oD1") * c "lvlen" + c "oFV" * vlen] ++
      ((List.range 16).zip (pack2 fun b => c "vh" b)).map
        (fun (i, p) => (c "oFD" + c "oD1") * c "lvh" i + c "oFV" * p) ++
-     [c "oFD" * c "fpres" + c "oFV" * c "hasv"])]
+     [c "oFD" * c "fpres" + c "oFV" * c "hasv"])] ++
+  -- M5a-5: the bytes of `mem − om` on `oDH`/`oDL` rows
+  (List.range 8).map fun b => rcv B_RNG (c "oDH" + c "oDL") [c "dm" b]
 
 def table : Table := { width := L.width, constraints, interactions, maxLog := 20 }
 end Br
