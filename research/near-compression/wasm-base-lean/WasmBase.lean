@@ -182,3 +182,4 @@ import WasmBase.Main.HostCoverAir
 import WasmBase.Main.HostTwinP
 import WasmBase.Main.SegSoundSigmaP
 import WasmBase.Main.HostIfCover2
+import WasmBase.Main.HostCodeFetch
