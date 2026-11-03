@@ -15,6 +15,7 @@ import StateM5a.StepsBV
 import StateM5a.Bus
 import StateM5a.Traffic
 import StateM5a.BusWalk
+import StateM5a.FieldWalk
 import StateM5a.Keep
 import StateM5a.WsCost
 
@@ -234,3 +235,5 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.WsCost.wsp_child
 #print axioms StateM5a.WsCost.wsp_off
 #print axioms StateM5a.WsCost.wsl_kd
+#print axioms StateM5a.FieldWalk.br_gdn_gold
+#print axioms StateM5a.FieldWalk.sn_bool

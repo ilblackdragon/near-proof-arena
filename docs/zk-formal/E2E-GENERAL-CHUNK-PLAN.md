@@ -530,8 +530,8 @@ maps to §3.2's `stRoot` and will follow lane E's `CM` boundary record when §3.
   does not repeat the ref), `walk_sem`, `tch_chain`, `ver_recv`, `reqresp`; `BusWalk.ver_store`
   (the store from `VER`), 23 row-local steps, and **`bus_batched_changes`**: walk shape +
   `DOWN`/`UP`/`TCH` balance + every row's local step ⇒ `rootHash (applyChanges …)` =
-  `post_state_root` on the witness, premise `Sha256CR` only. `FieldWalk`: the walk-shape facts
-  from the constraints. `KeepsFW` is false (`not_keepsFW`); replaced by `keepsFWRows` /
+  `post_state_root` on the witness, premise `Sha256CR` only. `FieldWalk.br_gdn_gold`: a `BR` `DOWN`
+  sender is active (the `SN` analogue is open). `KeepsFW` is false (`not_keepsFW`); replaced by `keepsFWRows` /
   `batched_changes'`; chain constructors for `oUV`/`oDV`/`oDZ`.
 * **Working-set cost [M].** One SHA-512 compression per leaf; per-write paths replaced by a
   memory-checked `WM` bus and one batched path update per segment (`RCH` kept). T2 committed

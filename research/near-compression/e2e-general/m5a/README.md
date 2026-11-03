@@ -50,10 +50,15 @@ From bus balance to `rootHash (applyChanges …)`, with `Sha256CR` the only cryp
     not used — well-formedness is carried along the walk (rows' memory / length bounds) and
     `Store.keepsFWRows` transfers it to the witness.
 
+* **`FieldWalk`** (field level, from the exported constraints over BabyBear): `br_gdn_gold`
+  (`BR`: `gdn = 1 ⇒ gold = 1`, a `DOWN` sender is an active row), `sn_bool` and the `SN` one-hot
+  memberships; the `SN` analogue (`gdn = 1 ⇒ gwalk = 1 ∧ isE = 1 ∧ a₀ = 1 ⇒ 1 ≤ klen`) is open
+  (the direct proof exhausts memory; needs a staged proof).
+
 **What is still a premise** (open; field level / remaining ops): (1) decoding — each table's
 `DOWN`/`UP`/`TCH`/`VER` interaction message is the injective encoding of the decoded record
 (`perm_decode`'s hypotheses, refs as flag + 16 limbs); (2) `WalkShape` (`d' > d`: `BR` `d + 1`,
-`SN` `d + klen` with `klen ≥ 1` from `isE·(1 − a₀)`; one root per walk: `WSB` `i` distinct,
+`SN` `d + klen` with `klen ≥ 1` — open at field level (`FieldWalk` has `BR` only), the `SNC` chain bound on `rl` for a continued head is open; one root per walk: `WSB` `i` distinct,
 `W_FINAL` offset) and active-row bookkeeping (`gdn ≤ gold` from the one-hot bundles); (3) the
 per-row decoded facts each `step_*` takes (`OldOK` from `ver_store` / a hashing row, `NewOK`,
 nibble lookups `K.drop d = …`, mismatch witness, memory / length bounds, kept-branch counts);
