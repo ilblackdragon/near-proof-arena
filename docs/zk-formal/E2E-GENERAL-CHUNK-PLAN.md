@@ -952,3 +952,12 @@ rows produce the writes now on the public tape; range-check `WSA` times).
   byte, dropped write, …). **Lean [K]:** `M5b.prem` — every M5a theorem applies to the M5b AIR the
   prover runs (static extra-table premises discharged); the STATE rows' own soundness (`WRITE` =
   digests of the `HB` bytes) and `committed ~ cs` are open.
+* **Lean, premises from `Holds` [K]:** `SnFinal4.air_final_sorted_sn4` — batched FINAL in the
+  spec's order with, newly from `Holds`: distinct version ids (`snVers`, `vers_nodup`), `BR` `hVl`/`hVP`
+  (`BrVl`, using the new `RNG [nvl]`), `OslApart` (`WalkEnd`), the `SN` records `SnOldAll`/`SnNewAll`/
+  `SnOldAny`/`SnNewAny` (`SnStore2.sn_oldOK`/`sn_newOK`; `SN` nodes `Hashed` from the SHA-256 contract,
+  `SnRec`), `SnLimbs3`/`SnLeafMemLt`/`SnMatLeaf` (`SnRange`) — for heads with `cont = 0`; these
+  premises are restated for `cont = 0` rows (as stated before they were unsatisfiable on
+  continued-key rows and unused there). Left: `SnRest2` (split rows — partly done in
+  `lean-wip/`, over the memory budget as written — and continued keys), `SnUpLimbs`/`SnMatLimbs`,
+  `hlongS`/`hlongM`.

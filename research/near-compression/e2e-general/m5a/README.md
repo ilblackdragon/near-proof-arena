@@ -104,7 +104,16 @@ recomputed: `HB` and `WRITE` unbalanced), `stdrop` (a requested write left out o
 2. `SHAS` merged into the first SHA-256 table (generalize the `SHA_BYTES` id-space premises).
 3. Reads (`storage_read`/`has_key`, `WM` read access + value bytes back), registers, the `HOSTQ`
    form with `hid`; the segment cut (`seg` = segment-local constant, `RCH` in the boundary).
-4. Everything under *Open after M5a-5* except item 3 (done: `WSA` times ranged).
+4. Of *Open after M5a-5*: item 3 done (`WSA` times ranged); item 2 done (`OslApart`, `hVl`,
+   `hVP`); item 1 partly done (`SN` records, `Hashed`, limb ranges at `cont = 0`, see the M5a-6
+   Lean section). Left of `air_final_sorted_sn4`'s premises:
+   * `SnRest2`: split rows (`lean-wip/SnSplit*.lean`: split `SnSplit` into lemmas that fit the
+     24 GB budget, compile `SnSplitLoc`/`SnFinal3`; residual premises there: `unm` limbs of
+     `oEP`/`oEM`, `OslNodeLimbs`) and continued-key rows (`cont = 1`: a full-key record over the
+     `SNC` chain, its SHA argument with the `SNC` byte positions, then `LocalOK`, `hlongS`/`hlongM`);
+   * `SnUpLimbs` / `SnMatLimbs`: from `SnRange` at `cont = 0` plus the split rows' `sm` (`SPR`
+     senders: `BR` `oSL` / `SN` `oEP` new-node limbs) and the continued-key rows' limbs;
+   * items 4–6 of M5a-5 (`committed ~ cs`, lane E's `StViewE`, completeness gaps) unchanged.
 
 ## M5a-6 (seventh session, 2026-11-03): two range checks, re-proved
 
@@ -143,6 +152,38 @@ constraint) on T2, T1, synthetic, T2-seg3x5, `bvnref`, and `nvlbyte` on `bvnref`
 `RNG` alone: 2 unbalanced `RNG` messages, nothing else catches it). Logs `logs/M5a6-*-prove.log`,
 hashes `logs/SHA256SUMS-v6` (the prover binary there is the M5b one; for the M5a AIR it only
 differs in where it inserts `TAPE`, which is the same position).
+
+### Lean: premises of the batched FINAL from `Holds` [K] (std axioms, no `sorry`)
+
+Headline **`SnFinal4.air_final_sorted_sn4`**: `applyChanges (some T) (sortKV committed)` reaches
+`post_state_root` from `Holds` of the AIR the prover runs, `Sha256CR`, the chip contract and only:
+`SnUpLimbs`, `SnMatLimbs` (memory limbs every `SN` row sends on `UP` / `MATR`), `SnRest2` (`LocalOK`
+of split rows and continued-key rows), `hlongS` / `hlongM` (continued-key responders). Discharged
+since M5a-5 (`air_final_sorted_sn2` took them all as premises):
+
+| premise | now | where |
+|---|---|---|
+| `hnd` (distinct version ids) | `snVers := SnStore2.snVers tr pub`, `vers_nodup` (`256·(ID+2r+1) mod P`, BR vs SN id ranges disjoint) | `SnStore2` |
+| `BR` `hVl`, `hVP` | every `BR` record on `VER` has length bytes `(ℓ₀,ℓ₁,ℓ₂,0)`: hashed (SHA bytes) or version-published (the new `RNG [nvl]`), `nvl₃ = 0` from `oUV·nvl₃` / the kept-value equations; a reader's limbs are the publisher's (part 16) ⇒ limbs `< 2^16`, `brVlen < 2^24` | `BrVl.hVl_of`, `hVP_of` |
+| `BR` `OslApart` | a non-descending row is the deepest of its walk; one split row per walk | `WalkEnd.oslApart` (sub-agent) |
+| `SN` `SnOldAll`, `SnOldAny` | `sn_oldOK`: hashed here, or read on `VER` (3 parts, `SnVer.sn_rd_part`): under a version id all parts from the one row with that id; under a digest from records hashed to it, equal by `Sha256CR`, the reader's key assembled from part 0's length and parts 1/2's nibbles through the common key (`key_of_parts`; the `BR`-side `PartDec` does not apply: raw nibbles past the key's end are not determined by the record) | `SnStore`, `SnStore2` |
+| `SN` `SnNewAll`, `SnNewAny` | `sn_newOK` (hashed or under its version id) | `SnStore2` |
+| `SN` `Hashed` (new) | a head with `cont = 0` hashing its old / new node: every byte it sends is the `snSerF` entry at its position (`sn_ser_ok`); every SHA byte under its ids comes from it (`SNC` rows only serve continuing heads, `snc_cont`), so the message is `snSerF`, all bytes, and the record is `Hashed` (`grecS_hashed`: hex-prefix from `sn_hexPrefix`, key nibbles `< 16` by `sn_k16`) | `SnSer`, `SnDigest`, `SnHashed`, `SnRec` |
+| `SN` `SnLimbs3`, `SnLeafMemLt`, `SnMatLeaf` | `nmem` / leaf `nx` bytes (hashed or `RNG` under `nref`), old memory limbs (hashed or the `VER` publisher's), new leaf memory `< 2^25` (`nmem₃ ∈ {0,1}`, `nmem₄..₇ = 0`) | `SnRange` |
+
+**Restated premises.** `SnOldAll`, `SnNewAll`, `SnOldAny`, `SnNewAny`, `SnLimbs`, `SnLimbs3`,
+`SnLeafMemLt`, `SnMatLeaf` now quantify over rows with `cont = 0` only. Before, they also covered
+continued-key rows, for which `snOld` / `snNew` read the head key only (`klen` counts the whole key,
+so `snKey` reads columns past the 64 nibbles) — a premise no honest trace satisfies there; the
+consumers (`hloc_sn`, `hloc_sn2`, `hloc_sn3`, `snSibOK_of`, `snMatOK_of`) only used them at
+`cont = 0` (continued keys are in `SnRest2` / `hlongS` / `hlongM`).
+
+**Split rows (sub-agent, partial).** Committed and green: `WalkEnd` (`OslApart`), `BrOsl` /
+`BrOslSplit` (`osl_split`: `SplitRel` of a split's new branch `BR.oSL` from `Holds` + `SnMatOK`),
+`SnSplitBus` (`SPR`/`EPQ`/`SXQ`/`SXR` senders, `oslQ_eq`). In `lean-wip/` (not built):
+`SnSplit.lean` (`FreshRel` of `oEP`/`oEM`, `split_ans`: `SplitAns` from `Holds`), `SnSplitLoc.lean`
+(`localOK_oLX`, `localOK_oEX` at `cont = 0`), `SnFinal3.lean` — `SnSplit` exceeds the 24 GB Lean
+budget as written (to be split into smaller lemmas), the other two were never compiled.
 
 ## M5a-5 (sixth session, 2026-11-03)
 

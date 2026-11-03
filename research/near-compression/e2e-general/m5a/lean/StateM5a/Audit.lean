@@ -1,3 +1,5 @@
+import StateM5a.SnFinal4
+import StateM5a.SnSplitBus
 import StateM5a.FinalOrder
 import StateM5a.IntakeKeys
 import StateM5a.KeyOrder
@@ -571,3 +573,44 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.BrOslSplit.osl_mem
 #print axioms StateM5a.BrOslSplit.osl_kids
 #print axioms StateM5a.BrOslSplit.osl_split
+#print axioms StateM5a.BrVl.br_vl_pubOld
+#print axioms StateM5a.BrVl.br_nvl_pubNew
+#print axioms StateM5a.BrVl.br_vl_limbs
+#print axioms StateM5a.BrVl.hVl_of
+#print axioms StateM5a.BrVl.hVP_of
+#print axioms StateM5a.SnSer.sn_ser_ok
+#print axioms StateM5a.SnDigest.snc_cont
+#print axioms StateM5a.SnDigest.sn_byte
+#print axioms StateM5a.SnDigest.sn_node
+#print axioms StateM5a.SnHashed.sn_ops
+#print axioms StateM5a.SnHashed.sn_k16
+#print axioms StateM5a.SnRec.grecS_hashed
+#print axioms StateM5a.SnRec.sn_old_node
+#print axioms StateM5a.SnRec.sn_new_node
+#print axioms StateM5a.SnVer.sn_rd_part
+#print axioms StateM5a.SnStore.fields0
+#print axioms StateM5a.SnStore.key_of_parts
+#print axioms StateM5a.SnStore.grec_of_fields
+#print axioms StateM5a.SnStore2.snVid_val
+#print axioms StateM5a.SnStore2.vers_nodup
+#print axioms StateM5a.SnStore2.snVers_hv
+#print axioms StateM5a.SnStore2.sn_newOK
+#print axioms StateM5a.SnStore2.sn_oldOK
+#print axioms StateM5a.SnRange.sn_nmem_bytes
+#print axioms StateM5a.SnRange.sn_nx_bytes
+#print axioms StateM5a.SnRange.sn_NM_lt
+#print axioms StateM5a.SnRange.sn_M_lt
+#print axioms StateM5a.SnRange.sn_leafMem_lt
+#print axioms StateM5a.SnFinal4.snOldAll_of
+#print axioms StateM5a.SnFinal4.snOldAny_of
+#print axioms StateM5a.SnFinal4.snNewAll_of
+#print axioms StateM5a.SnFinal4.snNewAny_of
+#print axioms StateM5a.SnFinal4.snLimbs3_of
+#print axioms StateM5a.SnFinal4.snLeafMemLt_of
+#print axioms StateM5a.SnFinal4.snMatLeaf_of
+#print axioms StateM5a.SnFinal4.air_final_sorted_sn4
+#print axioms StateM5a.SnSplitBus.spr_src
+#print axioms StateM5a.SnSplitBus.epq_src
+#print axioms StateM5a.SnSplitBus.sxq_src
+#print axioms StateM5a.SnSplitBus.sxr_src
+#print axioms StateM5a.SnSplitBus.oslQ_eq

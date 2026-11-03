@@ -73,7 +73,7 @@ structure SnLimbsAt3 (tr : Trace Fp) (pub : List Fp) (r : Nat) : Prop where
   nx : ev tr 3 r pub (Sn.c "oLR") = 1 → ∀ t, t < 3 → ev tr 3 r pub (Sn.c "nx" t) < 256
 
 def SnLimbs3 (tr : Trace Fp) (pub : List Fp) : Prop :=
-  ∀ r, r < tr.height 3 → snW.g.eval tr 3 r pub = 1 → SnLimbsAt3 tr pub r
+  ∀ r, r < tr.height 3 → snW.g.eval tr 3 r pub = 1 → ev tr 3 r pub (Sn.c "cont") = 0 → SnLimbsAt3 tr pub r
 
 theorem gdn_of {tr : Trace Fp} {r : Nat} {pub : List Fp} (hc : ∀ e ∈ Sn.table.constraints, e.eval tr 3 r pub = 0)
     (hg : ev tr 3 r pub (Sn.c "mF" + Sn.c "mU" + Sn.c "mD") = 1)
@@ -103,10 +103,10 @@ theorem hloc_sn3 {D : Nat} {extra : List Table} {nb np : Nat} {tr : Trace Fp} {p
     (hlm : SnLeafMemLt tr pub) (hrest : SnRest2 σ (keyOf tr) tr pub) :
     ∀ x ∈ rowsOf cDc snW tr 3 pub, LocalOK (Sem σ (keyOf tr)) x := by
   refine hloc_sn2 hH hN hL hold hnew ?_ hlm (SnDepthAll.sn_depth_all hH hN hL) hrest
-  intro r hr hg
+  intro r hr hg hcont
   have hc := tbl_sn D extra nb np hH r (List.mem_range.2 hr)
   have hg' : ev tr 3 r pub (Sn.c "mF" + Sn.c "mU" + Sn.c "mD") = 1 := eval_one_ev hg
-  have hl := hlim r hr hg
+  have hl := hlim r hr hg hcont
   refine ⟨hl.mem, hl.nmem, fun h k hk => ?_, fun h k hk => ?_, hl.nx⟩
   · obtain ⟨hd, he⟩ := gdn_of hc hg' h
     have := (sn_unom_lt hH hxB hxD hxK hxr hxV hxU hSU hr hd k hk).1

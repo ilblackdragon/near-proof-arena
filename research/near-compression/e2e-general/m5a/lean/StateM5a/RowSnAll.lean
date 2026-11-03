@@ -28,7 +28,7 @@ set_option maxRecDepth 100000
 
 /-- **Premise**: every active `SN` row's old record (`VER` / SHA-256). -/
 def SnOldAll (σ : Store) (tr : Trace Fp) (pub : List Fp) : Prop :=
-  ∀ r, r < tr.height 3 → snW.g.eval tr 3 r pub = 1 → OldOK σ (snIn tr pub r) (snOld tr pub r)
+  ∀ r, r < tr.height 3 → snW.g.eval tr 3 r pub = 1 → ev tr 3 r pub (Sn.c "cont") = 0 → OldOK σ (snIn tr pub r) (snOld tr pub r)
 
 /-- **Premise**: active `SN` rows are not near the field's top in depth. -/
 def SnDepth (tr : Trace Fp) (pub : List Fp) : Prop :=
@@ -64,7 +64,6 @@ theorem hloc_sn {D : Nat} {extra : List Table} {nb np : Nat} {tr : Trace Fp} {pu
   have hc := tbl_sn D extra nb np hH r (List.mem_range.2 hr)
   have hg' : ev tr 3 r pub (Sn.c "mF" + Sn.c "mU" + Sn.c "mD") = 1 := eval_one_ev hg
   have hd' := hd r hr hg
-  have ho := hold r hr hg
   have hnib : ∀ j < 64, (Sn.b j).eval tr 3 r pub = 1 →
       (keyOf tr (ev tr 3 r pub (Sn.c "kid")))[ev tr 3 r pub (Sn.c "d" + K j)]? = some (ev tr 3 r pub (Sn.k j)) :=
     fun j hj hgj => (sn_nib hH hN j hj hr hgj).1
@@ -80,6 +79,7 @@ theorem hloc_sn {D : Nat} {extra : List Table} {nb np : Nat} {tr : Trace Fp} {pu
   have hcb := FieldRows2.sn_bool hc "cont" (by simp)
   by_cases hcont : ev tr 3 r pub (Sn.c "cont") = 0
   · obtain ⟨hb, -, -, -, -, -, hs, hF, hU, hD, -⟩ := sn_flags' hc hg'
+    have ho := hold r hr hg hcont
     rcases cover _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ (hb "oLF" (by simp [snNames])) (hb "oEF" (by simp [snNames])) (hb "oLA" (by simp [snNames])) (hb "oEA" (by simp [snNames])) (hb "oLR" (by simp [snNames])) (hb "oEU" (by simp [snNames])) (hb "oLX" (by simp [snNames])) (hb "oEX" (by simp [snNames])) (hb "oLD" (by simp [snNames])) (hb "oED" (by simp [snNames])) (hb "oLZ" (by simp [snNames])) (hb "oEZ" (by simp [snNames])) (hb "oES" (by simp [snNames])) (hb "oEB" (by simp [snNames])) hs hF hU hD with h | h | h | h | h | h | h | h | h | h | h | h | h | h
     · exact localOK_oLF hc hg' h hcont hd' hnib hklen ho
     · exact localOK_oEF hc hg' h hcont hd' hnib ho

@@ -105,16 +105,16 @@ end
 
 /-- **Premise**: every active `SN` row reading its node has its old record (`VER` / SHA-256). -/
 def SnOldAny (σ : Store) (tr : Trace Fp) (pub : List Fp) : Prop :=
-  ∀ r, r < tr.height 3 → ev tr 3 r pub (Sn.c "oLS") = 1 → OldOK σ (snIn tr pub r) (snOld tr pub r)
+  ∀ r, r < tr.height 3 → ev tr 3 r pub (Sn.c "oLS") = 1 → ev tr 3 r pub (Sn.c "cont") = 0 → OldOK σ (snIn tr pub r) (snOld tr pub r)
 
 /-- **Premise**: every `SN` row building a node publishes it (`VER` / SHA-256). -/
 def SnNewAny (σ : Store) (tr : Trace Fp) (pub : List Fp) : Prop :=
-  ∀ r, r < tr.height 3 → ev tr 3 r pub (Sn.c "oLM") = 1 → NewOK σ (snOut tr pub r) (snNew tr pub r)
+  ∀ r, r < tr.height 3 → ev tr 3 r pub (Sn.c "oLM") = 1 → ev tr 3 r pub (Sn.c "cont") = 0 → NewOK σ (snOut tr pub r) (snNew tr pub r)
 
 /-- **Premise**: the `oLM` value-length bytes and the new leaf's memory `< P` (not implied by the
 AIR, as `SnLeafMemLt`). -/
 def SnMatLeaf (tr : Trace Fp) (pub : List Fp) : Prop :=
-  ∀ r, r < tr.height 3 → ev tr 3 r pub (Sn.c "oLM") = 1 →
+  ∀ r, r < tr.height 3 → ev tr 3 r pub (Sn.c "oLM") = 1 → ev tr 3 r pub (Sn.c "cont") = 0 → 
     (∀ t, t < 3 → ev tr 3 r pub (Sn.c "nx" t) < 256) ∧ snNMem tr pub r < P
 
 set_option maxHeartbeats 4000000 in
@@ -135,7 +135,7 @@ theorem snSibOK_of {D : Nat} {extra : List Table} {nb np : Nat} {tr : Trace Fp} 
   have hcb := FieldRows2.sn_bool hc "cont" (by simp)
   by_cases hcont : ev tr 3 s pub (Sn.c "cont") = 0
   · obtain ⟨hA0, hisL, -⟩ := resp_flags hc (Or.inl h1)
-    have ho := hold s hs h1
+    have ho := hold s hs h1 hcont
     rw [snOld_leaf hisL] at ho
     exact sibRel_oLS ho (resp_key hH hN hL hs hc hA0 hisL hcont)
   · exact hlong s hs h1 (by omega)
@@ -159,7 +159,7 @@ theorem snMatOK_of {D : Nat} {extra : List Table} {nb np : Nat} {tr : Trace Fp} 
   by_cases hcont : ev tr 3 s pub (Sn.c "cont") = 0
   · obtain ⟨hA0, hisL, hLR, -, -, hA, -⟩ := resp_flags hc (Or.inr h1)
     have g : ev tr 3 s pub (Sn.c "oLR" + Sn.c "oLM") = 1 := by rw [ev_hadd, hLR, h1]
-    obtain ⟨hnx, hlt⟩ := hleaf s hs h1
+    obtain ⟨hnx, hlt⟩ := hleaf s hs h1 hcont
     have hmem := sn_leaf_nmem hc hA hcont g (hSM s hs h1) hlt hnx
     have hvl : ev tr 3 s pub (Sn.c "dvlen") = ev tr 3 s pub (Sn.vlenOf fun t => Sn.c "nx" t) :=
       FieldVer.eq_of_gate (FieldRows2.sn_hold hc sn_mem_vl) g
@@ -172,7 +172,7 @@ theorem snMatOK_of {D : Nat} {extra : List Table} {nb np : Nat} {tr : Trace Fp} 
       simp only [Function.comp, E]
       rw [show 4 + (2 * i + 1) = 5 + 2 * i by omega]
       exact Fp.ext this
-    have hn := hnew s hs h1
+    have hn := hnew s hs h1 hcont
     rw [snNew_leaf hisL] at hn
     unfold snNVal at hn
     rw [hmem, ← hvl] at hn
