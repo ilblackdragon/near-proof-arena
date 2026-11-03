@@ -66,7 +66,7 @@ AIR: `research/near-compression/wasm-base-lean/WasmBase` (Lean, the single sourc
 | control flow: block/loop/br/br_if/return, `if`/`else` | CTRL, IF chip (`IfCheck.lean`, `docs/logs/pq-if-air-2026-10-22.md`) | **B** | IF: 14 cols, 2 constraints | `if_rowfacts` proved; the full IF checker soundness is open |
 | calls (defined functions) | family 4, FUNC table (§13.1) | **B** | – | proved (`step_call`, `call_rowfacts`) |
 | gas (instruction units `S`, `R·S ≤ g0`) | in every chip; per-segment invariant `WasmBase/Main/SegExec.lean`, `R/pq-host-gas` | **B** Wasm-internal; host resynchronisation (`g := remaining`) is **P** | – | Wasm-only proved; `H0`/`HoldRow` open |
-| segmentation of one call | spec: `NearSpecV3/Wasm/Segment.lean` `run_foldSegments` [K]; `SegExec.lean` | **P**: Lean only; no AIR boundary (memory digest) | – | spec lemma proved |
+| segmentation of one call | spec: `NearSpecV3/Wasm/Segment.lean` `run_foldSegments` [K]; `wasmBaseSegAir` (`WasmBase/SegAir.lean`, E2E M4) | **B** (2026-11-03): mid-call cuts with SHA-384 `ctxDigest` + `memRoot` boundary; 1.13 M-step call proved as 5 chained segments | boundary per written 1 KiB block 50 SHA-512 compressions (`D = 16`) | `exec_of_rows_cut`, `cuts_csteps` [K]; full segment soundness open |
 
 ### 1.3 Host functions (HOST/HOSTO/HOSTT/HOSTB/REG chips, `WasmBase/HostChip.lean`)
 
@@ -581,17 +581,54 @@ See `research/near-compression/e2e-general/m1/README.md` for commands, logs and 
   walk and `RegLenAgree` for any AIR with REG's constraints at an index, instantiated at index 27 of
   `wasmBaseIfRegAir` and `wasmBaseM2Air`.
 
+**Done 2026-11-03, third session (lane A): M4 segment cuts, M2 gaps, coverage**
+(`research/near-compression/e2e-general/m4/README.md`; m2 README updates; log
+`docs/logs/e2e-laneA-wasm-2026-11-03.md`):
+
+* **M4 [M].** `wasmBaseSegAir` (`WasmBase/SegAir.lean`): M2's chips unchanged + `SEGB` (STATE and
+  gas register from public values), `CUTI`/`CUTO` (SHA-384 `ctxDigest` of the sorted live
+  non-memory channel messages, activation ids relabelled to depths, `CIDMAP`), `DROP` (dead locals of
+  tombstoned activations; RET sends the tombstone), `MEMB`/`MPATH` (SHA-384 Merkle `memRoot` over
+  1 KiB blocks: touched blocks produced at `t_in`, consumed and re-hashed at the end, old and new
+  paths, root chain), HOST with the gas register `(S_seg, segb)`, and the native SHA-512 chip v4 on
+  bus 103. **A 1,128,011-step call proved as 5 segments of 2^18 steps (≈ 2^20 trace rows each),
+  one verifying key, chained by hand** (`B_out(k) = B_in(k+1)`): 1.73–1.75 MB per segment proof, prove 596–823 s each (8 threads, shared host), verify 63–223 ms, 268.2-bit calculator. A corpus call
+  with host calls and a register refill (`3b1ad423.run`) proves as 4 segments. **Tampers:**
+  54 / 54 rejected (forged public boundary fields, CUT/MEMB/MPATH/DROP/SEGB/gas-register cells) on two segments of the refill call; a Lean audit found two unsound range checks in the new tables (MEMB split, CUT padding length), both fixed. **Boundary cost:** per touched block 18 leaf + 2·D path compressions (`D = 16`
+  for NEAR's 64 MiB initial memory: 50 compressions ≈ 0.53 M cells per written block); 59 % of a
+  2^18-step segment's cells in the memory-heavy benchmark (fixed per cut).
+* **M4 [K]** (sub-lanes): `exec_of_rows_cut` (rows from an arbitrary related boundary to a cut or
+  halt, global time, host gas segments), `cuts_foldSegments`/`cuts_halt`/**`cuts_csteps`** (onto lane
+  E's call machine), `RelW.relabel`/`Bnd.relabel`, `cutView` + `cutDigest_binds`, MEMB/CUT/DROP row
+  lemmas, `mpath_block` + `rch_chain`. A Lean counterexample (`memb_split_counterexample`) found an
+  unsound MEMB split check, fixed in the AIR. Open: `cutView` = the relabelled live list (needs
+  `RelW` register clause, spaces 1/7–15, `fns` Nodup, field bounds), leaf = SHA-384 of the
+  block bytes, a Lean model of the SHA-512 chip, lane E's `wasmD` instance (this AIR has one
+  `ctxDigest`). Done besides: `leaf_link`, `seg_hsend_r16`, touched blocks distinct, an R16 audit
+  of every AIR (`R16Audit.lean`).
+* **M2 gaps [K].** R16 send bound for `wasmBaseIfRegAir`/`wasmBaseM2Air` (`m2_hsend_r16`), so the
+  REG walk and `mtp < ts` are theorems about `Holds` (`m2_regw_mtp_lt_ts`, with `ts, mtp < 2^29`
+  explicit). `Ctx` split (`ModFacts`; `M2Ctx.toCtx`), successor facts derived from `checkModuleM2`,
+  base row lemmas on constraints only (`HoldsC`) and for every `Ctx` (the `else` arm in CTRL),
+  `m2_hsend_fetch`, and **`m2_rowfacts`**: `RowFacts2` for every active non-HOST instruction row
+  of a `wasmBaseM2Air` trace (tables 1–14, IF 26, CONV 28, UNREACH 29) from `Holds`, `M2Ctx`,
+  `PubOK`, `CodeOK`, `FuncOK`. Not yet: the STATE/CH bus split over the M2 tables (REG-C's space-6
+  messages need a `RegCLinked`-style link), then `wasm_base_sound_m2` with `HoldRow`/HOSTO named.
+* **Absent-register header [M][K]** (`wasmBaseM2rAir`): `RINIT` + REG-A force a clear before a
+  refill; the double fill verifies at `wasmBaseM2Air` and is rejected at `wasmBaseM2rAir`
+  (25/25 tampers). Open: the bus-level one-header-per-register count.
+* **Coverage [M]** (`wasmBaseM3Air`): i32 host tags (`abort`, `promise_yield_resume`),
+  `memory.grow`/`memory.size` (size message, MEMG/MSZ/GINIT): **555 of the 813 M2 remainder calls
+  now equal, 0 different**; remainder 258, all pre-existing generator limits (129 stack-budget
+  traps, 91 addresses `≥ 2^27`, 38 out-of-gas at an instruction).
+
 **Next (lane A):**
-* **R16 send bound at `wasmBaseIfRegAir`/`wasmBaseM2Air`** (`RegSend`'s argument over HOST', IF,
-  REG-C, CONV, UNREACH), which turns `RegWalkG`'s `hsend` hypothesis and REG' 's `mtp < ts`
-  (`regw_time_lt`) into theorems about `Holds`. The walk itself is done.
-* **An M2 `Ctx`** and the row-to-step dispatch over the 30 tables (`wasm_base_sound` for M2).
-* **The `d3rich` remainder**: a `memory.grow` chip (dynamic memory size consumed by LOAD/STORE, or
-  MEMINIT rows timed at the grow), `i32` HOST argument/result tags, a stack-budget trap row, an
-  out-of-gas abort row, the `≥ 2^27` address range.
-* **Force a clear before a refill** (an absent length message per register id that every fill
-  consumes), needed once M6 binds the fill bytes.
-* **M4** (Wasm segment cuts): not started.
+* Segment soundness as one theorem (the `cutView` equality and the LEAF link above), and lane E's
+  `ViewImpl.wasmD` with `Coll wasmD → SHA-384 collision`.
+* Boundary cost levers (tree depth from used pages, write-only leaf re-hash, 4-ary nodes) and
+  segments with `memory.grow` (`wasmBaseM3Air` chips in the segment AIR; `D` changes).
+* `wasm_base_sound_m2` dispatch; the generator limits (stack-budget trap row, out-of-gas row,
+  `≥ 2^27` addresses).
 * **Distinguish the storage key and value bytes in-circuit** when the state side consumes bus 210
   (the `hid + 256` wire convention, M6).
 * **M6.** Replace HOSTO so the tape is bound inside the proof.

@@ -49,13 +49,13 @@ theorem call_flags_of {pub : List F} {tr : Trace} {r : Nat}
   exact ⟨a1, a2, a3, a4, a5, a6⟩
 
 theorem call_flags {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 13) :
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 13) :
     rowNat tr 13 r Call.act ≤ 1 ∧ rowNat tr 13 r (Call.af 0) ≤ rowNat tr 13 r Call.act ∧
     (∀ j, j < 8 → rowNat tr 13 r (Call.pf j) ≤ 1 ∧ rowNat tr 13 r (Call.pf j) ≤ rowNat tr 13 r (Call.af j)) ∧
     (∀ j, j + 1 < 8 → rowNat tr 13 r (Call.pf (j + 1)) ≤ rowNat tr 13 r (Call.pf j)) ∧
     (∀ j, j < 64 → rowNat tr 13 r (Call.af j) ≤ 1 ∧ rowNat tr 13 r (Call.tg j) ≤ 1) ∧
     (∀ j, j + 1 < 64 → rowNat tr 13 r (Call.af (j + 1)) ≤ rowNat tr 13 r (Call.af j)) :=
-  call_flags_of (table_constr H (by simp [air_len]) hr)
+  call_flags_of (table_constrC H (by simp [air_len]) hr)
 
 theorem call_count_val {pub : List F} {tr : Trace} {r : Nat}
     (hf : ∀ j, j < 8 → rowNat tr 13 r (Call.pf j) ≤ rowNat tr 13 r (Call.af j)) :
@@ -89,12 +89,12 @@ theorem call_counts_of {pub : List F} {tr : Trace} {r : Nat}
     · exact (a5 j hj).1
 
 theorem call_counts {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 13) :
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 13) :
     ∀ i ∈ Call.inters, (i.count.eval (tr.row pub 13 r)).toNat ≤ 1 :=
-  call_counts_of (table_constr H (by simp [air_len]) hr)
+  call_counts_of (table_constrC H (by simp [air_len]) hr)
 
 theorem call_inactive {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 13)
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 13)
     (hna : ¬ rowAct Call.table tr pub 13 r) :
     ∀ i ∈ Call.inters, (i.count.eval (tr.row pub 13 r)).toNat ≠ 1 := by
   obtain ⟨a1, a2, a3, a4, a5, a6⟩ := call_flags H hr
@@ -165,7 +165,7 @@ theorem range_filter_lt (m : Nat) : ∀ n, m ≤ n → (List.range n).filter (fu
 
 set_option maxHeartbeats 8000000 in
 theorem call_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) (L : Looks X nloc ncode pub tr) (hpub : PubOK X nloc ncode pub)
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) (L : Looks X nloc ncode pub tr) (hpub : PubOK X nloc ncode pub)
     {r : Nat} (hr : r < tr.height 13) (hact : rowAct Call.table tr pub 13 r) :
     RowFacts X (rowIn Call.table tr pub 13 r) (rowOut Call.table tr pub 13 r)
       (rowCons Call.table tr pub 13 r) (rowProd Call.table tr pub 13 r) := by
@@ -173,7 +173,7 @@ theorem call_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
   have ht : 13 < (wasmBaseAir nloc ncode).tables.length := by simp [air_len]
   have hcP : ∀ i, rowNat tr 13 r i < P := rowNat_lt tr 13 r
   have hcon : ∀ e ∈ Call.table.constraints, e.eval (natRow (rowNat tr 13 r) (tr.row pub 13 r)) = 0 :=
-    table_constr H ht hr
+    table_constrC H ht hr
   obtain ⟨sAct, sAf0, sPf, sPp, sAf, sAp, sShape, sMask, enp, enl, sBud, sSb, sTs⟩ :=
     call_sound (rowNat tr 13 r) (tr.row pub 13 r) hcP hcon
   rw [← row_eq_natRow] at enp enl sBud sSb sTs
@@ -337,7 +337,7 @@ theorem call_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
     (by simp [Call.inters])
   simp only [fetch, cntA] at hfetch
   obtain ⟨pc0, hpc0, hm0⟩ := fetch_pc hpub L hfetch
-  obtain ⟨q, l, ins, fee, rec, hq, hl, hoff, hins, hfee, hfl, hrc, hm⟩ := fetch_rec hpub L hfetch hm0 hpc0
+  obtain ⟨q, l, ins, fee, rec, hq, hl, hoff, hins, hfee, hfl, hrc, hm⟩ := fetch_rec hpub L hfetch hm0 hpc0 (by m2ns)
   have CF := X.factsOf hq
   obtain ⟨op, x0, x1, x2, x3, hre, hcase⟩ := recordOf_spec hrc
   rw [hre] at hm
@@ -452,7 +452,11 @@ theorem call_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
     obtain ⟨n, hn, e⟩ := time_chk L h1 h2
     exact ⟨n, hn, e.trans (cell_cast tr 13 r 1)⟩
   -- the fee bound
-  obtain ⟨ins', fee'', hins', hfee', hfl', -⟩ := CF.recs l hl
+  obtain ⟨ins', hins', hrec0'⟩ := CF.recs l hl
+  have hns' : m2Special X.p ins' = false := by
+    have e : ins' = ins := by rw [hins] at hins'; exact (Option.some.inj hins').symm
+    rw [e, hfi]; simp only [m2Special, decide_eq_false_iff_not, Nat.not_lt]; omega
+  obtain ⟨fee'', hfee', hfl', -⟩ := hrec0' hns'
   have hfee2 : fee'' = fee := by rw [hfee] at hfee'; exact (Option.some.inj hfee').symm
   have hfeeK : fee + (X.ckOf k').prologue ≤ X.maxFee := by have := X.callFee_le hq hk'; omega
   have mtc : ∀ j, j < 8 → r16 (v cTs - v (Call.tP j) - 1 - B16 * v (Call.hP j)) (v (Call.pf j)) ∈ Call.inters ∧
@@ -533,7 +537,7 @@ theorem call_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
   have hszP : s.stack.size < P := by have := R.sbLt; omega
   obtain ⟨ls0, hL0, hfl0⟩ := R.labels
   subst hfi
-  obtain ⟨np', ar', hsig, hnp', hnext, hL1, hH1⟩ := verify_call X R.kLt hpcl hins hL0 hH
+  obtain ⟨np', ar', hsig, hnp', hnext, hL1, hH1⟩ := verify_call X R.kLt hpcl hins (by omega) hL0 hH
   obtain ⟨enp, ear⟩ := sigOf_callee X hk' hfik hsig
   -- the new base, the clock
   have hnpS : npN ≤ s.stack.size - E.sb := by omega

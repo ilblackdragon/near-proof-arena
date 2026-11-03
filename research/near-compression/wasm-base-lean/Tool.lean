@@ -19,6 +19,11 @@ import WasmBase.Census
 * `wasmbase-tool evalR <nloc> <ngl> <points>`: the same for `wasmBaseRegAir`.
 * `wasmbase-tool airIfR <nloc> <ngl>` / `evalIfR`: `wasmBaseIfRegAir` (E2E M1-a: IF + REG' with the
   `read_register` memory write, `WasmBase/RegMem.lean`).
+* `wasmbase-tool airM2 <nloc> <ngl>` / `evalM2`: `wasmBaseM2Air` (E2E M2, `WasmBase/M2Air.lean`).
+* `wasmbase-tool airM2r <nloc> <ngl>` / `evalM2r`: `wasmBaseM2rAir` (M2 + the absent-register header:
+  REG-A and RINIT, `WasmBase/M2RegAbsent.lean`).
+* `wasmbase-tool airM3 <nloc> <ngl>` / `evalM3` / `prepM3`: `wasmBaseM3Air` (HOST-W tags, MEMG, MSZ,
+  GINIT, `WasmBase/M3Air.lean`) and its checker `checkModuleM3`.
 -/
 
 open NearSpecV3.Wasm WasmBase ZkFormal.Algebra
@@ -54,7 +59,14 @@ def main (args : List String) : IO Unit := do
   | ["prepM2", path, exportName, g0] => prepIf path exportName g0.toNat! "" checkModuleM2
   | ["prepM2", path, exportName, g0, inp] => prepIf path exportName g0.toNat! inp checkModuleM2
   | ["airM2", l, n] => IO.println (airJson (wasmBaseM2Air l.toNat! n.toNat!))
+  | ["airSeg", l, n] => IO.println (airJson (wasmBaseSegAir l.toNat! n.toNat!))
   | ["evalM2", l, n, path] => evalPoints l.toNat! n.toNat! path 5
+  | ["airM2r", l, n] => IO.println (airJson (wasmBaseM2rAir l.toNat! n.toNat!))
+  | ["airM3", l, n] => IO.println (airJson (wasmBaseM3Air l.toNat! n.toNat!))
+  | ["evalM3", l, n, path] => evalPoints l.toNat! n.toNat! path 7
+  | ["prepM3", path, exportName, g0] => prepIf path exportName g0.toNat! "" checkModuleM3
+  | ["prepM3", path, exportName, g0, inp] => prepIf path exportName g0.toNat! inp checkModuleM3
+  | ["evalM2r", l, n, path] => evalPoints l.toNat! n.toNat! path 6
   | ["airIf", l, n] => IO.println (airJson (wasmBaseIfAir l.toNat! n.toNat!))
   | ["airIfH", l, n] => IO.println (airJson (wasmBaseIfHostAir l.toNat! n.toNat!))
   | ["airIfR", l, n] => IO.println (airJson (wasmBaseIfRegAir l.toNat! n.toNat!))

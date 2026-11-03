@@ -19,7 +19,7 @@ theorem stack_enc_reslot (m : Msg) (hm : m.ok) (sp sl tp : Nat) :
   exact e
 
 theorem stack_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) (L : Looks X nloc ncode pub tr) (hpub : PubOK X nloc ncode pub)
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) (L : Looks X nloc ncode pub tr) (hpub : PubOK X nloc ncode pub)
     {r : Nat} (hr : r < tr.height 7) (hact : rowAct Stack.table tr pub 7 r) :
     RowFacts X (rowIn Stack.table tr pub 7 r) (rowOut Stack.table tr pub 7 r)
       (rowCons Stack.table tr pub 7 r) (rowProd Stack.table tr pub 7 r) := by
@@ -27,7 +27,7 @@ theorem stack_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
   have ht : 7 < (wasmBaseAir nloc ncode).tables.length := by simp [air_len]
   have hcP : ∀ i, rowNat tr 7 r i < P := rowNat_lt tr 7 r
   have hcon : ∀ e ∈ Stack.table.constraints, e.eval (natRow (rowNat tr 7 r) (tr.row pub 7 r)) = 0 :=
-    table_constr H ht hr
+    table_constrC H ht hr
   have hc' := hcon
   simp only [Stack.table, Stack.constraints, List.forall_mem_cons, List.forall_mem_nil, and_true] at hc'
   obtain ⟨bD, bS, hDS, -⟩ := hc'
@@ -66,7 +66,7 @@ theorem stack_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
     (by simp [Stack.inters, stdState])
   simp only [fetch, cntA] at hfetch
   obtain ⟨pc0, hpc0, hm0⟩ := fetch_pc hpub L hfetch
-  obtain ⟨q, l, ins, fee, rec, hq, hl, hoff, hins, hfee, hfl, hrc, hm⟩ := fetch_rec hpub L hfetch hm0 hpc0
+  obtain ⟨q, l, ins, fee, rec, hq, hl, hoff, hins, hfee, hfl, hrc, hm⟩ := fetch_rec hpub L hfetch hm0 hpc0 (by m2ns)
   have CF := X.factsOf hq
   obtain ⟨op, x0, x1, x2, x3, hre, hcase⟩ := recordOf_spec hrc
   have hlt := recordOf_op_lt hrc
@@ -334,9 +334,9 @@ theorem stack_flags_of {pub : List F} {tr : Trace} {r : Nat}
   omega
 
 theorem stack_flags {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 7) :
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 7) :
     rowNat tr 7 r 5 + rowNat tr 7 r 6 ≤ 1 :=
-  stack_flags_of (table_constr H (by simp [air_len]) hr)
+  stack_flags_of (table_constrC H (by simp [air_len]) hr)
 
 theorem stack_act_eval (pub : List F) (tr : Trace) (r : Nat) (h : rowNat tr 7 r 5 + rowNat tr 7 r 6 ≤ 1) :
     (Stack.act.eval (tr.row pub 7 r)).toNat = rowNat tr 7 r 5 + rowNat tr 7 r 6 := by
@@ -354,12 +354,12 @@ theorem stack_counts_of {pub : List F} {tr : Trace} {r : Nat}
   · show rowNat tr 7 r 6 ≤ 1; omega
 
 theorem stack_counts {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 7) :
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 7) :
     ∀ i ∈ Stack.inters, (i.count.eval (tr.row pub 7 r)).toNat ≤ 1 :=
-  stack_counts_of (table_constr H (by simp [air_len]) hr)
+  stack_counts_of (table_constrC H (by simp [air_len]) hr)
 
 theorem stack_inactive {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 7)
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 7)
     (hna : ¬ rowAct Stack.table tr pub 7 r) :
     ∀ i ∈ Stack.inters, (i.count.eval (tr.row pub 7 r)).toNat ≠ 1 := by
   have hf := stack_flags H hr

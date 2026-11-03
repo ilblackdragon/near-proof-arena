@@ -26,10 +26,11 @@ theorem HeapOK.congr {E E' : Env} {s s' : St} {t t' : Nat} (H : HeapOK E s t)
 /-- The verification facts of a `call`. -/
 theorem verify_call (X : Ctx) {k : Nat} (hkn : k < X.nf) {pc fi : Nat} {ls : List Label} {h : Nat}
     (hpc : pc < (X.pfOf k).code.size) (hins : (X.pfOf k).code[pc]? = some (.call fi))
+    (hfi : X.p.m.imports.size ≤ fi)
     (hL : (X.ckOf k).labels[pc]? = some ls) (hH : (X.ckOf k).heights[pc]? = some h) :
     ∃ np ar, sigOf X.p fi = some (np, ar) ∧ np ≤ h ∧ pc + 1 < (X.pfOf k).code.size ∧
       (X.ckOf k).labels[pc + 1]? = some ls ∧ (X.ckOf k).heights[pc + 1]? = some (h - np + ar) := by
-  have hv := (X.factsOf hkn).verify pc hpc
+  have hv := (X.factsOf hkn).verify pc hpc _ hins (by simp [m2Special]; omega)
   unfold verifyAt at hv
   rw [hins, hL, hH] at hv
   simp only at hv
@@ -217,7 +218,7 @@ theorem step_call (X : Ctx) {E : Env} {s : St} {f : Frame} {tps tpl : Nat → Na
   have CFc := X.factsOf hkc
   obtain ⟨ls0, hL0, hfl0⟩ := R.labels
   have hH := R.height
-  obtain ⟨np', ar', hsig, hnp, hnext, hL1, hH1⟩ := verify_call X R.kLt R.pcLt hins hL0 hH
+  obtain ⟨np', ar', hsig, hnp, hnext, hL1, hH1⟩ := verify_call X R.kLt R.pcLt hins (by omega) hL0 hH
   obtain ⟨enp, ear⟩ := sigOf_callee X hkc hfi hsig
   subst enp ear
   have hsbR := R.sbLe
@@ -726,7 +727,8 @@ theorem step_return (X : Ctx) {E : Env} {s : St} {f : Frame} {tps tpl : Nat → 
       m = callMsg E.cid (X.offOf c.k + fc.pc) c.sb c.cid (X.pfOf E.k).stackCharge c.tpc ∧
       ∃ s', step X.cfg X.p s = .cont s' ∧
         Rel X s' (t + 1) c.k fc.pc (S + fee) c.sb c.cid (stepLive live [m, budMsg s.stackRem tpb] [budMsg (s.stackRem + (X.pfOf E.k).stackCharge) t]) S_seg segb := by
-  have hv := (X.factsOf R.kLt).verify pc R.pcLt
+  have hv := (X.factsOf R.kLt).verify pc R.pcLt _ hins
+    (by rcases hkind with ⟨rfl, _⟩ | rfl | ⟨_, rfl, _⟩ <;> rfl)
   obtain ⟨ls0, hL0, hfl⟩ := R.labels
   have hH := R.height
   have hlen : f.labels.length = ls0.length := by rw [hfl, shiftLabels_length]
@@ -787,7 +789,7 @@ theorem step_returnIf (X : Ctx) {E : Env} {s : St} {f : Frame} {tps tpl : Nat �
           Rel X s' (t + 1) c.k fc.pc (S + fee) c.sb c.cid (stepLive live [mc, m, budMsg s.stackRem tpb] [budMsg (s.stackRem + (X.pfOf E.k).stackCharge) t]) S_seg segb) ∧
     (mc.val = 0 → ∃ s', step X.cfg X.p s = .cont s' ∧
       Rel X s' (t + 1) E.k (pc + 1) (S + fee) E.sb E.cid (stepLive live [mc] []) S_seg segb) := by
-  have hv := (X.factsOf R.kLt).verify pc R.pcLt
+  have hv := (X.factsOf R.kLt).verify pc R.pcLt _ hins (by m2_ns)
   obtain ⟨ls0, hL0, hfl⟩ := R.labels
   have hH := R.height
   have hsbR := R.sbLe

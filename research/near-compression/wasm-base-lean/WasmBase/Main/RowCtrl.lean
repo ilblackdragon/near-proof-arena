@@ -1,5 +1,6 @@
 import WasmBase.Main.Rows
 import WasmBase.StepCtrl
+import WasmBase.StepIf
 import WasmBase.StepOps2
 import WasmBase.Local.Simple
 /-!
@@ -138,7 +139,7 @@ theorem ctrl_view_pop (a : Array Val) (tps : Nat → Nat) (h : 1 ≤ a.size) (x 
 theorem ctrl_brIf_h {X : Ctx} {E : Env} {s : St} {f : Frame} {tps tpl : Nat → Nat} {t pc S : Nat}
     {live : Msg → Prop} {S_seg segb : Nat} (R : RelW X E s f tps tpl t pc S live S_seg segb) {l : Nat}
     (hins : (X.pfOf E.k).code[pc]? = some (.brIf l)) : 1 ≤ s.stack.size - E.sb := by
-  have hv := (X.factsOf R.kLt).verify pc R.pcLt
+  have hv := (X.factsOf R.kLt).verify pc R.pcLt _ hins (by m2_ns)
   unfold verifyAt at hv
   obtain ⟨ls0, hL0, -⟩ := R.labels
   rw [hins, hL0, R.height] at hv
@@ -152,7 +153,7 @@ theorem ctrl_filterC :
 theorem ctrl_filterP : Ctrl.inters.filter (fun i => decide (i.bus = busStk ∧ i.send = true)) = [] := by decide
 
 theorem ctrl_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) (L : Looks X nloc ncode pub tr) (hpub : PubOK X nloc ncode pub)
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) (L : Looks X nloc ncode pub tr) (hpub : PubOK X nloc ncode pub)
     {r : Nat} (hr : r < tr.height 8) (hact : rowAct Ctrl.table tr pub 8 r) :
     RowFacts X (rowIn Ctrl.table tr pub 8 r) (rowOut Ctrl.table tr pub 8 r)
       (rowCons Ctrl.table tr pub 8 r) (rowProd Ctrl.table tr pub 8 r) := by
@@ -160,7 +161,7 @@ theorem ctrl_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
   have ht : 8 < (wasmBaseAir nloc ncode).tables.length := by simp [air_len]
   have hcP : ∀ i, rowNat tr 8 r i < P := rowNat_lt tr 8 r
   have hcon : ∀ e ∈ Ctrl.table.constraints, e.eval (natRow (rowNat tr 8 r) (tr.row pub 8 r)) = 0 :=
-    table_constr H ht hr
+    table_constrC H ht hr
   obtain ⟨g5, g6, g7, g8, g9, hsum, hnzF, hcid0⟩ := ctrl_facts (rowNat tr 8 r) (tr.row pub 8 r) hcP hcon
   have cntA0 : (Ctrl.act.eval (tr.row pub 8 r)).toNat =
       rowNat tr 8 r 5 + rowNat tr 8 r 6 + rowNat tr 8 r 7 + rowNat tr 8 r 8 + rowNat tr 8 r 9 := by
@@ -220,7 +221,82 @@ theorem ctrl_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
     (by simp [Ctrl.inters])
   simp only [fetch, cntA] at hfetch
   obtain ⟨pc0, hpc0, hm0⟩ := fetch_pc hpub L hfetch
-  obtain ⟨q, l, ins, fee, rec, hq, hl, hoff, hins, hfee, hfl, hrc, hm⟩ := fetch_rec hpub L hfetch hm0 hpc0
+  have opE : Ctrl.op.eval (tr.row pub 8 r) = ((Ctrl.opNext * rowNat tr 8 r 5 + Ctrl.opJump * rowNat tr 8 r 6 +
+      Ctrl.opJif * rowNat tr 8 r 7 + Ctrl.opHalt * rowNat tr 8 r 8 + Ctrl.opHif * rowNat tr 8 r 9 : Nat) : F) := by
+    simp only [Ctrl.op, v, Expr.eval_add', Expr.eval_mul', Expr.eval_c, Expr.eval_col, Trace.row, cell_cast,
+      Ctrl.fNext, Ctrl.fJump, Ctrl.fJif, Ctrl.fHalt, Ctrl.fHif, Lean.Grind.Semiring.natCast_add,
+      Lean.Grind.Semiring.natCast_mul]
+  have opLt : Ctrl.opNext * rowNat tr 8 r 5 + Ctrl.opJump * rowNat tr 8 r 6 + Ctrl.opJif * rowNat tr 8 r 7 +
+      Ctrl.opHalt * rowNat tr 8 r 8 + Ctrl.opHif * rowNat tr 8 r 9 < P := by
+    simp only [Ctrl.opNext, Ctrl.opJump, Ctrl.opJif, Ctrl.opHalt, Ctrl.opHif]; omega
+  obtain ⟨q, l, ins, fee, rec, hq, hl, hoff, hins, hfee, hfl, hrc, hm⟩ |
+      ⟨q, l, lab, rest, fee, hq, hl, hoff, hins, hLl, hHl, htgt, hLt, hHt, hfee, hfl, hm⟩ :=
+    fetch_rec_ctrl hpub L hfetch hm0 hpc0 (by
+      intro n hn he hsp
+      simp only [List.cons_append, List.nil_append, List.map_cons, List.map_nil, List.getD_cons_succ,
+        List.getD_cons_zero] at he
+      rw [opE] at he
+      have e := natEq he opLt (by omega)
+      subst e
+      simp only [m2OpNat, Bool.or_eq_true, beq_iff_eq] at hsp
+      simp only [Ctrl.opNext, Ctrl.opJump, Ctrl.opJif, Ctrl.opHalt, Ctrl.opHif] at hsp ⊢
+      omega)
+  case inr =>
+    -- the fetched record is an M2 `else`: CTRL's jump to the label target, consuming nothing
+    simp only [List.cons_append, List.nil_append, List.map_cons, List.map_nil, List.cons.injEq, and_true] at hm
+    obtain ⟨e0, eop, eh, efee, ex0, -⟩ := hm
+    rw [opE] at eop
+    simp only [v, Expr.eval_col, Trace.row, cell_cast, cPc, cH, cFee, Ctrl.tgt] at e0 eh efee ex0
+    have fee16 := feeUnits_lt hfee
+    have efee' : rowNat tr 8 r 4 = fee := natEq efee (hcP _) (by omega)
+    have hsel := natEq eop opLt (by simp only [Ctrl.opJump]; omega)
+    simp only [Ctrl.opNext, Ctrl.opJump, Ctrl.opJif, Ctrl.opHalt, Ctrl.opHif] at hsel
+    have f5 : rowNat tr 8 r 5 = 0 := by omega
+    have f6 : rowNat tr 8 r 6 = 1 := by omega
+    have f7 : rowNat tr 8 r 7 = 0 := by omega
+    have f8 : rowNat tr 8 r 8 = 0 := by omega
+    have f9 : rowNat tr 8 r 9 = 0 := by omega
+    have hc0 : rowCons Ctrl.table tr pub 8 r = [] := by rw [hCons]; simp [f7, f9]
+    refine ⟨?_, by rw [hIn]; rfl, by rw [hIn, hOut]; rfl,
+      ⟨fee, hfl, by rw [hIn, hOut]; simp only [gasF, List.getD_cons_succ, List.getD_cons_zero, efee', cc]⟩,
+      by rw [hc0]; simp, by rw [hProd]; simp, by rw [hProd]; simp⟩
+    intro E s f tps tpl t pc S live S_seg segb R hin hlive ht1 hS hg64
+    rw [hIn] at hin
+    obtain ⟨i0, i1, i2, -, i4, i5⟩ := stMsg_cons hin
+    have hpcl := R.pcLt
+    have hoffb := X.off_bound R.kLt
+    have htot := X.mf.total
+    have p0 : rowNat tr 8 r 0 = X.offOf E.k + pc := natEq i0 (hcP _) (by omega)
+    have p1 : rowNat tr 8 r 1 = t := natEq i1 (hcP _) (by omega)
+    have p2 : rowNat tr 8 r 2 = S := natEq i2 (hcP _) (by omega)
+    have psb : rowNat tr 8 r 16 = E.sb := natEq i4 (hcP _) (by have := R.sbLt; omega)
+    have pcid : rowNat tr 8 r 17 = E.cid := natEq i5 (hcP _) (by have := R.cidLt; omega)
+    have hpc : pc0 = X.offOf E.k + pc := natEq (e0.symm.trans i0) (by omega) (by omega)
+    subst hpc
+    obtain ⟨hqk, hlpc⟩ := X.loc_unique hq hl R.kLt hpcl hoff
+    subst q
+    subst l
+    have hH := R.height
+    obtain ⟨ls0, hL0, hfl0⟩ := R.labels
+    rw [hLl] at hL0
+    cases hL0
+    rw [hH] at hHt
+    simp only [Option.getD_some] at hHt
+    rw [hc0, hProd]
+    have k5 : cc 5 = 0 := by simp only [cc, f5, cast_zero]
+    have k6 : cc 6 = 1 := by simp only [cc, f6, cast_one]
+    have k7 : cc 7 = 0 := by simp only [cc, f7, cast_zero]
+    have k8 : cc 8 = 0 := by simp only [cc, f8, cast_zero]
+    have k9 : cc 9 = 0 := by simp only [cc, f9, cast_zero]
+    have e10 : cc 10 = ((X.offOf E.k + lab.target : Nat) : F) := by
+      simp only [cc]; rw [ex0, Nat.add_comm]
+    have hout : rowOut Ctrl.table tr pub 8 r =
+        stMsg (X.offOf E.k + lab.target) (t + 1) (S + fee) 0 E.sb E.cid := by
+      rw [hOut, k5, k6, k7, k8, k9, e10]
+      simp only [stMsg, cc, p1, p2, efee', psb, pcid, Lean.Grind.Semiring.natCast_add, cast_zero]
+      grind
+    refine ⟨E.k, lab.target, fee, 0, E.sb, E.cid, hfl, by omega, hout, fun hg => ⟨fun _ =>
+      step_else X R hins hfee hg hg64 hfl0 htgt hLt hHt, fun h => absurd h (by decide)⟩⟩
   have CF := X.factsOf hq
   obtain ⟨op, x0, x1, x2, x3, hre, hcase⟩ := recordOf_spec hrc
   have hoplt := recordOf_op_lt hrc
@@ -487,20 +563,20 @@ theorem ctrl_counts_of {pub : List F} {tr : Trace} {r : Nat}
   rcases ctrl_count_cases i hi with h | h <;> rw [h] <;> omega
 
 theorem ctrl_count_vals {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 8) :
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 8) :
     rowNat tr 8 r 5 + rowNat tr 8 r 6 + rowNat tr 8 r 7 + rowNat tr 8 r 8 + rowNat tr 8 r 9 ≤ 1 ∧
     (Ctrl.act.eval (tr.row pub 8 r)).toNat =
       rowNat tr 8 r 5 + rowNat tr 8 r 6 + rowNat tr 8 r 7 + rowNat tr 8 r 8 + rowNat tr 8 r 9 ∧
     (Ctrl.cnd.eval (tr.row pub 8 r)).toNat = rowNat tr 8 r 7 + rowNat tr 8 r 9 :=
-  ctrl_count_vals_of (table_constr H (by simp [air_len]) hr)
+  ctrl_count_vals_of (table_constrC H (by simp [air_len]) hr)
 
 theorem ctrl_counts {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 8) :
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 8) :
     ∀ i ∈ Ctrl.inters, (i.count.eval (tr.row pub 8 r)).toNat ≤ 1 :=
-  ctrl_counts_of (table_constr H (by simp [air_len]) hr)
+  ctrl_counts_of (table_constrC H (by simp [air_len]) hr)
 
 theorem ctrl_inactive {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 8)
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 8)
     (hna : ¬ rowAct Ctrl.table tr pub 8 r) :
     ∀ i ∈ Ctrl.inters, (i.count.eval (tr.row pub 8 r)).toNat ≠ 1 := by
   obtain ⟨hs, ha, hc⟩ := ctrl_count_vals H hr

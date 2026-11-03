@@ -184,3 +184,245 @@ HOSTO `g_after` change verifies (the oracle is free until M6).
   MEMINIT rows timed at the grow for the new pages; both change base tables 11, 12, 19.
 * `call_indirect` (cached TABLE), bulk memory, kill rows for discarding branches, floats: not used
   by the corpus (§1); needed for T3.
+
+## Update: R16 send bound
+
+`WasmBase/Main/RegSendM2.lean` closes the first "named open" item of §5 (standard axioms only, no
+`sorry`):
+
+* **`ifreg_hsend_r16`**, **`m2_hsend_r16`**: from `Holds (wasmBaseIfRegAir …)` /
+  `Holds (wasmBaseM2Air …)` and `PubOK X nloc ngl pub`,
+  `∀ o ∈ occs A tr pub, o.1 = busR16 → o.2.1 = true → o.2.2.2 ≤ 1`.
+  Tables 0–21 go through `occ_bits_of` (as in `RegSend`); tables ≥ 22 go through one decidable check
+  (`R16Ok`: every R16 send count is syntactically a product / `1 − ·` of `bool`-constrained
+  expressions of that table, `bitE_sound`), `decide`d against the actual interaction lists of HOST',
+  HOSTO, HOSTT, HOSTB, IF, REG', REG-C, CONV and UNREACH.
+* The walk without `hsend`: `ifreg_/m2_reg_gap_lt` (`gap < 2^16`), `ifreg_/m2_reg_pos_lt_len`
+  (`pos < len`), `ifreg_/m2_regLenAgree_group` (`Register.RegLenAgree` for a group, same remaining
+  hypotheses as `regLenAgree_group_of_holds`: group start, `rid ≤ 99`, `pos < 2^24`, active length row).
+* **`ifreg_regw_mtp_lt_ts`**, **`m2_regw_mtp_lt_ts`**: on a REG'/REG-C byte row (`kind = 0`) with
+  `wr = 1`, `mtp < ts`, given `ts < 2^29` and `mtp < 2^29` as explicit domain hypotheses
+  (`regw_time_lt` through the R16 lookup of the row's `timeChk`; generic form `regw_mtp_lt_tsG`).
+
+Still open from §5: the domain bounds `ts, mtp < 2^29` are hypotheses (not derived from the AIR),
+the M2 `Ctx`/row dispatch, and forcing a clear before a refill.
+
+## Update: M2 soundness (2026-11-03)
+
+Plan item "full soundness theorem for `wasmBaseM2Air`: successor facts from the checker, not
+hypotheses". Delivered: steps 1–2 (the context, and the CONV/UNREACH rows, non-vacuously). **Not**
+delivered: the 30-table dispatch and `wasm_base_sound_m2`. All [K]. Axioms are `propext`,
+`Classical.choice` and `Quot.sound` only, with no `sorry`.
+
+**Step 1: `WasmBase/M2Ctx.lean`.** `M2Ctx` carries `hM : checkModuleM2 cfg p fn = some MH`, and every
+code fact is derived from it:
+* `checkM2_sound`/`CheckFactsM2` and `checkModuleM2_sound`/`ModFactsM2`;
+* the accessors `factsOf`, `recG`, `loc_unique`, `off_bound` and `maxFee_ge`;
+* the successor facts: `M2Ctx.conv_succ` (exactly `step_conv`'s `hstk`/`hnext`/`hL1`/`hH1`),
+  `M2Ctx.if_succ`, `M2Ctx.ifres_succ` and `M2Ctx.else_succ`;
+* the records `M2Ctx.conv_record`/`unreach_record`;
+* the FETCH converse `recordAtM2_conv_op`/`recordAtM2_unreach_op`/`M2Ctx.recG_conv`/`recG_unreach`.
+  A record with opcode 0xA7/0xAC/0xAD, or 0x00, is the record of that instruction.
+
+**Step 2: `WasmBase/Main/M2Rows.lean`.** It works against `Holds (wasmBaseM2Air …)` itself, using
+that AIR's own bus balance and not the base AIR's:
+* lookups: `m2_fetch` (FETCH soundness; all 29 non-CODE tables only send on FETCH), `m2_r16` and
+  `m2_time_chk`, plus the FETCH pins `m2_fetch_conv`/`m2_fetch_unreach`;
+* `conv_row_m2`: an active CONV row's pc is a checked `(k, pc)` with `code[pc] = .num op`
+  (`op = convOpN`, `isConvOp op`), and its fee and height are the pc's. Its CH effect is `convVal op` of
+  the consumed value (`conv_row_spec`, with the R16 bound from the lookup). It also gives `halt0`,
+  `tsOut`, `gasOut`, `consT`, `prodT` and `prodNd`;
+* `unreach_row_m2`: the same pin with `.unreachable`, no CH traffic, `halted = 2`, and
+  `halt0`/`tsOut`/`gasOut`;
+* the spec side over `M2Ctx`: `M2Ctx.step_eq_exec`, `step_conv_spec` and `step_unreach_spec`;
+* the joins: `conv_row_step_m2` (the spec step continues, and the row's produced message is the new
+  stack top at the same slot) and `unreach_row_step_m2` (the spec step aborts with
+  `WasmTrap(Unreachable)`).
+
+Named hypotheses:
+* `hsendF`: FETCH send counts are ≤ 1, the same kind of fact as `hsend`;
+* `hsend`: the R16 bound, being proved in `RegSendM2.lean`;
+* `CodeOKM2`: the commitment binding of the CODE table to the M2 records, as `CodeOK` is for the
+  base records.
+
+**The `Ctx` split.** `Ctx.hM` is now `ModFacts cfg p fn M` (moved to `CheckFacts.lean`) instead of
+`checkModule … = some M`. Its per-function `CheckFacts` carry three kinds of fact:
+* the base obligations `verifyAt`/`recordOf`, only at pcs that are not M2 additions (`m2Special`:
+  conversions, `unreachable`, `if`, `else`, `memory.grow`/`size`, import calls);
+* `special`: an M2 addition's record carries an M2 opcode (`m2OpNat`), and `opJump` only for
+  `else`;
+* `elseF`: an `else`'s successor facts and its jump record.
+
+Both checkers produce these facts:
+* the base checker through `checkModule_sound` / `Ctx.ofCheck` (`special`/`elseF` are vacuous for
+  it: `verifyAt_special`);
+* the M2 checker through `checkModuleM2_modFacts` / **`M2Ctx.toCtx`** (`verifyAtM2_base`,
+  `recordAtM2_base`).
+
+**The base row lemmas hold for M2 contexts.**
+* `fetch_rec` takes `hns` (the fetched opcode is not an M2 opcode). Each base chip discharges it
+  from its own flag constraints: the `m2ns` macro does so, with custom proofs for CMP, LOAD and
+  STORE.
+* CTRL goes through `fetch_rec_ctrl`, which handles the case where its jump opcode fetches an M2
+  `else` record. That case is a new arm proved with `step_else`.
+* `Looks.base` and the `hB : X.Base` premises are gone. `wasm_base_sound`, `wasm_base_exec`,
+  `rowFactsSegMap_of` and `wasm_base_exec_host_holds` have their original statements again, and
+  now cover every `Ctx`.
+* The 14 row files take `HoldsC` (the row constraints only, with no bus balance) instead of
+  `Holds`. `chipFacts X H := chipFactsC X H.toC`.
+
+**What is proved for a `Holds (wasmBaseM2Air …)` trace** (all [K]; the axioms are `propext`,
+`Classical.choice` and `Quot.sound`):
+
+| theorem | content |
+|---|---|
+| `m2_holdsC`, `looks_m2` (`Main/M2Looks.lean`) | the base tables' constraints and their FETCH/R16/BYTE/FUNC answers, for `M2.toCtx` |
+| `m2_hsend_fetch` (= `hsendF`), `m2_hsend_bus` | FETCH/BYTE/FUNC send counts ≤ 1 (the `RegSendM2` bit argument, for any bus) |
+| `conv_rowfacts_m2`, `unreach_rowfacts_m2` (`Main/M2Rows.lean`) | `RowFacts2` of CONV/UNREACH rows |
+| `if_rowfacts_m2` (`Main/M2If.lean`) | `RowFacts` of IF rows; `IfRowData` is built from the M2 checker (`recordAtM2_if_op`, `M2Ctx.if_succ`, `ifStepM2_spec`) |
+| **`m2_rowfacts`** (`Main/M2Dispatch.lean`) | `RowFacts2 X.toCtx` of every active instruction row other than HOST (tables 1–14, 26, 28, 29), from `Holds`, `M2Ctx`, `PubOK`, `CodeOK` and `FuncOK` only |
+
+**Still open: `wasm_base_sound_m2` itself.** It needs the STATE/CH bus decomposition of
+`wasmBaseM2Air`, the analogue of `host_buses`/`HostBLinked` (`HostBus.lean`, `MemIOBus.lean`, which
+cover only the 26 tables of `wasmBaseHostAir`):
+* the STATE perm, over an action list containing tables 1–14, 22, 26, 28 and 29 (the current
+  `actListHost`/`chipTHost` cover 1–14 and 22);
+* the CH perm, which must also account for REG-C's space-6 register messages. Nothing yet links
+  those to host calls the way `HostBLinked` links the HOSTB bytes; the honest options are a
+  `RegCLinked`-style named premise, or a proof through the REG group walk.
+
+Then `exec_of_rows_seg` composes with `m2_rowfacts` plus `HoldRow` (HOST). The named premises that
+stay are `HoldRow`, the HOSTO answers, `HostBLinked`, `CodeOK`/`FuncOK` (commitment bindings), and
+the REG refill gap, which `wasmBaseM2rAir` closes at the AIR level.
+
+## Update: absent-register header (`wasmBaseM2rAir`)
+
+Closes the §5 open item "forcing a clear before a refill", as a **new** AIR value
+(`WasmBase/M2RegAbsent.lean`; `wasmBaseM2Air` and REG-C are unchanged):
+
+```
+wasmBaseM2rAir = base (0–21) ++ [HOST', HOSTO, HOSTT, HOSTB, IF (26), REG-A (27), CONV (28), UNREACH (29), RINIT (30)]
+```
+
+* Per register id exactly one *header* is live: its length message or an **absent** message
+  `[6, rid·2^24, 3, 0,0,0,0, tp]` (tag 3). **RINIT** (`act, rid, gap`) produces one per used id at
+  time 0, ids strictly increasing (`nxt.rid = rid + 1 + nxt.gap`, `rid`, `gap` R16-checked).
+* **REG-A** = REG-C + `atp, ahp`: a fill group's length row (`act·kind·(1−rd)`) consumes the absent
+  message at `atp ≤ ts` (`r16 (ts − atp − 2^16·ahp)`, `r16 (4·ahp)`; non-strict because a clear and
+  its fill share `ts`); a clear group's length row (`act·kind·clr`) re-produces it at `ts`; new
+  constraint `cLenAct = (1 − nxt.f)·nxt.kind·(1 − nxt.act)` (a length row after a byte row of its
+  group is active — otherwise a fill could create bytes without consuming the header). Leftover
+  absent messages go to DRAIN (`space·inv = 1` admits space 6).
+* Tools: `wasmbase-tool airM2r <nloc> <ngl>` / `evalM2r`. The trace generator enables the header
+  when the AIR has a `RINIT` table (`tracegen.rs` `Absent`); `tamper` adds `REGA`/`RINIT` cases.
+
+**Lean [K]** (`WasmBase/Main/M2RegAbsentFacts.lean`, standard axioms): `regAt_m2r` (the group walk
+applies at index 27), `m2r_hsend_r16` (R16 send bound), `m2r_regLenAgree_group`; header row facts
+`m2r_fill_consumes_absent`, `m2r_fill_absent_time` (`atp ≤ ts` for times `< 2^29`),
+`m2r_clear_produces_absent`, `m2r_rinit_produces_absent`, `m2r_lenAct`, `m2r_rinit_prefix`,
+`m2r_rinit_strict`, `m2r_rinit_distinct`. **Open:** the bus-level count (per id,
+`#fills ≤ 1 + #clears`, hence one live length message) needs the CH decomposition of the M2 tables
+(only RINIT/REG-A/DRAIN carry space-6 tag-3 messages; DRAIN's and LOCAL's space/tag are columns).
+
+**Measured [M]** on the refill call `3b1ad423.run` (`refill.json` of §4; 96 steps, a refill of
+register 0). Honest: `check-tape` passes at `wasmBaseM2rAir` with the same outcome as at
+`wasmBaseM2Air` (also `conv.json`, `unreach.json` of §4). Mutants (`logs/refill-m2r-*.log`):
+
+| mutant | `wasmBaseM2Air` | `wasmBaseM2rAir` |
+|---|---|---|
+| double fill: the clear group made a plain read (`clr = 0`) and its re-produced messages drained, so the fill overwrites a live register | **verifies** (precheck passes; `logs/refill-m2-doublefill-gap.log`) | rejected: absent `(rid 0, t 71)` consumed, never produced |
+| same, the fill claiming the RINIT message (`atp = 0`, R16 answers adjusted) | – | rejected: absent `(rid 0, t 0)` consumed twice |
+| fill `atp + 1`; fill length row `act = 0` (`cLenAct`) | – | rejected (bus; constraint) |
+| RINIT `act = 0`; `rid + 1` | – | rejected (bus) |
+| RINIT duplicate id / unsorted ids (`cInc` satisfied in the field by `gap = p − 1`, `p − 2`; extra absent drained, `rid` answered) | – | rejected by the R16 lookup on `gap` |
+
+`TAMPER_ONLY=REGA,RINIT,REGC,CONV` at `wasmBaseM2rAir`: **25 / 25 rejected** (the pre-existing
+REG-C and CONV cases included); header-only rerun after the `atp = 0` case was made R16-clean: 8 / 8.
+
+## Update: coverage chips for the admitted-but-unchipped instructions (`wasmBaseM3Air`)
+
+A new AIR value (`WasmBase/M3Air.lean`) on top of `wasmBaseM2rAir`; every existing table and AIR is
+unchanged:
+
+```
+wasmBaseM3Air = base (0–21) ++ [HOST-W (22), HOSTO, HOSTT, HOSTB, IF, REG-A (27), CONV, UNREACH, RINIT (30),
+                                MEMG (31), MSZ (32), GINIT (33)]
+```
+
+* **HOST-W** (`i32` host signatures: `abort`, `promise_yield_resume`): HOST' with the argument tag
+  `tagP j = pf j·(1 − ti j)` and the result tag `1 − ri` instead of the fixed `1`; an `i32` argument
+  or result has zero upper limbs; `tmask = Σ 2^j·ti j` and `ri` go into the HOSTT lookup
+  `[hid, np, ar, tmask, ri, 0, 0, 0]`, so the statement's host table (`hostRowM3`, from the spec's
+  `hostSigs`) fixes them per host. For all-`i64` hosts the table row is the M2 one.
+* **Memory size as a channel message** (space 8; space 7 is the segment AIR's gas register):
+  **MSZ** produces `[8, 0, 0, pages, …, 0]` at time 0 (`65536·pages = pubMem`, only row 0 active);
+  **MEMG** (`memory.size` 0x3F, `memory.grow` 0x40) consumes and re-produces it. A grow pops `n`
+  (`i32`, `n < 2^27`) and either succeeds (`old + n + d = 2048`) or fails
+  (`old + n = 2049 + e`, pushes `2^32 − 1`). `S` advances by `fee + lin·n`, which is
+  `charge`'s linear fee in units of `R`. `lin` is record field 4; PV86 has
+  `linearOpUnitCost = regularOpCost`.
+* **GINIT**: a grown byte's channel message `[3, ad, 0, 0…, tg]` is produced at the grow's time,
+  one row per touched grown byte, addresses strictly increasing, in a range `[65536·old, 65536·new)`
+  that a successful MEMG row offers on bus 213 (multiplicity `gm`, with `gm·(1 − ok) = 0`; without
+  that constraint a padding row's free message would let a GINIT row create a byte anywhere at any
+  time). LOAD/STORE stay unchanged: in bounds = the message exists, and a grown byte's message only
+  exists from the grow on.
+* **`checkModuleM3`** (`WasmBase/M3Check.lean`) emits chip records instead of the M2 no-chip ones
+  (`0x242` → HOST-W's `0x1FF`, `0x241` → `0x3F`, `0x240` → `[pc, 0x40, h, c/R, lin, 0, 0, 0]`) and
+  requires `cfg.maxMemoryPages = 2048`. Tools: `wasmbase-tool airM3/evalM3/prepM3`,
+  `WASMBASE_TAPE_CHECKER=M3 wasmbase-tape`.
+* `abort`'s message is an output: the trace now moves its two length prefixes and UTF-16 strings on
+  HOSTB (request groups `51 + 256·k`). `check-tape` reports `abortx` and `m3/sweep.py` rebuilds the
+  `ABORT: …` log from it, so an `abort` call is compared on its logs too.
+
+**Lean [K]** (`WasmBase/Main/M3Facts.lean`, standard axioms only):
+* `regAt_m3`, `m3_hsend_r16` (via `hsend_r16_of_tail`), `m3_regLenAgree_group`;
+* HOST-W: `m3_host_arg_tag`, `m3_host_arg_i32`, `m3_host_res_i32`;
+* MEMG: `m3_grow_ok`, `m3_grow_fail`, `m3_grow_gm`;
+* MSZ: `m3_msz_only_first`, `m3_msz_pages`;
+* GINIT: `m3_ginit_range`, `m3_ginit_step`;
+* checker: `abort_tags`, `yield_resume_tags`.
+
+`r16 (32·x)` alone does **not** bound `x`: for `x ≈ P/32`, `32·x mod P` can be tiny. So every such
+limb in the new tables is also checked as `r16 x` (`m3_col32_lt` takes that premise).
+
+**Measured [M]** — the M2 remainder: the M3 tape (`WASMBASE_TAPE_CHECKER=M3`) over the 798 cases
+holding the 813 remainder calls, then `sweep.py --air airM3`
+(`logs/m3-remainder.txt`, `logs/m3-remainder-summary.json`, script `m3rem.py`). The full d3c7–d3c10
+sweep was **not** rerun at M3; the other 1,289 calls of those 798 cases stay equal / equal-abort.
+
+| M2 remainder reason | calls | at M3 |
+|---|---|---|
+| `memory.grow` (0x240) | 385 | **378 equal** (311 equal + 67 equal-abort); 7 now stop at a pre-existing limit (4 stack budget, 2 address ≥ 2^27, 1 GasExceeded) |
+| `abort` (0x242, pc 547) | 120 | **120 equal-abort** (status, final budget and logs incl. the `ABORT:` message) |
+| `promise_yield_resume` (0x242, pc 737) | 58 | **57 equal** (47 + 10 equal-abort); 1 stack budget |
+| stack budget exhausted (pre-existing) | 124 | 124 (unchanged) |
+| effective address ≥ 2^27 (pre-existing) | 89 | 89 |
+| GasExceeded at an instruction charge (pre-existing; 34 reported as `host event`, 3 as spec-not-finished) | 37 | 37 |
+
+**555 of the 813 become equal (0 different).** What is left: 258 calls, all pre-existing
+trace-generator limits:
+* 129 stack-budget traps;
+* 91 effective addresses ≥ 2^27;
+* 34 + 4 gas exhaustion at an instruction charge.
+
+**Mutants [M]**: 25 / 25 rejected (`TAMPER_ONLY=HOSTW,MEMG,MSZ,GINIT`). The honest proof verifies in
+each run.
+
+| run | cases | rejected |
+|---|---|---|
+| abort call (`logs/m3-abort-tamper.log`) | `abort`'s argument 0 claimed `i64` with `ti0`, `tagP0` and `tmask` mutually consistent (caught by the HOSTT lookup and the stack tag); `ti0 = 0`; `tmask = 0`; MSZ `pg+1` | 4 / 4 |
+| `promise_yield_resume` call (`logs/m3-yield-tamper.log`) | result as `i64` (`ri = 0`); `i32` result upper limb + 1; MSZ | 3 / 3 |
+| grow call (`logs/m3-grow-tamper.log`) | claim failure (`ok = 0` with the matching `e`); `d+1`; `old+1`; `n0+1, d−1`; `lin = 0` (skip the linear fee); `gm+1`; MSZ | 7 / 7 |
+| `growkat.wat` (`logs/m3-growkat-tamper.log`) — grow 1024 → 1026 pages, stores and loads in the grown pages, an untouched grown byte, a failing grow, `memory.size` | the grow cases; `memory.size` `old+1`; MSZ `pg+1`; GINIT `act = 0`, `tg − 1` (a zero byte before the grow), `ad + 1` | 11 / 11 |
+
+`growkat`'s honest trace has the spec's final budget (`g_final_trace = gFinal`), so the linear fee is
+charged exactly.
+
+**Open:**
+* the bus-level memory lemma, i.e. that grown bytes are unique and disjoint from MEMINIT's, which
+  follows from the size-message chain, GINIT's order and `m3_ginit_range`, but is not composed;
+* GINIT's `m3_ginit_range` takes the MEMG-side bounds (`old, new ≤ 2048`) as hypotheses; the bus-213
+  lookup soundness that supplies them is not composed;
+* a segmented (M4) run with `memory.grow` (the size message would be a hashed live message; not
+  tested).

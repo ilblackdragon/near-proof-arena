@@ -137,29 +137,107 @@ theorem recordOf_spec {cof : Nat} {ci : Nat → Option Nat} {ls : List Label} {h
     · exact ⟨_, _, _, _, _, rfl, Or.inr (Or.inr (Or.inr (Or.inr (Or.inr (Or.inr (Or.inr (Or.inr
         (Or.inr (Or.inr (Or.inr (Or.inr (Or.inl ⟨‹_›, rfl, rfl⟩))))))))))))⟩
 
+/-- The two shapes a fetched code record can have: a base `recordOf` record, or an M2 addition's
+record (its opcode is an M2 opcode, and `opJump` only for `else`). -/
+theorem fetch_loc {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
+    (L : Looks X nloc ncode pub tr) {m : List F}
+    (ho : (busFetch, true, m, 1) ∈ occs (wasmBaseAir nloc ncode) tr pub) :
+    ∃ q l ins, q < X.nf ∧ l < (X.pfOf q).code.size ∧ X.offOf q + l < X.M.codeSize ∧
+      (X.pfOf q).code[l]? = some ins ∧
+      ((m2Special X.p ins = false ∧ ∃ fee rec, feeUnits X.cfg (X.pfOf q).gas[l]? = some fee ∧ fee ≤ X.maxFee ∧
+          recordOf (X.offOf q) X.cinfo ((X.ckOf q).labels[l]?.getD []) ((X.ckOf q).heights[l]?.getD 0) fee
+            (X.offOf q + l) ins = some rec ∧ m = rec.map fun x => ((x : Nat) : F)) ∨
+       (m2Special X.p ins = true ∧ ∃ op rest, m = ((X.offOf q + l) :: op :: rest).map (fun x => ((x : Nat) : F)) ∧
+          m2OpNat op = true ∧ (op = Ctrl.opJump → ins = .else_) ∧
+          (X.ckOf q).records[l]? = some ((X.offOf q + l) :: op :: rest))) := by
+  obtain ⟨j, hjc, hm⟩ := L.fetch _ ho rfl rfl rfl
+  simp only [codeRec] at hm
+  obtain ⟨q, l, hq, hl, hoff, hrj⟩ := X.recG hjc
+  have CF := X.factsOf hq
+  obtain ⟨ins, hins, hrec0⟩ := CF.recs l hl
+  have hsz : l < (X.ckOf q).records.size := by rw [CF.records]; exact hl
+  simp only [hrj, Option.getD_some] at hm
+  refine ⟨q, l, ins, hq, hl, by omega, hins, ?_⟩
+  cases hs : m2Special X.p ins
+  · obtain ⟨fee, hfee, hfl, hrec⟩ := hrec0 hs
+    rw [Array.getElem?_eq_getElem hsz] at hrec
+    rw [Array.getElem?_eq_getElem hsz, Option.getD_some] at hm
+    exact Or.inl ⟨rfl, fee, _, hfee, Nat.le_trans hfl (X.maxFee_ge hq), hrec, hm⟩
+  · obtain ⟨op, rest, hr, hop, hj⟩ := CF.special l hl ins hins hs
+    rw [hr, Option.getD_some] at hm
+    exact Or.inr ⟨rfl, op, rest, hm, hop, hj, hr⟩
+
+theorem m2OpNat_lt {n : Nat} (h : m2OpNat n = true) : n < 0x243 := by
+  simp only [m2OpNat, Bool.or_eq_true, beq_iff_eq] at h; omega
+
+/-- **The FETCH record of a base chip.**  `hns`: the chip's opcode is not an M2 opcode (each chip's
+row lemma derives this from its own constraints). -/
 theorem fetch_rec {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace} (_hpub : PubOK X nloc ncode pub)
     (L : Looks X nloc ncode pub tr) {m : List F}
     (ho : (busFetch, true, m, 1) ∈ occs (wasmBaseAir nloc ncode) tr pub) {gpc : Nat}
-    (hpc : m.getD 0 0 = ((gpc : Nat) : F)) (hpcl : gpc < X.M.codeSize) :
+    (hpc : m.getD 0 0 = ((gpc : Nat) : F)) (hpcl : gpc < X.M.codeSize)
+    (hns : ∀ n : Nat, n < 0x243 → m.getD 1 0 = ((n : Nat) : F) → m2OpNat n = false) :
     ∃ q l ins fee rec, q < X.nf ∧ l < (X.pfOf q).code.size ∧ X.offOf q + l = gpc ∧
       (X.pfOf q).code[l]? = some ins ∧ feeUnits X.cfg (X.pfOf q).gas[l]? = some fee ∧ fee ≤ X.maxFee ∧
       recordOf (X.offOf q) X.cinfo ((X.ckOf q).labels[l]?.getD []) ((X.ckOf q).heights[l]?.getD 0) fee gpc ins = some rec ∧
       m = rec.map fun x => ((x : Nat) : F) := by
   have hP' := P_val
-  obtain ⟨j, hjc, hm⟩ := L.fetch _ ho rfl rfl rfl
-  simp only [codeRec] at hm
-  obtain ⟨q, l, hq, hl, hoff, hrj⟩ := X.recG hjc
-  have CF := X.factsOf hq
-  obtain ⟨ins, fee, hins, hfee, hfl, hrec⟩ := CF.recs l hl
-  have hsz : l < (X.ckOf q).records.size := by rw [CF.records]; exact hl
-  rw [Array.getElem?_eq_getElem hsz] at hrec
-  simp only [hrj, Option.getD_some, Array.getElem?_eq_getElem hsz] at hm
-  obtain ⟨op, x0, x1, x2, x3, hre, -⟩ := recordOf_spec hrec
-  have hj' : ((X.offOf q + l : Nat) : F) = ((gpc : Nat) : F) := by rw [← hpc, hm, hre]; rfl
-  have := X.off_bound hq
-  have := X.mf.total
-  have hjp : X.offOf q + l = gpc := natEq hj' (by omega) (by omega)
-  exact ⟨q, l, ins, fee, _, hq, hl, hjp, hins, hfee, Nat.le_trans hfl (X.maxFee_ge hq), by rw [← hjp]; exact hrec, hm⟩
+  have htot := X.mf.total
+  obtain ⟨q, l, ins, hq, hl, hlt, hins, hcase⟩ := fetch_loc L ho
+  have hjp : X.offOf q + l = gpc := by
+    rcases hcase with ⟨-, fee, rec, -, -, hrec, hm⟩ | ⟨-, op, rest, hm, -⟩
+    · obtain ⟨op, x0, x1, x2, x3, hre, -⟩ := recordOf_spec hrec
+      have hj' : ((X.offOf q + l : Nat) : F) = ((gpc : Nat) : F) := by rw [← hpc, hm, hre]; rfl
+      exact natEq hj' (by omega) (by omega)
+    · have hj' : ((X.offOf q + l : Nat) : F) = ((gpc : Nat) : F) := by rw [← hpc, hm]; rfl
+      exact natEq hj' (by omega) (by omega)
+  rcases hcase with ⟨-, fee, rec, hfee, hfl, hrec, hm⟩ | ⟨-, op, rest, hm, hop, -, -⟩
+  · exact ⟨q, l, ins, fee, rec, hq, hl, hjp, hins, hfee, hfl, by rw [← hjp]; exact hrec, hm⟩
+  · have := hns op (m2OpNat_lt hop) (by rw [hm]; rfl)
+    rw [hop] at this; cases this
+
+/-- **The FETCH record of CTRL**: CTRL's jump opcode is also the M2 `else` record's, so a CTRL row
+fetches either a base record or an `else`'s (with the M2 `else` facts, `CheckFacts.elseF`). -/
+theorem fetch_rec_ctrl {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace} (_hpub : PubOK X nloc ncode pub)
+    (L : Looks X nloc ncode pub tr) {m : List F}
+    (ho : (busFetch, true, m, 1) ∈ occs (wasmBaseAir nloc ncode) tr pub) {gpc : Nat}
+    (hpc : m.getD 0 0 = ((gpc : Nat) : F)) (hpcl : gpc < X.M.codeSize)
+    (hns : ∀ n : Nat, n < 0x243 → m.getD 1 0 = ((n : Nat) : F) → m2OpNat n = true → n = Ctrl.opJump) :
+    (∃ q l ins fee rec, q < X.nf ∧ l < (X.pfOf q).code.size ∧ X.offOf q + l = gpc ∧
+      (X.pfOf q).code[l]? = some ins ∧ feeUnits X.cfg (X.pfOf q).gas[l]? = some fee ∧ fee ≤ X.maxFee ∧
+      recordOf (X.offOf q) X.cinfo ((X.ckOf q).labels[l]?.getD []) ((X.ckOf q).heights[l]?.getD 0) fee gpc ins = some rec ∧
+      m = rec.map fun x => ((x : Nat) : F)) ∨
+    (∃ q l lab rest fee, q < X.nf ∧ l < (X.pfOf q).code.size ∧ X.offOf q + l = gpc ∧
+      (X.pfOf q).code[l]? = some .else_ ∧
+      (X.ckOf q).labels[l]? = some (lab :: rest) ∧
+      (X.ckOf q).heights[l]?.getD 0 = lab.height + lab.arity ∧
+      lab.target < (X.pfOf q).code.size ∧ (X.ckOf q).labels[lab.target]? = some rest ∧
+      (X.ckOf q).heights[lab.target]? = some ((X.ckOf q).heights[l]?.getD 0) ∧
+      feeUnits X.cfg (X.pfOf q).gas[l]? = some fee ∧ fee ≤ X.maxFee ∧
+      m = [gpc, Ctrl.opJump, (X.ckOf q).heights[l]?.getD 0, fee, lab.target + X.offOf q, 0, 0, 0].map
+        fun x => ((x : Nat) : F)) := by
+  have hP' := P_val
+  have htot := X.mf.total
+  obtain ⟨q, l, ins, hq, hl, hlt, hins, hcase⟩ := fetch_loc L ho
+  have hjp : X.offOf q + l = gpc := by
+    rcases hcase with ⟨-, fee, rec, -, -, hrec, hm⟩ | ⟨-, op, rest, hm, -⟩
+    · obtain ⟨op, x0, x1, x2, x3, hre, -⟩ := recordOf_spec hrec
+      have hj' : ((X.offOf q + l : Nat) : F) = ((gpc : Nat) : F) := by rw [← hpc, hm, hre]; rfl
+      exact natEq hj' (by omega) (by omega)
+    · have hj' : ((X.offOf q + l : Nat) : F) = ((gpc : Nat) : F) := by rw [← hpc, hm]; rfl
+      exact natEq hj' (by omega) (by omega)
+  rcases hcase with ⟨-, fee, rec, hfee, hfl, hrec, hm⟩ | ⟨-, op, rest, hm, hop, hjmp, hr⟩
+  · exact Or.inl ⟨q, l, ins, fee, rec, hq, hl, hjp, hins, hfee, hfl, by rw [← hjp]; exact hrec, hm⟩
+  · have e := hns op (m2OpNat_lt hop) (by rw [hm]; rfl) hop
+    have hel := hjmp e
+    subst hel
+    obtain ⟨lab, rest', fee, h1, h2, h3, h4, h5, h6, h7, h8⟩ := (X.factsOf hq).elseF l hl hins
+    refine Or.inr ⟨q, l, lab, rest', fee, hq, hl, hjp, hins, h1, h2, h3, h4, h5, h6,
+      Nat.le_trans h7 (X.maxFee_ge hq), ?_⟩
+    rw [hr] at h8
+    simp only [Option.some.injEq, List.cons.injEq] at h8
+    obtain ⟨-, -, rfl⟩ := h8
+    rw [hm, ← hjp, e]
 
 /-- A channel time check `[r16 (ts - tp - 1 - 2^16 hi), r16 (4 hi)]` with count 1 bounds the
 producer time: `tp + 1 + n = ts` with `n < 2^30 + 2^16`. -/
@@ -238,16 +316,12 @@ theorem fetch_pc {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace} (_hpub
     (L : Looks X nloc ncode pub tr) {m : List F}
     (ho : (busFetch, true, m, 1) ∈ occs (wasmBaseAir nloc ncode) tr pub) :
     ∃ pc, pc < X.M.codeSize ∧ m.getD 0 0 = ((pc : Nat) : F) := by
-  obtain ⟨j, hjc, hm⟩ := L.fetch _ ho rfl rfl rfl
-  simp only [codeRec] at hm
-  obtain ⟨q, l, hq, hl, hoff, hrj⟩ := X.recG hjc
-  have CF := X.factsOf hq
-  obtain ⟨ins, fee, hins, hfee, hfl, hrec⟩ := CF.recs l hl
-  have hsz : l < (X.ckOf q).records.size := by rw [CF.records]; exact hl
-  rw [Array.getElem?_eq_getElem hsz] at hrec
-  simp only [hrj, Option.getD_some, Array.getElem?_eq_getElem hsz] at hm
-  obtain ⟨op, x0, x1, x2, x3, hre, -⟩ := recordOf_spec hrec
-  exact ⟨j, hjc, by rw [hm, hre, ← hoff]; rfl⟩
+  obtain ⟨q, l, ins, hq, hl, hlt, hins, hcase⟩ := fetch_loc L ho
+  refine ⟨X.offOf q + l, hlt, ?_⟩
+  rcases hcase with ⟨-, fee, rec, -, -, hrec, hm⟩ | ⟨-, op, rest, hm, -⟩
+  · obtain ⟨op, x0, x1, x2, x3, hre, -⟩ := recordOf_spec hrec
+    rw [hm, hre]; rfl
+  · rw [hm]; rfl
 
 theorem stMsg_cons {a b c d e1 e2 : F} {pc t S h sb cid : Nat} (e : [a, b, c, d, e1, e2] = stMsg pc t S h sb cid) :
     a = ((pc : Nat) : F) ∧ b = ((t : Nat) : F) ∧ c = ((S : Nat) : F) ∧ d = ((h : Nat) : F) ∧
@@ -275,5 +349,27 @@ theorem recordOf_op_lt {cof : Nat} {ci : Nat → Option Nat} {ls : List Label} {
   rcases hc with ⟨_, _, h, _⟩ | ⟨_, _, h, _⟩ | ⟨_, h, _⟩ | ⟨_, _, h, _⟩ | ⟨_, _, h, _⟩ | ⟨_, _, h, _⟩ |
     ⟨_, _, h, _⟩ | ⟨_, hf, _⟩ | ⟨_, h, _⟩ | ⟨_, _, h, _⟩ | ⟨_, _, h, _⟩ | ⟨_, h, _⟩ | ⟨_, h, _⟩ | ⟨_, _, _, hmem, _⟩ | ⟨_, _, _, hmem, _⟩ | ⟨_, _, h, _⟩ | ⟨_, _, h, _⟩ | ⟨_, _, _, h, _⟩ <;>
   first | (subst h; decide) | (have := isFamilyNum_le hf; omega) | omega
+
+/-- Discharge `fetch_rec`'s `hns` at a base chip's row: the FETCH opcode is a combination of the
+chip's flags (bits, at most one set), whose value is never an M2 opcode.  Needs the flag facts of
+the chip in context (as the row lemmas have them). -/
+macro "m2ns" : tactic => `(tactic| (
+  intro n hn he
+  try simp only [List.cons_append, List.nil_append, List.map_cons, List.map_nil, List.getD_cons_succ,
+    List.getD_cons_zero, v, Expr.eval_add', Expr.eval_mul', Expr.eval_ofNat', Expr.eval_c, Expr.eval_col,
+    Trace.row, cell_cast, Add.op, Bit.op, Mul.op, Shift.op, Const.op, Stack.op, Local.op, Div.op, Ret.op,
+    Add.is64, Add.fSub, Bit.is64, Bit.fOr, Bit.fXor, Mul.is64, Shift.is64, Shift.fShrS, Shift.fShrU,
+    Shift.fRotl, Shift.fRotr, Const.is64, Stack.fDrop, Stack.fSel, Local.fSet, Local.fTee, Local.fGGet,
+    Local.fGSet, Div.is64, Div.fDivU, Div.fRemS, Div.fRemU, Ret.fRet, Ret.fRif, Ctrl.opHalt, Ctrl.opHif,
+    zeros4, opCall, Call.opCall] at he
+  try simp only [Add.is64, Add.fSub, Bit.is64, Bit.fOr, Bit.fXor, Mul.is64, Shift.is64, Shift.fShrS,
+    Shift.fShrU, Shift.fRotl, Shift.fRotr, Const.is64, Stack.fDrop, Stack.fSel, Local.fSet, Local.fTee,
+    Local.fGGet, Local.fGSet, Div.is64, Div.fDivU, Div.fRemS, Div.fRemU, Ret.fRet, Ret.fRif] at *
+  try simp only [← Lean.Grind.Semiring.natCast_mul, ← Lean.Grind.Semiring.natCast_add] at he
+  have hP'' := P_val
+  have e := natEq he (by omega) (by omega)
+  subst e
+  simp only [m2OpNat, Bool.or_eq_false_iff, beq_eq_false_iff_ne, ne_eq]
+  omega))
 
 end WasmBase

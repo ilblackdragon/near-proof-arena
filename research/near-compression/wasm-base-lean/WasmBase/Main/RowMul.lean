@@ -42,7 +42,9 @@ theorem mul_binop_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Tra
     simp only [isBinop, binops, List.mem_cons, List.mem_nil_iff, or_false] at hop; omega
   -- the fee bound, independent of the spec state
   obtain ⟨pc0, hpc0, hm0⟩ := fetch_pc hpub L hfo
-  obtain ⟨q, l, ins, fee, rec, hq, hl, hoff, hins, hfee, hfl, hrc, hm⟩ := fetch_rec hpub L hfo hm0 hpc0
+  have hop0 : 0x6A ≤ op := by
+    simp only [isBinop, binops, List.mem_cons, List.mem_nil_iff, or_false] at hop; omega
+  obtain ⟨q, l, ins, fee, rec, hq, hl, hoff, hins, hfee, hfl, hrc, hm⟩ := fetch_rec hpub L hfo hm0 hpc0 (by m2ns)
   have CF := X.factsOf hq
   obtain ⟨op', x0, x1, x2, x3, hre, hcase⟩ := recordOf_spec hrc
   rw [hre] at hm
@@ -107,7 +109,7 @@ theorem mul_binop_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Tra
   subst hinsn
   -- two operands on the stack
   obtain ⟨hfam, hpops⟩ := isFamilyNum_of_binop hop
-  have hv := CF.verify pc hpcl
+  have hv := CF.verify pc hpcl _ hins (by m2_ns)
   obtain ⟨ls0, hL, -⟩ := R.labels
   simp only [verifyAt, hins, hL, hH, kindOf, hfam, ite_true, hpops, Bool.and_eq_true,
     decide_eq_true_eq] at hv
@@ -152,7 +154,7 @@ theorem mul_limb_cast (a b : Nat) :
   simp only [Lean.Grind.Semiring.natCast_add, Lean.Grind.Semiring.natCast_mul]
 
 theorem mul_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) (L : Looks X nloc ncode pub tr) (hpub : PubOK X nloc ncode pub)
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) (L : Looks X nloc ncode pub tr) (hpub : PubOK X nloc ncode pub)
     {r : Nat} (hr : r < tr.height 3) (hact : rowAct Mul.table tr pub 3 r) :
     RowFacts X (rowIn Mul.table tr pub 3 r) (rowOut Mul.table tr pub 3 r)
       (rowCons Mul.table tr pub 3 r) (rowProd Mul.table tr pub 3 r) := by
@@ -160,7 +162,7 @@ theorem mul_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
   have ht : 3 < (wasmBaseAir nloc ncode).tables.length := by simp [air_len]
   have hcP : ∀ i, rowNat tr 3 r i < P := rowNat_lt tr 3 r
   have hcon : ∀ e ∈ Mul.table.constraints, e.eval (natRow (rowNat tr 3 r) (tr.row pub 3 r)) = 0 :=
-    table_constr H ht hr
+    table_constrC H ht hr
   have a1 : rowNat tr 3 r 5 = 1 := by
     simpa only [rowAct, Mul.table, Mul.inters, stdState, stateIn, List.cons_append, List.getD_cons_zero,
       v, Expr.eval_col, Trace.row, Mul.act, rowNat] using hact
@@ -335,9 +337,9 @@ theorem mul_counts_of {pub : List F} {tr : Trace} {r : Nat}
   omega
 
 theorem mul_counts {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 3) :
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 3) :
     ∀ i ∈ Mul.inters, (i.count.eval (tr.row pub 3 r)).toNat ≤ 1 :=
-  mul_counts_of (table_constr H (by simp [air_len]) hr)
+  mul_counts_of (table_constrC H (by simp [air_len]) hr)
 
 /-- (No `H`/`hr` needed: every MUL count is the activity column itself.) -/
 theorem mul_inactive {pub : List F} {tr : Trace} {r : Nat}

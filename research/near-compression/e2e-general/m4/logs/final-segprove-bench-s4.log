@@ -1,0 +1,21 @@
+TRACE steps 1128011 cuts 4 tracegen 2.92s
+SEGBUILD 0 1.57s
+SEGBUILD 1 1.30s
+SEGBUILD 2 1.59s
+SEGBUILD 3 1.12s
+SEGBUILD 4 0.90s
+PARAMS n_stack 22 w_stack 8 degree 9
+KEYGEN 0.02s (one verifying key for every segment)
+SOUNDNESS total=268.2 logup=330.3 proximity=306.2 query=268.2
+SEG 0 t (0, 262144] steps 262144 halted 0 | boundary: stream in 4 out 11 msgs, blocks 32 (read-only 0), drops 22308 tombs 11154, compressions 1610 (stream 10, MEMB 576, MPATH 1024)
+  CELLS instruction+lookup tables 16017828 | boundary tables 1084840 | SHA-512 chip 21759104 (height 262144) | total 38861772
+SEG 1 t (262144, 524288] steps 262144 halted 0 | boundary: stream in 11 out 4 msgs, blocks 32 (read-only 0), drops 22312 tombs 11156, compressions 1610 (stream 10, MEMB 576, MPATH 1024)
+  CELLS instruction+lookup tables 16017828 | boundary tables 1084688 | SHA-512 chip 21759104 (height 262144) | total 38861620
+SEG 2 t (524288, 786432] steps 262144 halted 0 | boundary: stream in 4 out 9 msgs, blocks 32 (read-only 0), drops 22308 tombs 11154, compressions 1609 (stream 9, MEMB 576, MPATH 1024)
+  CELLS instruction+lookup tables 16017828 | boundary tables 1084840 | SHA-512 chip 21759104 (height 262144) | total 38861772
+SEG 3 t (786432, 1048576] steps 262144 halted 0 | boundary: stream in 9 out 8 msgs, blocks 32 (read-only 0), drops 22312 tombs 11156, compressions 1611 (stream 11, MEMB 576, MPATH 1024)
+  CELLS instruction+lookup tables 16017828 | boundary tables 1085216 | SHA-512 chip 21759104 (height 262144) | total 38862148
+SEG 4 t (1048576, 1128011] steps 79435 halted 1 | boundary: stream in 8 out 5 msgs, blocks 32 (read-only 0), drops 6760 tombs 3380, compressions 1609 (stream 9, MEMB 576, MPATH 1024)
+  CELLS instruction+lookup tables 5087652 | boundary tables 544016 | SHA-512 chip 21759104 (height 262144) | total 27390772
+  PROOF 4: 1730001 B, prove 943.8s, verify 82 ms, statement ok (boundary public values, code_root, func_root), peak_rss_kib 16717776
+SEGPROVE OK 5 segments, chained by hand (B_out(k) = B_in(k+1)); total prove 943.8s

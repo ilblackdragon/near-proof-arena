@@ -16,6 +16,25 @@ theorem row_eq_natRow (tr : Trace) (pub : List F) (t r : Nat) :
     tr.row pub t r = natRow (rowNat tr t r) (tr.row pub t r) := by
   simp only [natRow, rowNat, Trace.row, Fp.cast_toNat]
 
+/-- The row constraints of every table of `A` hold (no bus balance).  Every row lemma needs only
+this; it follows from `Holds A` (`Holds.toC`), and for a prefix of a larger AIR's tables from that
+AIR's `Holds` (e.g. the base tables of the M2 AIR). -/
+structure HoldsC (A : Air) (pub : List F) (tr : Trace) : Prop where
+  constr : ∀ t (ht : t < A.tables.length), ∀ r, r < tr.height t →
+    ∀ e ∈ (A.tables[t]'ht).constraints, e.eval (tr.row pub t r) = 0
+
+theorem Holds.toC {A : Air} {pub : List F} {tr : Trace} (H : Holds A pub tr) : HoldsC A pub tr :=
+  ⟨H.constr⟩
+
+instance {A : Air} {pub : List F} {tr : Trace} : Coe (Holds A pub tr) (HoldsC A pub tr) := ⟨Holds.toC⟩
+
+theorem table_constrC {A : Air} {pub : List F} {tr : Trace} (H : HoldsC A pub tr) {t : Nat}
+    (ht : t < A.tables.length) {r : Nat} (hr : r < tr.height t) :
+    ∀ e ∈ (A.tables[t]'ht).constraints, e.eval (natRow (rowNat tr t r) (tr.row pub t r)) = 0 := by
+  intro e he
+  rw [← row_eq_natRow]
+  exact H.constr t ht r hr e he
+
 theorem table_constr {A : Air} {pub : List F} {tr : Trace} (H : Holds A pub tr) {t : Nat}
     (ht : t < A.tables.length) {r : Nat} (hr : r < tr.height t) :
     ∀ e ∈ (A.tables[t]'ht).constraints, e.eval (natRow (rowNat tr t r) (tr.row pub t r)) = 0 := by

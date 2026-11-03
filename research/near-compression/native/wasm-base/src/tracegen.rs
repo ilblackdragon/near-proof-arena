@@ -177,6 +177,9 @@ struct Ent {
 struct Frame {
     sb: u64,
     cid: u64,
+    /// producer time of this activation's call record (space 4): the CALL row's `ts`, or the
+    /// segment start after a cut (E2E M4)
+    rtp: u64,
     retpc: u64,
     charge: u64,
     locals: Vec<Ent>,
@@ -200,6 +203,127 @@ fn fi(x: i64) -> F {
 fn sg(v: u64, w: u32) -> i128 {
     let v = v as i128;
     if (v >> (w - 1)) & 1 == 1 { v - (1i128 << w) } else { v }
+}
+
+/// The absent-register header of `wasmBaseM2rAir` (`WasmBase/M2RegAbsent.lean`): per register id,
+/// the producer time of its live **absent** message `[6, rid·2^24, 3, 0,0,0,0, tp]`.  RINIT
+/// produces one per used id at time 0; a fill's length row consumes it (`atp ≤ ts`); a clear's
+/// length row re-produces it at its `ts`.
+#[derive(Default)]
+struct Absent {
+    /// ids used by the run (RINIT rows)
+    used: std::collections::BTreeSet<u64>,
+    /// rid -> producer time of the live absent message (absent = not filled since)
+    live: HashMap<u64, u64>,
+    /// REG row index of a fill length row -> its `atp`
+    rows: HashMap<usize, u64>,
+}
+
+impl Absent {
+    fn fill(&mut self, st: &mut St, row: usize, rid: u64, ts: u64) {
+        // first fill: the RINIT message (time 0); later fills: the one their clear re-produced
+        let atp = if self.used.insert(rid) { 0 } else { self.live.remove(&rid).expect("refill without clear") };
+        assert!(atp <= ts);
+        let d = ts - atp;
+        assert!(d >> 16 < (1 << 14));
+        st.r16(d & 0xffff);
+        st.r16(4 * (d >> 16));
+        self.rows.insert(row, atp);
+    }
+    fn clear(&mut self, rid: u64, ts: u64) {
+        self.live.insert(rid, ts);
+    }
+    /// RINIT (ids strictly increasing, `gap = rid − prev − 1`) and DRAIN rows for the absent
+    /// messages left at the end.
+    fn finish<'a>(&self, spec: &'a TableSpec, drn: &mut Tab<'_>, st: &mut St) -> Tab<'a> {
+        let mut ri = Tab::new(spec);
+        let mut prev: Option<u64> = None;
+        for &rid in self.used.iter() {
+            let gap = prev.map(|p| rid - p - 1).unwrap_or(0);
+            ri.row().u("act", 1).u("rid", rid).u("gap", gap);
+            st.r16(rid);
+            st.r16(gap);
+            prev = Some(rid);
+        }
+        let mut left: Vec<(u64, u64)> = self.live.iter().map(|(&r, &t)| (r, t)).collect();
+        left.sort_unstable();
+        for (rid, tp) in left {
+            drn.row().u("act", 1).u("space", 6).u("slot", rid * (1u64 << 24)).u("tag", 3)
+                .limbs("v", [0, 0, 0, 0]).u("tp", tp).s("inv", fe(6).inverse());
+        }
+        ri
+    }
+}
+
+/// `abort(msg_ptr, file_ptr, line, col)` (`Host.lean`): the memory it reads, as HOSTB request
+/// groups `(whid, len, ptr)` in the spec's order of reads — the two 4-byte length prefixes at
+/// `ptr − 4`, then the two UTF-16 strings (`hid 51 + 256·k`).  None when a pointer is `< 4` or a
+/// read is out of bounds (the spec errors before or at that read; nothing is bound).
+fn abort_groups(mem: &mut Mem, args: &[u64]) -> Vec<(u64, u64, u64)> {
+    let (mp, fp) = (args[0] & 0xffff_ffff, args[1] & 0xffff_ffff);
+    if mp < 4 || fp < 4 || mp > mem.size || fp > mem.size {
+        return vec![];
+    }
+    let le = |mem: &mut Mem, p: u64| (0..4).map(|i| mem.get(p - 4 + i).0 << (8 * i)).sum::<u64>();
+    let (ml, fl) = (le(mem, mp), le(mem, fp));
+    if mp + ml > mem.size || fp + fl > mem.size {
+        return vec![];
+    }
+    // one string for both (an interned literal): read once; the file is the message
+    if fp == mp {
+        return vec![(51, 4, mp - 4), (51 + 256, ml, mp)];
+    }
+    assert!(fp + fl <= mp - 4 || mp + ml <= fp - 4, "abort: overlapping message and file strings");
+    vec![(51, 4, mp - 4), (51 + 512, 4, fp - 4), (51 + 256, ml, mp), (51 + 768, fl, fp)]
+}
+
+/// `wasmBaseM3Air` (`WasmBase/M3Air.lean`): the memory-size message `[8, 0, 0, pages, 0,0,0, tp]`
+/// and the MEMG grow rows (for their lookup multiplicity `gm`).
+struct M3 {
+    pages: u64,
+    tp: u64,
+    /// MEMG row index and `(ts, old, new)` of every grow row
+    grows: Vec<(usize, u64, u64, u64)>,
+}
+
+impl M3 {
+    fn new(prep: &Prep) -> Self {
+        M3 { pages: prep.mem / 65536, tp: 0, grows: vec![] }
+    }
+    /// HOST-W tags of host `hid` from the statement's host table row `[id, np, ar, tmask, ri, ..]`.
+    fn host_tags(prep: &Prep, hid: u64) -> (u64, u64) {
+        prep.host_tab.iter().find(|r| r[0] == hid).map(|r| (r[3], r[4])).unwrap_or((0, 0))
+    }
+    /// MSZ (the initial size message), GINIT (one row per touched grown byte, sorted) with the
+    /// MEMG rows' `gm`, and the DRAIN row of the final size message.
+    fn finish<'a>(&self, memg: &mut Tab<'_>, mem: &Mem, msz: &'a TableSpec, gi: &'a TableSpec, drn: &mut Tab<'_>,
+                  st: &mut St) -> (Tab<'a>, Tab<'a>) {
+        let mut ms = Tab::new(msz);
+        ms.row().u("act", 1).u("pg", mem.prep.mem / 65536);
+        st.r16(mem.prep.mem / 65536);
+        let mut gt = Tab::new(gi);
+        let mut gm: HashMap<u64, u64> = HashMap::new();
+        let mut prev: Option<u64> = None;
+        for (&a, &(tg, old, new)) in mem.ginit.iter() {
+            let gap = prev.map(|p| a - p - 1).unwrap_or(0);
+            let (d, e) = (a - 65536 * old, 65536 * new - 1 - a);
+            gt.row().u("act", 1).u("ad", a).u("tg", tg).u("old", old).u("new", new)
+                .u("glo", gap & 0xffff).u("ghi", gap >> 16).u("dlo", d & 0xffff).u("dhi", d >> 16)
+                .u("elo", e & 0xffff).u("ehi", e >> 16);
+            for x in [gap & 0xffff, gap >> 16, 32 * (gap >> 16), d & 0xffff, d >> 16, 32 * (d >> 16), e & 0xffff, e >> 16, 32 * (e >> 16)] {
+                st.r16(x);
+            }
+            *gm.entry(tg).or_insert(0) += 1;
+            prev = Some(a);
+        }
+        let kg = memg.idx["gm"];
+        for &(ri, ts, _, _) in self.grows.iter() {
+            memg.rows[ri][kg] = fe(gm.get(&ts).copied().unwrap_or(0));
+        }
+        drn.row().u("act", 1).u("space", 8).u("slot", 0).u("tag", 0).limbs("v", [self.pages, 0, 0, 0])
+            .u("tp", self.tp).s("inv", fe(8).inverse());
+        (ms, gt)
+    }
 }
 
 struct Tab<'a> {
@@ -243,7 +367,47 @@ impl Row<'_, '_> {
     }
 }
 
+/// E2E M4: one live channel message at a cut (raw activation ids), `[space, slot, tag, v0..v3, tp]`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Live {
+    pub space: u64,
+    pub slot: u64,
+    pub tag: u64,
+    pub v: [u64; 4],
+    pub tp: u64,
+}
+
+/// E2E M4: the machine at a cut `t` (between the rows `ts = t` and `ts = t + 1`), before the
+/// relabelling, plus what the segment ending at `t` did (dead locals, tombstones, touched blocks).
+#[derive(Clone, Debug, Default)]
+pub struct CutSnap {
+    pub t: u64,
+    pub pc: u64,
+    pub s: u64,
+    /// 0 at a cut, 1 returned, 2 trapped (the end of the call)
+    pub halted: u64,
+    pub sb: u64,
+    pub cid: u64,
+    /// the gas register `(S_seg, segb, tp)`
+    pub gas: (u64, u64, u64),
+    /// every live non-memory channel message (spaces 0, 2, 4, 5, 6, 16 + cid), raw ids
+    pub live: Vec<Live>,
+    /// live activation id -> depth (entry frame 0)
+    pub depth_of: Vec<(u64, u64)>,
+    /// locals of activations that returned in the segment ending here (to `DROP`)
+    pub dead: Vec<Live>,
+    /// ids of the activations that returned in the segment ending here (RET tombstones)
+    pub tombs: Vec<u64>,
+    /// 1 KiB blocks the segment ending here accessed, and every byte of them `(value, tp)` at `t`
+    pub touched: Vec<u64>,
+    pub mem_end: std::collections::BTreeMap<u64, (u64, u64)>,
+    /// the memory values at the segment's start for the same blocks
+    pub mem_start: std::collections::BTreeMap<u64, u64>,
+}
+
 pub struct Gen {
+    /// E2E M4: the cut snapshots (index 0 = the call's entry, then one per cut, last = the end)
+    pub cuts: Vec<CutSnap>,
     pub mats: Vec<RowMajorMatrix<F>>,
     pub pubs: Vec<F>,
     pub rows_per_table: Vec<(String, usize)>,
@@ -301,17 +465,34 @@ struct Mem<'p> {
     prep: &'p Prep,
     cur: std::collections::BTreeMap<u64, (u64, u64)>,
     init: std::collections::BTreeMap<u64, u64>,
+    /// E2E M4: producer time of a byte not accessed yet (the current segment's start `t_in`)
+    base_tp: u64,
+    /// E2E M4: 1 KiB blocks accessed since the last cut
+    touched: std::collections::BTreeSet<u64>,
+    /// E2E M3 (`memory.grow`): the current memory size in bytes, the successful grows
+    /// `(tg, old_pages, new_pages)`, and the grown bytes touched (GINIT rows: address -> its grow)
+    size: u64,
+    grows: Vec<(u64, u64, u64)>,
+    ginit: std::collections::BTreeMap<u64, (u64, u64, u64)>,
 }
 impl Mem<'_> {
     fn get(&mut self, a: u64) -> (u64, u64) {
-        assert!(a < self.prep.mem, "memory access out of bounds at {a}: the trap is not provable");
+        assert!(a < self.size, "memory access out of bounds at {a}: the trap is not provable");
+        self.touched.insert(a >> 10);
         if let Some(&e) = self.cur.get(&a) {
             return e;
         }
+        if a >= self.prep.mem {
+            // a grown byte: zero, produced by GINIT at its grow's time
+            let g = *self.grows.iter().find(|g| 65536 * g.1 <= a && a < 65536 * g.2).expect("grown byte");
+            self.ginit.insert(a, g);
+            self.cur.insert(a, (0, g.0));
+            return (0, g.0);
+        }
         let b = if a < self.prep.data_end { self.prep.data[a as usize] } else { 0 };
         self.init.insert(a, b);
-        self.cur.insert(a, (b, 0));
-        (b, 0)
+        self.cur.insert(a, (b, self.base_tp));
+        (b, self.base_tp)
     }
 }
 
@@ -398,6 +579,45 @@ const CMP_FLAGS: [&str; 11] = [
 ];
 
 pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
+    generate_cuts(air, prep, &[])
+}
+
+/// The image byte at `a` (the call's initial memory).
+pub fn image_byte(prep: &Prep, a: u64) -> u64 {
+    if a < prep.data_end { prep.data[a as usize] } else { 0 }
+}
+
+/// E2E M4: the live non-memory messages of the machine, raw (`Live`), in no particular order.
+fn live_msgs(stack: &[Ent], frames: &[Frame], budget: &Ent, globals: &[Ent], regs: &HashMap<u64, Vec<u64>>,
+    reg_bts: &HashMap<u64, u64>, reg_lts: &HashMap<u64, u64>) -> Vec<Live> {
+    let mut out = vec![];
+    for (i, e) in stack.iter().enumerate() {
+        out.push(Live { space: 0, slot: i as u64, tag: e.tag, v: limbs(e.val), tp: e.tp });
+    }
+    for (k, f) in frames.iter().enumerate() {
+        if k > 0 {
+            let c = &frames[k - 1];
+            out.push(Live { space: 4, slot: f.cid, tag: 0, v: [f.retpc, c.sb, c.cid, f.charge], tp: f.rtp });
+        }
+        for (j, e) in f.locals.iter().enumerate() {
+            out.push(Live { space: 16 + f.cid, slot: j as u64, tag: e.tag, v: limbs(e.val), tp: e.tp });
+        }
+    }
+    out.push(Live { space: 5, slot: 0, tag: 0, v: [budget.val & 0xffff, budget.val >> 16, 0, 0], tp: budget.tp });
+    for (g, e) in globals.iter().enumerate() {
+        out.push(Live { space: 2, slot: g as u64, tag: e.tag, v: limbs(e.val), tp: e.tp });
+    }
+    for (&rid, bs) in regs.iter() {
+        let (btp, ltp) = (reg_bts[&rid], reg_lts[&rid]);
+        for (pos, &b) in bs.iter().enumerate() {
+            out.push(Live { space: 6, slot: rid * (1u64 << 24) + pos as u64 + 1, tag: 0, v: [b, 0, 0, 0], tp: btp });
+        }
+        out.push(Live { space: 6, slot: rid * (1u64 << 24), tag: 2, v: [bs.len() as u64, 0, 0, 0], tp: ltp });
+    }
+    out
+}
+
+pub fn generate_cuts(air: &AirSpec, prep: &Prep, cut_at: &[u64]) -> Gen {
     let t = |n: &str| &air.tables[air.index(n)];
     let mut add = Tab::new(t("ADD"));
     let mut bit = Tab::new(t("BIT"));
@@ -440,6 +660,13 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
     // E2E M2 (`Chips.RegC`): REG-C's `clr` column, the clear group of a register refill
     let has_clr = has_reg && air.tables[air.index("REG")].cols.iter().any(|c| c == "clr");
     let mut clr_rows: std::collections::HashSet<usize> = Default::default();
+    // `wasmBaseM2rAir` (`WasmBase/M2RegAbsent.lean`): REG-A's absent-register header and RINIT
+    let has_absent = has_reg && air.tables.iter().any(|x| x.name == "RINIT");
+    let mut ab = Absent::default();
+    // `wasmBaseM3Air` (`WasmBase/M3Air.lean`): HOST-W argument/result tags, MEMG/MSZ/GINIT
+    let has_m3 = air.tables.iter().any(|x| x.name == "MEMG");
+    let mut m3 = M3::new(prep);
+    let mut memg = if has_m3 { Some(Tab::new(&air.tables[air.index("MEMG")])) } else { None };
     let shat = if has_sha { Some(Tab::new(&air.tables[air.index("SHA256")])) } else { None };
     // indexed by **host id**: the table's ids are not contiguous (`abort`/`write_register`
     // reserve 11/14), so the vector must reach the largest id, not the row count
@@ -465,7 +692,16 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
     let mut func_calls: Vec<u64> = vec![0; prep.funcs.len()];
     // dead callee locals `(space, slot, entry)`, left over in the channel after their frame returned
     let mut dead: Vec<(u64, u64, Ent)> = vec![];
-    let mut mem = Mem { prep, cur: Default::default(), init: Default::default() };
+    let mut mem = Mem { prep, cur: Default::default(), init: Default::default(), base_tp: 0, touched: Default::default(),
+        size: prep.mem, grows: vec![], ginit: Default::default() };
+    // E2E M4: cut snapshots, the gas register `(S_seg, segb, tp)`, tombstones of this segment,
+    // memory values at this segment's start
+    let mut cuts: Vec<CutSnap> = vec![];
+    let mut cut_ix = 0usize;
+    assert!(prep.g0 < (1u128 << 64));
+    let mut gas_reg: (u64, u64, u64) = (0, prep.g0 as u64, 0);
+    let mut tombs: Vec<u64> = vec![];
+    let mut mem_start: std::collections::BTreeMap<u64, u64> = Default::default();
     let mut trapped = false;
     let mut st = St { r16: vec![0; 65536], byte: vec![vec![0; 65536]; 4] };
     let mut fetch = vec![0u64; prep.records.len()];
@@ -474,6 +710,7 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
     let mut frames = vec![Frame {
         sb: 0,
         cid: 0,
+        rtp: 0,
         retpc: 0,
         charge: 0,
         locals: prep.local_tags.iter().map(|&tag| Ent { tag, val: 0, tp: 0 }).collect(),
@@ -491,7 +728,77 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
     let mut host_g: Option<u64> = None;
     let mut last_host: Option<(u64, u64)> = None;
     let halt_pc;
+    // E2E M4: the snapshot of the machine at the boundary `t` (before relabelling)
+    macro_rules! snap {
+        ($t:expr, $halted:expr, $pc:expr) => {{
+            let tb: Vec<u64> = mem.touched.iter().copied().collect();
+            let mut mem_end = std::collections::BTreeMap::new();
+            let mut ms = std::collections::BTreeMap::new();
+            for &b in tb.iter() {
+                for a in (b << 10)..((b + 1) << 10) {
+                    let st0 = *mem_start.get(&a).unwrap_or(&image_byte(prep, a));
+                    ms.insert(a, st0);
+                    mem_end.insert(a, *mem.cur.get(&a).unwrap_or(&(st0, mem.base_tp)));
+                }
+            }
+            CutSnap {
+                t: $t,
+                pc: $pc,
+                s,
+                halted: $halted,
+                sb: frames.last().unwrap().sb,
+                cid: frames.last().unwrap().cid,
+                gas: gas_reg,
+                live: live_msgs(&stack, &frames, &budget, &globals, &regs, &reg_bts, &reg_lts),
+                depth_of: frames.iter().enumerate().map(|(k, f)| (f.cid, k as u64)).collect(),
+                dead: dead.iter().map(|&(sp, j, e)| Live { space: sp, slot: j, tag: e.tag, v: limbs(e.val), tp: e.tp }).collect(),
+                tombs: tombs.clone(),
+                touched: tb,
+                mem_end,
+                mem_start: ms,
+            }
+        }};
+    }
     loop {
+        // E2E M4: a cut before the row `ts` (boundary `t = ts - 1`), and the entry boundary `t = 0`
+        if ts == 1 || (cut_ix < cut_at.len() && cut_at[cut_ix] == ts - 1) {
+            if ts > 1 {
+                cut_ix += 1;
+            }
+            let tc = ts - 1;
+            cuts.push(snap!(tc, 0, pc));
+            // reset: every live message is produced again at `tc` by the next segment, activation
+            // ids become depths, the segment's own lists start empty
+            for e in stack.iter_mut() {
+                e.tp = tc;
+            }
+            for (k, f) in frames.iter_mut().enumerate() {
+                f.cid = k as u64;
+                f.rtp = tc;
+                for e in f.locals.iter_mut() {
+                    e.tp = tc;
+                }
+            }
+            budget.tp = tc;
+            for e in globals.iter_mut() {
+                e.tp = tc;
+            }
+            for v in reg_bts.values_mut() {
+                *v = tc;
+            }
+            for v in reg_lts.values_mut() {
+                *v = tc;
+            }
+            for v in mem.cur.values_mut() {
+                v.1 = tc;
+            }
+            mem_start = mem.cur.iter().map(|(&a, &(b, _))| (a, b)).collect();
+            mem.base_tp = tc;
+            mem.touched.clear();
+            gas_reg.2 = tc;
+            dead.clear();
+            tombs.clear();
+        }
         let rec = prep.records[pc as usize];
         assert_eq!(rec[0], pc);
         let (op, h, fee) = (rec[1], rec[2], rec[3]);
@@ -524,7 +831,8 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
                 // pop `np` entries top-first and then reverse.
                 let mut popped = Vec::new();
                 for _ in 0..np {                    let a = stack.pop().unwrap();
-                    assert_eq!(a.tag, 1, "host arguments are i64");
+                    // HOST-W (`has_m3`): the tag is the host table's (`tmask`), checked below
+                    assert!(has_m3 || a.tag == 1, "host arguments are i64");
                     popped.push(a);
                 }
                 popped.reverse();
@@ -547,12 +855,20 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
                         r.u("rr", 0).s("rrInv", (fe(hid) - fe(49)).inverse());
                     }
                 }
+                let (tmask, ri) = M3::host_tags(prep, hid);
+                if has_m3 {
+                    r.u("tmask", tmask).u("ri", ri);
+                }
                 r.limbs("ga", gl);
                 r.limbs("r", rl);
                 for j in 0..HOST_NARGS {
                     let pl = limbs(args[j as usize]);
                     let present = (j < np) as u64;
-                    let tag = present; // i64
+                    let tag = if has_m3 { present * (1 - ((tmask >> j) & 1)) } else { present }; // i64 = 1
+                    if has_m3 {
+                        assert!(present == 0 || popped[j as usize].tag == tag, "host argument tag");
+                        r.u(&format!("ti{j}"), present * ((tmask >> j) & 1));
+                    }
                     r.u(&format!("pf{j}"), present).u(&format!("tagP{j}"), tag);
                     r.limbs(&format!("P{j}_"), pl);
                     r.u(&format!("tP{j}"), 0).u(&format!("hP{j}"), 0);
@@ -640,6 +956,7 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
                                 clr_rows.insert(reg_rows.len());
                                 reg_rows.push([1, 1, 1, rid, 0, olen, 0, hid, ts, 0, 0, 1, lt, hl, 0,
                                     (olen == 0) as u64, 0, 0, 0, 0, 0]);
+                                ab.clear(rid, ts);
                                 st.r16(olen);
                                 st.r16(rid);
                                 st.r16(0);
@@ -665,6 +982,9 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
                             st.r16(blen);
                             st.r16(rid);
                             st.r16(pos as u64);
+                        }
+                        if has_absent {
+                            ab.fill(&mut st, reg_rows.len(), rid, ts);
                         }
                         reg_rows.push([1, 1, 0, rid, 0, blen, 0, hid, ts, 0, 0, 0, 0, 0, 0,
                             (blen == 0) as u64, 0, 0, 0, 0, 0]);
@@ -795,13 +1115,16 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
                         groups.push((hid + 256, args[2], args[3]));
                     }
                 }
+                if has_m3 && hid == 51 {
+                    groups.extend(abort_groups(&mut mem, &args));
+                }
                 for (whid, blen, ptr) in groups {
                     if blen == u64::MAX || blen == 0 {
                         continue;
                     }
                     // pre-M1 AIRs keep their 40-byte KAT cap; the M1 AIR moves the whole buffer
                     let blen = if has_regw { blen } else { blen.min(40) };
-                    if ptr.checked_add(blen).map_or(true, |e| e > prep.mem) {
+                    if ptr.checked_add(blen).map_or(true, |e| e > mem.size) {
                         continue;
                     }
                     assert!(blen < 65536, "host buffer of {blen} bytes: HOSTB len is 16-bit");
@@ -869,7 +1192,7 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
                     }
                 }
                 if ev.st == 0 && ar == 1 {
-                    stack.push(Ent { tag: 1, val: ev.word, tp: ts });
+                    stack.push(Ent { tag: 1 - M3::host_tags(prep, hid).1 * has_m3 as u64, val: ev.word, tp: ts });
                 } else {
                     assert!(ar == 0 || ev.st == 1);
                     if ev.st == 1 {
@@ -924,7 +1247,7 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
                 r.u("r0", budget.val & 0xffff).u("r1", budget.val >> 16).u("tpb", budget.tp).u("hb", hb);
                 r.u("n0", n & 0xffff).u("n1", n >> 16).u("sbn0", sbn & 0xffff).u("sbn1", sbn >> 16);
                 r.u("ts0", ts & 0xffff).u("ts1", ts >> 16);
-                frames.push(Frame { sb: sbn, cid: ts, retpc: pc + 1, charge, locals: locs });
+                frames.push(Frame { sb: sbn, cid: ts, rtp: ts, retpc: pc + 1, charge, locals: locs });
                 budget = Ent { tag: 0, val: n, tp: ts };
                 next = entry;
                 extra = pro;
@@ -948,14 +1271,15 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
                 if taken {
                     let f = frames.pop().unwrap();
                     let caller = frames.last().unwrap();
-                    let hr = st.tchk(ts, f.cid);
+                    let hr = st.tchk(ts, f.rtp);
                     let hb = st.tchk(ts, budget.tp);
                     let n = budget.val + f.charge;
                     st.r16(n & 0xffff);
                     st.r16(n >> 16);
                     st.r16(4 * (n >> 16));
                     r.u("retpc", f.retpc).u("sbc", caller.sb).u("cidc", caller.cid).u("charge", f.charge);
-                    r.u("tpr", f.cid).u("hr", hr);
+                    r.u("tpr", f.rtp).u("hr", hr);
+                    tombs.push(f.cid);
                     r.u("r0", budget.val & 0xffff).u("r1", budget.val >> 16).u("tpb", budget.tp).u("hb", hb);
                     r.u("n0", n & 0xffff).u("n1", n >> 16);
                     budget = Ent { tag: 0, val: n, tp: ts };
@@ -1542,6 +1866,46 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
                 r.u("act", 1);
                 trapped = true;
             }
+            0x3F | 0x40 if has_m3 => {
+                // MEMG: `memory.size` / `memory.grow` on the size message (space 8)
+                let hz = st.tchk(ts, m3.tp);
+                let old = m3.pages;
+                let mg = memg.as_mut().unwrap();
+                let ri = mg.rows.len();
+                let mut r = mg.row();
+                hdr(&mut r);
+                r.u("old", old).u("tz", m3.tp).u("hz", hz);
+                if op == 0x3F {
+                    r.u("f_size", 1);
+                    stack.push(Ent { tag: 0, val: old, tp: ts });
+                    for x in [old, 0, 0, 0, 0] {
+                        st.r16(x);
+                    }
+                } else {
+                    let a = stack.pop().unwrap();
+                    assert_eq!(a.tag, 0, "memory.grow pops an i32");
+                    let n = a.val;
+                    assert!(n < (1 << 27), "memory.grow by {n} pages: n < 2^27 is not provable");
+                    let hn = st.tchk(ts, a.tp);
+                    let lin = rec[4];
+                    let ok = old + n <= 2048;
+                    let (d, e) = if ok { (2048 - old - n, 0) } else { (0, old + n - 2049) };
+                    r.u("f_grow", 1).u("n0", n & 0xffff).u("n1", n >> 16).u("tn", a.tp).u("hn", hn)
+                        .u("ok", ok as u64).u("lin", lin).u("d", d).u("e0", e & 0xffff).u("e1", e >> 16);
+                    for x in [n & 0xffff, n >> 16, 32 * (n >> 16), old, d, e & 0xffff, e >> 16, 32 * (e >> 16)] {
+                        st.r16(x);
+                    }
+                    if ok {
+                        m3.pages = old + n;
+                        mem.size = 65536 * m3.pages;
+                        mem.grows.push((ts, old, old + n));
+                        m3.grows.push((ri, ts, old, old + n));
+                    }
+                    stack.push(Ent { tag: 0, val: if ok { old } else { 0xFFFF_FFFF }, tp: ts });
+                    extra = lin * n;
+                }
+                m3.tp = ts;
+            }
             OP_MEMGROW_X | OP_MEMSIZE_X | OP_HOST_X => {
                 panic!("unchipped opcode {op:#x} at pc {pc} (M2: admitted, no chip; the run is out of the proved domain)")
             }
@@ -1550,6 +1914,7 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
         s += fee + extra;
         if let Some(ga) = host_g.take() {
             last_host = Some((s, ga));
+            gas_reg = (s, ga, ts);
         }
         ts += 1;
         if halted || trapped {
@@ -1560,6 +1925,7 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
     }
     let steps = ts - 1;
     let status: u64 = if trapped { 2 } else { 1 };
+    cuts.push(snap!(ts - 1, status, halt_pc));
     if !trapped {
         assert_eq!(stack.len() as u64, prep.arity, "final stack size");
     }
@@ -1618,6 +1984,8 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
         drn.row().u("act", 1).u("space", 6).u("slot", rid * (1u64 << 24)).u("tag", 2)
             .limbs("v", [blen, 0, 0, 0]).u("tp", ltp).s("inv", fe(6).inverse());
     }
+    let rinit = if has_absent { Some(ab.finish(t("RINIT"), &mut drn, &mut st)) } else { None };
+    let m3t = memg.as_mut().map(|mg| m3.finish(mg, &mem, t("MSZ"), t("GINIT"), &mut drn, &mut st));
     // MEMINIT: one row per touched byte, sorted, with its initial byte; DATA multiplicities
     let mut mi = Tab::new(t("MEMINIT"));
     let mut data_mult = vec![0u64; (prep.data_end as usize).max(1)];
@@ -1726,6 +2094,14 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
     }
     // `IF` only when the AIR has it; padded by inactive rows so `first`/`last` never land mid-row
     // and the selector constraint `f_if · (f_if − 1) = 0` holds on the padding.
+    if let Some(ri) = rinit {
+        tabs.insert("RINIT".into(), ri);
+    }
+    if let (Some(mg), Some((ms, gi))) = (memg, m3t) {
+        tabs.insert("MEMG".into(), mg);
+        tabs.insert("MSZ".into(), ms);
+        tabs.insert("GINIT".into(), gi);
+    }
     if let (Some(c), Some(u)) = (conv, unr) {
         tabs.insert("CONV".into(), c);
         tabs.insert("UNREACH".into(), u);
@@ -1803,6 +2179,9 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
                 if has_clr {
                     r.u("clr", clr_rows.contains(&ri) as u64);
                 }
+                if let Some(&atp) = ab.rows.get(&ri) {
+                    r.u("atp", atp).u("ahp", (rec[8] - atp) >> 16);
+                }
                 for (k, name) in ["act", "kind", "rd", "rid", "pos", "len", "byte", "hid", "ts",
                     "dir", "gap", "fresh", "tp", "hp", "ptr", "f"].iter().enumerate() {
                     r.u(name, rec[k]);
@@ -1838,7 +2217,7 @@ pub fn generate(air: &AirSpec, prep: &Prep) -> Gen {
         Some((sa, ga)) => ga as u128 - prep.regular * (s - sa) as u128,
         None => prep.g0 - prep.regular * s as u128,
     };
-    Gen { mats, pubs, rows_per_table, result, steps, s_units: s, g_final_trace }
+    Gen { cuts, mats, pubs, rows_per_table, result, steps, s_units: s, g_final_trace }
 }
 
 /// The canonical CODE rows: the records in pc order, padded to a power of two (≥ 4) by repeating the

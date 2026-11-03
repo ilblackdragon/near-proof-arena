@@ -1,0 +1,21 @@
+TRACE steps 96 cuts 3 tracegen 0.10s
+SEGBUILD 0 0.45s
+SEGBUILD 1 0.45s
+SEGBUILD 2 0.44s
+SEGBUILD 3 0.42s
+PARAMS n_stack 18 w_stack 8 degree 9
+KEYGEN 0.01s (one verifying key for every segment)
+SOUNDNESS total=268.2 logup=330.3 proximity=316.2 query=268.2
+SEG 0 t (0, 30] steps 30 halted 0 | boundary: stream in 7 out 12 msgs, blocks 1 (read-only 0), drops 0 tombs 0, compressions 62 (stream 12, MEMB 18, MPATH 32)
+  CELLS instruction+lookup tables 1449420 | boundary tables 13196 | SHA-512 chip 681088 (height 8192) | total 2143704
+  PROOF 0: 1336527 B, prove 60.0s, verify 82 ms, statement ok (boundary public values, code_root, func_root), peak_rss_kib 1273368
+SEG 1 t (30, 60] steps 30 halted 0 | boundary: stream in 12 out 15 msgs, blocks 1 (read-only 1), drops 1 tombs 1, compressions 41 (stream 16, MEMB 9, MPATH 16)
+  CELLS instruction+lookup tables 1449332 | boundary tables 14252 | SHA-512 chip 681088 (height 8192) | total 2144672
+  PROOF 1: 1341441 B, prove 57.7s, verify 80 ms, statement ok (boundary public values, code_root, func_root), peak_rss_kib 1277716
+SEG 2 t (60, 90] steps 30 halted 0 | boundary: stream in 15 out 40 msgs, blocks 1 (read-only 1), drops 2 tombs 2, compressions 55 (stream 30, MEMB 9, MPATH 16)
+  CELLS instruction+lookup tables 1451260 | boundary tables 17116 | SHA-512 chip 681088 (height 8192) | total 2149464
+  PROOF 2: 1333083 B, prove 68.9s, verify 101 ms, statement ok (boundary public values, code_root, func_root), peak_rss_kib 1286860
+SEG 3 t (90, 96] steps 6 halted 1 | boundary: stream in 40 out 40 msgs, blocks 0 (read-only 0), drops 0 tombs 0, compressions 42 (stream 42, MEMB 0, MPATH 0)
+  CELLS instruction+lookup tables 1448712 | boundary tables 10124 | SHA-512 chip 681088 (height 8192) | total 2139924
+  PROOF 3: 1345179 B, prove 70.5s, verify 55 ms, statement ok (boundary public values, code_root, func_root), peak_rss_kib 1295368
+SEGPROVE OK 4 segments, chained by hand (B_out(k) = B_in(k+1)); total prove 257.1s

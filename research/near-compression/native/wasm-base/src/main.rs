@@ -12,6 +12,15 @@ mod config;
 mod sha;
 mod air;
 mod tracegen;
+// E2E M4: the segment AIR's builder and commands, and the native SHA-512 compression chip (v4)
+mod seg;
+mod segcmd;
+#[allow(dead_code, clippy::all)]
+mod s384 {
+    pub mod air;
+    pub mod reference;
+    pub mod trace;
+}
 
 use air::{AirSpec, JsonAir};
 use config::{F, Sha384Config, Sha384RefEngine};
@@ -302,10 +311,11 @@ fn hostb_payloads(spec: &AirSpec, g: &Gen) -> Vec<(u64, u64, Vec<u8>)> {
     }
     let mut out: Vec<(u64, u64, Vec<u8>)> = vec![];
     for (&ts, &(hid, st)) in calls.iter() {
-        if st != 0 {
+        // E2E M3: `abort` (51) always aborts; its message is still an output (the `ABORT:` log)
+        if st != 0 && hid != 51 {
             continue;
         }
-        for h in [hid, hid + 256] {
+        for h in [hid, hid + 256, hid + 768] {
             match groups.remove(&(ts, h)) {
                 Some(b) => out.push((ts, h, b.into_values().collect())),
                 None if h == hid && (hid == 45 || hid == 50) => out.push((ts, h, vec![])),
@@ -317,6 +327,18 @@ fn hostb_payloads(spec: &AirSpec, g: &Gen) -> Vec<(u64, u64, Vec<u8>)> {
 }
 
 /// E2E M2: the successful host calls of the trace, `(ts, hid, arg0)` in time order (from HOST's rows).
+/// E2E M3: the `line, col` arguments of the trace's `abort` call (HOST row `hid = 51`), if any.
+fn host_abort_args(spec: &AirSpec, g: &Gen) -> Option<(u64, u64, bool)> {
+    let hi = spec.tables.iter().position(|t| t.name == "HOST")?;
+    let ht = &spec.tables[hi];
+    let hw = ht.cols.len();
+    let m = &g.mats[hi];
+    let at = |r: usize, n: &str| m.values[r * hw + ht.col(n)].as_canonical_u32() as u64;
+    let arg = |r: usize, j: usize| (0..4).map(|i| at(r, &format!("P{j}_{i}")) << (16 * i)).sum::<u64>();
+    (0..m.values.len() / hw).find(|&r| at(r, "act") == 1 && at(r, "hid") == 51)
+        .map(|r| (arg(r, 2), arg(r, 3), (arg(r, 0) & 0xffff_ffff) == (arg(r, 1) & 0xffff_ffff)))
+}
+
 fn host_calls_ok(spec: &AirSpec, g: &Gen) -> Vec<(u64, u64, u64)> {
     let Some(hi) = spec.tables.iter().position(|t| t.name == "HOST") else { return vec![] };
     let ht = &spec.tables[hi];
@@ -347,10 +369,10 @@ fn cmd_check_tape(air_path: &str, preps: &[String]) {
             let (_prep, g) = generate(&spec, p);
             let c = tracegen::check_constraints(&spec, &g).err();
             let b = tracegen::check_buses(&spec, &g).err();
-            (g.g_final_trace, hostb_payloads(&spec, &g), c, b, g.steps, host_calls_ok(&spec, &g))
+            (g.g_final_trace, hostb_payloads(&spec, &g), c, b, g.steps, host_calls_ok(&spec, &g), host_abort_args(&spec, &g))
         }));
         match r {
-            Ok((gf, pl, c, b, steps, hc)) => {
+            Ok((gf, pl, c, b, steps, hc, ab)) => {
                 let hx = |v: &Vec<u8>| v.iter().map(|x| format!("{x:02x}")).collect::<String>();
                 let pick = |h: u64| -> Vec<String> {
                     pl.iter().filter(|(_, hid, _)| *hid == h).map(|(_, _, v)| format!("\"{}\"", hx(v))).collect()
@@ -367,8 +389,19 @@ fn cmd_check_tape(air_path: &str, preps: &[String]) {
                     (Some(e), _) => format!("\"constraint: {}\"", e.replace('"', "'")),
                     (_, Some(e)) => format!("\"bus: {}\"", e[..e.len().min(200)].replace('"', "'")),
                 };
+                // E2E M3: `abort`'s message: the UTF-16 message and file it read (HOSTB groups
+                // 51+256, 51+768) and its `line, col` arguments
+                // (an empty string moves no bytes, so a missing group is "")
+                let abortx = match ab {
+                    Some((l, c, same)) => {
+                        let s = |h: u64| pick(h).first().cloned().unwrap_or("\"\"".into());
+                        // one pointer for both strings: the file is the message bytes
+                        format!("[{},{},{l},{c}]", s(51 + 256), s(if same { 51 + 256 } else { 51 + 768 }))
+                    }
+                    None => "null".into(),
+                };
                 println!(
-                    "{{\"prep\":\"{p}\",\"logx\":[{}],\"lastret\":{lastret},\"ok\":{},\"steps\":{steps},\"g_final_trace\":{gf},\"logs\":[{}],\"rets\":[{}],\"skeys\":[{}],\"svals\":[{}],\"err\":{err}}}",
+                    "{{\"prep\":\"{p}\",\"logx\":[{}],\"lastret\":{lastret},\"ok\":{},\"steps\":{steps},\"g_final_trace\":{gf},\"logs\":[{}],\"rets\":[{}],\"skeys\":[{}],\"svals\":[{}],\"abortx\":{abortx},\"err\":{err}}}",
                     logx.join(","), err == "null", pick(45).join(","), pick(50).join(","), skeys.join(","), pick(314).join(",")
                 );
             }
@@ -1125,6 +1158,184 @@ fn cmd_tamper(air_path: &str, prep_path: &str) {
             cases.push((format!("REGC[read len row {r}].clr=1"), cell(tr, r, col(tr, "clr"), Box::new(|_| F::ONE))));
         }
     }
+    // REG-A / RINIT (`wasmBaseM2rAir`, `WasmBase/M2RegAbsent.lean`): the absent-register header
+    if let Ok(tr) = std::panic::catch_unwind(|| tb("REG")) {
+        let has_atp = spec.tables[tr].cols.iter().any(|c| c == "atp");
+        let has_clr = spec.tables[tr].cols.iter().any(|c| c == "clr");
+        let (td, tg) = (tb("DRAIN"), tb("RANGE16"));
+        let dcols: Vec<usize> = ["act", "space", "slot", "tag", "v0", "v1", "v2", "v3", "tp", "inv"]
+            .iter().map(|c| col(td, c)).collect();
+        let w = g.mats[tr].width;
+        let nrows = g.rows_per_table[tr].1;
+        let at = |r: usize, c: &str| g.mats[tr].values[r * w + col(tr, c)].as_canonical_u32() as u64;
+        let clr: Vec<usize> = if has_clr { (0..nrows).filter(|&r| at(r, "clr") == 1).collect() } else { vec![] };
+        // DOUBLE FILL: the refill's clear group becomes a plain read group (`clr = 0`) and the
+        // messages it re-produces are drained, so the old register stays live until DRAIN and the
+        // fill overwrites a live register.  `wasmBaseM2Air` accepts this (no header);
+        // `wasmBaseM2rAir` must reject it: the fill consumes an absent message nobody produced.
+        if let Some(&rl) = clr.iter().find(|&&r| at(r, "kind") == 1) {
+            let mut drains: Vec<[u64; 8]> = vec![];
+            for &r in clr.iter() {
+                let (rid, ts) = (at(r, "rid"), at(r, "ts"));
+                drains.push(if at(r, "kind") == 0 {
+                    [6, rid * (1 << 24) + at(r, "pos") + 1, 0, at(r, "byte"), 0, 0, 0, ts]
+                } else {
+                    [6, rid * (1 << 24), 2, at(r, "len"), 0, 0, 0, ts]
+                });
+            }
+            let (clr2, cclr, dcols2) = (clr.clone(), col(tr, "clr"), dcols.clone());
+            let double = move |g: &mut Gen| {
+                let w = g.mats[tr].width;
+                for &r in clr2.iter() {
+                    g.mats[tr].values[r * w + cclr] = F::ZERO;
+                }
+                for m in drains.iter() {
+                    push_drain(g, td, &dcols2, *m);
+                }
+            };
+            let name = format!("REGA[double fill: clear group ending row {rl} -> read + DRAIN]");
+            if has_atp {
+                cases.push((name, Box::new(double.clone())));
+                // the same, the fill claiming the RINIT absent message (time 0) instead
+                // (the header is consumed on the fill group's **length** row)
+                let fr = (rl + 1..nrows).find(|&r| at(r, "kind") == 1).unwrap();
+                let ts = at(fr, "ts");
+                let (catp, cahp) = (col(tr, "atp"), col(tr, "ahp"));
+                cases.push((format!("REGA[double fill, fill row {fr} atp=0 (RINIT message)]"), Box::new(move |g: &mut Gen| {
+                    double(g);
+                    let w = g.mats[tr].width;
+                    g.mats[tr].values[fr * w + catp] = F::ZERO;
+                    g.mats[tr].values[fr * w + cahp] = F::from_u64(ts >> 16);
+                    // re-answer the `atp ≤ ts` range checks (honest atp = ts: queries 0, 0)
+                    g.mats[tg].values[1] -= F::from_u64(2);
+                    bump_r16(g, tg, ts & 0xffff);
+                    bump_r16(g, tg, 4 * (ts >> 16));
+                })));
+            } else {
+                expected_accept.push((format!("{name} (no absent header)"), Box::new(double)));
+            }
+        }
+        if has_atp {
+            // a forged absent message: the fill consumes one at a time nobody produced
+            if let Some(r) = (0..nrows).find(|&r| at(r, "act") == 1 && at(r, "kind") == 1 && at(r, "rd") == 0) {
+                cases.push((format!("REGA[fill len row {r}].atp+1"), cell(tr, r, col(tr, "atp"), plus1())));
+            }
+            // `cLenAct`: a fill group with bytes ending in an inactive length row (no header consumed)
+            if let Some(r) = (0..nrows).find(|&r| at(r, "act") == 1 && at(r, "kind") == 1 && at(r, "rd") == 0 && at(r, "f") == 0) {
+                cases.push((format!("REGA[fill len row {r}].act=0"), cell(tr, r, col(tr, "act"), Box::new(|_| F::ZERO))));
+            }
+            let ti = tb("RINIT");
+            let n = g.rows_per_table[ti].1;
+            let wi = g.mats[ti].width;
+            if n > 0 {
+                let (ca, cr, cg) = (col(ti, "act"), col(ti, "rid"), col(ti, "gap"));
+                cases.push(("RINIT[row 0].act=0".into(), cell(ti, 0, ca, Box::new(|_| F::ZERO))));
+                cases.push(("RINIT[row 0].rid+1".into(), cell(ti, 0, cr, plus1())));
+                let last = g.mats[ti].values[(n - 1) * wi + cr].as_canonical_u32() as u64;
+                // extra active rows after the last one, each draining its absent message and with
+                // its `rid` range check answered, so only the order rule can catch them.  `gap` is
+                // chosen to satisfy `cInc` in the field (`gap = rid' − rid − 1 mod p`), which is
+                // exactly what the R16 lookup on `gap` must refuse.
+                let extra = |rows: Vec<u64>| -> Mut {
+                    let dcols = dcols.clone();
+                    Box::new(move |g: &mut Gen| {
+                        let mut prev = last;
+                        for (k, &rid) in rows.iter().enumerate() {
+                            let r = n + k;
+                            let wi = g.mats[ti].width;
+                            if (r + 1) * wi > g.mats[ti].values.len() {
+                                let l = g.mats[ti].values.len();
+                                g.mats[ti].values.resize(2 * l, F::ZERO);
+                            }
+                            let gap = F::from_u64(rid) - F::from_u64(prev) - F::ONE;
+                            g.mats[ti].values[r * wi + ca] = F::ONE;
+                            g.mats[ti].values[r * wi + cr] = F::from_u64(rid);
+                            g.mats[ti].values[r * wi + cg] = gap;
+                            g.rows_per_table[ti].1 = r + 1;
+                            bump_r16(g, tg, rid);
+                            let gv = gap.as_canonical_u32() as u64;
+                            if gv < 65536 {
+                                bump_r16(g, tg, gv);
+                            }
+                            push_drain(g, td, &dcols, [6, rid * (1 << 24), 3, 0, 0, 0, 0, 0]);
+                            prev = rid;
+                        }
+                    })
+                };
+                cases.push((format!("RINIT[duplicate id {last}]"), extra(vec![last])));
+                cases.push((format!("RINIT[unsorted ids {}, {}]", last + 2, last + 1), extra(vec![last + 2, last + 1])));
+            }
+        }
+    }
+    // HOST-W / MEMG / MSZ / GINIT (`wasmBaseM3Air`, `WasmBase/M3Air.lean`)
+    if let Ok(tm) = std::panic::catch_unwind(|| tb("MEMG")) {
+        let (th, ts_, tg_) = (tb("HOST"), tb("MSZ"), tb("GINIT"));
+        let rows = |t: usize| g.rows_per_table[t].1;
+        let val = |t: usize, r: usize, c: &str| g.mats[t].values[r * g.mats[t].width + col(t, c)].as_canonical_u32() as u64;
+        let set2 = |t: usize, r: usize, a: (&str, u64), b: (&str, u64)| -> Mut {
+            let (ka, kb) = (col(t, a.0), col(t, b.0));
+            let (va, vb) = (a.1, b.1);
+            Box::new(move |g: &mut Gen| {
+                let w = g.mats[t].width;
+                g.mats[t].values[r * w + ka] = F::from_u64(va);
+                g.mats[t].values[r * w + kb] = F::from_u64(vb);
+            })
+        };
+        let zero: fn() -> Box<dyn Fn(F) -> F> = || Box::new(|_| F::ZERO);
+        // HOST-W: a call with i32 arguments (`abort`) and one with an i32 result (`promise_yield_resume`)
+        if let Some(r) = (0..rows(th)).find(|&r| val(th, r, "act") == 1 && val(th, r, "tmask") & 1 == 1) {
+            // argument 0 claimed i64, with `ti0`, `tagP0` and `tmask` mutually consistent: only the
+            // host table (HOSTT) and the stack message's tag can catch it
+            let tmk = val(th, r, "tmask");
+            let (kt, kg, km) = (col(th, "ti0"), col(th, "tagP0"), col(th, "tmask"));
+            cases.push((format!("HOSTW[row {r}] arg 0 as i64 (ti0=0, tagP0=1, tmask-1)"), Box::new(move |g: &mut Gen| {
+                let w = g.mats[th].width;
+                g.mats[th].values[r * w + kt] = F::ZERO;
+                g.mats[th].values[r * w + kg] = F::ONE;
+                g.mats[th].values[r * w + km] = F::from_u64(tmk - 1);
+            })));
+            cases.push((format!("HOSTW[row {r}].ti0=0"), cell(th, r, col(th, "ti0"), zero())));
+            cases.push((format!("HOSTW[row {r}].tmask=0"), cell(th, r, col(th, "tmask"), zero())));
+        }
+        if let Some(r) = (0..rows(th)).find(|&r| val(th, r, "act") == 1 && val(th, r, "ri") == 1) {
+            cases.push((format!("HOSTW[row {r}].ri=0 (result as i64)"), cell(th, r, col(th, "ri"), zero())));
+            cases.push((format!("HOSTW[row {r}].r2+1 (i32 result upper limb)"), cell(th, r, col(th, "r2"), plus1())));
+        }
+        // MEMG: a successful `memory.grow` and a `memory.size`
+        if let Some(r) = (0..rows(tm)).find(|&r| val(tm, r, "f_grow") == 1 && val(tm, r, "ok") == 1) {
+            let (old, n0, d) = (val(tm, r, "old"), val(tm, r, "n0"), val(tm, r, "d"));
+            // claim failure, with the failure witness the constraint would accept for `old + n − 2049`
+            let e = (old + n0 + 65536 * val(tm, r, "n1")).wrapping_sub(2049) & 0xffff_ffff;
+            let (ko, ke0, ke1, kd) = (col(tm, "ok"), col(tm, "e0"), col(tm, "e1"), col(tm, "d"));
+            cases.push((format!("MEMG[grow row {r}] ok=0 (claim failure)"), Box::new(move |g: &mut Gen| {
+                let w = g.mats[tm].width;
+                g.mats[tm].values[r * w + ko] = F::ZERO;
+                g.mats[tm].values[r * w + kd] = F::ZERO;
+                g.mats[tm].values[r * w + ke0] = F::from_u64(e & 0xffff);
+                g.mats[tm].values[r * w + ke1] = F::from_u64(e >> 16);
+            })));
+            cases.push((format!("MEMG[grow row {r}].d+1"), cell(tm, r, col(tm, "d"), plus1())));
+            cases.push((format!("MEMG[grow row {r}].old+1"), cell(tm, r, col(tm, "old"), plus1())));
+            cases.push((format!("MEMG[grow row {r}].n0+1, d-1"), set2(tm, r, ("n0", n0 + 1), ("d", d.wrapping_sub(1)))));
+            if val(tm, r, "lin") == 1 {
+                cases.push((format!("MEMG[grow row {r}].lin=0 (skip the linear fee)"), cell(tm, r, col(tm, "lin"), zero())));
+            }
+            cases.push((format!("MEMG[grow row {r}].gm+1"), cell(tm, r, col(tm, "gm"), plus1())));
+        }
+        if let Some(r) = (0..rows(tm)).find(|&r| val(tm, r, "f_size") == 1) {
+            cases.push((format!("MEMG[size row {r}].old+1"), cell(tm, r, col(tm, "old"), plus1())));
+        }
+        if rows(ts_) > 0 {
+            cases.push(("MSZ[row 0].pg+1".into(), cell(ts_, 0, col(ts_, "pg"), plus1())));
+        }
+        if rows(tg_) > 0 {
+            let tg0 = val(tg_, 0, "tg");
+            cases.push(("GINIT[row 0].act=0".into(), cell(tg_, 0, col(tg_, "act"), zero())));
+            // the zero byte produced before the grow: the lookup `[tg, old, new]` has no MEMG row
+            cases.push(("GINIT[row 0].tg-1".into(), cell(tg_, 0, col(tg_, "tg"), Box::new(move |_| F::from_u64(tg0 - 1)))));
+            cases.push(("GINIT[row 0].ad+1".into(), cell(tg_, 0, col(tg_, "ad"), plus1())));
+        }
+    }
     // `TAMPER_ONLY=CONV,UNREACH`: run only the cases whose name starts with one of the prefixes
     if let Ok(only) = std::env::var("TAMPER_ONLY") {
         let pre: Vec<String> = only.split(',').map(|s| s.to_string()).collect();
@@ -1137,7 +1348,7 @@ fn cmd_tamper(air_path: &str, prep_path: &str) {
     let mut rejected = 0;
     let total = cases.len();
     for (name, m) in cases {
-        let mut gt = Gen { mats: g.mats.clone(), pubs: g.pubs.clone(), rows_per_table: g.rows_per_table.clone(), result: g.result, steps: g.steps, s_units: g.s_units, g_final_trace: g.g_final_trace };
+        let mut gt = Gen { cuts: vec![], mats: g.mats.clone(), pubs: g.pubs.clone(), rows_per_table: g.rows_per_table.clone(), result: g.result, steps: g.steps, s_units: g.s_units, g_final_trace: g.g_final_trace };
         m(&mut gt);
         let pre = match (tracegen::check_constraints(&spec, &gt), tracegen::check_buses(&spec, &gt)) {
             (Err(e), _) => format!("constraint: {e}"),
@@ -1159,7 +1370,7 @@ fn cmd_tamper(air_path: &str, prep_path: &str) {
     println!("TAMPER summary {rejected}/{total} rejected");
     // documented gaps: mutants the current statement does not cover (reported, not counted)
     for (name, m) in expected_accept {
-        let mut gt = Gen { mats: g.mats.clone(), pubs: g.pubs.clone(), rows_per_table: g.rows_per_table.clone(), result: g.result, steps: g.steps, s_units: g.s_units, g_final_trace: g.g_final_trace };
+        let mut gt = Gen { cuts: vec![], mats: g.mats.clone(), pubs: g.pubs.clone(), rows_per_table: g.rows_per_table.clone(), result: g.result, steps: g.steps, s_units: g.s_units, g_final_trace: g.g_final_trace };
         m(&mut gt);
         let pre = match (tracegen::check_constraints(&spec, &gt), tracegen::check_buses(&spec, &gt)) {
             (Err(e), _) => format!("constraint: {e}"),
@@ -1176,6 +1387,30 @@ fn cmd_tamper(air_path: &str, prep_path: &str) {
         println!("TAMPER-GAP {name:<28} {} ({pre})", if rej { "rejected" } else { "verifies (documented gap)" });
     }
     assert_eq!(rejected, total);
+}
+
+/// Tamper helper: append an active DRAIN row consuming `msg = [space, slot, tag, v0..v3, tp]`
+/// (doubling the matrix height when no padding row is left).
+fn push_drain(g: &mut Gen, td: usize, dcols: &[usize], msg: [u64; 8]) {
+    use p3_field::Field;
+    let w = g.mats[td].width;
+    let r = g.rows_per_table[td].1;
+    if (r + 1) * w > g.mats[td].values.len() {
+        let l = g.mats[td].values.len();
+        g.mats[td].values.resize(2 * l, F::ZERO);
+    }
+    g.mats[td].values[r * w + dcols[0]] = F::ONE;
+    for k in 0..8 {
+        g.mats[td].values[r * w + dcols[1 + k]] = F::from_u64(msg[k]);
+    }
+    g.mats[td].values[r * w + dcols[9]] = F::from_u64(msg[0]).inverse();
+    g.rows_per_table[td].1 = r + 1;
+}
+
+/// Tamper helper: answer one more R16 query of value `v` (RANGE16's multiplicity column `m`).
+fn bump_r16(g: &mut Gen, tg: usize, v: u64) {
+    let w = g.mats[tg].width;
+    g.mats[tg].values[v as usize * w + 1] += F::ONE;
 }
 
 fn dag_eval(vk: &MultiStarkVerifyingKey<Sha384Config>, ai: usize, cached: usize, cur: &[F], nxt: &[F], pubs: &[F], sel: [F; 3]) -> (Vec<F>, Vec<(u16, F, Vec<F>)>) {
@@ -1323,6 +1558,9 @@ fn main() {
         Some("hostb-dump") => cmd_hostb_dump(&a[2], &a[3]),
         Some("check-tape") => cmd_check_tape(&a[2], &a[3..]),
         Some("sha-difftest") => cmd_sha_difftest(a.get(2).map(|s| s.as_str())),
+        Some("segcheck") => segcmd::cmd_segcheck(&a[2..]),
+        Some("segprove") => segcmd::cmd_segprove(&a[2..]),
+        Some("segtamper") => segcmd::cmd_segtamper(&a[2..]),
         _ => eprintln!("usage: see source header"),
     }
     let _: Option<RowMajorMatrix<F>> = None;

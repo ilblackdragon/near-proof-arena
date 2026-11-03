@@ -46,7 +46,9 @@ theorem div_binop_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Tra
     simp only [isBinop, binops, List.mem_cons, List.mem_nil_iff, or_false] at hop; omega
   -- the fee bound, independent of the spec state
   obtain ⟨pc0, hpc0, hm0⟩ := fetch_pc hpub L hfo
-  obtain ⟨q, l, ins, fee, rec, hq, hl, hoff, hins, hfee, hfl, hrc, hm⟩ := fetch_rec hpub L hfo hm0 hpc0
+  have hop0 : 0x6A ≤ op := by
+    simp only [isBinop, binops, List.mem_cons, List.mem_nil_iff, or_false] at hop; omega
+  obtain ⟨q, l, ins, fee, rec, hq, hl, hoff, hins, hfee, hfl, hrc, hm⟩ := fetch_rec hpub L hfo hm0 hpc0 (by m2ns)
   have CF := X.factsOf hq
   obtain ⟨op', x0, x1, x2, x3, hre, hcase⟩ := recordOf_spec hrc
   rw [hre] at hm
@@ -113,7 +115,7 @@ theorem div_binop_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Tra
   subst hinsn
   -- two operands on the stack
   obtain ⟨hfam, hpops⟩ := isFamilyNum_of_binop hop
-  have hv := CF.verify pc hpcl
+  have hv := CF.verify pc hpcl _ hins (by m2_ns)
   obtain ⟨ls0, hL, -⟩ := R.labels
   simp only [verifyAt, hins, hL, hH, kindOf, hfam, ite_true, hpops, Bool.and_eq_true,
     decide_eq_true_eq] at hv
@@ -167,10 +169,10 @@ theorem div_table {nloc ncode : Nat} (ht : 10 < (wasmBaseAir nloc ncode).tables.
     (wasmBaseAir nloc ncode).tables[10]'ht = Div.table := rfl
 
 theorem div_cons {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 10) :
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 10) :
     ∀ e ∈ Div.constraints, e.eval (natRow (rowNat tr 10 r) (tr.row pub 10 r)) = 0 := by
   have ht : 10 < (wasmBaseAir nloc ncode).tables.length := by simp [air_len]
-  exact table_constr H ht hr
+  exact table_constrC H ht hr
 
 /-- Flags and trap columns of a DIV row. -/
 theorem div_flags_of {pub : List F} {tr : Trace} {r : Nat}
@@ -259,12 +261,12 @@ theorem div_counts_of {pub : List F} {tr : Trace} {r : Nat}
     rcases this with h | h <;> rw [h] <;> omega
 
 theorem div_counts {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 10) :
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 10) :
     ∀ i ∈ Div.inters, (i.count.eval (tr.row pub 10 r)).toNat ≤ 1 :=
   div_counts_of (div_cons (pub := pub) H hr)
 
 theorem div_flags {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 10) :
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 10) :
     rowNat tr 10 r 5 ≤ 1 ∧ rowNat tr 10 r 6 ≤ 1 ∧ rowNat tr 10 r 7 ≤ 1 ∧ rowNat tr 10 r 8 ≤ 1 ∧
     rowNat tr 10 r 5 + rowNat tr 10 r 6 + rowNat tr 10 r 7 + rowNat tr 10 r 8 ≤ 1 ∧
     (rowNat tr 10 r 5 + rowNat tr 10 r 6 + rowNat tr 10 r 7 + rowNat tr 10 r 8 = 0 →
@@ -274,7 +276,7 @@ theorem div_flags {nloc ncode : Nat} {pub : List F} {tr : Trace}
   div_flags_of (div_cons (pub := pub) H hr)
 
 theorem div_inactive {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 10)
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 10)
     (hna : ¬ rowAct Div.table tr pub 10 r) : ∀ i ∈ Div.inters, (i.count.eval (tr.row pub 10 r)).toNat ≠ 1 := by
   have hP' := P_val
   obtain ⟨-, -, -, -, hs, h0, h1⟩ := div_flags H hr
@@ -290,7 +292,7 @@ theorem div_inactive {nloc ncode : Nat} {pub : List F} {tr : Trace}
     simp
 
 theorem div_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) (L : Looks X nloc ncode pub tr) (hpub : PubOK X nloc ncode pub)
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) (L : Looks X nloc ncode pub tr) (hpub : PubOK X nloc ncode pub)
     {r : Nat} (hr : r < tr.height 10) (hact : rowAct Div.table tr pub 10 r) :
     RowFacts2 X (rowIn Div.table tr pub 10 r) (rowOut Div.table tr pub 10 r)
       (rowCons Div.table tr pub 10 r) (rowProd Div.table tr pub 10 r) := by

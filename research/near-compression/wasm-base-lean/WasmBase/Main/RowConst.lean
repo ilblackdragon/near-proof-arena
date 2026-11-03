@@ -9,7 +9,7 @@ open NearSpecV3.Wasm hiding P
 set_option linter.unusedSimpArgs false
 
 theorem const_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) (L : Looks X nloc ncode pub tr) (hpub : PubOK X nloc ncode pub)
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) (L : Looks X nloc ncode pub tr) (hpub : PubOK X nloc ncode pub)
     {r : Nat} (hr : r < tr.height 6) (hact : rowAct Const.table tr pub 6 r) :
     RowFacts X (rowIn Const.table tr pub 6 r) (rowOut Const.table tr pub 6 r)
       (rowCons Const.table tr pub 6 r) (rowProd Const.table tr pub 6 r) := by
@@ -18,7 +18,7 @@ theorem const_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
   have hcP : ∀ i, rowNat tr 6 r i < P := rowNat_lt tr 6 r
   -- constraints
   have hcon : ∀ e ∈ Const.table.constraints, e.eval (natRow (rowNat tr 6 r) (tr.row pub 6 r)) = 0 :=
-    table_constr H ht hr
+    table_constrC H ht hr
   simp only [Const.table, Const.constraints, List.forall_mem_cons, List.forall_mem_nil, and_true] at hcon
   obtain ⟨-, b64, z2, z3⟩ := hcon
   simp only [Chips.bool, v, Expr.eval_mul', Expr.eval_sub', Expr.eval_col, Expr.eval_ofNat', natRow,
@@ -68,7 +68,7 @@ theorem const_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
   simp only [fetch, cnt] at hfetch
   -- gas facts need the record; get the pc first
   obtain ⟨pc0, hpc0, hm0⟩ := fetch_pc hpub L hfetch
-  have hrec := fetch_rec hpub L hfetch hm0 hpc0
+  have hrec := fetch_rec hpub L hfetch hm0 hpc0 (by m2ns)
   obtain ⟨q, l, ins, fee, rec, hq, hl, hoff, hins, hfee, hfl, hrc, hm⟩ := hrec
   have CF := X.factsOf hq
   obtain ⟨op, x0, x1, x2, x3, hre, hcase⟩ := recordOf_spec hrc
@@ -183,9 +183,9 @@ theorem const_counts_of {pub : List F} {tr : Trace} {r : Nat}
   omega
 
 theorem const_counts {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 6) :
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 6) :
     ∀ i ∈ Const.inters, (i.count.eval (tr.row pub 6 r)).toNat ≤ 1 :=
-  const_counts_of (table_constr H (by simp [air_len]) hr)
+  const_counts_of (table_constrC H (by simp [air_len]) hr)
 
 theorem const_inactive {pub : List F} {tr : Trace} {r : Nat}
     (hna : ¬ rowAct Const.table tr pub 6 r) :

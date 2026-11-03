@@ -47,6 +47,17 @@ def trace_logs(t):
     for hid, h in t["logx"]:
         b = bytes.fromhex(h)
         out.append(h if hid == 45 else b.decode("utf-16-le").encode("utf-8").hex())
+    # E2E M3: `abort` logs `ABORT: {msg}, filename: "{file}" line: {line} col: {col}` (Host.lean)
+    # from the UTF-16 strings it read (HOSTB) and its line/col arguments (the HOST row)
+    if t.get("abortx"):
+        m, f, line, col = t["abortx"]
+        try:
+            msg = bytes.fromhex(m).decode("utf-16-le")
+            fil = bytes.fromhex(f).decode("utf-16-le")
+            s = 'ABORT: %s, filename: "%s" line: %d col: %d' % (msg, fil, line % 2**32, col % 2**32)
+            out.append(s.encode("utf-8").hex())
+        except UnicodeDecodeError:
+            pass
     return out
 
 

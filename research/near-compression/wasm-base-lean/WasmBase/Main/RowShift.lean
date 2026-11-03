@@ -26,7 +26,7 @@ theorem shift_rbyte_eval (c : Nat → Nat) (rw : Row) (h10 : c 10 ≤ 1) (j : Na
 
 
 theorem shift_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) (L : Looks X nloc ncode pub tr) (hpub : PubOK X nloc ncode pub)
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) (L : Looks X nloc ncode pub tr) (hpub : PubOK X nloc ncode pub)
     {r : Nat} (hr : r < tr.height 4) (hact : rowAct Shift.table tr pub 4 r) :
     RowFacts X (rowIn Shift.table tr pub 4 r) (rowOut Shift.table tr pub 4 r)
       (rowCons Shift.table tr pub 4 r) (rowProd Shift.table tr pub 4 r) := by
@@ -34,7 +34,7 @@ theorem shift_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
   have ht : 4 < (wasmBaseAir nloc ncode).tables.length := by simp [air_len]
   have hcP : ∀ i, rowNat tr 4 r i < P := rowNat_lt tr 4 r
   have hcon : ∀ e ∈ Shift.table.constraints, e.eval (natRow (rowNat tr 4 r) (tr.row pub 4 r)) = 0 :=
-    table_constr H ht hr
+    table_constrC H ht hr
   have hev : ∀ i, Expr.eval (tr.row pub 4 r) (v i) = ((rowNat tr 4 r i : Nat) : F) := fun i => by
     simp only [v, Expr.eval_col, Trace.row, cell_cast]
   -- flags
@@ -246,9 +246,9 @@ theorem shift_counts_of {pub : List F} {tr : Trace} {r : Nat}
   · exact Nat.le_of_eq (toNat_of_eq_one rfl)
 
 theorem shift_counts {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 4) :
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 4) :
     ∀ i ∈ Shift.inters, (i.count.eval (tr.row pub 4 r)).toNat ≤ 1 :=
-  shift_counts_of (table_constr H (by simp [air_len]) hr)
+  shift_counts_of (table_constrC H (by simp [air_len]) hr)
 
 /-- (No `H`/`hr` needed: every SHIFT count is the activity expression itself.) -/
 theorem shift_inactive {pub : List F} {tr : Trace} {r : Nat}

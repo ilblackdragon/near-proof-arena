@@ -6,6 +6,9 @@ import WasmBase.HostCheck
 import WasmBase.IfCheck
 import WasmBase.M2Check
 import WasmBase.M2Air
+import WasmBase.SegAir
+import WasmBase.M2RegAbsent
+import WasmBase.M3Check
 import WasmBase.ShaAir
 import WasmBase.ShaSound
 /-!
@@ -108,7 +111,10 @@ def hostSigOf (p : Prepared) (fi : Nat) : Option (Nat × Nat × Nat) :=
   match hostOf p fi, sigOfH p fi with
   | some hid, some (np, ar) => some (hid, np, ar)
   -- E2E M2: a host with a HOST row that only the M2 table lists (`ed25519_verify`)
-  | _, _ => (importName p fi).bind hostChipM2
+  | _, _ => match (importName p fi).bind hostChipM2 with
+    | some x => some x
+    -- E2E M3: a host with `i32` parameters or result (HOST-W row only)
+    | none => ((importName p fi).bind hostChipM3).map fun (h, n, a, _, _) => (h, n, a)
 
 /-- The host call at the current pc, if any. -/
 def hostAt (p : Prepared) (s : St) : Option (Nat × Nat × Nat) :=
@@ -283,6 +289,8 @@ def evalPoints (nloc ncode : Nat) (path : String) (which : Nat := 0) : IO Unit :
     | 3 => Chips.wasmBaseHashAir nloc ncode
     | 4 => wasmBaseIfRegAir nloc ncode
     | 5 => wasmBaseM2Air nloc ncode
+    | 6 => wasmBaseM2rAir nloc ncode
+    | 7 => wasmBaseM3Air nloc ncode
     | _ => wasmBaseAir nloc ncode
   let lines ← IO.FS.lines path
   for ln in lines do
