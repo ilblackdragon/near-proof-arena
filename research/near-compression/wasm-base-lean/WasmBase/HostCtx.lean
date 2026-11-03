@@ -549,12 +549,14 @@ theorem current_contract_code_h :
       ((popArgs 1) >>= fun a => (payBaseH C.base) >>= fun _ =>
         (get : HM St) >>= fun s => match s.ctx.accountContract with
           | none => pushRet 0
-          | some h => regSetH a[0] h >>= fun _ => pushRet 1) :=
+          | some h => regSetH a[0] h >>= fun _ =>
+              (get : HM St) >>= fun s' => pushRet s'.ctx.accountContractTag) :=
   hostCall.eq_21
 
 set_option maxRecDepth 100000 in
-/-- `current_contract_code`: `AccountContract::None` pushes `0` (the harness default); `Local h`
-fills the register and pushes `1`.  The state side supplies the `Option` and, for `Local`, the
+/-- `current_contract_code`: `AccountContract::None` pushes `0` (the harness default); a contract
+`h` fills the register and pushes the context's tag (1 local, 2 global by hash, 3 global by
+account id; `CallCtx.accountContractTag`, default 1).  The state side supplies the `Option` and, for `Local`, the
 code bytes and the register id. -/
 theorem current_contract_code_none_ok (s s1 : St)
     (e1 : (payBaseH C.base).run { s with stack := s.stack.pop } = .ok () s1)
@@ -568,12 +570,13 @@ theorem current_contract_code_local_ok (s s1 s2 : St) {h : ByteArray}
     (e1 : (payBaseH C.base).run { s with stack := s.stack.pop } = .ok () s1)
     (hc : s1.ctx.accountContract = some h)
     (e2 : (regSetH (topArg s) h).run s1 = .ok () s2) :
-    (hostCall "current_contract_code").get!.run s = .ok () (pushI64 s2 1) := by
+    (hostCall "current_contract_code").get!.run s =
+      .ok () (pushI64 s2 s2.ctx.accountContractTag) := by
   rw [current_contract_code_h]; simp only [Option.get!]
   rw [bind_ok (popArgs1_run s), bind_ok e1, bind_ok (hmGet_run _),
     show (s1.ctx.accountContract) = some h from hc]
   rw [show (⟨#[topArg s], by simp⟩ : Vector Nat 1)[0] = topArg s from by simp]
-  rw [bind_ok e2, pushRet_run]
+  rw [bind_ok e2, bind_ok (hmGet_run _), pushRet_run]
 
 set_option maxRecDepth 100000 in
 theorem current_contract_code_err (s s1 : St) {er : String}
