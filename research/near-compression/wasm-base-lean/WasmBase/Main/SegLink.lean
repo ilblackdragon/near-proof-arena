@@ -355,4 +355,101 @@ theorem cuto_k4_lookup (hl : CutoHiLimbs tr) {r : Nat} (hr : r < tr.height 31) (
 
 end
 
+/-! ## 4. The record rows: a contiguous block, slots increasing, `dep` = position -/
+
+section
+variable {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsX (wasmBaseSegAir nloc ngl) pub tr)
+include H
+
+/-- On an active row, `F0 = 4` exactly on record (`k4`) rows. -/
+theorem cuto_F0_four (hl : CutoHiLimbs tr) {r : Nat} (hr : r < tr.height 31) (ha : rowNat tr 31 r 0 = 1) :
+    cutoF tr r 0 = 4 ↔ rowNat tr 31 r 53 = 1 := by
+  obtain ⟨b51, b52, b53, b54, b55, b56, hs⟩ := cuto_kinds H hr
+  rcases (by omega : rowNat tr 31 r 56 = 0 ∨ rowNat tr 31 r 56 = 1) with h0 | h1
+  · obtain ⟨e1, e2⟩ := (cuto_fieldfacts H hl hr ha).1 h0
+    rw [e2, e1]; omega
+  · have h53 : rowNat tr 31 r 53 = 0 := by omega
+    rw [h53]
+    obtain ⟨-, -, h⟩ := cuto_kL_lookup H hl hr ha h1
+    rcases h with ⟨-, e⟩ | ⟨r', -, -, -, -, e⟩ <;> omega
+
+omit H in
+theorem keyLt_F0 {r r' : Nat} (h : keyLt (cutoRow tr r) (cutoRow tr r')) :
+    cutoF tr r 0 ≤ cutoF tr r' 0 := by
+  simp only [keyLt, cutoRow, List.getD_eq_getElem?_getD, List.getElem?_map,
+    List.getElem?_range (by omega : 0 < 7), List.getElem?_range (by omega : 1 < 7), Option.map_some,
+    Option.getD_some] at h
+  omega
+
+theorem cuto_act_of_k4 {x : Nat} (hx : x < tr.height 31) (h : rowNat tr 31 x 53 = 1) : rowNat tr 31 x 0 = 1 := by
+  have := (cuto_kinds H hx).2.2.2.2.2.2; have := (cuto_bits H hx).1; omega
+
+/-- Rows before an active row are active. -/
+theorem cuto_prefix_le {m b : Nat} (hb : b < tr.height 31) (hmb : m ≤ b) (hbA : rowNat tr 31 b 0 = 1) :
+    rowNat tr 31 m 0 = 1 := by
+  have key : ∀ d m, m + d = b → rowNat tr 31 m 0 = 1 := by
+    intro d
+    induction d with
+    | zero => intro m e; rw [show m = b by omega]; exact hbA
+    | succ d ih =>
+      intro m e
+      exact cuto_prefix H (r := m) (by omega) (ih (m + 1) (by omega))
+  exact key (b - m) m (by omega)
+
+/-- **The record rows are contiguous**: a row between two `k4` rows is a `k4` row. -/
+theorem cuto_k4_between (hl : CutoHiLimbs tr) {a m b : Nat} (hb : b < tr.height 31) (ham : a < m) (hmb : m < b)
+    (ha4 : rowNat tr 31 a 53 = 1) (hb4 : rowNat tr 31 b 53 = 1) : rowNat tr 31 m 53 = 1 := by
+  have hbA := cuto_act_of_k4 H hb hb4
+  have hmA := cuto_prefix_le H hb (Nat.le_of_lt hmb) hbA
+  have haA := cuto_act_of_k4 H (by omega) ha4
+  have o1 := keyLt_F0 (cuto_order H hl (m - a - 1) a (by omega) (by rw [show a + (m - a - 1) + 1 = m by omega]; exact hmA))
+  have o2 := keyLt_F0 (cuto_order H hl (b - m - 1) m (by omega) (by rw [show m + (b - m - 1) + 1 = b by omega]; exact hbA))
+  rw [show a + (m - a - 1) + 1 = m by omega] at o1
+  rw [show m + (b - m - 1) + 1 = b by omega] at o2
+  have fa := (cuto_F0_four H hl (by omega) haA).mpr ha4
+  have fb := (cuto_F0_four H hl hb hbA).mpr hb4
+  exact (cuto_F0_four H hl (by omega) hmA).mp (by omega)
+
+/-- Consecutive `k4` rows have increasing slots (CUTO's record-order constraint), for slots `< 2^30`. -/
+theorem cuto_k4_step {r : Nat} (hr : r + 1 < tr.height 31) (ha : rowNat tr 31 r 53 = 1)
+    (hb : rowNat tr 31 (r + 1) 53 = 1) (hs : rowNat tr 31 r 48 < 2 ^ 30) (hs' : rowNat tr 31 (r + 1) 48 < 2 ^ 30) :
+    rowNat tr 31 r 48 < rowNat tr 31 (r + 1) 48 := by
+  obtain ⟨-, i48, -, -, -, -, i53, -, -, -, -, -, -, -, i64, i65⟩ := cuto_ix2
+  have hr' : r < tr.height 31 := by omega
+  have e := cuto_constr H hr' (e := Cut.Out.c "k4" * Cut.Out.n "k4" * (Cut.Out.n "slot" - Cut.Out.c "slot" - 1 -
+    Cut.Out.c "rlo" - 65536 * Cut.Out.c "rhi")) (by simp [Cut.Out.constraints])
+  have hc : ((Cut.Out.c "k4" * Cut.Out.n "k4").eval (tr.row pub 31 r)).toNat = 1 := by
+    simp only [Cut.Out.c, Cut.Out.n, Cut.c, Cut.n, i53, v, nv, Expr.eval_mul', Expr.eval_col, Expr.eval_nxt,
+      row_cur, row_nxt tr pub hr, ha, hb]; rfl
+  have l1 := cuto_inter H hr' (e := Cut.Out.c "rlo") (c := Cut.Out.c "k4" * Cut.Out.n "k4")
+    (by simp [Cut.Out.inters]) hc
+  have l2 := cuto_inter H hr' (e := 16 * Cut.Out.c "rhi") (c := Cut.Out.c "k4" * Cut.Out.n "k4")
+    (by simp [Cut.Out.inters]) hc
+  simp only [Cut.Out.c, Cut.Out.n, Cut.c, Cut.n, i48, i53, i64, i65, v, nv, Expr.eval_mul', Expr.eval_sub',
+    Expr.eval_col, Expr.eval_nxt, Expr.eval_ofNat', row_cur, row_nxt tr pub hr, ha, hb,
+    Fp.toNat_cast_of_lt (rowNat_lt tr 31 r 64)] at e l1 l2
+  have one1 : ((1 : Nat) : F) * ((1 : Nat) : F) = 1 := by decide
+  rw [one1] at e
+  have e' : ((rowNat tr 31 (r + 1) 48 : Nat) : F) - ((rowNat tr 31 r 48 : Nat) : F) - 1 -
+      ((rowNat tr 31 r 64 : Nat) : F) - ((65536 : Nat) : F) * ((rowNat tr 31 r 65 : Nat) : F) = 0 := by
+    have : ((1 : Nat) : F) = 1 := rfl
+    grind
+  exact cut_rec_order hs hs' l1 l2 e'
+
+/-- **Slots increase along the record rows** (given every record row's slot is `< 2^30`). -/
+theorem cuto_k4_mono (hl : CutoHiLimbs tr)
+    (hsl : ∀ x, x < tr.height 31 → rowNat tr 31 x 53 = 1 → rowNat tr 31 x 48 < 2 ^ 30) :
+    ∀ d a, a + d + 1 < tr.height 31 → rowNat tr 31 a 53 = 1 → rowNat tr 31 (a + d + 1) 53 = 1 →
+      rowNat tr 31 a 48 < rowNat tr 31 (a + d + 1) 48
+  | 0, a, hb, ha, hb4 => cuto_k4_step H hb ha hb4 (hsl a (by omega) ha) (hsl _ hb hb4)
+  | d + 1, a, hb, ha, hb4 => by
+    have hm : rowNat tr 31 (a + d + 1) 53 = 1 :=
+      cuto_k4_between H hl (a := a) (m := a + d + 1) (b := a + (d + 1) + 1) hb (by omega) (by omega) ha hb4
+    have h1 := cuto_k4_mono hl hsl d a (by omega) ha hm
+    have h2 := cuto_k4_step H (r := a + d + 1) (by omega) hm (by simpa [Nat.add_assoc] using hb4)
+      (hsl _ (by omega) hm) (hsl _ (by omega) (by simpa [Nat.add_assoc] using hb4))
+    rw [show a + (d + 1) + 1 = a + d + 1 + 1 by omega]; omega
+
+end
+
 end WasmBase
