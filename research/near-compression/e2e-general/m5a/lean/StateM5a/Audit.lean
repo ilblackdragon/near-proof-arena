@@ -1,3 +1,4 @@
+import StateM5a.IntakeKeys
 import StateM5a.KeyOrder
 import StateM5a.KeyDigest
 import StateM5a.KcChain
@@ -454,3 +455,6 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.KeyOrder.kcmp_back
 #print axioms StateM5a.KeyOrder.ord_recv
 #print axioms StateM5a.KeyOrder.wsbKdRange
+#print axioms StateM5a.IntakeKeys.wsb_sorted
+#print axioms StateM5a.IntakeKeys.wsb_kd_inj
+#print axioms StateM5a.IntakeKeys.intakeKeysDistinct
