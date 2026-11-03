@@ -314,7 +314,7 @@ theorem step_host_two_run_abort (cfg : NearCfg) (p : Prepared) {s s' : St} {f f'
       unfold setFrame; split <;> rfl
     have hA1 : ∀ b, readSetOf name (setFrame { s with gas := G } { f with pc := f.pc + 1 }) b → A b := by
       rw [readSetOf_congr name hst (by rw [hpg])]; exact hA
-    obtain ⟨x', eff, h1, -, h2, h3⟩ := callHost_two_run_abort hL1 hn hk hA1 hc
+    obtain ⟨x', eff, h1, -, h2, h3⟩ := callHost_two_run_abort hL1 (Or.inl hn) hk hA1 hc
     exact ⟨x', h1, by rw [h2, h3]; rfl⟩
   obtain ⟨n1, n2⟩ := TwoRun.step_call cfg p hfr hpf hcode himp hname
   obtain ⟨m1, m2⟩ := TwoRun.step_call cfg p hfr' hpf' hcode' himp hname
