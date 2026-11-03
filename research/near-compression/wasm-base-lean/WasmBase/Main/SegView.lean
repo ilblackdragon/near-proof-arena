@@ -1,4 +1,5 @@
 import WasmBase.Main.SegRows
+import WasmBase.Main.StepRegs
 
 /-!
 # WasmBase.Main.SegView — the AIR's boundary view is the spec view (E2E M4b, sub-lane S1)
@@ -726,6 +727,22 @@ clause, stated per HOST row; it is a hypothesis of the segment theorem, to be di
 host-chip contract (as `HostStepRely` is for the stack and heap). -/
 def HostRegRely (X : Ctx) (inS : List F) (cons prod : List Msg) : Prop :=
   RowQ X (fun s live => RegC live s) inS cons prod
+
+/-- **`RegKeep` from the instruction** (`StepRegs.step_registers`): a row whose instruction, at
+every related state, is not a call of an import nor `call_indirect` keeps the register file. -/
+theorem regKeep_of_code {X : Ctx} {inS : List F}
+    (h : ∀ (E : Env) (s : St) (f : Frame) (tps tpl : Nat → Nat) (t pc S : Nat) (live : Msg → Prop) (a b : Nat),
+      RelW X E s f tps tpl t pc S live a b → inS = stMsg (X.offOf E.k + pc) t S 0 E.sb E.cid →
+      ∀ i, (X.pfOf E.k).code[pc]? = some i → StepRegs.NonHostI X.p i) :
+    RegKeep X inS := by
+  intro E s f tps tpl t pc S live a b s' R hin hs
+  refine StepRegs.step_registers hs fun f' fs pf i hfr hpf hci => ?_
+  rw [R.frames] at hfr
+  obtain ⟨rfl, -⟩ := List.cons.inj hfr
+  refine h E s f tps tpl t pc S live a b R hin i ?_
+  have e : X.pfOf E.k = pf := by
+    unfold Ctx.pfOf; rw [← R.fn, hpf]; rfl
+  rw [e, ← R.pcEq]; exact hci
 
 /-- **A non-host row keeps the register clause**: it neither consumes nor produces a space-6
 message and the step leaves the register file unchanged. -/
