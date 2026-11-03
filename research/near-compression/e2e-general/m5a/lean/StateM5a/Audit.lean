@@ -1,3 +1,4 @@
+import StateM5a.SnFinal6
 import StateM5a.SnContRec4
 import StateM5a.M5bFinal
 import StateM5a.SnFinal5
@@ -658,3 +659,15 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.SnContRec3.grecK_hashed
 #print axioms StateM5a.SnContRec4.cont_oldOK
 #print axioms StateM5a.SnContRec4.cont_newOK
+#print axioms StateM5a.SnContKey1.hpDec_head
+#print axioms StateM5a.SnContKey1.snc_kc
+#print axioms StateM5a.SnContKey2.cont_msg_snc
+#print axioms StateM5a.SnContKey3.snc_bytes_key
+#print axioms StateM5a.SnContKey4.cont_key
+#print axioms StateM5a.SnContKey5.cont_old
+#print axioms StateM5a.SnContKey5.cont_new
+#print axioms StateM5a.SnContKey5.cont_leaf_nmem
+#print axioms StateM5a.SnContResp.hlongS_of
+#print axioms StateM5a.SnContResp.hlongM_of
+#print axioms StateM5a.SnContResp.snFreshLong_of
+#print axioms StateM5a.SnFinal6.air_final_sorted_sn6
