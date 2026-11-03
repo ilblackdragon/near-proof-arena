@@ -286,7 +286,7 @@ theorem segg_size_parts (tr : Trace) (pub : List F) (h0 : 1 ≤ tr.height 33) :
 theorem segG_t15' (nloc ngl : Nat) :
     (wasmBaseSegAirG nloc ngl).tables[15]'(segG_lt nloc ngl 15 (by decide)) = Range16.table := rfl
 theorem segG_t27' (nloc ngl : Nat) :
-    (wasmBaseSegAirG nloc ngl).tables[27]'(segG_lt nloc ngl 27 (by decide)) = RegC.table := rfl
+    (wasmBaseSegAirG nloc ngl).tables[27]'(segG_lt nloc ngl 27 (by decide)) = Seg.RegCK.table := rfl
 
 theorem segG_r16_send_only (nloc ngl : Nat) :
     ∀ t (ht : t < (wasmBaseSegAirG nloc ngl).tables.length), t ≠ 15 →
@@ -307,7 +307,7 @@ theorem regAt_segG (nloc ngl : Nat) : RegAt (wasmBaseSegAirG nloc ngl) 27 where
   cons := fun e he => by
     rw [segG_t27']; exact List.mem_append_left _ (List.mem_append_left _ he)
   inters := fun i hi => by
-    rw [segG_t27']; exact List.mem_append_left _ (List.mem_append_left _ hi)
+    rw [segG_t27']; exact List.mem_append_left _ (List.mem_append_left _ (List.mem_append_left _ hi))
   r16only := by
     intro T hT hne i hi hb
     obtain ⟨t, ht, rfl⟩ := List.mem_iff_getElem.mp hT
