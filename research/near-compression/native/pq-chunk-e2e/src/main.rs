@@ -532,33 +532,26 @@ fn verify(air: &str, claim_path: &str, helper: &str, setup_path: &str, pin: &str
     setup.base_params.whir.domain_odd_factor = setup.domain_odd_factor;
     setup.final_vk.inner.params.whir.domain_odd_factor = setup.domain_odd_factor;
     assert!(setup.version == 1 || setup.version == 2, "setup version");
-    assert_eq!(
-        hash(&std::fs::read(air).unwrap()),
-        setup.air_sha256,
-        "AIR differs from pinned setup"
-    );
+    let air_bytes = std::fs::read(air).unwrap();
+    assert_eq!(hash(&air_bytes), setup.air_sha256, "AIR differs from pinned setup");
     let packet = std::fs::read(bundle).unwrap();
     let (n, base_u, body) = bundle_parts(&packet, setup.version == 2, setup.base_params.n_stack);
     mark("air_pin_bundle_read", &mut phases);
-    let dir = tempfile::tempdir().unwrap();
-    let hint = dir.path().join("hint.bin");
-    std::fs::write(&hint, &packet[16..16 + n]).unwrap();
-    let public = dir.path().join("public");
-    assert!(
-        std::process::Command::new(helper)
-            .args([air, claim_path])
-            .arg(&hint)
-            .arg(&public)
-            .status()
-            .expect("statepublic")
-            .success(),
-        "claim/hint rejected"
+    // Only the AIR's public-input view is needed (numPub, pubSegs, maxPub, table count, each
+    // table's pub bound): one streaming pass over the pinned AIR bytes.
+    let air_pub = npudr::airpub::AirPublic::from_json_slice(&air_bytes).expect("air json");
+    mark("air_parse", &mut phases);
+    // `statepublic`, in process (the helper path argument is accepted for CLI compatibility and
+    // ignored): recompute the public inputs/messages from the claim and the transmitted hint.
+    let _ = helper;
+    let public = public_data(&air_pub, &std::fs::read(claim_path).unwrap(), &packet[16..16 + n]);
+    mark("statepublic", &mut phases);
+    let expected = state::chunk_bridge::expected_claim_parsed(
+        &air_pub.table_num_pub,
+        &public,
+        setup.base_params,
+        base_u.as_deref(),
     );
-    mark("statepublic_subprocess", &mut phases);
-    let expected = match &base_u {
-        Some(u) => state::chunk_bridge::expected_claim_at(air, public.to_str().unwrap(), setup.base_params, u),
-        None => state::chunk_bridge::expected_claim(air, public.to_str().unwrap(), setup.base_params),
-    };
     mark("expected_claim_tape", &mut phases);
     let fp = decode_proof(&packet[body..]);
     mark("proof_decode", &mut phases);
@@ -585,6 +578,76 @@ fn verify(air: &str, claim_path: &str, helper: &str, setup_path: &str, pin: &str
         "INDEPENDENT_VERIFY_OK bundle_bytes={} under_300000={}",
         packet.len(),
         packet.len() < 300000
+    );
+}
+/// The verifier-generated public data of a claim + transmitted hint (`statepublic`, in process).
+/// A claim/hint the preparation rejects panics ("claim/hint rejected"), i.e. the packet is rejected.
+fn public_data(
+    air: &npudr::airpub::AirPublic,
+    claim: &[u8],
+    hint: &[u8],
+) -> state::chunk_bridge::PublicData {
+    let st = npudr::v3::statement::public_statement(air, claim, hint).expect("claim/hint rejected");
+    state::chunk_bridge::PublicData::new(
+        &st.pubs,
+        st.msgs.iter().map(|(b, s, m)| (*b as u64, *s, m.as_slice())),
+    )
+}
+/// Parity of the in-process claim preparation with the original file/subprocess path: the
+/// `statepublic` executable writes pubs.bin/pubmsgs.json, the file-based `expected_claim(_at)`
+/// (full classical AIR parse) reads them. The two `StatementClaim`s must be identical.
+fn claim_parity(air: &str, claim_path: &str, helper: &str, setup_path: &str, bundle: &str) {
+    let mut setup: Setup = serde_json::from_slice(&std::fs::read(setup_path).unwrap()).unwrap();
+    setup.base_params.whir.domain_odd_factor = setup.domain_odd_factor;
+    let packet = std::fs::read(bundle).unwrap();
+    let (n, base_u, _) = bundle_parts(&packet, setup.version == 2, setup.base_params.n_stack);
+    // reference: subprocess + files (the pre-in-process verifier path)
+    let dir = tempfile::tempdir().unwrap();
+    let hint = dir.path().join("hint.bin");
+    std::fs::write(&hint, &packet[16..16 + n]).unwrap();
+    let public = dir.path().join("public");
+    assert!(
+        std::process::Command::new(helper)
+            .args([air, claim_path])
+            .arg(&hint)
+            .arg(&public)
+            .status()
+            .expect("statepublic")
+            .success(),
+        "claim/hint rejected"
+    );
+    let p = public.to_str().unwrap();
+    let reference = match &base_u {
+        Some(u) => state::chunk_bridge::expected_claim_at(air, p, setup.base_params.clone(), u),
+        None => state::chunk_bridge::expected_claim(air, p, setup.base_params.clone()),
+    };
+    // in process
+    let air_bytes = std::fs::read(air).unwrap();
+    let fast = npudr::airpub::AirPublic::from_json_slice(&air_bytes).unwrap();
+    let full = npudr::airpub::AirPublic::of(
+        &npudr::air::Air::from_json(std::str::from_utf8(&air_bytes).unwrap()).unwrap(),
+    );
+    assert_eq!(fast.table_num_pub, full.table_num_pub, "pub bounds (streaming vs full parse)");
+    assert_eq!(fast.table_num_pub, state::chunk_bridge::table_num_pub(air), "pub bounds (classical)");
+    assert_eq!(
+        (fast.num_tables, fast.air.num_pub, fast.air.max_pub, fast.air.v2, &fast.air.pub_segs),
+        (full.num_tables, full.air.num_pub, full.air.max_pub, full.air.v2, &full.air.pub_segs),
+        "AIR public view (streaming vs full parse)"
+    );
+    let public = public_data(&fast, &std::fs::read(claim_path).unwrap(), &packet[16..16 + n]);
+    let claim = state::chunk_bridge::expected_claim_parsed(
+        &fast.table_num_pub,
+        &public,
+        setup.base_params,
+        base_u.as_deref(),
+    );
+    let (a, b) = (format!("{reference:?}"), format!("{claim:?}"));
+    assert_eq!(a, b, "in-process claim differs from the statepublic/file path");
+    println!(
+        "CLAIM_PARITY_OK tape_eval={} public_values={} claim_debug_sha256={}",
+        base_u.is_some(),
+        claim.public_values.iter().map(Vec::len).sum::<usize>(),
+        hash(a.as_bytes())
     );
 }
 /// Split timing of the verifier's stages on already-prepared public inputs (median of `reps`).
@@ -749,6 +812,7 @@ fn main() {
             true,
         ),
         Some("verify") if a.len() == 8 => verify(&a[2], &a[3], &a[4], &a[5], &a[6], &a[7]),
+        Some("claim-parity") if a.len() == 7 => claim_parity(&a[2], &a[3], &a[4], &a[5], &a[6]),
         Some("soundness") if a.len() >= 3 => {
             // Per-component soundness bits of each named vk (BASE/L*.vk.json or SETUP.json).
             for path in &a[2..] {
@@ -782,7 +846,7 @@ fn main() {
         }
         Some("zk-diff") if a.len() == 4 => zk_diff(Path::new(&a[2]), Path::new(&a[3])),
         _ => panic!(
-            "usage: base AIR DUMP OUT CERTS EXCLUSIONS | probe OUT | validate-base AIR PUBLIC OUT | chain AIR PUBLIC OUT CERTS EXCLUSIONS [RESUME_LEVEL] | replay-final AIR PUBLIC OUT CERTS EXCLUSIONS LEVEL | verify AIR CLAIM STATEPUBLIC SETUP TRUSTED_SHA256 BUNDLE | proof-sections PROOF | zk-diff PROOF_A PROOF_B"
+            "usage: base AIR DUMP OUT CERTS EXCLUSIONS | probe OUT | validate-base AIR PUBLIC OUT | chain AIR PUBLIC OUT CERTS EXCLUSIONS [RESUME_LEVEL] | replay-final AIR PUBLIC OUT CERTS EXCLUSIONS LEVEL | verify AIR CLAIM STATEPUBLIC(ignored: in-process) SETUP TRUSTED_SHA256 BUNDLE | claim-parity AIR CLAIM STATEPUBLIC SETUP BUNDLE | proof-sections PROOF | zk-diff PROOF_A PROOF_B"
         ),
     }
 }

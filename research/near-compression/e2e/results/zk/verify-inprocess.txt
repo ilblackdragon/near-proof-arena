@@ -1,0 +1,102 @@
+# Fresh-process FINAL verifier, one thread (RAYON_NUM_THREADS=1, taskset -c 29), 2026-11-03.
+# before = HEAD 05b893a14 (statepublic as a subprocess + temp files; full AIR parses; eq-table TAPE eval)
+# after  = in-process statepublic (npudr::v3::statement), one streaming pass for the AIR's public view
+#          (npudr::airpub::AirPublic), folded prismalinear TAPE evaluation (chunk_bridge::stacked_openings_at)
+# Both binaries built from the same dependency copy (pq-e2e-d4: stark-backend/openvm as of 05b893a14),
+# runs interleaved per round (before, after) so both see the same host load.
+# Inputs (read-only): /data/illia/nearproof-deps/pq-e2e-d/e2e/{d1_00-h10006-s3,d1_00-h10007-s0,d2_05-h10042-s3}
+# Script: research/near-compression/e2e/scripts/bench_verify_inprocess.sh BINARY 29 1 (x7 rounds)
+#
+# Host load during the measurement (uptime, 14:00:13-14:00:16 UTC): 1-min 3.0-3.1, 5-min 6.5, 15-min 10.5.
+# Summary (ms; median phases over 7 runs):
+#   d1_00-h10006-s3 before n=7 total_ms min=82.0 median=82.6 max=84.8 | median phases: setup_read_pin=2.3 setup_parse=4.9 air_pin_bundle_read=1.1 statepublic_subprocess=28.4 expected_claim_tape=30.3 proof_decode=0.2 final_verify=15.5
+#   d1_00-h10006-s3 after  n=7 total_ms min=31.5 median=31.7 max=32.1 | median phases: setup_read_pin=2.3 setup_parse=5.2 air_pin_bundle_read=1.1 air_parse=4.7 statepublic=0.2 expected_claim_tape=1.6 proof_decode=0.2 final_verify=16.3
+#   d1_00-h10007-s0 before n=7 total_ms min=83.8 median=84.7 max=85.1 | median phases: setup_read_pin=2.3 setup_parse=5.0 air_pin_bundle_read=1.1 statepublic_subprocess=28.5 expected_claim_tape=30.3 proof_decode=0.2 final_verify=17.1
+#   d1_00-h10007-s0 after  n=7 total_ms min=32.9 median=33.1 max=33.5 | median phases: setup_read_pin=2.3 setup_parse=5.2 air_pin_bundle_read=1.1 air_parse=4.7 statepublic=0.2 expected_claim_tape=1.5 proof_decode=0.2 final_verify=17.8
+#   d2_05-h10042-s3 before n=7 total_ms min=88.0 median=88.4 max=90.5 | median phases: setup_read_pin=2.4 setup_parse=5.0 air_pin_bundle_read=1.1 statepublic_subprocess=28.9 expected_claim_tape=32.8 proof_decode=1.2 final_verify=17.0
+#   d2_05-h10042-s3 after  n=7 total_ms min=33.9 median=34.1 max=34.6 | median phases: setup_read_pin=2.3 setup_parse=5.2 air_pin_bundle_read=1.1 air_parse=4.7 statepublic=0.7 expected_claim_tape=2.3 proof_decode=0.2 final_verify=17.7
+#
+# Claim parity (`nearproof-chunk-e2e claim-parity`, in-process vs statepublic subprocess + files):
+#   d1_00-h10006-s3 CLAIM_PARITY_OK claim_debug_sha256=b07509db42449de39b4ce3333740036509dbbbe228e471a899a629089addf361
+#   d1_00-h10007-s0 CLAIM_PARITY_OK claim_debug_sha256=adea831f6f70b7cde5c027594d1ade114d3576c6b3157cfda63d46f0cf0cda75
+#   d2_05-h10042-s3 CLAIM_PARITY_OK claim_debug_sha256=ad84e4f6ef99c79587ef7093cb52a2e1dace3513ffe6f67aabdbfeb02ba9da92
+#   (same digests from the build with the old eq-table TAPE evaluation and from the folded one:
+#   the expected claim is bit-identical; the AIR public view of the streaming pass equals both full parsers')
+# statepublic example (new, library-backed) vs the run's tools/statepublic: pubs.bin + pubmsgs.json
+#   byte-identical on all 3 chunks (and equal to the runs' public/); a corrupted hint is rejected.
+# Negatives (negatives.py, each a fresh verifier process, without --wrong-witness which tests the
+#   prover's base step, not verify): 21/21 PASS on each of the 3 chunks; rejection points identical to
+#   the 10-31/11-03 runs (claim flips / other chunk / hint flip -> "claim/hint rejected", now with the
+#   preparation's reason; u flips -> statement digest; proof flips -> final proof errors; pin -> setup).
+#
+# Raw lines:
+BENCH label=before binary=/data/illia/nearproof-deps/pq-e2e-d4/verify-baseline cpu=29  14:00:13 up 54 days, 10:36,  1 user,  load average: 3.11, 6.55, 10.57
+VERIFY_PROFILE_MS total=84.52 setup_read_pin=2.47 setup_parse=4.98 air_pin_bundle_read=1.11 statepublic_subprocess=29.42 expected_claim_tape=30.87 proof_decode=0.21 final_verify=15.46 INDEPENDENT_VERIFY_OK wall_s=0.08 max_rss_kb=56812  run=d1_00-h10006-s3
+VERIFY_PROFILE_MS total=83.79 setup_read_pin=2.34 setup_parse=4.89 air_pin_bundle_read=1.13 statepublic_subprocess=28.09 expected_claim_tape=30.09 proof_decode=0.21 final_verify=17.02 INDEPENDENT_VERIFY_OK wall_s=0.08 max_rss_kb=56836  run=d1_00-h10007-s0
+VERIFY_PROFILE_MS total=88.11 setup_read_pin=2.33 setup_parse=4.99 air_pin_bundle_read=1.13 statepublic_subprocess=29.07 expected_claim_tape=32.46 proof_decode=1.15 final_verify=16.97 INDEPENDENT_VERIFY_OK wall_s=0.09 max_rss_kb=56880  run=d2_05-h10042-s3
+BENCH_END  14:00:14 up 54 days, 10:36,  1 user,  load average: 3.11, 6.55, 10.57
+BENCH label=after binary=/data/illia/nearproof-deps/pq-e2e-d4/verify-final cpu=29  14:00:14 up 54 days, 10:36,  1 user,  load average: 3.11, 6.55, 10.57
+VERIFY_PROFILE_MS total=31.64 setup_read_pin=2.33 setup_parse=5.19 air_pin_bundle_read=1.14 air_parse=4.74 statepublic=0.22 expected_claim_tape=1.55 proof_decode=0.22 final_verify=16.26 INDEPENDENT_VERIFY_OK wall_s=0.03 max_rss_kb=23320  run=d1_00-h10006-s3
+VERIFY_PROFILE_MS total=33.45 setup_read_pin=2.32 setup_parse=5.19 air_pin_bundle_read=1.12 air_parse=4.68 statepublic=0.25 expected_claim_tape=1.55 proof_decode=0.21 final_verify=18.12 INDEPENDENT_VERIFY_OK wall_s=0.03 max_rss_kb=23096  run=d1_00-h10007-s0
+VERIFY_PROFILE_MS total=34.15 setup_read_pin=2.33 setup_parse=5.21 air_pin_bundle_read=1.11 air_parse=4.62 statepublic=0.64 expected_claim_tape=2.29 proof_decode=0.20 final_verify=17.75 INDEPENDENT_VERIFY_OK wall_s=0.03 max_rss_kb=23576  run=d2_05-h10042-s3
+BENCH_END  14:00:14 up 54 days, 10:36,  1 user,  load average: 3.11, 6.55, 10.57
+BENCH label=before binary=/data/illia/nearproof-deps/pq-e2e-d4/verify-baseline cpu=29  14:00:14 up 54 days, 10:36,  1 user,  load average: 3.11, 6.55, 10.57
+VERIFY_PROFILE_MS total=82.00 setup_read_pin=2.27 setup_parse=4.89 air_pin_bundle_read=1.08 statepublic_subprocess=28.20 expected_claim_tape=29.96 proof_decode=0.21 final_verify=15.38 INDEPENDENT_VERIFY_OK wall_s=0.08 max_rss_kb=56816  run=d1_00-h10006-s3
+VERIFY_PROFILE_MS total=84.70 setup_read_pin=2.34 setup_parse=5.01 air_pin_bundle_read=1.12 statepublic_subprocess=28.52 expected_claim_tape=30.32 proof_decode=0.21 final_verify=17.16 INDEPENDENT_VERIFY_OK wall_s=0.08 max_rss_kb=57088  run=d1_00-h10007-s0
+VERIFY_PROFILE_MS total=87.97 setup_read_pin=2.34 setup_parse=5.08 air_pin_bundle_read=1.13 statepublic_subprocess=28.44 expected_claim_tape=32.78 proof_decode=1.18 final_verify=17.02 INDEPENDENT_VERIFY_OK wall_s=0.09 max_rss_kb=57132  run=d2_05-h10042-s3
+BENCH_END  14:00:14 up 54 days, 10:36,  1 user,  load average: 3.11, 6.55, 10.57
+BENCH label=after binary=/data/illia/nearproof-deps/pq-e2e-d4/verify-final cpu=29  14:00:14 up 54 days, 10:36,  1 user,  load average: 3.11, 6.55, 10.57
+VERIFY_PROFILE_MS total=32.14 setup_read_pin=2.38 setup_parse=5.34 air_pin_bundle_read=1.14 air_parse=4.98 statepublic=0.23 expected_claim_tape=1.57 proof_decode=0.22 final_verify=16.29 INDEPENDENT_VERIFY_OK wall_s=0.03 max_rss_kb=23316  run=d1_00-h10006-s3
+VERIFY_PROFILE_MS total=33.01 setup_read_pin=2.32 setup_parse=5.17 air_pin_bundle_read=1.11 air_parse=4.71 statepublic=0.25 expected_claim_tape=1.52 proof_decode=0.21 final_verify=17.72 INDEPENDENT_VERIFY_OK wall_s=0.03 max_rss_kb=23356  run=d1_00-h10007-s0
+VERIFY_PROFILE_MS total=34.57 setup_read_pin=2.34 setup_parse=5.52 air_pin_bundle_read=1.12 air_parse=4.72 statepublic=0.65 expected_claim_tape=2.29 proof_decode=0.21 final_verify=17.71 INDEPENDENT_VERIFY_OK wall_s=0.03 max_rss_kb=23576  run=d2_05-h10042-s3
+BENCH_END  14:00:14 up 54 days, 10:36,  1 user,  load average: 3.11, 6.55, 10.57
+BENCH label=before binary=/data/illia/nearproof-deps/pq-e2e-d4/verify-baseline cpu=29  14:00:14 up 54 days, 10:36,  1 user,  load average: 3.11, 6.55, 10.57
+VERIFY_PROFILE_MS total=82.26 setup_read_pin=2.30 setup_parse=4.82 air_pin_bundle_read=1.10 statepublic_subprocess=28.09 expected_claim_tape=30.10 proof_decode=0.22 final_verify=15.63 INDEPENDENT_VERIFY_OK wall_s=0.08 max_rss_kb=56844  run=d1_00-h10006-s3
+VERIFY_PROFILE_MS total=84.70 setup_read_pin=2.34 setup_parse=4.96 air_pin_bundle_read=1.12 statepublic_subprocess=27.93 expected_claim_tape=30.83 proof_decode=0.20 final_verify=17.30 INDEPENDENT_VERIFY_OK wall_s=0.08 max_rss_kb=57092  run=d1_00-h10007-s0
+VERIFY_PROFILE_MS total=88.41 setup_read_pin=2.37 setup_parse=5.01 air_pin_bundle_read=1.13 statepublic_subprocess=28.92 expected_claim_tape=32.82 proof_decode=1.17 final_verify=17.00 INDEPENDENT_VERIFY_OK wall_s=0.09 max_rss_kb=56876  run=d2_05-h10042-s3
+BENCH_END  14:00:14 up 54 days, 10:36,  1 user,  load average: 3.11, 6.55, 10.57
+BENCH label=after binary=/data/illia/nearproof-deps/pq-e2e-d4/verify-final cpu=29  14:00:14 up 54 days, 10:36,  1 user,  load average: 3.11, 6.55, 10.57
+VERIFY_PROFILE_MS total=31.63 setup_read_pin=2.32 setup_parse=5.15 air_pin_bundle_read=1.13 air_parse=4.67 statepublic=0.22 expected_claim_tape=1.57 proof_decode=0.23 final_verify=16.34 INDEPENDENT_VERIFY_OK wall_s=0.03 max_rss_kb=23056  run=d1_00-h10006-s3
+VERIFY_PROFILE_MS total=33.12 setup_read_pin=2.31 setup_parse=5.19 air_pin_bundle_read=1.10 air_parse=4.72 statepublic=0.26 expected_claim_tape=1.64 proof_decode=0.22 final_verify=17.68 INDEPENDENT_VERIFY_OK wall_s=0.03 max_rss_kb=23100  run=d1_00-h10007-s0
+VERIFY_PROFILE_MS total=33.90 setup_read_pin=2.28 setup_parse=5.21 air_pin_bundle_read=1.11 air_parse=4.69 statepublic=0.64 expected_claim_tape=2.25 proof_decode=0.21 final_verify=17.51 INDEPENDENT_VERIFY_OK wall_s=0.03 max_rss_kb=23836  run=d2_05-h10042-s3
+BENCH_END  14:00:15 up 54 days, 10:36,  1 user,  load average: 3.11, 6.55, 10.57
+BENCH label=before binary=/data/illia/nearproof-deps/pq-e2e-d4/verify-baseline cpu=29  14:00:15 up 54 days, 10:36,  1 user,  load average: 3.11, 6.55, 10.57
+VERIFY_PROFILE_MS total=82.47 setup_read_pin=2.28 setup_parse=4.88 air_pin_bundle_read=1.11 statepublic_subprocess=28.36 expected_claim_tape=30.22 proof_decode=0.21 final_verify=15.41 INDEPENDENT_VERIFY_OK wall_s=0.08 max_rss_kb=57072  run=d1_00-h10006-s3
+VERIFY_PROFILE_MS total=85.14 setup_read_pin=2.35 setup_parse=4.98 air_pin_bundle_read=1.13 statepublic_subprocess=28.72 expected_claim_tape=30.10 proof_decode=0.22 final_verify=17.64 INDEPENDENT_VERIFY_OK wall_s=0.08 max_rss_kb=57092  run=d1_00-h10007-s0
+VERIFY_PROFILE_MS total=88.66 setup_read_pin=2.37 setup_parse=5.00 air_pin_bundle_read=1.13 statepublic_subprocess=29.21 expected_claim_tape=32.78 proof_decode=1.17 final_verify=16.99 INDEPENDENT_VERIFY_OK wall_s=0.09 max_rss_kb=56880  run=d2_05-h10042-s3
+BENCH_END  14:00:15 up 54 days, 10:36,  1 user,  load average: 3.11, 6.55, 10.57
+BENCH label=after binary=/data/illia/nearproof-deps/pq-e2e-d4/verify-final cpu=29  14:00:15 up 54 days, 10:36,  1 user,  load average: 3.11, 6.55, 10.57
+VERIFY_PROFILE_MS total=31.95 setup_read_pin=2.32 setup_parse=5.22 air_pin_bundle_read=1.13 air_parse=4.73 statepublic=0.23 expected_claim_tape=1.58 proof_decode=0.22 final_verify=16.52 INDEPENDENT_VERIFY_OK wall_s=0.03 max_rss_kb=23572  run=d1_00-h10006-s3
+VERIFY_PROFILE_MS total=33.10 setup_read_pin=2.31 setup_parse=5.17 air_pin_bundle_read=1.11 air_parse=4.73 statepublic=0.25 expected_claim_tape=1.52 proof_decode=0.21 final_verify=17.79 INDEPENDENT_VERIFY_OK wall_s=0.03 max_rss_kb=23020  run=d1_00-h10007-s0
+VERIFY_PROFILE_MS total=34.59 setup_read_pin=2.33 setup_parse=5.19 air_pin_bundle_read=1.11 air_parse=4.90 statepublic=0.65 expected_claim_tape=2.28 proof_decode=0.20 final_verify=17.92 INDEPENDENT_VERIFY_OK wall_s=0.03 max_rss_kb=23576  run=d2_05-h10042-s3
+BENCH_END  14:00:15 up 54 days, 10:36,  1 user,  load average: 3.11, 6.55, 10.57
+BENCH label=before binary=/data/illia/nearproof-deps/pq-e2e-d4/verify-baseline cpu=29  14:00:15 up 54 days, 10:36,  1 user,  load average: 3.11, 6.55, 10.57
+VERIFY_PROFILE_MS total=83.11 setup_read_pin=2.28 setup_parse=4.90 air_pin_bundle_read=1.09 statepublic_subprocess=28.47 expected_claim_tape=30.63 proof_decode=0.22 final_verify=15.52 INDEPENDENT_VERIFY_OK wall_s=0.08 max_rss_kb=57096  run=d1_00-h10006-s3
+VERIFY_PROFILE_MS total=84.70 setup_read_pin=2.33 setup_parse=4.93 air_pin_bundle_read=1.17 statepublic_subprocess=28.64 expected_claim_tape=30.38 proof_decode=0.21 final_verify=17.04 INDEPENDENT_VERIFY_OK wall_s=0.08 max_rss_kb=57088  run=d1_00-h10007-s0
+VERIFY_PROFILE_MS total=90.52 setup_read_pin=2.33 setup_parse=4.92 air_pin_bundle_read=1.13 statepublic_subprocess=29.68 expected_claim_tape=34.20 proof_decode=1.16 final_verify=17.10 INDEPENDENT_VERIFY_OK wall_s=0.09 max_rss_kb=56876  run=d2_05-h10042-s3
+BENCH_END  14:00:15 up 54 days, 10:36,  1 user,  load average: 3.11, 6.55, 10.57
+BENCH label=after binary=/data/illia/nearproof-deps/pq-e2e-d4/verify-final cpu=29  14:00:15 up 54 days, 10:36,  1 user,  load average: 3.11, 6.55, 10.57
+VERIFY_PROFILE_MS total=31.68 setup_read_pin=2.33 setup_parse=5.20 air_pin_bundle_read=1.13 air_parse=4.67 statepublic=0.22 expected_claim_tape=1.58 proof_decode=0.22 final_verify=16.33 INDEPENDENT_VERIFY_OK wall_s=0.03 max_rss_kb=23572  run=d1_00-h10006-s3
+VERIFY_PROFILE_MS total=33.12 setup_read_pin=2.35 setup_parse=5.17 air_pin_bundle_read=1.10 air_parse=4.74 statepublic=0.25 expected_claim_tape=1.51 proof_decode=0.21 final_verify=17.79 INDEPENDENT_VERIFY_OK wall_s=0.03 max_rss_kb=23352  run=d1_00-h10007-s0
+VERIFY_PROFILE_MS total=34.05 setup_read_pin=2.29 setup_parse=5.18 air_pin_bundle_read=1.10 air_parse=4.69 statepublic=0.63 expected_claim_tape=2.35 proof_decode=0.21 final_verify=17.60 INDEPENDENT_VERIFY_OK wall_s=0.03 max_rss_kb=23320  run=d2_05-h10042-s3
+BENCH_END  14:00:15 up 54 days, 10:36,  1 user,  load average: 3.11, 6.55, 10.57
+BENCH label=before binary=/data/illia/nearproof-deps/pq-e2e-d4/verify-baseline cpu=29  14:00:15 up 54 days, 10:36,  1 user,  load average: 3.11, 6.55, 10.57
+VERIFY_PROFILE_MS total=82.61 setup_read_pin=2.26 setup_parse=4.82 air_pin_bundle_read=1.08 statepublic_subprocess=28.48 expected_claim_tape=30.34 proof_decode=0.21 final_verify=15.41 INDEPENDENT_VERIFY_OK wall_s=0.08 max_rss_kb=56812  run=d1_00-h10006-s3
+VERIFY_PROFILE_MS total=84.86 setup_read_pin=2.32 setup_parse=4.88 air_pin_bundle_read=1.14 statepublic_subprocess=29.02 expected_claim_tape=30.23 proof_decode=0.21 final_verify=17.05 INDEPENDENT_VERIFY_OK wall_s=0.08 max_rss_kb=56836  run=d1_00-h10007-s0
+VERIFY_PROFILE_MS total=88.14 setup_read_pin=2.43 setup_parse=4.98 air_pin_bundle_read=1.13 statepublic_subprocess=28.78 expected_claim_tape=32.64 proof_decode=1.15 final_verify=17.01 INDEPENDENT_VERIFY_OK wall_s=0.09 max_rss_kb=57132  run=d2_05-h10042-s3
+BENCH_END  14:00:16 up 54 days, 10:36,  1 user,  load average: 3.02, 6.48, 10.52
+BENCH label=after binary=/data/illia/nearproof-deps/pq-e2e-d4/verify-final cpu=29  14:00:16 up 54 days, 10:36,  1 user,  load average: 3.02, 6.48, 10.52
+VERIFY_PROFILE_MS total=31.82 setup_read_pin=2.36 setup_parse=5.21 air_pin_bundle_read=1.14 air_parse=4.66 statepublic=0.22 expected_claim_tape=1.56 proof_decode=0.23 final_verify=16.44 INDEPENDENT_VERIFY_OK wall_s=0.03 max_rss_kb=23316  run=d1_00-h10006-s3
+VERIFY_PROFILE_MS total=32.85 setup_read_pin=2.30 setup_parse=5.16 air_pin_bundle_read=1.10 air_parse=4.68 statepublic=0.26 expected_claim_tape=1.49 proof_decode=0.21 final_verify=17.65 INDEPENDENT_VERIFY_OK wall_s=0.03 max_rss_kb=23100  run=d1_00-h10007-s0
+VERIFY_PROFILE_MS total=34.14 setup_read_pin=2.30 setup_parse=5.21 air_pin_bundle_read=1.10 air_parse=4.69 statepublic=0.65 expected_claim_tape=2.28 proof_decode=0.21 final_verify=17.70 INDEPENDENT_VERIFY_OK wall_s=0.03 max_rss_kb=23576  run=d2_05-h10042-s3
+BENCH_END  14:00:16 up 54 days, 10:36,  1 user,  load average: 3.02, 6.48, 10.52
+BENCH label=before binary=/data/illia/nearproof-deps/pq-e2e-d4/verify-baseline cpu=29  14:00:16 up 54 days, 10:36,  1 user,  load average: 3.02, 6.48, 10.52
+VERIFY_PROFILE_MS total=84.83 setup_read_pin=2.28 setup_parse=4.96 air_pin_bundle_read=1.08 statepublic_subprocess=28.32 expected_claim_tape=32.46 proof_decode=0.21 final_verify=15.51 INDEPENDENT_VERIFY_OK wall_s=0.08 max_rss_kb=56812  run=d1_00-h10006-s3
+VERIFY_PROFILE_MS total=84.43 setup_read_pin=2.34 setup_parse=4.97 air_pin_bundle_read=1.13 statepublic_subprocess=28.42 expected_claim_tape=30.31 proof_decode=0.21 final_verify=17.04 INDEPENDENT_VERIFY_OK wall_s=0.08 max_rss_kb=56832  run=d1_00-h10007-s0
+VERIFY_PROFILE_MS total=88.45 setup_read_pin=2.36 setup_parse=4.94 air_pin_bundle_read=1.12 statepublic_subprocess=28.95 expected_claim_tape=32.91 proof_decode=1.17 final_verify=17.00 INDEPENDENT_VERIFY_OK wall_s=0.09 max_rss_kb=56880  run=d2_05-h10042-s3
+BENCH_END  14:00:16 up 54 days, 10:36,  1 user,  load average: 3.02, 6.48, 10.52
+BENCH label=after binary=/data/illia/nearproof-deps/pq-e2e-d4/verify-final cpu=29  14:00:16 up 54 days, 10:36,  1 user,  load average: 3.02, 6.48, 10.52
+VERIFY_PROFILE_MS total=31.53 setup_read_pin=2.31 setup_parse=5.15 air_pin_bundle_read=1.12 air_parse=4.65 statepublic=0.22 expected_claim_tape=1.57 proof_decode=0.22 final_verify=16.28 INDEPENDENT_VERIFY_OK wall_s=0.03 max_rss_kb=23316  run=d1_00-h10006-s3
+VERIFY_PROFILE_MS total=33.39 setup_read_pin=2.41 setup_parse=5.22 air_pin_bundle_read=1.14 air_parse=4.72 statepublic=0.25 expected_claim_tape=1.58 proof_decode=0.22 final_verify=17.85 INDEPENDENT_VERIFY_OK wall_s=0.03 max_rss_kb=23280  run=d1_00-h10007-s0
+VERIFY_PROFILE_MS total=34.21 setup_read_pin=2.32 setup_parse=5.20 air_pin_bundle_read=1.10 air_parse=4.69 statepublic=0.65 expected_claim_tape=2.29 proof_decode=0.21 final_verify=17.73 INDEPENDENT_VERIFY_OK wall_s=0.03 max_rss_kb=23320  run=d2_05-h10042-s3
+BENCH_END  14:00:16 up 54 days, 10:36,  1 user,  load average: 3.02, 6.48, 10.52

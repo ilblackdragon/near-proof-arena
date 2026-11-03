@@ -147,17 +147,32 @@ pub fn stacked_openings_at(
     let m = (usize::BITS - used.leading_zeros()) as usize; // rows < 2^m
     let m = m.saturating_sub(params.l_skip).min(params.n_stack);
     let tail: EF = u[1 + m..].iter().map(|&x| EF::ONE - x).product();
-    let eq = openvm_stark_backend::prover::poly::evals_eq_hyperprism::<F, EF>(&omega_pows, u[0], &u[1..1 + m]);
+    // sum_r v_r * eq(u_0..u_m; r), with eq(r) = eq_uni(u_0, omega^{r mod 2^l_skip}) *
+    // prod_i (u_{1+i} if bit i of r >> l_skip else 1 - u_{1+i}) (`evals_eq_hyperprism`'s order),
+    // evaluated by folding instead of materializing the 2^(l_skip + m) weights: first the
+    // univariate skip block (base-field values times 2^l_skip weights), then one hypercube
+    // variable at a time, lo + u_i * (hi - lo). Exact field arithmetic: the same value.
+    let d = 1usize << params.l_skip;
+    let eq_uni = openvm_stark_backend::prover::poly::evals_eq_hyperprism::<F, EF>(&omega_pows, u[0], &[]);
+    assert_eq!(eq_uni.len(), d);
     q.values
         .chunks_exact(h)
         .map(|col| {
-            col[..eq.len()]
-                .iter()
-                .zip(&eq)
-                .filter(|(v, _)| **v != F::ZERO)
-                .map(|(&v, &e)| e * v)
-                .sum::<EF>()
-                * tail
+            let mut g: Vec<EF> = col[..d << m]
+                .chunks_exact(d)
+                .map(|blk| {
+                    blk.iter()
+                        .zip(&eq_uni)
+                        .filter(|(v, _)| **v != F::ZERO)
+                        .map(|(&v, &e)| e * v)
+                        .sum::<EF>()
+                })
+                .collect();
+            for &x in &u[1..1 + m] {
+                g = g.chunks_exact(2).map(|p| p[0] + x * (p[1] - p[0])).collect();
+            }
+            debug_assert_eq!(g.len(), 1);
+            g[0] * tail
         })
         .collect()
 }
@@ -168,6 +183,91 @@ pub fn check_base_key(air: &str, public: &str, vk: &MultiStarkVerifyingKey<Sha38
     public_statement(air, public, vk.inner.params.clone(), Some(vk), None);
 }
 
+/// Verifier-generated public inputs: the public values and the TAPE's net message counts.
+pub struct PublicData {
+    pubs: Vec<F>,
+    tape: BTreeMap<Key, u64>,
+}
+
+impl PublicData {
+    /// From canonical public inputs and public messages `(bus, send, record)`: the data
+    /// `statepublic` writes to pubs.bin / pubmsgs.json, with the same range checks as `read`.
+    pub fn new<'a>(pubs: &[u32], msgs: impl IntoIterator<Item = (u64, bool, &'a [u32])>) -> Self {
+        let pubs = pubs
+            .iter()
+            .map(|&x| {
+                assert!((x as u64) < P, "noncanonical public field");
+                F::new(x)
+            })
+            .collect();
+        let mut tape = BTreeMap::new();
+        for (bus, send, m) in msgs {
+            let bus = u16::try_from(bus).unwrap().checked_add(BUS_OFFSET).unwrap();
+            let msg = m
+                .iter()
+                .map(|&x| {
+                    assert!((x as u64) < P, "noncanonical message field");
+                    x
+                })
+                .collect();
+            add(&mut tape, (bus, msg), if send { 1 } else { P - 1 });
+        }
+        PublicData { pubs, tape }
+    }
+
+    /// Read `pubs.bin` + `pubmsgs.json` from a `statepublic` output directory.
+    pub fn read(public: &str) -> Self {
+        let d = std::path::Path::new(public);
+        let bytes = std::fs::read(d.join("pubs.bin")).unwrap();
+        assert_eq!(bytes.len() % 4, 0);
+        let pubs: Vec<u32> = bytes
+            .chunks_exact(4)
+            .map(|c| u32::from_le_bytes(c.try_into().unwrap()))
+            .collect();
+        let messages: serde_json::Value =
+            serde_json::from_slice(&std::fs::read(d.join("pubmsgs.json")).unwrap()).unwrap();
+        let msgs: Vec<(u64, bool, Vec<u32>)> = messages
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|x| {
+                let msg = x[2]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .map(|v| {
+                        let x = v.as_u64().unwrap();
+                        assert!(x < P, "noncanonical message field");
+                        x as u32
+                    })
+                    .collect();
+                (x[0].as_u64().unwrap(), x[1].as_bool().unwrap(), msg)
+            })
+            .collect();
+        Self::new(&pubs, msgs.iter().map(|(b, s, m)| (*b, *s, m.as_slice())))
+    }
+}
+
+/// `expected_claim_at` (with `u`) / `expected_claim` (without) on in-memory inputs: each table's
+/// public-input bound (`max pub index + 1` over its constraints and interactions, in AIR order;
+/// the caller derives it from the AIR bytes it pinned) and the verifier-generated public data.
+/// Same claim as the file-based entry points on the equivalent AIR and files.
+pub fn expected_claim_parsed(
+    table_num_pub: &[usize],
+    public: &PublicData,
+    params: SystemParams,
+    u: Option<&[openvm_recursion_circuit::sha384::config::EF]>,
+) -> StatementClaim {
+    assert_eq!(table_num_pub.len(), ORDER.len());
+    claim_of(table_num_pub, public, params, u)
+}
+
+/// Each table's public-input bound as the classical AIR parser computes it (parity checks).
+pub fn table_num_pub(air: &str) -> Vec<usize> {
+    let cl = ClassicalAir::parse(&std::fs::read_to_string(air).unwrap(), ORDER);
+    cl.tables.iter().map(|t| t.num_pub).collect()
+}
+
 fn public_statement(
     air: &str,
     public: &str,
@@ -175,56 +275,13 @@ fn public_statement(
     expected_vk: Option<&MultiStarkVerifyingKey<Sha384Config>>,
     tape_point: Option<&[openvm_recursion_circuit::sha384::config::EF]>,
 ) -> StatementClaim {
-    // The driver initializes these once, before spawning worker threads.
-    let levers = config::sha_levers();
-    // 41 B is the documented margin lever (CMS19 constants + Thm 4, K = 0); the wire path is
-    // width-generic. Keep the coset/tstar invariants strict and allow only the 42 -> 41 width.
-    assert!(
-        matches!(levers.digest_bytes, 42 | 41) && levers.coset_leaf && levers.tstar,
-        "chunk proof requires coset_leaf, tstar and a 42/41-byte digest"
-    );
     let mut cl = ClassicalAir::parse(&std::fs::read_to_string(air).unwrap(), ORDER);
     assert_eq!(cl.tables.len(), ORDER.len());
     offset_buses(&mut cl);
-    let d = std::path::Path::new(public);
-    let bytes = std::fs::read(d.join("pubs.bin")).unwrap();
-    assert_eq!(bytes.len() % 4, 0);
-    let pubs: Vec<F> = bytes
-        .chunks_exact(4)
-        .map(|c| {
-            let x = u32::from_le_bytes(c.try_into().unwrap());
-            assert!((x as u64) < P, "noncanonical public field");
-            F::new(x)
-        })
-        .collect();
-    let messages: serde_json::Value =
-        serde_json::from_slice(&std::fs::read(d.join("pubmsgs.json")).unwrap()).unwrap();
-    let mut tape = BTreeMap::new();
-    for x in messages.as_array().unwrap() {
-        let bus = u16::try_from(x[0].as_u64().unwrap())
-            .unwrap()
-            .checked_add(BUS_OFFSET)
-            .unwrap();
-        let msg = x[2]
-            .as_array()
-            .unwrap()
-            .iter()
-            .map(|v| {
-                let x = v.as_u64().unwrap();
-                assert!(x < P, "noncanonical message field");
-                x as u32
-            })
-            .collect();
-        add(
-            &mut tape,
-            (bus, msg),
-            if x[1].as_bool().unwrap() { 1 } else { P - 1 },
-        );
-    }
-    let (ts, tm) = harness("TAPE", &tape, true);
-    let params_copy = params.clone();
-    let engine = Sha384RefEngine::new(params);
+    let public = PublicData::read(public);
     if let Some(expected) = expected_vk {
+        let (ts, _) = harness("TAPE", &public.tape, true);
+        let engine = Sha384RefEngine::new(params.clone());
         let tables: Vec<AirRef<Sha384Config>> = cl
             .tables
             .iter()
@@ -239,16 +296,41 @@ fn public_statement(
             "base verifying key differs from the declared AIR and public TAPE"
         );
     }
-    let mut pvs: Vec<_> = cl.tables.iter().map(|t| pv_of(t, &pubs)).collect();
+    let num_pub: Vec<usize> = cl.tables.iter().map(|t| t.num_pub).collect();
+    claim_of(&num_pub, &public, params, tape_point)
+}
+
+fn claim_of(
+    table_num_pub: &[usize],
+    public: &PublicData,
+    params: SystemParams,
+    tape_point: Option<&[openvm_recursion_circuit::sha384::config::EF]>,
+) -> StatementClaim {
+    // The driver initializes these once, before spawning worker threads.
+    let levers = config::sha_levers();
+    // 41 B is the documented margin lever (CMS19 constants + Thm 4, K = 0); the wire path is
+    // width-generic. Keep the coset/tstar invariants strict and allow only the 42 -> 41 width.
+    assert!(
+        matches!(levers.digest_bytes, 42 | 41) && levers.coset_leaf && levers.tstar,
+        "chunk proof requires coset_leaf, tstar and a 42/41-byte digest"
+    );
+    let (_, tm) = harness("TAPE", &public.tape, true);
+    // `pv_of` of each classical table, then the TAPE's (empty) public values.
+    let mut pvs: Vec<Vec<F>> = table_num_pub
+        .iter()
+        .map(|&n| (0..n).map(|i| public.pubs.get(i).copied().unwrap_or(F::ZERO)).collect())
+        .collect();
     pvs.push(vec![]);
     if let Some(u) = tape_point {
-        let ys = stacked_openings_at(&params_copy, &ColMajorMatrix::from_row_major(&tm), u);
+        let ys = stacked_openings_at(&params, &ColMajorMatrix::from_row_major(&tm), u);
         return StatementClaim {
             public_values: pvs,
             cached_roots: vec![],
             tape_point: Some((u.to_vec(), ys)),
         };
     }
+    // The reference engine is only needed for the commitment-root (non-TAPE-eval) claim.
+    let engine = Sha384RefEngine::new(params);
     let root = commit_program_part(engine.config(), ColMajorMatrix::from_row_major(&tm)).0;
     StatementClaim {
         public_values: pvs,
