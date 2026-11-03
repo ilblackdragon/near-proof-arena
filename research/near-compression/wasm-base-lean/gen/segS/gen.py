@@ -15,7 +15,8 @@ import re, sys, os
 ROOT = sys.argv[1]  # wasm-base-lean dir
 DEPS = sys.argv[2]
 ORDER = ["SegRows", "SegMemb", "SegSend", "SegCuto", "SegLink", "SegSha", "SegShaBytes", "SegShaCut",
-         "SegCutWords", "SegSound", "SegBus", "SegRowsX", "SegRegKeep", "SegSoundX"]
+         "SegCutWords", "SegSound", "SegBus", "SegRowsX", "SegRegKeep", "SegSoundX",
+         "SegTomb", "SegHalt", "SegLinkage", "SegSoundC"]  # SegRowRel, SegDom: no HoldsX lemma
 EXCLUDE = {"WasmBase.SegSha.seg_if_bits", "WasmBase.SegSha.seg_if_send_zero", "WasmBase.SegSha.if_recv_mem"}
 PRELUDE = {}
 pre_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "prelude")
@@ -29,7 +30,7 @@ for line in open(DEPS):
     if not (line.startswith("DEP ") or line.startswith("EXTRA ")):
         continue
     _, mod, full, H, A, a, b = line.split()
-    if H != "H=true" or "._" in full or mod == "WasmBase.Main.SegHoldsX":
+    if H != "H=true" or "._" in full or ".eq_" in full or mod == "WasmBase.Main.SegHoldsX":
         continue
     if full in EXCLUDE:
         continue

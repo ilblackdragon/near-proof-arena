@@ -1,4 +1,4 @@
-import WasmBase.Main.SegSoundX
+import WasmBase.Main.SegSoundC
 open Lean Meta Elab Command
 
 partial def collect (env : Environment) (root : Name) : NameSet := Id.run do
@@ -18,7 +18,7 @@ partial def collect (env : Environment) (root : Name) : NameSet := Id.run do
 
 elab "#deps" : command => do
   let env ← getEnv
-  let s := collect env `WasmBase.seg_sound
+  let s := [`WasmBase.seg_sound, `WasmBase.seg_sound_c, `WasmBase.seg_sound_any].foldl (fun (acc : NameSet) r => (collect env r).foldl (fun a n => a.insert n) acc) ({} : NameSet)
   let mut out := #[]
   for n in s.toList do
     match env.find? n with
