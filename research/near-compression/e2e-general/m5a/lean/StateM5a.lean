@@ -125,3 +125,10 @@ import StateM5a.StSoundF1
 import StateM5a.StSoundF3
 import StateM5a.StSoundF2
 import StateM5a.StSoundF
+import StateM5a.SnContHead
+import StateM5a.SnContChain
+import StateM5a.SnContByte
+import StateM5a.SnContSer
+import StateM5a.SnContMem
+import StateM5a.SnContLimbs
+import StateM5a.M5bFinal

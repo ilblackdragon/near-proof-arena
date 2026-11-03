@@ -1,3 +1,4 @@
+import StateM5a.M5bFinal
 import StateM5a.SnFinal5
 import StateM5a.StSoundF
 import StateM5a.SnFinal4
@@ -650,3 +651,5 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.StSound.final_req
 #print axioms StateM5a.StSound.req_row
 #print axioms StateM5a.StSound.final_changes_m5b
+#print axioms StateM5a.SnContLimbs.snContMem_of
+#print axioms StateM5a.M5bFinal.m5b_final
