@@ -8,7 +8,7 @@ keys looked up, and the committed overlay at finalize, cross-checked against the
 NAMES_JSON is `m5a-tool air`'s column map.  OUT_DIR receives one `<TABLE>.bin` per Python-built
 table (u32 log2 height, u32 width, row-major u32 cells), `sha_msgs.json` (the SHA-256 table's
 messages, built into a trace by the prover), `comps.json` (the SHA-512 compressions, in chip
-order), `tape.json` (the public messages) and `pubs.bin` (prev_state_root as 16 limbs).
+order), `tape.json` (the public messages) and `pubs.bin` (prev_state_root as 16 limbs, then the working-set entry count `wsLen`).
 
 The walks are the spec's own recursions (`ptrie.py`, a transcription of `PTrie.findRef`,
 `PTrie.upsert`, `PTrie.del`, `applyChanges`); every row records the case it takes, and the result
@@ -35,6 +35,10 @@ Batched-FINAL mutants (M5a-2: in-memory node versions on `VER`):
   vmcount   a pre-state node's hashing row publishes it for one reader more than read it
   finroot   the last change leaves the root in memory (a version id) instead of hashing it
   nidforge  a version published under another row's version id
+Working-set count mutants (M5a-5: `wsLen` is public value 16):
+  wslen     the statement claims one working-set entry more than the trace has (a padding leaf
+            would have to count as real)
+  wslenlo   the statement claims one entry fewer (the last real leaf would have to be padding)
 Branch-value mutants (synthetic case `bval`):
   bvalue    a branch-value write (`oUV`) storing another value-hash byte than the walk's value
   bvmem     a branch-value delete (`oDV`) with memory usage + 1
@@ -1144,6 +1148,11 @@ class Gen:
                 Tl.set(r, 'ncp', nc[0]); Tl.set(r, 'ncl', nc[1]); Tl.setv(r, 'ncv', pack2(nc[2])); Tl.set(r, 'nwr', nwr)
                 Tl.setv(r, 'nclx', self.len_chunks(nc[1]))
                 Tl.set(r, 'idl', last_t[i])
+                # M5a-5: the touched leaf is a real entry, `i < wsLen` (bytes of `wsLen - 1 - i`)
+                ix = [((n - 1 - i) >> (8 * k)) & 255 for k in range(3)]
+                Tl.setv(r, 'ix', ix)
+                for x in ix:
+                    self.rng(x)
                 for x in list(kdi) + self.len_chunks(p[1]) + self.len_chunks(c[1]) + self.len_chunks(nc[1]):
                     self.rng(x)
                 cO, outO = self.leaf_hash(self.leaf_words(kdi, p, c, wr))
@@ -1279,9 +1288,15 @@ class Gen:
                 heights[nm] = T.dump(os.path.join(out, nm + '.bin'))
         json.dump(self.sha_msgs, open(os.path.join(out, 'sha_msgs.json'), 'w'))
         json.dump(self.comps, open(os.path.join(out, 'comps.json'), 'w'))
-        pubs = pack2(self.pre_root)
+        # public values: prev_state_root (16 limbs), then the working-set entry count (M5a-5)
+        wslen = len(self.keys)
+        if self.mutant == 'wslen':
+            wslen += 1
+        elif self.mutant == 'wslenlo':
+            wslen -= 1
+        pubs = pack2(self.pre_root) + [wslen]
         with open(os.path.join(out, 'pubs.bin'), 'wb') as f:
-            f.write(struct.pack('<16I', *pubs))
+            f.write(struct.pack('<17I', *pubs))
         tape = []
         for (t, seg, key, ref) in self.writes:
             tape.append([13, True, [seg, t] + pack2(sha(key)) + [ref[0], ref[1]] + pack2(ref[2])])

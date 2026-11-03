@@ -264,7 +264,7 @@ theorem wsl_kd (hc : ∀ e ∈ Wsl.table.constraints, e.eval tr t r pub = 0) (j 
       Wsl.constraints by
     unfold Wsl.constraints
     simp only [List.mem_append, List.mem_map, List.mem_range]
-    exact Or.inr ⟨j, hj, rfl⟩)
+    exact Or.inl (Or.inr ⟨j, hj, rfl⟩))
   have h' := eq_of_sub h
   have b0 := hb (2 * j) (by omega); have b1 := hb (2 * j + 1) (by omega)
   simp only [ev_hadd, ev_hmul, K, ev_const, Nat.reduceMod] at h'

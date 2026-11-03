@@ -107,6 +107,15 @@ def NUM_BUSES_WS : Nat := NUM_BUSES + 2
 /-- Bytes of a write access's time gap `t − idp − 1` (segment-local times are `< 2^24`). -/
 def DT_BYTES : Nat := 3
 
+/-- **The working-set entry count** `wsLen` (M5a-5): public value 16 (after `prev_state_root`'s
+16 limbs).  `WSB`'s `real` flag is exactly `i < wsLen` in both phases, and a touched leaf (`WSL`)
+has `i < wsLen` (bytes `ix` of `wsLen − 1 − i`), so a real leaf is never a zero padding leaf and
+the count is the state commitment's `wsLen` (`StateView`). -/
+def PUB_WSLEN : Nat := 16
+def wsLenE : Expr := .pub PUB_WSLEN
+/-- Bytes of `wsLen − 1 − i` for a touched leaf (`D ≤ 20`). -/
+def IX_BYTES : Nat := 3
+
 /-! ## WSB: leaves, both phases (`2^(D+1)` rows: phase 0 indices `0..2^D`, then phase 1) -/
 
 namespace Wsb
@@ -143,7 +152,14 @@ def constraints (D : Nat) : List Expr :=
   ((List.range 16).flatMap fun t =>
     [(1 - ph) * (c "cv" t - c "pv" t), (1 - c "pp") * c "pv" t, (1 - c "cp") * c "cv" t,
      (1 - real) * c "kd" t]) ++
-  ((List.range 18).map fun t => (1 - real) * c "dg" t)
+  ((List.range 18).map fun t => (1 - real) * c "dg" t) ++
+  -- M5a-5: `real ↔ i < wsLen` in each phase (`real` is a prefix of the phase, by the transition
+  -- constraint above): a phase whose first row is padding has `wsLen = 0`; the last real row of a
+  -- phase is `i = wsLen − 1`, or `i = 2^D − 1` with `wsLen = 2^D`
+  [.isFirst * (1 - real) * wsLenE,
+   .isTransition * e * (1 - nx "real") * wsLenE,
+   (1 - e) * real * (1 - nx "real") * (c "i" + 1 - wsLenE),
+   e * real * (K (2 ^ D) - wsLenE)]
 
 def interactions : List Interaction :=
   let ph := c "ph"; let real := c "real"; let gw := ph * c "wr"; let g0 := (1 - ph) * real
@@ -246,7 +262,7 @@ def L : Layout :=
   [("act", 1), ("seg", 1), ("i", 1), ("kd", 16), ("kb", 32), ("pp", 1), ("pl", 1), ("pv", 16),
    ("plx", LEN_CHUNKS), ("cp", 1), ("cl", 1), ("cv", 16), ("wr", 1), ("clx", LEN_CHUNKS),
    ("ncp", 1), ("ncl", 1), ("ncv", 16), ("nwr", 1), ("nclx", LEN_CHUNKS), ("idl", 1),
-   ("cidO", 1), ("dgO", 18), ("dxO", 6), ("cidN", 1), ("dgN", 18), ("dxN", 6)]
+   ("cidO", 1), ("dgO", 18), ("dxO", 6), ("cidN", 1), ("dgN", 18), ("dxN", 6), ("ix", IX_BYTES)]
 def T : Cols := ⟨L⟩
 def c (s : String) (j : Nat := 0) : Expr := T.c s j
 def vec (s : String) (n : Nat) : List Expr := (List.range n).map fun t => c s t
@@ -255,7 +271,9 @@ def constraints : List Expr :=
   (["act", "pp", "cp", "wr", "ncp", "nwr"].map fun s => bool (c s)) ++
   [lenChunks (c "pl") (fun k => c "plx" k), lenChunks (c "cl") (fun k => c "clx" k),
    lenChunks (c "ncl") (fun k => c "nclx" k)] ++
-  (List.range 16).map fun t => c "kd" t - (K 256 * c "kb" (2 * t) + c "kb" (2 * t + 1))
+  ((List.range 16).map fun t => c "kd" t - (K 256 * c "kb" (2 * t) + c "kb" (2 * t + 1))) ++
+  -- M5a-5: a touched leaf is a real entry, `i < wsLen`
+  [c "act" * (wsLenE - 1 - c "i" - sumE ((List.range IX_BYTES).map fun k => K (256 ^ k) * c "ix" k))]
 
 def interactions : List Interaction :=
   let A := c "act"
@@ -271,7 +289,8 @@ def interactions : List Interaction :=
    rcv B_WM A ([c "seg"] ++ vec "kd" 16 ++ [c "ncp", c "ncl"] ++ vec "ncv" 16 ++ [c "nwr", c "idl"])] ++
   ((List.range 32).map fun b => rcv B_RNG A [c "kb" b]) ++
   ((List.range LEN_CHUNKS).flatMap fun k =>
-    [rcv B_RNG A [c "plx" k], rcv B_RNG A [c "clx" k], rcv B_RNG A [c "nclx" k]])
+    [rcv B_RNG A [c "plx" k], rcv B_RNG A [c "clx" k], rcv B_RNG A [c "nclx" k]]) ++
+  (List.range IX_BYTES).map fun k => rcv B_RNG A [c "ix" k]
 
 def table : Table :=
   { width := L.width, constraints, interactions, maxLog := 20 }
