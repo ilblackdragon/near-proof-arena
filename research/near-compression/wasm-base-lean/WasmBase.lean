@@ -127,3 +127,4 @@ import WasmBase.Main.SegRegKeep
 import WasmBase.Main.SegSoundX
 import WasmBase.Main.SegIface
 import WasmBase.Main.SegCuti
+import WasmBase.Main.SegReentry
