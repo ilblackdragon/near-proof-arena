@@ -20,20 +20,27 @@ later `set { s with … }` of a captured state is handled; `if`/`match` by `spli
 ranges/lists by `inv_forIn_list`/`inv_forIn_range`.  Relational facts ("field `f` is unchanged")
 are invariants with a fixed reference `W0` (`I s := s.f = W0.f`).
 
-## The primitives act on the two parts separately (`*_eq` lemmas)
+## The primitives act on the two parts separately
 
-* gas ops (`withGas`, `payBaseH`, `payPerH`, `payActionH`, `burnH`) and `sync`: only `gas`;
-* `readMemH`, `regGetH`: only `gas` (they read pages / registers);
-* `writeMemH`: only `gas` and `pages` (by `writeBytes`, which keeps every page's size);
-* `regSetH`: only `gas`, `registers`, `regUsage`; the new register file replaces the entry of the
-  written id or pushes a new one, so **distinct ids stay distinct** (`regSetRegs_nodup`);
-* `popArgs`, `pushRet`: only `stack` (`popN` / `pushI64`/`pushI32`, so the stack stays integer).
+The split: `vis s` (Wasm-visible part) and `hostSide s` (`σ`: the rest), lossless
+(`st_eq_of_parts`).  The primitive effects:
+* gas ops (`withGas`, hence `payBaseH`, `payPerH`, `payActionH`, `burnH`): only `gas` (`withGas_st`);
+  `sync`: only `gas` (`sync_st`, `Main/HostArms.lean`);
+* `readMemH`, `regGetH`, `memOrRegH`: only `gas` (they read pages / registers);
+* `writeMemH`: `gas` and `pages`, the latter by `writeBytes`, which changes only `pages`
+  (`writeBytes_split`: `wbPages`, a function of the pages alone; page count and sizes kept);
+* `regSetH`: `gas`, `regUsage` and `registers := regSetRegs registers id d` (`regSetH_regs_eq`),
+  which **keeps ids distinct** (`regSetRegs_nodup`);
+* `popArgs`, `pushRet`: only `stack` (`StepRegs.popN_snd`, `pushRet_st`).
+These are exactly the clauses of `Stab I` (a stable invariant survives any `σ`-only change, a pop,
+an integer push, `writeBytes`, `regSetRegs`), and `inv_*` proves each primitive keeps every stable
+invariant.
 
 ## The host invariant `HInv W0`
 
-frames, globals, table, tableMax, elems, datas, stackRem equal `W0`'s; the page sizes equal `W0`'s;
+frames, globals, table, tableMax, elems, datas, stackRem equal `W0`'s; the page count is `W0`'s and pages stay well-sized;
 register ids distinct; every operand-stack value an `i32`/`i64`.  `HInv` is preserved by every
-primitive (`hinv_*`), hence (tactic `hinv`) by whole arms of `hostCall`: see `HostArms.lean`.
+primitive (`hinv_stab`), hence (tactic `inv_auto`) by whole arms of `hostCall`: see `HostArms.lean`.
 -/
 
 namespace WasmBase
@@ -137,6 +144,10 @@ end
 
 theorem rst_ok {α : Type} (a : α) (s : St) : rst (.ok a s : EStateM.Result String St α) = s := rfl
 theorem rst_err {α : Type} (e : String) (s : St) : rst (.error e s : EStateM.Result String St α) = s := rfl
+
+/-- `pushRet`: only the operand stack changes (an `i64`/`i32` push). -/
+theorem pushRet_st (v : Nat) (is64 : Bool) (s : St) :
+    rst (pushRet v is64 s) = if is64 then pushI64 s v else pushI32 s v := rfl
 
 /-- Gas ops: only `gas` changes (to the op's new counter, on success and on failure). -/
 theorem withGas_st (f : Gas → Gas × Option String) (s : St) :
@@ -257,7 +268,7 @@ partial def invAutoGo (hS : Term) (g : MVarId) : TacticM Unit := g.withContext d
     n == ``MonadState.get || n == ``MonadStateOf.get || n == ``get || n == ``getThe
   let run (tac : TSyntax `tactic) : TacticM Unit := do
     setGoals [g]
-    evalTactic tac
+    Term.withoutErrToSorry (evalTactic tac)
     unless (← getGoals).isEmpty do throwError "inv_auto: leaf not closed"
   if nm == ``Bind.bind && m.getAppNumArgs == 6 then
     let α := m.getArg! 2

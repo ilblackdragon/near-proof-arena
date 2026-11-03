@@ -160,3 +160,4 @@ import WasmBase.Main.SegSoundK
 import WasmBase.Main.HostSpace
 import WasmBase.Main.HostFoot
 import WasmBase.Main.HostArms
+import WasmBase.Main.HostRegWF
