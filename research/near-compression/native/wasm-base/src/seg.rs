@@ -909,6 +909,7 @@ pub fn build(seg: &AirSpec, m2: &AirSpec, g: &Gen, prep: &Prep, k: usize, tree: 
     }
     let mut mats: Vec<RowMajorMatrix<F>> = mats.into_iter().enumerate().map(|(i, m)| m.unwrap_or_else(|| panic!("table {} not built", seg.tables[i].name))).collect();
     recount(seg, &mut mats, &pubs);
+    fill_hkey(seg, &mut mats, &pubs);
     let stats = SegStats {
         blocks: nb,
         blocks_ro: nro,
@@ -1116,6 +1117,54 @@ pub fn recount(spec: &AirSpec, mats: &mut [RowMajorMatrix<F>], pubs: &[F]) {
                 _ => unreachable!(),
             }
         }
+    }
+}
+
+/// The call-key bus (`Seg.busHKey`, E2E M4c): HOSTB and REG-C look their `[ts, hid]` up with their
+/// `act` flag; HOST offers its key with the multiplicity column `nk`.  Sets `nk` on every active HOST
+/// row to the number of lookups of its key (0 elsewhere).  A no-op for an AIR without `nk`.
+pub const BUS_HKEY: u16 = 214;
+pub fn fill_hkey(spec: &AirSpec, mats: &mut [RowMajorMatrix<F>], pubs: &[F]) {
+    let hi = spec.index("HOST");
+    let ht = &spec.tables[hi];
+    if !ht.cols.iter().any(|c| c == "nk") {
+        return;
+    }
+    let mut cnt: HashMap<Vec<u32>, u64> = HashMap::new();
+    for (ti, t) in spec.tables.iter().enumerate() {
+        let w = t.cols.len();
+        let h = mats[ti].values.len() / w;
+        for it in t.inters.iter().filter(|i| i.send && i.bus == BUS_HKEY) {
+            for r in 0..h {
+                let m = &mats[ti].values;
+                let cur = &m[r * w..(r + 1) * w];
+                let nxt = &m[((r + 1) % h) * w..((r + 1) % h + 1) * w];
+                let sl = sel(r, h);
+                let c = it.count.eval_f(cur, nxt, pubs, sl).as_canonical_u32();
+                if c == 0 {
+                    continue;
+                }
+                let msg: Vec<u32> = it.msg.iter().map(|e| e.eval_f(cur, nxt, pubs, sl).as_canonical_u32()).collect();
+                *cnt.entry(msg).or_default() += c as u64;
+            }
+        }
+    }
+    let recv = ht.inters.iter().find(|i| !i.send && i.bus == BUS_HKEY).expect("HOST: no call-key offer");
+    let (w, nk, act) = (ht.cols.len(), ht.col("nk"), ht.col("act"));
+    let h = mats[hi].values.len() / w;
+    for r in 0..h {
+        let v = {
+            let m = &mats[hi].values;
+            let cur = &m[r * w..(r + 1) * w];
+            if cur[act] == F::ZERO {
+                0
+            } else {
+                let nxt = &m[((r + 1) % h) * w..((r + 1) % h + 1) * w];
+                let msg: Vec<u32> = recv.msg.iter().map(|e| e.eval_f(cur, nxt, pubs, sel(r, h)).as_canonical_u32()).collect();
+                cnt.remove(&msg).unwrap_or(0)
+            }
+        };
+        mats[hi].values[r * w + nk] = fe(v);
     }
 }
 
