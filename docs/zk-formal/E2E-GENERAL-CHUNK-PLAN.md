@@ -664,6 +664,39 @@ mutants rejected) is met. The gas equality holds outside the proof (the tape) un
 `lake build WasmBase` breakage reported on 2026-10-31 was fixed on main (`6a1739cd7`), and the build
 is green with the new files.
 
+### 5.0 Lane D (ZK wrap for M9): status, 2026-11-03 (milestone D-2)
+
+See `research/near-compression/e2e/README.md` §0 and `research/near-compression/e2e/ZK-ARGUMENT.md`.
+The log is `docs/logs/e2e-zk-lane-d-2026-11-03.md`.
+
+**Done:**
+* **PIOP masking of the FINAL layer is built.** It is the `WhirLevers::zk = 5` mode,
+  `native/recursion/patches/zk-piop.patch`.
+  * Masked GKR: a root sumcheck replaces the half-sum and `q_0` messages, plus off-cube level
+    masks and Libra masks.
+  * Masked batch sumcheck: a Libra mask, last-variable column masks, and no per-AIR LogUp terms.
+  * Masked stacking reduction: sparse mask claims and a committed-column Libra mask.
+  * The public program columns stay unmasked, because V_d checks them.
+* A self-test on toy AIRs in the FINAL configuration rejects every tampered zk field.
+* **Measured on the 3 D0a chunks (FINAL only, `zk = 5`).**
+  * Packets are 319,695 / 320,464 / 319,779 B.
+  * Fresh-process verify takes 40–50 ms on one core, of which the FINAL check is 24–26 ms.
+  * 21/21 negatives pass per chunk, and the minimum is 268.2 bits per round.
+* **Split packing (`zk = 3/5`) is fixed.** The FINAL layout is 68 columns, against 98 without
+  splitting. All packing loss from the reserved rows is gone.
+* **Verify is in-process** (sub-agent). `statepublic` is a library call, and the TAPE
+  evaluation is folded. The non-ZK-PIOP packets verify in 32–34 ms on one core.
+* The simulator and the hiding error are written down in ZK-ARGUMENT.md §6. The witness-guessing
+  distinguisher and the two-witness test have been run.
+
+**Open:**
+* `zero_knowledge_established=false`. Lemma D (the stacking mask's joint rank) and Lemma E
+  (per-column absorption of opened rows plus stacked openings) are argued but not proved.
+* The fix for both is a protocol change: batch WHIR with the stacking coefficients so that no
+  individual stacked opening is sent, and use an EF-valued stacking mask. It would also save
+  about 5 KB.
+* An independent review of the masked verifier is still needed.
+
 ### 5.1 M5a (state lane B): status, 2026-11-03
 
 See `research/near-compression/e2e-general/m5a/README.md` (commands, logs, cost census).

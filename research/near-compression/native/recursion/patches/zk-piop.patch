@@ -1,0 +1,2871 @@
+--- a/stark-backend-unified/crates/stark-backend/src/zk.rs
++++ b/stark-backend-unified/crates/stark-backend/src/zk.rs
+@@ -0,0 +1,269 @@
++//! [E2E-D zk-piop] PIOP-level masking of a proof (`WhirLevers::zk >= 4`): definitions shared by
++//! the prover and the verifier. Construction, simulator and error bounds:
++//! `research/near-compression/e2e/ZK-ARGUMENT.md` (§4).
++//!
++//! Every mask is an extension-field coefficient stored in `D = [EF : F]` base-field cells of the
++//! last mask column `M_s` of the common-main stacked matrix (cells are uniform: `zk_fill`).
++//! Coefficient `k` occupies stacked rows `COEF_STRIDE * k + b`, `b < D`. A *sparse claim* is a
++//! linear relation `Σ w_i · coef[c_i] = value` that the stacking reduction proves together with
++//! the column-opening claims (the extra weight on `M_s` is `Σ w_i Σ_b β_b δ_{row(c_i, b)}`).
++//!
++//! Masks (all coefficients uniform, fixed by the commitment, i.e. before every challenge):
++//! * GKR (`GkrZkLayout`): root sumcheck mask `g_R` (degree 4), level-1 masks `α_1 = (α^p, α^q)`,
++//!   layer-1 Libra mask `h_1` (degree 5), level masks `α_k` (4 coefficients: `p(b=0), q(b=0),
++//!   p(b=1), q(b=1)`) for `k = 2..=K`, layer Libra masks `h_k = Σ_i h_{k,i}(y_i)` (`deg h_{k,i} =
++//!   2`, last variable 4) for `k = 2..K`.
++//! * Batch sumcheck (`BatchZkLayout`): `h_0` (uni-skip round, degree `s_0_deg`), `h_i` per
++//!   multilinear round (degree `d` or `2d` in rounds where some AIR binds its last variable), and
++//!   one column mask `A` per column opening (main and rotated).
++//! * Stacking: two whole mask columns `M_1, M_2` weighted by `eq_prism(τ_j, ·)` (Libra mask with
++//!   committed-column masks; their openings at `u` are ordinary stacked openings).
++use itertools::Itertools;
++use p3_field::{BasedVectorSpace, ExtensionField, Field, PrimeCharacteristicRing, TwoAdicField};
++
++use crate::poly_common::{eval_eq_mle, eval_eq_uni};
++
++/// Rows per mask coefficient in `M_s` (`>= [EF : F]`, a power of two).
++pub const COEF_STRIDE: usize = 16;
++pub const LOG_COEF_STRIDE: usize = 4;
++
++/// `(M_s, M_1, M_2)`: indices of the mask columns used by the PIOP masks in a common-main stacked
++/// layout of `width` columns (the last three of the `ZK_MASK_COLS` appended columns).
++pub fn mask_columns(width: usize) -> (usize, usize, usize) {
++    (width - 1, width - 2, width - 3)
++}
++
++/// `Σ w_i · coef[c_i] = value`.
++#[derive(Clone, Debug, PartialEq, Eq)]
++pub struct SparseClaim<EF> {
++    pub terms: Vec<(usize, EF)>,
++    pub value: EF,
++}
++
++/// `(start + j, scale · x^j)` for `j = 0..=deg`: the weights of `scale · h(x)` for the univariate
++/// `h` with coefficients `coef[start..=start + deg]` (ascending powers).
++pub fn poly_terms<EF: Field>(start: usize, deg: usize, x: EF, scale: EF) -> Vec<(usize, EF)> {
++    let mut out = Vec::with_capacity(deg + 1);
++    let mut p = scale;
++    for j in 0..=deg {
++        out.push((start + j, p));
++        p *= x;
++    }
++    out
++}
++
++pub fn horner<EF: Field>(coefs: &[EF], x: EF) -> EF {
++    coefs.iter().rev().fold(EF::ZERO, |acc, &c| acc * x + c)
++}
++
++/// Value at `x` of the polynomial through `(k, evals[k])`, `k = 0..evals.len()`.
++pub fn interpolate_at<EF: Field>(evals: &[EF], x: EF) -> EF {
++    let n = evals.len();
++    let mut acc = EF::ZERO;
++    for (i, &v) in evals.iter().enumerate() {
++        let mut num = EF::ONE;
++        let mut den = EF::ONE;
++        for j in 0..n {
++            if j != i {
++                num *= x - EF::from_usize(j);
++                den *= EF::from_usize(i) - EF::from_usize(j);
++            }
++        }
++        acc += v * num * den.inverse();
++    }
++    acc
++}
++
++/// `eq1(a, x) = (1 - a)(1 - x) + a x`.
++pub fn eq1<EF: Field>(a: EF, x: EF) -> EF {
++    (EF::ONE - a) * (EF::ONE - x) + a * x
++}
++
++/// Mask coefficients of the GKR (`K = total_rounds >= 2`).
++#[derive(Clone, Debug)]
++pub struct GkrZkLayout {
++    pub total_rounds: usize,
++    pub g_root: usize,
++    pub alpha1: usize,
++    pub h1: usize,
++    /// `alpha[k]`: start of `α_k` (4 coefficients), `k = 2..=K` (entries 0, 1 unused).
++    pub alpha: Vec<usize>,
++    /// `h[k]`: start of `h_k`, `k = 2..K` (entries 0, 1 unused).
++    pub h: Vec<usize>,
++    pub end: usize,
++}
++
++impl GkrZkLayout {
++    pub const ROOT_DEG: usize = 4;
++    pub const H1_DEG: usize = 5;
++
++    pub fn new(start: usize, total_rounds: usize) -> Self {
++        assert!(total_rounds >= 2, "zk GKR needs at least two layers");
++        let mut next = start;
++        let mut take = |n: usize| {
++            let s = next;
++            next += n;
++            s
++        };
++        let g_root = take(Self::ROOT_DEG + 1);
++        let alpha1 = take(2);
++        let h1 = take(Self::H1_DEG + 1);
++        let mut alpha = vec![0; total_rounds + 1];
++        let mut h = vec![0; total_rounds];
++        alpha[2] = take(4);
++        for k in 2..total_rounds {
++            h[k] = take(Self::h_len(k));
++            alpha[k + 1] = take(4);
++        }
++        Self { total_rounds, g_root, alpha1, h1, alpha, h, end: next }
++    }
++
++    /// Degree of `h_{k,i}` (variable `i` of layer `k`'s sumcheck, `k >= 2`).
++    pub fn h_deg(k: usize, i: usize) -> usize {
++        if i + 1 == k {
++            4
++        } else {
++            2
++        }
++    }
++
++    pub fn h_len(k: usize) -> usize {
++        (0..k).map(|i| Self::h_deg(k, i) + 1).sum()
++    }
++
++    /// Start of `h_{k,i}`.
++    pub fn h_start(&self, k: usize, i: usize) -> usize {
++        self.h[k] + 3 * i
++    }
++
++    /// Length of `GkrProof::zk`: `[G_R, s_R(1..=4)]`, layer 1 `[H_1, s(3), s(4), s(5)]`, layers
++    /// `k >= 2` `[H_k, s_last(3), s_last(4)]`.
++    pub fn tail_len(total_rounds: usize) -> usize {
++        5 + 4 + 3 * (total_rounds - 2)
++    }
++
++    pub fn tail_layer(k: usize) -> usize {
++        if k == 1 {
++            5
++        } else {
++            9 + 3 * (k - 2)
++        }
++    }
++}
++
++/// Mask coefficients of the batch sumcheck.
++#[derive(Clone, Debug)]
++pub struct BatchZkLayout {
++    pub h0: usize,
++    pub s0_deg: usize,
++    /// Per multilinear round `1..=n_max` (index `round - 1`): `(start, degree)` of `h_round`.
++    pub h: Vec<(usize, usize)>,
++    /// Per round: true if some trace binds its last variable there (degree `2d`).
++    pub doubled: Vec<bool>,
++    /// Start of the column masks: one coefficient per entry of `column_openings[t][0]`, in order.
++    pub cols: usize,
++    pub end: usize,
++}
++
++impl BatchZkLayout {
++    /// `n_lift_per_trace`: `max(n, 0)` per present trace (sorted order); `d` the max constraint
++    /// degree; `num_openings`: entries of `column_openings[t][0]` summed over traces.
++    pub fn new(
++        start: usize,
++        s0_deg: usize,
++        n_max: usize,
++        d: usize,
++        n_lift_per_trace: &[usize],
++        num_openings: usize,
++    ) -> Self {
++        let mut next = start;
++        let h0 = next;
++        next += s0_deg + 1;
++        let doubled = (1..=n_max).map(|i| n_lift_per_trace.contains(&i)).collect_vec();
++        let h = doubled
++            .iter()
++            .map(|&dbl| {
++                let deg = if dbl { 2 * d } else { d };
++                let s = next;
++                next += deg + 1;
++                (s, deg)
++            })
++            .collect_vec();
++        let cols = next;
++        next += num_openings;
++        Self { h0, s0_deg, h, doubled, cols, end: next }
++    }
++
++    /// Length of `BatchConstraintProof::zk`: `G_b` then `d` evaluations per doubled round.
++    pub fn tail_len(&self, d: usize) -> usize {
++        1 + d * self.doubled.iter().filter(|&&b| b).count()
++    }
++}
++
++/// Prover view of the mask coefficients: the base-field cells of `M_s`.
++pub struct MaskCoefs<'a, F> {
++    pub col: &'a [F],
++}
++
++impl<F: Field> MaskCoefs<'_, F> {
++    pub fn get<EF: BasedVectorSpace<F>>(&self, k: usize) -> EF {
++        EF::from_basis_coefficients_fn(|b| self.col[COEF_STRIDE * k + b])
++    }
++
++    pub fn poly<EF: BasedVectorSpace<F>>(&self, start: usize, deg: usize) -> Vec<EF> {
++        (start..=start + deg).map(|k| self.get(k)).collect()
++    }
++
++    /// `Σ w · coef` of a claim's terms.
++    pub fn eval_terms<EF: BasedVectorSpace<F> + Field>(&self, terms: &[(usize, EF)]) -> EF {
++        terms.iter().map(|&(k, w)| w * self.get::<EF>(k)).sum()
++    }
++}
++
++/// Stacked row of base cell `b` of coefficient `k`.
++pub fn coef_row(k: usize, b: usize) -> usize {
++    COEF_STRIDE * k + b
++}
++
++/// Accumulate per-coefficient weights `Σ scale · w_i` of a claim list into `acc`.
++pub fn accumulate_terms<EF: Field>(acc: &mut Vec<EF>, terms: &[(usize, EF)], scale: EF) {
++    for &(k, w) in terms {
++        if k >= acc.len() {
++            acc.resize(k + 1, EF::ZERO);
++        }
++        acc[k] += scale * w;
++    }
++}
++
++/// Verifier: the stacking-reduction coefficient of `M_s` at the stacking point `u` (`u[0]` the
++/// skip variable, `u[1..]` the cube variables, low row bits first) for per-coefficient weights
++/// `w`: `Σ_k w_k Σ_{b < D} β_b δ_{coef_row(k, b)}(u)`, where `δ_row(u) = eq_D(u_0, ω^z)·eq(u_cube,
++/// bits(row >> l_skip))`, `z = row mod 2^l_skip`.
++pub fn ms_coefficient<F, EF>(l_skip: usize, u: &[EF], w: &[EF]) -> EF
++where
++    F: TwoAdicField,
++    EF: ExtensionField<F> + TwoAdicField,
++{
++    assert!(l_skip <= LOG_COEF_STRIDE);
++    let omega = F::two_adic_generator(l_skip);
++    let d = <EF as BasedVectorSpace<F>>::DIMENSION;
++    let lo_bits = LOG_COEF_STRIDE - l_skip;
++    // Γ = Σ_{b<D} β_b · L_{b mod 2^l}(u_0) · eq(u[1..=lo_bits], b >> l)
++    let mut gamma = EF::ZERO;
++    for b in 0..d {
++        let z = b & ((1 << l_skip) - 1);
++        let hi = b >> l_skip;
++        let bits = (0..lo_bits).map(|j| EF::from_bool((hi >> j) & 1 == 1)).collect_vec();
++        let lz = eval_eq_uni(l_skip, u[0], EF::from(omega.exp_u64(z as u64)));
++        let e = eval_eq_mle(&u[1..=lo_bits], &bits);
++        gamma += EF::ith_basis_element(b).unwrap() * lz * e;
++    }
++    // Σ_k w_k eq(u[lo_bits+1..], bits(k))
++    let hi_vars = &u[lo_bits + 1..];
++    let nbits = (usize::BITS - w.len().saturating_sub(1).leading_zeros()) as usize;
++    assert!(nbits <= hi_vars.len(), "mask coefficients exceed the mask column");
++    let table = crate::poly_common::evals_eq_hypercube_serial(&hi_vars[..nbits]);
++    let tail = hi_vars[nbits..].iter().fold(EF::ONE, |a, &x| a * (EF::ONE - x));
++    let s: EF = w.iter().zip(&table).map(|(&a, &b)| a * b).sum();
++    gamma * s * tail
++}
+--- a/stark-backend-unified/crates/stark-backend/src/lib.rs
++++ b/stark-backend-unified/crates/stark-backend/src/lib.rs
+@@ -37,6 +37,7 @@
+ pub mod soundness;
+ pub mod utils;
+ pub mod verifier;
++pub mod zk;
+ 
+ #[cfg(feature = "lean")]
+ pub mod lean;
+--- a/stark-backend-unified/crates/stark-backend/src/any_air.rs
++++ b/stark-backend-unified/crates/stark-backend/src/any_air.rs
+@@ -31,6 +31,12 @@
+     fn max_log_trace_height(&self) -> Option<usize> {
+         None
+     }
++    /// [E2E-D zk-piop] Common-main columns whose content is public (fixed by the statement or the
++    /// setup, e.g. a pinned program table). Under PIOP masking (`WhirLevers::zk >= 4`) their
++    /// openings are sent unmasked so that a verifier can check them against public data.
++    fn zk_public_columns(&self) -> Vec<usize> {
++        vec![]
++    }
+ }
+ 
+ /// Shared reference to any Interactive Air.
+--- a/stark-backend-unified/crates/stark-backend/src/keygen/mod.rs
++++ b/stark-backend-unified/crates/stark-backend/src/keygen/mod.rs
+@@ -81,7 +81,7 @@
+             .into_iter()
+             .map(|keygen_builder| {
+                 // Second pass: get final constraints, where RAP phase constraints may have changed
+-                keygen_builder.generate_pk(max_constraint_degree, params.whir.levers.next_mask)
++                keygen_builder.generate_pk_zk(max_constraint_degree, params.whir.levers.next_mask, params.whir.levers.zk_piop())
+             })
+             .collect::<Result<Vec<_>, KeygenError>>()?;
+ 
+@@ -258,6 +258,16 @@
+         max_constraint_degree: usize,
+         next_mask: bool,
+     ) -> Result<StarkProvingKey<SC>, KeygenError> {
++        self.generate_pk_zk(max_constraint_degree, next_mask, false)
++    }
++
++    /// [E2E-D zk-piop] [`Self::generate_pk`]; with `zk_piop` the AIR's public columns are recorded.
++    pub fn generate_pk_zk(
++        self,
++        max_constraint_degree: usize,
++        next_mask: bool,
++        zk_piop: bool,
++    ) -> Result<StarkProvingKey<SC>, KeygenError> {
+         let air_name = self.air.name();
+ 
+         let width = self.trace_width();
+@@ -316,6 +326,7 @@
+             // M4 (per-table height cap): the AIR's `maxLog` goes into the vk and is enforced by
+             // every verifier (`verifier::verify` and the NV program generator).
+             max_log_trace_height,
++            zk_public_cols: if zk_piop { self.air.zk_public_columns() } else { vec![] },
+         };
+ 
+         let unused_variables = find_unused_vars(&dag, &vparams.width, need_rot);
+--- a/stark-backend-unified/crates/stark-backend/src/keygen/types.rs
++++ b/stark-backend-unified/crates/stark-backend/src/keygen/types.rs
+@@ -112,6 +112,10 @@
+     /// outgrows its table's cap cannot be verified under a vk that pins the cap.
+     #[serde(default, skip_serializing_if = "Option::is_none")]
+     pub max_log_trace_height: Option<usize>,
++    /// [E2E-D zk-piop] Common-main columns with public content: under PIOP masking their (plain)
++    /// openings are not masked. Set only for `zk >= 4` keys (empty: serialized as before).
++    #[serde(default, skip_serializing_if = "Vec::is_empty")]
++    pub zk_public_cols: Vec<usize>,
+ }
+ 
+ impl StarkVerifyingParams {
+--- a/stark-backend-unified/crates/stark-backend/src/soundness/vk.rs
++++ b/stark-backend-unified/crates/stark-backend/src/soundness/vk.rs
+@@ -185,6 +185,7 @@
+                             num_public_values: 3,
+                             need_rot: false,
+                             rot_mask: None,
++                            zk_public_cols: vec![],
+                             max_log_trace_height: None,
+                         },
+                         symbolic_constraints: constraints_with_counts(4, 0),
+@@ -203,6 +204,7 @@
+                             num_public_values: 0,
+                             need_rot: false,
+                             rot_mask: None,
++                            zk_public_cols: vec![],
+                             max_log_trace_height: None,
+                         },
+                         symbolic_constraints: constraints_with_counts(0, 1),
+@@ -221,6 +223,7 @@
+                             num_public_values: 0,
+                             need_rot: false,
+                             rot_mask: None,
++                            zk_public_cols: vec![],
+                             max_log_trace_height: None,
+                         },
+                         symbolic_constraints: constraints_with_counts(0, 1),
+--- a/stark-backend-unified/crates/stark-backend/src/config.rs
++++ b/stark-backend-unified/crates/stark-backend/src/config.rs
+@@ -372,8 +372,10 @@
+     /// [`ZK_MASK_COLS`] stacked columns of fresh uniform elements, so WHIR's batched polynomial
+     /// `g = sum_j mu^j col_j` is a one-time pad over the extension field (see
+     /// `research/near-compression/e2e/ZK-ARGUMENT.md`). `3`: as `2`, with slice splitting in the
+-    /// packing (fewer columns; see `StackedLayout::new_tight_zk`). Serialized only when non-zero, so the
+-    /// pre-hash of every existing key is unchanged.
++    /// packing (fewer columns; see `StackedLayout::new_tight_zk`). `4`: full zero knowledge — the
++    /// `2` commitment layout plus PIOP masking (masked GKR, masked batch sumcheck with column
++    /// masks, masked stacking sumcheck; [`crate::zk`]). `5`: as `4` with the `3` packing.
++    /// Serialized only when non-zero, so the pre-hash of every existing key is unchanged.
+     #[serde(default, skip_serializing_if = "zk_is_off")]
+     pub zk: u8,
+ }
+@@ -401,10 +403,23 @@
+             0 => (0, 0),
+             1 => (ZK_RESERVE_ROWS, 0),
+             2 | 3 => (ZK_RESERVE_ROWS, ZK_MASK_COLS),
++            // the PIOP masks take three more columns (`zk::mask_columns`), so that the WHIR
++            // one-time pad keeps ZK_MASK_COLS columns no other message refers to
++            4 | 5 => (ZK_RESERVE_ROWS, ZK_MASK_COLS + 3),
+             z => panic!("unknown zk lever {z}"),
+         }
+     }
+ 
++    /// [E2E-D zk-piop] PIOP masking on (`zk >= 4`).
++    pub fn zk_piop(&self) -> bool {
++        self.zk >= 4
++    }
++
++    /// [E2E-D zk] slice-splitting packing (`zk = 3` or `5`).
++    pub fn zk_split(&self) -> bool {
++        self.zk == 3 || self.zk == 5
++    }
++
+     /// Wire flags byte for the GKR / opening levers (bit 0 gruen_gkr, bit 1 gkr_derive_claims,
+     /// bit 2 next_mask).
+     pub fn flags(&self) -> u8 {
+--- a/stark-backend-unified/crates/stark-backend/src/proof.rs
++++ b/stark-backend-unified/crates/stark-backend/src/proof.rs
+@@ -86,6 +86,11 @@
+     /// The sumcheck polynomials for each layer, for each sumcheck round, given by their
+     /// evaluations on {1, 2, 3}.
+     pub sumcheck_polys: Vec<Vec<[SC::EF; 3]>>,
++    /// [E2E-D zk-piop] Masked-GKR messages that have no upstream field (`levers.zk >= 4`, empty
++    /// otherwise): root-sumcheck mask sum and round evaluations, per layer the Libra mask sum and
++    /// the extra evaluations of the masked last round. Layout: [`crate::zk::GkrZkLayout`].
++    #[serde(default)]
++    pub zk: Vec<SC::EF>,
+ }
+ 
+ #[derive(Derivative, Serialize, Deserialize)]
+@@ -136,6 +141,10 @@
+     /// The trace parts are ordered: [CommonMain (part 0), Preprocessed (if any), Cached(0),
+     /// Cached(1), ...]
+     pub column_openings: Vec<Vec<Vec<SC::EF>>>,
++    /// [E2E-D zk-piop] `levers.zk >= 4`: the batch mask sum `G_b`, then per masked last round
++    /// (ascending) its evaluations beyond `vk.d + 1`. Empty otherwise.
++    #[serde(default)]
++    pub zk: Vec<SC::EF>,
+ }
+ 
+ /// Per-column version of [`column_openings_by_rot`]: column `i` carries a rotated claim iff
+@@ -182,6 +191,9 @@
+     pub sumcheck_round_polys: Vec<[SC::EF; 2]>,
+     /// Per commit, per column.
+     pub stacking_openings: Vec<Vec<SC::EF>>,
++    /// [E2E-D zk-piop] `levers.zk >= 4`: the stacking mask claims `[G_1, G_2]`. Empty otherwise.
++    #[serde(default)]
++    pub zk: Vec<SC::EF>,
+ }
+ 
+ pub type MerkleProof<Digest> = Vec<Digest>;
+@@ -263,8 +275,8 @@
+             CODEC_VERSION_LEVERS.encode(writer)?;
+             // Lever header: k_first, multiproof, keep_domain, flags (gruen/derive/next_mask).
+             let k_first: u8 = levers.k_first.try_into().map_err(Error::other)?;
+-            // [E2E-D zk-pcs] the keep_domain byte carries the zk mode in bits 1-2 (0 = upstream byte)
+-            if levers.zk > 3 {
++            // [E2E-D zk-pcs] the keep_domain byte carries the zk mode in bits 1-3 (0 = upstream byte)
++            if levers.zk > 7 {
+                 return Err(Error::other("zk lever"));
+             }
+             writer.write_all(&[k_first, levers.multiproof as u8, levers.keep_domain as u8 | levers.zk << 1, levers.flags()])?;
+@@ -302,9 +314,12 @@
+         if levers.is_default() {
+             self.batch_constraint_proof.encode(writer)?;
+         } else {
+-            self.batch_constraint_proof.encode_levers(writer)?;
++            self.batch_constraint_proof.encode_levers_zk(writer, levers.zk_piop())?;
+         }
+         self.stacking_proof.encode(writer)?;
++        if levers.zk_piop() {
++            SC::encode_extension_field_slice(&self.stacking_proof.zk, writer)?;
++        }
+         // Dispatches to the lever wire format when `levers` is non-default.
+         self.whir_proof.encode(writer)
+     }
+@@ -516,8 +531,8 @@
+             if h[3] & !127 != 0 {
+                 return Err(invalid("lever flags"));
+             }
+-            let zk = (h[2] >> 1) & 3;
+-            if h[2] & !7 != 0 {
++            let zk = (h[2] >> 1) & 7;
++            if h[2] & !15 != 0 || zk > 5 {
+                 return Err(invalid("lever keep_domain/zk byte"));
+             }
+             let levers = WhirLevers {
+@@ -593,10 +608,16 @@
+                 None => GkrProof::decode(reader)?,
+             },
+             batch_constraint_proof: match &levers {
+-                Some(_) => BatchConstraintProof::decode_levers(reader)?,
++                Some(l) => BatchConstraintProof::decode_levers_zk(reader, l.zk_piop())?,
+                 None => BatchConstraintProof::decode(reader)?,
+             },
+-            stacking_proof: StackingProof::decode(reader)?,
++            stacking_proof: {
++                let mut sp = StackingProof::decode(reader)?;
++                if levers.is_some_and(|l| l.zk_piop()) {
++                    sp.zk = SC::decode_extension_field_vec(reader)?;
++                }
++                sp
++            },
+             whir_proof: match levers {
+                 Some(l) => WhirProof::decode_levers(reader, l)?,
+                 None => WhirProof::decode(reader)?,
+@@ -631,6 +652,7 @@
+             q0_claim,
+             claims_per_layer,
+             sumcheck_polys,
++            zk: vec![],
+         })
+     }
+ }
+@@ -644,6 +666,15 @@
+     where
+         SC: EncodableConfig,
+     {
++        self.encode_levers_zk(writer, false)
++    }
++
++    /// [E2E-D zk-piop] With `zk`: after the sumcheck rounds, the present-AIR count (the per-AIR
++    /// terms are absent) and the zk tail.
++    pub fn encode_levers_zk<W: Write>(&self, writer: &mut W, zk: bool) -> Result<()>
++    where
++        SC: EncodableConfig,
++    {
+         SC::encode_extension_field_slice(&self.numerator_term_per_air, writer)?;
+         SC::encode_extension_field_iter(self.denominator_term_per_air.iter(), writer)?;
+         SC::encode_extension_field_slice(&self.univariate_round_coeffs, writer)?;
+@@ -666,6 +697,13 @@
+                 SC::encode_extension_field_iter(round_polys[..n].iter(), writer)?;
+             }
+         }
++        if zk {
++            if !self.numerator_term_per_air.is_empty() {
++                return Err(invalid("zk: per-AIR terms present"));
++            }
++            self.column_openings.len().encode(writer)?;
++            SC::encode_extension_field_slice(&self.zk, writer)?;
++        }
+         for part_col_openings in &self.column_openings {
+             part_col_openings.len().encode(writer)?;
+             for col_opening in part_col_openings {
+@@ -679,8 +717,17 @@
+     where
+         SC: DecodableConfig,
+     {
++        Self::decode_levers_zk(reader, false)
++    }
++
++    /// [E2E-D zk-piop] With `zk`: the per-AIR terms are empty, the present-AIR count and the zk
++    /// tail follow the sumcheck rounds.
++    pub fn decode_levers_zk<R: Read>(reader: &mut R, zk: bool) -> Result<Self>
++    where
++        SC: DecodableConfig,
++    {
+         let numerator_term_per_air = SC::decode_extension_field_vec(reader)?;
+-        let num_present_airs = numerator_term_per_air.len();
++        let mut num_present_airs = numerator_term_per_air.len();
+         let denominator_term_per_air = SC::decode_extension_field_n(reader, num_present_airs)?;
+         let univariate_round_coeffs = SC::decode_extension_field_vec(reader)?;
+         let n_max = usize::decode(reader)?;
+@@ -699,6 +746,14 @@
+                 sumcheck_round_polys.push(v);
+             }
+         }
++        let mut zk_tail = vec![];
++        if zk {
++            if num_present_airs != 0 {
++                return Err(invalid("zk: per-AIR terms present"));
++            }
++            num_present_airs = usize::decode(reader)?;
++            zk_tail = SC::decode_extension_field_vec(reader)?;
++        }
+         let mut column_openings = vec_with_capped_capacity(num_present_airs);
+         for _ in 0..num_present_airs {
+             let num_parts = usize::decode(reader)?;
+@@ -714,6 +769,7 @@
+             univariate_round_coeffs,
+             sumcheck_round_polys,
+             column_openings,
++            zk: zk_tail,
+         })
+     }
+ }
+@@ -727,18 +783,23 @@
+     where
+         SC: EncodableConfig,
+     {
+-        let derive = levers.gkr_derive_claims && !self.claims_per_layer.is_empty();
++        // [E2E-D zk-piop] zk: no derived claims, no q0, layer 0 carries only (P, Q).
++        let zk = levers.zk_piop();
++        let derive = levers.gkr_derive_claims && !self.claims_per_layer.is_empty() && !zk;
+         SC::encode_base_field(&self.logup_pow_witness, writer)?;
+         self.claims_per_layer.len().encode(writer)?;
+-        for c in &self.claims_per_layer {
++        for (i, c) in self.claims_per_layer.iter().enumerate() {
++            let root_zk = zk && i == 0;
+             SC::encode_extension_field(&c.p_xi_0, writer)?;
+             SC::encode_extension_field(&c.q_xi_0, writer)?;
+-            if !derive {
++            if !derive && !root_zk {
+                 SC::encode_extension_field(&c.p_xi_1, writer)?;
+             }
+-            SC::encode_extension_field(&c.q_xi_1, writer)?;
++            if !root_zk {
++                SC::encode_extension_field(&c.q_xi_1, writer)?;
++            }
+         }
+-        if !derive {
++        if !derive && !zk {
+             SC::encode_extension_field(&self.q0_claim, writer)?;
+         }
+         let n = if levers.gruen_gkr { 2 } else { 3 };
+@@ -747,6 +808,9 @@
+                 SC::encode_extension_field_iter(arr[..n].iter(), writer)?;
+             }
+         }
++        if zk {
++            SC::encode_extension_field_slice(&self.zk, writer)?;
++        }
+         Ok(())
+     }
+ 
+@@ -759,17 +823,19 @@
+         if num_layers > 64 {
+             return Err(invalid("GKR layer count"));
+         }
+-        let derive = levers.gkr_derive_claims && num_layers > 0;
++        let zk = levers.zk_piop();
++        let derive = levers.gkr_derive_claims && num_layers > 0 && !zk;
+         let mut claims_per_layer = Vec::with_capacity(num_layers);
+-        for _ in 0..num_layers {
++        for i in 0..num_layers {
++            let root_zk = zk && i == 0;
+             let p_xi_0 = SC::decode_extension_field(reader)?;
+             let q_xi_0 = SC::decode_extension_field(reader)?;
+-            let p_xi_1 = if derive {
++            let p_xi_1 = if derive || root_zk {
+                 SC::EF::ZERO
+             } else {
+                 SC::decode_extension_field(reader)?
+             };
+-            let q_xi_1 = SC::decode_extension_field(reader)?;
++            let q_xi_1 = if root_zk { SC::EF::ZERO } else { SC::decode_extension_field(reader)? };
+             claims_per_layer.push(GkrLayerClaims {
+                 p_xi_0,
+                 q_xi_0,
+@@ -777,7 +843,7 @@
+                 q_xi_1,
+             });
+         }
+-        let q0_claim = if derive {
++        let q0_claim = if derive || zk {
+             SC::EF::ZERO
+         } else {
+             SC::decode_extension_field(reader)?
+@@ -797,11 +863,13 @@
+             }
+             sumcheck_polys.push(round);
+         }
++        let zk_tail = if zk { SC::decode_extension_field_vec(reader)? } else { vec![] };
+         Ok(Self {
+             logup_pow_witness,
+             q0_claim,
+             claims_per_layer,
+             sumcheck_polys,
++            zk: zk_tail,
+         })
+     }
+ }
+@@ -841,6 +909,7 @@
+             univariate_round_coeffs,
+             sumcheck_round_polys,
+             column_openings,
++            zk: vec![],
+         })
+     }
+ }
+@@ -867,6 +936,7 @@
+             univariate_round_coeffs,
+             sumcheck_round_polys,
+             stacking_openings,
++            zk: vec![],
+         })
+     }
+ }
+--- a/stark-backend-unified/crates/stark-backend/src/prover/stacked_pcs.rs
++++ b/stark-backend-unified/crates/stark-backend/src/prover/stacked_pcs.rs
+@@ -503,7 +503,7 @@
+         // two 2^(h-1) slices can share a column of capacity 2^h - R (zk = 1, 2 never split).
+         // The placed slices are re-sorted by size afterwards: the stacking-reduction provers group
+         // trace views into contiguous same-height windows.
+-        let split = zk == 3;
++        let split = zk == 3 || zk == 5;
+         let mut queue: std::collections::VecDeque<(usize, usize, StackedSlice)> = entries.into();
+         let mut placed = Vec::with_capacity(queue.len());
+         let mut fill: Vec<usize> = Vec::new();
+@@ -516,10 +516,23 @@
+                     if can_split && (len > cap || fill.iter().any(|&f| f + len / 2 <= cap)) {
+                         let (e, off, cl) = (s.log_height - 1, s.src_row, s.col_log_height());
+                         let mk = |o| StackedSlice { col_idx: 0, row_idx: 0, log_height: e, src_row: o, col_log_height: cl };
++                        // [E2E-D 2026-11-03 fix] The halves are tried right away, but only gaps of
++                        // existing columns take them (every such gap is < len, so no later
++                        // full-size slice can follow them into that column); a piece that needs a
++                        // new column waits behind every larger slice (below). Placements per
++                        // column are therefore non-increasing and aligned. (The first version
++                        // placed halves anywhere at the front: misaligned slices, the zk = 3
++                        // FinalSumMismatch; re-queueing all halves behind larger slices instead
++                        // shredded slices into gap-sized pieces: 10^4+ slices, 60 s verifier.)
+                         queue.push_front((m, j, mk(off + (1 << e))));
+                         queue.push_front((m, j, mk(off)));
+                         continue;
+                     }
++                    if queue.iter().any(|(_, _, t)| t.log_height > s.log_height) {
++                        let pos = queue.iter().position(|(_, _, t)| t.log_height <= s.log_height).unwrap_or(queue.len());
++                        queue.insert(pos, (m, j, s));
++                        continue;
++                    }
+                     if len > cap {
+                         return Err(StackedPcsError::LayoutHeightExceeded { log_height: s.log_height, log_stacked_height });
+                     }
+@@ -527,7 +540,7 @@
+                     fill.len() - 1
+                 }
+             };
+-            debug_assert_eq!(fill[c] % len, 0, "zk layout alignment");
++            assert_eq!(fill[c] % len, 0, "zk layout alignment");
+             s.col_idx = c;
+             s.row_idx = fill[c];
+             fill[c] += len;
+--- a/stark-backend-unified/crates/stark-backend/src/prover/stacked_reduction.rs
++++ b/stark-backend-unified/crates/stark-backend/src/prover/stacked_reduction.rs
+@@ -121,6 +121,7 @@
+         univariate_round_coeffs: s_0.0,
+         sumcheck_round_polys,
+         stacking_openings,
++        zk: vec![],
+     };
+     (proof, u_vec)
+ }
+--- a/stark-backend-unified/crates/stark-backend/src/prover/logup_zerocheck/mod.rs
++++ b/stark-backend-unified/crates/stark-backend/src/prover/logup_zerocheck/mod.rs
+@@ -438,12 +438,14 @@
+         univariate_round_coeffs: s_0_poly.into_coeffs(),
+         sumcheck_round_polys,
+         column_openings,
++        zk: vec![],
+     };
+     let mut gkr_proof = GkrProof::<SC> {
+         logup_pow_witness,
+         q0_claim: frac_sum_proof.fractional_sum.1,
+         claims_per_layer: frac_sum_proof.claims_per_layer,
+         sumcheck_polys: frac_sum_proof.sumcheck_polys,
++        zk: vec![],
+     };
+     // Derived-claims lever: the verifier recomputes these, so they are not part of the proof.
+     if mpk.params.whir.levers.gkr_derive_claims && !gkr_proof.claims_per_layer.is_empty() {
+--- a/stark-backend-unified/crates/stark-backend/src/soundness/calculator.rs
++++ b/stark-backend-unified/crates/stark-backend/src/soundness/calculator.rs
+@@ -118,20 +118,31 @@
+             log2_list_size,
+         ) + Self::effective_pow_bits(params.logup.pow_bits, base_field_order);
+ 
+-        let gkr_sumcheck_bits =
+-            Self::calculate_gkr_sumcheck_soundness(challenge_field_bits, params.l_skip, n_logup);
++        // [E2E-D zk-piop] masked protocol: GKR rounds up to degree 5 (quartic last rounds times the
++        // eq factor, the layer-1 round), batch rounds up to 2d + 1 (masked last variables), the
++        // mask sum G_b batched at μ^{2+T}, and K + 3 extra stacking claims (sparse V_*, G_1, G_2).
++        let zk = params.whir.levers.zk_piop();
++        let gkr_sumcheck_bits = if zk {
++            challenge_field_bits - 5f64.log2()
++        } else {
++            Self::calculate_gkr_sumcheck_soundness(challenge_field_bits, params.l_skip, n_logup)
++        };
+ 
+         let gkr_batching_bits =
+             Self::calculate_gkr_batching_soundness(challenge_field_bits, params.l_skip, n_logup);
+ 
+-        let zerocheck_sumcheck_bits = Self::calculate_zerocheck_sumcheck_soundness(
++        let mut zerocheck_sumcheck_bits = Self::calculate_zerocheck_sumcheck_soundness(
+             challenge_field_bits,
+             max_constraint_degree,
+             params.l_skip,
+             log2_list_size,
+         );
++        if zk {
++            zerocheck_sumcheck_bits = zerocheck_sumcheck_bits
++                .min(challenge_field_bits - ((2 * max_constraint_degree + 1) as f64).log2() - log2_list_size);
++        }
+ 
+-        let constraint_batching_bits = Self::calculate_constraint_batching_soundness(
++        let mut constraint_batching_bits = Self::calculate_constraint_batching_soundness(
+             challenge_field_bits,
+             max_num_constraints_per_air,
+             num_airs,
+@@ -140,10 +151,14 @@
+             n_logup,
+             log2_list_size,
+         );
++        if zk {
++            constraint_batching_bits = constraint_batching_bits
++                .min(challenge_field_bits - ((num_airs + 2) as f64).log2() - log2_list_size);
++        }
+ 
+         let stacked_reduction_bits = Self::calculate_stacked_reduction_soundness(
+             challenge_field_bits,
+-            num_trace_columns,
++            num_trace_columns + if zk { (params.l_skip + n_logup + 3).div_ceil(2) } else { 0 },
+             params.l_skip,
+             params.n_stack,
+             log2_list_size,
+--- a/stark-backend-unified/crates/stark-backend/src/verifier/mod.rs
++++ b/stark-backend-unified/crates/stark-backend/src/verifier/mod.rs
+@@ -48,6 +48,10 @@
+ 
+     #[error("Whir verification failed: {0}")]
+     WhirError(#[from] VerifyWhirError),
++
++    /// [E2E-D zk-piop] the masked protocol needs one commitment and room for its masks.
++    #[error("zk: unsupported proof shape")]
++    ZkShape,
+ }
+ 
+ pub mod batch_constraints;
+@@ -125,7 +129,14 @@
+         return Err(VerifierError::EmptyTraces);
+     }
+     // We verify the proof shape early to return error and prevent later panics
++    let t_phase = std::time::Instant::now();
++    let phase = |name: &str| {
++        if std::env::var("NEARPROOF_VERIFY_PHASES").is_ok() {
++            eprintln!("VERIFY_PHASE {name} {:.3} ms", t_phase.elapsed().as_secs_f64() * 1e3);
++        }
++    };
+     let layouts = verify_proof_shape::<SC>(mvk, proof)?;
++    phase("proof_shape");
+ 
+     let mut trace_id_to_air_id: Vec<usize> = (0..num_airs).collect();
+     trace_id_to_air_id.sort_by_key(|&air_id| {
+@@ -200,16 +211,39 @@
+         .iter()
+         .map(|&air_id| trace_vdata[air_id].as_ref().unwrap().log_height as isize - l_skip as isize)
+         .collect();
+-    let r = verify_zerocheck_and_logup::<SC, TS>(
+-        transcript,
+-        mvk,
+-        public_values,
+-        gkr_proof,
+-        batch_constraint_proof,
+-        &trace_id_to_air_id,
+-        &n_per_trace,
+-        &omega_skip_pows,
+-    )?;
++    phase("preamble");
++    // [E2E-D zk-piop] masked GKR / batch sumcheck; their sparse claims go to the stacking reduction
++    let (r, zk_in) = if params.whir.levers.zk_piop() {
++        if layouts.len() != 1 {
++            return Err(VerifierError::ZkShape);
++        }
++        let (r, out) = crate::verifier::batch_constraints::verify_zerocheck_and_logup_zk::<SC, TS>(
++            transcript,
++            mvk,
++            public_values,
++            gkr_proof,
++            batch_constraint_proof,
++            &trace_id_to_air_id,
++            &n_per_trace,
++            &omega_skip_pows,
++        )?;
++        if out.coef_end * crate::zk::COEF_STRIDE > 1 << (l_skip + params.n_stack) {
++            return Err(VerifierError::ZkShape);
++        }
++        (r, Some(crate::verifier::stacked_reduction::ZkStackIn { claims: out.claims, col_masks: out.col_masks }))
++    } else {
++        let r = verify_zerocheck_and_logup::<SC, TS>(
++            transcript,
++            mvk,
++            public_values,
++            gkr_proof,
++            batch_constraint_proof,
++            &trace_id_to_air_id,
++            &n_per_trace,
++            &omega_skip_pows,
++        )?;
++        (r, None)
++    };
+ 
+     // [e2e verify] record the batch point r for callers that check openings at it.
+     LAST_ZEROCHECK_POINT.with(|c| *c.borrow_mut() = Some(Box::new(r.clone())));
+@@ -236,7 +270,8 @@
+         }
+     }
+ 
+-    let u_prism = verify_stacked_reduction::<SC, TS>(
++    phase("gkr_batch");
++    let u_prism = crate::verifier::stacked_reduction::verify_stacked_reduction_with::<SC, TS>(
+         transcript,
+         stacking_proof,
+         &layouts,
+@@ -246,6 +281,7 @@
+         &proof.batch_constraint_proof.column_openings,
+         &r,
+         &omega_skip_pows,
++        zk_in.as_ref(),
+     )?;
+ 
+     // [e2e tape-eval] record the stacking point for callers that bind cached openings at it.
+@@ -265,14 +301,17 @@
+         commits.extend(&trace_vdata[air_id].as_ref().unwrap().cached_commitments);
+     }
+ 
+-    verify_whir::<SC, TS>(
++    phase("stacking");
++    let whir_res = verify_whir::<SC, TS>(
+         transcript,
+         config,
+         whir_proof,
+         &stacking_proof.stacking_openings,
+         &commits,
+         &u_cube,
+-    )?;
++    );
++    phase("whir");
++    whir_res?;
+ 
+     Ok(())
+ }
+--- a/stark-backend-unified/crates/stark-backend/src/verifier/proof_shape.rs
++++ b/stark-backend-unified/crates/stark-backend/src/verifier/proof_shape.rs
+@@ -438,17 +438,19 @@
+     let n_max = per_trace[0].2.log_height.saturating_sub(l_skip);
+ 
+     let s_0_deg = (mvk.max_constraint_degree() + 1) * ((1 << l_skip) - 1);
+-    if batch_proof.numerator_term_per_air.len() != num_airs_present {
++    // [E2E-D zk-piop] no per-AIR LogUp terms under PIOP masking
++    let num_terms = if mvk.params.whir.levers.zk_piop() { 0 } else { num_airs_present };
++    if batch_proof.numerator_term_per_air.len() != num_terms {
+         return ProofShapeError::invalid_batch_constraint(
+             BatchProofShapeError::InvalidNumeratorTerms {
+-                expected: num_airs_present,
++                expected: num_terms,
+                 actual: batch_proof.numerator_term_per_air.len(),
+             },
+         );
+-    } else if batch_proof.denominator_term_per_air.len() != num_airs_present {
++    } else if batch_proof.denominator_term_per_air.len() != num_terms {
+         return ProofShapeError::invalid_batch_constraint(
+             BatchProofShapeError::InvalidDenominatorTerms {
+-                expected: num_airs_present,
++                expected: num_terms,
+                 actual: batch_proof.denominator_term_per_air.len(),
+             },
+         );
+--- a/stark-backend-unified/crates/stark-backend/src/verifier/batch_constraints.rs
++++ b/stark-backend-unified/crates/stark-backend/src/verifier/batch_constraints.rs
+@@ -531,3 +531,293 @@
+         evaluator.eval_is_transition(),
+     ]
+ }
++
++/// [E2E-D zk-piop] What the masked batch verifier hands to the stacking reduction.
++#[derive(Clone, Debug)]
++pub struct ZkBatchOut<EF> {
++    /// Sparse claims: the GKR's `V_R, V_1, .., V_{K-1}`, then the batch sumcheck's `V_b`.
++    pub claims: Vec<crate::zk::SparseClaim<EF>>,
++    /// Per present trace (sorted order), per entry of `column_openings[t][0]`: the column mask
++    /// `(coefficient, weight)` with `opening = column claim + weight · coef`.
++    pub col_masks: Vec<Vec<(usize, EF)>>,
++    /// One past the last mask coefficient.
++    pub coef_end: usize,
++}
++
++/// [E2E-D zk-piop] Masked counterpart of [`verify_zerocheck_and_logup`] (`levers.zk >= 4`).
++///
++/// Differences from the upstream protocol (`ZK-ARGUMENT.md` §4): the GKR is
++/// [`verify_gkr_zk`](crate::verifier::fractional_sumcheck_gkr::verify_gkr_zk); no per-AIR LogUp
++/// terms are sent — every trace's numerator term has batching coefficient 1 and every denominator
++/// term `μ`, so the batch claim is `p̃(ξ) + μ (q̃(ξ) - α) + μ^{2+T} G_b`, where `G_b` is the sum of
++/// the Libra mask `g(X, y) = h_0(X) eq(ξ_y, y) + eq_D(ξ_0, X) eq(ξ_y, y) Σ_i h_i(y_i)`, and the GKR
++/// input mask `M_K` enters the summand as `eq_D eq_y M_K`; every column of every trace is masked
++/// by `y_last(1 - y_last) A` in the trace's last variable, which doubles the degree of the round
++/// in which that variable is bound (its extra evaluations are in `BatchConstraintProof::zk`).
++#[allow(clippy::too_many_arguments)]
++pub fn verify_zerocheck_and_logup_zk<SC: StarkProtocolConfig, TS: FiatShamirTranscript<SC>>(
++    transcript: &mut TS,
++    mvk: &MultiStarkVerifyingKey0<SC>,
++    public_values: &[Vec<SC::F>],
++    gkr_proof: &GkrProof<SC>,
++    batch_proof: &BatchConstraintProof<SC>,
++    trace_id_to_air_id: &[usize],
++    n_per_trace: &[isize],
++    omega_skip_pows: &[SC::F],
++) -> Result<(Vec<SC::EF>, ZkBatchOut<SC::EF>), BatchConstraintError<SC::EF>> {
++    use crate::zk::{eq1, poly_terms, BatchZkLayout, GkrZkLayout, SparseClaim};
++    let l_skip = mvk.params.l_skip;
++    let d = mvk.params.max_constraint_degree;
++    let num_traces = n_per_trace.len();
++    let bad = || BatchConstraintError::InconsistentClaims;
++    if !transcript.check_witness(mvk.params.logup.pow_bits, gkr_proof.logup_pow_witness) {
++        return Err(BatchConstraintError::InvalidLogupPowWitness);
++    }
++    let alpha_logup = transcript.sample_ext();
++    let beta_logup = transcript.sample_ext();
++    let total_interactions = zip(trace_id_to_air_id, n_per_trace)
++        .map(|(&air_idx, &n)| {
++            let n_lift = n.max(0) as usize;
++            let num_interactions = mvk.per_air[air_idx].symbolic_constraints.interactions.len();
++            (num_interactions as u64) << (l_skip + n_lift)
++        })
++        .sum::<u64>();
++    let n_logup: usize = calculate_n_logup(l_skip, total_interactions);
++    if total_interactions == 0 || n_per_trace.iter().any(|&n| n < 1) {
++        return Err(bad());
++    }
++    let k_tot = l_skip + n_logup;
++    let gkr_lay = GkrZkLayout::new(0, k_tot);
++    let gkr = crate::verifier::fractional_sumcheck_gkr::verify_gkr_zk::<SC, TS>(
++        gkr_proof, transcript, k_tot, &gkr_lay,
++    )?;
++    let mut xi = gkr.xi.clone();
++    let n_max = n_per_trace.iter().copied().max().unwrap().max(0) as usize;
++    let n_global = n_max.max(n_logup);
++    while xi.len() != l_skip + n_global {
++        xi.push(transcript.sample_ext());
++    }
++    let lambda = transcript.sample_ext();
++
++    // No per-AIR terms; the mask sum G_b.
++    if !batch_proof.numerator_term_per_air.is_empty()
++        || !batch_proof.denominator_term_per_air.is_empty()
++        || batch_proof.zk.is_empty()
++    {
++        return Err(bad());
++    }
++    let g_b = batch_proof.zk[0];
++    transcript.observe_ext(g_b);
++    let mu = transcript.sample_ext();
++    let mu_pows = mu.powers().take(3 + num_traces).collect_vec();
++    let rho_b = mu_pows[2 + num_traces];
++    let sum_claim = gkr.p + mu * (gkr.q - alpha_logup) + rho_b * g_b;
++
++    // Uni-skip round.
++    let s0_deg = (d + 1) * ((1 << l_skip) - 1);
++    if batch_proof.univariate_round_coeffs.len() != s0_deg + 1 {
++        return Err(bad());
++    }
++    for &coeff in &batch_proof.univariate_round_coeffs {
++        transcript.observe_ext(coeff);
++    }
++    let r_0 = transcript.sample_ext();
++    let s_0 = UnivariatePoly::new(batch_proof.univariate_round_coeffs.clone());
++    let sum_univ_domain_s_0 = s_0.coeffs().iter().step_by(1 << l_skip).copied().sum::<SC::EF>()
++        * SC::EF::from_usize(1 << l_skip);
++    if sum_claim != sum_univ_domain_s_0 {
++        return Err(BatchConstraintError::SumClaimMismatch { sum_claim, sum_univ_domain_s_0 });
++    }
++    let mut cur_sum = s_0.eval_at_point(r_0);
++    let mut rs = vec![r_0];
++
++    // Mask layout.
++    let n_lifts = n_per_trace.iter().map(|&n| n as usize).collect_vec();
++    let column_openings = &batch_proof.column_openings;
++    if column_openings.len() != num_traces {
++        return Err(bad());
++    }
++    let num_openings = column_openings.iter().map(|o| o[0].len()).sum::<usize>();
++    let lay = BatchZkLayout::new(gkr_lay.end, s0_deg, n_max, d, &n_lifts, num_openings);
++    if batch_proof.zk.len() != lay.tail_len(d) || batch_proof.sumcheck_round_polys.len() != n_max {
++        return Err(bad());
++    }
++    let gruen_rounds = if mvk.params.whir.levers.gruen_zerocheck {
++        n_lifts.iter().copied().min().unwrap_or(0).min(n_max)
++    } else {
++        0
++    };
++    let mut tail_off = 1;
++    for round in 0..n_max {
++        let base = &batch_proof.sumcheck_round_polys[round];
++        if base.len() != d + 1 {
++            return Err(bad());
++        }
++        let deg = lay.h[round].1; // degree of s'
++        let s_deg = deg + 1;
++        let mut evals = base.clone();
++        if lay.doubled[round] {
++            evals.extend_from_slice(&batch_proof.zk[tail_off..tail_off + d]);
++            tail_off += d;
++        }
++        debug_assert_eq!(evals.len(), s_deg);
++        let gruen = round < gruen_rounds;
++        if gruen && evals.last() != Some(&SC::EF::ZERO) {
++            return Err(bad());
++        }
++        for &eval in &evals[..evals.len() - gruen as usize] {
++            transcript.observe_ext(eval);
++        }
++        let s_1 = evals[0];
++        let s_0v = cur_sum - s_1;
++        let mut all = vec![s_0v];
++        all.extend_from_slice(&evals);
++        if gruen {
++            let xi_cur = xi[l_skip + round];
++            let mut sp = Vec::with_capacity(s_deg);
++            for k in 0..s_deg {
++                let Some(inv) = eq1(xi_cur, SC::EF::from_usize(k)).try_inverse() else {
++                    return Err(bad());
++                };
++                sp.push(all[k] * inv);
++            }
++            let x = SC::EF::from_usize(s_deg);
++            all[s_deg] = eq1(xi_cur, x) * crate::zk::interpolate_at(&sp, x);
++        }
++        let r = transcript.sample_ext();
++        cur_sum = crate::zk::interpolate_at(&all, r);
++        rs.push(r);
++    }
++
++    // eq_3b, eq_ns, eq_sharp_ns as upstream.
++    let mut stacked_idx = 0usize;
++    let eq_3b_per_trace = n_per_trace
++        .iter()
++        .enumerate()
++        .map(|(trace_idx, &n)| {
++            let air_idx = trace_id_to_air_id[trace_idx];
++            let interactions = &mvk.per_air[air_idx].symbolic_constraints.interactions;
++            if interactions.is_empty() {
++                return vec![];
++            }
++            let n_lift = n.max(0) as usize;
++            let mut b_vec = vec![SC::F::ZERO; n_logup - n_lift];
++            (0..interactions.len())
++                .map(|_| {
++                    let mut b_int = stacked_idx >> (l_skip + n_lift);
++                    for b in &mut b_vec {
++                        *b = SC::F::from_bool(b_int & 1 == 1);
++                        b_int >>= 1;
++                    }
++                    stacked_idx += 1 << (l_skip + n_lift);
++                    eval_eq_mle(&xi[l_skip + n_lift..l_skip + n_logup], &b_vec)
++                })
++                .collect_vec()
++        })
++        .collect_vec();
++    let mut eq_ns = vec![SC::EF::ONE; n_max + 1];
++    let mut eq_sharp_ns = vec![SC::EF::ONE; n_max + 1];
++    eq_ns[0] = eval_eq_uni(l_skip, xi[0], r_0);
++    eq_sharp_ns[0] = eval_eq_sharp_uni(omega_skip_pows, &xi[..l_skip], r_0);
++    for (i, r) in rs.iter().enumerate().skip(1) {
++        let eq_mle = eval_eq_mle(&[xi[l_skip + i - 1]], slice::from_ref(r));
++        eq_ns[i] = eq_ns[i - 1] * eq_mle;
++        eq_sharp_ns[i] = eq_sharp_ns[i - 1] * eq_mle;
++    }
++    let e_0 = eq_ns[0];
++    let e_y = eq_ns[n_max] * e_0.inverse();
++    let mut r_rev_prod = rs[n_max];
++    for i in (0..n_max).rev() {
++        eq_ns[i] *= r_rev_prod;
++        eq_sharp_ns[i] *= r_rev_prod;
++        r_rev_prod *= rs[i];
++    }
++
++    // Openings: observe, evaluate.
++    let masks_per_trace = trace_id_to_air_id
++        .iter()
++        .map(|&air_idx| mvk.per_air[air_idx].params.opening_masks())
++        .collect_vec();
++    for (trace_idx, air_openings) in column_openings.iter().enumerate() {
++        if air_openings.len() != 1 {
++            return Err(bad()); // zk: no preprocessed or cached parts
++        }
++        for (claim, claim_rot) in column_openings_by_mask(&air_openings[0], &masks_per_trace[trace_idx][0]) {
++            transcript.observe_ext(claim);
++            transcript.observe_ext(claim_rot);
++        }
++    }
++    let mut evaluated_claim = SC::EF::ZERO;
++    let mut col_masks = Vec::with_capacity(num_traces);
++    let mut col_off = lay.cols;
++    for (trace_idx, air_openings) in column_openings.iter().enumerate() {
++        let air_idx = trace_id_to_air_id[trace_idx];
++        let vk = &mvk.per_air[air_idx];
++        let n_lift = n_lifts[trace_idx];
++        let common_main = column_openings_by_mask(&air_openings[0], &masks_per_trace[trace_idx][0]);
++        let part_main_slices = vec![common_main.as_slice()];
++        let evaluator = VerifierConstraintEvaluator::<SC::F, SC::EF>::new(
++            None,
++            &part_main_slices,
++            &public_values[air_idx],
++            &rs[..=n_lift],
++            l_skip,
++        );
++        let constraints = &vk.symbolic_constraints.constraints;
++        let nodes = evaluator.eval_nodes(&constraints.nodes);
++        let expr = zip(lambda.powers(), &constraints.constraint_idx)
++            .map(|(lambda_pow, idx)| nodes[*idx] * lambda_pow)
++            .sum::<SC::EF>();
++        evaluated_claim += mu_pows[2 + trace_idx] * eq_ns[n_lift] * expr;
++        let symbolic_constraints = SymbolicConstraints::from(&vk.symbolic_constraints);
++        let mut num = SC::EF::ZERO;
++        let mut denom = SC::EF::ZERO;
++        for (&eq_3b, interaction) in eq_3b_per_trace[trace_idx].iter().zip_eq(&symbolic_constraints.interactions) {
++            let n_i = evaluator.eval_expr(&interaction.count);
++            let d_i = interaction
++                .message
++                .iter()
++                .map(|expr| evaluator.eval_expr(expr))
++                .chain(std::iter::once(SC::EF::from_u16(interaction.bus_index) + SC::EF::ONE))
++                .zip(beta_logup.powers())
++                .fold(SC::EF::ZERO, |acc, (x, y)| acc + x * y);
++            num += eq_3b * n_i;
++            denom += eq_3b * d_i;
++        }
++        evaluated_claim += (num + mu * denom) * eq_sharp_ns[n_lift];
++        // column masks of this trace: y_last(1 - y_last) at its last variable; the plain
++        // openings of public columns (`zk_public_cols`) are unmasked (weight 0)
++        let z_t = rs[n_lift] * (SC::EF::ONE - rs[n_lift]);
++        let public = &vk.params.zk_public_cols;
++        let mut entries = Vec::with_capacity(air_openings[0].len());
++        for (c, &has_rot) in masks_per_trace[trace_idx][0].iter().enumerate() {
++            let w = if public.contains(&c) { SC::EF::ZERO } else { z_t };
++            entries.push((col_off, w));
++            col_off += 1;
++            if has_rot {
++                entries.push((col_off, z_t));
++                col_off += 1;
++            }
++        }
++        debug_assert_eq!(entries.len(), air_openings[0].len());
++        col_masks.push(entries);
++    }
++    debug_assert_eq!(col_off, lay.end);
++
++    // V_b: the mask's value at the final point.
++    let one = SC::EF::ONE;
++    let mut terms = poly_terms(lay.h0, s0_deg, r_0, rho_b * e_y);
++    for (i, &(start, deg)) in lay.h.iter().enumerate() {
++        terms.extend(poly_terms(start, deg, rs[i + 1], rho_b * e_y * e_0));
++    }
++    let w = e_y * e_0 * gkr.z;
++    terms.extend([
++        (gkr.alpha, w * (one - gkr.mu)),
++        (gkr.alpha + 1, w * (one - gkr.mu) * mu),
++        (gkr.alpha + 2, w * gkr.mu),
++        (gkr.alpha + 3, w * gkr.mu * mu),
++    ]);
++    let mut claims = gkr.claims;
++    claims.push(SparseClaim { terms, value: cur_sum - evaluated_claim });
++    Ok((rs, ZkBatchOut { claims, col_masks, coef_end: lay.end }))
++}
+--- a/stark-backend-unified/crates/stark-backend/src/verifier/fractional_sumcheck_gkr.rs
++++ b/stark-backend-unified/crates/stark-backend/src/verifier/fractional_sumcheck_gkr.rs
+@@ -291,3 +291,193 @@
+     let denom = interpolate_linear_at_01(&[claims.q_xi_0, claims.q_xi_1], mu);
+     (numer, denom)
+ }
++
++/// [E2E-D zk-piop] Output of [`verify_gkr_zk`].
++#[derive(Clone, Debug)]
++pub struct GkrZkOut<EF> {
++    /// Masked input-layer claims `p̃(ξ), q̃(ξ)` and `ξ`.
++    pub p: EF,
++    pub q: EF,
++    pub xi: Vec<EF>,
++    /// Sparse claims `V_R, V_1, .., V_{K-1}` (values derived from the transcript).
++    pub claims: Vec<crate::zk::SparseClaim<EF>>,
++    /// Input-level mask: `p̃ = p + z α^p(μ)`, `q̃ = q + z α^q(μ)` with `z = ξ_{K-1}(1 - ξ_{K-1})`,
++    /// `μ = ξ_0`, `α_K` at coefficient `alpha`.
++    pub z: EF,
++    pub mu: EF,
++    pub alpha: usize,
++}
++
++/// [E2E-D zk-piop] Masked GKR verifier (`levers.zk >= 4`, Gruen rounds required).
++///
++/// Root: a one-variable sumcheck for `Σ_b p̃_1(b) q̃_1(1-b) = 0` with Libra mask `g_R`, ending in
++/// `P = p̃_1(β)`, `Q = q̃_1(1-β)`. Layer 1: one-variable sumcheck of
++/// `eq(β,y)[φ_p + M_1] + λ eq(1-β,y) φ_q + ρ h_1(y)` (claim `P + λQ + ρ H_1`). Layer `k >= 2`: the
++/// upstream Gruen sumcheck of `eq(ξ,y)[φ_λ + M_k + ρ h_k(y)]` (claim `C_k + ρ H_k`), whose last
++/// round has degree 4 in the reduced polynomial (level `k+1` is masked by `y_last(1 - y_last)
++/// α_{k+1}(b)`). `φ_p = p0 q1 + p1 q0`, `φ_q = q0 q1`. Each sumcheck's final check defines one
++/// sparse claim on the mask coefficients (`ZK-ARGUMENT.md` §4).
++pub fn verify_gkr_zk<SC: StarkProtocolConfig, TS: FiatShamirTranscript<SC>>(
++    proof: &GkrProof<SC>,
++    transcript: &mut TS,
++    total_rounds: usize,
++    lay: &crate::zk::GkrZkLayout,
++) -> Result<GkrZkOut<SC::EF>, GkrVerificationError<SC::EF>> {
++    use crate::zk::{eq1, interpolate_at, poly_terms, GkrZkLayout, SparseClaim};
++    let k_tot = total_rounds;
++    if k_tot < 2 || lay.total_rounds != k_tot {
++        return Err(GkrVerificationError::IncorrectLayerCount { expected: 2, actual: k_tot });
++    }
++    if proof.claims_per_layer.len() != k_tot {
++        return Err(GkrVerificationError::IncorrectLayerCount {
++            expected: k_tot,
++            actual: proof.claims_per_layer.len(),
++        });
++    }
++    if proof.sumcheck_polys.len() != k_tot - 1 {
++        return Err(GkrVerificationError::IncorrectSumcheckPolyCount {
++            expected: k_tot - 1,
++            actual: proof.sumcheck_polys.len(),
++        });
++    }
++    for (i, r) in proof.sumcheck_polys.iter().enumerate() {
++        if r.len() != i + 1 {
++            return Err(GkrVerificationError::IncorrectSubroundCount {
++                round: i + 1,
++                expected: i + 1,
++                actual: r.len(),
++            });
++        }
++    }
++    if proof.zk.len() != GkrZkLayout::tail_len(k_tot)
++        || gruen_any_nonzero(proof)
++        || proof.q0_claim != SC::EF::ZERO
++        || proof.claims_per_layer[0].p_xi_1 != SC::EF::ZERO
++        || proof.claims_per_layer[0].q_xi_1 != SC::EF::ZERO
++    {
++        return Err(GkrVerificationError::NonCanonicalDerivedField);
++    }
++    let zk = &proof.zk;
++    let one = SC::EF::ONE;
++    let phi = |c: &GkrLayerClaims<SC>| {
++        (c.p_xi_0 * c.q_xi_1 + c.p_xi_1 * c.q_xi_0, c.q_xi_0 * c.q_xi_1)
++    };
++    let mut claims = Vec::with_capacity(k_tot);
++
++    // Root sumcheck: s_R(0) + s_R(1) = ρ_R G_R.
++    let g_r = zk[0];
++    transcript.observe_ext(g_r);
++    let rho_r = transcript.sample_ext();
++    let mut s = vec![rho_r * g_r - zk[1]];
++    for &v in &zk[1..5] {
++        transcript.observe_ext(v);
++        s.push(v);
++    }
++    let beta = transcript.sample_ext();
++    let (p1, q1) = (proof.claims_per_layer[0].p_xi_0, proof.claims_per_layer[0].q_xi_0);
++    transcript.observe_ext(p1);
++    transcript.observe_ext(q1);
++    claims.push(SparseClaim {
++        terms: poly_terms(lay.g_root, GkrZkLayout::ROOT_DEG, beta, rho_r),
++        value: interpolate_at(&s, beta) - p1 * q1,
++    });
++
++    // Layer 1: one variable, degree 5.
++    let lambda = transcript.sample_ext();
++    let t1 = GkrZkLayout::tail_layer(1);
++    let h_sum = zk[t1];
++    transcript.observe_ext(h_sum);
++    let rho = transcript.sample_ext();
++    let claim = p1 + lambda * q1 + rho * h_sum;
++    let sp = &proof.sumcheck_polys[0][0];
++    let ev = [sp[0], sp[1], zk[t1 + 1], zk[t1 + 2], zk[t1 + 3]];
++    for &v in &ev {
++        transcript.observe_ext(v);
++    }
++    let mut s = vec![claim - ev[0]];
++    s.extend(ev);
++    let r = transcript.sample_ext();
++    let c = &proof.claims_per_layer[1];
++    for v in [c.p_xi_0, c.q_xi_0, c.p_xi_1, c.q_xi_1] {
++        transcript.observe_ext(v);
++    }
++    let (fp, fq) = phi(c);
++    let (eb, enb) = (eq1(beta, r), eq1(one - beta, r));
++    let zb = beta * (one - beta);
++    let mut terms = vec![(lay.alpha1, eb * zb), (lay.alpha1 + 1, eb * zb * lambda)];
++    terms.extend(poly_terms(lay.h1, GkrZkLayout::H1_DEG, r, rho));
++    claims.push(SparseClaim {
++        terms,
++        value: interpolate_at(&s, r) - eb * fp - lambda * enb * fq,
++    });
++    let mut mu = transcript.sample_ext();
++    let mut xi = vec![mu, r];
++
++    // Layers k >= 2.
++    for k in 2..k_tot {
++        let lambda = transcript.sample_ext();
++        let tk = GkrZkLayout::tail_layer(k);
++        let h_sum = zk[tk];
++        transcript.observe_ext(h_sum);
++        let rho = transcript.sample_ext();
++        let prev = &proof.claims_per_layer[k - 1];
++        let mut claim = (one - mu) * (prev.p_xi_0 + lambda * prev.q_xi_0)
++            + mu * (prev.p_xi_1 + lambda * prev.q_xi_1)
++            + rho * h_sum;
++        let z_k = xi[k - 1] * (one - xi[k - 1]);
++        let a_k = lay.alpha[k];
++        let mut terms = vec![
++            (a_k, z_k * (one - mu)),
++            (a_k + 1, z_k * (one - mu) * lambda),
++            (a_k + 2, z_k * mu),
++            (a_k + 3, z_k * mu * lambda),
++        ];
++        let mut a = one;
++        let mut rs = Vec::with_capacity(k);
++        for i in 0..k {
++            let sp = &proof.sumcheck_polys[k - 1][i];
++            let last = i + 1 == k;
++            let xi_i = xi[i];
++            let mut evs = vec![sp[0], sp[1]];
++            if last {
++                evs.push(zk[tk + 1]);
++                evs.push(zk[tk + 2]);
++            }
++            for &v in &evs {
++                transcript.observe_ext(v);
++            }
++            let ri = transcript.sample_ext();
++            // s(X) = a eq1(xi_i, X) t(X): recover t(0..=deg) and interpolate at ri.
++            let mut svals = vec![claim - evs[0]];
++            svals.extend(evs);
++            let mut t = Vec::with_capacity(svals.len());
++            for (x, &sv) in svals.iter().enumerate() {
++                let dx = a * eq1(xi_i, SC::EF::from_usize(x));
++                let Some(inv) = dx.try_inverse() else {
++                    return Err(GkrVerificationError::DegenerateChallenge { round: k });
++                };
++                t.push(sv * inv);
++            }
++            a *= eq1(xi_i, ri);
++            claim = a * interpolate_at(&t, ri);
++            terms.extend(poly_terms(lay.h_start(k, i), GkrZkLayout::h_deg(k, i), ri, rho));
++            rs.push(ri);
++        }
++        let c = &proof.claims_per_layer[k];
++        for v in [c.p_xi_0, c.q_xi_0, c.p_xi_1, c.q_xi_1] {
++            transcript.observe_ext(v);
++        }
++        let Some(inv_a) = a.try_inverse() else {
++            return Err(GkrVerificationError::DegenerateChallenge { round: k });
++        };
++        let (fp, fq) = phi(c);
++        claims.push(SparseClaim { terms, value: claim * inv_a - fp - lambda * fq });
++        mu = transcript.sample_ext();
++        xi = std::iter::once(mu).chain(rs).collect();
++    }
++    let c = &proof.claims_per_layer[k_tot - 1];
++    let p = (one - mu) * c.p_xi_0 + mu * c.p_xi_1;
++    let q = (one - mu) * c.q_xi_0 + mu * c.q_xi_1;
++    let z = xi[k_tot - 1] * (one - xi[k_tot - 1]);
++    Ok(GkrZkOut { p, q, xi, claims, z, mu, alpha: lay.alpha[k_tot] })
++}
+--- a/stark-backend-unified/crates/stark-backend/src/verifier/stacked_reduction.rs
++++ b/stark-backend-unified/crates/stark-backend/src/verifier/stacked_reduction.rs
+@@ -42,6 +42,49 @@
+ where
+     SC::EF: TwoAdicField,
+ {
++    verify_stacked_reduction_with::<SC, TS>(
++        transcript,
++        proof,
++        layouts,
++        need_rot_per_commit,
++        l_skip,
++        n_stack,
++        column_openings,
++        r,
++        omega_shift_pows,
++        None,
++    )
++}
++
++/// [E2E-D zk-piop] Inputs of the masked stacking reduction (`levers.zk >= 4`).
++#[derive(Clone, Debug)]
++pub struct ZkStackIn<EF> {
++    /// Sparse claims on the mask coefficients (GKR and batch sumcheck final checks).
++    pub claims: Vec<crate::zk::SparseClaim<EF>>,
++    /// Per trace, per entry of `column_openings[t][0]`: `(coefficient, weight)` of its mask.
++    pub col_masks: Vec<Vec<(usize, EF)>>,
++}
++
++/// [`verify_stacked_reduction`]; with `zk`, the masked reduction: before `λ`, two points
++/// `τ_1, τ_2` are sampled and the mask claims `G_j = M̂_j(τ_j)` (mask columns `M_1, M_2`)
++/// observed; the batched claim gains `λ^{2T}(Σ_j λ^j V_j + λ^{n_V} G_1 + λ^{n_V+1} G_2)` and each
++/// column claim its mask term; the final check gains the `M_s`, `M_1`, `M_2` coefficients.
++#[allow(clippy::too_many_arguments)]
++pub fn verify_stacked_reduction_with<SC: StarkProtocolConfig, TS: FiatShamirTranscript<SC>>(
++    transcript: &mut TS,
++    proof: &StackingProof<SC>,
++    layouts: &[StackedLayout],
++    need_rot_per_commit: &[Vec<Vec<bool>>],
++    l_skip: usize,
++    n_stack: usize,
++    column_openings: &Vec<Vec<Vec<SC::EF>>>,
++    r: &[SC::EF],
++    omega_shift_pows: &[SC::F],
++    zk: Option<&ZkStackIn<SC::EF>>,
++) -> Result<Vec<SC::EF>, StackedReductionError<SC::EF>>
++where
++    SC::EF: TwoAdicField,
++{
+     /*
+      * SETUP
+      *
+@@ -108,8 +151,28 @@
+     assert_eq!(t_claims.len(), t_claims_len);
+     debug!(?t_claims);
+ 
++    // [E2E-D zk-piop] mask points and claims before the batching challenge
++    let zk_pts = match zk {
++        Some(_) => {
++            if proof.zk.len() != 2 || layouts.len() != 1 {
++                return Err(StackedReductionError::FinalSumMismatch { claim: SC::EF::ZERO, final_sum: SC::EF::ONE });
++            }
++            let tau = |t: &mut TS| (0..=n_stack).map(|_| t.sample_ext()).collect_vec();
++            let (t1, t2) = (tau(transcript), tau(transcript));
++            transcript.observe_ext(proof.zk[0]);
++            transcript.observe_ext(proof.zk[1]);
++            Some((t1, t2))
++        }
++        None => {
++            if !proof.zk.is_empty() {
++                return Err(StackedReductionError::FinalSumMismatch { claim: SC::EF::ZERO, final_sum: SC::EF::ONE });
++            }
++            None
++        }
++    };
+     let lambda = transcript.sample_ext();
+     let lambda_sqr_powers = (lambda * lambda).powers().take(t_claims_len).collect_vec();
++    let lambda_2t = (lambda * lambda).exp_u64(t_claims_len as u64);
+ 
+     /*
+      * INITIAL UNIVARIATE ROUND
+@@ -122,9 +185,18 @@
+      * of sum_{z in D} s_1(z). Suppose s_1(x) = a_0 + a_1 * x + ... a_k * x^k. Because we have
+      * omega^{|D|} == 1, sum_{z in D} s_1(z) = |D| * (a_0 + a_{|D|} + ...).
+      */
+-    let s_0 = zip(&t_claims, &lambda_sqr_powers)
++    let mut s_0 = zip(&t_claims, &lambda_sqr_powers)
+         .map(|(&t_i, &lambda_i)| (t_i.0 + t_i.1 * lambda) * lambda_i)
+         .sum::<SC::EF>();
++    if let Some(zk) = zk {
++        let n_v = zk.claims.len();
++        let mut acc = SC::EF::ZERO;
++        for (c, l) in zk.claims.iter().zip(lambda.powers()) {
++            acc += l * c.value;
++        }
++        acc += lambda.exp_u64(n_v as u64) * (proof.zk[0] + lambda * proof.zk[1]);
++        s_0 += lambda_2t * acc;
++    }
+     // Proof shape asserts that univariate_round_coeffs.len() == 2 * (2^l_skip - 1) + 1
+     let s_0_sum_eval = proof
+         .univariate_round_coeffs
+@@ -239,6 +311,35 @@
+                 });
+         });
+ 
++    if let (Some(zk), Some((t1, t2))) = (zk, &zk_pts) {
++        // per-coefficient weights: column masks (with their claims' batching) and sparse claims
++        let mut w: Vec<SC::EF> = Vec::new();
++        let mut claim_idx = 0usize;
++        for (trace_idx, masks) in zk.col_masks.iter().enumerate() {
++            let rot = &need_rot_per_commit[0][trace_idx];
++            let mut it = masks.iter();
++            for &has_rot in rot {
++                let lam = lambda_sqr_powers[claim_idx];
++                let &(k, z) = it.next().expect("zk column mask");
++                crate::zk::accumulate_terms(&mut w, &[(k, z)], lam);
++                if has_rot {
++                    let &(k, z) = it.next().expect("zk rotated column mask");
++                    crate::zk::accumulate_terms(&mut w, &[(k, z)], lam * lambda);
++                }
++                claim_idx += 1;
++            }
++        }
++        for (c, l) in zk.claims.iter().zip(lambda.powers()) {
++            crate::zk::accumulate_terms(&mut w, &c.terms, lambda_2t * l);
++        }
++        let width = layouts[0].width();
++        let (ms, m1, m2) = crate::zk::mask_columns(width);
++        q_coeffs[0][ms] += crate::zk::ms_coefficient::<SC::F, SC::EF>(l_skip, &u, &w);
++        let ln = lambda_2t * lambda.exp_u64(zk.claims.len() as u64);
++        q_coeffs[0][m1] += ln * eval_eq_prism(l_skip, t1, &u);
++        q_coeffs[0][m2] += ln * lambda * eval_eq_prism(l_skip, t2, &u);
++    }
++
+     let final_sum = q_coeffs.iter().zip(proof.stacking_openings.iter()).fold(
+         SC::EF::ZERO,
+         |acc, (q_coeff_vec, q_j_vec)| {
+--- a/stark-backend-unified/crates/cpu-backend/src/device.rs
++++ b/stark-backend-unified/crates/cpu-backend/src/device.rs
+@@ -116,10 +116,18 @@
+         transcript: &mut TS,
+         mpk: &DeviceMultiStarkProvingKey<CpuBackend<SC>>,
+         ctx: &ProvingContext<CpuBackend<SC>>,
+-        _common_main_pcs_data: &CpuStackedPcsData<SC::F, SC::Digest>,
++        common_main_pcs_data: &CpuStackedPcsData<SC::F, SC::Digest>,
+     ) -> Result<((GkrProof<SC>, BatchConstraintProof<SC>), Vec<SC::EF>), Self::Error> {
++        // [E2E-D zk-piop] mask coefficients live in the M_s column of the committed matrix
++        let zk_col = mpk.params.whir.levers.zk_piop().then(|| {
++            let d = common_main_pcs_data;
++            let h = d.layout.height();
++            let (ms, _, _) = openvm_stark_backend::zk::mask_columns(d.layout.width());
++            &d.matrix.values[ms * h..(ms + 1) * h]
++        });
++        let coefs = zk_col.map(|col| openvm_stark_backend::zk::MaskCoefs { col });
+         let (gkr_proof, batch_constraint_proof, r) =
+-            crate::logup_zerocheck::prove_zerocheck_and_logup::<SC, _>(transcript, mpk, ctx)?;
++            crate::logup_zerocheck::prove_zerocheck_and_logup_zk::<SC, _>(transcript, mpk, ctx, coefs.as_ref())?;
+         Ok(((gkr_proof, batch_constraint_proof), r))
+     }
+ }
+@@ -184,7 +192,23 @@
+         }
+         // Reference stacking reduction (levers: per-column rotation masks, tight-height chunks).
+         let reference = openvm_stark_backend::prover::ReferenceDevice::new(self.config().clone());
+-        let (stacking_proof, u_prisma) = prove_stacked_opening_reduction::<
++        let zk_handoff = crate::logup_zerocheck::ZK_HANDOFF.with(|c| c.borrow_mut().take());
++        let (stacking_proof, u_prisma) = if params.whir.levers.zk_piop() {
++            let zk = zk_handoff
++                .expect("zk: GKR/batch handoff missing")
++                .downcast::<crate::logup_zerocheck::ZkHandoff<SC::EF>>()
++                .expect("zk handoff type");
++            prove_stacked_opening_reduction_zk::<SC, TS>(
++                &reference,
++                transcript,
++                params.n_stack,
++                stacked_per_commit,
++                need_rot_per_commit,
++                &r,
++                &zk,
++            )
++        } else {
++            prove_stacked_opening_reduction::<
+             SC,
+             openvm_stark_backend::prover::CpuColMajorBackend<SC>,
+             _,
+@@ -197,7 +221,8 @@
+                 stacked_per_commit,
+                 need_rot_per_commit,
+                 &r,
+-            );
++            )
++        };
+ 
+         openvm_stark_backend::prover::stream_pcs::memprof("openings.after_stacking");
+         let (&u0, u_rest) = u_prisma
+@@ -310,3 +335,240 @@
+ 
+     buf
+ }
++
++/// [E2E-D zk-piop] The masked stacking reduction (prover of
++/// `openvm_stark_backend::verifier::stacked_reduction::verify_stacked_reduction_with` with `zk`):
++/// the reference reduction plus, computed here from folded copies of the three mask columns, the
++/// Libra mask `λ_1 eq_prism(τ_1, ·) M_1 + λ_2 eq_prism(τ_2, ·) M_2` and the sparse-claim weights
++/// `E` on `M_s`.
++#[allow(clippy::too_many_arguments)]
++fn prove_stacked_opening_reduction_zk<'a, SC, TS>(
++    device: &'a openvm_stark_backend::prover::ReferenceDevice<SC>,
++    transcript: &mut TS,
++    n_stack: usize,
++    stacked_per_commit: Vec<&'a StackedPcsData<SC::F, SC::Digest>>,
++    need_rot_per_commit: Vec<Vec<Vec<bool>>>,
++    r: &[SC::EF],
++    zk: &crate::logup_zerocheck::ZkHandoff<SC::EF>,
++) -> (StackingProof<SC>, Vec<SC::EF>)
++where
++    SC: StarkProtocolConfig,
++    SC::F: TwoAdicField + Ord,
++    SC::EF: TwoAdicField + ExtensionField<SC::F> + Ord,
++    TS: FiatShamirTranscript<SC>,
++{
++    use openvm_stark_backend::{
++        poly_common::{eq_uni_poly, eval_eq_uni, UnivariatePoly},
++        prover::{poly::evals_eq_hypercube, stacked_reduction::StackedReductionProver},
++        zk::{accumulate_terms, eq1, mask_columns, COEF_STRIDE},
++    };
++    use p3_field::{BasedVectorSpace, Field, PrimeCharacteristicRing};
++    type EF<SC> = <SC as StarkProtocolConfig>::EF;
++    assert_eq!(stacked_per_commit.len(), 1, "zk: one commitment");
++    let pcs = stacked_per_commit[0];
++    let l_skip = device.params().l_skip;
++    let sk = 1usize << l_skip;
++    let height = pcs.layout.height();
++    assert_eq!(height, sk << n_stack);
++    let (ms, m1, m2) = mask_columns(pcs.layout.width());
++    let col = |c: usize| &pcs.matrix.values[c * height..(c + 1) * height];
++    let omega = SC::F::two_adic_generator(l_skip);
++    let omega_pows: Vec<SC::F> = omega.powers().take(sk).collect();
++    let one = EF::<SC>::ONE;
++
++    // Mask points and claims G_j = M̂_j(τ_j), before λ.
++    let tau1: Vec<EF<SC>> = (0..=n_stack).map(|_| transcript.sample_ext()).collect();
++    let tau2: Vec<EF<SC>> = (0..=n_stack).map(|_| transcript.sample_ext()).collect();
++    let block_sums = |c: usize, eqy: &[EF<SC>]| -> Vec<EF<SC>> {
++        // c_z = Σ_y eqy[y] M[(y << l) | z]
++        let m = col(c);
++        (0..sk)
++            .map(|z| (0..eqy.len()).into_par_iter().map(|y| eqy[y] * m[(y << l_skip) | z]).sum::<EF<SC>>())
++            .collect()
++    };
++    let eqy1 = evals_eq_hypercube(&tau1[1..]);
++    let eqy2 = evals_eq_hypercube(&tau2[1..]);
++    let cz1 = block_sums(m1, &eqy1);
++    let cz2 = block_sums(m2, &eqy2);
++    let lag = |x: EF<SC>| -> Vec<EF<SC>> {
++        omega_pows.iter().map(|&w| eval_eq_uni(l_skip, x, EF::<SC>::from(w))).collect()
++    };
++    let dot = |a: &[EF<SC>], b: &[EF<SC>]| a.iter().zip(b).map(|(&x, &y)| x * y).sum::<EF<SC>>();
++    let g1 = dot(&cz1, &lag(tau1[0]));
++    let g2 = dot(&cz2, &lag(tau2[0]));
++    transcript.observe_ext(g1);
++    transcript.observe_ext(g2);
++
++    let lambda = transcript.sample_ext();
++    // weights: column masks, sparse claims (after the 2T column-claim powers), mask columns
++    let t_len: usize = need_rot_per_commit[0].iter().map(|m| m.len()).sum();
++    let lambda_2t = (lambda * lambda).exp_u64(t_len as u64);
++    let mut w: Vec<EF<SC>> = Vec::new();
++    let mut claim_idx = 0usize;
++    for (trace_idx, masks) in zk.col_masks.iter().enumerate() {
++        let mut it = masks.iter();
++        for &has_rot in &need_rot_per_commit[0][trace_idx] {
++            let lam = (lambda * lambda).exp_u64(claim_idx as u64);
++            let &(k, z) = it.next().expect("zk column mask");
++            accumulate_terms(&mut w, &[(k, z)], lam);
++            if has_rot {
++                let &(k, z) = it.next().expect("zk rotated column mask");
++                accumulate_terms(&mut w, &[(k, z)], lam * lambda);
++            }
++            claim_idx += 1;
++        }
++    }
++    for (c, l) in zk.claims.iter().zip(lambda.powers()) {
++        accumulate_terms(&mut w, &c.terms, lambda_2t * l);
++    }
++    let lam1 = lambda_2t * lambda.exp_u64(zk.claims.len() as u64);
++    let lam2 = lam1 * lambda;
++    // sparse E on M_s: per block y, weights per z
++    let dim = <EF<SC> as BasedVectorSpace<SC::F>>::DIMENSION;
++    let mut e_blocks: std::collections::BTreeMap<usize, Vec<EF<SC>>> = Default::default();
++    for (k, &wk) in w.iter().enumerate() {
++        if wk == EF::<SC>::ZERO {
++            continue;
++        }
++        for b in 0..dim {
++            let row = COEF_STRIDE * k + b;
++            let e = e_blocks.entry(row >> l_skip).or_insert_with(|| vec![EF::<SC>::ZERO; sk]);
++            e[row & (sk - 1)] += wk * EF::<SC>::ith_basis_element(b).unwrap();
++        }
++    }
++    let ms_col = col(ms);
++
++    // Reference reduction with the extra terms.
++    let mut prover = openvm_stark_backend::prover::stacked_reduction::StackedReductionCpu::<SC>::new(
++        device,
++        stacked_per_commit,
++        need_rot_per_commit,
++        r,
++        lambda,
++    );
++    let mut s_0 = prover.batch_sumcheck_uni_round0_poly();
++    {
++        // Lagrange basis polynomials on D: L_z(X) = (1/N) Σ_k ω^{-zk} X^k
++        let n_inv = SC::F::from_usize(sk).inverse();
++        let lpoly: Vec<Vec<SC::F>> = (0..sk)
++            .map(|z| (0..sk).map(|k| omega.exp_u64(((sk - z) * k % sk) as u64) * n_inv).collect())
++            .collect();
++        let interp = |c: &[EF<SC>]| -> Vec<EF<SC>> {
++            (0..sk).map(|k| (0..sk).map(|z| c[z] * lpoly[z][k]).sum()).collect()
++        };
++        let mul = |a: &[EF<SC>], b: &[EF<SC>]| -> Vec<EF<SC>> {
++            let mut o = vec![EF::<SC>::ZERO; a.len() + b.len() - 1];
++            for (i, &x) in a.iter().enumerate() {
++                for (j, &y) in b.iter().enumerate() {
++                    o[i + j] += x * y;
++                }
++            }
++            o
++        };
++        let mut extra = vec![EF::<SC>::ZERO; 2 * sk - 1];
++        for (lam, tau, cz) in [(lam1, &tau1, &cz1), (lam2, &tau2, &cz2)] {
++            let k = eq_uni_poly::<SC::F, EF<SC>>(l_skip, tau[0]).into_coeffs();
++            for (i, v) in mul(&k, &interp(cz)).into_iter().enumerate() {
++                extra[i] += lam * v;
++            }
++        }
++        for (&y, e) in &e_blocks {
++            let m: Vec<EF<SC>> = (0..sk).map(|z| EF::<SC>::from(ms_col[(y << l_skip) | z])).collect();
++            for (i, v) in mul(&interp(e), &interp(&m)).into_iter().enumerate() {
++                extra[i] += v;
++            }
++        }
++        let mut coeffs = s_0.into_coeffs();
++        if coeffs.len() < extra.len() {
++            coeffs.resize(extra.len(), EF::<SC>::ZERO);
++        }
++        for (c, v) in coeffs.iter_mut().zip(extra) {
++            *c += v;
++        }
++        s_0 = UnivariatePoly::new(coeffs);
++    }
++    for &coeff in s_0.coeffs() {
++        transcript.observe_ext(coeff);
++    }
++    let mut u_vec = Vec::with_capacity(n_stack + 1);
++    let u_0 = transcript.sample_ext();
++    u_vec.push(u_0);
++    prover.fold_ple_evals(u_0);
++    // folded tables after u_0
++    let lz = lag(u_0);
++    let fold0 = |c: usize| -> Vec<EF<SC>> {
++        let m = col(c);
++        (0..1usize << n_stack)
++            .into_par_iter()
++            .map(|y| (0..sk).map(|z| lz[z] * m[(y << l_skip) | z]).sum())
++            .collect()
++    };
++    let mut t1 = fold0(m1);
++    let mut t2 = fold0(m2);
++    let mut ts = fold0(ms);
++    let e10 = eval_eq_uni(l_skip, tau1[0], u_0);
++    let e20 = eval_eq_uni(l_skip, tau2[0], u_0);
++    let mut k1: Vec<EF<SC>> = eqy1.par_iter().map(|&v| v * e10 * lam1).collect();
++    let mut k2: Vec<EF<SC>> = eqy2.par_iter().map(|&v| v * e20 * lam2).collect();
++    let mut es: Vec<(usize, EF<SC>)> = e_blocks.iter().map(|(&y, e)| (y, dot(e, &lz))).collect();
++    let fold = |t: &[EF<SC>], u: EF<SC>| -> Vec<EF<SC>> {
++        t.par_chunks_exact(2).map(|p| p[0] + (p[1] - p[0]) * u).collect()
++    };
++    let mut sumcheck_round_polys = Vec::with_capacity(n_stack);
++    for round in 1..=n_stack {
++        let mut evals = prover.batch_sumcheck_poly_eval(round, u_vec[round - 1]);
++        let pair_sum = |k: &[EF<SC>], t: &[EF<SC>]| -> [EF<SC>; 2] {
++            k.par_chunks_exact(2)
++                .zip(t.par_chunks_exact(2))
++                .map(|(kk, tt)| {
++                    let (k2, t2) = (kk[1].double() - kk[0], tt[1].double() - tt[0]);
++                    [kk[1] * tt[1], k2 * t2]
++                })
++                .reduce(|| [EF::<SC>::ZERO; 2], |a, b| [a[0] + b[0], a[1] + b[1]])
++        };
++        let a1 = pair_sum(&k1, &t1);
++        let a2 = pair_sum(&k2, &t2);
++        let mut ae = [EF::<SC>::ZERO; 2];
++        for &(y, wy) in &es {
++            let bit = EF::<SC>::from_bool(y & 1 == 1);
++            let (lo, hi) = (ts[y & !1], ts[y | 1]);
++            for (j, x) in [one, one.double()].into_iter().enumerate() {
++                ae[j] += wy * eq1(bit, x) * (lo + (hi - lo) * x);
++            }
++        }
++        for j in 0..2 {
++            evals[j] += a1[j] + a2[j] + ae[j];
++        }
++        for &eval in &evals {
++            transcript.observe_ext(eval);
++        }
++        sumcheck_round_polys.push(evals);
++        let u_round = transcript.sample_ext();
++        u_vec.push(u_round);
++        prover.fold_mle_evals(round, u_round);
++        t1 = fold(&t1, u_round);
++        t2 = fold(&t2, u_round);
++        ts = fold(&ts, u_round);
++        k1 = fold(&k1, u_round);
++        k2 = fold(&k2, u_round);
++        let mut merged: std::collections::BTreeMap<usize, EF<SC>> = Default::default();
++        for &(y, wy) in &es {
++            *merged.entry(y >> 1).or_insert(EF::<SC>::ZERO) +=
++                wy * eq1(EF::<SC>::from_bool(y & 1 == 1), u_round);
++        }
++        es = merged.into_iter().collect();
++    }
++    let stacking_openings = prover.into_stacked_openings();
++    for claims_for_com in &stacking_openings {
++        for &claim in claims_for_com {
++            transcript.observe_ext(claim);
++        }
++    }
++    let proof = StackingProof::<SC> {
++        univariate_round_coeffs: s_0.into_coeffs(),
++        sumcheck_round_polys,
++        stacking_openings,
++        zk: vec![g1, g2],
++    };
++    (proof, u_vec)
++}
+--- a/stark-backend-unified/crates/cpu-backend/src/fast/gkr.rs
++++ b/stark-backend-unified/crates/cpu-backend/src/fast/gkr.rs
+@@ -406,7 +406,13 @@
+     }
+     /// s(0), .., s(3) from the sums.
+     fn evals(&self, sums: &Sums<EF>, lambda: EF, xi: EF) -> [EF; 4] {
+-        let t = |x: usize| sums[x][0] + lambda * sums[x][1];
++        self.evals_add(sums, lambda, xi, [EF::ZERO; 3])
++    }
++
++    /// [E2E-D zk-piop] [`Self::evals`] with `add[x]` added to `t(x)` (`x = 0, 1, 2`): the Libra
++    /// mask and layer-mask terms of a masked round (quadratic in `x`).
++    fn evals_add(&self, sums: &Sums<EF>, lambda: EF, xi: EF, add: [EF; 3]) -> [EF; 4] {
++        let t = |x: usize| sums[x][0] + lambda * sums[x][1] + add[x];
+         let (t1, t2) = (t(1), t(2));
+         let t0 = if self.direct(xi) {
+             t(0)
+@@ -490,6 +496,33 @@
+     gruen: bool,
+     w: SC::F,
+ ) -> Result<(FracSumcheckProof<SC>, Vec<SC::EF>), LogupZerocheckError> {
++    fractional_sumcheck_fast_zk::<SC, TS, S>(transcript, src, assert_zero, gruen, w, None).map(|(p, x, _)| (p, x))
++}
++
++/// [E2E-D zk-piop] Prover-side output of the masked GKR.
++pub struct GkrZkProverOut<EF> {
++    /// `GkrProof::zk`.
++    pub tail: Vec<EF>,
++    /// Sparse claims `V_R, V_1, .., V_{K-1}` (terms and the values the masks give them).
++    pub claims: Vec<openvm_stark_backend::zk::SparseClaim<EF>>,
++    /// Input-level mask: `(z, μ, α_K start)`.
++    pub z: EF,
++    pub mu: EF,
++    pub alpha: usize,
++}
++
++/// [`fractional_sumcheck_fast`]; with `zk = Some((coefs, layout))` the masked GKR of
++/// `openvm_stark_backend::verifier::fractional_sumcheck_gkr::verify_gkr_zk` (requires `gruen`,
++/// `assert_zero`). `claims_per_layer[0]` then holds `(P, Q, 0, 0)` and `fractional_sum.1` is zero.
++#[allow(clippy::type_complexity)]
++pub fn fractional_sumcheck_fast_zk<SC: StarkProtocolConfig, TS: FiatShamirTranscript<SC>, S: InputSource<SC::F, SC::EF>>(
++    transcript: &mut TS,
++    src: &S,
++    assert_zero: bool,
++    gruen: bool,
++    w: SC::F,
++    zk: Option<(&openvm_stark_backend::zk::MaskCoefs<'_, SC::F>, &openvm_stark_backend::zk::GkrZkLayout)>,
++) -> Result<(FracSumcheckProof<SC>, Vec<SC::EF>, Option<GkrZkProverOut<SC::EF>>), LogupZerocheckError> {
+     type EF<SC> = <SC as StarkProtocolConfig>::EF;
+     let n_in = src.n();
+     let total_rounds = p3_util::log2_strict_usize(n_in);
+@@ -532,10 +565,24 @@
+     } else {
+         transcript.observe_ext(frac_sum.p);
+     }
+-    transcript.observe_ext(frac_sum.q);
++    if zk.is_none() {
++        transcript.observe_ext(frac_sum.q);
++    }
+ 
+     let mut claims_per_layer: Vec<GkrLayerClaims<SC>> = Vec::with_capacity(total_rounds);
+     let mut sumcheck_polys: Vec<Vec<[EF<SC>; 3]>> = Vec::with_capacity(total_rounds);
++    if let Some((coefs, lay)) = zk {
++        assert!(gruen && assert_zero, "zk GKR needs the Gruen lever and a zero root");
++        let (xi_prev, out) =
++            zk_top::<SC, TS>(transcript, &layers[1], &layers[2], coefs, lay, &mut claims_per_layer, &mut sumcheck_polys);
++        layers[0] = vec![];
++        layers[1] = vec![];
++        layers[2] = vec![];
++        return zk_rest::<SC, TS, S>(
++            transcript, src, w, layers, top_stored, cap, total_rounds, coefs, lay, xi_prev, out, claims_per_layer,
++            sumcheck_polys,
++        );
++    }
+     let l1 = std::mem::take(&mut layers[1]);
+     claims_per_layer.push(GkrLayerClaims::<SC> { p_xi_0: l1[0].p, q_xi_0: l1[0].q, p_xi_1: l1[1].p, q_xi_1: l1[1].q });
+     drop(l1);
+@@ -715,6 +762,7 @@
+     Ok((
+         FracSumcheckProof { fractional_sum: (frac_sum.p, frac_sum.q), claims_per_layer, sumcheck_polys },
+         xi_prev,
++        None,
+     ))
+ }
+ 
+@@ -1007,3 +1055,359 @@
+ ) -> Vec<super::zc::FuncSpec<EF>> {
+     interactions.iter().flat_map(|int| gkr_input_specs_one::<F, EF>(int, beta_pows)).collect()
+ }
++
++/// [E2E-D zk-piop] Root sumcheck and layer 1 of the masked GKR (see `verify_gkr_zk`).
++#[allow(clippy::type_complexity)]
++fn zk_top<SC: StarkProtocolConfig, TS: FiatShamirTranscript<SC>>(
++    transcript: &mut TS,
++    l1: &[FracE<SC::EF>],
++    l2: &[FracE<SC::EF>],
++    coefs: &openvm_stark_backend::zk::MaskCoefs<'_, SC::F>,
++    lay: &openvm_stark_backend::zk::GkrZkLayout,
++    claims_per_layer: &mut Vec<GkrLayerClaims<SC>>,
++    sumcheck_polys: &mut Vec<Vec<[SC::EF; 3]>>,
++) -> (Vec<SC::EF>, GkrZkProverOut<SC::EF>) {
++    use openvm_stark_backend::zk::{horner, poly_terms, GkrZkLayout, SparseClaim};
++    type E<SC> = <SC as StarkProtocolConfig>::EF;
++    let one = E::<SC>::ONE;
++    assert_eq!((l1.len(), l2.len()), (2, 4));
++    let mut out = GkrZkProverOut { tail: vec![], claims: vec![], z: E::<SC>::ZERO, mu: E::<SC>::ZERO, alpha: 0 };
++    // Root: Σ_b p̃_1(b) q̃_1(1 - b) = 0, p̃_1(X) = p_1(X) + X(1 - X) α^p_1.
++    let (ap, aq): (E<SC>, E<SC>) = (coefs.get(lay.alpha1), coefs.get(lay.alpha1 + 1));
++    let pt = |x: E<SC>| (one - x) * l1[0].p + x * l1[1].p + x * (one - x) * ap;
++    let qt = |x: E<SC>| (one - x) * l1[0].q + x * l1[1].q + x * (one - x) * aq;
++    let g: Vec<E<SC>> = coefs.poly(lay.g_root, GkrZkLayout::ROOT_DEG);
++    let g_sum = horner(&g, E::<SC>::ZERO) + horner(&g, one);
++    transcript.observe_ext(g_sum);
++    out.tail.push(g_sum);
++    let rho_r = transcript.sample_ext();
++    let s_r = |x: E<SC>| pt(x) * qt(one - x) + rho_r * horner(&g, x);
++    debug_assert_eq!(s_r(E::<SC>::ZERO) + s_r(one), rho_r * g_sum, "zk GKR root sum");
++    for j in 1..=4 {
++        let v = s_r(E::<SC>::from_usize(j));
++        transcript.observe_ext(v);
++        out.tail.push(v);
++    }
++    let beta = transcript.sample_ext();
++    let (big_p, big_q) = (pt(beta), qt(one - beta));
++    transcript.observe_ext(big_p);
++    transcript.observe_ext(big_q);
++    claims_per_layer.push(GkrLayerClaims::<SC> {
++        p_xi_0: big_p,
++        q_xi_0: big_q,
++        p_xi_1: E::<SC>::ZERO,
++        q_xi_1: E::<SC>::ZERO,
++    });
++    out.claims.push(SparseClaim {
++        terms: poly_terms(lay.g_root, GkrZkLayout::ROOT_DEG, beta, rho_r),
++        value: rho_r * horner(&g, beta),
++    });
++    // Layer 1: one variable y; level 2 entry 2y + b, masked by y(1 - y) α_2(b).
++    let lambda = transcript.sample_ext();
++    let h1: Vec<E<SC>> = coefs.poly(lay.h1, GkrZkLayout::H1_DEG);
++    let h_sum = horner(&h1, E::<SC>::ZERO) + horner(&h1, one);
++    transcript.observe_ext(h_sum);
++    out.tail.push(h_sum);
++    let rho = transcript.sample_ext();
++    let a2: [E<SC>; 4] = core::array::from_fn(|j| coefs.get(lay.alpha[2] + j));
++    let at = |x: E<SC>| -> [E<SC>; 4] {
++        let f = |b: usize, pq: usize| {
++            let v = |y: usize| if pq == 0 { l2[2 * y + b].p } else { l2[2 * y + b].q };
++            (one - x) * v(0) + x * v(1) + x * (one - x) * a2[2 * b + pq]
++        };
++        [f(0, 0), f(0, 1), f(1, 0), f(1, 1)]
++    };
++    let m1 = beta * (one - beta) * (ap + lambda * aq);
++    let s1 = |x: E<SC>| {
++        let c = at(x);
++        let (fp, fq) = (c[0] * c[3] + c[2] * c[1], c[1] * c[3]);
++        eq1(beta, x) * (fp + m1) + lambda * eq1(one - beta, x) * fq + rho * horner(&h1, x)
++    };
++    debug_assert_eq!(s1(E::<SC>::ZERO) + s1(one), big_p + lambda * big_q + rho * h_sum, "zk GKR layer 1 claim");
++    let sv: [E<SC>; 5] = core::array::from_fn(|j| s1(E::<SC>::from_usize(j + 1)));
++    for &v in &sv {
++        transcript.observe_ext(v);
++    }
++    sumcheck_polys.push(vec![[sv[0], sv[1], E::<SC>::ZERO]]);
++    out.tail.extend_from_slice(&sv[2..]);
++    let r = transcript.sample_ext();
++    let c = at(r);
++    claims_per_layer.push(GkrLayerClaims::<SC> { p_xi_0: c[0], q_xi_0: c[1], p_xi_1: c[2], q_xi_1: c[3] });
++    for v in c {
++        transcript.observe_ext(v);
++    }
++    let (eb, zb) = (eq1(beta, r), beta * (one - beta));
++    let mut terms = vec![(lay.alpha1, eb * zb), (lay.alpha1 + 1, eb * zb * lambda)];
++    terms.extend(poly_terms(lay.h1, GkrZkLayout::H1_DEG, r, rho));
++    out.claims.push(SparseClaim { terms, value: eb * m1 + rho * horner(&h1, r) });
++    let mu = transcript.sample_ext();
++    (vec![mu, r], out)
++}
++
++/// [E2E-D zk-piop] Layers `2..K` of the masked GKR: the fast prover's layer loop with the Libra
++/// mask added to every round and the quartic last round of each layer proved from its two-entry
++/// table.
++#[allow(clippy::too_many_arguments, clippy::type_complexity)]
++fn zk_rest<SC: StarkProtocolConfig, TS: FiatShamirTranscript<SC>, S: InputSource<SC::F, SC::EF>>(
++    transcript: &mut TS,
++    src: &S,
++    w: SC::F,
++    mut layers: Vec<Vec<FracE<SC::EF>>>,
++    top_stored: usize,
++    cap: usize,
++    total_rounds: usize,
++    coefs: &openvm_stark_backend::zk::MaskCoefs<'_, SC::F>,
++    lay: &openvm_stark_backend::zk::GkrZkLayout,
++    mut xi_prev: Vec<SC::EF>,
++    mut out: GkrZkProverOut<SC::EF>,
++    mut claims_per_layer: Vec<GkrLayerClaims<SC>>,
++    mut sumcheck_polys: Vec<Vec<[SC::EF; 3]>>,
++) -> Result<(FracSumcheckProof<SC>, Vec<SC::EF>, Option<GkrZkProverOut<SC::EF>>), LogupZerocheckError> {
++    use openvm_stark_backend::zk::{horner, poly_terms, GkrZkLayout, SparseClaim};
++    type EF<SC> = <SC as StarkProtocolConfig>::EF;
++    let gruen = true;
++    for round in 2..total_rounds {
++        let lambda = transcript.sample_ext();
++        // [E2E-D zk-piop] Libra mask h_k = Σ_i h_{k,i}(y_i) (sum H_k, then ρ), level mask M_k
++        let hk: Vec<Vec<EF<SC>>> =
++            (0..round).map(|i| coefs.poly(lay.h_start(round, i), GkrZkLayout::h_deg(round, i))).collect();
++        let avg: Vec<EF<SC>> = (0..round)
++            .map(|i| (EF::<SC>::ONE - xi_prev[i]) * horner(&hk[i], EF::<SC>::ZERO) + xi_prev[i] * horner(&hk[i], EF::<SC>::ONE))
++            .collect();
++        let h_sum: EF<SC> = avg.iter().copied().sum();
++        transcript.observe_ext(h_sum);
++        out.tail.push(h_sum);
++        let rho = transcript.sample_ext();
++        let mut suffix = vec![EF::<SC>::ZERO; round + 1];
++        for i in (0..round).rev() {
++            suffix[i] = suffix[i + 1] + avg[i];
++        }
++        let al_k: [EF<SC>; 4] = core::array::from_fn(|j| coefs.get(lay.alpha[round] + j));
++        let z_k = xi_prev[round - 1] * (EF::<SC>::ONE - xi_prev[round - 1]);
++        let mu0 = xi_prev[0];
++        let m_k = z_k
++            * ((EF::<SC>::ONE - mu0) * (al_k[0] + lambda * al_k[1]) + mu0 * (al_k[2] + lambda * al_k[3]));
++        let prefix = std::cell::Cell::new(EF::<SC>::ZERO);
++        let mut pending_last = false;
++        let n = round;
++        let seg_layer = round + 1;
++        let mu = xi_prev[0];
++        let mut st = {
++            let prev = &claims_per_layer[round - 1];
++            Round {
++                claim: (EF::<SC>::ONE - mu) * (prev.p_xi_0 + lambda * prev.q_xi_0)
++                    + mu * (prev.p_xi_1 + lambda * prev.q_xi_1)
++                    + rho * h_sum,
++                a: EF::<SC>::ONE,
++            }
++        };
++        let mut round_polys_eval: Vec<[EF<SC>; 3]> = Vec::with_capacity(n);
++        let mut r_vec: Vec<EF<SC>> = Vec::with_capacity(n);
++        let emit = |st: &mut Round<EF<SC>>,
++                    sums: &Sums<EF<SC>>,
++                    xi: EF<SC>,
++                    transcript: &mut TS,
++                    round_polys_eval: &mut Vec<[EF<SC>; 3]>|
++         -> EF<SC> {
++            if check_mode() {
++                *DBG.lock().unwrap() = (round, round_polys_eval.len(), total_rounds);
++            }
++            let i = round_polys_eval.len();
++            let base = prefix.get() + suffix[i + 1];
++            let add: [EF<SC>; 3] = core::array::from_fn(|x| {
++                rho * (base + horner(&hk[i], EF::<SC>::from_usize(x))) + m_k
++            });
++            let s = st.evals_add(sums, lambda, xi, add);
++            let mut s_evals = [s[1], s[2], s[3]];
++            if gruen {
++                s_evals[2] = EF::<SC>::ZERO;
++            }
++            for &eval in &s_evals[..if gruen { 2 } else { 3 }] {
++                transcript.observe_ext(eval);
++            }
++            round_polys_eval.push(s_evals);
++            let r = transcript.sample_ext();
++            prefix.set(prefix.get() + horner(&hk[i], r));
++            st.claim = cubic_at(s, r);
++            st.a *= eq1(xi, r);
++            r
++        };
++        // sums for sumcheck round `sr` (pairs of the table after sr folds) need E and points
++        let round_setup = |st: &Round<EF<SC>>, sr: usize| -> (SplitEq<EF<SC>>, &'static [usize]) {
++            if sr >= n {
++                (SplitEq::new(&[]), &[][..])
++            } else {
++                (SplitEq::new(&xi_prev[sr + 1..]), st.points(xi_prev[sr]))
++            }
++        };
++        let mut cur: Vec<[EF<SC>; 4]>;
++        let next_sr: usize; // first round whose sums are not yet emitted; `cur` is folded next_sr times
++        if seg_layer <= top_stored {
++            let lay = std::mem::take(&mut layers[seg_layer]);
++            let (e, pts) = round_setup(&st, 0);
++            let sums = pass(Tab::Layer(&lay), None, None, &e, 0, pts, w);
++            let r0 = emit(&mut st, &sums, xi_prev[0], transcript, &mut round_polys_eval);
++            r_vec.push(r0);
++            let (e, pts) = round_setup(&st, 1);
++            cur = vec![[EF::<SC>::ZERO; 4]; lay.len() / 4];
++            let sums = pass(Tab::Layer(&lay), Some(r0), Some(&mut cur), &e, 0, pts, w);
++            drop(lay);
++            next_sr = 1;
++            if n == 2 {
++                pending_last = true; // the masked last round is proved below from `cur`
++            } else if n > 1 {
++                let r = emit(&mut st, &sums, xi_prev[1], transcript, &mut round_polys_eval);
++                r_vec.push(r);
++            }
++        } else {
++            // streamed layer: x-entries of level seg_layer generated run by run from the input
++            let xent_log = seg_layer - 1; // log2 of x-entries (= n)
++            // streamed rounds K: the table after K folds has 2^(n-K) entries <= 2^cap
++            let k_str = n.saturating_sub(cap).max(1).min(n);
++            let sh = total_rounds - seg_layer; // positions per level entry: 2^sh
++            let min_run = 1usize << (sh + k_str + 2).min(total_rounds);
++            let tab_of = |p: &[SC::F], q: &[EF<SC>]| -> Option<Vec<FracE<EF<SC>>>> {
++                if sh == 0 { None } else { Some(level_of_run(p, q, sh, w)) }
++            };
++            // passes 0..k_str: sums of round j from runs folded j times
++            for j in 0..k_str {
++                let (e, pts) = round_setup(&st, j);
++                let rs = &r_vec[..j];
++                let sums = src.visit_runs(
++                    min_run,
++                    |start, p, q| {
++                        let lv = tab_of(p, q);
++                        let tab = match &lv {
++                            None => Tab::Input(p, q),
++                            Some(v) => Tab::Layer(v),
++                        };
++                        let x0 = (start >> sh) / 2;
++                        if j == 0 {
++                            pass(tab, None, None, &e, x0 / 2, pts, w)
++                        } else {
++                            let f = fold_chunk(tab, rs, w);
++                            pass(Tab::Folded(&f), None, None, &e, (x0 >> j) / 2, pts, w)
++                        }
++                    },
++                    zero_sums,
++                    |mut a, b| {
++                        add_sums(&mut a, &b);
++                        a
++                    },
++                );
++                let r = emit(&mut st, &sums, xi_prev[j], transcript, &mut round_polys_eval);
++                r_vec.push(r);
++            }
++            // final pass: fold k_str times, store, and sum round k_str (fused)
++            let (e, pts) = round_setup(&st, k_str);
++            cur = vec![[EF::<SC>::ZERO; 4]; 1usize << (xent_log - k_str)];
++            let cp = SyncPtr(cur.as_mut_ptr());
++            let rs = &r_vec[..k_str];
++            let sums = src.visit_runs(
++                min_run,
++                |start, p, q| {
++                    let lv = tab_of(p, q);
++                    let tab = match &lv {
++                        None => Tab::Input(p, q),
++                        Some(v) => Tab::Layer(v),
++                    };
++                    let x0 = (start >> sh) / 2;
++                    let o0 = x0 >> k_str;
++                    let olen = tab.len() >> k_str;
++                    // SAFETY: runs are disjoint, so their folded entries are
++                    let out = unsafe { std::slice::from_raw_parts_mut(cp.get().add(o0), olen) };
++                    if k_str == 1 {
++                        pass(tab, Some(rs[0]), Some(out), &e, o0 / 2, pts, w)
++                    } else {
++                        let f = fold_chunk(tab, &rs[..k_str - 1], w);
++                        pass(Tab::Folded(&f), Some(rs[k_str - 1]), Some(out), &e, o0 / 2, pts, w)
++                    }
++                },
++                zero_sums,
++                |mut a, b| {
++                    add_sums(&mut a, &b);
++                    a
++                },
++            );
++            next_sr = k_str;
++            if k_str + 1 == n {
++                pending_last = true;
++            } else if k_str < n {
++                let r = emit(&mut st, &sums, xi_prev[k_str], transcript, &mut round_polys_eval);
++                r_vec.push(r);
++            }
++        }
++        // remaining rounds on the materialised table: fold by r_(sr) fused with round sr+1's sums
++        let mut sr = next_sr;
++        while cur.len() > 1 && !pending_last {
++            let (e, pts) = round_setup(&st, sr + 1);
++            let mut nf = vec![[EF::<SC>::ZERO; 4]; cur.len() / 2];
++            let sums = pass(Tab::Folded(&cur), Some(r_vec[sr]), Some(&mut nf), &e, 0, pts, w);
++            cur = nf;
++            sr += 1;
++            if sr + 1 == n {
++                pending_last = true;
++                break;
++            }
++            if sr < n {
++                let r = emit(&mut st, &sums, xi_prev[sr], transcript, &mut round_polys_eval);
++                r_vec.push(r);
++            }
++        }
++        // [E2E-D zk-piop] masked last round: level `round + 1` is p̃ = p + y_last(1 - y_last) α(b),
++        // so t(X) is quartic; evaluate it from the two remaining table entries.
++        assert!(pending_last && cur.len() == 2 && r_vec.len() + 1 == n, "zk GKR last round");
++        let al: [EF<SC>; 4] = core::array::from_fn(|j| coefs.get(lay.alpha[round + 1] + j));
++        let (e0, e1) = (cur[0], cur[1]);
++        let at = |x: EF<SC>| -> [EF<SC>; 4] {
++            core::array::from_fn(|j| (EF::<SC>::ONE - x) * e0[j] + x * e1[j] + x * (EF::<SC>::ONE - x) * al[j])
++        };
++        let i_last = n - 1;
++        let pre = prefix.get();
++        let t_of = |x: EF<SC>| -> EF<SC> {
++            let c = at(x);
++            c[0] * c[3] + c[2] * c[1] + lambda * c[1] * c[3] + rho * (pre + horner(&hk[i_last], x)) + m_k
++        };
++        let xi_l = xi_prev[i_last];
++        let s_of = |x: EF<SC>| st.a * eq1(xi_l, x) * t_of(x);
++        debug_assert_eq!(s_of(EF::<SC>::ZERO) + s_of(EF::<SC>::ONE), st.claim, "zk GKR layer {round} claim");
++        let sv: [EF<SC>; 4] = core::array::from_fn(|j| s_of(EF::<SC>::from_usize(j + 1)));
++        for &v in &sv {
++            transcript.observe_ext(v);
++        }
++        round_polys_eval.push([sv[0], sv[1], EF::<SC>::ZERO]);
++        out.tail.push(sv[2]);
++        out.tail.push(sv[3]);
++        let r_last = transcript.sample_ext();
++        prefix.set(pre + horner(&hk[i_last], r_last));
++        r_vec.push(r_last);
++        let c = at(r_last);
++        claims_per_layer.push(GkrLayerClaims::<SC> { p_xi_0: c[0], q_xi_0: c[1], p_xi_1: c[2], q_xi_1: c[3] });
++        // sparse claim V_k = M_k + ρ h_k(ρ_k)
++        let mut terms = vec![
++            (lay.alpha[round], z_k * (EF::<SC>::ONE - mu0)),
++            (lay.alpha[round] + 1, z_k * (EF::<SC>::ONE - mu0) * lambda),
++            (lay.alpha[round] + 2, z_k * mu0),
++            (lay.alpha[round] + 3, z_k * mu0 * lambda),
++        ];
++        for (i, &ri) in r_vec.iter().enumerate() {
++            terms.extend(poly_terms(lay.h_start(round, i), GkrZkLayout::h_deg(round, i), ri, rho));
++        }
++        out.claims.push(SparseClaim { terms, value: m_k + rho * prefix.get() });
++        for v in [c[0], c[1], c[2], c[3]] {
++            transcript.observe_ext(v);
++        }
++        let mu = transcript.sample_ext();
++        xi_prev = [vec![mu], r_vec].concat();
++        sumcheck_polys.push(round_polys_eval);
++    }
++    let k = total_rounds;
++    out.z = xi_prev[k - 1] * (EF::<SC>::ONE - xi_prev[k - 1]);
++    out.mu = xi_prev[0];
++    out.alpha = lay.alpha[k];
++    Ok((
++        FracSumcheckProof { fractional_sum: (EF::<SC>::ZERO, EF::<SC>::ZERO), claims_per_layer, sumcheck_polys },
++        xi_prev,
++        Some(out),
++    ))
++}
+--- a/stark-backend-unified/crates/cpu-backend/src/logup_zerocheck/mod.rs
++++ b/stark-backend-unified/crates/cpu-backend/src/logup_zerocheck/mod.rs
+@@ -1695,6 +1695,23 @@
+     SC::EF: TwoAdicField + ExtensionField<SC::F>,
+     CpuBackend<SC>: ProverBackend<Val = SC::F, Matrix = RowMajorMatrix<SC::F>>,
+ {
++    prove_zerocheck_and_logup_zk(transcript, mpk, ctx, None)
++}
++
++/// [E2E-D zk-piop] [`prove_zerocheck_and_logup`]; with `zk = Some(mask coefficients)` (the `M_s`
++/// column of the committed common-main matrix) the masked GKR and batch sumcheck.
++pub fn prove_zerocheck_and_logup_zk<SC: StarkProtocolConfig, TS>(
++    transcript: &mut TS,
++    mpk: &DeviceMultiStarkProvingKey<CpuBackend<SC>>,
++    ctx: &ProvingContext<CpuBackend<SC>>,
++    zk: Option<&openvm_stark_backend::zk::MaskCoefs<'_, SC::F>>,
++) -> Result<(GkrProof<SC>, BatchConstraintProof<SC>, Vec<SC::EF>), LogupZerocheckError>
++where
++    TS: FiatShamirTranscript<SC>,
++    SC::F: TwoAdicField,
++    SC::EF: TwoAdicField + ExtensionField<SC::F>,
++    CpuBackend<SC>: ProverBackend<Val = SC::F, Matrix = RowMajorMatrix<SC::F>>,
++{
+     let l_skip = mpk.params.l_skip;
+     let _constraint_degree = mpk.max_constraint_degree;
+     let _num_traces = ctx.per_trace.len();
+@@ -1793,6 +1810,23 @@
+             .collect();
+         let src = TraceInputSource { n: n_total, alpha: alpha_logup, traces };
+         openvm_stark_backend::prover::stream_pcs::memprof("zerocheck.gkr_input");
++        if let Some(coefs) = zk {
++            let k_tot = l_skip + n_logup;
++            let lay = openvm_stark_backend::zk::GkrZkLayout::new(0, k_tot);
++            let (frac_sum_proof, xi, out) = crate::fast::gkr::fractional_sumcheck_fast_zk::<SC, _, _>(
++                transcript,
++                &src,
++                true,
++                mpk.params.whir.levers.gruen_gkr,
++                w,
++                Some((coefs, &lay)),
++            )?;
++            drop(src);
++            return finish_zerocheck_and_logup_zk(
++                transcript, mpk, ctx, prover, frac_sum_proof, xi, logup_pow_witness, n_max, n_logup, coefs,
++                out.expect("zk GKR output"), lay.end,
++            );
++        }
+         let (frac_sum_proof, xi) = fractional_sumcheck_fast::<SC, _, _>(
+             transcript,
+             &src,
+@@ -1804,6 +1838,7 @@
+         openvm_stark_backend::prover::stream_pcs::memprof("zerocheck.after_gkr");
+         return finish_zerocheck_and_logup(transcript, mpk, ctx, prover, frac_sum_proof, xi, logup_pow_witness, n_max, n_logup);
+     }
++    assert!(zk.is_none(), "zk: needs the fast GKR path (interactions, packed heights)");
+     let gkr_input_evals = if !has_interactions {
+         vec![]
+     } else {
+@@ -2112,12 +2147,14 @@
+         univariate_round_coeffs: s_0_poly.into_coeffs(),
+         sumcheck_round_polys,
+         column_openings,
++        zk: vec![],
+     };
+     let mut gkr_proof = GkrProof::<SC> {
+         logup_pow_witness,
+         q0_claim: frac_sum_proof.fractional_sum.1,
+         claims_per_layer: frac_sum_proof.claims_per_layer,
+         sumcheck_polys: frac_sum_proof.sumcheck_polys,
++        zk: vec![],
+     };
+     // Derived-claims lever: the verifier recomputes these, so they are not part of the proof.
+     if mpk.params.whir.levers.gkr_derive_claims && !gkr_proof.claims_per_layer.is_empty() {
+@@ -2128,3 +2165,417 @@
+     }
+     Ok((gkr_proof, batch_constraint_proof, r))
+ }
++
++// ============================================================================
++// [E2E-D zk-piop] masked batch sumcheck
++// ============================================================================
++
++/// [E2E-D zk-piop] Sparse claims and column masks handed from the GKR/batch prover to the
++/// stacking-reduction prover of the same proof (see `openvm_stark_backend::verifier::
++/// stacked_reduction::ZkStackIn`).
++#[derive(Clone, Debug)]
++pub struct ZkHandoff<EF> {
++    pub claims: Vec<openvm_stark_backend::zk::SparseClaim<EF>>,
++    pub col_masks: Vec<Vec<(usize, EF)>>,
++}
++
++thread_local! {
++    /// [E2E-D zk-piop] set by `prove_rap_constraints`, taken by `prove_openings` (same thread).
++    pub static ZK_HANDOFF: std::cell::RefCell<Option<Box<dyn std::any::Any>>> =
++        const { std::cell::RefCell::new(None) };
++}
++
++/// [E2E-D zk-piop] Masked counterpart of [`finish_zerocheck_and_logup`]; the verifier is
++/// `openvm_stark_backend::verifier::batch_constraints::verify_zerocheck_and_logup_zk`.
++#[allow(clippy::too_many_arguments)]
++fn finish_zerocheck_and_logup_zk<'a, SC: StarkProtocolConfig, TS>(
++    transcript: &mut TS,
++    mpk: &'a DeviceMultiStarkProvingKey<CpuBackend<SC>>,
++    ctx: &'a ProvingContext<CpuBackend<SC>>,
++    mut prover: LogupZerocheckRowMajor<'a, SC>,
++    frac_sum_proof: openvm_stark_backend::prover::fractional_sumcheck_gkr::FracSumcheckProof<SC>,
++    mut xi: Vec<SC::EF>,
++    logup_pow_witness: SC::F,
++    n_max: usize,
++    n_logup: usize,
++    coefs: &openvm_stark_backend::zk::MaskCoefs<'_, SC::F>,
++    gkr_out: crate::fast::gkr::GkrZkProverOut<SC::EF>,
++    gkr_end: usize,
++) -> Result<(GkrProof<SC>, BatchConstraintProof<SC>, Vec<SC::EF>), LogupZerocheckError>
++where
++    TS: FiatShamirTranscript<SC>,
++    SC::F: TwoAdicField,
++    SC::EF: TwoAdicField + ExtensionField<SC::F>,
++    CpuBackend<SC>: ProverBackend<Val = SC::F, Matrix = RowMajorMatrix<SC::F>>,
++{
++    use openvm_stark_backend::zk::{eq1, horner, interpolate_at, poly_terms, BatchZkLayout, SparseClaim};
++    type EF<SC> = <SC as StarkProtocolConfig>::EF;
++    let one = EF::<SC>::ONE;
++    let l_skip = mpk.params.l_skip;
++    let d = mpk.max_constraint_degree;
++    let num_traces = ctx.per_trace.len();
++    let n_global = max(n_max, n_logup);
++    while xi.len() != l_skip + n_global {
++        xi.push(transcript.sample_ext());
++    }
++    prover.xi = xi;
++    let mut sumcheck_round_polys = Vec::with_capacity(n_max);
++    let mut r = Vec::with_capacity(n_max + 1);
++    let lambda = transcript.sample_ext();
++
++    let sp_0_polys = prover.sumcheck_uni_round0_polys(ctx, lambda);
++    let sp_0_deg = sumcheck_round0_deg(l_skip, d);
++    let s_deg = d + 1;
++    let s_0_deg = sumcheck_round0_deg(l_skip, s_deg);
++    let large_uni_domain = (s_0_deg + 1).next_power_of_two();
++    let dft = Radix2BowersSerial;
++    let s_0_logup_polys = {
++        let eq_sharp_uni = eq_sharp_uni_poly(&prover.xi[..l_skip]);
++        let mut eq_coeffs = eq_sharp_uni.into_coeffs();
++        eq_coeffs.resize(large_uni_domain, EF::<SC>::ZERO);
++        let eq_evals = dft.dft(eq_coeffs);
++        let width = 2 * num_traces;
++        let mut sp_coeffs_mat = EF::<SC>::zero_vec(width * large_uni_domain);
++        for (i, coeffs) in sp_0_polys[..2 * num_traces].iter().enumerate() {
++            for (j, &c_j) in coeffs.coeffs().iter().enumerate().take(sp_0_deg + 1) {
++                sp_coeffs_mat[j * width + i] = c_j;
++            }
++        }
++        let mut s_evals = dft.dft_batch(RowMajorMatrix::new(sp_coeffs_mat, width));
++        for (eq, row) in zip(eq_evals, s_evals.values.chunks_mut(width)) {
++            for x in row {
++                *x *= eq;
++            }
++        }
++        dft.idft_batch(s_evals)
++    };
++
++    // Mask layout and polynomials.
++    let n_lifts: Vec<usize> = prover
++        .n_per_trace
++        .iter()
++        .map(|&n| {
++            assert!(n >= 1, "zk: every trace needs a multilinear variable");
++            n as usize
++        })
++        .collect();
++    let opening_counts: Vec<usize> = prover
++        .eval_helpers
++        .iter()
++        .zip(&ctx.per_trace)
++        .map(|(h, (_, t))| {
++            assert!(!h.has_preprocessed() && t.cached_mains.is_empty(), "zk: common main only");
++            let m = &h.rot_masks[0];
++            m.len() + m.iter().filter(|&&b| b).count()
++        })
++        .collect();
++    let lay = BatchZkLayout::new(gkr_end, s_0_deg, n_max, d, &n_lifts, opening_counts.iter().sum());
++    let h0: Vec<EF<SC>> = coefs.poly(lay.h0, s_0_deg);
++    let hs: Vec<Vec<EF<SC>>> = lay.h.iter().map(|&(st, dg)| coefs.poly(st, dg)).collect();
++    let xi_all = prover.xi.clone();
++    let xi_r = |round: usize| xi_all[l_skip + round - 1];
++    let avg: Vec<EF<SC>> = (1..=n_max)
++        .map(|i| (one - xi_r(i)) * horner(&hs[i - 1], EF::<SC>::ZERO) + xi_r(i) * horner(&hs[i - 1], one))
++        .collect();
++    let mut suffix = vec![EF::<SC>::ZERO; n_max + 1];
++    for i in (0..n_max).rev() {
++        suffix[i] = suffix[i + 1] + avg[i];
++    }
++    let hbar = suffix[0];
++    let skip = 1usize << l_skip;
++    let g_b = h0.iter().step_by(skip).copied().sum::<EF<SC>>() * EF::<SC>::from_usize(skip) + hbar;
++    transcript.observe_ext(g_b);
++    let mut zk_tail = vec![g_b];
++
++    let mu = transcript.sample_ext();
++    // zk batching: numerators 1, denominators mu, constraints mu^{2+t}, mask mu^{2+T}
++    let mu_zc = mu.powers().skip(2).take(num_traces + 1).collect_vec();
++    let rho_b = mu_zc[num_traces];
++    let al: [EF<SC>; 4] = core::array::from_fn(|j| coefs.get(gkr_out.alpha + j));
++    let m_k = gkr_out.z
++        * ((one - gkr_out.mu) * (al[0] + mu * al[1]) + gkr_out.mu * (al[2] + mu * al[3]));
++
++    let s_0_zc_poly = {
++        let eq_uni = eq_uni_poly::<SC::F, _>(l_skip, prover.xi[0]);
++        let mut eq_coeffs = eq_uni.into_coeffs();
++        eq_coeffs.resize(large_uni_domain, EF::<SC>::ZERO);
++        let eq_evals = dft.dft(eq_coeffs);
++        let mut sp_coeffs = EF::<SC>::zero_vec(large_uni_domain);
++        let polys = &sp_0_polys[2 * num_traces..];
++        for (j, batch_coeff) in sp_coeffs.iter_mut().enumerate().take(sp_0_deg + 1) {
++            for (&m, poly) in zip(&mu_zc, polys) {
++                *batch_coeff += m * *poly.coeffs().get(j).unwrap_or(&EF::<SC>::ZERO);
++            }
++        }
++        let mut s_evals = dft.dft(sp_coeffs);
++        for (eq, x) in zip(eq_evals, &mut s_evals) {
++            *x *= eq;
++        }
++        dft.idft(s_evals)
++    };
++    let s_0_f: Vec<EF<SC>> = zip(s_0_logup_polys.values.chunks_exact(2 * num_traces), s_0_zc_poly)
++        .take(s_0_deg + 1)
++        .map(|(logup_row, zc)| {
++            zc + (0..num_traces).map(|t| logup_row[2 * t] + mu * logup_row[2 * t + 1]).sum::<EF<SC>>()
++        })
++        .collect();
++    let eq_uni_c = eq_uni_poly::<SC::F, _>(l_skip, prover.xi[0]).into_coeffs();
++    let mut s_0_total = s_0_f.clone();
++    for (j, c) in s_0_total.iter_mut().enumerate() {
++        *c += rho_b * h0[j] + eq_uni_c.get(j).copied().unwrap_or(EF::<SC>::ZERO) * (rho_b * hbar + m_k);
++    }
++    for &c in &s_0_total {
++        transcript.observe_ext(c);
++    }
++    let r_0 = transcript.sample_ext();
++    r.push(r_0);
++    prover.prev_s_eval = UnivariatePoly::new(s_0_f).eval_at_point(r_0);
++    prover.fold_ple_evals(ctx, r_0);
++    let e0 = eval_eq_uni(l_skip, prover.xi[0], r_0);
++    let h0_r0 = horner(&h0, r_0);
++    let mut eqpre = one;
++    let mut hpre = EF::<SC>::ZERO;
++
++    // Column-mask coefficients per trace: main matrix and rotated matrix vectors.
++    let mut col_masks: Vec<Vec<(usize, EF<SC>)>> = Vec::with_capacity(num_traces);
++    let mut mat_masks: Vec<Vec<Vec<EF<SC>>>> = Vec::with_capacity(num_traces);
++    let mut col_coefs: Vec<Vec<(usize, bool)>> = Vec::with_capacity(num_traces);
++    {
++        let mut k = lay.cols;
++        for (t, helper) in prover.eval_helpers.iter().enumerate() {
++            let rot = &helper.rot_masks[0];
++            let public = &mpk.per_air[ctx.per_trace[t].0].vk.params.zk_public_cols;
++            let mut main = Vec::with_capacity(rot.len());
++            let mut rotv = Vec::with_capacity(rot.len());
++            let mut ks = Vec::with_capacity(opening_counts[t]);
++            for (c, &has_rot) in rot.iter().enumerate() {
++                // public columns: plain opening unmasked (weight 0 in the stacking claim)
++                let is_pub = public.contains(&c);
++                main.push(if is_pub { EF::<SC>::ZERO } else { coefs.get::<EF<SC>>(k) });
++                ks.push((k, !is_pub));
++                k += 1;
++                if has_rot {
++                    rotv.push(coefs.get::<EF<SC>>(k));
++                    ks.push((k, true));
++                    k += 1;
++                } else {
++                    rotv.push(EF::<SC>::ZERO);
++                }
++            }
++            let mut mm = vec![main];
++            if helper.needs_next {
++                mm.push(rotv);
++            }
++            mat_masks.push(mm);
++            col_coefs.push(ks);
++        }
++        debug_assert_eq!(k, lay.end);
++    }
++
++    for round in 1..=n_max {
++        let ri = round - 1;
++        let (_, deg) = lay.h[ri];
++        let doubled = lay.doubled[ri];
++        let s_deg_r = deg + 1;
++        let sp_round_evals = prover.sumcheck_polys_eval(round, r[round - 1]);
++        let tail_start = prover
++            .n_per_trace
++            .iter()
++            .find_position(|&&n| round as isize > n)
++            .map(|(i, _)| i)
++            .unwrap_or(num_traces);
++        let masked_here = |t: usize| doubled && n_lifts[t] == round;
++        let mut u_zc = vec![EF::<SC>::ZERO; d];
++        let mut u_lg = vec![EF::<SC>::ZERO; d];
++        let mut sp_tail = EF::<SC>::ZERO;
++        let mut wm = vec![EF::<SC>::ZERO; 2 * d + 1];
++        for t in 0..num_traces {
++            let (zc_idx, numer_idx, denom_idx) = (2 * num_traces + t, 2 * t, 2 * t + 1);
++            if t < tail_start {
++                if masked_here(t) {
++                    let v = prover.zk_masked_last_round(t, &mat_masks[t], 2 * d);
++                    for (x, (zc, num, den)) in v.into_iter().enumerate() {
++                        wm[x] += prover.eq_ns[round - 1] * mu_zc[t] * zc
++                            + prover.eq_sharp_ns[round - 1] * (num + mu * den);
++                    }
++                } else {
++                    for i in 0..d {
++                        u_zc[i] += mu_zc[t] * sp_round_evals[zc_idx][i];
++                        u_lg[i] += sp_round_evals[numer_idx][i] + mu * sp_round_evals[denom_idx][i];
++                    }
++                }
++            } else {
++                sp_tail += mu_zc[t] * sp_round_evals[zc_idx][0]
++                    + sp_round_evals[numer_idx][0]
++                    + mu * sp_round_evals[denom_idx][0];
++            }
++        }
++        // U (unmasked head, degree d) at 1..=d; head(0) from the claim; U(0) = head(0) - Wm(0)
++        let mut u = vec![EF::<SC>::ZERO; d + 1];
++        for i in 0..d {
++            u[i + 1] = prover.eq_ns[round - 1] * u_zc[i] + prover.eq_sharp_ns[round - 1] * u_lg[i];
++        }
++        let xi_cur = xi_r(round);
++        let head1 = u[1] + wm[1];
++        let head0 = (prover.prev_s_eval - xi_cur * head1 - sp_tail) * (one - xi_cur).inverse();
++        u[0] = head0 - wm[0];
++        let head_evals: Vec<EF<SC>> = (0..=deg)
++            .map(|x| {
++                let ux = if x <= d { u[x] } else { interpolate_at(&u, EF::<SC>::from_usize(x)) };
++                ux + if doubled { wm[x] } else { EF::<SC>::ZERO }
++            })
++            .collect();
++        let sp_head = UnivariatePoly::lagrange_interpolate(
++            &(0..=deg).map(SC::F::from_usize).collect_vec(),
++            &head_evals,
++        );
++        let batch_s = {
++            let mut coeffs = sp_head.into_coeffs();
++            coeffs.resize(deg + 1, EF::<SC>::ZERO);
++            coeffs.push(EF::<SC>::ZERO);
++            let b = one - xi_cur;
++            let a = xi_cur - b;
++            for i in (0..=deg).rev() {
++                coeffs[i + 1] = a * coeffs[i] + b * coeffs[i + 1];
++            }
++            coeffs[0] *= b;
++            coeffs[1] += sp_tail;
++            UnivariatePoly::new(coeffs)
++        };
++        // Libra mask round polynomial (eq1 factor kept, so Gruen still applies)
++        let hi = &hs[ri];
++        let c0 = rho_b * h0_r0 + e0 * (rho_b * (hpre + suffix[ri + 1]) + m_k);
++        let mask_at = |x: EF<SC>| eqpre * eq1(xi_cur, x) * (c0 + e0 * rho_b * horner(hi, x));
++        let mut evals = (1..=s_deg_r)
++            .map(|i| {
++                let x = EF::<SC>::from_usize(i);
++                batch_s.eval_at_point(x) + mask_at(x)
++            })
++            .collect_vec();
++        let gruen_round = mpk.params.whir.levers.gruen_zerocheck && tail_start == num_traces;
++        if gruen_round {
++            *evals.last_mut().unwrap() = EF::<SC>::ZERO;
++        }
++        for &eval in &evals[..s_deg_r - gruen_round as usize] {
++            transcript.observe_ext(eval);
++        }
++        sumcheck_round_polys.push(evals[..s_deg].to_vec());
++        if doubled {
++            zk_tail.extend_from_slice(&evals[s_deg..]);
++        }
++        let r_round = transcript.sample_ext();
++        r.push(r_round);
++        prover.prev_s_eval = batch_s.eval_at_point(r_round);
++        hpre += horner(hi, r_round);
++        eqpre *= eq1(xi_cur, r_round);
++        prover.fold_mle_evals(round, r_round);
++        if doubled {
++            let z = r_round * (one - r_round);
++            for t in (0..num_traces).filter(|&t| n_lifts[t] == round) {
++                for (mat, mask) in prover.mat_evals_per_trace[t].iter_mut().zip(&mat_masks[t]) {
++                    debug_assert_eq!(mat.values.len(), mask.len());
++                    for (v, &a) in mat.values.iter_mut().zip(mask) {
++                        *v += z * a;
++                    }
++                }
++            }
++        }
++    }
++    assert_eq!(r.len(), n_max + 1);
++    let column_openings = prover.into_column_openings();
++    for (helper, openings) in prover.eval_helpers.iter().zip(column_openings.iter()) {
++        for (claim, claim_rot) in column_openings_by_mask(&openings[0], &helper.rot_masks[0]) {
++            transcript.observe_ext(claim);
++            transcript.observe_ext(claim_rot);
++        }
++    }
++    // sparse claim V_b and the column masks
++    let e_y = eqpre;
++    let mut terms = poly_terms(lay.h0, s_0_deg, r_0, rho_b * e_y);
++    for (i, &(start, deg)) in lay.h.iter().enumerate() {
++        terms.extend(poly_terms(start, deg, r[i + 1], rho_b * e_y * e0));
++    }
++    let w = e_y * e0 * gkr_out.z;
++    terms.extend([
++        (gkr_out.alpha, w * (one - gkr_out.mu)),
++        (gkr_out.alpha + 1, w * (one - gkr_out.mu) * mu),
++        (gkr_out.alpha + 2, w * gkr_out.mu),
++        (gkr_out.alpha + 3, w * gkr_out.mu * mu),
++    ]);
++    let value = e_y * (rho_b * h0_r0 + e0 * (rho_b * hpre + m_k));
++    debug_assert_eq!(value, coefs.eval_terms(&terms), "zk V_b");
++    let mut claims = gkr_out.claims;
++    claims.push(SparseClaim { terms, value });
++    for (t, ks) in col_coefs.iter().enumerate() {
++        let z = r[n_lifts[t]] * (one - r[n_lifts[t]]);
++        col_masks.push(ks.iter().map(|&(k, masked)| (k, if masked { z } else { EF::<SC>::ZERO })).collect());
++    }
++    ZK_HANDOFF.with(|c| *c.borrow_mut() = Some(Box::new(ZkHandoff::<EF<SC>> { claims, col_masks })));
++
++    let batch_constraint_proof = BatchConstraintProof::<SC> {
++        numerator_term_per_air: vec![],
++        denominator_term_per_air: vec![],
++        univariate_round_coeffs: s_0_total,
++        sumcheck_round_polys,
++        column_openings,
++        zk: zk_tail,
++    };
++    let gkr_proof = GkrProof::<SC> {
++        logup_pow_witness,
++        q0_claim: EF::<SC>::ZERO,
++        claims_per_layer: frac_sum_proof.claims_per_layer,
++        sumcheck_polys: frac_sum_proof.sumcheck_polys,
++        zk: gkr_out.tail,
++    };
++    Ok((gkr_proof, batch_constraint_proof, r))
++}
++
++impl<'a, SC: StarkProtocolConfig> LogupZerocheckRowMajor<'a, SC>
++where
++    SC::F: TwoAdicField,
++    SC::EF: TwoAdicField + ExtensionField<SC::F>,
++    CpuBackend<SC>: ProverBackend<Val = SC::F, Matrix = RowMajorMatrix<SC::F>>,
++{
++    /// [E2E-D zk-piop] Trace `t` in the round that binds its last variable, with every column
++    /// masked by `X(1 - X) mask`: `(zerocheck, LogUp numerator (normalised), denominator)` sums at
++    /// `X = 0..=npts`, from its two-row tables.
++    fn zk_masked_last_round(&self, t: usize, masks: &[Vec<SC::EF>], npts: usize) -> Vec<(SC::EF, SC::EF, SC::EF)> {
++        let helper = &self.eval_helpers[t];
++        let sels = &self.sels_per_trace[t];
++        let mats = &self.mat_evals_per_trace[t];
++        assert_eq!(sels.values.len(), 2 * sels.width, "zk last round: two-row tables");
++        let eq = self.eq_xi_per_trace[t][0];
++        let n = self.n_per_trace[t];
++        let norm = SC::F::from_usize(1 << (-n).max(0)).inverse();
++        let row = |m: &RowMajorMatrix<SC::EF>, x: SC::EF, mask: Option<&Vec<SC::EF>>| -> Vec<SC::EF> {
++            let w = m.width;
++            (0..w)
++                .map(|j| {
++                    let (a, b) = (m.values[j], m.values[w + j]);
++                    let v = a + (b - a) * x;
++                    match mask {
++                        Some(mk) => v + x * (SC::EF::ONE - x) * mk[j],
++                        None => v,
++                    }
++                })
++                .collect()
++        };
++        (0..=npts)
++            .map(|xi| {
++                let x = SC::EF::from_usize(xi);
++                let mut parts = vec![row(sels, x, None)];
++                for (m, mk) in mats.iter().zip(masks) {
++                    parts.push(row(m, x, Some(mk)));
++                }
++                let zc = eq * helper.acc_constraints(&parts, &self.lambda_pows);
++                let (num, den) = if helper.interactions.is_empty() {
++                    (SC::EF::ZERO, SC::EF::ZERO)
++                } else {
++                    let [nu, de] = helper.acc_interactions(&parts, &self.beta_pows, &self.eq_3b_per_trace[t]);
++                    (eq * nu * norm, eq * de)
++                };
++                (zc, num, den)
++            })
++            .collect()
++    }
++}
+--- a/openvm-sha384/crates/recursion/src/batch_constraint/mod.rs
++++ b/openvm-sha384/crates/recursion/src/batch_constraint/mod.rs
+@@ -217,6 +217,7 @@
+             univariate_round_coeffs,
+             sumcheck_round_polys,
+             column_openings,
++            ..
+         } = &proof.batch_constraint_proof;
+ 
+         let mut sumcheck_rnd = vec![];
+--- a/openvm-sha384/crates/recursion/src/gkr/mod.rs
++++ b/openvm-sha384/crates/recursion/src/gkr/mod.rs
+@@ -165,6 +165,7 @@
+             claims_per_layer,
+             sumcheck_polys,
+             logup_pow_witness,
++            ..
+         } = &proof.gkr_proof;
+ 
+         let _logup_pow_sample = pow_observe_sample(ts, self.logup_pow_bits, *logup_pow_witness);
+@@ -338,6 +339,7 @@
+                     claims_per_layer,
+                     sumcheck_polys,
+                     logup_pow_witness,
++                    ..
+                 } = gkr_proof;
+ 
+                 let logup_pow_sample =
+--- a/openvm-sha384/crates/recursion/src/stacking/mod.rs
++++ b/openvm-sha384/crates/recursion/src/stacking/mod.rs
+@@ -113,6 +113,7 @@
+             univariate_round_coeffs,
+             sumcheck_round_polys,
+             stacking_openings,
++            ..
+         } = &proof.stacking_proof;
+ 
+         let lambda = ts.sample_ext();
+--- a/openvm-sha384/crates/recursion/src/nv/uair.rs
++++ b/openvm-sha384/crates/recursion/src/nv/uair.rs
+@@ -177,6 +177,16 @@
+             NV_WIDTH
+         }
+     }
++    /// [E2E-D zk-piop] Without the program part (the FINAL layer) the program columns P0..P3 are
++    /// in common main and hold the pinned (public) program: V_d checks their openings
++    /// (`vd::check_final_program_at`), so a zero-knowledge FINAL proof sends them unmasked.
++    fn zk_public_columns(&self) -> Vec<usize> {
++        if self.program_part {
++            vec![]
++        } else {
++            (U_P..U_P + 4).collect()
++        }
++    }
+ }
+ 
+ /// Split an NvAir trace into (common main without P0..P3, the program part P0..P3).

@@ -1,0 +1,23 @@
+## zk-selftest 9 12 0,2,3,4,5
+ZK_SELFTEST zk=0 ok bytes=69461 prove_ms=2054 verify_ms=0.9 gkr_zk=0 batch_zk=0 stack_zk=0
+ZK_SELFTEST zk=2 ok bytes=72293 prove_ms=2752 verify_ms=0.6 gkr_zk=0 batch_zk=0 stack_zk=0
+ZK_SELFTEST zk=3 ok bytes=71663 prove_ms=2749 verify_ms=0.6 gkr_zk=0 batch_zk=0 stack_zk=0
+ZK_SELFTEST zk=4 ok bytes=74811 prove_ms=2608 verify_ms=0.8 gkr_zk=27 batch_zk=10 stack_zk=2
+ZK_SELFTEST_TAMPER zk=4 rejected=109/109
+ZK_SELFTEST zk=5 ok bytes=74811 prove_ms=2550 verify_ms=0.8 gkr_zk=27 batch_zk=10 stack_zk=2
+ZK_SELFTEST_TAMPER zk=5 rejected=109/109
+## zk-selftest 9 11 2,3,4,5 13 6144
+ZK_SELFTEST zk=2 ok bytes=76921 prove_ms=1481 verify_ms=1.2 gkr_zk=0 batch_zk=0 stack_zk=0
+ZK_SELFTEST zk=3 ok bytes=77089 prove_ms=1540 verify_ms=0.9 gkr_zk=0 batch_zk=0 stack_zk=0
+ZK_SELFTEST zk=4 ok bytes=80255 prove_ms=1591 verify_ms=1.1 gkr_zk=45 batch_zk=10 stack_zk=2
+ZK_SELFTEST_TAMPER zk=4 rejected=205/205
+ZK_SELFTEST zk=5 ok bytes=80801 prove_ms=1475 verify_ms=1.7 gkr_zk=45 batch_zk=10 stack_zk=2
+ZK_SELFTEST_TAMPER zk=5 rejected=205/205
+## zk-selftest 12 11 3,5 12 3000
+ZK_SELFTEST zk=3 ok bytes=75337 prove_ms=1463 verify_ms=1.2 gkr_zk=0 batch_zk=0 stack_zk=0
+ZK_SELFTEST zk=5 ok bytes=78713 prove_ms=1495 verify_ms=1.7 gkr_zk=42 batch_zk=7 stack_zk=2
+ZK_SELFTEST_TAMPER zk=5 rejected=183/183
+## zk-selftest 13 12 3,5
+ZK_SELFTEST zk=3 ok bytes=72387 prove_ms=2972 verify_ms=0.7 gkr_zk=0 batch_zk=0 stack_zk=0
+ZK_SELFTEST zk=5 ok bytes=75451 prove_ms=3008 verify_ms=0.9 gkr_zk=27 batch_zk=10 stack_zk=2
+ZK_SELFTEST_TAMPER zk=5 rejected=113/113

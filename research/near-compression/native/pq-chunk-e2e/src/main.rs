@@ -2,6 +2,7 @@
 //! Research protocol: cryptographic security and zero-knowledge masking are not established here.
 mod perf_check;
 mod profile;
+mod zk_selftest;
 #[path = "../../pq-state-port/src/main.rs"]
 #[allow(dead_code)]
 mod state;
@@ -416,6 +417,12 @@ fn chain(
     let mut fc = circ.clone_shape();
     fc.program_part = false;
     fc.tight_floor = None;
+    // [E2E-D] witness-guessing distinguisher: NEARPROOF_ZK_GUESS=DIR (FINAL.proof + SETUP.json of
+    // a packet) tests this checkpoint's FINAL trace (the witness) against that proof and exits.
+    if let Ok(dir) = std::env::var("NEARPROOF_ZK_GUESS") {
+        zk_guess(&fc, &vk, &p, Path::new(&dir));
+        return;
+    }
     let final_started = std::time::Instant::now();
     println!("FINAL_PHASE start");
     let (fv, fp, b, _) = prove_level(&fc, &final_engine, &vk, &p);
@@ -532,33 +539,26 @@ fn verify(air: &str, claim_path: &str, helper: &str, setup_path: &str, pin: &str
     setup.base_params.whir.domain_odd_factor = setup.domain_odd_factor;
     setup.final_vk.inner.params.whir.domain_odd_factor = setup.domain_odd_factor;
     assert!(setup.version == 1 || setup.version == 2, "setup version");
-    assert_eq!(
-        hash(&std::fs::read(air).unwrap()),
-        setup.air_sha256,
-        "AIR differs from pinned setup"
-    );
+    let air_bytes = std::fs::read(air).unwrap();
+    assert_eq!(hash(&air_bytes), setup.air_sha256, "AIR differs from pinned setup");
     let packet = std::fs::read(bundle).unwrap();
     let (n, base_u, body) = bundle_parts(&packet, setup.version == 2, setup.base_params.n_stack);
     mark("air_pin_bundle_read", &mut phases);
-    let dir = tempfile::tempdir().unwrap();
-    let hint = dir.path().join("hint.bin");
-    std::fs::write(&hint, &packet[16..16 + n]).unwrap();
-    let public = dir.path().join("public");
-    assert!(
-        std::process::Command::new(helper)
-            .args([air, claim_path])
-            .arg(&hint)
-            .arg(&public)
-            .status()
-            .expect("statepublic")
-            .success(),
-        "claim/hint rejected"
+    // Only the AIR's public-input view is needed (numPub, pubSegs, maxPub, table count, each
+    // table's pub bound): one streaming pass over the pinned AIR bytes.
+    let air_pub = npudr::airpub::AirPublic::from_json_slice(&air_bytes).expect("air json");
+    mark("air_parse", &mut phases);
+    // `statepublic`, in process (the helper path argument is accepted for CLI compatibility and
+    // ignored): recompute the public inputs/messages from the claim and the transmitted hint.
+    let _ = helper;
+    let public = public_data(&air_pub, &std::fs::read(claim_path).unwrap(), &packet[16..16 + n]);
+    mark("statepublic", &mut phases);
+    let expected = state::chunk_bridge::expected_claim_parsed(
+        &air_pub.table_num_pub,
+        &public,
+        setup.base_params,
+        base_u.as_deref(),
     );
-    mark("statepublic_subprocess", &mut phases);
-    let expected = match &base_u {
-        Some(u) => state::chunk_bridge::expected_claim_at(air, public.to_str().unwrap(), setup.base_params, u),
-        None => state::chunk_bridge::expected_claim(air, public.to_str().unwrap(), setup.base_params),
-    };
     mark("expected_claim_tape", &mut phases);
     let fp = decode_proof(&packet[body..]);
     mark("proof_decode", &mut phases);
@@ -585,6 +585,76 @@ fn verify(air: &str, claim_path: &str, helper: &str, setup_path: &str, pin: &str
         "INDEPENDENT_VERIFY_OK bundle_bytes={} under_300000={}",
         packet.len(),
         packet.len() < 300000
+    );
+}
+/// The verifier-generated public data of a claim + transmitted hint (`statepublic`, in process).
+/// A claim/hint the preparation rejects panics ("claim/hint rejected"), i.e. the packet is rejected.
+fn public_data(
+    air: &npudr::airpub::AirPublic,
+    claim: &[u8],
+    hint: &[u8],
+) -> state::chunk_bridge::PublicData {
+    let st = npudr::v3::statement::public_statement(air, claim, hint).expect("claim/hint rejected");
+    state::chunk_bridge::PublicData::new(
+        &st.pubs,
+        st.msgs.iter().map(|(b, s, m)| (*b as u64, *s, m.as_slice())),
+    )
+}
+/// Parity of the in-process claim preparation with the original file/subprocess path: the
+/// `statepublic` executable writes pubs.bin/pubmsgs.json, the file-based `expected_claim(_at)`
+/// (full classical AIR parse) reads them. The two `StatementClaim`s must be identical.
+fn claim_parity(air: &str, claim_path: &str, helper: &str, setup_path: &str, bundle: &str) {
+    let mut setup: Setup = serde_json::from_slice(&std::fs::read(setup_path).unwrap()).unwrap();
+    setup.base_params.whir.domain_odd_factor = setup.domain_odd_factor;
+    let packet = std::fs::read(bundle).unwrap();
+    let (n, base_u, _) = bundle_parts(&packet, setup.version == 2, setup.base_params.n_stack);
+    // reference: subprocess + files (the pre-in-process verifier path)
+    let dir = tempfile::tempdir().unwrap();
+    let hint = dir.path().join("hint.bin");
+    std::fs::write(&hint, &packet[16..16 + n]).unwrap();
+    let public = dir.path().join("public");
+    assert!(
+        std::process::Command::new(helper)
+            .args([air, claim_path])
+            .arg(&hint)
+            .arg(&public)
+            .status()
+            .expect("statepublic")
+            .success(),
+        "claim/hint rejected"
+    );
+    let p = public.to_str().unwrap();
+    let reference = match &base_u {
+        Some(u) => state::chunk_bridge::expected_claim_at(air, p, setup.base_params.clone(), u),
+        None => state::chunk_bridge::expected_claim(air, p, setup.base_params.clone()),
+    };
+    // in process
+    let air_bytes = std::fs::read(air).unwrap();
+    let fast = npudr::airpub::AirPublic::from_json_slice(&air_bytes).unwrap();
+    let full = npudr::airpub::AirPublic::of(
+        &npudr::air::Air::from_json(std::str::from_utf8(&air_bytes).unwrap()).unwrap(),
+    );
+    assert_eq!(fast.table_num_pub, full.table_num_pub, "pub bounds (streaming vs full parse)");
+    assert_eq!(fast.table_num_pub, state::chunk_bridge::table_num_pub(air), "pub bounds (classical)");
+    assert_eq!(
+        (fast.num_tables, fast.air.num_pub, fast.air.max_pub, fast.air.v2, &fast.air.pub_segs),
+        (full.num_tables, full.air.num_pub, full.air.max_pub, full.air.v2, &full.air.pub_segs),
+        "AIR public view (streaming vs full parse)"
+    );
+    let public = public_data(&fast, &std::fs::read(claim_path).unwrap(), &packet[16..16 + n]);
+    let claim = state::chunk_bridge::expected_claim_parsed(
+        &fast.table_num_pub,
+        &public,
+        setup.base_params,
+        base_u.as_deref(),
+    );
+    let (a, b) = (format!("{reference:?}"), format!("{claim:?}"));
+    assert_eq!(a, b, "in-process claim differs from the statepublic/file path");
+    println!(
+        "CLAIM_PARITY_OK tape_eval={} public_values={} claim_debug_sha256={}",
+        base_u.is_some(),
+        claim.public_values.iter().map(Vec::len).sum::<usize>(),
+        hash(a.as_bytes())
     );
 }
 /// Split timing of the verifier's stages on already-prepared public inputs (median of `reps`).
@@ -652,6 +722,82 @@ fn verify_bench(air: &str, public: &str, setup_path: &str, bundle: &str, reps: u
         med(tf)
     );
 }
+/// [E2E-D] Witness-guessing distinguisher. Given a FINAL proof and a candidate witness (the FINAL
+/// trace generated from an L4 checkpoint), recompute every column opening the proof reveals —
+/// the prismatic MLE of the candidate trace column (and its next-row rotation) at the batch point
+/// `r` the verifier derives from the proof — and count how many equal the proof's values. Without
+/// PIOP masking the true witness matches every opening (the proof identifies its witness); with
+/// masking only the public columns (`zk_public_cols`, the pinned program) can match.
+fn zk_guess(fc: &NvCircuit, vk: &MultiStarkVerifyingKey<SC>, p: &Proof<SC>, dir: &Path) {
+    use openvm_stark_backend::poly_common::{eval_eq_uni, evals_eq_hypercube_serial};
+    use p3_field::{PrimeCharacteristicRing, TwoAdicField};
+    let mut setup: Setup = serde_json::from_slice(&std::fs::read(dir.join("SETUP.json")).unwrap()).unwrap();
+    setup.final_vk.inner.params.whir.domain_odd_factor = setup.domain_odd_factor;
+    let fp = read_proof(&dir.join("FINAL.proof"));
+    let engine = Sha384CpuEngine::new_final(setup.final_vk.inner.params.clone());
+    let _ = openvm_stark_backend::verifier::take_last_zerocheck_point::<Ef>();
+    engine.verify(&setup.final_vk, &fp).expect("final proof");
+    let r = openvm_stark_backend::verifier::take_last_zerocheck_point::<Ef>().expect("batch point");
+    let (mats, _) = fc.generate(vk, p);
+    let mvk = &setup.final_vk.inner;
+    let l_skip = mvk.params.l_skip;
+    let omega = openvm_recursion_circuit::sha384::config::F::two_adic_generator(l_skip);
+    let mut order: Vec<usize> = (0..mvk.per_air.len()).filter(|&a| fp.trace_vdata[a].is_some()).collect();
+    order.sort_by_key(|&a| (std::cmp::Reverse(fp.trace_vdata[a].as_ref().unwrap().log_height), a));
+    let (mut tot, mut hit, mut tot_pub, mut hit_pub) = (0usize, 0usize, 0usize, 0usize);
+    for (t, &air) in order.iter().enumerate() {
+        let m = &mats[air];
+        let h = m.height();
+        let n = (h.trailing_zeros() as usize).saturating_sub(l_skip);
+        assert_eq!(fp.trace_vdata[air].as_ref().unwrap().log_height, n + l_skip, "candidate trace shape");
+        let lz: Vec<Ef> = (0..1usize << l_skip)
+            .map(|z| eval_eq_uni(l_skip, r[0], Ef::from(omega.exp_u64(z as u64))))
+            .collect();
+        let eqy = evals_eq_hypercube_serial(&r[1..=n]);
+        let w: Vec<Ef> = (0..h).map(|row| lz[row & ((1 << l_skip) - 1)] * eqy[row >> l_skip]).collect();
+        let mask = mvk.per_air[air].params.opening_masks()[0].clone();
+        let public = &mvk.per_air[air].params.zk_public_cols;
+        let openings = openvm_stark_backend::proof::column_openings_by_mask(
+            &fp.batch_constraint_proof.column_openings[t][0],
+            &mask,
+        );
+        let width = m.width();
+        let cols: Vec<(Ef, Ef)> = (0..width)
+            .map(|c| {
+                let mut plain = Ef::ZERO;
+                let mut rot = Ef::ZERO;
+                for row in 0..h {
+                    plain += w[row] * m.values[row * width + c];
+                    rot += w[row] * m.values[((row + 1) % h) * width + c];
+                }
+                (plain, rot)
+            })
+            .collect();
+        for (c, ((pl, rt), &has_rot)) in cols.iter().zip(&mask).enumerate() {
+            let (o, orot) = openings[c];
+            // the pinned program columns of the NvAir are public in every mode
+            let up = openvm_recursion_circuit::nv::uair::U_P;
+            let is_pub = public.contains(&c) || (air == 0 && (up..up + 4).contains(&c));
+            if is_pub {
+                tot_pub += 1;
+                hit_pub += (o == *pl) as usize;
+            } else {
+                tot += 1;
+                hit += (o == *pl) as usize;
+            }
+            if has_rot {
+                tot += 1;
+                hit += (orot == *rt) as usize;
+            }
+        }
+    }
+    println!(
+        "ZK_GUESS proof={} zk={} witness_openings_matched={hit}/{tot} public_column_openings_matched={hit_pub}/{tot_pub}",
+        dir.display(),
+        setup.final_vk.inner.params.whir.levers.zk
+    );
+}
+
 /// [E2E-D] Hiding sanity check: field-by-field comparison of two proofs of the same statement.
 /// Every proof field is flattened to its scalar leaves (field-element coefficients, digest bytes,
 /// lengths); leaves are grouped by path with indices removed, and each group reports how many
@@ -749,6 +895,7 @@ fn main() {
             true,
         ),
         Some("verify") if a.len() == 8 => verify(&a[2], &a[3], &a[4], &a[5], &a[6], &a[7]),
+        Some("claim-parity") if a.len() == 7 => claim_parity(&a[2], &a[3], &a[4], &a[5], &a[6]),
         Some("soundness") if a.len() >= 3 => {
             // Per-component soundness bits of each named vk (BASE/L*.vk.json or SETUP.json).
             for path in &a[2..] {
@@ -781,8 +928,33 @@ fn main() {
             println!("PROOF_SECTIONS {}", proof_sections(&p));
         }
         Some("zk-diff") if a.len() == 4 => zk_diff(Path::new(&a[2]), Path::new(&a[3])),
+        Some("zk-selftest") => zk_selftest::run(&a[2..]),
+        Some("zk-layout") if a.len() == 4 => {
+            // [E2E-D] stacked layout of a FINAL proof's shape under every zk packing mode
+            let setup: Setup = serde_json::from_slice(&std::fs::read(&a[2]).unwrap()).unwrap();
+            let p = read_proof(Path::new(&a[3]));
+            let mvk = &setup.final_vk.inner;
+            let mut per: Vec<_> = mvk
+                .per_air
+                .iter()
+                .zip(&p.trace_vdata)
+                .filter_map(|(vk, td)| td.as_ref().map(|td| (vk.params.width.common_main, td.log_height, td.tight_height)))
+                .collect();
+            per.sort_by_key(|x| std::cmp::Reverse(x.1));
+            for zk in [0u8, 2, 3, 4, 5] {
+                let t = std::time::Instant::now();
+                let l = openvm_stark_backend::prover::stacked_pcs::StackedLayout::new_tight_zk(
+                    mvk.params.l_skip,
+                    mvk.params.l_skip + mvk.params.n_stack,
+                    per.clone(),
+                    zk,
+                )
+                .unwrap();
+                println!("ZK_LAYOUT zk={zk} width={} slices={} ms={:.1}", l.width(), l.sorted_cols.len(), t.elapsed().as_secs_f64() * 1e3);
+            }
+        }
         _ => panic!(
-            "usage: base AIR DUMP OUT CERTS EXCLUSIONS | probe OUT | validate-base AIR PUBLIC OUT | chain AIR PUBLIC OUT CERTS EXCLUSIONS [RESUME_LEVEL] | replay-final AIR PUBLIC OUT CERTS EXCLUSIONS LEVEL | verify AIR CLAIM STATEPUBLIC SETUP TRUSTED_SHA256 BUNDLE | proof-sections PROOF | zk-diff PROOF_A PROOF_B"
+            "usage: base AIR DUMP OUT CERTS EXCLUSIONS | probe OUT | validate-base AIR PUBLIC OUT | chain AIR PUBLIC OUT CERTS EXCLUSIONS [RESUME_LEVEL] | replay-final AIR PUBLIC OUT CERTS EXCLUSIONS LEVEL | verify AIR CLAIM STATEPUBLIC(ignored: in-process) SETUP TRUSTED_SHA256 BUNDLE | claim-parity AIR CLAIM STATEPUBLIC SETUP BUNDLE | proof-sections PROOF | zk-diff PROOF_A PROOF_B"
         ),
     }
 }

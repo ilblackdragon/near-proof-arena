@@ -1,0 +1,31 @@
+LOAD_BEFORE d1_00-h10006-s3 17.97 15.46 13.58
+REPLAY d1_00-h10006-s3 rc=0 FINAL_REPLAY wall_s=774.979160989
+VERIFY_PROFILE_MS total=49.22 setup_read_pin=2.95 setup_parse=9.92 air_pin_bundle_read=1.45 air_parse=8.14 statepublic=0.36 expected_claim_tape=2.04 proof_decode=0.23 final_verify=24.13
+INDEPENDENT_VERIFY_OK bundle_bytes=319695 under_300000=false
+VERIFY_PROFILE_MS total=40.27 setup_read_pin=2.60 setup_parse=5.50 air_pin_bundle_read=1.21 air_parse=4.96 statepublic=0.23 expected_claim_tape=1.68 proof_decode=0.23 final_verify=23.86
+VERIFY_PROFILE_MS total=40.49 setup_read_pin=2.55 setup_parse=5.54 air_pin_bundle_read=1.24 air_parse=4.89 statepublic=0.25 expected_claim_tape=1.73 proof_decode=0.23 final_verify=24.07
+VERIFY_PROFILE_MS total=49.99 setup_read_pin=2.72 setup_parse=10.03 air_pin_bundle_read=1.35 air_parse=8.28 statepublic=0.34 expected_claim_tape=2.21 proof_decode=0.40 final_verify=24.68
+VERIFY_PROFILE_MS total=40.76 setup_read_pin=2.44 setup_parse=5.63 air_pin_bundle_read=1.29 air_parse=5.03 statepublic=0.23 expected_claim_tape=1.62 proof_decode=0.22 final_verify=24.30
+VERIFY_PROFILE_MS total=40.97 setup_read_pin=2.54 setup_parse=5.63 air_pin_bundle_read=1.21 air_parse=4.98 statepublic=0.23 expected_claim_tape=1.68 proof_decode=0.23 final_verify=24.46
+LOAD_AFTER d1_00-h10006-s3 16.53 16.08 15.38
+LOAD_BEFORE d1_00-h10007-s0 16.53 16.08 15.38
+REPLAY d1_00-h10007-s0 rc=0 FINAL_REPLAY wall_s=598.403077555
+VERIFY_PROFILE_MS total=50.37 setup_read_pin=2.85 setup_parse=9.90 air_pin_bundle_read=1.41 air_parse=7.87 statepublic=0.38 expected_claim_tape=2.22 proof_decode=0.23 final_verify=25.53
+INDEPENDENT_VERIFY_OK bundle_bytes=320464 under_300000=false
+VERIFY_PROFILE_MS total=42.14 setup_read_pin=2.51 setup_parse=5.56 air_pin_bundle_read=1.22 air_parse=4.87 statepublic=0.28 expected_claim_tape=1.67 proof_decode=0.23 final_verify=25.81
+VERIFY_PROFILE_MS total=41.31 setup_read_pin=2.42 setup_parse=5.50 air_pin_bundle_read=1.19 air_parse=4.79 statepublic=0.27 expected_claim_tape=1.63 proof_decode=0.22 final_verify=25.28
+VERIFY_PROFILE_MS total=42.29 setup_read_pin=2.43 setup_parse=5.52 air_pin_bundle_read=1.19 air_parse=4.93 statepublic=0.26 expected_claim_tape=1.62 proof_decode=0.22 final_verify=26.12
+VERIFY_PROFILE_MS total=41.74 setup_read_pin=2.41 setup_parse=5.40 air_pin_bundle_read=1.16 air_parse=4.89 statepublic=0.26 expected_claim_tape=1.63 proof_decode=0.22 final_verify=25.76
+VERIFY_PROFILE_MS total=41.80 setup_read_pin=2.40 setup_parse=5.44 air_pin_bundle_read=1.17 air_parse=4.88 statepublic=0.28 expected_claim_tape=1.62 proof_decode=0.23 final_verify=25.79
+LOAD_AFTER d1_00-h10007-s0 13.14 14.43 15.06
+LOAD_BEFORE d2_05-h10042-s3 13.14 14.43 15.06
+REPLAY d2_05-h10042-s3 rc=0 FINAL_REPLAY wall_s=891.290215141
+VERIFY_PROFILE_MS total=41.78 setup_read_pin=2.46 setup_parse=5.40 air_pin_bundle_read=1.16 air_parse=4.69 statepublic=0.66 expected_claim_tape=2.37 proof_decode=0.21 final_verify=24.82
+INDEPENDENT_VERIFY_OK bundle_bytes=319779 under_300000=false
+VERIFY_PROFILE_MS total=41.15 setup_read_pin=2.36 setup_parse=5.29 air_pin_bundle_read=1.11 air_parse=4.74 statepublic=0.64 expected_claim_tape=2.26 proof_decode=0.21 final_verify=24.55
+VERIFY_PROFILE_MS total=41.93 setup_read_pin=2.31 setup_parse=6.02 air_pin_bundle_read=1.10 air_parse=4.75 statepublic=0.64 expected_claim_tape=2.26 proof_decode=0.21 final_verify=24.64
+VERIFY_PROFILE_MS total=41.04 setup_read_pin=2.27 setup_parse=5.23 air_pin_bundle_read=1.09 air_parse=4.81 statepublic=0.64 expected_claim_tape=2.23 proof_decode=0.21 final_verify=24.56
+VERIFY_PROFILE_MS total=41.05 setup_read_pin=2.27 setup_parse=5.28 air_pin_bundle_read=1.08 air_parse=4.84 statepublic=0.65 expected_claim_tape=2.23 proof_decode=0.21 final_verify=24.48
+VERIFY_PROFILE_MS total=40.99 setup_read_pin=2.26 setup_parse=5.32 air_pin_bundle_read=1.08 air_parse=4.76 statepublic=0.64 expected_claim_tape=2.25 proof_decode=0.21 final_verify=24.47
+LOAD_AFTER d2_05-h10042-s3 16.43 19.04 19.25
+ZK4_DONE

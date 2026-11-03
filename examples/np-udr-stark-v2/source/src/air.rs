@@ -323,7 +323,7 @@ fn opt_nat(v: &Value) -> Result<Option<u64>, String> {
     }
 }
 
-fn parse_pub_seg(v: &Value) -> Result<PubSeg, String> {
+pub(crate) fn parse_pub_seg(v: &Value) -> Result<PubSeg, String> {
     Ok(PubSeg {
         bus: nat(get(v, "bus")?)? as usize,
         send: get(v, "send")?.as_bool().ok_or("pubSeg send")?,

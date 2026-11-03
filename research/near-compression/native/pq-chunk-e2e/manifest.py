@@ -33,6 +33,8 @@ sha2 = "0.10.9"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tempfile = "3"
+# the classical public-statement preparation (`statepublic`), called in-process by `verify`
+np-udr-stark = { path = ''' + q(here.parents[3] / 'examples/np-udr-stark-v2/source') + ''' }
 '''
 for name, directory, features in [
     ('openvm-recursion-circuit', 'openvm-sha384/crates/recursion', '["parallel"]'),
