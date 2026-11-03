@@ -197,14 +197,13 @@ end Keys
 /-! ## The final working set with `hkd` discharged -/
 
 /-- **The final working set from `Holds`, `hkd` discharged** (premises: the chip contract,
-`CompressOK`, tape times, `NodeCR`, `LeafCR`, distinct INTAKE keys). -/
+`CompressOK`, `NodeCR`, `LeafCR`, distinct INTAKE keys). -/
 theorem ws_decoded_final3 {D : Nat} {extra : List Table} {nb np : Nat} {tr : Trace Fp} {pub : List Fp}
     {compress : List Nat → List Nat → List Nat} (hH : Holds (fullAir D extra nb np) pub tr)
     (hx : ∀ T ∈ extra, ∀ i ∈ T.interactions,
       i.bus ≠ B_WM ∧ i.bus ≠ B_PT ∧ i.bus ≠ B_RCH ∧ i.bus ≠ B_RNG ∧ i.bus ≠ B_TREE)
     (hcomp : CompressOK compress)
     (hC : Sha512IfContract compress ((busList (fullAir D extra nb np) tr pub B_IF384 true).map decIf))
-    (htape : ∀ m ∈ busList (fullAir D extra nb np) tr pub B_WRITE true, tn (m.getD 1 0) < 2 ^ 24)
     (hD1 : 1 ≤ D) (hD : D ≤ 20) (hCR : NodeCR compress) (hLCR : LeafCR compress)
     (hdist0 : IntakeKeysDistinct compress (wsLeaves tr pub D 0) (WsLen.wsLen pub)) :
     ∃ nw, wsLeaves tr pub D 1 = WsSeg.wsAt (wsl tr pub) (wsLeaves tr pub D 0) nw ∧
@@ -223,13 +222,13 @@ theorem ws_decoded_final3 {D : Nat} {extra : List Table} {nb np : Nat} {tr : Tra
     fun T hT i hi => ⟨(hx T hT i hi).1, (hx T hT i hi).2.1, (hx T hT i hi).2.2.1, (hx T hT i hi).2.2.2.1⟩
   have hxt : ∀ T ∈ extra, ∀ i ∈ T.interactions, i.bus ≠ B_TREE := fun T hT i hi => (hx T hT i hi).2.2.2.2
   obtain ⟨⟨r0, hs0, hr0⟩, ⟨nw, rF, hq0, hrF⟩⟩ := wsn_roots hH hxt hcomp hC hD1 hD
-  obtain ⟨hpt, hok, -, -, hwl, hrch⟩ := ws_decoded hH hx4 hcomp hC htape hD1 hD
+  obtain ⟨hpt, hok, -, -, hwl, hrch⟩ := ws_decoded hH hx4 hcomp hC hD1 hD
   obtain ⟨-, -, hT⟩ := ws_compose hpt hok (hrch r0 rF nw hs0 hq0) hCR (slice_length _ _ _ _) hr0
     (wsl := wsl tr pub)
   have hkd := hkd_of (G := GoodB) (LD := fun b => digest6 (compress IV384 b)) (key := keyOf)
     (fun b b' g g' e => hLCR b b' g g' e) (wsl_keys hH hx4 hcomp hC) (fun l hl => (hT l hl).2.2.1)
     (m := WsLen.wsLen pub) (fun l hl => (hwl l hl).2) hdist0
-  exact ws_decoded_final2 hH hx hcomp hC htape hD1 hD hCR hkd
+  exact ws_decoded_final2 hH hx hcomp hC hD1 hD hCR hkd
 /-! ## Leaf contents across segments (record level) -/
 
 /-- **A segment opens a leaf with the block the previous touching segment closed it with**: with a

@@ -43,6 +43,11 @@ Working-set count mutants (M5a-5: `wsLen` is public value 16):
   lmwrap    a new leaf (`oLR`) whose memory bytes encode leafMem + P (field-equal in its equation)
   vbyte     a version-published leaf holding a non-byte value-hash cell (same 16-bit pair sum)
   dmono     a branch-keeping delete (`oDH`/`oDL`) whose `mem - om` witness is off by one
+M5a-6 mutants:
+  nvlbyte   a version-published branch keeping a VER-read value holds a non-byte value-length
+            cell with the same 16-bit limb (vl0 + 256, vl1 - 1 mod P)
+  tbig      a write access at time 2^24, time cells encoding it exactly (one cell = 256)
+  twrap     a write access at time 2^24, time bytes encoding it mod 2^24
 Branch-value mutants (synthetic case `bval`):
   bvalue    a branch-value write (`oUV`) storing another value-hash byte than the walk's value
   bvmem     a branch-value delete (`oDV`) with memory usage + 1
@@ -1159,6 +1164,12 @@ class Gen:
                 Ta.setv(r, 'dt', dt)
                 for x in dt:
                     self.rng(x)
+                # M5a-6: the time itself is 3 bytes (`t < 2^24` from the row)
+                assert 0 <= t < 1 << 24
+                tb = [(t >> (8 * k)) & 255 for k in range(3)]
+                Ta.setv(r, 'tb', tb)
+                for x in tb:
+                    self.rng(x)
                 last_t[i] = t
                 state[i] = (kdi, p, ref, 1)
             # touched leaves: old → new
@@ -1607,12 +1618,69 @@ def _t_lmwrap(g):
     T.setv(r, 'nmem', new)
 
 
+# ---- M5a-6 mutants
+def _t_nvlbyte(g):
+    # M5a-6: a version-published branch (`BR`, `nref = 1`) that keeps a value read from `VER`
+    # (`gsha = 0`) holds a non-byte value-length cell with the same 16-bit limb: vl0 + 256,
+    # vl1 - 1 (mod P) in both the old (`vl`) and the kept new (`nvl`) bytes; the `VER` records
+    # carry only the limb, so only the new `RNG` lookup on `nvl` (gate `nref`) can catch it
+    T = g.T['BR']
+    r = next(r for r in T.rows if T.get(r, 'nref') == 1 and T.get(r, 'gsha') == 0 and T.get(r, 'act') == 1 and T.get(r, 'gnew') == 1
+             and T.get(r, 'hasv') == 1 and T.get(r, 'nhv') == 1 and T.get(r, 'oUV') == 0 and T.get(r, 'oDV') == 0)
+    v0, v1 = T.get(r, 'nvl', 0), T.get(r, 'nvl', 1)
+    g.rng_count[v0] -= 1
+    g.rng_count[v1] -= 1
+    for nm in ('vl', 'nvl'):
+        T.set(r, nm, v0 + 256, 0)
+        T.set(r, nm, (v1 - 1) % P, 1)
+    g.T['RNG'].rows = []
+    g.build_rng()
+
+
+def _wsa_time(g, tb_of):
+    # an entry's only access (idp = 0) moved to time 2^24 (gap bytes ff ff ff, so the gap
+    # constraint holds), consistently on the write log and in the closing `WSL` row (`idl`)
+    T, L = g.T['WSA'], g.T['WSL']
+    kd = lambda Tb, q: [Tb.get(q, 'kd', j) for j in range(16)]
+    r = next(r for r in T.rows if T.get(r, 'idp') == 0 and sum(1 for q in T.rows if kd(T, q) == kd(T, r)) == 1)
+    t0, tn = T.get(r, 't'), 1 << 24
+    for nm in ('dt', 'tb'):
+        for k in range(3):
+            g.rng_count[T.get(r, nm, k)] -= 1
+    T.set(r, 't', tn)
+    dt = [((tn - 1) >> (8 * k)) & 255 for k in range(3)]
+    T.setv(r, 'dt', dt)
+    tb = tb_of(tn)
+    T.setv(r, 'tb', tb)
+    for x in dt + tb:
+        if 0 <= x < 256:
+            g.rng(x)
+    g.T['RNG'].rows = []
+    g.build_rng()
+    l = next(q for q in L.rows if kd(L, q) == kd(T, r))
+    assert L.get(l, 'idl') == t0
+    L.set(l, 'idl', tn)
+    g.writes = [(tn if w[0] == t0 else w[0],) + tuple(w[1:]) for w in g.writes]
+
+
+def _t_tbig(g):
+    # M5a-6: a write access at time 2^24 whose time cells encode it exactly (top cell 256, not a
+    # byte): rejected by the new `RNG` lookup on `tb`
+    _wsa_time(g, lambda t: [t & 255, (t >> 8) & 255, t >> 16])
+
+
+def _t_twrap(g):
+    # M5a-6: a write access at time 2^24 whose time bytes encode it mod 2^24 (all bytes):
+    # rejected by the new constraint `act * (t - sum 256^k tb_k)`
+    _wsa_time(g, lambda t: [(t >> (8 * k)) & 255 for k in range(3)])
+
+
 TAMPERS = dict(lmwrap=_t_lmwrap, vbyte=_t_vbyte, dmono=_t_dmono, bvwrap=_t_bvwrap, absent=_t_absent, extabsent=_t_extabsent, branchval=_t_branchval, split=_t_split,
                splitext=_t_splitext, absdel=_t_absdel, squash=_t_squash, chain=_t_chain,
                verslot=_t_verslot, vernid=_t_vernid, vmcount=_t_vmcount, finroot=_t_finroot,
                nidforge=_t_nidforge, bvalue=_t_bvalue, bvmem=_t_bvmem, wsstale=_t_wsstale,
                wsorder=_t_wsorder, wsseg=_t_wsseg, wssib=_t_wssib, wsdrop=_t_wsdrop, wsabsorb=_t_wsabsorb,
-               wsleaf=_t_wsleaf)
+               wsleaf=_t_wsleaf, nvlbyte=_t_nvlbyte, tbig=_t_tbig, twrap=_t_twrap)
 
 
 def make_gen(st, names, mutant, plan, segs=1, extra_writes=0):

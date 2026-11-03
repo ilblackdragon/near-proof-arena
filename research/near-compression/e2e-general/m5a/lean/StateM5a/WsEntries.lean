@@ -43,7 +43,6 @@ theorem ws_entries {D : Nat} {extra : List Table} {nb np : Nat} {tr : Trace Fp} 
       i.bus ≠ B_WM ∧ i.bus ≠ B_PT ∧ i.bus ≠ B_RCH ∧ i.bus ≠ B_RNG ∧ i.bus ≠ B_TREE)
     (hcomp : CompressOK compress)
     (hC : Sha512IfContract compress ((busList (fullAir D extra nb np) tr pub B_IF384 true).map decIf))
-    (htape : ∀ m ∈ busList (fullAir D extra nb np) tr pub B_WRITE true, tn (m.getD 1 0) < 2 ^ 24)
     (hD1 : 1 ≤ D) (hD : D ≤ 20) (hCR : NodeCR compress) (hLCR : LeafCR compress)
     (hdist0 : IntakeKeysDistinct compress (wsLeaves tr pub D 0) (WsLen.wsLen pub))
     (hW : WsbKdRange tr pub) :
@@ -75,12 +74,12 @@ theorem ws_entries {D : Nat} {extra : List Table} {nb np : Nat} {tr : Trace Fp} 
     fun T hT i hi => ⟨(hx T hT i hi).1, (hx T hT i hi).2.1, (hx T hT i hi).2.2.1, (hx T hT i hi).2.2.2.1⟩
   have hxt : ∀ T ∈ extra, ∀ i ∈ T.interactions, i.bus ≠ B_TREE := fun T hT i hi => (hx T hT i hi).2.2.2.2
   obtain ⟨⟨r0, hs0, hr0⟩, ⟨nw', rF, hq0, hrF⟩⟩ := wsn_roots hH hxt hcomp hC hD1 hD
-  obtain ⟨hpt, hok, -, -, hwl, hrch⟩ := ws_decoded hH hx4 hcomp hC htape hD1 hD
+  obtain ⟨hpt, hok, -, -, hwl, hrch⟩ := ws_decoded hH hx4 hcomp hC hD1 hD
   have huniq : ∀ l ∈ wsl tr pub, ∀ l' ∈ wsl tr pub, l.seg = l'.seg → l.i = l'.i → l = l' :=
     fun l hl l' hl' e1 e2 => wsl_unique hpt (hok' hok) (rch_tops (hrch r0 rF nw' hs0 hq0) l.seg) hl hl' rfl
       e1.symm e2
   obtain ⟨nw, F1, F2, F3, F4, F5, -, F7⟩ :=
-    ws_decoded_final3 hH hx hcomp hC htape hD1 hD hCR hLCR hdist0
+    ws_decoded_final3 hH hx hcomp hC hD1 hD hCR hLCR hdist0
   have hcW := holds_constr hH (t := 5) (by decide) (full_wsb (D := D))
   have hlogW := holds_log hH (t := 5) (by decide) (full_wsb (D := D))
   have hWle := WsLen.wsb_wsLen_le hcW hlogW (by omega) (pub := pub)

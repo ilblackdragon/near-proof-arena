@@ -156,7 +156,6 @@ structure Prem (tr : Trace Fp) (pub : List Fp) (D : Nat) (extra : List Table) (n
     i.bus ≠ B_WM ∧ i.bus ≠ B_PT ∧ i.bus ≠ B_RCH ∧ i.bus ≠ B_RNG ∧ i.bus ≠ B_TREE
   hcomp : CompressOK compress
   hC : Sha512IfContract compress ((busList (fullAir D extra nb np) tr pub B_IF384 true).map decIf)
-  htape : ∀ m ∈ busList (fullAir D extra nb np) tr pub B_WRITE true, tn (m.getD 1 0) < 2 ^ 24
   hD1 : 1 ≤ D
   hD : D ≤ 20
   hNCR : NodeCR compress
@@ -236,7 +235,7 @@ theorem final_key (h : Prem tr pub D extra nb np compress) {i : Nat} (hi : i < W
   have hlog := wsb_log hH
   have hWl := WsLen.wsb_wsLen_le hc hlog hD30
   have hht := wsb_height hH hD30
-  have hkd := ((WsEntries.ws_entries hH h.hx h.hcomp h.hC h.htape h.hD1 h.hD h.hNCR h.hLCR
+  have hkd := ((WsEntries.ws_entries hH h.hx h.hcomp h.hC h.hD1 h.hD h.hNCR h.hLCR
     h.dist h.kdr).2.1 i hi).2.1
   have hr1 : 2 ^ D + i < tr.height 5 := by rw [hht, Nat.pow_succ]; omega
   obtain ⟨hi5, -, -, ri⟩ := phase0 hH hD30 hi

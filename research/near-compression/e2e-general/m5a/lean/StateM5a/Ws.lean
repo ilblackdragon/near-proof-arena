@@ -106,6 +106,10 @@ def NUM_BUSES_WS : Nat := NUM_BUSES + 2
 
 /-- Bytes of a write access's time gap `t − idp − 1` (segment-local times are `< 2^24`). -/
 def DT_BYTES : Nat := 3
+/-- Bytes of a write access's time `t` (M5a-6: `t < 2^24` from the row itself, so the gap bytes
+give `idp < t` without a premise on the tape; with prover-chosen times (M5b) an unranged `t`
+would let a closed `WM` cycle whose time gaps sum to `0 mod P` balance on its own). -/
+def TB_BYTES : Nat := 3
 
 /-- **The working-set entry count** `wsLen` (M5a-5): public value 16 (after `prev_state_root`'s
 16 limbs).  `WSB`'s `real` flag is exactly `i < wsLen` in both phases, and a touched leaf (`WSL`)
@@ -223,12 +227,13 @@ end Wsn
 The access at time `t` of segment `seg` to entry `kd` consumes the entry's latest value
 `WM(seg, kd, old, idp)` with `idp < t` (the gap `t − idp − 1` is `DT_BYTES` bytes) and sends the
 written value `WM(seg, kd, new, wr = 1, t)`.  The write itself is `WRITE(seg, t, kd, new)` (the
-public tape in M5a; STATE rows in M5b). -/
+public tape in M5a; STATE rows in M5b).  M5a-6: `t = Σ 256^k tb_k` with bytes `tb` (`RNG`), so
+`t < 2^24` on every active row. -/
 
 namespace Wsa
 def L : Layout :=
   [("act", 1), ("seg", 1), ("t", 1), ("kd", 16), ("cp", 1), ("cl", 1), ("cv", 16), ("wr", 1),
-   ("idp", 1), ("ncp", 1), ("ncl", 1), ("ncv", 16), ("dt", DT_BYTES)]
+   ("idp", 1), ("ncp", 1), ("ncl", 1), ("ncv", 16), ("dt", DT_BYTES), ("tb", TB_BYTES)]
 def T : Cols := ⟨L⟩
 def c (s : String) (j : Nat := 0) : Expr := T.c s j
 def vec (s : String) (n : Nat) : List Expr := (List.range n).map fun t => c s t
@@ -236,14 +241,17 @@ def vec (s : String) (n : Nat) : List Expr := (List.range n).map fun t => c s t
 def constraints : List Expr :=
   [bool (c "act"), bool (c "ncp"), (1 - c "ncp") * c "ncl",
    c "act" * (c "t" - c "idp" - 1 - sumE ((List.range DT_BYTES).map fun k => K (256 ^ k) * c "dt" k))] ++
-  (List.range 16).map fun t => (1 - c "ncp") * c "ncv" t
+  ((List.range 16).map fun t => (1 - c "ncp") * c "ncv" t) ++
+  -- M5a-6: the time is 3 bytes
+  [c "act" * (c "t" - sumE ((List.range TB_BYTES).map fun k => K (256 ^ k) * c "tb" k))]
 
 def interactions : List Interaction :=
   let A := c "act"
   [rcv B_WRITE A ([c "seg", c "t"] ++ vec "kd" 16 ++ [c "ncp", c "ncl"] ++ vec "ncv" 16),
    rcv B_WM A ([c "seg"] ++ vec "kd" 16 ++ [c "cp", c "cl"] ++ vec "cv" 16 ++ [c "wr", c "idp"]),
    snd B_WM A ([c "seg"] ++ vec "kd" 16 ++ [c "ncp", c "ncl"] ++ vec "ncv" 16 ++ [1, c "t"])] ++
-  (List.range DT_BYTES).map fun k => rcv B_RNG A [c "dt" k]
+  ((List.range DT_BYTES).map fun k => rcv B_RNG A [c "dt" k]) ++
+  (List.range TB_BYTES).map fun k => rcv B_RNG A [c "tb" k]
 
 def table : Table :=
   { width := L.width, constraints, interactions, maxLog := 20 }

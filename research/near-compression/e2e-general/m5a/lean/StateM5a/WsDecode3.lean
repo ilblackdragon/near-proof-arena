@@ -14,8 +14,8 @@ Row facts of the decoded rows (`WsDecode2`), proved from the constraints, `RNG` 
   child kept (`WsCost.wsp_keep`), the two compressions `oo = nodeH lo ro`, `on = nodeH ln rn` from
   the chip contract (`Sha512If.comp_node` via `WsDecode.comp_mem`), the top row's position;
 * `wsa_gap_rec`: every decoded access has `idp < t` (`WsCost.wsa_gap`: gap bytes from `RNG`, times
-  `< 2^24` from the public tape — premise `htape` on the `WRITE` sends — and `idp` is a sent time
-  by `WM` balance);
+  `< 2^24` from the row's own time bytes (`wsa_t_rng`, M5a-6; was a premise on the tape's `WRITE`
+  sends), and `idp` is a sent time by `WM` balance);
 * `wsl_ok`: a touched leaf is at a tree position `i < 2^D` and a real entry `i < wsLen`
   (`WsRaw.wsl_i_lt`, `WsLen.wsl_lt_wsLen`); `wsl_leaf`: its old / new digests are the leaf
   compressions `digest6 (compress IV384 bw)` of its decoded blocks, and the length chunks are
@@ -288,19 +288,32 @@ theorem wsa_t (htape : ∀ m ∈ busList (fullAir D extra nb np) tr pub B_WRITE 
   have hi : rcv B_WRITE (Wsa.c "act") ([Wsa.c "seg", Wsa.c "t"] ++ Wsa.vec "kd" 16 ++ [Wsa.c "ncp", Wsa.c "ncl"] ++
       Wsa.vec "ncv" 16) ∈ ((fullAir D extra nb np).tables[7]!).interactions := by
     rw [full_wsa]
-    exact List.mem_append_left _ (List.mem_cons_self ..)
+    exact List.mem_append_left _ (List.mem_append_left _ (List.mem_cons_self ..))
   have h1 := mem_busList _ (by rw [full_len]; omega) hi hr (mult_one hA)
   have h2 := htape _ ((holds_perm hH B_WRITE).mem_iff.2 h1)
   simpa [Interaction.msgVal, rcv, tn, ev] using h2
 
 include hH hx in
-/-- **Every decoded access consumed an earlier time** (`WsCost.wsa_gap`). -/
-theorem wsa_gap_rec (htape : ∀ m ∈ busList (fullAir D extra nb np) tr pub B_WRITE true, tn (m.getD 1 0) < 2 ^ 24) :
-    ∀ a ∈ wsa tr pub, a.idp < a.t := by
+/-- **A `WSA` row's time is `< 2^24`, from the row** (M5a-6: the time bytes `tb`, `RNG`) — replaces
+the tape premise of `wsa_t`. -/
+theorem wsa_t_rng {r : Nat} (hr : r < tr.height 7) (hA : (Wsa.c "act").eval tr 7 r pub = 1) :
+    ev tr 7 r pub (Wsa.c "t") < 2 ^ 24 := by
+  have hc := holds_constr hH (t := 7) (by decide) full_wsa r hr
+  have htb : ∀ k < TB_BYTES, ev tr 7 r pub (Wsa.c "tb" k) < 256 := by
+    intro k hk
+    refine rng_rcv hH (hxR hx) (by rw [full_len]; omega) ?_ hr hA
+    rw [full_wsa]
+    exact List.mem_append_right _ (List.mem_map.2 ⟨k, List.mem_range.2 hk, rfl⟩)
+  exact WsCost.wsa_t_lt hc (eval_one_ev hA) htb
+
+include hH hx in
+/-- **Every decoded access consumed an earlier time** (`WsCost.wsa_gap`; times from
+`wsa_t_rng`, no tape premise since M5a-6). -/
+theorem wsa_gap_rec : ∀ a ∈ wsa tr pub, a.idp < a.t := by
   have hT : ∀ a ∈ wsa tr pub, a.t < 2 ^ 24 := by
     intro a ha
     obtain ⟨r, hr, hA, rfl⟩ := actRows_mem ha
-    exact wsa_t hH htape hr hA
+    exact wsa_t_rng hH hx hr hA
   intro a ha
   obtain ⟨r, hr, hA, rfl⟩ := actRows_mem ha
   have hm : (wsaRow tr pub r).rcvM ∈ wmSends (wsl tr pub) (wsa tr pub) :=
@@ -317,7 +330,7 @@ theorem wsa_gap_rec (htape : ∀ m ∈ busList (fullAir D extra nb np) tr pub B_
     intro k hk
     refine rng_rcv hH (hxR hx) (by rw [full_len]; omega) ?_ hr hA
     rw [full_wsa]
-    exact List.mem_append_right _ (List.mem_map.2 ⟨k, List.mem_range.2 hk, rfl⟩)
+    exact List.mem_append_left _ (List.mem_append_right _ (List.mem_map.2 ⟨k, List.mem_range.2 hk, rfl⟩))
   exact WsCost.wsa_gap hc (eval_one_ev hA) hdt (hT _ ha) hip
 
 include hH in
@@ -460,9 +473,8 @@ variable {D : Nat} {extra : List Table} {nb np : Nat} {tr : Trace Fp} {pub : Lis
   (hx : ∀ T ∈ extra, ∀ i ∈ T.interactions, i.bus ≠ B_WM ∧ i.bus ≠ B_PT ∧ i.bus ≠ B_RCH ∧ i.bus ≠ B_RNG)
   (hcomp : CompressOK compress)
   (hC : Sha512IfContract compress ((busList (fullAir D extra nb np) tr pub B_IF384 true).map decIf))
-  (htape : ∀ m ∈ busList (fullAir D extra nb np) tr pub B_WRITE true, tn (m.getD 1 0) < 2 ^ 24)
   (hD1 : 1 ≤ D) (hD : D ≤ 20)
-include hH hx hcomp hC htape hD1 hD
+include hH hx hcomp hC hD1 hD
 
 /-- **The working-set record premises from `Holds`.**  For the decoded `WSL` / `WSA` / `WSP`
 rows: `PT` balance in `WsBus` form (no wrap-around), `WspOK` with `H = nodeH compress`, `WM`
@@ -480,7 +492,7 @@ theorem ws_decoded :
   have hpt := pt_traffic hH (hx3 hx)
   have hb := pos_bound hpt hrow hD hlen
   obtain ⟨e1, e2⟩ := pt_eq (wsl := wsl tr pub) hrow hD hb
-  refine ⟨e1 ▸ e2 ▸ hpt, fun x hxm => ?_, wm_traffic hH (hx3 hx), wsa_gap_rec hH hx htape,
+  refine ⟨e1 ▸ e2 ▸ hpt, fun x hxm => ?_, wm_traffic hH (hx3 hx), wsa_gap_rec hH hx,
     wsl_ok hH hx hD1 hD, fun r0 rF nw h0 hq => ?_⟩
   · obtain ⟨y, hy, rfl⟩ := List.mem_map.1 hxm
     exact wsp_ok hH hD1 (by omega) hcomp hC y hy
@@ -512,7 +524,7 @@ theorem ws_decoded_final (hCR : NodeCR compress) {ws0 wsF : List Dig} {r0 rF : D
       WsCost.Reads l.cur s) ∧
     (∀ a ∈ wsa tr pub, ∃ l ∈ wsl tr pub, l.key = a.key) ∧
     (∀ l ∈ wsl tr pub, l.i < WsLen.wsLen pub) := by
-  obtain ⟨hpt, hok, hwm, hgap, hwl, hrch⟩ := ws_decoded hH hx hcomp hC htape hD1 hD
+  obtain ⟨hpt, hok, hwm, hgap, hwl, hrch⟩ := ws_decoded hH hx hcomp hC hD1 hD
   have := WsSeg.ws_final hpt hok (hrch r0 rF nw hs0 hq0) hCR hlen0 hroot0 hlenF hrootF hwm hgap hkd
   exact ⟨this.1, this.2.1, this.2.2.1, this.2.2.2.1, this.2.2.2.2.1, this.2.2.2.2.2,
     fun l hl => (hwl l hl).2⟩

@@ -260,6 +260,7 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.WsCost.chain_sound_any
 #print axioms StateM5a.WsCost.leafLimb_inj
 #print axioms StateM5a.WsCost.wsa_gap
+#print axioms StateM5a.WsCost.wsa_t_lt
 #print axioms StateM5a.WsCost.wsp_keep
 #print axioms StateM5a.WsCost.wsp_child
 #print axioms StateM5a.WsCost.wsp_off
@@ -410,6 +411,7 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.WsDecode3.wsp_rowF
 #print axioms StateM5a.WsDecode3.wsp_ok
 #print axioms StateM5a.WsDecode3.x_lt64
+#print axioms StateM5a.WsDecode3.wsa_t_rng
 #print axioms StateM5a.WsDecode3.wsa_gap_rec
 #print axioms StateM5a.WsDecode3.wsl_ok
 #print axioms StateM5a.WsDecode3.wsl_leaf

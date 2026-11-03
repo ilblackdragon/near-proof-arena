@@ -183,6 +183,34 @@ theorem wsa_gap (hc : ∀ e ∈ Wsa.table.constraints, e.eval tr t r pub = 0)
   · rw [Nat.mod_eq_of_lt (show P - b < P by omega)] at h'
     omega
 
+theorem wsa_mem_tb : Wsa.c "act" * (Wsa.c "t" -
+    sumE ((List.range TB_BYTES).map fun k => K (256 ^ k) * Wsa.c "tb" k)) ∈ Wsa.constraints := by
+  unfold Wsa.constraints; simp
+
+/-- **`WSA` time range** (M5a-6): an active access whose time bytes `tb` are `< 2^8` has
+`t < 2^24` (no premise on where the time comes from). -/
+theorem wsa_t_lt (hc : ∀ e ∈ Wsa.table.constraints, e.eval tr t r pub = 0)
+    (hact : ev tr t r pub (Wsa.c "act") = 1)
+    (htb : ∀ k < TB_BYTES, ev tr t r pub (Wsa.c "tb" k) < 256) :
+    ev tr t r pub (Wsa.c "t") < 2 ^ 24 := by
+  have h := hold rfl hc wsa_mem_tb
+  change ev tr t r pub (Expr.mul _ _) = 0 at h
+  rw [ev_mul_gate _ hact] at h
+  have h' := eq_of_sub h
+  rw [ev_sumE] at h'
+  have d0 := htb 0 (by decide); have d1 := htb 1 (by decide); have d2 := htb 2 (by decide)
+  simp only [TB_BYTES, List.range, List.range.loop, List.map_cons, List.map_nil, List.sum_cons,
+    List.sum_nil, ev_hmul, K, ev_const, Nat.reducePow, Nat.reduceMod, Nat.add_zero] at h'
+  generalize ev tr t r pub (Wsa.c "tb" 0) = y0 at d0 h'
+  generalize ev tr t r pub (Wsa.c "tb" 1) = y1 at d1 h'
+  generalize ev tr t r pub (Wsa.c "tb" 2) = y2 at d2 h'
+  generalize ev tr t r pub (Wsa.c "t") = a at h' ⊢
+  simp only [Nat.one_mul] at h'
+  rw [Nat.mod_eq_of_lt (show y0 < P by omega), Nat.mod_eq_of_lt (show 256 * y1 < P by omega),
+    Nat.mod_eq_of_lt (show 65536 * y2 < P by omega),
+    Nat.mod_eq_of_lt (show y0 + (256 * y1 + 65536 * y2) < P by omega)] at h'
+  omega
+
 theorem wsp_mem_keepL (j : Nat) (hj : j < 18) :
     (1 - Wsp.c "tl") * (Wsp.c "lo" j - Wsp.c "ln" j) ∈ Wsp.constraints D := by
   unfold Wsp.constraints

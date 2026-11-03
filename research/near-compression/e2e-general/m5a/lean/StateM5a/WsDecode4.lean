@@ -429,7 +429,6 @@ theorem ws_decoded_final2 {D : Nat} {extra : List Table} {nb np : Nat} {tr : Tra
       i.bus ≠ B_WM ∧ i.bus ≠ B_PT ∧ i.bus ≠ B_RCH ∧ i.bus ≠ B_RNG ∧ i.bus ≠ B_TREE)
     (hcomp : CompressOK compress)
     (hC : Sha512IfContract compress ((busList (fullAir D extra nb np) tr pub B_IF384 true).map decIf))
-    (htape : ∀ m ∈ busList (fullAir D extra nb np) tr pub B_WRITE true, tn (m.getD 1 0) < 2 ^ 24)
     (hD1 : 1 ≤ D) (hD : D ≤ 20) (hCR : NodeCR compress)
     (hkd : ∀ l ∈ wsl tr pub, ∀ l' ∈ wsl tr pub, l.seg = l'.seg → l.kd = l'.kd → l.i = l'.i) :
     ∃ nw, wsLeaves tr pub D 1 = WsSeg.wsAt (wsl tr pub) (wsLeaves tr pub D 0) nw ∧
@@ -448,7 +447,7 @@ theorem ws_decoded_final2 {D : Nat} {extra : List Table} {nb np : Nat} {tr : Tra
     fun T hT i hi => ⟨(hx T hT i hi).1, (hx T hT i hi).2.1, (hx T hT i hi).2.2.1, (hx T hT i hi).2.2.2.1⟩
   have hxt : ∀ T ∈ extra, ∀ i ∈ T.interactions, i.bus ≠ B_TREE := fun T hT i hi => (hx T hT i hi).2.2.2.2
   obtain ⟨⟨r0, hs0, hr0⟩, ⟨nw, rF, hq0, hrF⟩⟩ := wsn_roots hH hxt hcomp hC hD1 hD
-  exact ⟨nw, ws_decoded_final hH hx4 hcomp hC htape hD1 hD hCR hs0 hq0 (slice_length _ _ _ _) hr0
+  exact ⟨nw, ws_decoded_final hH hx4 hcomp hC hD1 hD hCR hs0 hq0 (slice_length _ _ _ _) hr0
     (slice_length _ _ _ _) hrF hkd⟩
 
 end StateM5a.WsDecode4
