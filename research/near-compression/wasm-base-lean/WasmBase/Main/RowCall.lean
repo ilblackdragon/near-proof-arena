@@ -49,13 +49,13 @@ theorem call_flags_of {pub : List F} {tr : Trace} {r : Nat}
   exact ⟨a1, a2, a3, a4, a5, a6⟩
 
 theorem call_flags {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 13) :
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 13) :
     rowNat tr 13 r Call.act ≤ 1 ∧ rowNat tr 13 r (Call.af 0) ≤ rowNat tr 13 r Call.act ∧
     (∀ j, j < 8 → rowNat tr 13 r (Call.pf j) ≤ 1 ∧ rowNat tr 13 r (Call.pf j) ≤ rowNat tr 13 r (Call.af j)) ∧
     (∀ j, j + 1 < 8 → rowNat tr 13 r (Call.pf (j + 1)) ≤ rowNat tr 13 r (Call.pf j)) ∧
     (∀ j, j < 64 → rowNat tr 13 r (Call.af j) ≤ 1 ∧ rowNat tr 13 r (Call.tg j) ≤ 1) ∧
     (∀ j, j + 1 < 64 → rowNat tr 13 r (Call.af (j + 1)) ≤ rowNat tr 13 r (Call.af j)) :=
-  call_flags_of (table_constr H (by simp [air_len]) hr)
+  call_flags_of (table_constrC H (by simp [air_len]) hr)
 
 theorem call_count_val {pub : List F} {tr : Trace} {r : Nat}
     (hf : ∀ j, j < 8 → rowNat tr 13 r (Call.pf j) ≤ rowNat tr 13 r (Call.af j)) :
@@ -89,12 +89,12 @@ theorem call_counts_of {pub : List F} {tr : Trace} {r : Nat}
     · exact (a5 j hj).1
 
 theorem call_counts {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 13) :
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 13) :
     ∀ i ∈ Call.inters, (i.count.eval (tr.row pub 13 r)).toNat ≤ 1 :=
-  call_counts_of (table_constr H (by simp [air_len]) hr)
+  call_counts_of (table_constrC H (by simp [air_len]) hr)
 
 theorem call_inactive {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 13)
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 13)
     (hna : ¬ rowAct Call.table tr pub 13 r) :
     ∀ i ∈ Call.inters, (i.count.eval (tr.row pub 13 r)).toNat ≠ 1 := by
   obtain ⟨a1, a2, a3, a4, a5, a6⟩ := call_flags H hr
@@ -165,7 +165,7 @@ theorem range_filter_lt (m : Nat) : ∀ n, m ≤ n → (List.range n).filter (fu
 
 set_option maxHeartbeats 8000000 in
 theorem call_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) (L : Looks X nloc ncode pub tr) (hpub : PubOK X nloc ncode pub)
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) (L : Looks X nloc ncode pub tr) (hpub : PubOK X nloc ncode pub)
     {r : Nat} (hr : r < tr.height 13) (hact : rowAct Call.table tr pub 13 r) :
     RowFacts X (rowIn Call.table tr pub 13 r) (rowOut Call.table tr pub 13 r)
       (rowCons Call.table tr pub 13 r) (rowProd Call.table tr pub 13 r) := by
@@ -173,7 +173,7 @@ theorem call_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
   have ht : 13 < (wasmBaseAir nloc ncode).tables.length := by simp [air_len]
   have hcP : ∀ i, rowNat tr 13 r i < P := rowNat_lt tr 13 r
   have hcon : ∀ e ∈ Call.table.constraints, e.eval (natRow (rowNat tr 13 r) (tr.row pub 13 r)) = 0 :=
-    table_constr H ht hr
+    table_constrC H ht hr
   obtain ⟨sAct, sAf0, sPf, sPp, sAf, sAp, sShape, sMask, enp, enl, sBud, sSb, sTs⟩ :=
     call_sound (rowNat tr 13 r) (tr.row pub 13 r) hcP hcon
   rw [← row_eq_natRow] at enp enl sBud sSb sTs

@@ -85,20 +85,20 @@ theorem ret_counts_of {pub : List F} {tr : Trace} {r : Nat}
   rcases ret_count_cases i hi with h | h | h <;> rw [h] <;> omega
 
 theorem ret_count_vals {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 14) :
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 14) :
     rowNat tr 14 r Ret.fRet + rowNat tr 14 r Ret.fRif ≤ 1 ∧
     (Ret.act.eval (tr.row pub 14 r)).toNat = rowNat tr 14 r Ret.fRet + rowNat tr 14 r Ret.fRif ∧
     ((v Ret.fRif).eval (tr.row pub 14 r)).toNat = rowNat tr 14 r Ret.fRif ∧
     (Ret.tk.eval (tr.row pub 14 r)).toNat ≤ rowNat tr 14 r Ret.fRet + rowNat tr 14 r Ret.fRif :=
-  ret_count_vals_of (table_constr H (by simp [air_len]) hr)
+  ret_count_vals_of (table_constrC H (by simp [air_len]) hr)
 
 theorem ret_counts {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 14) :
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 14) :
     ∀ i ∈ Ret.inters, (i.count.eval (tr.row pub 14 r)).toNat ≤ 1 :=
-  ret_counts_of (table_constr H (by simp [air_len]) hr)
+  ret_counts_of (table_constrC H (by simp [air_len]) hr)
 
 theorem ret_inactive {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 14)
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 14)
     (hna : ¬ rowAct Ret.table tr pub 14 r) :
     ∀ i ∈ Ret.inters, (i.count.eval (tr.row pub 14 r)).toNat ≠ 1 := by
   obtain ⟨hs, ha, hf, ht⟩ := ret_count_vals H hr
@@ -120,7 +120,7 @@ theorem ret_filterP :
 
 set_option maxHeartbeats 4000000 in
 theorem ret_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) (L : Looks X nloc ncode pub tr) (hpub : PubOK X nloc ncode pub)
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) (L : Looks X nloc ncode pub tr) (hpub : PubOK X nloc ncode pub)
     {r : Nat} (hr : r < tr.height 14) (hact : rowAct Ret.table tr pub 14 r) :
     RowFacts X (rowIn Ret.table tr pub 14 r) (rowOut Ret.table tr pub 14 r)
       (rowCons Ret.table tr pub 14 r) (rowProd Ret.table tr pub 14 r) := by
@@ -128,7 +128,7 @@ theorem ret_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
   have ht : 14 < (wasmBaseAir nloc ncode).tables.length := by simp [air_len]
   have hcP : ∀ i, rowNat tr 14 r i < P := rowNat_lt tr 14 r
   have hcon : ∀ e ∈ Ret.table.constraints, e.eval (natRow (rowNat tr 14 r) (tr.row pub 14 r)) = 0 :=
-    table_constr H ht hr
+    table_constrC H ht hr
   obtain ⟨gR, gI, gS, gnzv, gcid, gbud, gnz⟩ := ret_sound (rowNat tr 14 r) (tr.row pub 14 r) hcP hcon
   rw [← row_eq_natRow] at gbud gnz gnzv
   obtain ⟨-, ha, hf, -⟩ := ret_count_vals H hr

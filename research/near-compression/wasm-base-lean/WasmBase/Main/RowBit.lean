@@ -30,11 +30,11 @@ theorem bit_flags_of {pub : List F} {tr : Trace} {r : Nat}
   exact ⟨h5, h6, h7, bool_nat (rowNat_lt _ _ _ _) b64, by omega⟩
 
 theorem bit_flags {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 2) :
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 2) :
     (rowNat tr 2 r 5 = 0 ∨ rowNat tr 2 r 5 = 1) ∧ (rowNat tr 2 r 6 = 0 ∨ rowNat tr 2 r 6 = 1) ∧
       (rowNat tr 2 r 7 = 0 ∨ rowNat tr 2 r 7 = 1) ∧ (rowNat tr 2 r 8 = 0 ∨ rowNat tr 2 r 8 = 1) ∧
       rowNat tr 2 r 5 + rowNat tr 2 r 6 + rowNat tr 2 r 7 ≤ 1 :=
-  bit_flags_of (table_constr H (by simp [air_len]) hr)
+  bit_flags_of (table_constrC H (by simp [air_len]) hr)
 
 theorem bit_count_eq {i : Inter} (hi : i ∈ Bit.inters) : i.count = Bit.act :=
   of_decide_eq_true (List.all_eq_true.mp
@@ -55,9 +55,9 @@ theorem bit_counts_of {pub : List F} {tr : Trace} {r : Nat}
   rw [bit_count_eq hi, bit_act_eval, Nat.mod_eq_of_lt (by omega)]; exact hs
 
 theorem bit_counts {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 2) :
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 2) :
     ∀ i ∈ Bit.inters, (i.count.eval (tr.row pub 2 r)).toNat ≤ 1 :=
-  bit_counts_of (table_constr H (by simp [air_len]) hr)
+  bit_counts_of (table_constrC H (by simp [air_len]) hr)
 
 theorem bit_inactive {pub : List F} {tr : Trace} {r : Nat}
     (hna : ¬ rowAct Bit.table tr pub 2 r) :
@@ -88,7 +88,7 @@ theorem bit_byteF_lt {K x y : Nat} (hx : x < 256) (hy : y < 256) : byteF K x y <
       · omega
 
 theorem bit_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) (L : Looks X nloc ncode pub tr) (hpub : PubOK X nloc ncode pub)
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) (L : Looks X nloc ncode pub tr) (hpub : PubOK X nloc ncode pub)
     {r : Nat} (hr : r < tr.height 2) (hact : rowAct Bit.table tr pub 2 r) :
     RowFacts X (rowIn Bit.table tr pub 2 r) (rowOut Bit.table tr pub 2 r)
       (rowCons Bit.table tr pub 2 r) (rowProd Bit.table tr pub 2 r) := by
@@ -96,7 +96,7 @@ theorem bit_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
   have ht : 2 < (wasmBaseAir nloc ncode).tables.length := by simp [air_len]
   have hcP : ∀ i, rowNat tr 2 r i < P := rowNat_lt tr 2 r
   have hcon : ∀ e ∈ Bit.constraints, e.eval (natRow (rowNat tr 2 r) (tr.row pub 2 r)) = 0 :=
-    table_constr H ht hr
+    table_constrC H ht hr
   obtain ⟨f5, f6, f7, f8, f567⟩ := bit_flags H hr
   have cnt : (Bit.act.eval (tr.row pub 2 r)).toNat = 1 := by
     simpa only [rowAct, Bit.table, Bit.inters, stdState, stateIn, List.cons_append, List.getD_cons_zero] using hact

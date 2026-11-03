@@ -167,10 +167,10 @@ theorem div_table {nloc ncode : Nat} (ht : 10 < (wasmBaseAir nloc ncode).tables.
     (wasmBaseAir nloc ncode).tables[10]'ht = Div.table := rfl
 
 theorem div_cons {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 10) :
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 10) :
     ∀ e ∈ Div.constraints, e.eval (natRow (rowNat tr 10 r) (tr.row pub 10 r)) = 0 := by
   have ht : 10 < (wasmBaseAir nloc ncode).tables.length := by simp [air_len]
-  exact table_constr H ht hr
+  exact table_constrC H ht hr
 
 /-- Flags and trap columns of a DIV row. -/
 theorem div_flags_of {pub : List F} {tr : Trace} {r : Nat}
@@ -259,12 +259,12 @@ theorem div_counts_of {pub : List F} {tr : Trace} {r : Nat}
     rcases this with h | h <;> rw [h] <;> omega
 
 theorem div_counts {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 10) :
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 10) :
     ∀ i ∈ Div.inters, (i.count.eval (tr.row pub 10 r)).toNat ≤ 1 :=
   div_counts_of (div_cons (pub := pub) H hr)
 
 theorem div_flags {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 10) :
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 10) :
     rowNat tr 10 r 5 ≤ 1 ∧ rowNat tr 10 r 6 ≤ 1 ∧ rowNat tr 10 r 7 ≤ 1 ∧ rowNat tr 10 r 8 ≤ 1 ∧
     rowNat tr 10 r 5 + rowNat tr 10 r 6 + rowNat tr 10 r 7 + rowNat tr 10 r 8 ≤ 1 ∧
     (rowNat tr 10 r 5 + rowNat tr 10 r 6 + rowNat tr 10 r 7 + rowNat tr 10 r 8 = 0 →
@@ -274,7 +274,7 @@ theorem div_flags {nloc ncode : Nat} {pub : List F} {tr : Trace}
   div_flags_of (div_cons (pub := pub) H hr)
 
 theorem div_inactive {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 10)
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 10)
     (hna : ¬ rowAct Div.table tr pub 10 r) : ∀ i ∈ Div.inters, (i.count.eval (tr.row pub 10 r)).toNat ≠ 1 := by
   have hP' := P_val
   obtain ⟨-, -, -, -, hs, h0, h1⟩ := div_flags H hr
@@ -290,7 +290,7 @@ theorem div_inactive {nloc ncode : Nat} {pub : List F} {tr : Trace}
     simp
 
 theorem div_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseAir nloc ncode) pub tr) (L : Looks X nloc ncode pub tr) (hpub : PubOK X nloc ncode pub)
+    (H : HoldsC (wasmBaseAir nloc ncode) pub tr) (L : Looks X nloc ncode pub tr) (hpub : PubOK X nloc ncode pub)
     {r : Nat} (hr : r < tr.height 10) (hact : rowAct Div.table tr pub 10 r) :
     RowFacts2 X (rowIn Div.table tr pub 10 r) (rowOut Div.table tr pub 10 r)
       (rowCons Div.table tr pub 10 r) (rowProd Div.table tr pub 10 r) := by
