@@ -109,6 +109,8 @@ import WasmBase.Main.CtxNodup
 import WasmBase.Main.SegView
 import WasmBase.Main.SegCuto
 import WasmBase.Main.SegLinkSpec
+import WasmBase.Main.SegLink
+import WasmBase.Main.SegSound
 import WasmBase.Main.SegShaSpec
 import WasmBase.Main.SegSha
 import WasmBase.Main.SegShaMpath

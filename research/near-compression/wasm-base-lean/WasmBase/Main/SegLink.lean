@@ -4,7 +4,41 @@ import WasmBase.Main.SegLinkSpec
 /-!
 # WasmBase.Main.SegLink — the CUTO link (E2E M4b, S3)
 
-(module documentation at the end of the file's development; see `cuto_link`)
+Closes S1's open item 1 (`Main/SegView.lean`, "the CUTO link"): CUTO's hashed list `cutoList tr` has
+as members exactly the fields of the kept, depth-relabelled live messages at the out cut, for the
+*same* relabelling `(σ, A)` that `cutView_eq` uses (exported as `IdsOK`, `Main/SegLinkSpec.lean`).
+
+## The argument
+
+1. **Row facts** (`cuto_kinds`, `cuto_fieldfacts`): an active CUTO row is one of six kinds; outside
+   locals (`kL`) the consumed space is `2·k2 + 4·k4 + 5·k5 + 6·k6` and `F0` is it; a locals row's space
+   is `16 + cutoCL` with `cutoCL = clo + 2^13·u < 2^30` (R16 on `clo`, `8·chi`: no wrap); `F1` is the
+   raw slot except on record rows (`dep`), `F5` the raw `l2` except on record rows.
+2. **CIDMAP (bus 14) resolves** (`seg_cidm_tables`: only SEGB/CUTO touch it; `cidm_recv_bits`;
+   `cidm_provider`): a locals row's query `[c, F0 − 16]` and a record row's `[l2, F5]` are answered by
+   SEGB's `0 ↦ 0` or by an active record row's `slot ↦ F1 = dep` (`cuto_kL_lookup`, `cuto_k4_lookup`).
+3. **Record rows** (`cuto_F0_four`, `cuto_k4_between`, `cuto_k4_mono`): `F0 = 4` exactly on record
+   rows, so by CUTO's `(space, slot)` order they are a contiguous block, and by the record-order
+   constraint their raw slots increase (for slots `< 2^30`, which the spec side gives: ids `< 2^28`).
+4. **`dep` is the depth** (`cuto_k4_dep`): the record rows' slots, in row order, and the live record
+   ids, in increasing order, are two strictly sorted lists with the same members (`CutoFin`: every live
+   record is consumed by an active CUTO row), hence equal; `dep` of the `j`-th record row is `j + 1`
+   (`cuto_dep`, `filter_range_idx`), which is `σ` of its slot (`IdsOK.dep`).
+5. **One row = one kept relabelled message** (`cuto_row_link`), and **`cuto_link`**: with the final
+   live list split by consumer (`FinSplit`: CUTO, MEMB = space 3, SEGB = space 7, DROP) and dropped
+   locals dead (`drop_only_tombstoned` + `TombDead`), membership both ways.
+
+No soundness bug was found: CIDMAP is functional on the ids that occur (record slots are distinct
+live ids; SEGB's `0 ↦ 0` is the bottom frame's), a dead local cannot be kept (its id has no CIDMAP
+entry: neither 0 nor a live record's slot) and a live local cannot be dropped given `TombDead`.
+
+## Named hypotheses
+
+* `CutoHiLimbs tr` (S1; the SHA chip's limb bound);
+* `hin` / `FinSplit tr pub fin` — the bus-level split of the final live list (the segment's CH
+  balance; not yet derived: the trace → `CutSeg` instantiation is open);
+* `TombDead tr pub fin` — a taken `RET`'s activation id is `< 2^28`, non-zero and has no live call
+  record at the cut (an execution fact; see `Main/SegSound.lean`).
 -/
 
 namespace WasmBase
@@ -631,5 +665,194 @@ theorem cuto_k4_dep (hl : CutoHiLimbs tr) {fin : List Msg} {I : List Nat} {σ : 
   rw [e1, hI.dep i (by omega), hdep]; omega
 
 end
+
+/-! ## 7. The CUTO link -/
+
+/-- The depth map sends the bottom id `0` to `0` (it is the last, smallest id). -/
+theorem IdsOK.sigma_zero {fin : List Msg} {I : List Nat} {σ : Nat → Nat} (hI : IdsOK fin I σ) :
+    σ 0 = 0 ∧ ∀ i (hi : i < I.length), I[i] = 0 → i + 1 = I.length := by
+  have last : ∀ i (hi : i < I.length), I[i] = 0 → i + 1 = I.length := by
+    intro i hi h0
+    refine Classical.byContradiction fun hne => ?_
+    have := List.pairwise_iff_getElem.mp hI.desc i (i + 1) hi (by omega) (by omega)
+    omega
+  obtain ⟨i, hi, h0⟩ := List.mem_iff_getElem.mp hI.zero
+  have := last i hi h0
+  refine ⟨?_, last⟩
+  rw [← h0, hI.dep i hi]; omega
+
+theorem cutoRow_eq (tr : Trace) (r : Nat) :
+    cutoRow tr r = [cutoF tr r 0, cutoF tr r 1, cutoF tr r 2, cutoF tr r 3, cutoF tr r 4, cutoF tr r 5,
+      cutoF tr r 6] := by
+  simp [cutoRow, List.range_succ]
+
+/-- The CH message a `DROP` row consumes (space `16 + c`), decoded. -/
+def dropMsg (tr : Trace) (pub : List F) (r : Nat) : Msg :=
+  decMsg ((chRecv (16 + Drop.c "c") (Drop.c "slot") (Drop.c "tag")
+    [Drop.c "x0", Drop.c "x1", Drop.c "x2", Drop.c "x3"] (Drop.c "tp") (Drop.c "act" * (1 - Drop.c "isT"))).msg.map
+      (·.eval (tr.row pub 18 r)))
+
+theorem dropMsg_space (tr : Trace) (pub : List F) (r : Nat) (hc : rowNat tr 18 r 2 < 2 ^ 28) :
+    (dropMsg tr pub r).space = 16 + rowNat tr 18 r 2 := by
+  obtain ⟨-, -, i2, -⟩ := drop_ix
+  have hP := P_val
+  simp only [dropMsg, decMsg, chRecv, List.cons_append, List.map_cons, List.getD_cons_zero, Drop.c, i2,
+    Expr.eval_add', Expr.eval_ofNat', cell_eval, ← Lean.Grind.Semiring.natCast_add]
+  exact Fp.toNat_cast_of_lt (by omega)
+
+/-- **The final live list, split by consumer** (the bus-level fact; discharged by the segment's
+CH balance): every final live message is consumed by an active CUTO row, is memory (3, `MEMB`) or
+the gas register (7, `SEGB`), or is consumed by an active `DROP` drop row. -/
+def FinSplit (tr : Trace) (pub : List F) (fin : List Msg) : Prop :=
+  ∀ x ∈ fin, (∃ r, r < tr.height 31 ∧ rowNat tr 31 r 0 = 1 ∧ x = cutoMsg tr pub r) ∨ x.space = 3 ∨
+    x.space = 7 ∨ (∃ r, r < tr.height 18 ∧ rowNat tr 18 r 0 = 1 ∧ rowNat tr 18 r 1 = 0 ∧ x = dropMsg tr pub r)
+
+/-- **Returned activations are dead at the cut** (named execution fact): every activation id a taken
+`RET` tombstones is `< 2^28`, is not the bottom id `0`, and has no live call record at the cut.  (A
+`RET` consumes its activation's record; ids are `CALL` times, never reused.) -/
+def TombDead (tr : Trace) (pub : List F) (fin : List Msg) : Prop :=
+  ∀ r, r < tr.height 14 → (Ret.tk.eval (tr.row pub 14 r)).toNat ≠ 0 →
+    rowNat tr 14 r Ret.kCid < 2 ^ 28 ∧ rowNat tr 14 r Ret.kCid ≠ 0 ∧
+      ∀ x ∈ fin, x.space = 4 → x.slot ≠ rowNat tr 14 r Ret.kCid
+
+section
+variable {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsX (wasmBaseSegAir nloc ngl) pub tr)
+include H
+
+/-- A dropped message is in a locals space `16 + c` of a dead activation `c`. -/
+theorem drop_dead {fin : List Msg} (hT : TombDead tr pub fin) {r : Nat} (hr : r < tr.height 18)
+    (ha : rowNat tr 18 r 0 = 1) (hi : rowNat tr 18 r 1 = 0) :
+    (dropMsg tr pub r).space = 16 + rowNat tr 18 r 2 ∧ rowNat tr 18 r 2 ≠ 0 ∧
+      ∀ x ∈ fin, x.space = 4 → x.slot ≠ rowNat tr 18 r 2 := by
+  obtain ⟨-, r'', hr'', htk, hc⟩ := drop_only_tombstoned H hr ha hi
+  obtain ⟨a, b, c⟩ := hT r'' hr'' htk
+  rw [hc] at a b c
+  exact ⟨dropMsg_space tr pub r a, b, c⟩
+
+/-- `CutoFin` from the split and the dead-tombstone fact. -/
+theorem cutoFin_of {fin : List Msg} (hin : ∀ r, r < tr.height 31 → rowNat tr 31 r 0 = 1 → cutoMsg tr pub r ∈ fin)
+    (hS : FinSplit tr pub fin) (hT : TombDead tr pub fin) : CutoFin tr pub fin := by
+  refine ⟨hin, fun x hx h4 => ?_⟩
+  rcases hS x hx with h | h | h | ⟨r, hr, ha, hi, rfl⟩
+  · exact h
+  · omega
+  · omega
+  · have := (drop_dead H hT hr ha hi).1; omega
+
+/-- **One CUTO row is one kept, relabelled live message.**  An active row's consumed message is kept
+(`keepA`) and its hashed fields are the fields of its depth relabelling (`rlMsg σ`); the hashed space
+is neither memory nor the gas register. -/
+theorem cuto_row_link (hl : CutoHiLimbs tr) {fin : List Msg} {I : List Nat} {σ : Nat → Nat}
+    (hI : IdsOK fin I σ) (hF : CutoFin tr pub fin) {r : Nat} (hr : r < tr.height 31) (ha : rowNat tr 31 r 0 = 1) :
+    keepA I (cutoMsg tr pub r) ∧ fieldsOf (rlMsg σ (cutoMsg tr pub r)) = cutoRow tr r ∧
+      cutoF tr r 0 ≠ 3 ∧ cutoF tr r 0 ≠ 7 := by
+  obtain ⟨f0, f1, f2, f3, f4, f5, f6⟩ := cutoMsg_fields H hl hr ha
+  obtain ⟨b51, b52, b53, b54, b55, b56, hs⟩ := cuto_kinds H hr
+  have ff := cuto_fieldfacts H hl hr ha
+  have hσ0 := hI.sigma_zero.1
+  rw [cutoRow_eq]
+  rcases (by omega : rowNat tr 31 r 56 = 1 ∨ (rowNat tr 31 r 56 = 0 ∧ rowNat tr 31 r 53 = 1) ∨
+    (rowNat tr 31 r 56 = 0 ∧ rowNat tr 31 r 53 = 0)) with hL | ⟨h0, h4⟩ | ⟨h0, h40⟩
+  · -- a locals row
+    have h40 : rowNat tr 31 r 53 = 0 := by omega
+    obtain ⟨hsp, -, hlk⟩ := cuto_kL_lookup H hl hr ha hL
+    have key : cutoCL tr r ∈ I ∧ cutoF tr r 0 = 16 + σ (cutoCL tr r) := by
+      rcases hlk with ⟨e1, e2⟩ | ⟨r', hr', h4', ha', e1, e2⟩
+      · rw [e1, hσ0]; exact ⟨hI.zero, e2⟩
+      · obtain ⟨d1, i, hi, s1, -⟩ := cuto_k4_dep H hl hI hF hr' h4'
+        rw [← e1]
+        refine ⟨by rw [s1]; exact List.getElem_mem _, ?_⟩
+        rw [e2, (cuto_fieldfacts H hl hr' ha').2.2.2.1 h4', d1]
+    have hx16 : (cutoMsg tr pub r).space = 16 + cutoCL tr r := by rw [f0, hsp]
+    refine ⟨fun _ => by rw [hx16]; simpa using key.1, ?_, by omega, by omega⟩
+    simp only [rlMsg, hx16, show ¬ (16 + cutoCL tr r = 4) by omega, if_false, show 16 ≤ 16 + cutoCL tr r by omega,
+      if_true, show 16 + cutoCL tr r - 16 = cutoCL tr r by omega, fieldsOf]
+    rw [f1, f2, f3, f4, f5, f6, ← key.2, ff.2.2.1 h40, ff.2.2.2.2 h40]
+  · -- a record row
+    obtain ⟨e1, e2⟩ := ff.1 h0
+    have hsp4 : (cutoMsg tr pub r).space = 4 := by rw [f0, e1]; omega
+    obtain ⟨d1, -⟩ := cuto_k4_dep H hl hI hF hr h4
+    have hF5 : cutoF tr r 5 = σ (rowNat tr 31 r 49) := by
+      rcases cuto_k4_lookup H hl hr ha h4 with ⟨a1, a2⟩ | ⟨r', hr', h4', ha', a1, a2⟩
+      · rw [a1, a2, hσ0]
+      · rw [a2, ← a1, (cuto_fieldfacts H hl hr' ha').2.2.2.1 h4', (cuto_k4_dep H hl hI hF hr' h4').1]
+    refine ⟨fun h => by omega, ?_, by omega, by omega⟩
+    simp only [rlMsg, hsp4, if_true, fieldsOf]
+    rw [f1, f2, f3, f4, f5, f6, e2, e1, ff.2.2.2.1 h4, d1, hF5]
+    simp only [List.cons.injEq, and_true]; omega
+  · -- operand stack, globals, budget, registers
+    obtain ⟨e1, e2⟩ := ff.1 h0
+    have hsp : (cutoMsg tr pub r).space = 2 * rowNat tr 31 r 52 + 5 * rowNat tr 31 r 54 + 6 * rowNat tr 31 r 55 := by
+      rw [f0, e1, h40]; omega
+    have hlow : rlMsg σ (cutoMsg tr pub r) = cutoMsg tr pub r := rlMsg_low (by omega) (by omega)
+    refine ⟨fun h => by omega, ?_, by omega, by omega⟩
+    rw [hlow]
+    simp only [fieldsOf]
+    rw [f1, f2, f3, f4, f5, f6, e2, ff.2.2.1 h40, ff.2.2.2.2 h40, f0]
+
+/-- **The CUTO link.**  On a satisfying segment trace (with the chip limb bound), for a final live list
+`fin` that CUTO's consumptions lie in (`hin`), that splits into CUTO/MEMB/SEGB/DROP consumptions
+(`FinSplit`), whose returned activations are dead (`TombDead`), and whose ids/depth map satisfy
+`IdsOK` (spec side, `cutView_eqL`): CUTO's hashed list has as members exactly the fields of the kept,
+depth-relabelled live messages outside memory and the gas register. -/
+theorem cuto_link (hl : CutoHiLimbs tr) {fin : List Msg} {I : List Nat} {σ : Nat → Nat}
+    (hI : IdsOK fin I σ) (hin : ∀ r, r < tr.height 31 → rowNat tr 31 r 0 = 1 → cutoMsg tr pub r ∈ fin)
+    (hS : FinSplit tr pub fin) (hT : TombDead tr pub fin) :
+    ∀ y, y ∈ cutoList tr ↔ ∃ x ∈ (fin.filter (fun x => decide (keepA I x))).map (rlMsg σ),
+      x.space ≠ 3 ∧ x.space ≠ 7 ∧ fieldsOf x = y := by
+  have hF := cutoFin_of H hin hS hT
+  intro y
+  constructor
+  · intro hy
+    simp only [cutoList, List.mem_map, List.mem_filter, List.mem_range, decide_eq_true_eq] at hy
+    obtain ⟨r, ⟨hr, ha⟩, rfl⟩ := hy
+    obtain ⟨k, e, n3, n7⟩ := cuto_row_link H hl hI hF hr ha
+    have hsp : (rlMsg σ (cutoMsg tr pub r)).space = cutoF tr r 0 := by
+      have := congrArg (fun l => l.getD 0 0) e
+      simpa [fieldsOf, cutoRow_eq] using this
+    refine ⟨rlMsg σ (cutoMsg tr pub r), List.mem_map.mpr ⟨_, List.mem_filter.mpr ⟨hin r hr ha, by simpa using k⟩, rfl⟩,
+      by rw [hsp]; exact n3, by rw [hsp]; exact n7, e⟩
+  · rintro ⟨x', hx', n3, n7, rfl⟩
+    obtain ⟨x, hx, rfl⟩ := List.mem_map.mp hx'
+    obtain ⟨hxf, hk⟩ := List.mem_filter.mp hx
+    simp only [decide_eq_true_eq] at hk
+    have hs := rlMsg_space σ x
+    rcases hS x hxf with ⟨r, hr, ha, rfl⟩ | h3 | h7 | ⟨r, hr, ha, hi, rfl⟩
+    · obtain ⟨-, e, -⟩ := cuto_row_link H hl hI hF hr ha
+      rw [e]
+      simp only [cutoList, List.mem_map, List.mem_filter, List.mem_range, decide_eq_true_eq]
+      exact ⟨r, ⟨hr, ha⟩, rfl⟩
+    · rw [h3] at hs; simp at hs; exact absurd hs n3
+    · rw [h7] at hs; simp at hs; exact absurd hs n7
+    · exfalso
+      obtain ⟨dsp, d0, dno⟩ := drop_dead H hT hr ha hi
+      have hc : rowNat tr 18 r 2 ∈ I := by have := hk (by omega); rwa [dsp, show 16 + rowNat tr 18 r 2 - 16 = rowNat tr 18 r 2 by omega] at this
+      obtain ⟨i, hi', hci⟩ := List.mem_iff_getElem.mp hc
+      by_cases hlast : i + 1 < I.length
+      · obtain ⟨z, hz, hz4, hzs⟩ := hI.recEx i hlast
+        exact dno z hz hz4 (by rw [hzs, hci])
+      · have := hI.dep i hi'
+        have h0 : I[i] = 0 := by
+          refine Classical.byContradiction fun hne => ?_
+          obtain ⟨i0, hi0, e0⟩ := List.mem_iff_getElem.mp hI.zero
+          have := hI.sigma_zero.2 i0 hi0 e0
+          have : i0 < i := by
+            rcases Nat.lt_trichotomy i0 i with h | h | h
+            · exact h
+            · subst h; exact absurd e0 hne
+            · omega
+          have := List.pairwise_iff_getElem.mp hI.desc i0 i hi0 hi' this
+          omega
+        exact d0 (by rw [← hci, h0])
+
+end
+
+#print axioms cuto_fieldfacts
+#print axioms cuto_kL_lookup
+#print axioms cuto_k4_lookup
+#print axioms cuto_k4_mono
+#print axioms cuto_k4_dep
+#print axioms cuto_row_link
+#print axioms cuto_link
 
 end WasmBase
