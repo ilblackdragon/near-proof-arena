@@ -249,18 +249,25 @@ theorem m_stw_ve_vlen : Stw.c "ve" * Stw.c "vlen" ∈ Stw.constraints := by unfo
 theorem m_stw_pr_dv (b : Nat) (hb : b < 32) : (1 - Stw.c "pr") * Stw.c "dv" b ∈ Stw.constraints := by
   unfold Stw.constraints
   simp only [List.mem_append, List.mem_flatMap, List.mem_range, List.mem_cons]
-  exact Or.inr ⟨b, hb, by simp⟩
+  exact Or.inl (Or.inl (Or.inr ⟨b, hb, by simp⟩))
 theorem m_stw_ve_dv (b : Nat) (hb : b < 32) :
     Stw.c "ve" * (Stw.c "dv" b - K (SHA256_EMPTY.getD b 0)) ∈ Stw.constraints := by
   unfold Stw.constraints
   simp only [List.mem_append, List.mem_flatMap, List.mem_range, List.mem_cons]
-  exact Or.inr ⟨b, hb, by simp⟩
+  exact Or.inl (Or.inl (Or.inr ⟨b, hb, by simp⟩))
+theorem m_stw_bool_ke : bool (Stw.c "ke") ∈ Stw.constraints := by unfold Stw.constraints; simp
+theorem m_stw_ke_klen : Stw.c "ke" * Stw.c "klen" ∈ Stw.constraints := by unfold Stw.constraints; simp
+theorem m_stw_ke_dk (b : Nat) (hb : b < 32) :
+    Stw.c "ke" * (Stw.c "dk" b - K (SHA256_EMPTY.getD b 0)) ∈ Stw.constraints := by
+  unfold Stw.constraints
+  simp only [List.mem_append, List.mem_map, List.mem_range]
+  exact Or.inr ⟨b, hb, rfl⟩
 
 theorem stw_sreq_mem : rcv B_SREQ (Stw.c "act") [Stw.c "ts", Stw.c "pr", Stw.c "seg", Stw.c "klen",
     Stw.c "kptr", Stw.c "vlen", Stw.c "vptr"] ∈ Stw.interactions := memD_mem (by decide)
-theorem stw_desck_mem : rcv B_DESC (Stw.c "act") [Stw.c "mk", Stw.c "ts", Stw.c "kptr", Stw.c "klen"] ∈
+theorem stw_desck_mem : rcv B_DESC (Stw.c "act" - Stw.c "ke") [Stw.c "mk", Stw.c "ts", Stw.c "kptr", Stw.c "klen"] ∈
     Stw.interactions := memD_mem (by decide)
-theorem stw_sd2k_mem : rcv B_SD2 (Stw.c "act") ([K ID_ST + Stw.c "mk", Stw.c "klen"] ++
+theorem stw_sd2k_mem : rcv B_SD2 (Stw.c "act" - Stw.c "ke") ([K ID_ST + Stw.c "mk", Stw.c "klen"] ++
     (List.range 32).map fun b => Stw.c "dk" b) ∈ Stw.interactions := memD_mem (by decide)
 theorem stw_descv_mem : rcv B_DESC (Stw.c "pr" - Stw.c "ve") [Stw.c "mv", Stw.c "ts", Stw.c "vptr",
     Stw.c "vlen"] ∈ Stw.interactions := memD_mem (by decide)
@@ -293,6 +300,33 @@ theorem stw_msg (hh : HostOK host) (hH : Holds (fullAir D (m5bX host prev post n
   obtain ⟨hl32, hcols⟩ := digest_cols hds
   exact ⟨msg, hl, hb, hl32, hcols⟩
 
+/-- An `STW` row's key (M5a-8: an empty key `ke = 1` has no `STB` run; `klen = 0`, `dk = sha256 []`). -/
+theorem stw_key (hh : HostOK host) (hH : Holds (fullAir D (m5bX host prev post n) nb np) pub tr)
+    {r : Nat} (hr : r < tr.height 15) (ha : (Stw.c "act").eval tr 15 r pub = 1) :
+    ∃ key : Bytes, key.length = (wv tr pub r "klen").toNat ∧
+      HBytes (fullAir D (m5bX host prev post n) nb np) tr pub (wv tr pub r "ts") (wv tr pub r "kptr") key ∧
+      (sha256 key).length = 32 ∧ ∀ b, b < 32 → ev tr 15 r pub (Stw.c "dk" b) = ((sha256 key)[b]!).toNat := by
+  have hc := stw_hc hH r hr
+  have h := fun {e : Expr} (he : e ∈ Stw.constraints) => hold rfl hc he
+  have hke := bool_le (h m_stw_bool_ke)
+  have ha' : ev tr 15 r pub (Stw.c "act") = 1 := eval_one_ev ha
+  rcases (show ev tr 15 r pub (Stw.c "ke") = 0 ∨ ev tr 15 r pub (Stw.c "ke") = 1 by omega) with hk | hk
+  · have hg : (Stw.c "act" - Stw.c "ke").eval tr 15 r pub = 1 := ev_one_eval (by rw [ev_sub, ha', hk])
+    exact stw_msg hh hH hr "mk" "klen" "kptr" "dk" stw_desck_mem stw_sd2k_mem hg
+  · have hkl := FieldWsb.wsb_gate hk (h m_stw_ke_klen)
+    have hdk : ∀ b, b < 32 → ev tr 15 r pub (Stw.c "dk" b) = ((sha256 [])[b]!).toNat := by
+      intro b hb
+      have e := eq_of_sub (FieldWsb.wsb_gate hk (h (m_stw_ke_dk b hb)))
+      rw [e, show K (SHA256_EMPTY.getD b 0) = Expr.const (SHA256_EMPTY.getD b 0) from rfl, ev_const,
+        sha256_empty, empty_bytes b hb]
+      apply Nat.mod_eq_of_lt
+      have := empty_lt b hb
+      omega
+    have h32 : (sha256 ([] : Bytes)).length = 32 := by rw [sha256_empty]; rfl
+    refine ⟨[], ?_, fun i hi => absurd hi (Nat.not_lt_zero _), h32, hdk⟩
+    show 0 = (wv tr pub r "klen").toNat
+    exact hkl.symm
+
 /-- **An `STW` row's `WRITE` message.** -/
 theorem stw_row (hh : HostOK host) (hH : Holds (fullAir D (m5bX host prev post n) nb np) pub tr)
     {r : Nat} (hr : r < tr.height 15) (ha : (Stw.c "act").eval tr 15 r pub = 1) :
@@ -307,7 +341,7 @@ theorem stw_row (hh : HostOK host) (hH : Holds (fullAir D (m5bX host prev post n
   simp only [rcv, Interaction.msgVal, List.map_cons, List.map_nil] at hq
   refine ⟨_, _, _, _, _, _, _, recv_sent hH hq, ?_⟩
   -- the key
-  obtain ⟨key, hkl, hkb, hk32, hkc⟩ := stw_msg hh hH hr "mk" "klen" "kptr" "dk" stw_desck_mem stw_sd2k_mem ha
+  obtain ⟨key, hkl, hkb, hk32, hkc⟩ := stw_key hh hH hr ha
   have hpk := pack2_digest hk32 hkc
   -- the message as naturals
   have hw : ∀ dv : List Nat, (pack2 (fun b => Stw.c "dv" b)).map (ev tr 15 r pub) = dv →

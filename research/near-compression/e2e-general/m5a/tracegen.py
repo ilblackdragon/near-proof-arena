@@ -172,6 +172,8 @@ class Gen:
         self.mutant = mutant
         # M5b (`m5a-tool airb`): the STATE rows `STB`/`STW` produce the writes from raw bytes
         self.m5b = 'STB' in names
+        # M5a-8: without a `SHAS` table the STATE messages go to the M5a SHA-256 table (`sha_msgs.json`)
+        self.sha_merged = self.m5b and 'SHAS' not in names.get('tables', [])
         self.T = {t: Table(t, names[t]) for t in ['KEY', 'BR', 'SN', 'KCMP', 'WSB', 'WSN', 'WSA', 'SNC', 'RNG', 'WSL', 'WSP']
                   + (['STB', 'STW'] if self.m5b else [])}
         self.rng_count = {}
@@ -523,6 +525,7 @@ class Gen:
         T.set(r, 'odd', odd)
         hp = PT.hex_prefix(key, isL)
         T.set(r, 'hplen', len(hp))
+        T.set(r, 'hph', len(hp) >> 8)      # u32 |hp| = (hplen − 256·hph, hph, 0, 0) (M5a-8)
         nh_head = (head + 2 - odd) // 2
         for m_ in range(nh_head):
             T.set(r, 'ha', 1, m_)
@@ -1263,7 +1266,7 @@ class Gen:
     def st_run(self, m, ts, base, data):
         """`STB` rows of message `m`: the bytes of `data`, read by call `ts` at `base, ...`."""
         Tb = self.T['STB']
-        self.sha_st_msgs.append(dict(id=ID_ST + m, bytes=data.hex()))   # the second SHA-256 instance
+        self.sha_st_msgs.append(dict(id=ID_ST + m, bytes=data.hex()))   # `SHAS`, or `SHA` (merged, M5a-8)
         for j, b in enumerate(data):
             r = Tb.new()
             Tb.set(r, 'act', 1); Tb.set(r, 'm', m); Tb.set(r, 'j', j); Tb.set(r, 'b', b)
@@ -1289,7 +1292,9 @@ class Gen:
             vlen = len(v) if pr else 0
             assert (pr, vlen) == tuple(ref[:2]) and (not pr or sha(v) == ref[2])
             mk = m
-            m = self.st_run(m, t, kptr, key)
+            ke = int(len(key) == 0)        # an empty key: no `STB` run, `dk = sha256 []` (M5a-8)
+            if not ke:
+                m = self.st_run(m, t, kptr, key)
             ve = int(pr and vlen == 0)
             mv = 0
             if pr and vlen > 0:
@@ -1297,7 +1302,7 @@ class Gen:
                 m = self.st_run(m, t, vptr, v)
             r = Tw.new()
             Tw.set(r, 'act', 1); Tw.set(r, 'seg', seg); Tw.set(r, 'ts', t); Tw.set(r, 'pr', pr)
-            Tw.set(r, 've', ve); Tw.set(r, 'klen', len(key)); Tw.set(r, 'kptr', kptr)
+            Tw.set(r, 've', ve); Tw.set(r, 'ke', ke); Tw.set(r, 'klen', len(key)); Tw.set(r, 'kptr', kptr)
             Tw.set(r, 'vlen', vlen); Tw.set(r, 'vptr', vptr); Tw.set(r, 'mk', mk); Tw.set(r, 'mv', mv)
             Tw.setv(r, 'dk', list(sha(key)))
             Tw.setv(r, 'dv', list(sha(v)) if pr else [0] * 32)
@@ -1403,7 +1408,8 @@ class Gen:
                     n0 = len(T.rows)
                     T.pad_row = (lambda rid_i, w: (lambda i: [i if c == rid_i else 0 for c in range(w)]))(rid_i, w)
                 heights[nm] = T.dump(os.path.join(out, nm + '.bin'))
-        json.dump(self.sha_msgs, open(os.path.join(out, 'sha_msgs.json'), 'w'))
+        json.dump(self.sha_msgs + (self.sha_st_msgs if self.sha_merged else []),
+                  open(os.path.join(out, 'sha_msgs.json'), 'w'))
         json.dump(self.comps, open(os.path.join(out, 'comps.json'), 'w'))
         # public values: prev_state_root (16 limbs), then the working-set entry count (M5a-5)
         wslen = len(self.keys)
@@ -1418,7 +1424,8 @@ class Gen:
         if self.m5b:
             # M5b: the execution side's messages are a second public table (`htape.json`)
             json.dump(self.st_tape(), open(os.path.join(out, 'htape.json'), 'w'))
-            json.dump(self.sha_st_msgs, open(os.path.join(out, 'sha_msgs_st.json'), 'w'))
+            if not self.sha_merged:
+                json.dump(self.sha_st_msgs, open(os.path.join(out, 'sha_msgs_st.json'), 'w'))
         else:
             for (t, seg, key, ref) in self.writes:
                 tape.append([B_WRITE, True, [seg, t] + pack2(sha(key)) + [ref[0], ref[1]] + pack2(ref[2])])
@@ -1789,7 +1796,32 @@ def _t_stvbyte(g):
     _st_tamper(g, 'mv')
 
 
-TAMPERS = dict(lmwrap=_t_lmwrap, vbyte=_t_vbyte, dmono=_t_dmono, bvwrap=_t_bvwrap, absent=_t_absent, extabsent=_t_extabsent, branchval=_t_branchval, split=_t_split,
+# ---- M5a-8 mutants (u32 hex-prefix length, empty key)
+def _t_hphshort(g):
+    # a head-only key (`cont = 0`) whose u32 length claims a high byte: `(hplen − 256, 1, 0, 0)`
+    # (rejected by `(1 − cont)·hph = 0`, and the SHA-256 message no longer matches)
+    T = g.T['SN']
+    r = next(r for r in T.rows if T.get(r, 'act') == 1 and T.get(r, 'cont') == 0 and T.get(r, 'gsha') == 1)
+    T.set(r, 'hph', 1)
+
+
+def _t_hphlong(g):
+    # a continued key with `hplen ≥ 256` whose high byte is one too small: the low byte becomes
+    # `lo + 256` (not a byte; the SHA-256 table's message keeps the honest bytes)
+    T = g.T['SN']
+    r = next(r for r in T.rows if T.get(r, 'cont') == 1 and T.get(r, 'hph') > 0)
+    T.set(r, 'hph', T.get(r, 'hph') - 1)
+
+
+def _t_kempty(g):
+    # a non-empty key claimed empty (`ke = 1`, its `STB` run and digest receive skipped)
+    Tw = g.T['STW']
+    r = next(r for r in Tw.rows if Tw.get(r, 'act') == 1 and Tw.get(r, 'klen') > 0)
+    Tw.set(r, 'ke', 1)
+
+
+TAMPERS = dict(hphshort=_t_hphshort, hphlong=_t_hphlong, kempty=_t_kempty,
+               lmwrap=_t_lmwrap, vbyte=_t_vbyte, dmono=_t_dmono, bvwrap=_t_bvwrap, absent=_t_absent, extabsent=_t_extabsent, branchval=_t_branchval, split=_t_split,
                splitext=_t_splitext, absdel=_t_absdel, squash=_t_squash, chain=_t_chain,
                verslot=_t_verslot, vernid=_t_vernid, vmcount=_t_vmcount, finroot=_t_finroot,
                nidforge=_t_nidforge, bvalue=_t_bvalue, bvmem=_t_bvmem, wsstale=_t_wsstale,

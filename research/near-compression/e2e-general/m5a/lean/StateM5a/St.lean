@@ -96,7 +96,7 @@ end Stb
 namespace Stw
 def L : Layout :=
   [("act", 1), ("seg", 1), ("ts", 1), ("pr", 1), ("ve", 1), ("klen", 1), ("kptr", 1), ("vlen", 1),
-   ("vptr", 1), ("mk", 1), ("mv", 1), ("dk", 32), ("dv", 32)]
+   ("vptr", 1), ("mk", 1), ("mv", 1), ("dk", 32), ("dv", 32), ("ke", 1)]
 def T : Cols := ⟨L⟩
 def c (s : String) (j : Nat := 0) : Expr := T.c s j
 
@@ -105,13 +105,16 @@ def constraints : List Expr :=
   [bool (c "act"), bool pr, bool ve, (1 - c "act") * pr, (1 - pr) * ve, (1 - pr) * c "vlen",
    ve * c "vlen"] ++
   ((List.range 32).flatMap fun b =>
-    [(1 - pr) * c "dv" b, ve * (c "dv" b - K (SHA256_EMPTY.getD b 0))])
+    [(1 - pr) * c "dv" b, ve * (c "dv" b - K (SHA256_EMPTY.getD b 0))]) ++
+  -- M5a-8: an empty key (`ke = 1`: `klen = 0`, `dk = sha256 []`, no `STB` run)
+  [bool (c "ke"), (1 - c "act") * c "ke", c "ke" * c "klen"] ++
+  (List.range 32).map fun b => c "ke" * (c "dk" b - K (SHA256_EMPTY.getD b 0))
 
 def interactions : List Interaction :=
-  let A := c "act"; let gv := c "pr" - c "ve"
+  let A := c "act"; let gv := c "pr" - c "ve"; let gk := c "act" - c "ke"
   [rcv B_SREQ A [c "ts", c "pr", c "seg", c "klen", c "kptr", c "vlen", c "vptr"],
-   rcv B_DESC A [c "mk", c "ts", c "kptr", c "klen"],
-   rcv B_SD2 A ([K ID_ST + c "mk", c "klen"] ++ (List.range 32).map fun b => c "dk" b),
+   rcv B_DESC gk [c "mk", c "ts", c "kptr", c "klen"],
+   rcv B_SD2 gk ([K ID_ST + c "mk", c "klen"] ++ (List.range 32).map fun b => c "dk" b),
    rcv B_DESC gv [c "mv", c "ts", c "vptr", c "vlen"],
    rcv B_SD2 gv ([K ID_ST + c "mv", c "vlen"] ++ (List.range 32).map fun b => c "dv" b),
    snd B_WRITE A ([c "seg", c "ts"] ++ pack2 (fun b => c "dk" b) ++ [c "pr", c "vlen"] ++

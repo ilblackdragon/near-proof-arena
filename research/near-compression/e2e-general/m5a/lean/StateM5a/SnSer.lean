@@ -5,7 +5,8 @@ import StateM5a.RowSnN
 # StateM5a.SnSer — an `SN` row's SHA-256 byte sends spell its node's serialization
 
 `Trie.Sn.serBytes id g x mb` sends a leaf / extension node to `SHA_BYTES`: the tag `3·isE`, the
-`u32` hex-prefix length (`hplen, 0, 0, 0`), the hex-prefix bytes `hp_m` (`ha_m`), the payload
+`u32` hex-prefix length (`hplen − 256·hph, hph, 0, 0`, `= (hplen, 0, 0, 0)` here: `hph = 0` when
+`cont = 0`), the hex-prefix bytes `hp_m` (`ha_m`), the payload
 (`x_t`, 36 bytes for a leaf, 32 for an extension) and the memory bytes.  For a head whose key does
 not continue (`cont = 0`) all of them come from the row (the `SNC` rows send the rest of a long
 key), so:
@@ -112,6 +113,32 @@ theorem snSerF_mb {x mb : Nat → Expr} {b : Nat} (hb : b < 8) :
     payLen tr pub r = b by omega]
   simp [hb]
 
+theorem m_hph : (1 - Sn.c "cont") * Sn.c "hph" ∈ Sn.constraints := by
+  unfold Sn.constraints; simp
+
+/-- M5a-8: a head-only key's `u32` length has high byte `hph = 0`. -/
+theorem sn_hph0 (hc : ∀ e ∈ Sn.table.constraints, e.eval tr 3 r pub = 0)
+    (hcont : ev tr 3 r pub (Sn.c "cont") = 0) : ev tr 3 r pub (Sn.c "hph") = 0 := by
+  have h := FieldRows.hold rfl hc m_hph
+  rw [ev_hmul, FieldRows.ev_sub, ev_one, hcont] at h
+  have := ev_lt (tr := tr) (t := 3) (r := r) (pub := pub) (Sn.c "hph")
+  simp only [Nat.sub_zero, Nat.mod_self, Nat.add_zero, Nat.one_mod, Nat.one_mul] at h
+  rwa [Nat.mod_eq_of_lt this] at h
+
+theorem sn_lo_eq (h0 : ev tr 3 r pub (Sn.c "hph") = 0) :
+    nE tr pub r (Sn.c "hplen" - sm 256 (Sn.c "hph")) = nE tr pub r (Sn.c "hplen") := by
+  apply Fp.ext
+  show ev tr 3 r pub (Sn.c "hplen" - sm 256 (Sn.c "hph")) = ev tr 3 r pub (Sn.c "hplen")
+  rw [FieldRows.ev_sub, ev3_sm, h0]
+  have := ev_lt (tr := tr) (t := 3) (r := r) (pub := pub) (Sn.c "hplen")
+  simp only [Nat.mul_zero, Nat.zero_mod, Nat.sub_zero, Nat.mod_self, Nat.add_zero]
+  exact Nat.mod_eq_of_lt this
+
+theorem sn_hi_eq (h0 : ev tr 3 r pub (Sn.c "hph") = 0) : nE tr pub r (Sn.c "hph") = nE tr pub r 0 := by
+  apply Fp.ext
+  show ev tr 3 r pub (Sn.c "hph") = ev tr 3 r pub (0 : Expr)
+  rw [h0, show ev tr 3 r pub (0 : Expr) = 0 from ev_const 0]
+
 set_option maxHeartbeats 4000000 in
 /-- **Every firing byte send of an `SN` head (`cont = 0`) carries its `snSerF` entry.** -/
 theorem sn_ser_ok (hc : ∀ e ∈ Sn.table.constraints, e.eval tr 3 r pub = 0)
@@ -132,9 +159,9 @@ theorem sn_ser_ok (hc : ∀ e ∈ Sn.table.constraints, e.eval tr 3 r pub = 0)
   · exact ⟨_, _, rfl, by rw [show ev tr 3 r pub (0 : Expr) = 0 from ev_const 0]; omega,
       by rw [show ev tr 3 r pub (0 : Expr) = 0 from ev_const 0]; rfl⟩
   · exact ⟨_, _, rfl, by rw [show ev tr 3 r pub (1 : Expr) = 1 from ev_const 1]; omega,
-      by rw [show ev tr 3 r pub (1 : Expr) = 1 from ev_const 1]; rfl⟩
+      by rw [show ev tr 3 r pub (1 : Expr) = 1 from ev_const 1, sn_lo_eq (sn_hph0 hc hcont)]; rfl⟩
   · exact ⟨_, _, rfl, by rw [show ev tr 3 r pub (2 : Expr) = 2 from ev_const 2]; omega,
-      by rw [show ev tr 3 r pub (2 : Expr) = 2 from ev_const 2]; rfl⟩
+      by rw [show ev tr 3 r pub (2 : Expr) = 2 from ev_const 2, sn_hi_eq (sn_hph0 hc hcont)]; rfl⟩
   · exact ⟨_, _, rfl, by rw [show ev tr 3 r pub (3 : Expr) = 3 from ev_const 3]; omega,
       by rw [show ev tr 3 r pub (3 : Expr) = 3 from ev_const 3]; rfl⟩
   · exact ⟨_, _, rfl, by rw [show ev tr 3 r pub (4 : Expr) = 4 from ev_const 4]; omega,
