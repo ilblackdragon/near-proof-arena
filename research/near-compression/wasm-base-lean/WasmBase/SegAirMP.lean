@@ -51,6 +51,14 @@ No transition constraint: the rows may be in any order.
 * So the rows form a partial tree whose leaves are exactly MEMB's touched blocks and whose stubs are
   the untouched-child witnesses; the old root is its digest with the old leaves, the new root with
   the new leaves (`mp_tree`).
+* No range check on `idx` is needed: positions follow from the root's `idx = 0` and the child
+  indices `2·idx + s` (`pos_of_act`: `idx < 2^(D − lvl)`).  `nbt` (SEGB) is now `1` with a touched
+  block and `0` without (it was the block count).
+
+Proved (`Main/SegMP.lean`, kernel-checked): `root_unique`, `pos_of_act`, `pos_unique`, `mpTree_eval`,
+**`mp_tree`** (with the node compression a hypothesis and `D ≤ 30`).  The cost (prover, M4b):
+`segbench(24000)` 1,610 → 680 compressions per 2^18-step segment (32 blocks: 576 leaf, 94 node =
+47 touched nodes × 2, 10 stream), SHA-512 chip 2^18 → 2^17 rows.
 -/
 namespace WasmBase
 namespace Chips

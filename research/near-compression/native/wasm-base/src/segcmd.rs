@@ -3,6 +3,9 @@
 //!   nearproof-wasm-base segcheck  <airSeg.json> <airM2.json> <prep.json> <steps_per_segment>
 //!   nearproof-wasm-base segprove  <airSeg.json> <airM2.json> <prep.json> <steps_per_segment>
 //!   nearproof-wasm-base segtamper <airSeg.json> <airM2.json> <prep.json> <steps_per_segment> <segment>
+//!
+//! `<airSeg.json>` is `wasmbase-tool airSeg` (M4) or `airSegMP` (M4b, the multiproof MPATH; its
+//! tamper battery adds the MPATH-MP cases, `tampers_mp`).
 use crate::air::{AirSpec, JsonAir};
 use crate::config::{F, Sha384Config, Sha384RefEngine};
 use crate::s384;
