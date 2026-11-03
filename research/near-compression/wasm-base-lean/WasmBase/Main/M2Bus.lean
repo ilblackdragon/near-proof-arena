@@ -3,7 +3,44 @@ import WasmBase.Main.SoundHost
 /-!
 # WasmBase.Main.M2Bus — the STATE/CH bus decomposition of `wasmBaseM2Air`
 
-(header: see the end of the development)
+The M2 analogue of `Main/HostBus.lean` + `Main/MemIOBus.lean` (which cover only the 26 tables of
+`wasmBaseHostAir` and need the base AIR's `Holds` as a separate premise `H0`).  Here everything is
+derived from `Holds (wasmBaseM2Air …)` itself:
+
+```
+wasmBaseM2Air = base (0–21) ++ [HOST' (22), HOSTO, HOSTT, HOSTB (25), IF (26), REG-C (27), CONV (28), UNREACH (29)]
+```
+
+* **count bits** (`m2_occ_bits`): every STATE/CH occurrence, in both directions, has count ≤ 1 —
+  base tables by `occ_bits_of` at the trace's own constraints (`m2_holdsC`, `chipFactsC`), HOST' by
+  the HOST constraints it extends (`host_inter_bound_of`), the other tail tables by a decidable
+  "every STATE/CH count is a product of `bool`-constrained columns" check (`SCBitOk`).  Hence
+  `m2_msgs_perm`: both buses balance as multisets;
+* **the action list** `actListM2 = actListHost ++ tailActRows`: base instruction rows, active HOST
+  rows (HOST' read through `Host.table`, whose STATE/CH interactions it shares: `hostR_rowMsgs`),
+  then the active IF/CONV/UNREACH rows (single-flag chips, `UniformSC`/`StateShape`: an inactive
+  row emits nothing);
+* **`m2_hst`** — the STATE perm over `actListM2`, from `Holds` alone;
+* **`m2_hch`** — the CH perm over `actListM2`, with the boundary's initial/final blocks, from
+  `Holds`, `HostBLinked` and **`RegCLinked`**.  A HOST row's CH messages are fused with its call's
+  `HOSTB` bytes (as in `prodCH`) and its call's **REG-C net traffic** (`prodCHM2`/`consCHM2`):
+  - REG-C's space-6 (register) and space-3 (`read_register` memory write) messages are split per
+    row into the net part and the **clear pairs** (`regc_prod_split`, `regc_cons_split`); the clear
+    pairs cancel from the balance (a clear row re-receives exactly what it re-sends at `ts`), so a
+    refill's host step is not asked to consume a message of its own time;
+  - the net part is grouped by `(ts, hid)` (`key_partition`, `m2_reg_partition`), which is a
+    permutation of the table's net traffic under `RegCLinked` (every active REG-C row carries an
+    active HOST row's key) and `HostBLinked.unique` (HOST keys are distinct); inactive REG-C rows
+    have no traffic (`regc_inactive_nil`);
+  - `HOSTB` likewise (`m2_hostb_partition`; a `HOSTB` row with traffic is active, so only
+    `HostBLinked` is needed).
+
+The bookkeeping that matches the raw CH block order with the fused fold is done over abstract
+lists (`ch_assemble`), and the decoded bus is stated as separate lemmas (`m2_ch_dec_true/false`):
+simplifying the decoded bus in place produced a proof term the kernel could not check (deep
+recursion).
+
+**Named premise introduced here: `RegCLinked`** (see its docstring and `Main/M2Sound.lean`).
 -/
 namespace WasmBase
 open ZkFormal.Algebra Chips Local
@@ -1097,5 +1134,15 @@ theorem m2_buses {X : Ctx} {nloc ngl : Nat} {pub : List F} {tr : Trace}
             (drainRaw tr pub).map decMsg) ++
           (actListM2 tr pub).flatMap (consCHM2 tr pub)) :=
   ⟨m2_hst H hpub, m2_hch H hpub hb hg⟩
+
+#print axioms m2_occ_bits
+#print axioms m2_msgs_perm
+#print axioms regc_prod_split
+#print axioms regc_inactive_nil
+#print axioms key_partition
+#print axioms m2_hostb_partition
+#print axioms m2_reg_partition
+#print axioms m2_hst
+#print axioms m2_hch
 
 end WasmBase

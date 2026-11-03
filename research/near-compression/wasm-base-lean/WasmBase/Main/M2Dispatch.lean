@@ -9,9 +9,9 @@ row's `RowFacts2` for the M2 context `X.toCtx`.  Everything is derived from `Hol
 (`M2Ctx.hM`), the public-input layout (`PubOK`) and the CODE/FUNC commitment bindings
 (`CodeOK`, `FuncOK`): no `hsend`/`hsendF` premise remains (`m2_hsend_r16`, `m2_hsend_fetch`).
 
-What is **not** here (and is the remaining step to `wasm_base_sound_m2`): the STATE/CH bus
-decomposition of `wasmBaseM2Air` into these rows plus HOST (22) and the non-instruction tables
-(HOSTO, HOSTT, HOSTB, REG-C), and the composition with `exec_of_rows_seg`.
+The STATE/CH bus decomposition of `wasmBaseM2Air` into these rows plus HOST (22) and the
+non-instruction tables (HOSTO, HOSTT, HOSTB, REG-C) is `Main/M2Bus.lean`; the composition with
+`exec_of_rows_seg` is `wasm_base_sound_m2` (`Main/M2Sound.lean`).
 -/
 namespace WasmBase
 open ZkFormal.Algebra Chips Local
