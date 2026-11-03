@@ -478,9 +478,17 @@ fn tampers_mp(spec: &AirSpec, s: &SegInst) -> Vec<Case> {
         }
         push("MPATH-MP level bit a0 flipped".into(), edit(&[(r, "a0", one - get(r, "a0"))]), s.comps.clone());
         // a duplicated node: a copy of the row in a padding row, with its own (duplicated) compressions
-        if let Some(pad) = (0..h).find(|&p| get(p, "act") == zero) {
+        {
             let mut m = s.mats.clone();
             let mut comps = s.comps.clone();
+            // no padding row: double the table with zero rows (still a power of two)
+            let pad = match (0..h).find(|&p| get(p, "act") == zero) {
+                Some(p) => p,
+                None => {
+                    m[ti].values.extend(std::iter::repeat_n(F::ZERO, h * w));
+                    h
+                }
+            };
             for c in 0..w {
                 m[ti].values[pad * w + c] = m[ti].values[r * w + c];
             }
