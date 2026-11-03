@@ -561,6 +561,42 @@ fn tampers_key(spec: &AirSpec, s: &SegInst) -> Vec<Case> {
             out.push((name.into(), m, s.pubs.clone(), s.comps.clone(), s.pubs.clone()));
         }
     }
+    // (h4) E2E M6 FIX214: the group index bits `hg0, hg1` (wire id `hid + 256·(hg0 + 2·hg1)`)
+    if spec.tables[ti("HOSTB")].cols.iter().any(|c| c == "hg0") {
+        let nb = rows(&s.mats, "HOSTB");
+        let act = |q: usize| get(&s.mats, "HOSTB", q, "act") == one;
+        // a non-bit group index
+        if let Some(q) = (0..nb).find(|&q| act(q)) {
+            let mut m = s.mats.clone();
+            put(&mut m, "HOSTB", q, "hg0", F::from_u32(2));
+            out.push((format!("HOSTB[row {q}].hg0 = 2 (group index not a bit)"), m, s.pubs.clone(), s.comps.clone(), s.pubs.clone()));
+        }
+        // a group index that changes inside a group (row q continues row q-1's group)
+        if let Some(q) = (1..nb).find(|&q| act(q) && get(&s.mats, "HOSTB", q, "f") == F::ZERO) {
+            let mut m = s.mats.clone();
+            put(&mut m, "HOSTB", q, "hg1", one - get(&s.mats, "HOSTB", q, "hg1"));
+            out.push((format!("HOSTB[row {q}].hg1 flipped mid-group"), m, s.pubs.clone(), s.comps.clone(), s.pubs.clone()));
+        }
+        // the pre-fix encoding of a multi-group call: `hid` = the wire id, `g = 0` (the key
+        // `[ts, hid + 256·g]` is no HOST row's)
+        if let Some(q) = (0..nb).find(|&q| act(q) && (get(&s.mats, "HOSTB", q, "hg0") != F::ZERO || get(&s.mats, "HOSTB", q, "hg1") != F::ZERO)) {
+            let mut m = s.mats.clone();
+            let ts = get(&s.mats, "HOSTB", q, "ts");
+            let (h0, h1) = (get(&s.mats, "HOSTB", q, "hg0"), get(&s.mats, "HOSTB", q, "hg1"));
+            let mut n = 0;
+            for p in 0..nb {
+                if act(p) && get(&m, "HOSTB", p, "ts") == ts && get(&m, "HOSTB", p, "hg0") == h0 && get(&m, "HOSTB", p, "hg1") == h1 {
+                    let hid = get(&m, "HOSTB", p, "hid");
+                    put(&mut m, "HOSTB", p, "hid", hid + F::from_u32(256) * (h0 + h1 + h1));
+                    put(&mut m, "HOSTB", p, "hg0", F::ZERO);
+                    put(&mut m, "HOSTB", p, "hg1", F::ZERO);
+                    n += 1;
+                }
+            }
+            out.push((format!("HOSTB group at ts {} in the pre-fix wire-id encoding (hid += 256*g, g = 0), {n} rows", ts.as_canonical_u32()),
+                m, s.pubs.clone(), s.comps.clone(), s.pubs.clone()));
+        }
+    }
     // (h3) a foreign HOSTB response group in a padding row: `dir = 1`, `reg = 0`, one byte, its own
     // group; its bus-210 pair cancels, no CH traffic, the BYTE/R16 multiplicities are recounted
     let hb = ti("HOSTB");
