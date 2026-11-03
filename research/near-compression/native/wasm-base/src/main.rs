@@ -311,10 +311,11 @@ fn hostb_payloads(spec: &AirSpec, g: &Gen) -> Vec<(u64, u64, Vec<u8>)> {
     }
     let mut out: Vec<(u64, u64, Vec<u8>)> = vec![];
     for (&ts, &(hid, st)) in calls.iter() {
-        if st != 0 {
+        // E2E M3: `abort` (51) always aborts; its message is still an output (the `ABORT:` log)
+        if st != 0 && hid != 51 {
             continue;
         }
-        for h in [hid, hid + 256] {
+        for h in [hid, hid + 256, hid + 768] {
             match groups.remove(&(ts, h)) {
                 Some(b) => out.push((ts, h, b.into_values().collect())),
                 None if h == hid && (hid == 45 || hid == 50) => out.push((ts, h, vec![])),
@@ -326,6 +327,18 @@ fn hostb_payloads(spec: &AirSpec, g: &Gen) -> Vec<(u64, u64, Vec<u8>)> {
 }
 
 /// E2E M2: the successful host calls of the trace, `(ts, hid, arg0)` in time order (from HOST's rows).
+/// E2E M3: the `line, col` arguments of the trace's `abort` call (HOST row `hid = 51`), if any.
+fn host_abort_args(spec: &AirSpec, g: &Gen) -> Option<(u64, u64, bool)> {
+    let hi = spec.tables.iter().position(|t| t.name == "HOST")?;
+    let ht = &spec.tables[hi];
+    let hw = ht.cols.len();
+    let m = &g.mats[hi];
+    let at = |r: usize, n: &str| m.values[r * hw + ht.col(n)].as_canonical_u32() as u64;
+    let arg = |r: usize, j: usize| (0..4).map(|i| at(r, &format!("P{j}_{i}")) << (16 * i)).sum::<u64>();
+    (0..m.values.len() / hw).find(|&r| at(r, "act") == 1 && at(r, "hid") == 51)
+        .map(|r| (arg(r, 2), arg(r, 3), (arg(r, 0) & 0xffff_ffff) == (arg(r, 1) & 0xffff_ffff)))
+}
+
 fn host_calls_ok(spec: &AirSpec, g: &Gen) -> Vec<(u64, u64, u64)> {
     let Some(hi) = spec.tables.iter().position(|t| t.name == "HOST") else { return vec![] };
     let ht = &spec.tables[hi];
@@ -356,10 +369,10 @@ fn cmd_check_tape(air_path: &str, preps: &[String]) {
             let (_prep, g) = generate(&spec, p);
             let c = tracegen::check_constraints(&spec, &g).err();
             let b = tracegen::check_buses(&spec, &g).err();
-            (g.g_final_trace, hostb_payloads(&spec, &g), c, b, g.steps, host_calls_ok(&spec, &g))
+            (g.g_final_trace, hostb_payloads(&spec, &g), c, b, g.steps, host_calls_ok(&spec, &g), host_abort_args(&spec, &g))
         }));
         match r {
-            Ok((gf, pl, c, b, steps, hc)) => {
+            Ok((gf, pl, c, b, steps, hc, ab)) => {
                 let hx = |v: &Vec<u8>| v.iter().map(|x| format!("{x:02x}")).collect::<String>();
                 let pick = |h: u64| -> Vec<String> {
                     pl.iter().filter(|(_, hid, _)| *hid == h).map(|(_, _, v)| format!("\"{}\"", hx(v))).collect()
@@ -376,8 +389,19 @@ fn cmd_check_tape(air_path: &str, preps: &[String]) {
                     (Some(e), _) => format!("\"constraint: {}\"", e.replace('"', "'")),
                     (_, Some(e)) => format!("\"bus: {}\"", e[..e.len().min(200)].replace('"', "'")),
                 };
+                // E2E M3: `abort`'s message: the UTF-16 message and file it read (HOSTB groups
+                // 51+256, 51+768) and its `line, col` arguments
+                // (an empty string moves no bytes, so a missing group is "")
+                let abortx = match ab {
+                    Some((l, c, same)) => {
+                        let s = |h: u64| pick(h).first().cloned().unwrap_or("\"\"".into());
+                        // one pointer for both strings: the file is the message bytes
+                        format!("[{},{},{l},{c}]", s(51 + 256), s(if same { 51 + 256 } else { 51 + 768 }))
+                    }
+                    None => "null".into(),
+                };
                 println!(
-                    "{{\"prep\":\"{p}\",\"logx\":[{}],\"lastret\":{lastret},\"ok\":{},\"steps\":{steps},\"g_final_trace\":{gf},\"logs\":[{}],\"rets\":[{}],\"skeys\":[{}],\"svals\":[{}],\"err\":{err}}}",
+                    "{{\"prep\":\"{p}\",\"logx\":[{}],\"lastret\":{lastret},\"ok\":{},\"steps\":{steps},\"g_final_trace\":{gf},\"logs\":[{}],\"rets\":[{}],\"skeys\":[{}],\"svals\":[{}],\"abortx\":{abortx},\"err\":{err}}}",
                     logx.join(","), err == "null", pick(45).join(","), pick(50).join(","), skeys.join(","), pick(314).join(",")
                 );
             }
@@ -1241,6 +1265,75 @@ fn cmd_tamper(air_path: &str, prep_path: &str) {
                 cases.push((format!("RINIT[duplicate id {last}]"), extra(vec![last])));
                 cases.push((format!("RINIT[unsorted ids {}, {}]", last + 2, last + 1), extra(vec![last + 2, last + 1])));
             }
+        }
+    }
+    // HOST-W / MEMG / MSZ / GINIT (`wasmBaseM3Air`, `WasmBase/M3Air.lean`)
+    if let Ok(tm) = std::panic::catch_unwind(|| tb("MEMG")) {
+        let (th, ts_, tg_) = (tb("HOST"), tb("MSZ"), tb("GINIT"));
+        let rows = |t: usize| g.rows_per_table[t].1;
+        let val = |t: usize, r: usize, c: &str| g.mats[t].values[r * g.mats[t].width + col(t, c)].as_canonical_u32() as u64;
+        let set2 = |t: usize, r: usize, a: (&str, u64), b: (&str, u64)| -> Mut {
+            let (ka, kb) = (col(t, a.0), col(t, b.0));
+            let (va, vb) = (a.1, b.1);
+            Box::new(move |g: &mut Gen| {
+                let w = g.mats[t].width;
+                g.mats[t].values[r * w + ka] = F::from_u64(va);
+                g.mats[t].values[r * w + kb] = F::from_u64(vb);
+            })
+        };
+        let zero: fn() -> Box<dyn Fn(F) -> F> = || Box::new(|_| F::ZERO);
+        // HOST-W: a call with i32 arguments (`abort`) and one with an i32 result (`promise_yield_resume`)
+        if let Some(r) = (0..rows(th)).find(|&r| val(th, r, "act") == 1 && val(th, r, "tmask") & 1 == 1) {
+            // argument 0 claimed i64, with `ti0`, `tagP0` and `tmask` mutually consistent: only the
+            // host table (HOSTT) and the stack message's tag can catch it
+            let tmk = val(th, r, "tmask");
+            let (kt, kg, km) = (col(th, "ti0"), col(th, "tagP0"), col(th, "tmask"));
+            cases.push((format!("HOSTW[row {r}] arg 0 as i64 (ti0=0, tagP0=1, tmask-1)"), Box::new(move |g: &mut Gen| {
+                let w = g.mats[th].width;
+                g.mats[th].values[r * w + kt] = F::ZERO;
+                g.mats[th].values[r * w + kg] = F::ONE;
+                g.mats[th].values[r * w + km] = F::from_u64(tmk - 1);
+            })));
+            cases.push((format!("HOSTW[row {r}].ti0=0"), cell(th, r, col(th, "ti0"), zero())));
+            cases.push((format!("HOSTW[row {r}].tmask=0"), cell(th, r, col(th, "tmask"), zero())));
+        }
+        if let Some(r) = (0..rows(th)).find(|&r| val(th, r, "act") == 1 && val(th, r, "ri") == 1) {
+            cases.push((format!("HOSTW[row {r}].ri=0 (result as i64)"), cell(th, r, col(th, "ri"), zero())));
+            cases.push((format!("HOSTW[row {r}].r2+1 (i32 result upper limb)"), cell(th, r, col(th, "r2"), plus1())));
+        }
+        // MEMG: a successful `memory.grow` and a `memory.size`
+        if let Some(r) = (0..rows(tm)).find(|&r| val(tm, r, "f_grow") == 1 && val(tm, r, "ok") == 1) {
+            let (old, n0, d) = (val(tm, r, "old"), val(tm, r, "n0"), val(tm, r, "d"));
+            // claim failure, with the failure witness the constraint would accept for `old + n − 2049`
+            let e = (old + n0 + 65536 * val(tm, r, "n1")).wrapping_sub(2049) & 0xffff_ffff;
+            let (ko, ke0, ke1, kd) = (col(tm, "ok"), col(tm, "e0"), col(tm, "e1"), col(tm, "d"));
+            cases.push((format!("MEMG[grow row {r}] ok=0 (claim failure)"), Box::new(move |g: &mut Gen| {
+                let w = g.mats[tm].width;
+                g.mats[tm].values[r * w + ko] = F::ZERO;
+                g.mats[tm].values[r * w + kd] = F::ZERO;
+                g.mats[tm].values[r * w + ke0] = F::from_u64(e & 0xffff);
+                g.mats[tm].values[r * w + ke1] = F::from_u64(e >> 16);
+            })));
+            cases.push((format!("MEMG[grow row {r}].d+1"), cell(tm, r, col(tm, "d"), plus1())));
+            cases.push((format!("MEMG[grow row {r}].old+1"), cell(tm, r, col(tm, "old"), plus1())));
+            cases.push((format!("MEMG[grow row {r}].n0+1, d-1"), set2(tm, r, ("n0", n0 + 1), ("d", d.wrapping_sub(1)))));
+            if val(tm, r, "lin") == 1 {
+                cases.push((format!("MEMG[grow row {r}].lin=0 (skip the linear fee)"), cell(tm, r, col(tm, "lin"), zero())));
+            }
+            cases.push((format!("MEMG[grow row {r}].gm+1"), cell(tm, r, col(tm, "gm"), plus1())));
+        }
+        if let Some(r) = (0..rows(tm)).find(|&r| val(tm, r, "f_size") == 1) {
+            cases.push((format!("MEMG[size row {r}].old+1"), cell(tm, r, col(tm, "old"), plus1())));
+        }
+        if rows(ts_) > 0 {
+            cases.push(("MSZ[row 0].pg+1".into(), cell(ts_, 0, col(ts_, "pg"), plus1())));
+        }
+        if rows(tg_) > 0 {
+            let tg0 = val(tg_, 0, "tg");
+            cases.push(("GINIT[row 0].act=0".into(), cell(tg_, 0, col(tg_, "act"), zero())));
+            // the zero byte produced before the grow: the lookup `[tg, old, new]` has no MEMG row
+            cases.push(("GINIT[row 0].tg-1".into(), cell(tg_, 0, col(tg_, "tg"), Box::new(move |_| F::from_u64(tg0 - 1)))));
+            cases.push(("GINIT[row 0].ad+1".into(), cell(tg_, 0, col(tg_, "ad"), plus1())));
         }
     }
     // `TAMPER_ONLY=CONV,UNREACH`: run only the cases whose name starts with one of the prefixes
