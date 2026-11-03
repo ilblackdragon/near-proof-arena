@@ -632,4 +632,301 @@ theorem root_unique {r r' : Nat} (hr : r < tr.height 20) (hr' : r' < tr.height 2
 
 end bus
 
+/-! ## Positions: every active row is a node `(ℓ, n)` below the root, and at most one row per node -/
+
+theorem mdig_len (tr : Trace) (r b : Nat) : (mdig tr r b).length = 18 := by simp [mdig]
+
+theorem msg_split {a b c d : F} {l1 l2 l3 l4 : List F} (h1 : l1.length = 18) (h3 : l3.length = 18)
+    (h : [a, b] ++ l1 ++ l2 = [c, d] ++ l3 ++ l4) : a = c ∧ b = d ∧ l1 = l3 ∧ l2 = l4 := by
+  simp only [List.cons_append, List.nil_append, List.cons.injEq] at h
+  obtain ⟨ha, hb, h⟩ := h
+  obtain ⟨h1', h2'⟩ := List.append_inj h (by rw [h1, h3])
+  exact ⟨ha, hb, h1', h2'⟩
+
+/-- The depth as a natural. -/
+abbrev Dn (pub : List F) : Nat := (pD pub).toNat
+
+theorem cast_inj_small {a b : Nat} (ha : a < 2 ^ 30) (hb : b < 2 ^ 30) (h : (a : F) = (b : F)) : a = b :=
+  natEq h (by rw [P_val]; omega) (by rw [P_val]; omega)
+
+/-- `ℓ` and `n` of a node row: active, `lvl = ℓ`, `idx = n`, `1 ≤ ℓ ≤ D`, `n < 2^(D − ℓ)`. -/
+def Pos (tr : Trace) (pub : List F) (r ℓ n : Nat) : Prop :=
+  r < tr.height 20 ∧ mc tr r 0 = 1 ∧ mc tr r 3 = ((ℓ : Nat) : F) ∧ mc tr r 4 = ((n : Nat) : F) ∧ 1 ≤ ℓ ∧ ℓ ≤ Dn pub ∧
+    n < 2 ^ (Dn pub - ℓ)
+
+section pos
+variable {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : Holds (wasmBaseSegAirMP nloc ngl) pub tr)
+include H
+
+theorem lvl_nat {r : Nat} (hr : r < tr.height 20) (ha : mc tr r 0 = 1) :
+    ∃ a b : Nat, a < 32 ∧ b < 32 ∧ mc tr r 3 = ((1 + a : Nat) : F) ∧ Dn pub = 1 + a + b := by
+  obtain ⟨a, b, ha', hb', h3, hD⟩ := mpm_level H hr ha
+  refine ⟨a, b, ha', hb', h3, ?_⟩
+  unfold Dn; rw [hD, Fp.toNat_cast_of_lt (by rw [P_val]; omega)]
+
+theorem act_of_nd {q : Nat} (hq : q < tr.height 20) (h : mc tr q 6 = 1 ∨ mc tr q 8 = 1 ∨ mc tr q 5 = 1 ∨ mc tr q 7 = 1) :
+    mc tr q 0 = 1 := by
+  obtain ⟨b0, -, -, -, -, -, -, hz, -⟩ := mpm_row H hq
+  rcases b0 with h0 | h0
+  · obtain ⟨-, -, z5, z6, z7, z8⟩ := hz h0
+    rcases h with h | h | h | h
+    · rw [z6] at h; exact absurd h (by decide)
+    · rw [z8] at h; exact absurd h (by decide)
+    · rw [z5] at h; exact absurd h (by decide)
+    · rw [z7] at h; exact absurd h (by decide)
+  · exact h0
+
+/-- The parent of a non-root row: level `+1`, child index `2·idx_q + s`. -/
+theorem parent_of {r : Nat} (hr : r < tr.height 20) (ha : mc tr r 0 = 1) (ht : mc tr r 1 = 0) :
+    ∃ q s, q < tr.height 20 ∧ mc tr q 0 = 1 ∧ s ≤ 1 ∧ mc tr q 3 = mc tr r 3 + 1 ∧
+      mc tr r 4 = ((2 : Nat) : F) * mc tr q 4 + ((s : Nat) : F) ∧
+      ((s = 0 ∧ mc tr q 6 = 1 ∧ recvNL tr q = sendN tr r) ∨ (s = 1 ∧ mc tr q 8 = 1 ∧ recvNR tr q = sendN tr r)) := by
+  obtain ⟨q, hq, h | h⟩ := node_send_recv H hr ha ht
+  · obtain ⟨h6, hm⟩ := h
+    obtain ⟨e3, e4, -, -⟩ := msg_split (mdig_len tr q 13) (mdig_len tr r 85) hm
+    refine ⟨q, 0, hq, act_of_nd H hq (Or.inl h6), by omega, by grind, ?_, Or.inl ⟨rfl, h6, hm⟩⟩
+    rw [← e4]; simp only [cast_zero]; grind
+  · obtain ⟨h8, hm⟩ := h
+    obtain ⟨e3, e4, -, -⟩ := msg_split (mdig_len tr q 49) (mdig_len tr r 85) hm
+    refine ⟨q, 1, hq, act_of_nd H hq (Or.inr (Or.inl h8)), by omega, by grind, ?_, Or.inr ⟨rfl, h8, hm⟩⟩
+    rw [← e4, cast_one]
+
+/-- A row at level `D` is the root. -/
+theorem top_of_lvlD {r : Nat} (hr : r < tr.height 20) (ha : mc tr r 0 = 1) (hl : mc tr r 3 = ((Dn pub : Nat) : F)) :
+    mc tr r 1 = 1 := by
+  rcases (mpm_row H hr).2.1 with ht | ht
+  · obtain ⟨q, s, hq, hqa, -, hq3, -, -⟩ := parent_of H hr ha ht
+    obtain ⟨a, b, ha', hb, h3, hD⟩ := lvl_nat H hq hqa
+    rw [h3, hl, ← cast_one, ← Lean.Grind.Semiring.natCast_add] at hq3
+    have := cast_inj_small (by omega) (by omega) hq3
+    omega
+  · exact ht
+
+/-- The root has `lvl = D`. -/
+theorem lvl_of_top {r : Nat} (hr : r < tr.height 20) (ht : mc tr r 1 = 1) :
+    mc tr r 3 = ((Dn pub : Nat) : F) ∧ mc tr r 4 = 0 := by
+  obtain ⟨h3, h4⟩ := (mpm_row H hr).2.2.2.2.2.2.2.2.2.2.2.2 ht
+  refine ⟨?_, h4⟩
+  rw [h3]; unfold Dn; rw [Fp.cast_toNat]
+
+/-- **Every active row has a position.** -/
+theorem pos_of_act (hD : Dn pub ≤ 30) {r : Nat} (hr : r < tr.height 20) (ha : mc tr r 0 = 1) :
+    ∃ ℓ n, Pos tr pub r ℓ n := by
+  have main : ∀ k r, r < tr.height 20 → mc tr r 0 = 1 → mc tr r 3 = ((Dn pub - k : Nat) : F) → k + 1 ≤ Dn pub →
+      ∃ n, n < 2 ^ k ∧ mc tr r 4 = ((n : Nat) : F) := by
+    intro k
+    induction k with
+    | zero =>
+      intro r hr ha hl _
+      have ht := top_of_lvlD H hr ha (by simpa using hl)
+      exact ⟨0, by decide, (lvl_of_top H hr ht).2⟩
+    | succ k ih =>
+      intro r hr ha hl hk
+      rcases (mpm_row H hr).2.1 with ht | ht
+      · obtain ⟨q, s, hq, hqa, hs, hq3, hq4, -⟩ := parent_of H hr ha ht
+        have hql : mc tr q 3 = ((Dn pub - k : Nat) : F) := by
+          rw [hq3, hl, ← cast_one, ← Lean.Grind.Semiring.natCast_add]; congr 1; omega
+        obtain ⟨nq, hnq, e⟩ := ih q hq hqa hql (by omega)
+        refine ⟨2 * nq + s, by rw [Nat.pow_succ]; omega, ?_⟩
+        rw [hq4, e]; simp only [Lean.Grind.Semiring.natCast_add, Lean.Grind.Semiring.natCast_mul]
+      · have h3 := (lvl_of_top H hr ht).1
+        rw [hl] at h3
+        have := cast_inj_small (by omega) (by omega) h3
+        omega
+  obtain ⟨a, b, ha', hb', h3, hDn⟩ := lvl_nat H hr ha
+  obtain ⟨n, hn, e⟩ := main b r hr ha (by rw [h3]; congr 1; omega) (by omega)
+  exact ⟨1 + a, n, hr, ha, h3, e, by omega, by omega, by rw [show Dn pub - (1 + a) = b by omega]; exact hn⟩
+
+omit H in
+theorem pos_lvl_inj (hD : Dn pub ≤ 30) {r ℓ ℓ' n : Nat} (hp : Pos tr pub r ℓ n) (h : mc tr r 3 = ((ℓ' : Nat) : F))
+    (hl' : ℓ' ≤ 30) : ℓ = ℓ' := by
+  obtain ⟨-, -, h3, -, -, hle, -⟩ := hp
+  rw [h3] at h
+  exact cast_inj_small (by omega) (by omega) h
+
+omit H in
+theorem pos_idx_inj (hD : Dn pub ≤ 30) {r ℓ n n' : Nat} (hp : Pos tr pub r ℓ n) (h : mc tr r 4 = ((n' : Nat) : F))
+    (hn' : n' < 2 ^ 30) : n = n' := by
+  obtain ⟨-, -, -, h4, h1, hle, hn⟩ := hp
+  rw [h4] at h
+  have : 2 ^ (Dn pub - ℓ) ≤ 2 ^ 30 := Nat.pow_le_pow_right (by decide) (by omega)
+  exact cast_inj_small (by omega) (by omega) h
+
+/-- The parent of a row at `(ℓ, n)`, `ℓ < D`: a row at `(ℓ + 1, n / 2)`, receiving it on side `n % 2`. -/
+theorem parent_pos (hD : Dn pub ≤ 30) {r ℓ n : Nat} (hp : Pos tr pub r ℓ n) (hl : ℓ < Dn pub) :
+    ∃ q, Pos tr pub q (ℓ + 1) (n / 2) ∧
+      ((n % 2 = 0 ∧ mc tr q 6 = 1 ∧ recvNL tr q = sendN tr r) ∨ (n % 2 = 1 ∧ mc tr q 8 = 1 ∧ recvNR tr q = sendN tr r)) := by
+  obtain ⟨hr, ha, h3, h4, h1, hle, hn⟩ := hp
+  have ht : mc tr r 1 = 0 := by
+    rcases (mpm_row H hr).2.1 with ht | ht
+    · exact ht
+    · have := (lvl_of_top H hr ht).1
+      rw [h3] at this
+      have := cast_inj_small (by omega) (by omega) this; omega
+  obtain ⟨q, s, hq, hqa, hs, hq3, hq4, hside⟩ := parent_of H hr ha ht
+  obtain ⟨ℓq, nq, hpq⟩ := pos_of_act H hD hq hqa
+  have hlq : ℓq = ℓ + 1 := by
+    obtain ⟨-, -, e3, -, -, hle', -⟩ := hpq
+    rw [e3, h3, ← cast_one, ← Lean.Grind.Semiring.natCast_add] at hq3
+    exact cast_inj_small (by omega) (by omega) hq3
+  subst hlq
+  have hnq : n = 2 * nq + s := by
+    obtain ⟨-, -, -, e4, -, -, hnq⟩ := hpq
+    rw [e4, h4] at hq4
+    have : 2 ^ (Dn pub - ℓ) ≤ 2 ^ 30 := Nat.pow_le_pow_right (by decide) (by omega)
+    have h2 : 2 ^ (Dn pub - ℓ) = 2 * 2 ^ (Dn pub - (ℓ + 1)) := by
+      rw [← Nat.pow_succ']; congr 1; omega
+    exact cast_inj_small (by omega) (by omega) (by rw [hq4]; simp only [Lean.Grind.Semiring.natCast_add, Lean.Grind.Semiring.natCast_mul])
+  have h2 : n / 2 = nq := by omega
+  rw [h2]
+  refine ⟨q, hpq, ?_⟩
+  rcases hside with ⟨rfl, h6, hm⟩ | ⟨rfl, h8, hm⟩
+  · exact Or.inl ⟨by omega, h6, hm⟩
+  · exact Or.inr ⟨by omega, h8, hm⟩
+
+end pos
+
+theorem mpm_rowCnt17 (nloc ngl : Nat) (tr : Trace) (pub : List F) (M : List F) (r1 : Nat) :
+    rowCnt (wasmBaseSegAirMP nloc ngl) tr pub 17 false M 20 r1 (segMP_lt nloc ngl 20 (by decide)) =
+      (if recvNL tr r1 = M then (mc tr r1 6).toNat else 0) + (if recvNR tr r1 = M then (mc tr r1 8).toNat else 0) := by
+  rw [rowCnt_filter_bus]
+  simp only [segMP_t20', mpm_occ17_row, cntM_cons, cntM_nil]
+  simp
+
+theorem rowCnt17_other (nloc ngl : Nat) (tr : Trace) (pub : List F) (M : List F) (t : Nat)
+    (ht : t < (wasmBaseSegAirMP nloc ngl).tables.length) (h20 : t ≠ 20) (r1 : Nat) :
+    rowCnt (wasmBaseSegAirMP nloc ngl) tr pub 17 false M t r1 ht = 0 := by
+  apply rowCnt_zero_of_none
+  rintro i hi ⟨hb, -⟩
+  by_cases h0 : t = 0
+  · subst h0
+    rw [segMP_t0'] at hi
+    have := List.all_eq_true.mp segb_bus i hi
+    simp only [Bool.and_eq_true, bne_iff_ne, ne_eq] at this
+    exact this.2 hb
+  by_cases h19 : t = 19
+  · subst h19
+    rw [segMP_t19'] at hi
+    have := List.all_eq_true.mp memb_bus i hi
+    simp only [Bool.and_eq_true, bne_iff_ne, ne_eq] at this
+    exact this.1.2 hb
+  exact (segMP_bus_other nloc ngl t ht h0 h19 h20 i hi).2.2 hb
+
+section uniq
+variable {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : Holds (wasmBaseSegAirMP nloc ngl) pub tr)
+include H
+
+/-- A row receiving `(ℓ, n)`'s message as a node child sits at `(ℓ + 1, n / 2)`, on side `n % 2`. -/
+theorem recv_pos (hD : Dn pub ≤ 30) {r ℓ n r1 : Nat} (hp : Pos tr pub r ℓ n) (hr1 : r1 < tr.height 20)
+    (h : (mc tr r1 6 = 1 ∧ recvNL tr r1 = sendN tr r) ∨ (mc tr r1 8 = 1 ∧ recvNR tr r1 = sendN tr r)) :
+    Pos tr pub r1 (ℓ + 1) (n / 2) ∧ ((n % 2 = 0 ∧ mc tr r1 6 = 1 ∧ recvNL tr r1 = sendN tr r) ∨
+      (n % 2 = 1 ∧ mc tr r1 8 = 1 ∧ recvNR tr r1 = sendN tr r)) := by
+  have ha1 : mc tr r1 0 = 1 := act_of_nd H hr1 (by rcases h with h | h; exact Or.inl h.1; exact Or.inr (Or.inl h.1))
+  obtain ⟨ℓ1, n1, hp1⟩ := pos_of_act H hD hr1 ha1
+  obtain ⟨-, -, h3, h4, h1, hle, hn⟩ := hp
+  obtain ⟨-, -, e3, e4, h11, hle1, hn1⟩ := hp1
+  have hb : 2 ^ (Dn pub - ℓ1) ≤ 2 ^ 30 := Nat.pow_le_pow_right (by decide) (by omega)
+  have hb' : 2 ^ (Dn pub - ℓ) ≤ 2 ^ 30 := Nat.pow_le_pow_right (by decide) (by omega)
+  have key : ∀ s : Nat, s ≤ 1 → mc tr r1 3 - 1 = mc tr r 3 → ((2 : Nat) : F) * mc tr r1 4 + ((s : Nat) : F) = mc tr r 4 →
+      ℓ1 = ℓ + 1 ∧ n = 2 * n1 + s := by
+    intro s hs ha hb2
+    rw [e3, h3] at ha
+    rw [e4, h4] at hb2
+    have hl : ((ℓ1 : Nat) : F) = ((ℓ + 1 : Nat) : F) := by rw [Lean.Grind.Semiring.natCast_add, ← ha]; grind
+    have hl' := cast_inj_small (by omega) (by omega) hl
+    subst hl'
+    have h2 : 2 ^ (Dn pub - ℓ) = 2 * 2 ^ (Dn pub - (ℓ + 1)) := by rw [← Nat.pow_succ']; congr 1; omega
+    refine ⟨rfl, cast_inj_small (by omega) (by omega) ?_⟩
+    rw [← hb2]; simp only [Lean.Grind.Semiring.natCast_add, Lean.Grind.Semiring.natCast_mul]
+  rcases h with ⟨h6, hm⟩ | ⟨h8, hm⟩
+  · obtain ⟨ea, eb, -, -⟩ := msg_split (mdig_len tr r1 13) (mdig_len tr r 85) hm
+    obtain ⟨rfl, rfl⟩ := key 0 (by omega) ea (by rw [← eb, cast_zero]; grind)
+    refine ⟨⟨hr1, ha1, e3, by rw [e4]; congr 1; omega, h11, hle1, by rw [show (2 * n1 + 0) / 2 = n1 by omega]; exact hn1⟩,
+      Or.inl ⟨by omega, h6, hm⟩⟩
+  · obtain ⟨ea, eb, -, -⟩ := msg_split (mdig_len tr r1 49) (mdig_len tr r 85) hm
+    obtain ⟨rfl, rfl⟩ := key 1 (by omega) ea (by rw [← eb, cast_one])
+    refine ⟨⟨hr1, ha1, e3, by rw [e4]; congr 1; omega, h11, hle1, by rw [show (2 * n1 + 1) / 2 = n1 by omega]; exact hn1⟩,
+      Or.inr ⟨by omega, h8, hm⟩⟩
+
+/-- **At most one row per node.** -/
+theorem pos_unique (hD : Dn pub ≤ 30) : ∀ k r r' ℓ n, Dn pub - ℓ = k → Pos tr pub r ℓ n → Pos tr pub r' ℓ n → r = r' := by
+  intro k
+  induction k with
+  | zero =>
+    intro r r' ℓ n hk hp hp'
+    have hl : ℓ = Dn pub := by have := hp.2.2.2.2.2.1; omega
+    subst hl
+    exact root_unique H hp.1 hp'.1 (top_of_lvlD H hp.1 hp.2.1 hp.2.2.1) (top_of_lvlD H hp'.1 hp'.2.1 hp'.2.2.1)
+  | succ k ih =>
+    intro r r' ℓ n hk hp hp'
+    refine Classical.byContradiction fun hne => ?_
+    have hl : ℓ < Dn pub := by omega
+    obtain ⟨q, hq, hside⟩ := parent_pos H hD hp hl
+    obtain ⟨q', hq', hside'⟩ := parent_pos H hD hp' hl
+    have hqq : q = q' := ih q q' (ℓ + 1) (n / 2) (by omega) hq hq'
+    subst hqq
+    -- both send the message the parent receives on side `n % 2`
+    have hM : sendN tr r' = sendN tr r := by
+      rcases hside with ⟨h2, -, hm⟩ | ⟨h2, -, hm⟩ <;> rcases hside' with ⟨h2', -, hm'⟩ | ⟨h2', -, hm'⟩
+      · rw [← hm, ← hm']
+      · omega
+      · omega
+      · rw [← hm, ← hm']
+    have h20 := segMP_lt nloc ngl 20 (by decide)
+    have c1 : ∀ r0, Pos tr pub r0 ℓ n → (mc tr r0 0 - mc tr r0 1).toNat = 1 := by
+      intro r0 hp0
+      have ht : mc tr r0 1 = 0 := by
+        rcases (mpm_row H hp0.1).2.1 with ht | ht
+        · exact ht
+        · have := (lvl_of_top H hp0.1 ht).1
+          rw [hp0.2.2.1] at this
+          have := cast_inj_small (by omega) (by omega) this; omega
+      rw [hp0.2.1, ht]; decide
+    have m1 := (mpm_in17 tr pub r).2.2
+    have m2 := (mpm_in17 tr pub r').2.2
+    rw [c1 r hp] at m1; rw [c1 r' hp', hM] at m2
+    have two := two_le_busNat' h20 hp.1 hp'.1 hne (by rw [segMP_t20']; exact m1) (by rw [segMP_t20']; exact m2)
+    have one : busNat (wasmBaseSegAirMP nloc ngl) tr pub 17 false (sendN tr r) ≤
+        rowCnt (wasmBaseSegAirMP nloc ngl) tr pub 17 false (sendN tr r) 20 q h20 := by
+      apply busNat_le_row
+      intro t ht r1 hr1 hne1
+      by_cases e : t = 20
+      · subst e
+        have hr1q : r1 ≠ q := by omega
+        rw [mpm_rowCnt17]
+        have z : ∀ c : F, (c = 0 ∨ c = 1) → ¬ c = 1 → c.toNat = 0 := by
+          intro c hc hn; rcases hc with h | h
+          · rw [h]; rfl
+          · exact absurd h hn
+        have zL : (if recvNL tr r1 = sendN tr r then (mc tr r1 6).toNat else 0) = 0 := by
+          split
+          · rename_i hm
+            refine z _ (mpm_row H hr1).2.2.2.2.1 fun h6 => hr1q ?_
+            exact ih r1 q (ℓ + 1) (n / 2) (by omega) (recv_pos H hD hp hr1 (Or.inl ⟨h6, hm⟩)).1 hq
+          · rfl
+        have zR : (if recvNR tr r1 = sendN tr r then (mc tr r1 8).toNat else 0) = 0 := by
+          split
+          · rename_i hm
+            refine z _ (mpm_row H hr1).2.2.2.2.2.2.1 fun h8 => hr1q ?_
+            exact ih r1 q (ℓ + 1) (n / 2) (by omega) (recv_pos H hD hp hr1 (Or.inr ⟨h8, hm⟩)).1 hq
+          · rfl
+        rw [zL, zR]
+      · exact rowCnt17_other nloc ngl tr pub _ t ht e r1
+    have hle : rowCnt (wasmBaseSegAirMP nloc ngl) tr pub 17 false (sendN tr r) 20 q h20 ≤ 1 := by
+      rw [mpm_rowCnt17]
+      have b6 := toNat_bit (mpm_row H hq.1).2.2.2.2.1
+      have b8 := toNat_bit (mpm_row H hq.1).2.2.2.2.2.2.1
+      by_cases eL : recvNL tr q = sendN tr r
+      · by_cases eR : recvNR tr q = sendN tr r
+        · exfalso
+          rw [← eR] at eL
+          obtain ⟨-, e2, -, -⟩ := msg_split (mdig_len tr q 13) (mdig_len tr q 49) eL
+          have : (0 : F) = 1 := by grind
+          exact absurd this (by decide)
+        · simp only [eL, eR, ite_true, ite_false]; omega
+      · simp only [eL, ite_false]; split <;> omega
+    exact no_double H 17 (bits17 H) _ two (by omega)
+
+end uniq
+
 end WasmBase
