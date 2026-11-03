@@ -65,9 +65,9 @@ instruction rows; a HOST row's `RowQ` for it is part of the host rely).
   (functional: k4 slots strictly increasing, `cut_rec_order`; `dep` = depth, `cuto_dep`), DROP
   (`drop_only_tombstoned`) and the final live list = CUTO ∪ MEMB ∪ SEGB ∪ DROP consumptions.  Not
   proved here.
-* CUTO's order on the trace (`H.Pairwise keyLt`): `cut_order` is proved per row pair; the trace walk
-  (active rows are a prefix of the CUTO table) and the R16/chip-limb facts it needs are not
-  assembled here — a premise of `seg_sound_cut`.
+* CUTO's order on the trace (`H.Pairwise keyLt`) and its `MsgWF`: premises of `seg_sound_cut`,
+  discharged for `H := cutoList tr` from `Holds` in `Main/SegCuto.lean` (`cuto_sorted`, `cuto_wf`,
+  `seg_sound_cut_holds`) under the chip limb bound `CutoHiLimbs`.
 * The SHA stream (`ctxOut = cutDigest H`, sub-lane S2) and the memory part (`MemOut`, others) are
   premises; the trace → `CutSeg` instantiation for `wasmBaseSegAir` is not done.
 -/
