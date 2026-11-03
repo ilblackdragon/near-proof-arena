@@ -1,4 +1,5 @@
 import WasmBase.Check.HoldsCheck
+import WasmBase.Check.PremCheck
 import WasmBase.ToolCore
 /-!
 # WasmBase.Check.TraceDump — reading honest prover traces and running the checkers (E2E M4c NV)
@@ -158,11 +159,20 @@ def holdsCmd (name : String) (nloc ngl : Nat) (path : String) (alsoX : Option (S
       let (n, ex) := unbalanced l
       IO.println s!"  balance with the chip: {n} unbalanced keys on buses {badBuses l}; first {ex}"
     IO.println s!"RESULT HoldsX ∧ ChipIf compressW ({name} {nloc} {ngl}): {verdict s}  [checkSeg = {s}; checkSeg_sound]"
+  let prems := if name == "seg" || name == "segMP" then segPrems tr d.pub
+    else if name == "m2" then m2Prems nloc ngl tr d.pub else []
+  for (pn, ok) in prems do
+    IO.println s!"PREMISE {pn}: {if ok then "holds" else "FAILS"}"
   match alsoX with
   | none => pure ()
   | some (n2, l2, g2) =>
     let some B := airByName n2 l2 g2 | throw (IO.userError s!"unknown AIR {n2}")
-    IO.println s!"RESULT Holds  ({n2} {l2} {g2}) on the same trace: {verdict (checkHolds B d.pub d.ct)}  [checkHolds]"
+    let okB := checkHolds B d.pub d.ct
+    if !okB then
+      let occB := occs B tr d.pub
+      let (n, ex) := unbalanced occB 3
+      IO.println s!"  {n2}: shape {checkShape B d.pub tr}; {n} unbalanced keys on buses {badBuses occB}; first {ex}"
+    IO.println s!"RESULT Holds  ({n2} {l2} {g2}) on the same trace: {verdict okB}  [checkHolds = {okB}; checkHolds_sound]"
 
 end HoldsCheck
 end WasmBase

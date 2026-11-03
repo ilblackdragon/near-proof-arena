@@ -368,3 +368,8 @@ theorem checkSeg_sound {A : Air} {pub : List F} {ct : CTrace} {comps : List Comp
 
 end HoldsCheck
 end WasmBase
+
+#print axioms WasmBase.HoldsCheck.checkBal_sound
+#print axioms WasmBase.HoldsCheck.checkHolds_sound
+#print axioms WasmBase.HoldsCheck.checkHoldsX_sound
+#print axioms WasmBase.HoldsCheck.checkSeg_sound
