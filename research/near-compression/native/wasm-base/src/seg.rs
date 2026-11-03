@@ -534,6 +534,9 @@ pub fn build(seg: &AirSpec, m2: &AirSpec, g: &Gen, prep: &Prep, k: usize, tree: 
     let (mut nro, nb) = (0usize, c1.touched.len());
     let comps0 = sha.comps.len();
     let mut comps_mpath = 0usize;
+    // `wasmBaseSegAirMP`: MPATH is the batched multiproof (one row per touched node)
+    let multiproof = mp.spec.cols.iter().any(|c| c == "idx");
+    let mut mp_leaves: Vec<(u64, bool, [u64; 6])> = vec![];
     for (kb, &b) in c1.touched.iter().enumerate() {
         let base = b << 10;
         let bin: Vec<u64> = (0..1024).map(|i| c1.mem_start[&(base + i)]).collect();
@@ -597,6 +600,10 @@ pub fn build(seg: &AirSpec, m2: &AirSpec, g: &Gen, prep: &Prep, k: usize, tree: 
         let leaf_in = d6(&hi);
         let leaf_out = if ro { leaf_in } else { d6(&ho) };
         assert_eq!(leaf_in, tree.lv[0][b as usize], "block {b}: in-leaf is not the tree's (memory model mismatch)");
+        if multiproof {
+            mp_leaves.push((b, ro, leaf_out));
+            continue;
+        }
         // MPATH: old and new path, root chain
         let r_in = tree.root();
         tree.lv[0][b as usize] = leaf_out;
@@ -662,6 +669,11 @@ pub fn build(seg: &AirSpec, m2: &AirSpec, g: &Gen, prep: &Prep, k: usize, tree: 
             }
         }
     }
+    if multiproof {
+        let nc_before = sha.comps.len();
+        multiproof_rows(&mut mp, &mut sha, tree, &mp_leaves);
+        comps_mpath += sha.comps.len() - nc_before;
+    }
     let comps_memb = sha.comps.len() - comps0 - comps_mpath;
     let mem_out = tree.root();
     mats[si("MEMB")] = Some(memb.finish(0, &[]));
@@ -674,7 +686,8 @@ pub fn build(seg: &AirSpec, m2: &AirSpec, g: &Gen, prep: &Prep, k: usize, tree: 
     sb.u("cidf", c1.cid);
     sb.u("m0", *lookups.get(&0).unwrap_or(&0));
     sb.u("gtpf", if c1.gas.2 <= t_in { t_in } else { c1.gas.2 });
-    sb.u("nbt", nb as u64);
+    // the multiproof's root row closes RCH with `[1] ++ memOut`
+    sb.u("nbt", if multiproof { (nb > 0) as u64 } else { nb as u64 });
     mats[si("SEGB")] = Some(sb.finish(0, &[]));
 
     let depth_in = c0.depth_of.iter().find(|x| x.0 == c0.cid).map(|x| x.1).unwrap();
@@ -702,6 +715,78 @@ pub fn build(seg: &AirSpec, m2: &AirSpec, g: &Gen, prep: &Prep, k: usize, tree: 
         comps_mpath,
     };
     SegInst { mats, pubs, comps: sha.comps, b_in, b_out, halted: c1.halted, stats }
+}
+
+/// `wasmBaseSegAirMP`'s MPATH: one row per touched node `(lvl, idx)`, `1 ≤ lvl ≤ D`, hashing it
+/// once with the old children and once with the new ones (skipped when both children are
+/// unchanged).  `leaves`: the touched blocks `(blk, ro, new leaf)`; `tree` is the tree at the
+/// segment's start and is advanced to its end.
+fn multiproof_rows(mp: &mut Tb, sha: &mut Sha, tree: &mut Tree, leaves: &[(u64, bool, [u64; 6])]) {
+    if leaves.is_empty() {
+        return;
+    }
+    // touched positions of the current level: new digest and (level 0) the leaf's ro flag
+    let mut cur: BTreeMap<usize, ([u64; 6], u64)> = leaves.iter().map(|&(b, ro, d)| (b as usize, (d, ro as u64))).collect();
+    for lvl in 1..=tree.d {
+        let mut next: BTreeMap<usize, ([u64; 6], u64)> = BTreeMap::new();
+        let parents: std::collections::BTreeSet<usize> = cur.keys().map(|&i| i >> 1).collect();
+        for n in parents {
+            mp.push();
+            mp.u("act", 1);
+            mp.u("top", (lvl == tree.d) as u64);
+            mp.u("lvl", lvl as u64);
+            mp.u("idx", n as u64);
+            let mut kids = [([0u64; 6], [0u64; 6]); 2];
+            for (s, side) in ["L", "R"].iter().enumerate() {
+                let ci = 2 * n + s;
+                let old = tree.lv[lvl - 1][ci];
+                let new = match cur.get(&ci) {
+                    Some(&(d, ro)) => {
+                        if lvl == 1 {
+                            mp.u(&format!("lf{side}"), 1);
+                            mp.u(&format!("r{side}"), ro);
+                        } else {
+                            mp.u(&format!("nd{side}"), 1);
+                        }
+                        d
+                    }
+                    None => old,
+                };
+                for (i, x) in limbs18(&old).into_iter().enumerate() {
+                    mp.u(&format!("o{side}{i}"), x);
+                }
+                for (i, x) in limbs18(&new).into_iter().enumerate() {
+                    mp.u(&format!("n{side}{i}"), x);
+                }
+                kids[s] = (old, new);
+            }
+            let ro = kids[0].0 == kids[0].1 && kids[1].0 == kids[1].1;
+            mp.u("ro", ro as u64);
+            let (cido, oo) = sha.comp(SHA384_IV, node_block(&kids[0].0, &kids[1].0));
+            assert_eq!(d6(&oo), tree.lv[lvl][n], "node ({lvl}, {n}): old digest is not the tree's");
+            let (cidn, on) = if ro { (0, oo) } else { sha.comp(SHA384_IV, node_block(&kids[0].1, &kids[1].1)) };
+            mp.u("cidO", cido);
+            mp.u("cidN", cidn);
+            for (pre, x2, val) in [("po", "xo", &oo), ("pn", "xn", &on)] {
+                for (i, x) in limbs24(val).into_iter().enumerate() {
+                    if i < 18 {
+                        mp.u(&format!("{pre}{i}"), x);
+                    } else {
+                        mp.u(&format!("{x2}{}", i - 18), x);
+                    }
+                }
+            }
+            next.insert(n, (d6(&on), 0));
+        }
+        // advance the tree one level
+        for (&i, &(d, _)) in cur.iter() {
+            tree.lv[lvl - 1][i] = d;
+        }
+        cur = next;
+    }
+    for (&i, &(d, _)) in cur.iter() {
+        tree.lv[tree.d][i] = d;
+    }
 }
 
 pub fn pubs_of(b_in: &Bnd, b_out: &Bnd, halted: u64, prep: &Prep, depth: u64) -> Vec<F> {

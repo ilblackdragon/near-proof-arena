@@ -13,7 +13,7 @@ use openvm_stark_backend::{
     codec::Encode,
     prover::{AirProvingContext, ColMajorMatrix, CommittedTraceData, CpuColMajorBackend, DeviceDataTransporter, ProvingContext, TraceCommitter},
 };
-use p3_field::PrimeCharacteristicRing;
+use p3_field::{PrimeCharacteristicRing, PrimeField32};
 use p3_matrix::dense::RowMajorMatrix;
 use std::sync::Arc;
 use std::time::Instant;
@@ -393,6 +393,10 @@ fn tampers(spec: &AirSpec, s: &SegInst, segs: &[SegInst], which: usize) -> Vec<C
             out.push(("MEMB read-only flag flipped".into(), m, s.pubs.clone(), s.comps.clone(), s.pubs.clone()));
         }
     }
+    // (f') MPATH as a multiproof (`wasmBaseSegAirMP`)
+    if spec.tables[ti("MPATH")].cols.iter().any(|c| c == "idx") {
+        out.extend(tampers_mp(spec, s));
+    } else
     // (f) MPATH: sibling, direction bit, root chain
     {
         let i = ti("MPATH");
@@ -420,6 +424,116 @@ fn tampers(spec: &AirSpec, s: &SegInst, segs: &[SegInst], which: usize) -> Vec<C
             let mut m = s.mats.clone();
             set(&mut m, "HOST", r, "gb0", &|v| v + one);
             out.push(("HOST gas register segb limb+1".into(), m, s.pubs.clone(), s.comps.clone(), s.pubs.clone()));
+        }
+    }
+    out
+}
+
+/// Tampers of the multiproof MPATH (`wasmBaseSegAirMP`).  Where a case would also break the chip
+/// interface by itself (a duplicated row), the compressions are duplicated too, so only the
+/// node/leaf/root buses or the row constraints can reject it.
+fn tampers_mp(spec: &AirSpec, s: &SegInst) -> Vec<Case> {
+    let mut out: Vec<Case> = vec![];
+    let ti = spec.index("MPATH");
+    let t = &spec.tables[ti];
+    let w = s.mats[ti].width;
+    let h = s.mats[ti].values.len() / w;
+    let col = |c: &str| t.col(c);
+    let get = |r: usize, c: &str| s.mats[ti].values[r * w + col(c)];
+    let one = F::ONE;
+    let zero = F::ZERO;
+    let find = |p: &dyn Fn(usize) -> bool| (0..h).find(|&r| get(r, "act") == one && p(r));
+    let edit = |edits: &[(usize, &str, F)]| {
+        let mut m = s.mats.clone();
+        for &(r, c, v) in edits {
+            m[ti].values[r * w + col(c)] = v;
+        }
+        m
+    };
+    let mut push = |name: String, m: Vec<RowMajorMatrix<F>>, comps: Vec<s384::reference::Comp>| {
+        out.push((name, m, s.pubs.clone(), comps, s.pubs.clone()));
+    };
+    let non_root = find(&|r| get(r, "top") == zero);
+    let root = find(&|r| get(r, "top") == one);
+    // node digest limbs (old output, new output), position, level of a non-root node
+    if let Some(r) = non_root {
+        for c in ["po0", "pn5"] {
+            push(format!("MPATH-MP node digest {c}+1 (non-root)"), edit(&[(r, c, get(r, c) + one)]), s.comps.clone());
+        }
+        push("MPATH-MP idx+1".into(), edit(&[(r, "idx", get(r, "idx") + one)]), s.comps.clone());
+        push("MPATH-MP lvl+1".into(), edit(&[(r, "lvl", get(r, "lvl") + one)]), s.comps.clone());
+        // a duplicated node: a copy of the row in a padding row, with its own (duplicated) compressions
+        if let Some(pad) = (0..h).find(|&p| get(p, "act") == zero) {
+            let mut m = s.mats.clone();
+            let mut comps = s.comps.clone();
+            for c in 0..w {
+                m[ti].values[pad * w + c] = m[ti].values[r * w + c];
+            }
+            for cc in ["cidO", "cidN"] {
+                if cc == "cidN" && get(r, "ro") == one {
+                    continue;
+                }
+                let k = get(r, cc).as_canonical_u32() as usize / 128;
+                m[ti].values[pad * w + col(cc)] = F::from_u32((comps.len() * 128) as u32);
+                comps.push(s384::reference::Comp { h: s.comps[k].h, block: s.comps[k].block });
+            }
+            push("MPATH-MP duplicated node (own compressions)".into(), m, comps);
+        }
+    }
+    if let Some(r) = root {
+        push("MPATH-MP root old limb po0+1".into(), edit(&[(r, "po0", get(r, "po0") + one)]), s.comps.clone());
+        push("MPATH-MP root new limb pn3+1".into(), edit(&[(r, "pn3", get(r, "pn3") + one)]), s.comps.clone());
+        push("MPATH-MP root flag cleared (top=0)".into(), edit(&[(r, "top", zero)]), s.comps.clone());
+    }
+    // child flags: touched -> untouched (new := old so the row constraint holds), leaf <-> node
+    for side in ["L", "R"] {
+        let (lf, nd, o0, n0) = (format!("lf{side}"), format!("nd{side}"), format!("o{side}0"), format!("n{side}0"));
+        if let Some(r) = find(&|r| get(r, &lf) == one) {
+            push(format!("MPATH-MP touched leaf {side} marked untouched"), edit(&[(r, &lf, zero), (r, &n0, get(r, &o0))]), s.comps.clone());
+            push(format!("MPATH-MP touched leaf {side} received as a node"), edit(&[(r, &lf, zero), (r, &nd, one)]), s.comps.clone());
+        }
+        if let Some(r) = find(&|r| get(r, &nd) == one) {
+            push(format!("MPATH-MP touched node {side} marked untouched"), edit(&[(r, &nd, zero), (r, &n0, get(r, &o0))]), s.comps.clone());
+        }
+        if let Some(r) = find(&|r| get(r, &lf) == zero && get(r, &nd) == zero) {
+            push(format!("MPATH-MP untouched {side} marked touched (node)"), edit(&[(r, &nd, one)]), s.comps.clone());
+            let tag = if get(r, "lvl") == one { "" } else { " at lvl>1" };
+            push(format!("MPATH-MP untouched {side} marked touched (leaf){tag}"), edit(&[(r, &lf, one)]), s.comps.clone());
+            // the sibling (witness) digest changed in both trees
+            push(format!("MPATH-MP sibling {side} limb+1 (old and new)"), edit(&[(r, &o0, get(r, &o0) + one), (r, &n0, get(r, &n0) + one)]), s.comps.clone());
+        }
+    }
+    // a read-only node with a child new ≠ old
+    if let Some(r) = find(&|r| get(r, "ro") == one) {
+        push("MPATH-MP read-only node with nL0 != oL0".into(), edit(&[(r, "nL0", get(r, "nL0") + one)]), s.comps.clone());
+    }
+    // a changed node claimed read-only (new compression skipped, pn := po)
+    if let Some(r) = find(&|r| get(r, "ro") == zero) {
+        let mut e: Vec<(usize, String, F)> = vec![(r, "ro".into(), one), (r, "cidN".into(), zero)];
+        for l in 0..18 {
+            e.push((r, format!("pn{l}"), get(r, &format!("po{l}"))));
+        }
+        let er: Vec<(usize, &str, F)> = e.iter().map(|(a, b, c)| (*a, b.as_str(), *c)).collect();
+        push("MPATH-MP changed node claimed read-only (pn := po)".into(), edit(&er), s.comps.clone());
+    }
+    // a read-only MEMB block with a new leaf != old, consistently on MEMB's message and the node row
+    {
+        let mi = spec.index("MEMB");
+        let mt = &spec.tables[mi];
+        let mw = s.mats[mi].width;
+        let mh = s.mats[mi].values.len() / mw;
+        let mg = |r: usize, c: &str| s.mats[mi].values[r * mw + mt.col(c)];
+        if let Some(mr) = (0..mh).find(|&r| mg(r, "p8") == one && mg(r, "ro") == one) {
+            let blk = mg(mr, "blk");
+            for (sbit, side) in [(zero, "L"), (one, "R")] {
+                let lf = format!("lf{side}");
+                if let Some(r) = find(&|r| get(r, &lf) == one && get(r, "idx") * F::from_u32(2) + sbit == blk) {
+                    let n0 = format!("n{side}0");
+                    let mut m = edit(&[(r, &n0, get(r, &n0) + one), (r, "ro", zero)]);
+                    m[mi].values[mr * mw + mt.col("hoO0")] += one;
+                    push("MEMB read-only block with new leaf != old (MEMB message + node row)".into(), m, s.comps.clone());
+                }
+            }
         }
     }
     out

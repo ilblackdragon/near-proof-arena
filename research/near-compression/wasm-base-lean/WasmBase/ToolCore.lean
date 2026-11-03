@@ -7,6 +7,7 @@ import WasmBase.IfCheck
 import WasmBase.M2Check
 import WasmBase.M2Air
 import WasmBase.SegAir
+import WasmBase.SegAirMP
 import WasmBase.M2RegAbsent
 import WasmBase.M3Check
 import WasmBase.ShaAir
