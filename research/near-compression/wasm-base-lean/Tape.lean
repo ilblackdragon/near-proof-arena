@@ -55,10 +55,11 @@ def hexB (b : ByteArray) : String := hex b
 
 /-- The prep JSON of `wasmbase-tool prepIf` for a call that starts at `s0` (the instantiated state
 with the checker's context, store and budget), or an `eligible:false` object. -/
-def tapePrep (cfg : NearCfg) (p : Prepared) (fi : Nat) (s0 : St) (fuel : Nat) : String × Option St :=
+def tapePrep (cfg : NearCfg) (p : Prepared) (fi : Nat) (s0 : St) (fuel : Nat)
+    (chk : NearCfg → Prepared → Nat → Option ModOutH := checkModuleM2) : String × Option St :=
   let nImp := p.m.imports.size
   let fn := fi - nImp
-  match checkModuleM2 cfg p fn with
+  match chk cfg p fn with
   | none => ("{\"eligible\":false}", none)
   | some MH =>
     let M := MH.mod
@@ -89,7 +90,8 @@ def tapePrep (cfg : NearCfg) (p : Prepared) (fi : Nat) (s0 : St) (fuel : Nat) : 
 `none` when the call never reaches the method (preparation, loading, link or resolve outcome, or a
 `start` function, which no corpus contract has). -/
 def tapeOf (cfg : NearCfg) (code : ByteArray) (method : String) (ctx : CallCtx) (fuel : Nat)
-    (blockLevel : Bool) (real : Option TTN.RealStore) : Option (String × Option St) :=
+    (blockLevel : Bool) (real : Option TTN.RealStore)
+    (chk : NearCfg → Prepared → Nat → Option ModOutH := checkModuleM2) : Option (String × Option St) :=
   if method.isEmpty then none else
   match prepare cfg code blockLevel with
   | .ok p =>
@@ -109,7 +111,7 @@ def tapeOf (cfg : NearCfg) (code : ByteArray) (method : String) (ctx : CallCtx) 
             let s := { s with ctx := ctx, balance := ctx.accountBalance + ctx.attachedDeposit,
                               storageUsage := ctx.storageUsage, real := real,
                               curveHosts := cfg.curveHosts }
-            if p.m.start.isSome then none else some (tapePrep cfg p mi s fuel)
+            if p.m.start.isSome then none else some (tapePrep cfg p mi s fuel chk)
           | _ => none
         | _ => none
       | _ => none
@@ -139,12 +141,15 @@ def replayMatches (r : Run) (fs : Option St) : String :=
 
 initialize tapeOut : IO.Ref (Option IO.FS.Handle) ← IO.mkRef none
 initialize tapeSeq : IO.Ref Nat ← IO.mkRef 0
+/-- `WASMBASE_TAPE_CHECKER=M3`: preps for `wasmBaseM3Air` (`checkModuleM3`). -/
+initialize tapeM3 : IO.Ref Bool ← IO.mkRef false
 
 def hook (cfg : NearCfg) (code : ByteArray) (method : String) (ctx : CallCtx) (fuel : Nat)
     (blockLevel : Bool) (real : Option TTN.RealStore) (r : Run) : BaseIO Unit := do
   let some h ← tapeOut.get | return
   let k ← tapeSeq.modifyGet fun k => (k, k + 1)
-  let (prep, pre) := match tapeOf cfg code method ctx fuel blockLevel real with
+  let chk := if (← tapeM3.get) then checkModuleM3 else checkModuleM2
+  let (prep, pre) := match tapeOf cfg code method ctx fuel blockLevel real chk with
     | some (j, fs) => (j, fs)
     | none => ("null", none)
   -- the replay's final state before `ReturningFromWasm` (`sync`), and after it
@@ -169,6 +174,7 @@ def main (args : List String) : IO UInt32 := do
   -- append: a driver may split one shard over several invocations
   let h ← IO.FS.Handle.mk out .append
   tapeOut.set (some h)
+  tapeM3.set ((← IO.getEnv "WASMBASE_TAPE_CHECKER") == some "M3")
   let cfg := Tier.cfg .allFeatures
   let mut failed := false
   for dir in dirs do

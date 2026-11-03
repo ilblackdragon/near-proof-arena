@@ -76,6 +76,9 @@ import WasmBase.M2Ctx
 import WasmBase.Main.M2Rows
 import WasmBase.M2RegAbsent
 import WasmBase.Main.M2RegAbsentFacts
+import WasmBase.M3Air
+import WasmBase.M3Check
+import WasmBase.Main.M3Facts
 import WasmBase.ShaAir
 import WasmBase.ShaSound
 import WasmBase.ShaVectors
