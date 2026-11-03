@@ -1,0 +1,20 @@
+TAMPER honest proof verifies and its code_root matches
+
+thread 'main' (743875) panicked at src/air.rs:148:57:
+called `Option::unwrap()` on a `None` value
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+TAMPER CONV[f_wrap row 0].a0+1      REJECTED (bus: unbalanced: [((2, [0, 0, 1, 12, 0, 0, 0, 19]), 1), ((2, [0, 0, 0, 12, 0, 0, 0, 2)
+TAMPER CONV[f_wrap row 0].a1+1      REJECTED (bus: unbalanced: [((2, [0, 0, 0, 12, 0, 0, 0, 20]), -1), ((2, [0, 0, 1, 12, 0, 0, 0, )
+TAMPER CONV[f_wrap row 0].ta+1      REJECTED (bus: unbalanced: [((3, [0]), -1), ((2, [0, 0, 1, 12, 0, 0, 0, 20]), -1), ((2, [0, 0, )
+TAMPER CONV[f_wrap row 0] as f_extu REJECTED (bus: unbalanced: [((1, [30, 173, 1, 0, 0, 0, 0, 0]), 1), ((2, [0, 0, 1, 12, 0, 0, 0, )
+TAMPER CONV[f_wrap row 0] all flags 0 REJECTED (bus: unbalanced: [((0, [30, 20, 24, 0, 0, 0]), 1), ((2, [0, 0, 1, 12, 0, 0, 0, 19]), )
+TAMPER CONV[f_extu row 1].a0+1      REJECTED (bus: unbalanced: [((2, [0, 0, 0, 9, 0, 0, 0, 104]), 1), ((2, [0, 0, 1, 10, 0, 0, 0, 1)
+TAMPER CONV[f_extu row 1].a1+1      REJECTED (bus: unbalanced: [((2, [0, 0, 1, 9, 0, 0, 0, 105]), -1), ((2, [0, 0, 0, 9, 1, 0, 0, 1)
+TAMPER CONV[f_extu row 1].ta+1      REJECTED (bus: unbalanced: [((3, [0]), -1), ((3, [2013265920]), 1), ((2, [0, 0, 0, 9, 0, 0, 0, )
+TAMPER CONV[f_extu row 1] as f_wrap REJECTED (bus: unbalanced: [((1, [839, 173, 1, 0, 0, 0, 0, 0]), -1), ((2, [0, 0, 1, 9, 0, 0, 0,)
+TAMPER CONV[f_extu row 1] all flags 0 REJECTED (bus: unbalanced: [((0, [840, 106, 143, 0, 0, 103]), -1), ((2, [0, 0, 1, 9, 0, 0, 0, 1)
+TAMPER UNREACH.act=0                REJECTED (bus: unbalanced: [((0, [588, 259, 311, 0, 0, 0]), 1), ((1, [588, 0, 0, 1, 0, 0, 0, 0])
+TAMPER UNREACH.fee+1                REJECTED (bus: unbalanced: [((1, [588, 0, 0, 2, 0, 0, 0, 0]), 1), ((0, [589, 260, 312, 2, 0, 0])
+TAMPER UNREACH.pc+1                 REJECTED (bus: unbalanced: [((1, [589, 0, 0, 1, 0, 0, 0, 0]), 1), ((0, [589, 259, 311, 0, 0, 0])
+TAMPER REGC[read len row 13].clr=1  REJECTED (constraint: REG row 13 constraint 43 = 7)
+TAMPER summary 14/14 rejected

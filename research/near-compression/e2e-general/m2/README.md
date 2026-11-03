@@ -70,11 +70,75 @@ Tables 0–26 are `wasmBaseIfRegAir`'s (`m2_air_prefix`).
 
 ## 3. Results [M]
 
-RESULTS
+```sh
+research/near-compression/wasm-base-lean/build-tape.sh     # wasmbase-tape (checkModuleM2)
+research/near-compression/e2e-general/m3/run.sh OUT /data/illia/nearproof-deps/corpora/d3c{7,8,9,10}/d3
+```
+
+The M3 sweep at `wasmBaseM2Air` over d3c7–d3c10 (`logs/summary.json`, binaries in
+`logs/SHA256SUMS`): 19,007 cases, all `accept` as unwrapped; 27,197 Wasm calls; 0 replay
+mismatches; **0 calls different**.
+
+| class | M3 (`wasmBaseIfRegAir`) | **M2 (`wasmBaseM2Air`)** |
+|---|---|---|
+| equal (status, burnt gas, logs, return) | 3,414 | **21,438** |
+| equal-abort (status, logs, trace final budget = spec's) | – (not compared) | **4,480** |
+| different | 0 | **0** |
+| outside the checker | 23,317 | **0** |
+| reaches an admitted-but-unchipped instruction | – | 563 |
+| trace generator out of domain | 0 | 250 |
+| no method run | 466 | 466 |
+
+So 25,918 of the 26,731 calls that run a method are in the proved domain and equal: **every**
+call of every contract other than `d3rich` (8,509 calls of `d3tiny`, `3b1ad423` incl. `run`,
+`e1fe4f9c`, `d3ed`, `d3hostx`), and 17,409 of `d3rich`'s 18,222.
+
+| code | equal | equal-abort | remainder |
+|---|---|---|---|
+| `d3tiny` `8152bed2` | 1,755 | – | – |
+| `3b1ad423` | 2,382 | 25 | – |
+| `e1fe4f9c` | 3,434 | 614 | – |
+| `d3ed` `b192c679` | 51 | 76 | – |
+| `d3hostx` `f1c929ab` | 172 | – | – |
+| `d3rich` `fbc015a8` | 13,644 | 3,765 | 813 |
+
+**The remainder (all `d3rich.run`, `logs/remainder.txt`), with reasons:**
+
+| calls | reason |
+|---|---|
+| 385 | executes `memory.grow` (op 38): admitted, no chip (§6) |
+| 120 | executes `abort` (pc 547): `i32` parameters, the HOST row's argument tags are `i64` |
+| 58 | executes `promise_yield_resume` (pc 737): `i32` result, the HOST row pushes `i64` |
+| 124 | traps on the stack budget (`$rec` recursion): the budget trap has no row ("stack budget exhausted: the trap is not provable", pre-existing generator domain) |
+| 89 | `MemoryOutOfBounds` at an effective address `≥ 2^27`: LOAD/STORE carry `e1 < 2^11` (pre-existing address domain) |
+| 37 | `GasExceeded` at a Wasm instruction's charge (not at a host call): no row for the gas-exhaustion abort (34 reported as `host event`, 3 as `spec run did not finish normally`) |
+
+What "equal-abort" compares: for an aborted call the outcome's burnt gas is the host's abort
+accounting (`burn`, `GasExceeded` caps, `used` vs `burnt`), which the Wasm trace does not carry; the
+trace's claim is its final budget, which equals the spec replay's (`prep.gFinal`), and the logs
+equal the chunk's. For a `promise_return` (outcome `receiptK`) the trace's last return-kind call is
+`promise_return` with its promise index; the receipt numbering is the state side's (M5b/M6).
+
+Two comparison fixes found on the way, both in the sweep's reading of the trace, not in the AIR:
+`log_utf16` payloads (UTF-16LE, stored by the outcome as UTF-8) and payloads of host calls that
+abort (a `log_utf8` with bad UTF-8 reads its bytes but logs nothing).
 
 ## 4. Mutants [M]
 
-MUTANTS
+`TAMPER_ONLY=CONV,UNREACH,REGC nearproof-wasm-base tamper <airM2> <prep>`: each case is re-proved
+and natively verified (`logs/*-tamper.log`). The honest proof verifies and its `code_root` matches
+in all three.
+
+| call (from the sweep) | cases | rejected |
+|---|---|---|
+| `e1fe4f9c.run` (wrap; 24 steps) | CONV wrap `a0`/`a1`/`ta`+1, wrap-as-extend_u, all flags 0; REG-C spurious clear on a read | **6 / 6** |
+| `3b1ad423.run` (wrap, extend_u, a **refill** of register 0; 96 steps) | CONV wrap and extend_u (5 each); REG-C: clear byte/len with `clr = 0`, clear byte+1, clear len+1, the following fill's `rid`/`ts`+1, spurious clear | **17 / 17** |
+| `d3rich.run` ending in `WasmTrap(Unreachable)` (259 steps) | CONV wrap and extend_u (5 each); UNREACH `act = 0`, `fee`+1, `pc`+1; spurious clear | **14 / 14** |
+
+**37 / 37 rejected.** `extend_s` occurs in no corpus run, so its sign-bit case (`CONV[f_exts] sgn
+flip`) has no target here; `conv_limbs`/`conv_row_spec` cover it in Lean.
+
+FULLBATTERY
 
 ## 5. Lean [K]
 

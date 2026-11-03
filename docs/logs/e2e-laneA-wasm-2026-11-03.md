@@ -1,9 +1,10 @@
-# E2E lane A (Wasm), 2026-11-03: M1-a, M1-b, M3
+# E2E lane A (Wasm), 2026-11-03: M1-a, M1-b, M3, M2 corpus coverage
 
 Plan: `docs/zk-formal/E2E-GENERAL-CHUNK-PLAN.md` §5 (owner adopted D-1..D-7 the same day).
 Details and logs:
 * `research/near-compression/e2e-general/m1/README.md` (section "Update 2026-11-03");
-* `research/near-compression/e2e-general/m3/README.md`.
+* `research/near-compression/e2e-general/m3/README.md`;
+* `research/near-compression/e2e-general/m2/README.md` (second session).
 
 No Lean spec, checker or signed file changed. `make pin-check` ok.
 
@@ -66,9 +67,42 @@ No Lean spec, checker or signed file changed. `make pin-check` ok.
   modules, unchanged.
 * The release `nearproof-wasm-base` is green.
 
+## M2 (second session): corpus coverage at `wasmBaseM2Air`
+
+* **Census** (`wasmbase-tool census`): the uncovered calls need wrap/extend, `if` with a result,
+  `unreachable`, `ed25519_verify`, and in `d3rich` also `memory.grow`, `abort` (`i32` params) and
+  `promise_yield_resume` (`i32` result). No discarding branch, `call_indirect`, bulk memory or
+  float occurs in d3c7–d3c10, so those were not built (T3 work).
+* **Built.** `checkModuleM2`; `wasmBaseM2Air` = tables 0–26 of `wasmBaseIfRegAir` + REG-C (27,
+  register refill) + CONV (28) + UNREACH (29). Instructions the HOST row or the memory model cannot
+  carry (`memory.grow`, `memory.size`, `abort`, `promise_yield_resume`) are admitted with opcodes
+  no chip can fetch, so a run that executes one is not provable (sound, incomplete).
+* **Sweep** (19,007 cases, 27,197 calls, 0 replay mismatches, **0 different**): 21,438 equal +
+  4,480 equal-abort = **25,918 / 26,731** method calls; every call of `d3tiny`, `3b1ad423`,
+  `e1fe4f9c`, `d3ed`, `d3hostx`; 17,409 / 18,222 of `d3rich`. Remainder 813 (`d3rich.run`):
+  `memory.grow` 385, `abort` 120, `promise_yield_resume` 58, stack-budget trap 124, address
+  `≥ 2^27` 89, out-of-gas at a Wasm instruction 37.
+* **Mutants**: CONV/UNREACH/REG-C, 37 / 37 rejected over three corpus calls (one with a refill, one
+  ending in `unreachable`).
+* **Lean** (`propext`/`Classical.choice`/`Quot.sound` only, no `sorry`): `Main/M2Link.lean`
+  (`conv_row_spec`, `step_conv`, `execNum_conv`, `unreach_row`, `regc_clear_cancels`,
+  `regc_clear_next`); `Main/RegWalkG.lean`: the REG group walk, `pos < len` and `RegLenAgree` for any
+  AIR carrying REG's constraints, instantiated at index 27 of `wasmBaseIfRegAir` and
+  `wasmBaseM2Air` (item 2's walk half).
+* **Host note.** The shared `zkbuild.slice` sat above its `memory.high` (sibling scopes held
+  ~41 GB), which throttled every job in it to near zero (the first sweep under `heavy` stalled for
+  40 min). The final builds, sweep and mutants ran in their own `systemd-run --user --scope` with
+  `MemoryMax` 16–24 G, `MemorySwapMax=0`, `taskset` 8 CPUs.
+* `spec/lean/v3` default `lake build` green; `wasm-base-lean` `lake build WasmBase wasmbase-tool
+  wasmbase-tape` green; `make pin-check` ok. No Lean spec, checker or signed file changed.
+
 ## Next
 
-* M2: `memory.grow`/`memory.size`, `call_indirect`, bulk memory, discarding branches.
-* REG' walk and R16 at index 27.
-* Register refill.
+* R16 send bound for `wasmBaseIfRegAir`/`wasmBaseM2Air` (then `mtp < ts` and `RegWalkG`'s `hsend`
+  are theorems about `Holds`).
+* An M2 `Ctx` + row-to-step dispatch (`wasm_base_sound` for M2).
+* `d3rich` remainder: `memory.grow` chip, `i32` host tags, stack-budget and out-of-gas abort rows,
+  the `2^27` address range.
+* Force a clear before every refill (absent-register messages) before M6 binds fill bytes.
+* M4 (segment cuts): not started this session.
 * M6: replace HOSTO.

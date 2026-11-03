@@ -1,0 +1,56 @@
+{
+ "cases": 19007,
+ "verdicts": {
+  "accept": 19007
+ },
+ "calls": 27197,
+ "replay_mismatch": 0,
+ "classes": {
+  "equal": 21438,
+  "equal-abort": 4480,
+  "unchipped": 563,
+  "no-method-run": 466,
+  "trace-failed": 250
+ },
+ "d3tiny_calls": 1755,
+ "d3tiny_classes": {
+  "equal": 1755
+ },
+ "by_code": {
+  "18d479bd29fc49c5a2b7902629d76f8dfc1b7b5f2ef9d424f4f443dc78956060": {
+   "no-method-run": 19
+  },
+  "25863ae63851748d1f1c8931f6cd7c583ef4404c68cd9b6ac39cdfeaa5a2e68a": {
+   "no-method-run": 25
+  },
+  "3b1ad423845cb251e028ed2749518e755b8132e4263e064afe5fd3fa3e9b3491": {
+   "equal": 2382,
+   "equal-abort": 25,
+   "no-method-run": 6
+  },
+  "8152bed25554d521d3fcdd919f4457b66e06b720906fdd40fd6fd0723ed36bf9": {
+   "equal": 1755
+  },
+  "b192c679376c6dcb61175951049d6a9b403c96a1e8e7004063ec2d997e6b20b0": {
+   "equal": 51,
+   "equal-abort": 76
+  },
+  "e1fe4f9c6bff1c74e2d4a4aa3a49f6977c27da8291a23a5d056832a4c3b7e14a": {
+   "equal-abort": 614,
+   "equal": 3434
+  },
+  "e564d5cf50083002e041080cd1a2847a063d018edcf15ab8d7642415c8b3526e": {
+   "no-method-run": 17
+  },
+  "f1c929ab07d5d6829f54a23b94d5cb40cdac5786b2d9aa6a12e4736c1f01da2e": {
+   "equal": 172
+  },
+  "fbc015a8eda217bda1c44d4dae59545937ae438699c2d4647baa2991ce691a11": {
+   "equal": 13644,
+   "equal-abort": 3765,
+   "unchipped": 563,
+   "no-method-run": 399,
+   "trace-failed": 250
+  }
+ }
+}
