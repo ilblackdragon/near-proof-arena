@@ -1,6 +1,7 @@
 import WasmBase.SegAir
 import WasmBase.Main.Rows
 import WasmBase.Main.SegCut
+import NearSpecV3.E2E.Boundary
 
 /-!
 # WasmBase.Main.SegRows — row and field lemmas for the new tables of `wasmBaseSegAir` (E2E M4)
@@ -13,6 +14,8 @@ import WasmBase.Main.SegCut
    then the canonical limbs of a *different* 64-bit word.
 2. **CUT encoding** (`cut_word_inj`, `cut_order`, `cut_rec_order`, `cut_dep`).
 3. **DROP** (`drop_only_tombstoned`, `retT_tomb`).
+4. **The boundary view** (`cutView`, `cutBytes_inj`, `cutDigest_binds`, `cutDigest_binds_set`) and
+   the facts `RelW` is missing to equate it with `Bnd.relabel`'s list (end of file).
 -/
 
 namespace WasmBase
@@ -566,5 +569,334 @@ theorem drop_only_tombstoned {nloc ngl : Nat} {pub : List F} {tr : Trace}
 #print axioms cut_rec_order
 #print axioms cuto_dep
 #print axioms drop_only_tombstoned
+
+/-! ## 4. The boundary view and its digest
+
+`cutView X s` is the canonical list of the kept boundary messages of a spec state, activation ids =
+depths, each as its 7 fields `[space, slot, tag, v0, v1, v2, v3]` (no `tp`), sorted by
+`(space, slot)`; memory (space 3) is not in it (MEMB/MPATH).  `cutBytes` is CUTI/CUTO's encoding
+(8 words per message, a zero filler message to complete the last 1024-bit block; SHA-384's own
+padding is then exactly the AIR's padding block), and `cutDigest` its SHA-384.
+
+* `cutBytes_inj`: the encoding is injective on lists of 7-field messages with fields `< 2^30`, so
+  `cutDigest_binds`: equal digests mean equal lists or a SHA-384 collision;
+* `sorted_eq_of_mem_iff`: two lists strictly increasing in `(space, slot)` with the same members are
+  equal, so the digest binds the *set* of boundary messages. -/
+
+/-- The hashed fields of a message (no producer time). -/
+def fieldsOf (x : Msg) : List Nat := [x.space, x.slot, x.tag, x.l0, x.l1, x.l2, x.l3]
+
+/-- One CUT word: field `f` as `lo + 2^21·hi + 2^42·mark`, `lo = f mod 2^16`, `hi = f / 2^16`. -/
+def cutWord (f mk : Nat) : Nat := f % 2 ^ 16 + 2 ^ 21 * (f / 2 ^ 16) + 2 ^ 42 * mk
+
+/-- The 8 words of a message: its 7 fields (the first one marked) and a zero word. -/
+def msgWords : List Nat → List Nat
+  | [] => List.replicate 8 0
+  | f :: fs => cutWord f 1 :: fs.map (cutWord · 0) ++ [0]
+
+/-- The words of a list of messages, completed to whole 1024-bit blocks by a zero message. -/
+def cutWords (L : List (List Nat)) : List Nat :=
+  L.flatMap msgWords ++ (if L.length % 2 = 1 then List.replicate 8 0 else [])
+
+/-- A 64-bit word as 8 big-endian bytes. -/
+def wordBytes (w : Nat) : ArenaCore.Bytes :=
+  (List.range 8).map fun i => UInt8.ofNat (w / 2 ^ (8 * (7 - i)) % 256)
+
+def cutBytes (L : List (List Nat)) : ArenaCore.Bytes := (cutWords L).flatMap wordBytes
+
+/-- **The boundary digest** (`ctxDigest`). -/
+def cutDigest (L : List (List Nat)) : ArenaCore.Bytes := NearSpecV3.E2E.Bnd.sha384 (cutBytes L)
+
+/-- A well-formed message: 7 fields, each `< 2^30`. -/
+def MsgWF (m : List Nat) : Prop := m.length = 7 ∧ ∀ f ∈ m, f < 2 ^ 30
+
+theorem cutWord_lt {f mk : Nat} (hf : f < 2 ^ 30) (hm : mk ≤ 1) : cutWord f mk < 2 ^ 64 := by
+  unfold cutWord; omega
+
+theorem cutWord_inj {f f' mk mk' : Nat} (hf : f < 2 ^ 30) (hf' : f' < 2 ^ 30) (hm : mk ≤ 1) (hm' : mk' ≤ 1)
+    (h : cutWord f mk = cutWord f' mk') : f = f' ∧ mk = mk' := by
+  unfold cutWord at h; omega
+
+theorem wordBytes_inj {w w' : Nat} (hw : w < 2 ^ 64) (hw' : w' < 2 ^ 64) (h : wordBytes w = wordBytes w') :
+    w = w' := by
+  simp only [wordBytes, List.range_succ, List.range_zero, List.nil_append, List.map_append, List.map_cons,
+    List.map_nil, List.cons_append, List.nil_append, List.cons.injEq, and_true] at h
+  obtain ⟨h0, h1, h2, h3, h4, h5, h6, h7⟩ := h
+  have e : ∀ {a b : Nat}, a < 256 → b < 256 → UInt8.ofNat a = UInt8.ofNat b → a = b := by
+    intro a b ha hb hab
+    have := congrArg UInt8.toNat hab
+    simp at this
+    omega
+  have d0 := e (Nat.mod_lt _ (by omega)) (Nat.mod_lt _ (by omega)) h0
+  have d1 := e (Nat.mod_lt _ (by omega)) (Nat.mod_lt _ (by omega)) h1
+  have d2 := e (Nat.mod_lt _ (by omega)) (Nat.mod_lt _ (by omega)) h2
+  have d3 := e (Nat.mod_lt _ (by omega)) (Nat.mod_lt _ (by omega)) h3
+  have d4 := e (Nat.mod_lt _ (by omega)) (Nat.mod_lt _ (by omega)) h4
+  have d5 := e (Nat.mod_lt _ (by omega)) (Nat.mod_lt _ (by omega)) h5
+  have d6 := e (Nat.mod_lt _ (by omega)) (Nat.mod_lt _ (by omega)) h6
+  have d7 := e (Nat.mod_lt _ (by omega)) (Nat.mod_lt _ (by omega)) h7
+  simp only [Nat.reduceMul, Nat.reduceSub, Nat.reducePow, Nat.pow_zero, Nat.div_one] at d0 d1 d2 d3 d4 d5 d6 d7
+  omega
+
+theorem wordBytes_length (w : Nat) : (wordBytes w).length = 8 := by simp [wordBytes]
+
+/-- `flatMap` of a fixed-width encoding, injective on a set, is injective on lists from that set. -/
+theorem flatMap_inj {α β : Type} (f : α → List β) (n : Nat) (S : α → Prop) (hn : ∀ a, S a → (f a).length = n)
+    (hinj : ∀ a b, S a → S b → f a = f b → a = b) :
+    ∀ l l' : List α, (∀ a ∈ l, S a) → (∀ a ∈ l', S a) → l.length = l'.length →
+      l.flatMap f = l'.flatMap f → l = l'
+  | [], [], _, _, _, _ => rfl
+  | a :: l, b :: l', hl, hl', hlen, h => by
+    simp only [List.flatMap_cons] at h
+    obtain ⟨h1, h2⟩ := List.append_inj h (by rw [hn a (hl a List.mem_cons_self), hn b (hl' b List.mem_cons_self)])
+    rw [hinj a b (hl a List.mem_cons_self) (hl' b List.mem_cons_self) h1,
+      flatMap_inj f n S hn hinj l l' (fun x hx => hl x (List.mem_cons_of_mem _ hx))
+        (fun x hx => hl' x (List.mem_cons_of_mem _ hx)) (by simpa using hlen) h2]
+  | [], _ :: _, _, _, hlen, _ => by simp at hlen
+  | _ :: _, [], _, _, hlen, _ => by simp at hlen
+
+theorem msgWords_length {m : List Nat} (hm : m.length = 7) : (msgWords m).length = 8 := by
+  cases m with
+  | nil => simp at hm
+  | cons f fs => simp [msgWords]; simp at hm; omega
+
+theorem msgWords_inj {m m' : List Nat} (hm : MsgWF m) (hm' : MsgWF m') (h : msgWords m = msgWords m') :
+    m = m' := by
+  obtain ⟨l, b⟩ := hm; obtain ⟨l', b'⟩ := hm'
+  match m, m', l, l' with
+  | [a0, a1, a2, a3, a4, a5, a6], [c0, c1, c2, c3, c4, c5, c6], _, _ =>
+    simp only [msgWords, List.map_cons, List.map_nil, List.cons_append, List.nil_append,
+      List.cons.injEq, and_true] at h
+    simp only [List.mem_cons, List.mem_nil_iff, or_false, forall_eq_or_imp, forall_eq] at b b'
+    obtain ⟨h0, h1, h2, h3, h4, h5, h6⟩ := h
+    simp only [List.cons.injEq, and_true]
+    exact ⟨(cutWord_inj b.1 b'.1 (by omega) (by omega) h0).1, (cutWord_inj b.2.1 b'.2.1 (by omega) (by omega) h1).1,
+      (cutWord_inj b.2.2.1 b'.2.2.1 (by omega) (by omega) h2).1,
+      (cutWord_inj b.2.2.2.1 b'.2.2.2.1 (by omega) (by omega) h3).1,
+      (cutWord_inj b.2.2.2.2.1 b'.2.2.2.2.1 (by omega) (by omega) h4).1,
+      (cutWord_inj b.2.2.2.2.2.1 b'.2.2.2.2.2.1 (by omega) (by omega) h5).1,
+      (cutWord_inj b.2.2.2.2.2.2 b'.2.2.2.2.2.2 (by omega) (by omega) h6).1⟩
+
+theorem msgWords_wf_lt {m : List Nat} (hm : MsgWF m) : ∀ w ∈ msgWords m, w < 2 ^ 64 := by
+  obtain ⟨l, b⟩ := hm
+  match m, l with
+  | [a0, a1, a2, a3, a4, a5, a6], _ =>
+    simp only [List.mem_cons, List.mem_nil_iff, or_false, forall_eq_or_imp, forall_eq] at b
+    simp only [msgWords, List.map_cons, List.map_nil, List.cons_append, List.nil_append, List.mem_cons,
+      List.mem_nil_iff, or_false]
+    rintro w (rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl)
+    all_goals first | exact cutWord_lt (by omega) (by omega) | omega
+
+/-- The first word of a message carries the mark: it is `≥ 2^42`, so never a filler word. -/
+theorem msgWords_head {m : List Nat} (hm : MsgWF m) : ∃ w ws, msgWords m = w :: ws ∧ 2 ^ 42 ≤ w := by
+  obtain ⟨l, _⟩ := hm
+  match m, l with
+  | f :: fs, _ => exact ⟨_, _, rfl, by unfold cutWord; omega⟩
+
+theorem cutWords_split {L : List (List Nat)} (hL : ∀ m ∈ L, MsgWF m) :
+    (L.flatMap msgWords).length = 8 * L.length := by
+  induction L with
+  | nil => rfl
+  | cons m L ih =>
+    simp only [List.flatMap_cons, List.length_append, List.length_cons,
+      msgWords_length (hL m List.mem_cons_self).1, ih (fun x hx => hL x (List.mem_cons_of_mem _ hx))]
+    omega
+
+/-- The word at position `8·i` of the message words is message `i`'s marked word. -/
+theorem flatMap_msgWords_get {L : List (List Nat)} (hL : ∀ m ∈ L, MsgWF m) :
+    ∀ i (hi : i < L.length), 2 ^ 42 ≤ (L.flatMap msgWords).getD (8 * i) 0 := by
+  induction L with
+  | nil => intro i hi; simp at hi
+  | cons m L ih =>
+    intro i hi
+    have hm := hL m List.mem_cons_self
+    obtain ⟨w, ws, hw, hge⟩ := msgWords_head hm
+    have hlen := msgWords_length hm.1
+    rw [List.flatMap_cons]
+    cases i with
+    | zero => simp [hw, hge]
+    | succ i =>
+      rw [List.getD_eq_getElem?_getD, List.getElem?_append_right (by omega), hlen,
+        show 8 * (i + 1) - 8 = 8 * i by omega, ← List.getD_eq_getElem?_getD]
+      exact ih (fun x hx => hL x (List.mem_cons_of_mem _ hx)) i (by simpa using hi)
+
+/-- **The CUT encoding is injective** on lists of well-formed messages. -/
+theorem cutWords_inj {L L' : List (List Nat)} (hL : ∀ m ∈ L, MsgWF m) (hL' : ∀ m ∈ L', MsgWF m)
+    (h : cutWords L = cutWords L') : L = L' := by
+  have l1 := cutWords_split hL
+  have l2 := cutWords_split hL'
+  have hlen := congrArg List.length h
+  simp only [cutWords, List.length_append] at hlen
+  rw [l1, l2] at hlen
+  have hL2 : L.length = L'.length := by
+    by_cases a : L.length % 2 = 1 <;> by_cases b : L'.length % 2 = 1 <;>
+      simp only [a, b, if_true, if_false, List.length_replicate, List.length_nil] at hlen <;> try omega
+    · -- `|L|` odd, `|L'| = |L| + 1`: word `8·|L|` is a filler `0` on the left, a mark on the right
+      exfalso
+      have e : L'.length = L.length + 1 := by omega
+      have g := flatMap_msgWords_get hL' L.length (by omega)
+      have hw := congrArg (fun l => l.getD (8 * L.length) 0) h
+      simp only [cutWords, a, b, if_true, if_false, List.append_nil] at hw
+      rw [List.getD_eq_getElem?_getD, List.getElem?_append_right (by omega), l1] at hw
+      simp only [Nat.sub_self, List.getElem?_replicate] at hw
+      rw [← hw] at g
+      simp at g
+    · exfalso
+      have e : L.length = L'.length + 1 := by omega
+      have g := flatMap_msgWords_get hL L'.length (by omega)
+      have hw := congrArg (fun l => l.getD (8 * L'.length) 0) h
+      simp only [cutWords, a, b, if_true, if_false, List.append_nil] at hw
+      rw [List.getD_eq_getElem?_getD (l := L'.flatMap msgWords ++ _), List.getElem?_append_right (by omega),
+        l2] at hw
+      simp only [Nat.sub_self, List.getElem?_replicate] at hw
+      rw [hw] at g
+      simp at g
+  have h' : L.flatMap msgWords = L'.flatMap msgWords := by
+    unfold cutWords at h
+    rw [hL2] at h
+    exact List.append_cancel_right h
+  exact flatMap_inj msgWords 8 MsgWF (fun _ h => msgWords_length h.1) (fun a b ha hb => msgWords_inj ha hb) L L' hL hL' hL2 h'
+
+theorem cutWords_lt {L : List (List Nat)} (hL : ∀ m ∈ L, MsgWF m) : ∀ w ∈ cutWords L, w < 2 ^ 64 := by
+  intro w hw
+  simp only [cutWords, List.mem_append, List.mem_flatMap] at hw
+  rcases hw with ⟨m, hm, hw⟩ | hw
+  · exact msgWords_wf_lt (hL m hm) w hw
+  · split at hw
+    · rw [(List.mem_replicate.mp hw).2]; omega
+    · simp at hw
+
+/-- **The CUT bytes are injective** on lists of well-formed messages. -/
+theorem cutBytes_inj {L L' : List (List Nat)} (hL : ∀ m ∈ L, MsgWF m) (hL' : ∀ m ∈ L', MsgWF m)
+    (h : cutBytes L = cutBytes L') : L = L' := by
+  have hlen : (cutWords L).length = (cutWords L').length := by
+    have := congrArg List.length h
+    simp only [cutBytes, List.length_flatMap, wordBytes_length] at this
+    have e : ∀ l : List Nat, (l.map fun _ => 8).sum = 8 * l.length := by
+      intro l; induction l with
+      | nil => rfl
+      | cons _ l ih => simp only [List.map_cons, List.sum_cons, ih, List.length_cons]; omega
+    rw [e, e] at this; omega
+  refine cutWords_inj hL hL' ?_
+  exact flatMap_inj wordBytes 8 (· < 2 ^ 64) (fun a _ => wordBytes_length a)
+    (fun a b ha hb hab => wordBytes_inj ha hb hab) _ _ (cutWords_lt hL) (cutWords_lt hL') hlen h
+
+/-- **The digest binds the list**: equal `cutDigest`s are equal lists, or a SHA-384 collision on
+two distinct byte strings. -/
+theorem cutDigest_binds {L L' : List (List Nat)} (hL : ∀ m ∈ L, MsgWF m) (hL' : ∀ m ∈ L', MsgWF m)
+    (h : cutDigest L = cutDigest L') :
+    L = L' ∨ (cutBytes L ≠ cutBytes L' ∧
+      NearSpecV3.E2E.Bnd.sha384 (cutBytes L) = NearSpecV3.E2E.Bnd.sha384 (cutBytes L')) := by
+  by_cases e : cutBytes L = cutBytes L'
+  · exact Or.inl (cutBytes_inj hL hL' e)
+  · exact Or.inr ⟨e, h⟩
+
+/-- Two lists, strictly ordered by an asymmetric relation, with the same members, are equal. -/
+theorem pairwise_eq_of_mem_iff {α : Type} (r : α → α → Prop) (hasym : ∀ a b, r a b → ¬ r b a) :
+    ∀ l l' : List α, l.Pairwise r → l'.Pairwise r → (∀ x, x ∈ l ↔ x ∈ l') → l = l'
+  | [], [], _, _, _ => rfl
+  | [], b :: _, _, _, h => absurd ((h b).mpr List.mem_cons_self) (by simp)
+  | a :: _, [], _, _, h => absurd ((h a).mp List.mem_cons_self) (by simp)
+  | a :: l, b :: l', hl, hl', h => by
+    have hirr : ∀ x, ¬ r x x := fun x hx => hasym x x hx hx
+    rw [List.pairwise_cons] at hl hl'
+    have hab : a = b := by
+      rcases List.mem_cons.mp ((h a).mp List.mem_cons_self) with e | e
+      · exact e
+      rcases List.mem_cons.mp ((h b).mpr List.mem_cons_self) with e' | e'
+      · exact e'.symm
+      exact absurd (hl.1 b e') (hasym _ _ (hl'.1 a e))
+    subst hab
+    have na : a ∉ l := fun hm => hirr a (hl.1 a hm)
+    have na' : a ∉ l' := fun hm => hirr a (hl'.1 a hm)
+    rw [pairwise_eq_of_mem_iff r hasym l l' hl.2 hl'.2 (fun x => ⟨fun hx => ?_, fun hx => ?_⟩)]
+    · rcases List.mem_cons.mp ((h x).mp (List.mem_cons_of_mem _ hx)) with e | e
+      · subst e; exact absurd hx na
+      · exact e
+    · rcases List.mem_cons.mp ((h x).mpr (List.mem_cons_of_mem _ hx)) with e | e
+      · subst e; exact absurd hx na'
+      · exact e
+
+/-- The order of the hashed list: strictly increasing `(space, slot)`. -/
+def keyLt (m m' : List Nat) : Prop :=
+  m.getD 0 0 < m'.getD 0 0 ∨ (m.getD 0 0 = m'.getD 0 0 ∧ m.getD 1 0 < m'.getD 1 0)
+
+/-- **The digest binds the set**: two `(space, slot)`-sorted lists of well-formed messages with
+the same digest have the same members, or SHA-384 collides. -/
+theorem cutDigest_binds_set {L L' : List (List Nat)} (hL : ∀ m ∈ L, MsgWF m) (hL' : ∀ m ∈ L', MsgWF m)
+    (hs : L.Pairwise keyLt) (hs' : L'.Pairwise keyLt) :
+    (∀ x, x ∈ L ↔ x ∈ L') → L = L' :=
+  pairwise_eq_of_mem_iff keyLt (fun a b h h' => by unfold keyLt at h h'; omega) L L' hs hs'
+
+/-! ### The boundary view of a spec state
+
+Activation ids are depths: the frame list `s.frames` is top-first, so the frame at depth `d` is
+`s.frames.reverse[d]` (the entry frame at depth 0).  For `d ≥ 1` the record of activation `d`
+(space 4, slot `d`) carries the caller's (depth `d − 1`) return pc `offOf k + pc` (`k` the caller's
+checked function), base, id `d − 1`, and the callee's stack charge.  Producer times are irrelevant
+(`fieldsOf` drops them; `0` below). -/
+
+/-- The checked-function index of a defined function. -/
+def Ctx.kOf (X : Ctx) (fn : Nat) : Nat := X.M.fns.idxOf fn
+
+/-- The messages of frame `d` (depth) of the frame list `fr` (entry first): its locals and, for
+`d ≥ 1`, its call record. -/
+def frameMsgs (X : Ctx) (fr : List NearSpecV3.Wasm.Frame) (d : Nat) : List Msg :=
+  let f : NearSpecV3.Wasm.Frame := fr.getD d default
+  localView (16 + d) f.locals (fun _ => 0) ++
+    (if d = 0 then [] else
+      let c : NearSpecV3.Wasm.Frame := fr.getD (d - 1) default
+      [callMsg d (X.offOf (X.kOf c.fn) + c.pc) c.base (d - 1)
+        ((X.p.funcs[f.fn]?).getD default).stackCharge 0])
+
+/-- **The kept boundary messages of a spec state** (no memory): the operand stack (space 0), every
+frame's locals (space `16 + depth`) and call record (space 4), the globals (space 2), the stack
+budget (space 5) and the registers (space 6). -/
+def cutMsgs (X : Ctx) (s : NearSpecV3.Wasm.St) : List Msg :=
+  stackView s.stack (fun _ => 0) ++
+    (List.range s.frames.length).flatMap (frameMsgs X s.frames.reverse) ++
+    globView s.globals (fun _ => 0) ++ [budMsg s.stackRem 0] ++
+    Register.view s.registers (fun _ => 0)
+
+/-- `(space, slot)` order as a Boolean comparator for sorting. -/
+def keyLe (m m' : List Nat) : Bool :=
+  decide (m.getD 0 0 < m'.getD 0 0 ∨ (m.getD 0 0 = m'.getD 0 0 ∧ m.getD 1 0 ≤ m'.getD 1 0))
+
+/-- **`cutView`**: the boundary view, sorted by `(space, slot)`. -/
+def cutView (X : Ctx) (s : NearSpecV3.Wasm.St) : List (List Nat) := ((cutMsgs X s).map fieldsOf).mergeSort keyLe
+
+theorem mem_cutView {X : Ctx} {s : NearSpecV3.Wasm.St} {y : List Nat} : y ∈ cutView X s ↔ ∃ x ∈ cutMsgs X s, fieldsOf x = y := by
+  unfold cutView
+  rw [List.mem_mergeSort, List.mem_map]
+
+/-! ### `cutView` against `Bnd.relabel`: what `RelW` does not yet say
+
+`Bnd.relabel` gives, at a cut, the relabelled live list `L' = (L.filter keepA).map rlMsg` with
+activation ids = depths and no dead locals.  The claim "the kept (non-memory) part of `L'` is, up to
+producer times, exactly `cutView X s`" — i.e. `∀ y, (∃ x ∈ L', x.space ≠ 3 ∧ fieldsOf x = y) ↔
+y ∈ cutView X s` — needs facts `RelW` does not carry:
+
+1. **Registers (space 6).**  `RelW` has no register clause: nothing ties `E.live`'s space-6
+   messages to `s.registers`.  Needed: `∀ x, x.space = 6 → (E.live x ↔ x ∈ Register.view
+   s.registers tpr)` for some `tpr` (the M1/M2 register invariant, not yet part of `RelW`).
+2. **No other spaces.**  `RelW` constrains spaces 0, 2, 3, 4, 5, `16 + _` only; spaces 1 and 7–15
+   may hold anything.  Needed: `∀ x, E.live x → x.space ∈ [2, 3, 4, 5, 6] ∨ 16 ≤ x.space` (space 7,
+   the gas register, is consumed by `SEGB`, not `CUTO`, so it must be excluded from `L` first).
+   (CUTO's kinds `k0 k2 k4 k5 k6 kL` already reject other spaces on the AIR side.)
+3. **Checked-function index of a caller.**  `RelW`'s call record stores `offOf c.k + fc.pc` with
+   `fc.fn = X.fnOf c.k`; `cutView` recomputes `k` as `X.kOf fc.fn = X.M.fns.idxOf fc.fn`.  These
+   agree iff `X.M.fns` has no duplicate before `c.k` (`X.M.fns.Nodup` suffices; not in `Ctx`).
+4. **Field bounds for `MsgWF`** (every field `< 2^30`, needed for `cutBytes_inj`): stack size,
+   local counts, global count, register ids and lengths, return pcs and bases `< 2^30`.  `RelW`
+   bounds only `sb, cid < 2^28`; the rest are domain/checker facts.
+
+With 1–3 the correspondence is per space: 0 (`RelW.live`, `stackView`), `16 + rest.length` (current
+locals), 4 and `16 + d` for callers (`RelW.relabel`'s `chainMsgs X rest.length … (svR sv)` against
+`frameMsgs`, frame at depth `d` = `s.frames.reverse[d]`), 2 (`HeapOK.glob`), 5 (`CallsOK.budget`),
+6 (item 1). -/
+
+#print axioms cutBytes_inj
+#print axioms cutDigest_binds
+#print axioms cutDigest_binds_set
 
 end WasmBase
