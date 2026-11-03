@@ -113,3 +113,4 @@ import WasmBase.Main.SegSha
 import WasmBase.Main.SegShaMpath
 import WasmBase.Main.SegShaBytes
 import WasmBase.Main.SegShaMemb
+import WasmBase.Main.SegShaCut
