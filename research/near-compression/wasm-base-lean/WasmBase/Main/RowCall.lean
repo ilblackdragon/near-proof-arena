@@ -452,7 +452,8 @@ theorem call_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
     obtain ⟨n, hn, e⟩ := time_chk L h1 h2
     exact ⟨n, hn, e.trans (cell_cast tr 13 r 1)⟩
   -- the fee bound
-  obtain ⟨ins', fee'', hins', hfee', hfl', -⟩ := CF.recs l hl
+  obtain ⟨ins', hins', hrec0'⟩ := CF.recs l hl
+  obtain ⟨fee'', hfee', hfl', -⟩ := hrec0' (L.base q hq l ins' hins')
   have hfee2 : fee'' = fee := by rw [hfee] at hfee'; exact (Option.some.inj hfee').symm
   have hfeeK : fee + (X.ckOf k').prologue ≤ X.maxFee := by have := X.callFee_le hq hk'; omega
   have mtc : ∀ j, j < 8 → r16 (v cTs - v (Call.tP j) - 1 - B16 * v (Call.hP j)) (v (Call.pf j)) ∈ Call.inters ∧
@@ -533,7 +534,7 @@ theorem call_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
   have hszP : s.stack.size < P := by have := R.sbLt; omega
   obtain ⟨ls0, hL0, hfl0⟩ := R.labels
   subst hfi
-  obtain ⟨np', ar', hsig, hnp', hnext, hL1, hH1⟩ := verify_call X R.kLt hpcl hins hL0 hH
+  obtain ⟨np', ar', hsig, hnp', hnext, hL1, hH1⟩ := verify_call X R.kLt hpcl hins (by omega) hL0 hH
   obtain ⟨enp, ear⟩ := sigOf_callee X hk' hfik hsig
   -- the new base, the clock
   have hnpS : npN ≤ s.stack.size - E.sb := by omega

@@ -177,7 +177,7 @@ theorem step_block (X : Ctx) {E : Env} {s : St} {f : Frame} {tps tpl : Nat → N
     (hins : (X.pfOf E.k).code[pc]? = some (.block bt)) (hfee : feeUnits X.cfg (X.pfOf E.k).gas[pc]? = some fee)
     (hg : X.R * (S + fee - S_seg) ≤ segb) (hg64 : X.g0 < 2 ^ 64) :
     ∃ s', step X.cfg X.p s = .cont s' ∧ Rel X s' (t + 1) E.k (pc + 1) (S + fee) E.sb E.cid (stepLive live [] []) S_seg segb := by
-  have hv := (X.factsOf R.kLt).verify pc R.pcLt
+  have hv := (X.factsOf R.kLt).verify pc R.pcLt _ hins (by m2_ns)
   obtain ⟨ls0, hL0, hfl⟩ := R.labels
   have hsb := R.sbLe
   unfold verifyAt at hv
@@ -196,7 +196,7 @@ theorem step_loop (X : Ctx) {E : Env} {s : St} {f : Frame} {tps tpl : Nat → Na
     (hins : (X.pfOf E.k).code[pc]? = some (.loop none)) (hfee : feeUnits X.cfg (X.pfOf E.k).gas[pc]? = some fee)
     (hg : X.R * (S + fee - S_seg) ≤ segb) (hg64 : X.g0 < 2 ^ 64) :
     ∃ s', step X.cfg X.p s = .cont s' ∧ Rel X s' (t + 1) E.k (pc + 1) (S + fee) E.sb E.cid (stepLive live [] []) S_seg segb := by
-  have hv := (X.factsOf R.kLt).verify pc R.pcLt
+  have hv := (X.factsOf R.kLt).verify pc R.pcLt _ hins (by m2_ns)
   obtain ⟨ls0, hL0, hfl⟩ := R.labels
   have hsb := R.sbLe
   unfold verifyAt at hv
@@ -212,7 +212,7 @@ theorem step_end_nested (X : Ctx) {E : Env} {s : St} {f : Frame} {tps tpl : Nat 
     (hins : (X.pfOf E.k).code[pc]? = some .end_) (hfee : feeUnits X.cfg (X.pfOf E.k).gas[pc]? = some fee)
     (hg : X.R * (S + fee - S_seg) ≤ segb) (hg64 : X.g0 < 2 ^ 64) :
     ∃ s', step X.cfg X.p s = .cont s' ∧ Rel X s' (t + 1) E.k (pc + 1) (S + fee) E.sb E.cid (stepLive live [] []) S_seg segb := by
-  have hv := (X.factsOf R.kLt).verify pc R.pcLt
+  have hv := (X.factsOf R.kLt).verify pc R.pcLt _ hins (by m2_ns)
   obtain ⟨ls0, hL0, hfl⟩ := R.labels
   obtain ⟨l0, l0', rest0, rfl⟩ : ∃ l0 l0' rest0, ls0 = l0 :: l0' :: rest0 := by
     rw [hls] at hfl
@@ -235,7 +235,7 @@ theorem step_br (X : Ctx) {E : Env} {s : St} {f : Frame} {tps tpl : Nat → Nat}
     (hins : (X.pfOf E.k).code[pc]? = some (.br l)) (hfee : feeUnits X.cfg (X.pfOf E.k).gas[pc]? = some fee)
     (hg : X.R * (S + fee - S_seg) ≤ segb) (hg64 : X.g0 < 2 ^ 64) :
     ∃ s', step X.cfg X.p s = .cont s' ∧ Rel X s' (t + 1) E.k lab.target (S + fee) E.sb E.cid (stepLive live [] []) S_seg segb := by
-  have hv := (X.factsOf R.kLt).verify pc R.pcLt
+  have hv := (X.factsOf R.kLt).verify pc R.pcLt _ hins (by m2_ns)
   obtain ⟨ls0, hL0, hfl⟩ := R.labels
   have hsb := R.sbLe
   have hlen : l + 1 < ls0.length := by rw [hfl, shiftLabels_length] at hl; exact hl
@@ -265,7 +265,7 @@ theorem step_brIf (X : Ctx) {E : Env} {s : St} {f : Frame} {tps tpl : Nat → Na
     (mc : Msg) (hmc : live mc) (sc : mc.space = 0 ∧ mc.slot = s.stack.size - 1) :
     ∃ s', step X.cfg X.p s = .cont s' ∧
       Rel X s' (t + 1) E.k (if mc.val = 0 then pc + 1 else lab.target) (S + fee) E.sb E.cid (stepLive live [mc] []) S_seg segb := by
-  have hv := (X.factsOf R.kLt).verify pc R.pcLt
+  have hv := (X.factsOf R.kLt).verify pc R.pcLt _ hins (by m2_ns)
   obtain ⟨ls0, hL0, hfl⟩ := R.labels
   have hsb := R.sbLe
   have hlen : l + 1 < ls0.length := by rw [hfl, shiftLabels_length] at hl; exact hl
@@ -333,7 +333,8 @@ theorem step_halt (X : Ctx) {E : Env} {s : St} {f : Frame} {tps tpl : Nat → Na
     (hfee : feeUnits X.cfg (X.pfOf E.k).gas[pc]? = some fee)
     (hg : X.R * (S + fee - S_seg) ≤ segb) (hg64 : X.g0 < 2 ^ 64) (hent : E.rest = [] ∧ E.sb = 0) :
     ∃ sN, step X.cfg X.p s = .fin sN ∧ Halted X s sN fee s.stack := by
-  have hv := (X.factsOf R.kLt).verify pc R.pcLt
+  have hv := (X.factsOf R.kLt).verify pc R.pcLt _ hins
+    (by rcases hkind with ⟨rfl, _⟩ | rfl | ⟨_, rfl, _⟩ <;> rfl)
   obtain ⟨ls0, hL0, hfl⟩ := R.labels
   rw [hent.2, shiftLabels_zero] at hfl
   have hfr : s.frames = [f] := by rw [R.frames, hent.1]
@@ -370,7 +371,7 @@ theorem step_haltIf (X : Ctx) {E : Env} {s : St} {f : Frame} {tps tpl : Nat → 
     (mc.val ≠ 0 → ∃ sN, step X.cfg X.p s = .fin sN ∧ Halted X s sN fee s.stack.pop) ∧
     (mc.val = 0 → ∃ s', step X.cfg X.p s = .cont s' ∧
       Rel X s' (t + 1) E.k (pc + 1) (S + fee) E.sb E.cid (stepLive live [mc] []) S_seg segb) := by
-  have hv := (X.factsOf R.kLt).verify pc R.pcLt
+  have hv := (X.factsOf R.kLt).verify pc R.pcLt _ hins (by m2_ns)
   obtain ⟨ls0, hL0, hfl⟩ := R.labels
   rw [hent.2, shiftLabels_zero] at hfl
   have hfr : s.frames = [f] := by rw [R.frames, hent.1]

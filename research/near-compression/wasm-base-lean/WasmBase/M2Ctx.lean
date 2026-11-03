@@ -521,9 +521,91 @@ theorem M2Ctx.recFee_le (X : M2Ctx) {j : Nat} (hj : j < X.M.codeSize) :
   rw [hrj, Option.getD_some]
   exact Nat.le_trans ((X.factsOf hk).feeLe l hl) (X.maxFee_ge hk)
 
+/-! ## `M2Ctx` as a `Ctx`
+
+`Ctx`'s module facts (`ModFacts`) state the base obligations only at pcs that are not M2 additions
+(`m2Special`); at those pcs the M2 checker's obligations and records *are* the base ones. -/
+
+theorem m2Special_conv {p : Prepared} {op : Nat} : m2Special p (.num op) = isConvOp op := rfl
+
+/-- At a pc that is not an M2 addition, `verifyAtM2` is the base `verifyAt`. -/
+theorem verifyAtM2_base {p : Prepared} {pf : PFunc} {L : Array (List Label)} {H : Array Nat} {pc : Nat}
+    {ins : Instr} (hins : pf.code[pc]? = some ins) (hns : m2Special p ins = false) :
+    verifyAtM2 p pf L H pc = verifyAt p pf L H pc := by
+  unfold verifyAtM2
+  cases hL : L[pc]? with
+  | none => simp [verifyAt, hins, hL]
+  | some ls =>
+    cases hH : H[pc]? with
+    | none => simp [verifyAt, hins, hL, hH]
+    | some h =>
+      cases ins <;> simp only [m2Special, reduceCtorEq] at hns <;> simp only [hins, hL, hH]
+      all_goals first
+        | rfl
+        | (rename_i op; rw [if_neg (by simpa [isConvOp] using hns)])
+        | (rename_i fi
+           have h1 : ¬ fi < p.m.imports.size := by simpa using hns
+           simp only [verifyAt, hins, hL, hH, sigOfM2, if_neg h1]; rfl)
+
+/-- At a pc that is not an M2 addition, `recordAtM2` is the base `recordOf`. -/
+theorem recordAtM2_base {cfg : NearCfg} {p : Prepared} {pf : PFunc} {L : Array (List Label)} {H : Array Nat}
+    {off pc : Nat} {cinfo : Nat → Option Nat} {ins : Instr} {fee : Nat} (hins : pf.code[pc]? = some ins)
+    (hns : m2Special p ins = false) (hfee : feeUnits cfg pf.gas[pc]? = some fee) :
+    recordAtM2 cfg p pf L H off cinfo pc = recordOf off cinfo (L[pc]?.getD []) (H[pc]?.getD 0) fee (off + pc) ins := by
+  unfold recordAtM2
+  cases ins <;> simp only [m2Special, reduceCtorEq] at hns <;> simp only [hins, hfee]
+  all_goals first
+    | rfl
+    | (rename_i op; rw [if_neg (by simpa [isConvOp] using hns)])
+    | (rename_i fi
+       have h1 : ¬ fi < p.m.imports.size := by simpa using hns
+       simp only [if_neg h1])
+
+/-- **`checkM2` gives the generalised `CheckFacts`.** -/
+theorem checkM2_facts {cfg : NearCfg} {p : Prepared} {fn off : Nat} {cinfo : Nat → Option Nat}
+    {ck : CheckOut} (h : checkM2 cfg p fn off cinfo = some ck) :
+    ∃ pf, CheckFacts cfg p fn off cinfo pf ck := by
+  obtain ⟨pf, F⟩ := checkM2_sound h
+  refine ⟨pf, CheckFacts.of_parts F.func F.basic F.lsize F.hsize F.l0 F.h0 ?_ F.hBound F.records ?_
+    F.arity F.resTag F.localTags F.np F.nl F.charge F.prologue⟩
+  · intro pc hpc ins hins hns
+    rw [← verifyAtM2_base hins hns]; exact F.verify pc hpc
+  · intro pc hpc
+    have hcode : ∃ ins, pf.code[pc]? = some ins := ⟨pf.code[pc], Array.getElem?_eq_getElem hpc⟩
+    obtain ⟨ins, hins⟩ := hcode
+    refine ⟨ins, hins, fun hns => ?_⟩
+    have hr := F.recs pc hpc
+    have hsz : pc < ck.records.size := by rw [F.records]; exact hpc
+    rw [Array.getElem?_eq_getElem hsz] at hr
+    cases hfee : feeUnits cfg pf.gas[pc]? with
+    | none =>
+      exfalso
+      unfold recordAtM2 at hr
+      rw [hins, hfee] at hr
+      cases ins <;> simp_all [m2Special]
+    | some fee =>
+      rw [recordAtM2_base hins hns hfee] at hr
+      refine ⟨fee, rfl, ?_, by rw [hr, Array.getElem?_eq_getElem hsz]⟩
+      have := F.feeLe pc hpc
+      rw [Array.getElem?_eq_getElem hsz, Option.getD_some, recordOf_fee hr] at this
+      exact this
+
+/-- **`checkModuleM2` gives the generalised `ModFacts`.** -/
+theorem checkModuleM2_modFacts {cfg : NearCfg} {p : Prepared} {entry : Nat} {MH : ModOutH}
+    (h : checkModuleM2 cfg p entry = some MH) : ModFacts cfg p entry MH.mod := by
+  have F := checkModuleM2_sound h
+  exact ⟨F.head, fun k hk => checkM2_facts (F.cks k hk), F.pfs, F.total, F.layout, F.recSize, F.recs,
+    F.feeLe, F.closed, F.offs0, F.entryParams, F.funcs, F.funcsLen⟩
+
+/-- **The M2 context as a `Ctx`**: the whole base stack (`RelW`, `RowFacts2`, `exec_of_rows`, the
+segment harness, every base row lemma) applies to it. -/
+def M2Ctx.toCtx (X : M2Ctx) : Ctx := ⟨X.cfg, X.p, X.fn, X.MH.mod, X.g0, checkModuleM2_modFacts X.hM⟩
+
 /-! ## Axiom guards -/
 
 #print axioms checkM2_sound
+#print axioms checkM2_facts
+#print axioms checkModuleM2_modFacts
 #print axioms checkModuleM2_sound
 #print axioms M2Ctx.conv_succ
 #print axioms M2Ctx.ifres_succ

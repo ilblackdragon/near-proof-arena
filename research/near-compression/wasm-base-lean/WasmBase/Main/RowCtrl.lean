@@ -138,7 +138,7 @@ theorem ctrl_view_pop (a : Array Val) (tps : Nat → Nat) (h : 1 ≤ a.size) (x 
 theorem ctrl_brIf_h {X : Ctx} {E : Env} {s : St} {f : Frame} {tps tpl : Nat → Nat} {t pc S : Nat}
     {live : Msg → Prop} {S_seg segb : Nat} (R : RelW X E s f tps tpl t pc S live S_seg segb) {l : Nat}
     (hins : (X.pfOf E.k).code[pc]? = some (.brIf l)) : 1 ≤ s.stack.size - E.sb := by
-  have hv := (X.factsOf R.kLt).verify pc R.pcLt
+  have hv := (X.factsOf R.kLt).verify pc R.pcLt _ hins (by m2_ns)
   unfold verifyAt at hv
   obtain ⟨ls0, hL0, -⟩ := R.labels
   rw [hins, hL0, R.height] at hv

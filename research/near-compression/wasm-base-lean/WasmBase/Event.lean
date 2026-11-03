@@ -1,5 +1,6 @@
 import WasmBase.Prelude
 import WasmBase.Check
+import WasmBase.CheckFacts
 import WasmBase.Mem
 /-!
 # WasmBase.Event — channel messages, the spec-state relation, and the gas/charge step
@@ -153,14 +154,17 @@ def stepLive (live : Msg → Prop) (cons prod : List Msg) : Msg → Prop :=
   fun x => (live x ∧ x ∉ cons) ∨ x ∈ prod
 
 /-- The static context of one run: the prepared module, the entry function and its module-level
-check (the checked functions, their code offsets and the global code records). -/
+check output (the checked functions, their code offsets and the global code records), with the
+module facts `ModFacts` the proof uses.  `ModFacts` holds for the output of the base checker
+(`Ctx.ofCheck`) and of the M2 checker (`M2Ctx.toCtx`); the base obligations it carries are stated
+only at pcs that are not M2 additions (`m2Special`), and `Ctx.Base` says there are none. -/
 structure Ctx where
   cfg : NearCfg
   p : Prepared
   fn : Nat
   M : ModOut
   g0 : Nat
-  hM : checkModule cfg p fn = some M
+  hM : ModFacts cfg p fn M
 
 def Ctx.R (X : Ctx) : Nat := X.cfg.regularOpCost
 /-- Number of checked functions. -/
