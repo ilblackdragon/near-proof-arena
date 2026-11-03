@@ -4,6 +4,108 @@ Plan: `docs/zk-formal/E2E-GENERAL-CHUNK-PLAN.md` §3.2 (the `stRoot` working set
 Date 2026-11-03. Labels: **[M]** measured here, **[K]** kernel-checked Lean (std axioms),
 **[S]** stated / design only.
 
+## M5b (first STATE rows, 2026-11-03): writes produced from raw key / value bytes
+
+Until now the working-set writes `WRITE(seg, t, kd16, present, len, vh16)` (received by `WSA`) came
+from the public tape with the digests precomputed. M5b produces them from execution-side messages
+carrying the **raw trie key and value bytes**; `kd = sha256 key` and `vh = sha256 value` are
+computed in-circuit and `t` is the request's timestamp. Lean: `lean/StateM5a/St.lean` (AIR),
+`M5b.lean` (which theorems apply); `m5a-tool airb D` exports the M5b AIR, `M5B=1 run.sh …` runs it.
+
+### Design [S] (implemented for writes and removes on T1 [M])
+
+**Execution-side interface** (the shape of lane A's host buses, plan §3.3; on T1 the public tape
+`HTAPE` sends them, later lane A's `HOST` rows / the receipt-action rows):
+
+* `SREQ [ts, pr, seg, klen, kptr, vlen, vptr]` — `storage_write` (`pr = 1`) / `storage_remove`
+  (`pr = 0`, `vlen = 0`) at time `ts`, in NEAR's argument order (key length / pointer, value
+  length / pointer). In lane A's form this is `HOSTQ [ts, hid, S, args…]` with `pr` from `hid` and
+  `seg` the segment's own index (a constant of the STATE segment).
+* `HB [ts, pos, byte]` — a byte call `ts` read at linear-memory address `pos`: exactly lane A's
+  `HOSTB`. The execution side sends, the STATE rows receive; the producer side assumes memory is a
+  function of `(ts, pos)` (one byte per address and call — lane A's memory argument).
+
+**STATE rows:**
+
+| table | rows | role | w / c / i |
+|---|---|---|---|
+| `STB` | one per message byte | runs, one per message `m = 0, 1, …` (consecutive: each `m` has exactly one run), `j = 0, 1, …` in a run, `ts`/`base` constant on a run; sends `SB2(ID_ST + m, j, b)` to the SHA-256 instance, receives `HB(ts, base + j, b)`; the run's last row sends `DESC(m, ts, base, j + 1)` | 7 / 15 / 3 |
+| `STW` | one per write | receives `SREQ`, `DESC(mk, ts, kptr, klen)` + `SD2(ID_ST + mk, klen, dk)`, for a non-empty value `DESC(mv, ts, vptr, vlen)` + `SD2(ID_ST + mv, vlen, dv)` (empty value: `ve = 1`, `dv = sha256 []`; remove: `dv = 0`), sends `WRITE(seg, ts, pack2 dk, pr, vlen, pack2 dv)` | 75 / 77 / 6 |
+| `SHAS` | per SHA-256 block | a **second instance** of the unchanged SHA-256 table (`ZkFormal.Sha.Table.table B_SB2 B_SD2`) | 544 / 1028 / 17 |
+
+**Id spaces.** `STB` messages hash under `ID_ST + m` (`ID_ST = 4·2^24`, disjoint from `KEY`/`BR`/
+`SN`) in their own SHA-256 instance on their own bus pair (`SB2`/`SD2`). The second instance is
+what keeps every M5a theorem applicable unchanged: their premises forbid extra tables from sending
+on `SHA_BYTES`/`SHA_DIGEST` (the id-space lemmas `KeyDigest.sb_only`, `br_byte`, `key_byte`, … rely
+on the known senders). Merging into one table (saves its padding) needs those lemmas generalized to
+"extra senders use ids `≥ ID_ST`" — a mechanical but wide change, left for later.
+
+**Time discipline.** `t` = the execution side's `ts` (the Wasm step counter, segment-local
+`< 2^24` per plan §3.2), prover-chosen but checked: `WSA` ranges it (`t < 2^24`, M5a-6) and each
+entry's `WM` chain orders its accesses (`idp < t`, distinct times). Accesses to different keys need
+no order between them. Within a call all bytes carry the call's `ts`.
+
+**storage_read / has_key (design only).** A read is a `WM` access that consumes the entry's latest
+value and sends it back unchanged at the read's `ts` (a `WSA` row with `new = old`, `wr` unchanged);
+the reader gets `(present, len, vh)`. Returning the **value bytes** (to a register) needs the bytes
+themselves, not the digest: the STATE row re-hashes the bytes the execution side receives
+(`HB`-style bytes sent by the state side, hashed in `SHAS`, digest = the `WM` value's `vh`) — the
+same `STB` machinery in the other direction. `storage_write`'s evicted-value return and
+`storage_has_key` are the same read access.
+
+**Cost per write** [M, T1]: 10 writes (7 values, 3 removes), 17 messages, 1,356 bytes (keys 1–49 B,
+values up to 901 B), 35 SHA-256 blocks. Used cells ≈ 35.7 k per write: `SHAS` 17 rows × 544 per
+block plus one 544-cell row per message (≈ 145 cells per byte with the padding block), `STB`
+7 per byte, `STW` 75 per write (the execution side's `HTAPE` 10 per byte, public). Committed
+(padded) cells 5,152,964 → 5,745,492 (+592.5 k, `SHAS` 2^10 rows). With `SHAS` merged into the
+first SHA table the padding share goes away; the per-byte SHA-256 cost (~145 cells) is the floor.
+
+### Results on T1 [M]
+
+| | T1 (M5a-6 AIR, public `WRITE` tape) | T1 (M5b AIR, STATE rows) |
+|---|---|---|
+| committed cells | 5,152,964 | 5,745,492 |
+| proof (268.2-bit) | 1,238,006 B | 1,526,081 B (stacking width 9 → 10) |
+| prove / verify / peak RSS | 78 s / 97 ms / 1.29 GB | 80 s / 221 ms / 1.59 GB |
+| root (= `m5a-tool apply`) | `1db48e38…249628` | `1db48e38…249628` |
+
+The proof grows by 287 kB because the extra tables push the stacked commitment past a width
+threshold (`w_stack` 9 → 10); not tuned. Mutants (`logs/M5b-mutants.txt`): **9/9 rejected** —
+`stkbyte` / `stvbyte` (one key / value byte changed in `STB`, the SHA message and `STW` digest
+recomputed: `HB` and `WRITE` unbalanced), `stdrop` (a requested write left out of the STATE rows:
+`SREQ`, `HB`, `WRITE`), and on the M5b AIR `omitwrite`, `postroot`, `prevalue`, `wsstale`, `tbig`
+(request and access at time `2^24`, consistently on the execution side: `RNG`), `twrap` (the new
+`WSA` constraint). Logs `logs/M5b-T1-prove.log`, `M5b-T1-stats.json`; hashes `SHA256SUMS-v6`.
+
+### Lean [K] (std axioms; `lake build StateM5a` green)
+
+* `St.lean`: `Stb`, `Stw`, `shaTableS`, `m5bAir D = (m5aAir D).tables ++ m5bExtra` (exported by
+  `airb`).
+* `M5b.lean`: the prover's M5b AIR is `fullAir D (m5bX host prev post n)` (+ the native chip, as
+  in `ChipStub`): the M5a tables, the M5a tape with **no writes** (`m5aTape [] prev post n`),
+  `SHAS`/`STB`/`STW`, and the execution side's tape `tapeTable host` (`HostOK`: `SREQ`/`HB` entries;
+  the prover's `HTAPE`). `x_buses`/`rest_buses`: these tables use only `TCH`, `SB2`, `SD2`, `SREQ`,
+  `HB`, `DESC`, `WRITE`, so every static premise the M5a theorems put on extra tables holds
+  (`x_hx`, `x_hsil`, `x_hxV`, `rest_hr`, `rest_hrN`, `rest_hrS`), and **`M5b.prem`** builds
+  `FinalOrder.Prem` from `Holds` of the M5b AIR plus the semantic premises. Hence
+  `WsEntries.ws_entries`, `FinalOrder.air_final_sorted`, `SnResp.air_final_sorted_sn2` etc. apply to
+  the AIR the prover runs, with `writes := []`, `rest := m5bRest host`.
+* **What they say about the new rows:** nothing beyond what they say for any `WRITE` producer — the
+  working set (`ws_entries`: every FINAL leaf is its INTAKE entry with its latest `WRITE`) and the
+  trie (`air_final_sorted*`) are proved from the `WRITE` messages whoever sends them. **Open:** the
+  new rows' own soundness — that every `WRITE` an `STW` row sends is `(pack2 (sha256 key), pr, |v|,
+  pack2 (sha256 v))` for the key / value bytes `HB` carried for its request (`SHAS`'s digest
+  contract `sha_digest_contract_closed` on the second instance, single run per message id from the
+  `STB` transition constraints, `DESC` balance) — and with it `committed ~ cs` (overlay ↔ writes).
+
+### Open after M5a-6 / M5b
+
+1. The STATE rows' soundness theorem (above), then `committed ~ cs`.
+2. `SHAS` merged into the first SHA-256 table (generalize the `SHA_BYTES` id-space premises).
+3. Reads (`storage_read`/`has_key`, `WM` read access + value bytes back), registers, the `HOSTQ`
+   form with `hid`; the segment cut (`seg` = segment-local constant, `RCH` in the boundary).
+4. Everything under *Open after M5a-5* except item 3 (done: `WSA` times ranged).
+
 ## M5a-6 (seventh session, 2026-11-03): two range checks, re-proved
 
 ### AIR changes [M][K]

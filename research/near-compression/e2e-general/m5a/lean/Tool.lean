@@ -1,9 +1,10 @@
 import StateM5a.Air
+import StateM5a.St
 import NearSpecV3.D2.State
 import Lean.Data.Json
 
 /-! `m5a-tool air D AIR_JSON NAMES_JSON`: export the M5a AIR (depth-`D` working-set tree) and its
-column names.
+column names; `m5a-tool airb …` the same for the M5b AIR (`St.m5bAir`: plus the STATE rows).
 
 `m5a-tool apply STATE_JSON`: the spec oracle for a state-access file (`extract_state.py`'s format,
 or a synthetic one): reveal the pre-state trie from `nodes_read` (`revealTrie`), apply the
@@ -56,7 +57,16 @@ def main (args : List String) : IO UInt32 := do
     for (nm, t) in tableNames.zip A.tables do
       IO.println s!"{nm}: width {t.width}, constraints {t.allConstraints.length}, interactions {t.interactions.length}"
     return 0
+  | ["airb", d, out, names] =>
+    -- M5b: the M5a tables plus the first STATE rows (`STB`, `STW`)
+    let D := d.toNat!
+    IO.FS.writeFile out (ZkFormal.Air.Air.exportJson (m5bAir D))
+    IO.FS.writeFile names (namesJsonB D)
+    let A := m5bAir D
+    for (nm, t) in tableNamesB.zip A.tables do
+      IO.println s!"{nm}: width {t.width}, constraints {t.allConstraints.length}, interactions {t.interactions.length}"
+    return 0
   | ["apply", st] => applyOracle st
   | _ =>
-    IO.eprintln "usage: m5a-tool air D AIR_JSON NAMES_JSON | m5a-tool apply STATE_JSON"
+    IO.eprintln "usage: m5a-tool air|airb D AIR_JSON NAMES_JSON | m5a-tool apply STATE_JSON"
     return 2

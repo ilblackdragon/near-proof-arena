@@ -1,0 +1,10 @@
+# M5b mutants on T1 (m5a-tool airb 5: STATE rows SHAS/STB/STW + execution-side tape HTAPE)
+m5b-t1 omitwrite: PRECHECK FAIL: 5 unbalanced messages by bus {13: 1, 24: 2, 26: 2} REJECTED (prover error) after 2.2s 
+m5b-t1 postroot: PRECHECK FAIL: 2 unbalanced messages by bus {14: 2} REJECTED (prover error) after 2.2s 
+m5b-t1 prevalue: PRECHECK FAIL: 2 unbalanced messages by bus {6: 2} REJECTED (prover error) after 2.5s 
+m5b-t1 stdrop: PRECHECK FAIL: 80 unbalanced messages by bus {13: 1, 28: 1, 29: 78} REJECTED (prover error) after 2.4s 
+m5b-t1 stkbyte: PRECHECK FAIL: 4 unbalanced messages by bus {13: 2, 29: 2} REJECTED (prover error) after 2.3s 
+m5b-t1 stvbyte: PRECHECK FAIL: 4 unbalanced messages by bus {13: 2, 29: 2} REJECTED (prover error) after 2.5s 
+m5b-t1 tbig: PRECHECK FAIL: 1 unbalanced messages by bus {24: 1} REJECTED (prover error) after 2.4s 
+m5b-t1 twrap: PRECHECK FAIL: WSA: constraint 20 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim: BinomialExtensionField { value: [245458042, 1155791885, 2008105861, 28585632, 1896380096, 886515758, 1910524987, 1636459910, 1401059549, 764335509, 146605448, 375817401], _phantom: PhantomData<p3_monty_31::monty_31::MontyField31<p3_baby_bear::baby_bear::BabyBearParameters>> }, sum_univ_domain_s_0: BinomialExtensionField { value: [935310570, 1011445907, 1727624730, 1021109361, 821759865, 1736543976, 1078788950, 1261251224, 2007531515, 1944611107, 1742233777, 839419922], _phantom: PhantomData<p3_monty_31::monty_31::MontyField31<p3_baby_bear::baby_bear::BabyBearParameters>> } }))) 
+m5b-t1 wsstale: PRECHECK FAIL: 2 unbalanced messages by bus {26: 2} REJECTED (prover error) after 2.3s 

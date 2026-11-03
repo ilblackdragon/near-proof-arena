@@ -1,0 +1,8 @@
+# M5a-6 (BR RNG[nvl] + WSA time bytes) and M5b (STATE rows)
+162963c68530996b77e8373cffa52c73cd6ef39ec6769d9590c20916302b92f9  m5a-d5.json (m5a-tool air 5)
+7b5862fbd1d9cfc9a08fcbbd72ba0100bdef463edcd6097ed3fe881aa47dbf72  m5a-d6.json (m5a-tool air 6)
+e3db895b0127fcd459ed24f16b72b2f9dde95de617488415ccf29aff7eb5e96e  m5a-d4.json (m5a-tool air 4)
+1dba4c6d1cf4262b9be7b414530247c44389d256f77034fcb4928a49835c91b8  m5b-d5.json (m5a-tool airb 5)
+c9323c6520b9eaeac4833fcf72550d8ec0c66f43357aacbee03ffb997a02a1c7  nearproof-e2e-m5a (prover: M5b table names, SHAS trace, HTAPE)
+15ee28cff26fb99893545fe6cb2a52cd83ad2e2a61ab6a1aa06011d8622a3ec7  lean/.lake/build/bin/m5a-tool
+84a8d598befe3ae87562934ef4464b71f61d5b7c4ee1cfc8b3333aaa9cb00caf  syn-bvnref state.json (synth.py bvnref)

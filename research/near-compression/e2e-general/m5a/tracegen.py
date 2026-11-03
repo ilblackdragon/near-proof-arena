@@ -48,6 +48,10 @@ M5a-6 mutants:
             cell with the same 16-bit limb (vl0 + 256, vl1 - 1 mod P)
   tbig      a write access at time 2^24, time cells encoding it exactly (one cell = 256)
   twrap     a write access at time 2^24, time bytes encoding it mod 2^24
+M5b mutants (`m5a-tool airb`: the STATE rows produce the writes from the execution side's bytes):
+  stkbyte   a key byte of a write changed in the STATE rows (its digest recomputed)
+  stvbyte   a value byte of a write changed in the STATE rows (its digest recomputed)
+  stdrop    a requested write left out of the STATE rows (its accesses kept)
 Branch-value mutants (synthetic case `bval`):
   bvalue    a branch-value write (`oUV`) storing another value-hash byte than the walk's value
   bvmem     a branch-value delete (`oDV`) with memory usage + 1
@@ -76,7 +80,9 @@ import ptrie as PT  # noqa: E402
 import sha512c as S5  # noqa: E402
 
 P = 2013265921
-ID_KEY, ID_BR, ID_SN = 1 << 24, 2 << 24, 3 << 24
+ID_KEY, ID_BR, ID_SN, ID_ST = 1 << 24, 2 << 24, 3 << 24, 4 << 24
+# M5b buses (`St.lean`): execution-side requests / bytes, STATE message descriptors; WRITE, TCH
+B_WRITE, B_TCH, B_SREQ, B_HB, B_DESC = 13, 14, 28, 29, 30
 W_FINAL = 1 << 20
 RK_ANS, RK_H, RK_HB, RK_HE, RK_LD, RK_NONE, RK_SAME = 0, 1, 2, 3, 4, 5, 6
 KMAX, HPMAX = 64, 33
@@ -164,7 +170,10 @@ class Gen:
         self.names = names
         self.D = names['D']
         self.mutant = mutant
-        self.T = {t: Table(t, names[t]) for t in ['KEY', 'BR', 'SN', 'KCMP', 'WSB', 'WSN', 'WSA', 'SNC', 'RNG', 'WSL', 'WSP']}
+        # M5b (`m5a-tool airb`): the STATE rows `STB`/`STW` produce the writes from raw bytes
+        self.m5b = 'STB' in names
+        self.T = {t: Table(t, names[t]) for t in ['KEY', 'BR', 'SN', 'KCMP', 'WSB', 'WSN', 'WSA', 'SNC', 'RNG', 'WSL', 'WSP']
+                  + (['STB', 'STW'] if self.m5b else [])}
         self.rng_count = {}
         self.sha_msgs = []
         self.comps = []
@@ -985,6 +994,7 @@ class Gen:
         self.roots = roots
         self.pre, self.final = pre, final
         self.build_ws()
+        self.build_st()
         self.build_kcmp()
         self.build_keys()
         self.range_versions()
@@ -1049,15 +1059,18 @@ class Gen:
         the first written keys (an overwritten value, to exercise the memory chain), at times
         1, 2, …; cut into `segs` contiguous segments."""
         ws = []
+        chg = dict(self.changes)
         for n, (key, ref) in enumerate(sorted(self.final.items())):
             if n < self.extra_writes:
                 v = b'm5a3-intermediate-%d' % n
-                ws.append((key, (1, len(v), sha(v))))
-            ws.append((key, ref))
+                ws.append((key, (1, len(v), sha(v)), v))
+            ws.append((key, ref, chg[key]))
         S = min(self.segs, len(ws))
         out = []
-        for t, (key, ref) in enumerate(ws):
+        self.raw = {}           # M5b: time -> the raw value written (None: a remove)
+        for t, (key, ref, v) in enumerate(ws):
             out.append((t + 1, t * S // len(ws), key, ref))
+            self.raw[t + 1] = v
         return out, S
 
     def build_ws(self):
@@ -1241,6 +1254,70 @@ class Gen:
             # the dishonest prover leaves one write access out of the trace
             Ta.rows.pop(0)
 
+    # ------------------------------------------------------------------ M5b: STATE rows
+    @staticmethod
+    def st_layout(key, v):
+        """Where the execution side holds a write's key / value (linear-memory addresses)."""
+        return 0, len(key)
+
+    def st_run(self, m, ts, base, data):
+        """`STB` rows of message `m`: the bytes of `data`, read by call `ts` at `base, ...`."""
+        Tb = self.T['STB']
+        self.sha_st_msgs.append(dict(id=ID_ST + m, bytes=data.hex()))   # the second SHA-256 instance
+        for j, b in enumerate(data):
+            r = Tb.new()
+            Tb.set(r, 'act', 1); Tb.set(r, 'm', m); Tb.set(r, 'j', j); Tb.set(r, 'b', b)
+            Tb.set(r, 'ts', ts); Tb.set(r, 'base', base); Tb.set(r, 'last', int(j == len(data) - 1))
+        return m + 1
+
+    def build_st(self):
+        """M5b: one `STW` row per write (request `SREQ`, key / value runs of `STB`, their SHA-256
+        digests, the `WRITE` it sends); the execution side (the public tape on T1) sends `SREQ` and
+        the bytes `HB`."""
+        if not self.m5b:
+            return
+        self.sha_st_msgs = []
+        Tw = self.T['STW']
+        m = 0
+        drop = self.writes[0][0] if self.mutant == 'stdrop' else None
+        for (t, seg, key, ref) in self.writes:
+            if t == drop:
+                continue      # the dishonest prover leaves a requested write out of the STATE rows
+            v = self.raw[t]
+            pr = int(v is not None)
+            kptr, vptr = self.st_layout(key, v)
+            vlen = len(v) if pr else 0
+            assert (pr, vlen) == tuple(ref[:2]) and (not pr or sha(v) == ref[2])
+            mk = m
+            m = self.st_run(m, t, kptr, key)
+            ve = int(pr and vlen == 0)
+            mv = 0
+            if pr and vlen > 0:
+                mv = m
+                m = self.st_run(m, t, vptr, v)
+            r = Tw.new()
+            Tw.set(r, 'act', 1); Tw.set(r, 'seg', seg); Tw.set(r, 'ts', t); Tw.set(r, 'pr', pr)
+            Tw.set(r, 've', ve); Tw.set(r, 'klen', len(key)); Tw.set(r, 'kptr', kptr)
+            Tw.set(r, 'vlen', vlen); Tw.set(r, 'vptr', vptr); Tw.set(r, 'mk', mk); Tw.set(r, 'mv', mv)
+            Tw.setv(r, 'dk', list(sha(key)))
+            Tw.setv(r, 'dv', list(sha(v)) if pr else [0] * 32)
+
+    def st_tape(self):
+        """The execution side's messages on T1: `SREQ(ts, pr, seg, klen, kptr, vlen, vptr)` and the
+        bytes `HB(ts, pos, byte)` of each write's key and value."""
+        tape = []
+        for (t, seg, key, ref) in self.writes:
+            v = self.raw[t]
+            pr = int(v is not None)
+            kptr, vptr = self.st_layout(key, v)
+            vb = v if pr else b''
+            tape.append([B_SREQ, True, [t, pr, seg, len(key), kptr, len(vb), vptr]])
+            for j, b in enumerate(key):
+                tape.append([B_HB, True, [t, kptr + j, b]])
+            for j, b in enumerate(vb):
+                tape.append([B_HB, True, [t, vptr + j, b]])
+        return tape
+
     # ------------------------------------------------------------------ keys and order
     def build_keys(self):
         T = self.T['KEY']
@@ -1338,8 +1415,13 @@ class Gen:
         with open(os.path.join(out, 'pubs.bin'), 'wb') as f:
             f.write(struct.pack('<17I', *pubs))
         tape = []
-        for (t, seg, key, ref) in self.writes:
-            tape.append([13, True, [seg, t] + pack2(sha(key)) + [ref[0], ref[1]] + pack2(ref[2])])
+        if self.m5b:
+            # M5b: the execution side's messages are a second public table (`htape.json`)
+            json.dump(self.st_tape(), open(os.path.join(out, 'htape.json'), 'w'))
+            json.dump(self.sha_st_msgs, open(os.path.join(out, 'sha_msgs_st.json'), 'w'))
+        else:
+            for (t, seg, key, ref) in self.writes:
+                tape.append([B_WRITE, True, [seg, t] + pack2(sha(key)) + [ref[0], ref[1]] + pack2(ref[2])])
         post = self.post_root
         if self.mutant == 'postroot':
             post = bytes([post[0] ^ 1]) + post[1:]
@@ -1661,6 +1743,14 @@ def _wsa_time(g, tb_of):
     assert L.get(l, 'idl') == t0
     L.set(l, 'idl', tn)
     g.writes = [(tn if w[0] == t0 else w[0],) + tuple(w[1:]) for w in g.writes]
+    if g.m5b:
+        # M5b: the execution side issues the request at time 2^24 (its tape, `STW`, `STB` agree)
+        g.raw[tn] = g.raw.pop(t0)
+        for nm in ('STW', 'STB'):
+            Tx = g.T[nm]
+            for q in Tx.rows:
+                if Tx.get(q, 'ts') == t0:
+                    Tx.set(q, 'ts', tn)
 
 
 def _t_tbig(g):
@@ -1675,12 +1765,37 @@ def _t_twrap(g):
     _wsa_time(g, lambda t: [(t >> (8 * k)) & 255 for k in range(3)])
 
 
+# ---- M5b mutants (STATE rows)
+def _st_tamper(g, part):
+    # one byte of the first write's key (`part = 'mk'`) / value (`'mv'`) run changed in `STB`; the
+    # SHA-256 message and the `STW` digest are recomputed (consistently hashed), so the row's
+    # `WRITE` carries the digest of bytes the execution side did not send
+    Tb, Tw = g.T['STB'], g.T['STW']
+    w = next(r for r in Tw.rows if part == 'mk' or (Tw.get(r, 'pr') == 1 and Tw.get(r, 've') == 0))
+    m = Tw.get(w, part)
+    rows = [r for r in Tb.rows if Tb.get(r, 'm') == m]
+    Tb.set(rows[0], 'b', Tb.get(rows[0], 'b') ^ 1)
+    data = bytes(Tb.get(r, 'b') for r in rows)
+    msg = next(x for x in g.sha_st_msgs if x['id'] == ID_ST + m)
+    msg['bytes'] = data.hex()
+    Tw.setv(w, 'dk' if part == 'mk' else 'dv', list(sha(data)))
+
+
+def _t_stkbyte(g):
+    _st_tamper(g, 'mk')
+
+
+def _t_stvbyte(g):
+    _st_tamper(g, 'mv')
+
+
 TAMPERS = dict(lmwrap=_t_lmwrap, vbyte=_t_vbyte, dmono=_t_dmono, bvwrap=_t_bvwrap, absent=_t_absent, extabsent=_t_extabsent, branchval=_t_branchval, split=_t_split,
                splitext=_t_splitext, absdel=_t_absdel, squash=_t_squash, chain=_t_chain,
                verslot=_t_verslot, vernid=_t_vernid, vmcount=_t_vmcount, finroot=_t_finroot,
                nidforge=_t_nidforge, bvalue=_t_bvalue, bvmem=_t_bvmem, wsstale=_t_wsstale,
                wsorder=_t_wsorder, wsseg=_t_wsseg, wssib=_t_wssib, wsdrop=_t_wsdrop, wsabsorb=_t_wsabsorb,
-               wsleaf=_t_wsleaf, nvlbyte=_t_nvlbyte, tbig=_t_tbig, twrap=_t_twrap)
+               wsleaf=_t_wsleaf, nvlbyte=_t_nvlbyte, tbig=_t_tbig, twrap=_t_twrap,
+               stkbyte=_t_stkbyte, stvbyte=_t_stvbyte)
 
 
 def make_gen(st, names, mutant, plan, segs=1, extra_writes=0):

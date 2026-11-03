@@ -4,7 +4,8 @@
 #   MUTANTS="…" picks the mutant battery (default: the four statement-level ones, the T2 row tampers
 #   and the batched-FINAL ones); UNBATCHED=1 writes the first pass (every node hashed, as in M5a);
 #   GENARGS="--segs S --extra-writes N" cuts the write log into S segments / adds intermediate writes
-#   (M5a-3); TARGET_DIR picks the cargo target directory
+#   (M5a-3); TARGET_DIR picks the cargo target directory; M5B=1 exports the M5b AIR (`m5a-tool airb`:
+#   the STATE rows produce the writes from the execution side's raw key / value bytes)
 # Box rules: ≤ 8 threads, HEAVY_MEM=32G, temp files under /data/illia/nearproof-deps.
 set -euo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
@@ -20,7 +21,8 @@ mkdir -p "$OUT"
 [ -f "$OUT/state.json" ] || python3 "$HERE/extract_state.py" "$CASE" "$OUT/lean-full.json" "$OUT/state.json"
 # 2. the AIR, exported from Lean
 ( cd "$HERE/lean" && lake build m5a-tool >/dev/null )
-"$HERE/lean/.lake/build/bin/m5a-tool" air "$D" "$OUT/m5a.json" "$OUT/names.json" > "$OUT/air.txt"
+AIRCMD=air; [ -z "${M5B:-}" ] || AIRCMD=airb
+"$HERE/lean/.lake/build/bin/m5a-tool" "$AIRCMD" "$D" "$OUT/m5a.json" "$OUT/names.json" > "$OUT/air.txt"
 # 2b. the spec oracle: the Lean spec's applyChanges on the revealed pre-state reaches the claimed root
 WANT=$(python3 -c "import json,sys; print(json.load(open(sys.argv[1]))['post_root'])" "$OUT/state.json")
 GOT=$("$HERE/lean/.lake/build/bin/m5a-tool" apply "$OUT/state.json")

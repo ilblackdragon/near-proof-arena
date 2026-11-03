@@ -43,6 +43,9 @@ use std::sync::Arc;
 use std::time::Instant;
 
 const NAMES: &[&str] = &["SHA", "KEY", "BR", "SN", "KCMP", "WSB", "WSN", "WSA", "SNC", "RNG", "WSL", "WSP"];
+/// M5b (`m5a-tool airb`): the M5a tables plus the STATE rows.
+const NAMES_B: &[&str] =
+    &["SHA", "KEY", "BR", "SN", "KCMP", "WSB", "WSN", "WSA", "SNC", "RNG", "WSL", "WSP", "SHAS", "STB", "STW"];
 const P: u64 = 0x7800_0001;
 const LEAN_IF: u16 = 16;
 
@@ -203,6 +206,8 @@ struct Inst {
     mats: Vec<RowMajorMatrix<F>>,
     pubs: Vec<F>,
     tape: BTreeMap<Key, u64>,
+    /// M5b: the execution side's public messages (empty for the M5a AIR)
+    htape: BTreeMap<Key, u64>,
     native: Vec<(Native, RowMajorMatrix<F>)>,
     /// expected interface traffic of the native chip (bus 103), for the precheck
     chip_if: BTreeMap<Key, u64>,
@@ -210,8 +215,11 @@ struct Inst {
 }
 
 fn load(air_path: &str, dir: &str) -> Inst {
-    let mut cl = ClassicalAir::parse(&std::fs::read_to_string(air_path).unwrap(), NAMES);
-    assert_eq!(cl.tables.len(), NAMES.len());
+    let text = std::fs::read_to_string(air_path).unwrap();
+    let nt = serde_json::from_str::<serde_json::Value>(&text).unwrap()["tables"].as_array().unwrap().len();
+    let names = if nt == NAMES_B.len() { NAMES_B } else { NAMES };
+    let mut cl = ClassicalAir::parse(&text, names);
+    assert_eq!(cl.tables.len(), names.len());
     for t in cl.tables.iter_mut() {
         for i in t.inters.iter_mut() {
             i.bus = map_bus(i.bus);
@@ -222,8 +230,10 @@ fn load(air_path: &str, dir: &str) -> Inst {
     let pubs: Vec<F> = pb.chunks(4).map(|c| F::new(u32::from_le_bytes(c.try_into().unwrap()))).collect();
     let (mut spec, mut mats) = (vec![], vec![]);
     for t in cl.tables.iter() {
-        let m = if t.name == "SHA" {
-            let v: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(d.join("sha_msgs.json")).unwrap()).unwrap();
+        // `SHAS` (M5b): the second SHA-256 instance, over the STATE messages
+        let m = if t.name == "SHA" || t.name == "SHAS" {
+            let f = if t.name == "SHA" { "sha_msgs.json" } else { "sha_msgs_st.json" };
+            let v: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(d.join(f)).unwrap()).unwrap();
             let msgs: Vec<sha256gen::Msg> = v
                 .as_array()
                 .unwrap()
@@ -288,9 +298,24 @@ fn load(air_path: &str, dir: &str) -> Inst {
         add(&mut tape, (bus, msg), if send { 1 } else { P - 1 });
     }
     let (ts, tm) = harness("TAPE", &tape, true);
-    spec.push(ts);
-    mats.push(tm);
-    Inst { spec, mats, pubs, tape, native, chip_if, n_comps: comps.len() }
+    // the tape right after the M5a tables (as `tapeTable … :: extra` in Lean)
+    spec.insert(NAMES.len(), ts);
+    mats.insert(NAMES.len(), tm);
+    // M5b: the execution side's messages (`SREQ`, `HB`) on T1, a second public table (last)
+    let mut htape = BTreeMap::new();
+    if let Ok(txt) = std::fs::read_to_string(d.join("htape.json")) {
+        let hv: serde_json::Value = serde_json::from_str(&txt).unwrap();
+        for x in hv.as_array().unwrap() {
+            let bus = map_bus(x[0].as_u64().unwrap() as u16);
+            let send = x[1].as_bool().unwrap();
+            let msg: Vec<u32> = x[2].as_array().unwrap().iter().map(|v| v.as_u64().unwrap() as u32).collect();
+            add(&mut htape, (bus, msg), if send { 1 } else { P - 1 });
+        }
+        let (hs, hm) = harness("HTAPE", &htape, true);
+        spec.push(hs);
+        mats.push(hm);
+    }
+    Inst { spec, mats, pubs, tape, htape, native, chip_if, n_comps: comps.len() }
 }
 
 fn precheck(inst: &Inst) -> Result<(), String> {
@@ -305,7 +330,7 @@ fn precheck(inst: &Inst) -> Result<(), String> {
             traffic(t, m, &inst.pubs, &mut net);
         }
     }
-    for (k, c) in &inst.tape {
+    for (k, c) in inst.tape.iter().chain(inst.htape.iter()) {
         add(&mut net, k.clone(), *c);
     }
     let bad: Vec<_> = net.iter().filter(|(_, c)| **c != 0).collect();
@@ -357,7 +382,12 @@ fn check_statement(eng: &Sha384RefEngine, inst: &Inst, want_pubs: &[F], proof: &
     let ti = inst.spec.iter().position(|t| t.name == "TAPE").unwrap();
     let (_, tm) = harness("TAPE", &inst.tape, true);
     let want = eng.device().commit(&[&ColMajorMatrix::from_row_major(&tm)]).expect("tape root").0;
-    let tape_ok = matches!(&proof.trace_vdata[ti], Some(v) if v.cached_commitments.len() == 1 && v.cached_commitments[0] == want);
+    let mut tape_ok = matches!(&proof.trace_vdata[ti], Some(v) if v.cached_commitments.len() == 1 && v.cached_commitments[0] == want);
+    if let Some(hi) = inst.spec.iter().position(|t| t.name == "HTAPE") {
+        let (_, hm) = harness("HTAPE", &inst.htape, true);
+        let hw = eng.device().commit(&[&ColMajorMatrix::from_row_major(&hm)]).expect("htape root").0;
+        tape_ok &= matches!(&proof.trace_vdata[hi], Some(v) if v.cached_commitments.len() == 1 && v.cached_commitments[0] == hw);
+    }
     let pv_ok = inst.spec.iter().enumerate().all(|(i, t)| {
         let pv: Vec<F> = (0..t.num_pub).map(|k| want_pubs.get(k).copied().unwrap_or(F::ZERO)).collect();
         proof.public_values[i] == pv
