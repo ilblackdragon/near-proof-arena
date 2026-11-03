@@ -987,12 +987,14 @@ class Gen:
 
     def range_versions(self):
         """M5a-5: a version-published (unhashed) node's value bytes are looked up in `RNG`: the
-        branch value hash `nvh` (`BR`), a leaf's payload `nx` (`SN`, `isL`)."""
+        branch value hash `nvh` and length `nvl` (`BR`, M5a-6), a leaf's payload `nx` (`SN`, `isL`)."""
         Tb, Ts = self.T['BR'], self.T['SN']
         for r in Tb.rows:
             if Tb.get(r, 'nref') == 1:
                 for t in range(32):
                     self.rng(Tb.get(r, 'nvh', t))
+                for t in range(4):  # M5a-6: the value-length bytes too
+                    self.rng(Tb.get(r, 'nvl', t))
         for r in Ts.rows:
             if Ts.get(r, 'nref') == 1 and Ts.get(r, 'isL') == 1:
                 for t in range(36):
