@@ -10,6 +10,7 @@ import StateM5a.KeyDecode
 import StateM5a.Steps
 import StateM5a.RowBrF
 import StateM5a.RowHloc
+import StateM5a.RowFacts
 import StateM5a.StepsT2
 import StateM5a.Walk
 import StateM5a.SerInj
@@ -481,3 +482,8 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.FinalOrder.wr_sorted
 #print axioms StateM5a.FinalOrder.fc_sorted
 #print axioms StateM5a.FinalOrder.air_final_sorted
+#print axioms StateM5a.RowDec.cDc_std
+#print axioms StateM5a.RowFacts.br_mono
+#print axioms StateM5a.RowFacts.brRowFacts_of
+#print axioms StateM5a.RowFacts.hloc_air
+#print axioms StateM5a.RowFacts.air_final_sorted_cDc
