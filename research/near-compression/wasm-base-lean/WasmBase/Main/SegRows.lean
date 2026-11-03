@@ -1,4 +1,5 @@
 import WasmBase.SegAir
+import WasmBase.Main.SegHoldsX
 import WasmBase.Main.Rows
 import WasmBase.Main.SegCut
 import NearSpecV3.E2E.Boundary
@@ -283,11 +284,11 @@ theorem cuto_ix_dep : ix Cut.Out.cols "dep" = 59 := by decide
 theorem cuto_ix_k4 : ix Cut.Out.cols "k4" = 53 := by decide
 
 /-- **`dep` counts the `k4` rows, on the trace.** -/
-theorem cuto_dep {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : Holds (wasmBaseSegAir nloc ngl) pub tr) :
+theorem cuto_dep {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsX (wasmBaseSegAir nloc ngl) pub tr) :
     ∀ r, r < tr.height 31 →
       rowNat tr 31 r 59 = ((List.range (r + 1)).map fun i => rowNat tr 31 i 53).sum := by
   have ht : 31 < (wasmBaseSegAir nloc ngl).tables.length := by simp [seg_air_len]
-  have hc := fun r hr => table_constr_eq H ht Cut.Out.table (seg_t31 nloc ngl) (r := r) hr
+  have hc := fun r hr => table_constr_eqX H ht Cut.Out.table (seg_t31 nloc ngl) (r := r) hr
   have hh := H.heightLe 31 ht
   have hpos := H.heightPos 31 ht
   have hP' := P_val
@@ -369,29 +370,30 @@ theorem drop_ix : ix Seg.Drop.cols "act" = 0 ∧ ix Seg.Drop.cols "isT" = 1 ∧ 
 
 /-- A receive with count 1 on a bus whose receive counts are bits has a matching send with a
 nonzero count (the mod-`p` balance cannot be met by sends of count 0). -/
-theorem recv_has_send {A : Air} {tr : Trace} {pub : List F} (H : Holds A pub tr) (b : Nat)
+theorem recv_has_send {A : Air} {tr : Trace} {pub : List F} (H : HoldsX A pub tr) (b : Nat)
     (hbit : ∀ o ∈ occs A tr pub, o.1 = b → o.2.1 = false → o.2.2.2 ≤ 1)
-    {o : Occ} (ho : o ∈ occs A tr pub) (hb : o.1 = b) (hs : o.2.1 = false) (hc : o.2.2.2 = 1) :
+    {o : Occ} (ho : o ∈ occs A tr pub) (hb : o.1 = b) (hs : o.2.1 = false) (hc : o.2.2.2 = 1)
+    (hx : b ≠ extBus := by decide) :
     ∃ o' ∈ occs A tr pub, o'.1 = b ∧ o'.2.1 = true ∧ o'.2.2.1 = o.2.2.1 ∧ o'.2.2.2 ≠ 0 := by
   refine Classical.byContradiction fun hn => ?_
   have h0 : busNat A tr pub b true o.2.2.1 = 0 :=
     busNat_zero fun o' ho' hb' hs' hm' =>
       Classical.byContradiction fun hc' => hn ⟨o', ho', hb', hs', hm', hc'⟩
-  have hbal := H.balance b o.2.2.1
+  have hbal := H.balance b o.2.2.1 hx
   rw [h0] at hbal
   have hge := count_le_busNat ho hb hs rfl
-  have hlt := busNat_lt H b false o.2.2.1 hbit
+  have hlt := busNat_ltX H b false o.2.2.1 hbit
   rw [Nat.mod_eq_of_lt hlt, Nat.zero_mod] at hbal
   omega
 
 /-- The constraints of a `DROP` row, as naturals: `act`, `isT` bits, `isT → act`, and a nonzero
 multiplicity `m` only on a tomb row. -/
-theorem drop_row {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : Holds (wasmBaseSegAir nloc ngl) pub tr)
+theorem drop_row {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsX (wasmBaseSegAir nloc ngl) pub tr)
     {r : Nat} (hr : r < tr.height 18) :
     rowNat tr 18 r 0 ≤ 1 ∧ rowNat tr 18 r 1 ≤ 1 ∧ (rowNat tr 18 r 1 = 1 → rowNat tr 18 r 0 = 1) ∧
       (rowNat tr 18 r 3 ≠ 0 → rowNat tr 18 r 1 = 1 ∧ rowNat tr 18 r 0 = 1) := by
   have ht : 18 < (wasmBaseSegAir nloc ngl).tables.length := by simp [seg_air_len]
-  have hc := table_constr_eq H ht Seg.Drop.table (seg_t18 nloc ngl) hr
+  have hc := table_constr_eqX H ht Seg.Drop.table (seg_t18 nloc ngl) hr
   obtain ⟨i0, i1, i2, i3⟩ := drop_ix
   simp only [Seg.Drop.table, Seg.Drop.constraints, Seg.Drop.c, i0, i1, i3, Chips.bool, v,
     List.forall_mem_cons, List.forall_mem_nil, and_true, Expr.eval_mul', Expr.eval_sub', Expr.eval_col,
@@ -444,7 +446,7 @@ theorem drop_inters_1213 :
 
 /-- Receive counts on buses 12 and 13 are bits (only `DROP` receives there, with `act·isT` and
 `act·(1 − isT)`). -/
-theorem tomb_recv_bits {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : Holds (wasmBaseSegAir nloc ngl) pub tr)
+theorem tomb_recv_bits {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsX (wasmBaseSegAir nloc ngl) pub tr)
     (b : Nat) (hb : b = 12 ∨ b = 13) :
     ∀ o ∈ occs (wasmBaseSegAir nloc ngl) tr pub, o.1 = b → o.2.1 = false → o.2.2.2 ≤ 1 := by
   intro o ho hob hos
@@ -477,7 +479,7 @@ theorem tomb_recv_bits {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : Holds (
 row with the same `c` — it receives `[c]` on bus 12 with count 1 — and some `RET` row sends the
 tombstone `[c]` with a nonzero count `tk` and has `fr_cid = c`: activation `c` has returned. -/
 theorem drop_only_tombstoned {nloc ngl : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseSegAir nloc ngl) pub tr) {r : Nat} (hr : r < tr.height 18)
+    (H : HoldsX (wasmBaseSegAir nloc ngl) pub tr) {r : Nat} (hr : r < tr.height 18)
     (hact : rowNat tr 18 r 0 = 1) (hisT : rowNat tr 18 r 1 = 0) :
     (∃ r', r' < tr.height 18 ∧ rowNat tr 18 r' 0 = 1 ∧ rowNat tr 18 r' 1 = 1 ∧
       rowNat tr 18 r' 2 = rowNat tr 18 r 2) ∧
