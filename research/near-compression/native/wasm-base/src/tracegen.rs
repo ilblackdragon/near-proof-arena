@@ -205,6 +205,56 @@ fn sg(v: u64, w: u32) -> i128 {
     if (v >> (w - 1)) & 1 == 1 { v - (1i128 << w) } else { v }
 }
 
+/// The absent-register header of `wasmBaseM2rAir` (`WasmBase/M2RegAbsent.lean`): per register id,
+/// the producer time of its live **absent** message `[6, rid·2^24, 3, 0,0,0,0, tp]`.  RINIT
+/// produces one per used id at time 0; a fill's length row consumes it (`atp ≤ ts`); a clear's
+/// length row re-produces it at its `ts`.
+#[derive(Default)]
+struct Absent {
+    /// ids used by the run (RINIT rows)
+    used: std::collections::BTreeSet<u64>,
+    /// rid -> producer time of the live absent message (absent = not filled since)
+    live: HashMap<u64, u64>,
+    /// REG row index of a fill length row -> its `atp`
+    rows: HashMap<usize, u64>,
+}
+
+impl Absent {
+    fn fill(&mut self, st: &mut St, row: usize, rid: u64, ts: u64) {
+        // first fill: the RINIT message (time 0); later fills: the one their clear re-produced
+        let atp = if self.used.insert(rid) { 0 } else { self.live.remove(&rid).expect("refill without clear") };
+        assert!(atp <= ts);
+        let d = ts - atp;
+        assert!(d >> 16 < (1 << 14));
+        st.r16(d & 0xffff);
+        st.r16(4 * (d >> 16));
+        self.rows.insert(row, atp);
+    }
+    fn clear(&mut self, rid: u64, ts: u64) {
+        self.live.insert(rid, ts);
+    }
+    /// RINIT (ids strictly increasing, `gap = rid − prev − 1`) and DRAIN rows for the absent
+    /// messages left at the end.
+    fn finish<'a>(&self, spec: &'a TableSpec, drn: &mut Tab<'_>, st: &mut St) -> Tab<'a> {
+        let mut ri = Tab::new(spec);
+        let mut prev: Option<u64> = None;
+        for &rid in self.used.iter() {
+            let gap = prev.map(|p| rid - p - 1).unwrap_or(0);
+            ri.row().u("act", 1).u("rid", rid).u("gap", gap);
+            st.r16(rid);
+            st.r16(gap);
+            prev = Some(rid);
+        }
+        let mut left: Vec<(u64, u64)> = self.live.iter().map(|(&r, &t)| (r, t)).collect();
+        left.sort_unstable();
+        for (rid, tp) in left {
+            drn.row().u("act", 1).u("space", 6).u("slot", rid * (1u64 << 24)).u("tag", 3)
+                .limbs("v", [0, 0, 0, 0]).u("tp", tp).s("inv", fe(6).inverse());
+        }
+        ri
+    }
+}
+
 struct Tab<'a> {
     spec: &'a TableSpec,
     idx: HashMap<String, usize>,
@@ -527,6 +577,9 @@ pub fn generate_cuts(air: &AirSpec, prep: &Prep, cut_at: &[u64]) -> Gen {
     // E2E M2 (`Chips.RegC`): REG-C's `clr` column, the clear group of a register refill
     let has_clr = has_reg && air.tables[air.index("REG")].cols.iter().any(|c| c == "clr");
     let mut clr_rows: std::collections::HashSet<usize> = Default::default();
+    // `wasmBaseM2rAir` (`WasmBase/M2RegAbsent.lean`): REG-A's absent-register header and RINIT
+    let has_absent = has_reg && air.tables.iter().any(|x| x.name == "RINIT");
+    let mut ab = Absent::default();
     let shat = if has_sha { Some(Tab::new(&air.tables[air.index("SHA256")])) } else { None };
     // indexed by **host id**: the table's ids are not contiguous (`abort`/`write_register`
     // reserve 11/14), so the vector must reach the largest id, not the row count
@@ -806,6 +859,7 @@ pub fn generate_cuts(air: &AirSpec, prep: &Prep, cut_at: &[u64]) -> Gen {
                                 clr_rows.insert(reg_rows.len());
                                 reg_rows.push([1, 1, 1, rid, 0, olen, 0, hid, ts, 0, 0, 1, lt, hl, 0,
                                     (olen == 0) as u64, 0, 0, 0, 0, 0]);
+                                ab.clear(rid, ts);
                                 st.r16(olen);
                                 st.r16(rid);
                                 st.r16(0);
@@ -831,6 +885,9 @@ pub fn generate_cuts(air: &AirSpec, prep: &Prep, cut_at: &[u64]) -> Gen {
                             st.r16(blen);
                             st.r16(rid);
                             st.r16(pos as u64);
+                        }
+                        if has_absent {
+                            ab.fill(&mut st, reg_rows.len(), rid, ts);
                         }
                         reg_rows.push([1, 1, 0, rid, 0, blen, 0, hid, ts, 0, 0, 0, 0, 0, 0,
                             (blen == 0) as u64, 0, 0, 0, 0, 0]);
@@ -1787,6 +1844,7 @@ pub fn generate_cuts(air: &AirSpec, prep: &Prep, cut_at: &[u64]) -> Gen {
         drn.row().u("act", 1).u("space", 6).u("slot", rid * (1u64 << 24)).u("tag", 2)
             .limbs("v", [blen, 0, 0, 0]).u("tp", ltp).s("inv", fe(6).inverse());
     }
+    let rinit = if has_absent { Some(ab.finish(t("RINIT"), &mut drn, &mut st)) } else { None };
     // MEMINIT: one row per touched byte, sorted, with its initial byte; DATA multiplicities
     let mut mi = Tab::new(t("MEMINIT"));
     let mut data_mult = vec![0u64; (prep.data_end as usize).max(1)];
@@ -1895,6 +1953,9 @@ pub fn generate_cuts(air: &AirSpec, prep: &Prep, cut_at: &[u64]) -> Gen {
     }
     // `IF` only when the AIR has it; padded by inactive rows so `first`/`last` never land mid-row
     // and the selector constraint `f_if · (f_if − 1) = 0` holds on the padding.
+    if let Some(ri) = rinit {
+        tabs.insert("RINIT".into(), ri);
+    }
     if let (Some(c), Some(u)) = (conv, unr) {
         tabs.insert("CONV".into(), c);
         tabs.insert("UNREACH".into(), u);
@@ -1971,6 +2032,9 @@ pub fn generate_cuts(air: &AirSpec, prep: &Prep, cut_at: &[u64]) -> Gen {
                 let mut r = rg.row();
                 if has_clr {
                     r.u("clr", clr_rows.contains(&ri) as u64);
+                }
+                if let Some(&atp) = ab.rows.get(&ri) {
+                    r.u("atp", atp).u("ahp", (rec[8] - atp) >> 16);
                 }
                 for (k, name) in ["act", "kind", "rd", "rid", "pos", "len", "byte", "hid", "ts",
                     "dir", "gap", "fresh", "tp", "hp", "ptr", "f"].iter().enumerate() {

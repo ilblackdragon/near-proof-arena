@@ -1134,6 +1134,115 @@ fn cmd_tamper(air_path: &str, prep_path: &str) {
             cases.push((format!("REGC[read len row {r}].clr=1"), cell(tr, r, col(tr, "clr"), Box::new(|_| F::ONE))));
         }
     }
+    // REG-A / RINIT (`wasmBaseM2rAir`, `WasmBase/M2RegAbsent.lean`): the absent-register header
+    if let Ok(tr) = std::panic::catch_unwind(|| tb("REG")) {
+        let has_atp = spec.tables[tr].cols.iter().any(|c| c == "atp");
+        let has_clr = spec.tables[tr].cols.iter().any(|c| c == "clr");
+        let (td, tg) = (tb("DRAIN"), tb("RANGE16"));
+        let dcols: Vec<usize> = ["act", "space", "slot", "tag", "v0", "v1", "v2", "v3", "tp", "inv"]
+            .iter().map(|c| col(td, c)).collect();
+        let w = g.mats[tr].width;
+        let nrows = g.rows_per_table[tr].1;
+        let at = |r: usize, c: &str| g.mats[tr].values[r * w + col(tr, c)].as_canonical_u32() as u64;
+        let clr: Vec<usize> = if has_clr { (0..nrows).filter(|&r| at(r, "clr") == 1).collect() } else { vec![] };
+        // DOUBLE FILL: the refill's clear group becomes a plain read group (`clr = 0`) and the
+        // messages it re-produces are drained, so the old register stays live until DRAIN and the
+        // fill overwrites a live register.  `wasmBaseM2Air` accepts this (no header);
+        // `wasmBaseM2rAir` must reject it: the fill consumes an absent message nobody produced.
+        if let Some(&rl) = clr.iter().find(|&&r| at(r, "kind") == 1) {
+            let mut drains: Vec<[u64; 8]> = vec![];
+            for &r in clr.iter() {
+                let (rid, ts) = (at(r, "rid"), at(r, "ts"));
+                drains.push(if at(r, "kind") == 0 {
+                    [6, rid * (1 << 24) + at(r, "pos") + 1, 0, at(r, "byte"), 0, 0, 0, ts]
+                } else {
+                    [6, rid * (1 << 24), 2, at(r, "len"), 0, 0, 0, ts]
+                });
+            }
+            let (clr2, cclr, dcols2) = (clr.clone(), col(tr, "clr"), dcols.clone());
+            let double = move |g: &mut Gen| {
+                let w = g.mats[tr].width;
+                for &r in clr2.iter() {
+                    g.mats[tr].values[r * w + cclr] = F::ZERO;
+                }
+                for m in drains.iter() {
+                    push_drain(g, td, &dcols2, *m);
+                }
+            };
+            let name = format!("REGA[double fill: clear group ending row {rl} -> read + DRAIN]");
+            if has_atp {
+                cases.push((name, Box::new(double.clone())));
+                // the same, the fill claiming the RINIT absent message (time 0) instead
+                // (the header is consumed on the fill group's **length** row)
+                let fr = (rl + 1..nrows).find(|&r| at(r, "kind") == 1).unwrap();
+                let ts = at(fr, "ts");
+                let (catp, cahp) = (col(tr, "atp"), col(tr, "ahp"));
+                cases.push((format!("REGA[double fill, fill row {fr} atp=0 (RINIT message)]"), Box::new(move |g: &mut Gen| {
+                    double(g);
+                    let w = g.mats[tr].width;
+                    g.mats[tr].values[fr * w + catp] = F::ZERO;
+                    g.mats[tr].values[fr * w + cahp] = F::from_u64(ts >> 16);
+                    // re-answer the `atp ≤ ts` range checks (honest atp = ts: queries 0, 0)
+                    g.mats[tg].values[1] -= F::from_u64(2);
+                    bump_r16(g, tg, ts & 0xffff);
+                    bump_r16(g, tg, 4 * (ts >> 16));
+                })));
+            } else {
+                expected_accept.push((format!("{name} (no absent header)"), Box::new(double)));
+            }
+        }
+        if has_atp {
+            // a forged absent message: the fill consumes one at a time nobody produced
+            if let Some(r) = (0..nrows).find(|&r| at(r, "act") == 1 && at(r, "kind") == 1 && at(r, "rd") == 0) {
+                cases.push((format!("REGA[fill len row {r}].atp+1"), cell(tr, r, col(tr, "atp"), plus1())));
+            }
+            // `cLenAct`: a fill group with bytes ending in an inactive length row (no header consumed)
+            if let Some(r) = (0..nrows).find(|&r| at(r, "act") == 1 && at(r, "kind") == 1 && at(r, "rd") == 0 && at(r, "f") == 0) {
+                cases.push((format!("REGA[fill len row {r}].act=0"), cell(tr, r, col(tr, "act"), Box::new(|_| F::ZERO))));
+            }
+            let ti = tb("RINIT");
+            let n = g.rows_per_table[ti].1;
+            let wi = g.mats[ti].width;
+            if n > 0 {
+                let (ca, cr, cg) = (col(ti, "act"), col(ti, "rid"), col(ti, "gap"));
+                cases.push(("RINIT[row 0].act=0".into(), cell(ti, 0, ca, Box::new(|_| F::ZERO))));
+                cases.push(("RINIT[row 0].rid+1".into(), cell(ti, 0, cr, plus1())));
+                let last = g.mats[ti].values[(n - 1) * wi + cr].as_canonical_u32() as u64;
+                // extra active rows after the last one, each draining its absent message and with
+                // its `rid` range check answered, so only the order rule can catch them.  `gap` is
+                // chosen to satisfy `cInc` in the field (`gap = rid' − rid − 1 mod p`), which is
+                // exactly what the R16 lookup on `gap` must refuse.
+                let extra = |rows: Vec<u64>| -> Mut {
+                    let dcols = dcols.clone();
+                    Box::new(move |g: &mut Gen| {
+                        let mut prev = last;
+                        for (k, &rid) in rows.iter().enumerate() {
+                            let r = n + k;
+                            let wi = g.mats[ti].width;
+                            if (r + 1) * wi > g.mats[ti].values.len() {
+                                let l = g.mats[ti].values.len();
+                                g.mats[ti].values.resize(2 * l, F::ZERO);
+                            }
+                            let gap = F::from_u64(rid) - F::from_u64(prev) - F::ONE;
+                            g.mats[ti].values[r * wi + ca] = F::ONE;
+                            g.mats[ti].values[r * wi + cr] = F::from_u64(rid);
+                            g.mats[ti].values[r * wi + cg] = gap;
+                            g.rows_per_table[ti].1 = r + 1;
+                            bump_r16(g, tg, rid);
+                            let gv = gap.as_canonical_u32() as u64;
+                            if gv < 65536 {
+                                bump_r16(g, tg, gv);
+                            }
+                            push_drain(g, td, &dcols, [6, rid * (1 << 24), 3, 0, 0, 0, 0, 0]);
+                            prev = rid;
+                        }
+                    })
+                };
+                cases.push((format!("RINIT[duplicate id {last}]"), extra(vec![last])));
+                cases.push((format!("RINIT[unsorted ids {}, {}]", last + 2, last + 1), extra(vec![last + 2, last + 1])));
+            }
+        }
+    }
     // `TAMPER_ONLY=CONV,UNREACH`: run only the cases whose name starts with one of the prefixes
     if let Ok(only) = std::env::var("TAMPER_ONLY") {
         let pre: Vec<String> = only.split(',').map(|s| s.to_string()).collect();
@@ -1185,6 +1294,30 @@ fn cmd_tamper(air_path: &str, prep_path: &str) {
         println!("TAMPER-GAP {name:<28} {} ({pre})", if rej { "rejected" } else { "verifies (documented gap)" });
     }
     assert_eq!(rejected, total);
+}
+
+/// Tamper helper: append an active DRAIN row consuming `msg = [space, slot, tag, v0..v3, tp]`
+/// (doubling the matrix height when no padding row is left).
+fn push_drain(g: &mut Gen, td: usize, dcols: &[usize], msg: [u64; 8]) {
+    use p3_field::Field;
+    let w = g.mats[td].width;
+    let r = g.rows_per_table[td].1;
+    if (r + 1) * w > g.mats[td].values.len() {
+        let l = g.mats[td].values.len();
+        g.mats[td].values.resize(2 * l, F::ZERO);
+    }
+    g.mats[td].values[r * w + dcols[0]] = F::ONE;
+    for k in 0..8 {
+        g.mats[td].values[r * w + dcols[1 + k]] = F::from_u64(msg[k]);
+    }
+    g.mats[td].values[r * w + dcols[9]] = F::from_u64(msg[0]).inverse();
+    g.rows_per_table[td].1 = r + 1;
+}
+
+/// Tamper helper: answer one more R16 query of value `v` (RANGE16's multiplicity column `m`).
+fn bump_r16(g: &mut Gen, tg: usize, v: u64) {
+    let w = g.mats[tg].width;
+    g.mats[tg].values[v as usize * w + 1] += F::ONE;
 }
 
 fn dag_eval(vk: &MultiStarkVerifyingKey<Sha384Config>, ai: usize, cached: usize, cur: &[F], nxt: &[F], pubs: &[F], sel: [F; 3]) -> (Vec<F>, Vec<(u16, F, Vec<F>)>) {
