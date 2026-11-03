@@ -261,4 +261,98 @@ theorem cidm_provider {r : Nat} (hr : r < tr.height 31) {i : Inter}
 
 end
 
+/-! ## 3. The two CIDMAP queries of an active CUTO row, resolved -/
+
+/-- The activation id of a locals row (`space − 16`), as a natural: `clo + 2^13·u`, `u` the R16-checked
+value of `8·chi`. -/
+def cutoCL (tr : Trace) (r : Nat) : Nat :=
+  rowNat tr 31 r 57 + 8192 * (((8 : Nat) : F) * ((rowNat tr 31 r 58 : Nat) : F)).toNat
+
+theorem f_eq_add_of_sub {a b : F} {k : Nat} (h : a - ((k : Nat) : F) = b) : a = b + ((k : Nat) : F) := by grind
+
+section
+variable {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsX (wasmBaseSegAir nloc ngl) pub tr)
+include H
+
+/-- **A locals row's query.**  On an active `kL` row the consumed space is `16 + cutoCL` (no wrap,
+`cutoCL < 2^30`), and either the id is 0 and `F0 = 16` (SEGB's entry) or an active `k4` row has slot
+`cutoCL` and `F0 = 16 + F1'`. -/
+theorem cuto_kL_lookup (hl : CutoHiLimbs tr) {r : Nat} (hr : r < tr.height 31) (ha : rowNat tr 31 r 0 = 1)
+    (hL : rowNat tr 31 r 56 = 1) :
+    rowNat tr 31 r 47 = 16 + cutoCL tr r ∧ cutoCL tr r < 2 ^ 30 ∧
+      ((cutoCL tr r = 0 ∧ cutoF tr r 0 = 16) ∨
+       ∃ r', r' < tr.height 31 ∧ rowNat tr 31 r' 53 = 1 ∧ rowNat tr 31 r' 0 = 1 ∧
+         rowNat tr 31 r' 48 = cutoCL tr r ∧ cutoF tr r 0 = 16 + cutoF tr r' 1) := by
+  obtain ⟨i47, -, -, -, -, -, -, -, -, i56, i57, i58, -⟩ := cuto_ix2
+  have hP := P_val
+  have hc : ((Cut.Out.c "kL").eval (tr.row pub 31 r)).toNat = 1 := by
+    rw [cuto_evalc tr pub r i56, hL]; rfl
+  have l1 := cuto_inter H hr (e := Cut.Out.c "clo") (c := Cut.Out.c "kL") (by simp [Cut.Out.inters]) hc
+  have l2 := cuto_inter H hr (e := 8 * Cut.Out.c "chi") (c := Cut.Out.c "kL") (by simp [Cut.Out.inters]) hc
+  simp only [cuto_evalc tr pub r i57, Expr.eval_mul', Expr.eval_ofNat', cuto_evalc tr pub r i58,
+    Fp.toNat_cast_of_lt (rowNat_lt tr 31 r 57)] at l1 l2
+  have hb := big_of_r16 ((rowNat tr 31 r 58 : Nat) : F) 3 (by omega)
+  have hlt : cutoCL tr r < 2 ^ 30 := by
+    unfold cutoCL; have : (((8 : Nat) : F) * ((rowNat tr 31 r 58 : Nat) : F)).toNat < 65536 := l2; omega
+  have hsp := (cuto_fieldfacts H hl hr ha).2.1 hL
+  rw [hb] at hsp
+  have e47 : ((rowNat tr 31 r 47 : Nat) : F) = ((16 + cutoCL tr r : Nat) : F) := by
+    rw [hsp]; unfold cutoCL
+    simp only [Lean.Grind.Semiring.natCast_add, Lean.Grind.Semiring.natCast_mul]
+    have : ((2 ^ (16 - 3) : Nat) : F) = ((8192 : Nat) : F) := rfl
+    rw [this]; grind
+  have h47 := natEq e47 (rowNat_lt tr 31 r 47) (by omega)
+  refine ⟨h47, hlt, ?_⟩
+  have hF0 := cutoF_lt H hl hr ha (k := 0) (by omega)
+  have hmem : (⟨busCidm, false, Cut.Out.c "kL", [Cut.Out.c "space" - 16, Cut.Out.F 0 - 16]⟩ : Inter) ∈
+      Cut.Out.table.inters := by simp [Cut.Out.table, Cut.Out.inters]
+  rcases cidm_provider H hr hmem rfl rfl hc with h | ⟨r', hr', h53, ha', h⟩
+  · simp only [List.map_cons, List.map_nil, Expr.eval_sub', Expr.eval_ofNat', cuto_evalc tr pub r i47,
+      cuto_evalF tr pub r (show 0 < 7 by omega), List.cons.injEq, and_true] at h
+    obtain ⟨a, b⟩ := h
+    have a' := f_sub_eq a; have b' := f_sub_eq b
+    left; constructor
+    · have := natEq a' (rowNat_lt tr 31 r 47) (by decide); omega
+    · exact natEq b' (by omega) (by decide)
+  · simp only [List.map_cons, List.map_nil, Expr.eval_sub', Expr.eval_ofNat', cuto_evalc tr pub r i47,
+      cuto_evalF tr pub r (show 0 < 7 by omega), List.cons.injEq, and_true] at h
+    obtain ⟨a, b⟩ := h
+    have hF1 := cutoF_lt H hl hr' ha' (k := 1) (by omega)
+    right; refine ⟨r', hr', h53, ha', ?_, ?_⟩
+    · have a' := f_eq_add_of_sub a
+      rw [e47] at a'
+      have : ((cutoCL tr r : Nat) : F) = ((rowNat tr 31 r' 48 : Nat) : F) := by
+        simp only [Lean.Grind.Semiring.natCast_add] at a'; grind
+      exact (natEq this (by omega) (rowNat_lt tr 31 r' 48)).symm
+    · have b' := f_eq_add_of_sub b
+      have : ((cutoF tr r 0 : Nat) : F) = ((16 + cutoF tr r' 1 : Nat) : F) := by
+        rw [b']; simp only [Lean.Grind.Semiring.natCast_add]; grind
+      exact natEq this (by omega) (by omega)
+
+/-- **A record row's query.**  On an active `k4` row, either the caller id `x2` is 0 and `F5 = 0`
+(SEGB's entry) or an active `k4` row has slot `x2` and `F5 = F1'`. -/
+theorem cuto_k4_lookup (hl : CutoHiLimbs tr) {r : Nat} (hr : r < tr.height 31) (ha : rowNat tr 31 r 0 = 1)
+    (h4 : rowNat tr 31 r 53 = 1) :
+    (rowNat tr 31 r 49 = 0 ∧ cutoF tr r 5 = 0) ∨
+      ∃ r', r' < tr.height 31 ∧ rowNat tr 31 r' 53 = 1 ∧ rowNat tr 31 r' 0 = 1 ∧
+        rowNat tr 31 r' 48 = rowNat tr 31 r 49 ∧ cutoF tr r 5 = cutoF tr r' 1 := by
+  obtain ⟨-, -, i49, -, -, -, i53, -⟩ := cuto_ix2
+  have hP := P_val
+  have hc : ((Cut.Out.c "k4").eval (tr.row pub 31 r)).toNat = 1 := by
+    rw [cuto_evalc tr pub r i53, h4]; rfl
+  have hF5 := cutoF_lt H hl hr ha (k := 5) (by omega)
+  have hmem : (⟨busCidm, false, Cut.Out.c "k4", [Cut.Out.c "x2", Cut.Out.F 5]⟩ : Inter) ∈
+      Cut.Out.table.inters := by simp [Cut.Out.table, Cut.Out.inters]
+  rcases cidm_provider H hr hmem rfl rfl hc with h | ⟨r', hr', h53, ha', h⟩
+  · simp only [List.map_cons, List.map_nil, cuto_evalc tr pub r i49,
+      cuto_evalF tr pub r (show 5 < 7 by omega), List.cons.injEq, and_true] at h
+    left; exact ⟨natEq h.1 (rowNat_lt tr 31 r 49) (by decide), natEq h.2 (by omega) (by decide)⟩
+  · simp only [List.map_cons, List.map_nil, cuto_evalc tr pub r i49,
+      cuto_evalF tr pub r (show 5 < 7 by omega), List.cons.injEq, and_true] at h
+    have hF1 := cutoF_lt H hl hr' ha' (k := 1) (by omega)
+    right; exact ⟨r', hr', h53, ha', (natEq h.1 (rowNat_lt tr 31 r 49) (rowNat_lt tr 31 r' 48)).symm,
+      natEq h.2 (by omega) (by omega)⟩
+
+end
+
 end WasmBase
