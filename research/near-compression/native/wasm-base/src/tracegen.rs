@@ -255,6 +255,77 @@ impl Absent {
     }
 }
 
+/// `abort(msg_ptr, file_ptr, line, col)` (`Host.lean`): the memory it reads, as HOSTB request
+/// groups `(whid, len, ptr)` in the spec's order of reads — the two 4-byte length prefixes at
+/// `ptr − 4`, then the two UTF-16 strings (`hid 51 + 256·k`).  None when a pointer is `< 4` or a
+/// read is out of bounds (the spec errors before or at that read; nothing is bound).
+fn abort_groups(mem: &mut Mem, args: &[u64]) -> Vec<(u64, u64, u64)> {
+    let (mp, fp) = (args[0] & 0xffff_ffff, args[1] & 0xffff_ffff);
+    if mp < 4 || fp < 4 || mp > mem.size || fp > mem.size {
+        return vec![];
+    }
+    let le = |mem: &mut Mem, p: u64| (0..4).map(|i| mem.get(p - 4 + i).0 << (8 * i)).sum::<u64>();
+    let (ml, fl) = (le(mem, mp), le(mem, fp));
+    if mp + ml > mem.size || fp + fl > mem.size {
+        return vec![];
+    }
+    // one string for both (an interned literal): read once; the file is the message
+    if fp == mp {
+        return vec![(51, 4, mp - 4), (51 + 256, ml, mp)];
+    }
+    assert!(fp + fl <= mp - 4 || mp + ml <= fp - 4, "abort: overlapping message and file strings");
+    vec![(51, 4, mp - 4), (51 + 512, 4, fp - 4), (51 + 256, ml, mp), (51 + 768, fl, fp)]
+}
+
+/// `wasmBaseM3Air` (`WasmBase/M3Air.lean`): the memory-size message `[8, 0, 0, pages, 0,0,0, tp]`
+/// and the MEMG grow rows (for their lookup multiplicity `gm`).
+struct M3 {
+    pages: u64,
+    tp: u64,
+    /// MEMG row index and `(ts, old, new)` of every grow row
+    grows: Vec<(usize, u64, u64, u64)>,
+}
+
+impl M3 {
+    fn new(prep: &Prep) -> Self {
+        M3 { pages: prep.mem / 65536, tp: 0, grows: vec![] }
+    }
+    /// HOST-W tags of host `hid` from the statement's host table row `[id, np, ar, tmask, ri, ..]`.
+    fn host_tags(prep: &Prep, hid: u64) -> (u64, u64) {
+        prep.host_tab.iter().find(|r| r[0] == hid).map(|r| (r[3], r[4])).unwrap_or((0, 0))
+    }
+    /// MSZ (the initial size message), GINIT (one row per touched grown byte, sorted) with the
+    /// MEMG rows' `gm`, and the DRAIN row of the final size message.
+    fn finish<'a>(&self, memg: &mut Tab<'_>, mem: &Mem, msz: &'a TableSpec, gi: &'a TableSpec, drn: &mut Tab<'_>,
+                  st: &mut St) -> (Tab<'a>, Tab<'a>) {
+        let mut ms = Tab::new(msz);
+        ms.row().u("act", 1).u("pg", mem.prep.mem / 65536);
+        st.r16(mem.prep.mem / 65536);
+        let mut gt = Tab::new(gi);
+        let mut gm: HashMap<u64, u64> = HashMap::new();
+        let mut prev: Option<u64> = None;
+        for (&a, &(tg, old, new)) in mem.ginit.iter() {
+            let gap = prev.map(|p| a - p - 1).unwrap_or(0);
+            let (d, e) = (a - 65536 * old, 65536 * new - 1 - a);
+            gt.row().u("act", 1).u("ad", a).u("tg", tg).u("old", old).u("new", new)
+                .u("glo", gap & 0xffff).u("ghi", gap >> 16).u("dlo", d & 0xffff).u("dhi", d >> 16)
+                .u("elo", e & 0xffff).u("ehi", e >> 16);
+            for x in [gap & 0xffff, gap >> 16, 32 * (gap >> 16), d & 0xffff, d >> 16, 32 * (d >> 16), e & 0xffff, e >> 16, 32 * (e >> 16)] {
+                st.r16(x);
+            }
+            *gm.entry(tg).or_insert(0) += 1;
+            prev = Some(a);
+        }
+        let kg = memg.idx["gm"];
+        for &(ri, ts, _, _) in self.grows.iter() {
+            memg.rows[ri][kg] = fe(gm.get(&ts).copied().unwrap_or(0));
+        }
+        drn.row().u("act", 1).u("space", 8).u("slot", 0).u("tag", 0).limbs("v", [self.pages, 0, 0, 0])
+            .u("tp", self.tp).s("inv", fe(8).inverse());
+        (ms, gt)
+    }
+}
+
 struct Tab<'a> {
     spec: &'a TableSpec,
     idx: HashMap<String, usize>,
@@ -398,13 +469,25 @@ struct Mem<'p> {
     base_tp: u64,
     /// E2E M4: 1 KiB blocks accessed since the last cut
     touched: std::collections::BTreeSet<u64>,
+    /// E2E M3 (`memory.grow`): the current memory size in bytes, the successful grows
+    /// `(tg, old_pages, new_pages)`, and the grown bytes touched (GINIT rows: address -> its grow)
+    size: u64,
+    grows: Vec<(u64, u64, u64)>,
+    ginit: std::collections::BTreeMap<u64, (u64, u64, u64)>,
 }
 impl Mem<'_> {
     fn get(&mut self, a: u64) -> (u64, u64) {
-        assert!(a < self.prep.mem, "memory access out of bounds at {a}: the trap is not provable");
+        assert!(a < self.size, "memory access out of bounds at {a}: the trap is not provable");
         self.touched.insert(a >> 10);
         if let Some(&e) = self.cur.get(&a) {
             return e;
+        }
+        if a >= self.prep.mem {
+            // a grown byte: zero, produced by GINIT at its grow's time
+            let g = *self.grows.iter().find(|g| 65536 * g.1 <= a && a < 65536 * g.2).expect("grown byte");
+            self.ginit.insert(a, g);
+            self.cur.insert(a, (0, g.0));
+            return (0, g.0);
         }
         let b = if a < self.prep.data_end { self.prep.data[a as usize] } else { 0 };
         self.init.insert(a, b);
@@ -580,6 +663,10 @@ pub fn generate_cuts(air: &AirSpec, prep: &Prep, cut_at: &[u64]) -> Gen {
     // `wasmBaseM2rAir` (`WasmBase/M2RegAbsent.lean`): REG-A's absent-register header and RINIT
     let has_absent = has_reg && air.tables.iter().any(|x| x.name == "RINIT");
     let mut ab = Absent::default();
+    // `wasmBaseM3Air` (`WasmBase/M3Air.lean`): HOST-W argument/result tags, MEMG/MSZ/GINIT
+    let has_m3 = air.tables.iter().any(|x| x.name == "MEMG");
+    let mut m3 = M3::new(prep);
+    let mut memg = if has_m3 { Some(Tab::new(&air.tables[air.index("MEMG")])) } else { None };
     let shat = if has_sha { Some(Tab::new(&air.tables[air.index("SHA256")])) } else { None };
     // indexed by **host id**: the table's ids are not contiguous (`abort`/`write_register`
     // reserve 11/14), so the vector must reach the largest id, not the row count
@@ -605,7 +692,8 @@ pub fn generate_cuts(air: &AirSpec, prep: &Prep, cut_at: &[u64]) -> Gen {
     let mut func_calls: Vec<u64> = vec![0; prep.funcs.len()];
     // dead callee locals `(space, slot, entry)`, left over in the channel after their frame returned
     let mut dead: Vec<(u64, u64, Ent)> = vec![];
-    let mut mem = Mem { prep, cur: Default::default(), init: Default::default(), base_tp: 0, touched: Default::default() };
+    let mut mem = Mem { prep, cur: Default::default(), init: Default::default(), base_tp: 0, touched: Default::default(),
+        size: prep.mem, grows: vec![], ginit: Default::default() };
     // E2E M4: cut snapshots, the gas register `(S_seg, segb, tp)`, tombstones of this segment,
     // memory values at this segment's start
     let mut cuts: Vec<CutSnap> = vec![];
@@ -743,7 +831,8 @@ pub fn generate_cuts(air: &AirSpec, prep: &Prep, cut_at: &[u64]) -> Gen {
                 // pop `np` entries top-first and then reverse.
                 let mut popped = Vec::new();
                 for _ in 0..np {                    let a = stack.pop().unwrap();
-                    assert_eq!(a.tag, 1, "host arguments are i64");
+                    // HOST-W (`has_m3`): the tag is the host table's (`tmask`), checked below
+                    assert!(has_m3 || a.tag == 1, "host arguments are i64");
                     popped.push(a);
                 }
                 popped.reverse();
@@ -766,12 +855,20 @@ pub fn generate_cuts(air: &AirSpec, prep: &Prep, cut_at: &[u64]) -> Gen {
                         r.u("rr", 0).s("rrInv", (fe(hid) - fe(49)).inverse());
                     }
                 }
+                let (tmask, ri) = M3::host_tags(prep, hid);
+                if has_m3 {
+                    r.u("tmask", tmask).u("ri", ri);
+                }
                 r.limbs("ga", gl);
                 r.limbs("r", rl);
                 for j in 0..HOST_NARGS {
                     let pl = limbs(args[j as usize]);
                     let present = (j < np) as u64;
-                    let tag = present; // i64
+                    let tag = if has_m3 { present * (1 - ((tmask >> j) & 1)) } else { present }; // i64 = 1
+                    if has_m3 {
+                        assert!(present == 0 || popped[j as usize].tag == tag, "host argument tag");
+                        r.u(&format!("ti{j}"), present * ((tmask >> j) & 1));
+                    }
                     r.u(&format!("pf{j}"), present).u(&format!("tagP{j}"), tag);
                     r.limbs(&format!("P{j}_"), pl);
                     r.u(&format!("tP{j}"), 0).u(&format!("hP{j}"), 0);
@@ -1018,13 +1115,16 @@ pub fn generate_cuts(air: &AirSpec, prep: &Prep, cut_at: &[u64]) -> Gen {
                         groups.push((hid + 256, args[2], args[3]));
                     }
                 }
+                if has_m3 && hid == 51 {
+                    groups.extend(abort_groups(&mut mem, &args));
+                }
                 for (whid, blen, ptr) in groups {
                     if blen == u64::MAX || blen == 0 {
                         continue;
                     }
                     // pre-M1 AIRs keep their 40-byte KAT cap; the M1 AIR moves the whole buffer
                     let blen = if has_regw { blen } else { blen.min(40) };
-                    if ptr.checked_add(blen).map_or(true, |e| e > prep.mem) {
+                    if ptr.checked_add(blen).map_or(true, |e| e > mem.size) {
                         continue;
                     }
                     assert!(blen < 65536, "host buffer of {blen} bytes: HOSTB len is 16-bit");
@@ -1092,7 +1192,7 @@ pub fn generate_cuts(air: &AirSpec, prep: &Prep, cut_at: &[u64]) -> Gen {
                     }
                 }
                 if ev.st == 0 && ar == 1 {
-                    stack.push(Ent { tag: 1, val: ev.word, tp: ts });
+                    stack.push(Ent { tag: 1 - M3::host_tags(prep, hid).1 * has_m3 as u64, val: ev.word, tp: ts });
                 } else {
                     assert!(ar == 0 || ev.st == 1);
                     if ev.st == 1 {
@@ -1766,6 +1866,46 @@ pub fn generate_cuts(air: &AirSpec, prep: &Prep, cut_at: &[u64]) -> Gen {
                 r.u("act", 1);
                 trapped = true;
             }
+            0x3F | 0x40 if has_m3 => {
+                // MEMG: `memory.size` / `memory.grow` on the size message (space 8)
+                let hz = st.tchk(ts, m3.tp);
+                let old = m3.pages;
+                let mg = memg.as_mut().unwrap();
+                let ri = mg.rows.len();
+                let mut r = mg.row();
+                hdr(&mut r);
+                r.u("old", old).u("tz", m3.tp).u("hz", hz);
+                if op == 0x3F {
+                    r.u("f_size", 1);
+                    stack.push(Ent { tag: 0, val: old, tp: ts });
+                    for x in [old, 0, 0, 0, 0] {
+                        st.r16(x);
+                    }
+                } else {
+                    let a = stack.pop().unwrap();
+                    assert_eq!(a.tag, 0, "memory.grow pops an i32");
+                    let n = a.val;
+                    assert!(n < (1 << 27), "memory.grow by {n} pages: n < 2^27 is not provable");
+                    let hn = st.tchk(ts, a.tp);
+                    let lin = rec[4];
+                    let ok = old + n <= 2048;
+                    let (d, e) = if ok { (2048 - old - n, 0) } else { (0, old + n - 2049) };
+                    r.u("f_grow", 1).u("n0", n & 0xffff).u("n1", n >> 16).u("tn", a.tp).u("hn", hn)
+                        .u("ok", ok as u64).u("lin", lin).u("d", d).u("e0", e & 0xffff).u("e1", e >> 16);
+                    for x in [n & 0xffff, n >> 16, 32 * (n >> 16), old, d, e & 0xffff, e >> 16, 32 * (e >> 16)] {
+                        st.r16(x);
+                    }
+                    if ok {
+                        m3.pages = old + n;
+                        mem.size = 65536 * m3.pages;
+                        mem.grows.push((ts, old, old + n));
+                        m3.grows.push((ri, ts, old, old + n));
+                    }
+                    stack.push(Ent { tag: 0, val: if ok { old } else { 0xFFFF_FFFF }, tp: ts });
+                    extra = lin * n;
+                }
+                m3.tp = ts;
+            }
             OP_MEMGROW_X | OP_MEMSIZE_X | OP_HOST_X => {
                 panic!("unchipped opcode {op:#x} at pc {pc} (M2: admitted, no chip; the run is out of the proved domain)")
             }
@@ -1845,6 +1985,7 @@ pub fn generate_cuts(air: &AirSpec, prep: &Prep, cut_at: &[u64]) -> Gen {
             .limbs("v", [blen, 0, 0, 0]).u("tp", ltp).s("inv", fe(6).inverse());
     }
     let rinit = if has_absent { Some(ab.finish(t("RINIT"), &mut drn, &mut st)) } else { None };
+    let m3t = memg.as_mut().map(|mg| m3.finish(mg, &mem, t("MSZ"), t("GINIT"), &mut drn, &mut st));
     // MEMINIT: one row per touched byte, sorted, with its initial byte; DATA multiplicities
     let mut mi = Tab::new(t("MEMINIT"));
     let mut data_mult = vec![0u64; (prep.data_end as usize).max(1)];
@@ -1955,6 +2096,11 @@ pub fn generate_cuts(air: &AirSpec, prep: &Prep, cut_at: &[u64]) -> Gen {
     // and the selector constraint `f_if · (f_if − 1) = 0` holds on the padding.
     if let Some(ri) = rinit {
         tabs.insert("RINIT".into(), ri);
+    }
+    if let (Some(mg), Some((ms, gi))) = (memg, m3t) {
+        tabs.insert("MEMG".into(), mg);
+        tabs.insert("MSZ".into(), ms);
+        tabs.insert("GINIT".into(), gi);
     }
     if let (Some(c), Some(u)) = (conv, unr) {
         tabs.insert("CONV".into(), c);
