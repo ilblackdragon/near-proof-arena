@@ -171,3 +171,4 @@ import WasmBase.Main.HostTwoRun
 import WasmBase.Main.HostTwoRunArms
 import WasmBase.Main.HostTwoRunCall
 import WasmBase.Main.HostTwoRunStep
+import WasmBase.Main.HostSigmaBridge
