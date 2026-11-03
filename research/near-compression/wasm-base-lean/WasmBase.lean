@@ -155,3 +155,5 @@ import WasmBase.Main.SegMembS
 import WasmBase.Main.SegMemMembS
 import WasmBase.Main.SegMemRootMP
 import WasmBase.Main.SegChainMemMP
+import WasmBase.Main.SegKey
+import WasmBase.Main.SegSoundK
