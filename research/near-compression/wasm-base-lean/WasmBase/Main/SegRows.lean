@@ -107,7 +107,7 @@ theorem split_key {b s c2 m : Nat} :
 
 /-- **The `s5` split, fixed.**  MEMB's two R16 queries `8192·s5`, `2048·(b5 − 32·s5)` *plus* a bound
 `s5 < 2^16` (not in the current AIR) give `s5 = b5 / 32`. -/
-theorem split5_of_r16 {b s : Nat} (hb : b < 256) (hs : s < 2 ^ 16)
+theorem split5_of_r16 {b s : Nat} (hb : b < 256) (hs : s < 256)
     (h1 : (((8192 : Nat) : F) * ((s : Nat) : F)).toNat < 65536)
     (h2 : (((2048 : Nat) : F) * (((b : Nat) : F) - ((32 : Nat) : F) * ((s : Nat) : F))).toNat < 65536) :
     s = b / 32 := by
@@ -117,7 +117,7 @@ theorem split5_of_r16 {b s : Nat} (hb : b < 256) (hs : s < 2 ^ 16)
   omega
 
 /-- **The `s2` split, fixed.**  `1024·s2`, `16384·(b2 − 4·s2)` plus `s2 < 2^16` give `s2 = b2 / 4`. -/
-theorem split2_of_r16 {b s : Nat} (hb : b < 256) (hs : s < 2 ^ 16)
+theorem split2_of_r16 {b s : Nat} (hb : b < 256) (hs : s < 256)
     (h1 : (((1024 : Nat) : F) * ((s : Nat) : F)).toNat < 65536)
     (h2 : (((16384 : Nat) : F) * (((b : Nat) : F) - ((4 : Nat) : F) * ((s : Nat) : F))).toNat < 65536) :
     s = b / 4 := by
@@ -149,4 +149,178 @@ theorem dataW_eval (rw : Row) (b : Nat → Expr) (s5 s2 : Expr) (w : Nat) (B : N
     natCast_sub_of_le (show 4 * (B 2 / 4) ≤ B 2 by omega)]
   simp only [Lean.Grind.Semiring.natCast_mul]
 
+/-! ## 2. CUT encoding
+
+A CUTO row writes field `k` as `F k = lo_k + 2^16·hi_k` and puts `lo_k`, `hi_k` (and on field 0 the
+mark `act`) on the SHA interface as the limbs of the word `lo + 2^21·hi + 2^42·mark`.  `lo_k` is
+R16-checked; `4·hi_k` is R16-checked and `hi_k` is itself an interface limb, which the chip's
+canonical limbs bound by `2^21`, so `hi_k < 2^14` (`cut_hi`). -/
+
+/-- `hi < 2^14` from the query `4·hi` and the chip's limb bound `hi < 2^21`. -/
+theorem cut_hi {hi : Nat} (h21 : hi < 2 ^ 21) (h : (((4 : Nat) : F) * ((hi : Nat) : F)).toNat < 65536) :
+    hi < 2 ^ 14 := by
+  have hP' := P_val
+  rw [mulq_toNat (by omega)] at h
+  omega
+
+/-- A CUT field is a canonical value `< 2^30`. -/
+theorem cut_field_lt {lo hi : Nat} (hlo : lo < 2 ^ 16) (hhi : hi < 2 ^ 14) : lo + 65536 * hi < 2 ^ 30 := by
+  omega
+
+/-- **The CUT word determines the field** (and the mark): the 64-bit word `lo + 2^21·hi + 2^42·mark`
+the row hashes fixes `lo`, `hi`, `mark`, hence `F = lo + 2^16·hi`. -/
+theorem cut_word_inj {lo hi mk lo' hi' mk' : Nat} (hlo : lo < 2 ^ 16) (hhi : hi < 2 ^ 14) (hm : mk ≤ 1)
+    (hlo' : lo' < 2 ^ 16) (hhi' : hi' < 2 ^ 14) (hm' : mk' ≤ 1)
+    (h : lo + 2 ^ 21 * hi + 2 ^ 42 * mk = lo' + 2 ^ 21 * hi' + 2 ^ 42 * mk') :
+    lo = lo' ∧ hi = hi' ∧ mk = mk' ∧ lo + 65536 * hi = lo' + 65536 * hi' := by
+  omega
+
+/-- The word's limbs are `[lo, hi, mark]`. -/
+theorem cut_word_wl {lo hi mk : Nat} (hlo : lo < 2 ^ 16) (hhi : hi < 2 ^ 14) (hm : mk ≤ 1) :
+    Seg.wl (lo + 2 ^ 21 * hi + 2 ^ 42 * mk) = [lo, hi, mk] := by
+  simp only [Seg.wl, List.cons.injEq, and_true]
+  omega
+
+/-- `65536·x = 2^(16−k)·(2^k·x)`: a big multiple of an R16-checked `2^k·x` is a small multiple of a
+16-bit value, whatever `x` is in the field. -/
+theorem big_of_r16 (x : F) (k : Nat) (hk : k ≤ 16) :
+    ((65536 : Nat) : F) * x = ((2 ^ (16 - k) : Nat) : F) * (((((2 ^ k : Nat) : F) * x).toNat : Nat) : F) := by
+  rw [Fp.cast_toNat, ← Lean.Grind.Semiring.mul_assoc, ← Lean.Grind.Semiring.natCast_mul, ← Nat.pow_add,
+    show 16 - k + k = 16 by omega]
+
+/-- **CUTO's order constraint.**  Between consecutive active rows, with fields `F0, F1` and next
+fields `G0, G1` (all `< 2^30`), `same ∈ {0, 1}`, `dlo` and `8·dhi` 16-bit:
+`same·(G0 − F0) = 0` and `same·(G1 − F1 − 1) + (1 − same)·(G0 − F0 − 1) = dlo + 2^16·dhi`
+give `(F0, F1) < (G0, G1)` lexicographically.  The difference is `< 2^29 + 2^16`, so nothing wraps
+mod `p`. -/
+theorem cut_order {F0 F1 G0 G1 sm dlo : Nat} {dhi : F} (hF0 : F0 < 2 ^ 30) (hF1 : F1 < 2 ^ 30)
+    (hG0 : G0 < 2 ^ 30) (hG1 : G1 < 2 ^ 30) (hsm : sm ≤ 1) (hdlo : dlo < 2 ^ 16)
+    (hdhi : (((8 : Nat) : F) * dhi).toNat < 2 ^ 16)
+    (e1 : ((sm : Nat) : F) * (((G0 : Nat) : F) - ((F0 : Nat) : F)) = 0)
+    (e2 : ((sm : Nat) : F) * (((G1 : Nat) : F) - ((F1 : Nat) : F) - 1) +
+        (1 - ((sm : Nat) : F)) * (((G0 : Nat) : F) - ((F0 : Nat) : F) - 1) -
+        ((dlo : Nat) : F) - ((65536 : Nat) : F) * dhi = 0) :
+    (sm = 1 ∧ G0 = F0 ∧ F1 < G1) ∨ (sm = 0 ∧ F0 < G0) := by
+  have hP' := P_val
+  have hb := big_of_r16 dhi 3 (by omega)
+  have hd' : (((2 ^ 3 : Nat) : F) * dhi).toNat < 2 ^ 16 := hdhi
+  generalize (((2 ^ 3 : Nat) : F) * dhi).toNat = u at hb hd'
+  rw [hb] at e2
+  rcases (by omega : sm = 0 ∨ sm = 1) with rfl | rfl
+  · right; refine ⟨rfl, ?_⟩
+    have k : ((G0 : Nat) : F) = ((F0 + 1 + (dlo + 2 ^ (16 - 3) * u) : Nat) : F) := by
+      simp only [Lean.Grind.Semiring.natCast_add, Lean.Grind.Semiring.natCast_mul] at e2 ⊢
+      have e0 : ((0 : Nat) : F) = 0 := rfl
+      rw [e0] at e2; grind
+    have := natEq k (by omega) (by omega)
+    omega
+  · left
+    have g0 : G0 = F0 := by
+      have e1' : ((G0 : Nat) : F) = ((F0 : Nat) : F) := by
+        have e0 : ((1 : Nat) : F) = 1 := rfl
+        rw [e0] at e1; grind
+      exact natEq e1' (by omega) (by omega)
+    refine ⟨rfl, g0, ?_⟩
+    have k : ((G1 : Nat) : F) = ((F1 + 1 + (dlo + 2 ^ (16 - 3) * u) : Nat) : F) := by
+      simp only [Lean.Grind.Semiring.natCast_add, Lean.Grind.Semiring.natCast_mul] at e2 ⊢
+      have e0 : ((1 : Nat) : F) = 1 := rfl
+      rw [e0] at e2; grind
+    have := natEq k (by omega) (by omega)
+    omega
+
+/-- **CUTO's record-order constraint.**  Between consecutive `k4` rows, `nslot − slot − 1 = rlo +
+2^16·rhi` with `rlo`, `16·rhi` 16-bit gives `slot < nslot` — for raw slots `< 2^30` (the raw `slot`
+column is not range-checked by CUTO; the bound has to come from the record's producer, a CALL row's
+`ts`). -/
+theorem cut_rec_order {sl nsl rlo : Nat} {rhi : F} (hs : sl < 2 ^ 30) (hn : nsl < 2 ^ 30)
+    (hrlo : rlo < 2 ^ 16) (hrhi : (((16 : Nat) : F) * rhi).toNat < 2 ^ 16)
+    (e : ((nsl : Nat) : F) - ((sl : Nat) : F) - 1 - ((rlo : Nat) : F) - ((65536 : Nat) : F) * rhi = 0) :
+    sl < nsl := by
+  have hP' := P_val
+  have hb := big_of_r16 rhi 4 (by omega)
+  have hd' : (((2 ^ 4 : Nat) : F) * rhi).toNat < 2 ^ 16 := hrhi
+  generalize (((2 ^ 4 : Nat) : F) * rhi).toNat = u at hb hd'
+  rw [hb] at e
+  have k : ((nsl : Nat) : F) = ((sl + 1 + (rlo + 2 ^ (16 - 4) * u) : Nat) : F) := by
+    simp only [Lean.Grind.Semiring.natCast_add, Lean.Grind.Semiring.natCast_mul] at e ⊢
+    grind
+  have := natEq k (by omega) (by omega)
+  omega
+
+/-- **`dep` counts the `k4` rows**: `dep_0 = k4_0`, `dep_{r+1} = dep_r + k4_{r+1}` (CUTO's `first`
+and `trans` constraints) with bits `k4` and fewer than `p` rows give `dep_r = #{i ≤ r : k4_i = 1}`. -/
+theorem cut_dep (k4 : Nat → Nat) (dep : Nat → F) (h : Nat) (hh : h < ZkFormal.Algebra.P)
+    (hk : ∀ r, r < h → k4 r ≤ 1)
+    (h0 : dep 0 = ((k4 0 : Nat) : F))
+    (hs : ∀ r, r + 1 < h → dep (r + 1) = dep r + ((k4 (r + 1) : Nat) : F)) :
+    ∀ r, r < h → (dep r).toNat = ((List.range (r + 1)).map k4).sum := by
+  have key : ∀ r, r < h → dep r = ((((List.range (r + 1)).map k4).sum : Nat) : F) ∧
+      ((List.range (r + 1)).map k4).sum ≤ r + 1 := by
+    intro r
+    induction r with
+    | zero => intro hr; have := hk 0 hr; simp [h0]; omega
+    | succ r ih =>
+      intro hr
+      obtain ⟨e, b⟩ := ih (by omega)
+      have := hk (r + 1) hr
+      rw [List.range_succ, List.map_append, List.sum_append, hs r hr, e]
+      simp only [List.map_cons, List.map_nil, List.sum_cons, List.sum_nil, Nat.add_zero,
+        Lean.Grind.Semiring.natCast_add]
+      exact ⟨trivial, by omega⟩
+  intro r hr
+  obtain ⟨e, b⟩ := key r hr
+  rw [e, Fp.toNat_cast_of_lt (by omega)]
+
+open Seg
+
+theorem seg_t31 (nloc ngl : Nat) :
+    (wasmBaseSegAir nloc ngl).tables[31]'(by simp [seg_air_len]) = Cut.Out.table := rfl
+
+theorem cuto_ix_dep : ix Cut.Out.cols "dep" = 59 := by decide
+theorem cuto_ix_k4 : ix Cut.Out.cols "k4" = 53 := by decide
+
+/-- **`dep` counts the `k4` rows, on the trace.** -/
+theorem cuto_dep {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : Holds (wasmBaseSegAir nloc ngl) pub tr) :
+    ∀ r, r < tr.height 31 →
+      rowNat tr 31 r 59 = ((List.range (r + 1)).map fun i => rowNat tr 31 i 53).sum := by
+  have ht : 31 < (wasmBaseSegAir nloc ngl).tables.length := by simp [seg_air_len]
+  have hc := fun r hr => table_constr_eq H ht Cut.Out.table (seg_t31 nloc ngl) (r := r) hr
+  have hh := H.heightLe 31 ht
+  have hpos := H.heightPos 31 ht
+  have hP' := P_val
+  unfold maxLogHeight at hh
+  have mem1 : Expr.first * (Cut.Out.c "dep" - Cut.Out.c "k4") ∈ Cut.Out.table.constraints := by
+    simp [Cut.Out.table, Cut.Out.constraints]
+  have mem2 : Expr.trans * (Cut.Out.n "dep" - Cut.Out.c "dep" - Cut.Out.n "k4") ∈ Cut.Out.table.constraints := by
+    simp [Cut.Out.table, Cut.Out.constraints]
+  have mem3 : Chips.bool (Cut.Out.c "k4") ∈ Cut.Out.table.constraints := by
+    simp [Cut.Out.table, Cut.Out.constraints]
+  have hk : ∀ r, r < tr.height 31 → rowNat tr 31 r 53 ≤ 1 := by
+    intro r hr
+    have e := hc r hr _ mem3
+    simp only [Chips.bool, Cut.Out.c, Cut.c, cuto_ix_k4, v, Expr.eval_mul', Expr.eval_sub', Expr.eval_col,
+      Local.natRow] at e
+    have := bool_nat (rowNat_lt tr 31 r 53) e
+    omega
+  have hcell : ∀ r i, tr.cell 31 r i = ((rowNat tr 31 r i : Nat) : F) := fun r i => by
+    simp only [rowNat, Fp.cast_toNat]
+  have key := cut_dep (fun i => rowNat tr 31 i 53) (fun i => ((rowNat tr 31 i 59 : Nat) : F)) (tr.height 31)
+    (by omega) hk ?_ ?_
+  · intro r hr
+    have := key r hr
+    rwa [Fp.toNat_cast_of_lt (rowNat_lt tr 31 r 59)] at this
+  · have e := hc 0 (by omega) _ mem1
+    simp only [Cut.Out.c, Cut.c, cuto_ix_dep, cuto_ix_k4, v, Expr.eval_mul', Expr.eval_sub', Expr.eval_col,
+      Local.natRow, Expr.eval, Trace.row] at e
+    simp at e
+    grind
+  · intro r hr
+    have e := hc r (by omega) _ mem2
+    simp only [Cut.Out.c, Cut.Out.n, Cut.c, Cut.n, cuto_ix_dep, cuto_ix_k4, v, nv, Expr.eval_mul',
+      Expr.eval_sub', Expr.eval_col, Expr.eval_nxt, Local.natRow, Expr.eval, Trace.row,
+      Nat.mod_eq_of_lt hr, hcell] at e
+    have : (r + 1 == tr.height 31) = false := by simp; omega
+    simp only [this] at e
+    simp at e
+    grind
 end WasmBase
