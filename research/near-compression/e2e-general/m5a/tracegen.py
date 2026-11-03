@@ -1847,7 +1847,13 @@ def main():
         PT.OVERRIDE.clear()
         g = make_gen(st, names, mutant, plan, segs, extra)
     if mutant in TAMPERS:
-        TAMPERS[mutant](g)
+        try:
+            TAMPERS[mutant](g)
+        except StopIteration:
+            # the trace has no row this tamper targets (e.g. `vbyte` needs a version-published `SN`
+            # leaf, which the synthetic `bval` case does not have): not a rejection, not a crash
+            print(f'NOT APPLICABLE: mutant {mutant} has no target row in this trace')
+            sys.exit(3)
     stats = g.write(out)
     print(json.dumps(dict((k, stats[k]) for k in ('rows', 'heights', 'sha_msgs', 'sha_blocks', 'compressions',
                                                   'ops', 'versions', 'writes', 'segments'))))
