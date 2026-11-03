@@ -791,4 +791,250 @@ theorem exec_of_rows_cutC (X : Ctx) {ρ : Type} [DecidableEq ρ] (act : List ρ)
   obtain ⟨sN, h1, h2, h3, h4, h5⟩ := hc hcut
   exact ⟨sN, h1, h2, h3, h4, h5⟩
 
+/-! ## 9. The digest: `ctx_out` is the digest of `cutView`
+
+CUTO hashes its consumed messages as a list `H` of 7-field vectors, strictly increasing in
+`(space, slot)` (`cut_order`).  If `H` has, as a set, the members of the kept relabelled live list
+(the AIR-side link, `CutoView` below), then by `cutView_eq` it has the members of `cutView X s`;
+both lists being sorted, and `cutView` duplicate-free, they are equal *as lists*
+(`pairwise_eq_of_mem_iff`).  `cutView` is duplicate-free when the register file is well formed
+(`RegWF`: distinct ids, each register shorter than `2^24`, the space-6 key domain). -/
+
+/-- The register file is well formed: distinct ids, every register shorter than `2^24`. -/
+def RegWF (s : St) : Prop :=
+  (s.registers.toList.map Prod.fst).Nodup ∧ ∀ e ∈ s.registers.toList, e.2.size < Register.cap
+
+/-- `(space, slot)` of a message. -/
+def kf (x : Msg) : Nat × Nat := (x.space, x.slot)
+
+theorem nodup_map_of_inj {α β : Type} (g : α → β) :
+    ∀ l : List α, l.Nodup → (∀ a ∈ l, ∀ b ∈ l, g a = g b → a = b) → (l.map g).Nodup
+  | [], _, _ => List.nodup_nil
+  | a :: l, hl, hg => by
+    rw [List.nodup_cons] at hl
+    rw [List.map_cons, List.nodup_cons]
+    refine ⟨fun h => ?_, nodup_map_of_inj g l hl.2 (fun x hx y hy => hg x (List.mem_cons_of_mem _ hx) y
+      (List.mem_cons_of_mem _ hy))⟩
+    obtain ⟨b, hb, e⟩ := List.mem_map.mp h
+    exact hl.1 (by rw [hg a List.mem_cons_self b (List.mem_cons_of_mem _ hb) e.symm]; exact hb)
+
+theorem nodup_of_map_nodup {α β : Type} (g : α → β) : ∀ l : List α, (l.map g).Nodup → l.Nodup
+  | [], _ => List.nodup_nil
+  | a :: l, h => by
+    rw [List.map_cons, List.nodup_cons] at h
+    exact List.nodup_cons.mpr ⟨fun ha => h.1 (List.mem_map_of_mem ha), nodup_of_map_nodup g l h.2⟩
+
+theorem nodup_map_range {α : Type} (n : Nat) (g : Nat → α) (hg : ∀ i j, i < n → j < n → g i = g j → i = j) :
+    ((List.range n).map g).Nodup :=
+  nodup_map_of_inj g _ List.nodup_range fun i hi j hj e => hg i j (List.mem_range.mp hi) (List.mem_range.mp hj) e
+
+theorem nodup_flatMap_of {α β : Type} (f : α → List β) :
+    ∀ l : List α, (∀ a ∈ l, (f a).Nodup) → l.Pairwise (fun a b => ∀ x ∈ f a, x ∉ f b) → (l.flatMap f).Nodup
+  | [], _, _ => List.nodup_nil
+  | a :: l, h1, h2 => by
+    rw [List.pairwise_cons] at h2
+    rw [List.flatMap_cons, List.nodup_append]
+    refine ⟨h1 a List.mem_cons_self, nodup_flatMap_of f l (fun b hb => h1 b (List.mem_cons_of_mem _ hb)) h2.2, ?_⟩
+    intro x hx y hy e
+    subst e
+    obtain ⟨b, hb, hy⟩ := List.mem_flatMap.mp hy
+    exact h2.1 b hb x hx hy
+
+theorem frame_keys_nodup (X : Ctx) (fr : List Frame) (d : Nat) : ((frameMsgs X fr d).map kf).Nodup := by
+  rw [frameMsgs_eq, List.map_append, List.nodup_append]
+  refine ⟨?_, ?_, ?_⟩
+  · simp only [localView, List.map_map]
+    exact nodup_map_range _ _ (fun i j _ _ e => by simpa [kf, enc] using e)
+  · unfold recOf; split <;> simp
+  · intro a ha b hb
+    simp only [localView, List.map_map, List.mem_map, List.mem_range, Function.comp] at ha
+    obtain ⟨i, -, rfl⟩ := ha
+    unfold recOf at hb; split at hb
+    · simp at hb
+    · simp only [List.map_cons, List.map_nil, List.mem_singleton] at hb
+      subst hb; simp [kf, enc, callMsg]; omega
+
+theorem frame_keys_space {X : Ctx} {fr : List Frame} {d : Nat} {k : Nat × Nat}
+    (h : k ∈ (frameMsgs X fr d).map kf) : (k.1 = 4 ∧ k.2 = d) ∨ k.1 = 16 + d := by
+  rw [frameMsgs_eq, List.map_append, List.mem_append] at h
+  rcases h with h | h
+  · simp only [localView, List.map_map, List.mem_map, List.mem_range, Function.comp] at h
+    obtain ⟨i, -, rfl⟩ := h; right; simp [kf, enc]
+  · unfold recOf at h; split at h
+    · simp at h
+    · simp only [List.map_cons, List.map_nil, List.mem_singleton] at h
+      subst h; left; simp [kf, callMsg]
+
+theorem frames_keys_nodup (X : Ctx) (fr : List Frame) (n : Nat) :
+    (((List.range n).flatMap (frameMsgs X fr)).map kf).Nodup := by
+  rw [List.map_flatMap]
+  refine nodup_flatMap_of _ _ (fun d _ => frame_keys_nodup X fr d) ?_
+  refine List.Pairwise.imp_of_mem ?_ (List.nodup_range (n := n))
+  intro d d' _ _ hne k hk hk'
+  rcases frame_keys_space hk with ⟨a, b⟩ | a <;> rcases frame_keys_space hk' with ⟨a', b'⟩ | a' <;> omega
+
+theorem reg_keys_space {regs : Array (Nat × ByteArray)} {tp : Nat → Nat} {k : Nat × Nat}
+    (h : k ∈ (Register.view regs tp).map kf) :
+    ∃ e ∈ regs.toList, k.1 = 6 ∧ ∃ pos, pos ≤ e.2.size ∧ k.2 = Register.slot e.1 pos := by
+  obtain ⟨x, hx, rfl⟩ := List.mem_map.mp h
+  obtain ⟨rid, d, hrd, hx⟩ := Register.mem_view.mp hx
+  refine ⟨(rid, d), hrd, ?_⟩
+  rcases Register.mem_regMsgs.mp hx with rfl | ⟨i, hi, rfl⟩
+  · exact ⟨rfl, 0, by omega, rfl⟩
+  · exact ⟨rfl, i + 1, hi, rfl⟩
+
+theorem reg_keys_nodup {regs : Array (Nat × ByteArray)} {tp : Nat → Nat}
+    (hid : (regs.toList.map Prod.fst).Nodup) (hsz : ∀ e ∈ regs.toList, e.2.size < Register.cap) :
+    ((Register.view regs tp).map kf).Nodup := by
+  unfold Register.view
+  rw [List.map_flatMap]
+  refine nodup_flatMap_of _ _ ?_ ?_
+  · rintro ⟨rid, d⟩ -
+    simp only [Register.regMsgs, List.map_cons, List.map_map, List.nodup_cons, List.mem_map,
+      List.mem_range, Function.comp, not_exists, not_and]
+    refine ⟨fun i _ e => ?_, nodup_map_range _ _ (fun i j _ _ e => ?_)⟩
+    · simp only [kf, Register.lenMsg, Register.byteMsg, Prod.mk.injEq] at e
+      exact Register.lenSlot_ne_byteSlot rid i e.2.symm
+    · simp [kf, Register.byteMsg, Register.byteSlot_add] at e
+      omega
+  · have hp : regs.toList.Pairwise (fun e e' => e.1 ≠ e'.1) := List.pairwise_map.mp hid
+    refine List.Pairwise.imp_of_mem ?_ hp
+    rintro ⟨rid, d⟩ ⟨rid', d'⟩ he he' hne k hk hk'
+    have hx : k ∈ (Register.view regs tp).map kf := by
+      rw [Register.view, List.map_flatMap, List.mem_flatMap]; exact ⟨_, he, hk⟩
+    have hx' : k ∈ (Register.view regs tp).map kf := by
+      rw [Register.view, List.map_flatMap, List.mem_flatMap]; exact ⟨_, he', hk'⟩
+    -- positions of `k` in each register
+    have pos1 : ∃ pos, pos ≤ d.size ∧ k.2 = Register.slot rid pos := by
+      simp only [Register.regMsgs, List.map_cons, List.map_map, List.mem_cons, List.mem_map,
+        List.mem_range, Function.comp] at hk
+      rcases hk with rfl | ⟨i, hi, rfl⟩
+      · exact ⟨0, by omega, rfl⟩
+      · exact ⟨i + 1, hi, rfl⟩
+    have pos2 : ∃ pos, pos ≤ d'.size ∧ k.2 = Register.slot rid' pos := by
+      simp only [Register.regMsgs, List.map_cons, List.map_map, List.mem_cons, List.mem_map,
+        List.mem_range, Function.comp] at hk'
+      rcases hk' with rfl | ⟨i, hi, rfl⟩
+      · exact ⟨0, by omega, rfl⟩
+      · exact ⟨i + 1, hi, rfl⟩
+    obtain ⟨p1, hp1, e1⟩ := pos1
+    obtain ⟨p2, hp2, e2⟩ := pos2
+    have s1 := hsz _ he; have s2 := hsz _ he'
+    exact hne (Register.slot_inj (by simp at s1; omega) (by simp at s2; omega) (e1.symm.trans e2)).1
+
+/-- **`cutView` has no duplicates** when the register file is well formed. -/
+theorem cutView_nodup (X : Ctx) {s : St} (hw : RegWF s) : (cutView X s).Nodup := by
+  have hk : ((cutMsgs X s).map kf).Nodup := by
+    simp only [cutMsgs, List.map_append, List.nodup_append]
+    have hS : ∀ k ∈ (stackView s.stack (fun _ => 0)).map kf, k.1 = 0 := by
+      intro k hk; obtain ⟨x, hx, rfl⟩ := List.mem_map.mp hk
+      obtain ⟨i, -, rfl⟩ := mem_stackView.mp hx; rfl
+    have hF : ∀ k ∈ ((List.range s.frames.length).flatMap (frameMsgs X s.frames.reverse)).map kf,
+        k.1 = 4 ∨ 16 ≤ k.1 := by
+      intro k hk
+      rw [List.map_flatMap, List.mem_flatMap] at hk
+      obtain ⟨d, -, hk⟩ := hk
+      rcases frame_keys_space hk with ⟨a, -⟩ | a <;> omega
+    have hG : ∀ k ∈ (globView s.globals (fun _ => 0)).map kf, k.1 = 2 := by
+      intro k hk; obtain ⟨x, hx, rfl⟩ := List.mem_map.mp hk
+      obtain ⟨i, -, rfl⟩ := mem_globView.mp hx; rfl
+    have hR : ∀ k ∈ (Register.view s.registers (fun _ => 0)).map kf, k.1 = 6 := by
+      intro k hk; obtain ⟨e, -, h, -⟩ := reg_keys_space hk; exact h
+    refine ⟨⟨⟨⟨?_, frames_keys_nodup X _ _, ?_⟩, ?_, ?_⟩, by simp, ?_⟩, reg_keys_nodup hw.1 hw.2, ?_⟩
+    · simp only [stackView, List.map_map]
+      exact nodup_map_range _ _ (fun i j _ _ e => by simpa [kf, enc] using e)
+    · intro a ha b hb; have := hS a ha; have := hF b hb; intro e; subst e; omega
+    · simp only [globView, List.map_map]
+      exact nodup_map_range _ _ (fun i j _ _ e => by simpa [kf, enc] using e)
+    · intro a ha b hb e; subst e
+      rcases List.mem_append.mp ha with ha | ha
+      · have := hS a ha; have := hG a hb; omega
+      · have := hF a ha; have := hG a hb; omega
+    · intro a ha b hb e; subst e
+      simp only [List.mem_singleton, List.map_cons, List.map_nil] at hb; subst hb
+      simp only [List.mem_append] at ha
+      rcases ha with (ha | ha) | ha
+      · have := hS _ ha; simp [kf, budMsg] at this
+      · have := hF _ ha; simp [kf, budMsg] at this
+      · have := hG _ ha; simp [kf, budMsg] at this
+    · intro a ha b hb e; subst e
+      have := hR a hb
+      simp only [List.mem_append, List.mem_singleton, List.map_cons, List.map_nil] at ha
+      rcases ha with ((ha | ha) | ha) | ha
+      · have := hS _ ha; omega
+      · have := hF _ ha; omega
+      · have := hG _ ha; omega
+      · subst ha; simp [kf, budMsg] at this
+  have hf : ((cutMsgs X s).map fieldsOf).Nodup := by
+    have e : ((cutMsgs X s).map fieldsOf).map (fun y => (y.getD 0 0, y.getD 1 0)) = (cutMsgs X s).map kf := by
+      simp [List.map_map, Function.comp, fieldsOf, kf]
+    exact nodup_of_map_nodup _ _ (e ▸ hk)
+  exact (List.mergeSort_perm _ _).nodup_iff.mpr hf
+
+theorem keyLe_trans : ∀ a b c : List Nat, keyLe a b = true → keyLe b c = true → keyLe a c = true := by
+  intro a b c; simp only [keyLe, decide_eq_true_eq]; omega
+
+theorem keyLe_total : ∀ a b : List Nat, (keyLe a b || keyLe b a) = true := by
+  intro a b; simp only [keyLe, Bool.or_eq_true, decide_eq_true_eq]; omega
+
+/-- `cutView` is sorted by `(space, slot)` (non-strictly; strictly once it is duplicate-free and
+matched against a strictly sorted list, `ctx_out_eq`). -/
+theorem cutView_sorted (X : Ctx) (s : St) : (cutView X s).Pairwise (fun a b => keyLe a b = true) :=
+  List.pairwise_mergeSort keyLe_trans keyLe_total _
+
+theorem pairwise_mem_cases {α : Type} {r : α → α → Prop} :
+    ∀ {l : List α}, l.Pairwise r → ∀ {a b : α}, a ∈ l → b ∈ l → a = b ∨ r a b ∨ r b a
+  | [], _, _, _, ha, _ => absurd ha (by simp)
+  | c :: l, h, a, b, ha, hb => by
+    rw [List.pairwise_cons] at h
+    rcases List.mem_cons.mp ha with ha' | ha' <;> rcases List.mem_cons.mp hb with hb' | hb'
+    · exact Or.inl (ha'.trans hb'.symm)
+    · subst ha'; exact Or.inr (Or.inl (h.1 b hb'))
+    · subst hb'; exact Or.inr (Or.inr (h.1 a ha'))
+    · exact pairwise_mem_cases h.2 ha' hb'
+
+/-- **`ctx_out_eq`, list level.**  A list `H` strictly increasing in `(space, slot)` (CUTO's
+`cut_order`) with the same members as `cutView X s`, which is duplicate-free, *is* `cutView X s`. -/
+theorem ctx_out_eq {X : Ctx} {s : St} {H : List (List Nat)} (hs : H.Pairwise keyLt)
+    (hset : ∀ y, y ∈ H ↔ y ∈ cutView X s) (hnd : (cutView X s).Nodup) : H = cutView X s := by
+  have hs' : (cutView X s).Pairwise keyLt := by
+    have h2 : (cutView X s).Pairwise (fun a b => keyLe a b = true ∧ a ≠ b) :=
+      List.Pairwise.and (cutView_sorted X s) hnd
+    refine h2.imp_of_mem ?_
+    rintro a b ha hb ⟨hab, hne⟩
+    rcases pairwise_mem_cases hs ((hset a).mpr ha) ((hset b).mpr hb) with e | e | e
+    · exact absurd e hne
+    · exact e
+    · simp only [keyLe, decide_eq_true_eq] at hab; unfold keyLt at e ⊢; omega
+  exact pairwise_eq_of_mem_iff keyLt (fun a b h h' => by unfold keyLt at h h'; omega) H _ hs hs' hset
+
+/-- The `< 2^30` field bounds of `cutView` from CUTO's (`cut_field_lt` on every hashed field). -/
+theorem cutView_wf {X : Ctx} {s : St} {H : List (List Nat)} (hwf : ∀ y ∈ H, MsgWF y)
+    (hset : ∀ y, y ∈ H ↔ y ∈ cutView X s) : ∀ y ∈ cutView X s, MsgWF y :=
+  fun y hy => hwf y ((hset y).mpr hy)
+
+/-- **`ctx_out` is the digest of the spec view.**  At a cut with the extended relation `BndC` (and
+`X.M.fns.Nodup`, `RegWF`), there is a relabelling `(σ, A)` of the live list — the one of
+`cutView_eq`, satisfying `BndC` again — such that: if CUTO's hashed list `H` (strictly sorted,
+`cut_order`) has as members exactly the fields of the kept relabelled live messages (the AIR-side
+link `CUTO consumes L'`, premise `hcuto`), then `H = cutView X s`; with the SHA stream lemma
+`ctxOut = cutDigest H` (sub-lane S2) the public `ctx_out` is `cutDigest (cutView X s)`, and every
+message of the view is `MsgWF` (from CUTO's range checks, `hwf`). -/
+theorem ctx_out_digest {X : Ctx} (hnd : X.M.fns.Nodup) {sg : Nat → Nat × Nat} {s : St} {t S : Nat}
+    {m : List F} {L : List Msg} (h : BndC X sg s t S m L) (hw : RegWF s) :
+    ∃ (σ : Nat → Nat) (A : List Nat),
+      BndC X sg s t S (m.set 5 ((s.frames.length - 1 : Nat) : F))
+        ((L.filter (fun x => decide (keepA A x))).map (rlMsg σ)) ∧
+      ∀ (H : List (List Nat)) (ctxOut : ArenaCore.Bytes), H.Pairwise keyLt →
+        (∀ y, y ∈ H ↔ ∃ x ∈ (L.filter (fun x => decide (keepA A x))).map (rlMsg σ),
+          x.space ≠ 3 ∧ x.space ≠ 7 ∧ fieldsOf x = y) →
+        ctxOut = cutDigest H →
+        H = cutView X s ∧ ctxOut = cutDigest (cutView X s) ∧
+        ((∀ y ∈ H, MsgWF y) → ∀ y ∈ cutView X s, MsgWF y) := by
+  obtain ⟨σ, A, hB, hv⟩ := cutView_eq hnd h
+  refine ⟨σ, A, hB, fun H ctxOut hs hcuto hsha => ?_⟩
+  have hset : ∀ y, y ∈ H ↔ y ∈ cutView X s := fun y => (hcuto y).trans (hv y)
+  have e := ctx_out_eq hs hset (cutView_nodup X hw)
+  exact ⟨e, by rw [hsha, e], fun hwf => cutView_wf hwf hset⟩
+
 end WasmBase
