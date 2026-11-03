@@ -1,3 +1,4 @@
+import StateM5a.KeyLookups
 import StateM5a.Tape
 import StateM5a.DepthBound
 import StateM5a.KeyDecode
@@ -344,3 +345,9 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.Tape.tch_perm
 #print axioms StateM5a.Tape.root_of_row
 #print axioms StateM5a.Tape.air_final
+#print axioms StateM5a.KeyLookups.br_nib
+#print axioms StateM5a.KeyLookups.sn_nib
+#print axioms StateM5a.KeyLookups.sn_nib2
+#print axioms StateM5a.KeyLookups.sn_klen_leaf
+#print axioms StateM5a.KeyLookups.snc_nibA
+#print axioms StateM5a.KeyLookups.kcmp_nib_xb

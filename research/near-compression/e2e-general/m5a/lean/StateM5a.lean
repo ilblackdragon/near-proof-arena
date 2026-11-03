@@ -34,3 +34,4 @@ import StateM5a.StateView
 import StateM5a.KeyDecode
 import StateM5a.DepthBound
 import StateM5a.Tape
+import StateM5a.KeyLookups
