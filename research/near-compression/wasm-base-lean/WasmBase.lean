@@ -144,3 +144,4 @@ import WasmBase.Main.SegReentry
 import WasmBase.Main.SegChain
 import WasmBase.Main.SegChainMP
 import WasmBase.Main.SegGrowMerkle
+import WasmBase.Main.SegGrow
