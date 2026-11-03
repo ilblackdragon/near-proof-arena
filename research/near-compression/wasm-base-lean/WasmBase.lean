@@ -181,3 +181,7 @@ import WasmBase.Main.HostAns
 import WasmBase.Main.HostIfTape
 import WasmBase.Main.HostCover
 import WasmBase.Main.HostIfCover
+import WasmBase.Main.SegExecJH
+import WasmBase.Main.SegSoundAll
+import WasmBase.Main.SegChainAll
+import WasmBase.Main.M2SoundSigma
