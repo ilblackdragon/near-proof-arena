@@ -381,6 +381,43 @@ Log: [`docs/logs/e2e-lean-m11c-2026-11-03.md`](../logs/e2e-lean-m11c-2026-11-03.
   lanes' per-component reductions. `chainD`/`chainD_binding`: a running list commitment over an
   injective item encoding is binding modulo `bdigest` collisions.
 
+**M11d (lane E, 2026-11-03) [K].** Standard axioms only, no `sorry`, no checker definition changed
+(sha256 `644495ff…a9ae3`), `make pin-check` ok, full v3 build 447 jobs. Log:
+[`docs/logs/e2e-lean-m11d-2026-11-03.md`](../logs/e2e-lean-m11d-2026-11-03.md).
+
+* **`NvFaithful` composition fixed and proved for the node and wrap
+  (`zk-formal/ZkFormal/PQ/E2ENode.lean`).**
+  * *The statement was wrong.* `NvCompositionAt` (sub-obligation 6) had no `HoldsLogUp` premise,
+    so it forced acceptance on non-satisfying traces. It is refuted by any verifier that rejects
+    something (`nvCompositionOld_false`). It is now amended, and `nvFaithful_of_obligations` is
+    unchanged in form.
+  * `build_agg` is transcribed cell by cell (`NodeRead`, `ContAsserts` with the Rust `zip` loop,
+    `outCell`). `compose_of_asserts`: the continuity asserts on fixed-shape cells compute
+    `RangeStmt::compose`. `zipEq_short` shows the fixed shape is load-bearing.
+  * `node_composition`, `nvComposition_node` (in the generic slots), `wrap_composition`.
+  * `nvFaithful_node` / `nvFaithful_wrap` take `NodeExec` / `WrapExec`: the NvAir executes the
+    program's hash jobs (1), inner verifiers (2 + 4), tape (3) and asserts (4). These are the open
+    remainder, generic to NV, and not provable without a Lean NvAir model.
+* **`LeafHolds` proved** (`leafHolds_circ` over the circuit segment system `circSeg`: a segment
+  instance is `Holds (segAir k)` at public values whose statement has its boundaries).
+* **`RangeBinding` reduced to CR** (`rmsg_inj`: the pinned `range_values` message is injective;
+  `rangeBinding_of`; `hColl_bdigest`: a collision is a 42-B SHA-384 collision).
+  `e2e_sound_of_exec` is the E2E statement from `NodeExec`, `WrapExec`, the extractors and
+  obligations 1b, 2 and 4.
+* **The honest call tape (`spec/lean/v3/NearSpecV3/E2E/Tape.lean`, `defaultTargets`).**
+  * A finite-use walk over the `CutW`/`Refined` copies: `TLe`, `pwO_tle`.
+  * `estepO_complete`.
+  * `honestK P c` has entries `(q, callResult q)`. The query list is chosen classically from
+    completeness; there is no constructive recorder.
+  * `estepO_honest : estepO (strictO (honestK P c)) P c = .ok c' ↔ estep P c = .ok c'`.
+  * `rsteps_honest`: `RCM` reaches the next engine configuration through the honest calls.
+* **Soundness budget for `BadEvents`** ([`E2E-SOUNDNESS-BUDGET.md`](E2E-SOUNDNESS-BUDGET.md)).
+  * At Q = 2^64: ROM ≈ 204 bits; QROM with one-database accounting ≈ 140 bits (constants 1) or
+    134.7 bits (historical constants).
+  * The QROM per-proof union drops below 128 bits for deep trees: 121.8 bits at fan-in 8, depth 6.
+  * The dominant term is `whirBad`.
+  * The wrap has no parameters pinned at the 268-bit per-round target.
+
 **The interface the circuit lanes must meet.** A template `k` proves `Holds SegAir_k (B, B') tr`;
 obligation 2 requires `abs B = some c`, `abs B' = some c'` and `Steps c c'` with `Steps` the
 closure of `CM.step : Conf → Except String Conf`, where `Conf` is `init cb wb | eng I ⟨pos, st⟩ |
@@ -451,11 +488,21 @@ status.
 * genesis segments cut (`gfin`, delegated engine path, `cm_iff_gen`);
 * the commitment view: injective component split, `ViewImpl`, the binding lemma.
 
+**M11d (lane E, 2026-11-03) [K]:** see §3.5. Done:
+* `NvFaithful` composition (sub-obligation 6) amended and proved for the node and wrap programs;
+  `NvFaithful` of both reduces to `NodeExec`/`WrapExec`;
+* `LeafHolds` proved; `RangeBinding` reduced to SHA-384 CR;
+* the honest call tape `honestK`, with `estepO_honest` (completeness) and `rsteps_honest`;
+* the `BadEvents` soundness budget document.
+
 Open for lane E:
-1. The honest prover's `K` (the call tape) as a function of the step. It exists by computation
-   (lane A's `wasmbase-tape`); it is not a Lean theorem.
-2. `NvFaithful` for the node and wrap circuits (5 of 6 sub-obligations, lane `pq-nv-faithful`) and
-   the QROM bound behind `ExtractWG`/`ExtractW` (not expressible in this library).
+1. A constructive recorder for `honestQ` (the honest tape is now a Lean function, by classical
+   choice; lane A's `wasmbase-tape` computes it).
+2. `NodeExec`/`WrapExec`: the NvAir executes the node/wrap program (generic NV sub-obligations
+   1–4; they need a Lean NvAir model or an exporter for the NV crate). The QROM bound behind
+   `ExtractWG`/`ExtractW` is not expressible in this library; its budget is written out in
+   `E2E-SOUNDNESS-BUDGET.md`. Per that doc, deep trees need either the single-database QROM
+   theorem (GAPS S-19) or a larger per-round target, and the wrap needs pinned parameters.
 3. The per-component binding lemmas `Coll stD → …`, `Coll outD → …` (lane B: `StateM5a` `Ws`
    Merkle root, accumulators), `Coll wasmD → …` (lane A), and instances of `ViewImpl` with `WF`
    records.
