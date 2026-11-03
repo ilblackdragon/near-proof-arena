@@ -16,6 +16,7 @@ import StateM5a.Bus
 import StateM5a.Traffic
 import StateM5a.BusWalk
 import StateM5a.Keep
+import StateM5a.WsCost
 
 /-! Axiom audit of the M5a lemmas (`lake build StateM5a.Audit` prints them): every theorem must
 depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
@@ -219,3 +220,17 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.Store.ChangeRowsW.rows
 #print axioms StateM5a.Store.change_keep
 #print axioms StateM5a.Store.batched_changes'
+#print axioms StateM5a.Merkle.up_take
+#print axioms StateM5a.Merkle.up_drop
+#print axioms StateM5a.Merkle.root_succ_split
+#print axioms StateM5a.Merkle.Upd.apply_length
+#print axioms StateM5a.Merkle.batch_update_sound
+#print axioms StateM5a.WsCost.chain_sound
+#print axioms StateM5a.WsCost.chain_strict
+#print axioms StateM5a.WsCost.chain_sound_any
+#print axioms StateM5a.WsCost.leafLimb_inj
+#print axioms StateM5a.WsCost.wsa_gap
+#print axioms StateM5a.WsCost.wsp_keep
+#print axioms StateM5a.WsCost.wsp_child
+#print axioms StateM5a.WsCost.wsp_off
+#print axioms StateM5a.WsCost.wsl_kd
