@@ -62,9 +62,9 @@ theorem air_final_sorted_sn6 {tr : Trace Fp} {pub : List Fp} (D : Nat)
   have hH := hP.hH
   have hxN := fun T hT => (hP.hsil T hT).1
   have hxL := fun T hT => (hP.hsil T hT).2.1
-  have hxB := fun T hT => (hP.hsil T hT).2.2.2.1
-  have hxD := fun T hT => (hP.hsil T hT).2.2.2.2.1
-  have hxK := fun T hT => (hP.hsil T hT).2.2.2.2.2.1
+  have hxB := hP.hxB
+  have hxD := fun T hT => (hP.hsil T hT).2.2.2.1
+  have hxK := fun T hT => (hP.hsil T hT).2.2.2.2.1
   have hxr : ∀ T ∈ tapeTable (m5aTape writes prev post n) :: rest, ∀ i ∈ T.interactions, i.bus ≠ B_RNG :=
     fun T hT i hi => (hP.hx T hT i hi).2.2.2.1
   have hxR := tp B_KCR (by decide) (by decide) (fun T hT => (hrN T hT).2.2)

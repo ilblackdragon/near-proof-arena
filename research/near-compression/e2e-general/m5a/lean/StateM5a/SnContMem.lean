@@ -104,7 +104,7 @@ variable {tr : Trace Fp} {pub : List Fp} {D : Nat} {extra : List Table} {nb np :
 set_option maxHeartbeats 4000000 in
 /-- **A hashing continued head's memory bytes are bytes** (generic in the node's columns). -/
 theorem cont_msg (hH : Holds (fullAir D extra nb np) pub tr)
-    (hxB : ∀ T ∈ extra, sendsOn T.interactions B_SHA_BYTES = false)
+    (hxB : XSbHi D extra nb np tr pub)
     (hxD : ∀ T ∈ extra, sendsOn T.interactions B_SHA_DIGEST = false)
     (hxK : ∀ T ∈ extra, sendsOn T.interactions B_KC = false)
     (hxR : ∀ T ∈ extra, sendsOn T.interactions B_KCR = false)
@@ -195,7 +195,7 @@ theorem cont_msg (hH : Holds (fullAir D extra nb np) pub tr)
 
 /-- **Old memory bytes of a continued head** (`gold`). -/
 theorem cont_old_mem (hH : Holds (fullAir D extra nb np) pub tr)
-    (hxB : ∀ T ∈ extra, sendsOn T.interactions B_SHA_BYTES = false)
+    (hxB : XSbHi D extra nb np tr pub)
     (hxD : ∀ T ∈ extra, sendsOn T.interactions B_SHA_DIGEST = false)
     (hxK : ∀ T ∈ extra, sendsOn T.interactions B_KC = false)
     (hxR : ∀ T ∈ extra, sendsOn T.interactions B_KCR = false)
@@ -210,7 +210,7 @@ theorem cont_old_mem (hH : Holds (fullAir D extra nb np) pub tr)
 
 /-- **New memory bytes of a continued head** (`gnew`). -/
 theorem cont_new_mem (hH : Holds (fullAir D extra nb np) pub tr)
-    (hxB : ∀ T ∈ extra, sendsOn T.interactions B_SHA_BYTES = false)
+    (hxB : XSbHi D extra nb np tr pub)
     (hxD : ∀ T ∈ extra, sendsOn T.interactions B_SHA_DIGEST = false)
     (hxK : ∀ T ∈ extra, sendsOn T.interactions B_KC = false)
     (hxR : ∀ T ∈ extra, sendsOn T.interactions B_KCR = false)

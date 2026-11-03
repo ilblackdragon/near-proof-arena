@@ -37,7 +37,7 @@ theorem sn_up_r : { bus := B_UP, mult := [snW.gdn], msg := snW.ui, send := false
 section
 variable {tr : Trace Fp} {pub : List Fp} {D : Nat} {extra : List Table} {nb np : Nat}
 variable (hH : Holds (fullAir D extra nb np) pub tr)
-  (hxB : ∀ T ∈ extra, sendsOn T.interactions B_SHA_BYTES = false)
+  (hxB : XSbHi D extra nb np tr pub)
   (hxD : ∀ T ∈ extra, sendsOn T.interactions B_SHA_DIGEST = false)
   (hxK : ∀ T ∈ extra, sendsOn T.interactions B_KC = false)
   (hxr : ∀ T ∈ extra, ∀ i ∈ T.interactions, i.bus ≠ B_RNG)
@@ -93,7 +93,7 @@ theorem hloc_sn3 {D : Nat} {extra : List Table} {nb np : Nat} {tr : Trace Fp} {p
     (hH : Holds (fullAir D extra nb np) pub tr)
     (hN : ∀ T ∈ extra, sendsOn T.interactions B_NIB = false)
     (hL : ∀ T ∈ extra, sendsOn T.interactions B_KLEN = false)
-    (hxB : ∀ T ∈ extra, sendsOn T.interactions B_SHA_BYTES = false)
+    (hxB : XSbHi D extra nb np tr pub)
     (hxD : ∀ T ∈ extra, sendsOn T.interactions B_SHA_DIGEST = false)
     (hxK : ∀ T ∈ extra, sendsOn T.interactions B_KC = false)
     (hxr : ∀ T ∈ extra, ∀ i ∈ T.interactions, i.bus ≠ B_RNG)
@@ -151,8 +151,8 @@ theorem air_final_sorted_sn {tr : Trace Fp} {pub : List Fp} (D : Nat)
   exact air_final_sorted_ver D writes prev post n rest nb np hP hr hrN hrS hxV hn hprev hpost snVers hnd hSU hSM
     hVl hVP hSib hMat hOsl
     (hloc_sn3 hP.hH (fun T hT => (hP.hsil T hT).1) (fun T hT => (hP.hsil T hT).2.1)
-      (fun T hT => (hP.hsil T hT).2.2.2.1) (fun T hT => (hP.hsil T hT).2.2.2.2.1)
-      (fun T hT => (hP.hsil T hT).2.2.2.2.2.1) (fun T hT i hi => (hP.hx T hT i hi).2.2.2.1) hxV hxU hSU
+      hP.hxB (fun T hT => (hP.hsil T hT).2.2.2.1)
+      (fun T hT => (hP.hsil T hT).2.2.2.2.1) (fun T hT i hi => (hP.hx T hT i hi).2.2.2.1) hxV hxU hSU
       hold hnew hlim hlm hrest)
     cs hlen hcs committed hcomm T hT0 hF
 

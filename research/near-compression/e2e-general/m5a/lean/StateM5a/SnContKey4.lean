@@ -72,7 +72,7 @@ theorem ev_dj {r : Nat} (j : Nat) (hj : j < 64) (hd : ev tr 3 r pub (Sn.c "d") <
 set_option maxHeartbeats 8000000 in
 /-- **The full key of a hashing continued head.** -/
 theorem cont_key (hH : Holds (fullAir D extra nb np) pub tr)
-    (hxB : ∀ T ∈ extra, sendsOn T.interactions B_SHA_BYTES = false)
+    (hxB : XSbHi D extra nb np tr pub)
     (hxD : ∀ T ∈ extra, sendsOn T.interactions B_SHA_DIGEST = false)
     (hxK : ∀ T ∈ extra, sendsOn T.interactions B_KC = false)
     (hxR : ∀ T ∈ extra, sendsOn T.interactions B_KCR = false)

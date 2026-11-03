@@ -1,6 +1,7 @@
 import StateM5a.St
 import StateM5a.SnResp
 import StateM5a.WsEntries
+import StateM5a.StSoundA
 
 /-!
 # StateM5a.M5b — the M5a theorems apply to the M5b AIR the prover runs
@@ -11,14 +12,16 @@ The M5b prover AIR (`m5a-tool airb`, `prover/` with `htape.json`) is, in table o
 * the 12 `m5aAir` tables;
 * the M5a public tape with **no writes**, `tapeTable (m5aTape [] prev post n)` (only the root
   chain's ends `TCH(0, prev)`, `TCH(n, post)`): the writes now come from `STW` rows;
-* `m5bExtra` = `SHAS` (a second instance of the unchanged SHA-256 table on buses `SB2`/`SD2`),
-  `STB`, `STW` (`St.lean`);
+* `m5bExtra` = `STB`, `STW` (`St.lean`; the STATE messages are hashed by the M5a SHA-256 table,
+  table 0, under ids `ID_ST + m`);
 * the execution side's public messages `tapeTable host` (`SREQ`/`HB`; on T1 `htape.json`).
 
 Every theorem of `StateM5a` is stated for `fullAir D extra nb np` with premises that restrict
 what the extra tables may do on the M5a buses.  The extra tables of the M5b AIR use only the buses
-`TCH` (the M5a tape), `SB2`, `SD2`, `SREQ`, `HB`, `DESC` and `WRITE` (`x_buses`), so every such
-premise holds (`x_hx`, `x_hsil`, `rest_hr`, `rest_hrN`, `rest_hrS`, `x_hxV`), and **`prem`**
+`TCH` (the M5a tape), `SHA_BYTES` (`STB` sends), `SHA_DIGEST` (`STW` receives), `SREQ`, `HB`,
+`DESC` and `WRITE` (`x_buses`), so every such premise holds (`x_hx`, `x_hsil`, `rest_hr`,
+`rest_hrN`, `rest_hrS`, `x_hxV`; `x_hxB`: `STB`'s `SHA_BYTES` ids are `ID_ST + m`, `m ≤ row < 2^20`,
+from `Holds`), and **`prem`**
 builds `FinalOrder.Prem` from `Holds` and the semantic premises alone.  Hence
 `WsEntries.ws_entries`, `FinalOrder.air_final_sorted`, `SnResp.air_final_sorted_sn2`, … hold for
 the M5b AIR with `extra := m5bX host prev post n` (`writes := []`, `rest := m5bRest host`), with
@@ -27,17 +30,17 @@ the same remaining premises as on the M5a AIR — minus the tape-time premise, w
 
 Not covered here (open): the meaning of the new rows — that each `WRITE` an `STW` row sends
 carries `sha256` of the key / value bytes the execution side sent on `HB` for its request
-(`SHAS`'s digest contract, single run per message id, `DESC` balance).  The M5a theorems take the
+(`StSound.lean`: the SHA-256 digest contract, single run per message id, `DESC` balance).  The M5a theorems take the
 `WRITE` messages as given (they constrain the working set by its `WM`/`PT`/`RCH` traffic), so they
 hold whatever produces them.
 -/
 
 namespace StateM5a.M5b
 
-open ZkFormal.Air ZkFormal.Algebra StateM5a.Bus StateM5a.Tape StateM5a.KeyDecode StateM5a.DecodeM5a StateM5a.FinalOrder
+open ZkFormal.Air ZkFormal.Algebra StateM5a.Bus StateM5a.Tape StateM5a.KeyDecode StateM5a.DecodeM5a StateM5a.FinalOrder ZkFormal.Sha.Sound StateM5a.FieldRows
 
 /-- The buses of the M5b extra tables. -/
-def stBuses : List Nat := [B_TCH, B_SB2, B_SD2, B_SREQ, B_HB, B_DESC, B_WRITE]
+def stBuses : List Nat := [B_TCH, B_SHA_BYTES, B_SHA_DIGEST, B_SREQ, B_HB, B_DESC, B_WRITE]
 
 /-- The execution side's public messages are requests and bytes. -/
 def HostOK (host : List (Nat × Bool × List Nat)) : Prop := ∀ e ∈ host, e.1 = B_SREQ ∨ e.1 = B_HB
@@ -84,6 +87,12 @@ theorem no_send {L : List Table} (hL : ∀ T ∈ L, ∀ i ∈ T.interactions, i.
     simp only [Bool.and_eq_true, beq_iff_eq] at hs
     exact absurd hs.1 (no_bus hL hb T hT i hi)
 
+theorem stb_no_sd : sendsOn Stb.table.interactions B_SHA_DIGEST = false := by decide
+theorem stw_no_sd : sendsOn Stw.table.interactions B_SHA_DIGEST = false := by decide
+theorem stb_sb_s : Stb.interactions.filter (fun i => decide (i.bus = B_SHA_BYTES ∧ i.send = true)) =
+    [snd B_SHA_BYTES (Stb.c "act") [K ID_ST + Stb.c "m", Stb.c "j", Stb.c "b"]] := by decide
+theorem stw_no_sb : sendsOn Stw.interactions B_SHA_BYTES = false := by decide
+
 section
 variable {host : List (Nat × Bool × List Nat)} (hh : HostOK host) (prev post : NearSpec.Bytes) (n : Nat)
 include hh
@@ -96,17 +105,82 @@ theorem x_hx : ∀ T ∈ m5bX host prev post n, ∀ i ∈ T.interactions,
   exact ⟨no_bus h (by decide) T hT i hi, no_bus h (by decide) T hT i hi, no_bus h (by decide) T hT i hi,
     no_bus h (by decide) T hT i hi, no_bus h (by decide) T hT i hi⟩
 
+
+/-- No extra table sends on `SHA_DIGEST` (`STW` only receives digests). -/
+theorem x_noSD : ∀ T ∈ m5bX host prev post n, sendsOn T.interactions B_SHA_DIGEST = false := by
+  intro T hT
+  cases h : sendsOn T.interactions B_SHA_DIGEST with
+  | false => rfl
+  | true =>
+    obtain ⟨i, hi, hs⟩ := List.any_eq_true.1 h
+    simp only [Bool.and_eq_true, beq_iff_eq] at hs
+    rcases List.mem_cons.1 hT with rfl | hT
+    · rcases tape_bus [] prev post n i hi with e | e <;> rw [hs.1] at e <;> exact absurd e (by decide)
+    · rcases List.mem_append.1 hT with hT | hT
+      · simp only [m5bExtra, List.mem_cons, List.not_mem_nil, or_false] at hT
+        rcases hT with rfl | rfl
+        · rw [stb_no_sd] at h; exact absurd h (by decide)
+        · rw [stw_no_sd] at h; exact absurd h (by decide)
+      · simp only [List.mem_singleton] at hT
+        subst hT
+        simp only [tapeTable, List.mem_map] at hi
+        obtain ⟨x, hx, rfl⟩ := hi
+        rcases hh x hx with h' | h' <;> simp_all [B_SREQ, B_HB, B_SHA_DIGEST, NUM_BUSES_WS, NUM_BUSES]
+
 /-- `Prem.hsil`. -/
 theorem x_hsil : ∀ T ∈ m5bX host prev post n,
     sendsOn T.interactions B_NIB = false ∧ sendsOn T.interactions B_KLEN = false ∧
-    sendsOn T.interactions B_ORD = false ∧ sendsOn T.interactions B_SHA_BYTES = false ∧
+    sendsOn T.interactions B_ORD = false ∧
     sendsOn T.interactions B_SHA_DIGEST = false ∧ sendsOn T.interactions B_KC = false ∧
     sendsOn T.interactions B_KDIG = false := by
   have h := x_buses hh prev post n
   intro T hT
   exact ⟨no_send h (by decide) T hT, no_send h (by decide) T hT, no_send h (by decide) T hT,
-    no_send h (by decide) T hT, no_send h (by decide) T hT, no_send h (by decide) T hT,
+    x_noSD hh prev post n T hT, no_send h (by decide) T hT,
     no_send h (by decide) T hT⟩
+
+
+/-- **`Prem.hxB`**: the only extra `SHA_BYTES` sender is `STB`, under ids `ID_ST + m` with
+`m ≤ row < 2^20` (`StSound.stb_inv`), so `ID_ST ≤ id` (no wrap). -/
+theorem x_hxB {tr : Trace Fp} {pub : List Fp} {D nb np : Nat}
+    (hH : Holds (fullAir D (m5bX host prev post n) nb np) pub tr) :
+    XSbHi D (m5bX host prev post n) nb np tr pub := by
+  intro t ht hle r hr i hi hb hs hp
+  have hmem : (fullAir D (m5bX host prev post n) nb np).tables[t] ∈ m5bX host prev post n := by
+    simp only [fullAir]
+    rw [List.getElem_append_right (by omega)]
+    exact List.getElem_mem ..
+  rcases List.mem_cons.1 hmem with e | hmem
+  · rw [e] at hi
+    rcases tape_bus [] prev post n i hi with e' | e' <;> rw [hb] at e' <;> exact absurd e' (by decide)
+  rcases List.mem_append.1 hmem with hmem | hmem
+  · simp only [m5bExtra, List.mem_cons, List.not_mem_nil, or_false] at hmem
+    rcases hmem with e | e
+    · -- `STB`
+      rw [e] at hi
+      change i ∈ Stb.interactions at hi
+      obtain rfl := KcChain.filter_one_mem stb_sb_s hi hb hs
+      have ha := eval_one_ev (KcChain.multNat_one_bit rfl hp)
+      have hc : ∀ r, r < tr.height t → ∀ e' ∈ Stb.table.constraints, e'.eval tr t r pub = 0 :=
+        fun r hr e' he' => hH.constr t ht r hr e' (by rw [e]; exact he')
+      have hlog := (hH.logBound t ht).2
+      rw [e] at hlog
+      have hH20 : tr.height t ≤ 2 ^ 20 := Nat.pow_le_pow_right (by decide) hlog
+      obtain ⟨hm, -⟩ := StSound.stb_inv hc hH20 r hr ha
+      refine ⟨(K ID_ST + Stb.c "m").eval tr t r pub, by simp [snd, Interaction.msgVal], ?_⟩
+      change ID_ST ≤ ev tr t r pub (K ID_ST + Stb.c "m")
+      have hm' : ev tr t r pub (Stb.c "m") ≤ r := hm
+      rw [ev_hadd, show K ID_ST = Expr.const ID_ST from rfl, ev_const, show ID_ST = 67108864 from rfl,
+        Nat.mod_eq_of_lt (by decide : 67108864 < 2013265921), Nat.mod_eq_of_lt (by omega)]
+      omega
+    · rw [e] at hi
+      change i ∈ Stw.interactions at hi
+      exact (not_sends stw_no_sb hi hb hs).elim
+  · simp only [List.mem_singleton] at hmem
+    rw [hmem] at hi
+    simp only [tapeTable, List.mem_map] at hi
+    obtain ⟨x, hx, rfl⟩ := hi
+    rcases hh x hx with h' | h' <;> simp_all [B_SREQ, B_HB, B_SHA_BYTES, NUM_BUSES_WS, NUM_BUSES]
 
 /-- `air_final_sorted_sn2`'s `hxV`. -/
 theorem x_hxV : ∀ T ∈ m5bX host prev post n, sendsOn T.interactions B_VER = false :=
@@ -160,7 +234,8 @@ theorem prem {tr : Trace Fp} {pub : List Fp} {D nb np : Nat} {compress : List Na
     (hD1 : 1 ≤ D) (hD : D ≤ 20) (hNCR : Sha512If.NodeCR compress) (hLCR : WsKey.LeafCR compress)
     (hCR : Walk.Sha256CR) :
     Prem tr pub D (m5bX host prev post n) nb np compress :=
-  { hH, hx := x_hx hh prev post n, hcomp, hC, hD1, hD, hNCR, hLCR, hCR, hsil := x_hsil hh prev post n }
+  { hH, hx := x_hx hh prev post n, hcomp, hC, hD1, hD, hNCR, hLCR, hCR, hsil := x_hsil hh prev post n,
+    hxB := x_hxB hh prev post n hH }
 
 end StateM5a.M5b
 
@@ -169,6 +244,7 @@ end StateM5a.M5b
 #print axioms StateM5a.M5b.x_buses
 #print axioms StateM5a.M5b.x_hx
 #print axioms StateM5a.M5b.x_hsil
+#print axioms StateM5a.M5b.x_hxB
 #print axioms StateM5a.M5b.x_hxV
 #print axioms StateM5a.M5b.rest_hr
 #print axioms StateM5a.M5b.rest_hrN

@@ -62,7 +62,7 @@ variable {tr : Trace Fp} {pub : List Fp} {D : Nat} {extra : List Table} {nb np :
 /-- **A byte hashed under `ID_BR + 2·r0 + par`** was sent by `BR` row `r0`, from the `SHA_BYTES`
 sends led by `idO` (`par = 0`) / `idN` (`par = 1`). -/
 theorem br_byte (hH : Holds (fullAir D extra nb np) pub tr)
-    (hxB : ∀ T ∈ extra, sendsOn T.interactions B_SHA_BYTES = false)
+    (hxB : XSbHi D extra nb np tr pub)
     (hxK : ∀ T ∈ extra, sendsOn T.interactions B_KC = false)
     {r0 par : Nat} (hr0 : r0 < 2 ^ 20) (hpar : par ≤ 1) {id x y : Fp} (hid : id.toNat = ID_BR + 2 * r0 + par)
     (hm : [id, x, y] ∈ busList (fullAir D extra nb np) tr pub B_SHA_BYTES false) :
@@ -77,8 +77,8 @@ theorem br_byte (hH : Holds (fullAir D extra nb np) pub tr)
   have hH3 : tr.height 3 ≤ 2 ^ 20 :=
     Nat.pow_le_pow_right (by decide) (hH.logBound 3 (by rw [fullAir_len]; omega)).2
   have hlt := Fp.toNat_lt id
-  obtain ⟨t, hts, ht, r, hr, i, hi, hb, hs, hp, he⟩ := sender_set B_SHA_BYTES [1, 2, 3, 8] (sb_only D) hxB
-    (recv_sent hH hm)
+  obtain ⟨t, hts, ht, r, hr, i, hi, hb, hs, hp, he⟩ := sender_lo [1, 2, 3, 8] (sb_only D) hxB
+    (recv_sent hH hm) (by rw [hid, show ID_BR = 33554432 from rfl, show ID_ST = 67108864 from rfl]; omega)
   have hhead := congrArg List.head? he
   simp only [List.head?_cons] at hhead
   simp only [List.mem_cons, List.not_mem_nil, or_false] at hts
@@ -166,7 +166,7 @@ theorem ev_serLen {r : Nat} {hv : Expr} {fl : Nat → Expr} (hhv : ev tr 2 r pub
 
 /-- **A hashing node's record is `Hashed` to its digest** (generic in the node's columns). -/
 theorem node_hashed (hH : Holds (fullAir D extra nb np) pub tr)
-    (hxB : ∀ T ∈ extra, sendsOn T.interactions B_SHA_BYTES = false)
+    (hxB : XSbHi D extra nb np tr pub)
     (hxD : ∀ T ∈ extra, sendsOn T.interactions B_SHA_DIGEST = false)
     (hxK : ∀ T ∈ extra, sendsOn T.interactions B_KC = false)
     {r par : Nat} (hr : r < tr.height 2) (hpar : par ≤ 1)
@@ -325,7 +325,7 @@ theorem pred_true {i : Interaction} {id : Expr} (hb : i.bus = B_SHA_BYTES) (hs :
 
 /-- **A row hashing its old node** (`gsha`): the old node's bytes and its record hashed to `ho`. -/
 theorem br_old_node (hH : Holds (fullAir D extra nb np) pub tr)
-    (hxB : ∀ T ∈ extra, sendsOn T.interactions B_SHA_BYTES = false)
+    (hxB : XSbHi D extra nb np tr pub)
     (hxD : ∀ T ∈ extra, sendsOn T.interactions B_SHA_DIGEST = false)
     (hxK : ∀ T ∈ extra, sendsOn T.interactions B_KC = false)
     {r : Nat} (hr : r < tr.height 2) (hg : ev tr 2 r pub (Br.c "gsha") = 1) :
@@ -346,7 +346,7 @@ theorem br_old_node (hH : Holds (fullAir D extra nb np) pub tr)
 
 /-- **A row hashing its new node** (`gfin = gnew − nref`). -/
 theorem br_new_node (hH : Holds (fullAir D extra nb np) pub tr)
-    (hxB : ∀ T ∈ extra, sendsOn T.interactions B_SHA_BYTES = false)
+    (hxB : XSbHi D extra nb np tr pub)
     (hxD : ∀ T ∈ extra, sendsOn T.interactions B_SHA_DIGEST = false)
     (hxK : ∀ T ∈ extra, sendsOn T.interactions B_KC = false)
     {r : Nat} (hr : r < tr.height 2) (hf : ev tr 2 r pub Br.gfin = 1) :
@@ -367,7 +367,7 @@ theorem br_new_node (hH : Holds (fullAir D extra nb np) pub tr)
 
 /-- **The hashing `BR` rows' records are hashed to their digests**, from `Holds`. -/
 theorem brHashed (hH : Holds (fullAir D extra nb np) pub tr)
-    (hxB : ∀ T ∈ extra, sendsOn T.interactions B_SHA_BYTES = false)
+    (hxB : XSbHi D extra nb np tr pub)
     (hxD : ∀ T ∈ extra, sendsOn T.interactions B_SHA_DIGEST = false)
     (hxK : ∀ T ∈ extra, sendsOn T.interactions B_KC = false) : BrHashed tr pub :=
   ⟨fun _ hr hg => (br_old_node hH hxB hxD hxK hr hg).2,

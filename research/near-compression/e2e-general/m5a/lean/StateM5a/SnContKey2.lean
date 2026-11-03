@@ -49,7 +49,7 @@ variable {tr : Trace Fp} {pub : List Fp} {D : Nat} {extra : List Table} {nb np :
 set_option maxHeartbeats 4000000 in
 /-- **The `SNC` bytes of a continued head's hashed message are its chunks' `hp` bytes.** -/
 theorem cont_msg_snc (hH : Holds (fullAir D extra nb np) pub tr)
-    (hxB : ∀ T ∈ extra, sendsOn T.interactions B_SHA_BYTES = false)
+    (hxB : XSbHi D extra nb np tr pub)
     (hxD : ∀ T ∈ extra, sendsOn T.interactions B_SHA_DIGEST = false)
     (hxK : ∀ T ∈ extra, sendsOn T.interactions B_KC = false)
     (hxR : ∀ T ∈ extra, sendsOn T.interactions B_KCR = false)

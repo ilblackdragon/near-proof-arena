@@ -89,9 +89,9 @@ theorem air_final_sorted_ver {tr : Trace Fp} {pub : List Fp} (D : Nat)
       rcases List.mem_cons.1 hT with rfl | hT
       · exact tape_not writes prev post n b h1 h2
       · exact h T hT
-  have hxB := fun T hT => (hP.hsil T hT).2.2.2.1
-  have hxD := fun T hT => (hP.hsil T hT).2.2.2.2.1
-  have hxK := fun T hT => (hP.hsil T hT).2.2.2.2.2.1
+  have hxB := hP.hxB
+  have hxD := fun T hT => (hP.hsil T hT).2.2.2.1
+  have hxK := fun T hT => (hP.hsil T hT).2.2.2.2.1
   have hxN := fun T hT => (hP.hsil T hT).1
   have hxR := tp B_KCR (by decide) (by decide) (fun T hT => (hrN T hT).2.2)
   have hxDU : ∀ T ∈ tapeTable (m5aTape writes prev post n) :: rest, ∀ i ∈ T.interactions,

@@ -60,6 +60,7 @@ import StateM5a.SnResp
 import StateM5a.WalkEnd
 import StateM5a.BrOsl
 import StateM5a.BrOslSplit
+import StateM5a.StHost
 
 /-! Axiom audit of the M5a lemmas (`lake build StateM5a.Audit` prints them): every theorem must
 depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
@@ -643,6 +644,11 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.StSound.write_sent
 #print axioms StateM5a.StSound.write_recv
 #print axioms StateM5a.StSound.desc_msg
+#print axioms StateM5a.StSound.sb_sent_hi
+#print axioms StateM5a.StSound.sd_sent
+#print axioms StateM5a.KeyDigest.xsbHi_of_silent
+#print axioms StateM5a.KeyDigest.sender_lo
+#print axioms StateM5a.KeyDigest.m5a_sb_lo
 #print axioms StateM5a.StSound.wsa_mem_write
 #print axioms StateM5a.StSound.wsa_key
 #print axioms StateM5a.StSound.committedOf_eq
@@ -680,3 +686,13 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.SnContLocX.localOK_oEX_K
 #print axioms StateM5a.SnContRestAll.cont_depth
 #print axioms StateM5a.SnContRestAll.snContRest_of
+-- M5a-8: u32 hex-prefix length (`hph`), STW empty key (`ke`), `HostReqs` from the T1 tape
+#print axioms StateM5a.SnSer.sn_hph0
+#print axioms StateM5a.SnSer.sn_ser_ok
+#print axioms StateM5a.SnRec.u32_mid
+#print axioms StateM5a.SnContRec2.u32_split
+#print axioms StateM5a.StSound.stw_key
+#print axioms StateM5a.StSound.stw_row
+#print axioms StateM5a.StHost.hostOK_of
+#print axioms StateM5a.StHost.hostReqs_of_tape
+#print axioms StateM5a.StHost.m5b_final_tape

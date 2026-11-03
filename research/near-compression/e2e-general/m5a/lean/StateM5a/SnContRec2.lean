@@ -80,7 +80,7 @@ variable {tr : Trace Fp} {pub : List Fp} {D : Nat} {extra : List Table} {nb np :
 set_option maxHeartbeats 4000000 in
 /-- **The message of a hashing continued head.** -/
 theorem cont_node (hH : Holds (fullAir D extra nb np) pub tr)
-    (hxB : ∀ T ∈ extra, sendsOn T.interactions B_SHA_BYTES = false)
+    (hxB : XSbHi D extra nb np tr pub)
     (hxD : ∀ T ∈ extra, sendsOn T.interactions B_SHA_DIGEST = false)
     (hxK : ∀ T ∈ extra, sendsOn T.interactions B_KC = false)
     (hxR : ∀ T ∈ extra, sendsOn T.interactions B_KCR = false)

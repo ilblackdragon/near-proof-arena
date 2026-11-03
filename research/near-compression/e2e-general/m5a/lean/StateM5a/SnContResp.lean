@@ -161,7 +161,7 @@ end
 section
 variable {tr : Trace Fp} {pub : List Fp} {D : Nat} {extra : List Table} {nb np : Nat}
 variable (hH : Holds (fullAir D extra nb np) pub tr)
-  (hxB : ∀ T ∈ extra, sendsOn T.interactions B_SHA_BYTES = false)
+  (hxB : XSbHi D extra nb np tr pub)
   (hxD : ∀ T ∈ extra, sendsOn T.interactions B_SHA_DIGEST = false)
   (hxK : ∀ T ∈ extra, sendsOn T.interactions B_KC = false)
   (hxR : ∀ T ∈ extra, sendsOn T.interactions B_KCR = false)

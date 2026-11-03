@@ -39,7 +39,7 @@ theorem sn_mem_nm3 : (Sn.c "oLR" + Sn.c "oLM") * Sn.c "nmem" 3 * (Sn.c "nmem" 3 
 section
 variable {tr : Trace Fp} {pub : List Fp} {D : Nat} {extra : List Table} {nb np : Nat}
 variable (hH : Holds (fullAir D extra nb np) pub tr)
-  (hxB : ∀ T ∈ extra, sendsOn T.interactions B_SHA_BYTES = false)
+  (hxB : XSbHi D extra nb np tr pub)
   (hxD : ∀ T ∈ extra, sendsOn T.interactions B_SHA_DIGEST = false)
   (hxK : ∀ T ∈ extra, sendsOn T.interactions B_KC = false)
   (hN : ∀ T ∈ extra, sendsOn T.interactions B_NIB = false)

@@ -176,9 +176,7 @@ theorem m5a_noWrite (D : Nat) : ∀ t (ht : t < (m5aAir D).tables.length), t ≠
 theorem noBus_ne {b : Nat} {is : List Interaction} (h : noBus b is = true) {i : Interaction} (hi : i ∈ is) :
     i.bus ≠ b := of_decide_eq_true (List.all_eq_true.1 h i hi)
 
-theorem shas_noSREQ : noBus B_SREQ shaTableS.interactions = true := by decide
 theorem stb_noSREQ : noBus B_SREQ Stb.interactions = true := by decide
-theorem shas_noWrite : noBus B_WRITE shaTableS.interactions = true := by decide
 theorem stb_noWrite : noBus B_WRITE Stb.interactions = true := by decide
 theorem stw_sreq_r : Stw.interactions.filter (fun i => decide (i.bus = B_SREQ ∧ i.send = false)) =
     [rcv B_SREQ (Stw.c "act") [Stw.c "ts", Stw.c "pr", Stw.c "seg", Stw.c "klen", Stw.c "kptr", Stw.c "vlen",
@@ -232,16 +230,15 @@ theorem req_acc (hh : HostOK host) (hH : Holds (fullAir D (m5bX host prev post n
     (hR.sreq _).2 ⟨q, hq, rfl⟩
   have hrv := (holds_perm hH B_SREQ).mem_iff.1 hs
   -- the `STW` row consuming the request
-  obtain ⟨r, hr, hact, he⟩ : ∃ r, r < tr.height 15 ∧ (Stw.c "act").eval tr 15 r pub = 1 ∧
+  obtain ⟨r, hr, hact, he⟩ : ∃ r, r < tr.height 14 ∧ (Stw.c "act").eval tr 14 r pub = 1 ∧
       q.msg = (rcv B_SREQ (Stw.c "act") [Stw.c "ts", Stw.c "pr", Stw.c "seg", Stw.c "klen", Stw.c "kptr",
-        Stw.c "vlen", Stw.c "vptr"]).msgVal tr 15 r pub := by
+        Stw.c "vlen", Stw.c "vptr"]).msgVal tr 14 r pub := by
     rcases bus_split hrv with ⟨t, ht, r, hr, i, hi, hb, -, -, -⟩ | ⟨k, hk, r, hr, i, hi, hb, hsd, hp, he⟩
     · have := of_decide_eq_true (List.all_eq_true.1 (m5a_busesLt D t ht) i hi)
       rw [hb] at this
       exact absurd this (by decide)
-    · rcases x_cases hh hk hi with ⟨rfl, h⟩ | ⟨rfl, h⟩ | ⟨rfl, h⟩ | ⟨rfl, h⟩ | ⟨rfl, h⟩
+    · rcases x_cases hh hk hi with ⟨rfl, h⟩ | ⟨rfl, h⟩ | ⟨rfl, h⟩ | ⟨rfl, h⟩
       · exact absurd (hb.symm.trans h) (by decide)
-      · exact absurd hb (noBus_ne shas_noSREQ h)
       · exact absurd hb (noBus_ne stb_noSREQ h)
       · obtain rfl := filter_one_mem stw_sreq_r h hb hsd
         exact ⟨r, hr, multNat_one_bit rfl hp, he⟩
@@ -251,8 +248,8 @@ theorem req_acc (hh : HostOK host) (hH : Holds (fullAir D (m5bX host prev post n
   simp only [Req.msg, rcv, Interaction.msgVal, List.map_cons, List.map_nil, List.cons.injEq] at he
   obtain ⟨ets, -, eseg, -⟩ := he
   -- its `WRITE`, consumed by a `WSA` row
-  have hw := msg_mem_busList (A := fullAir D (m5bX host prev post n) nb np) (pub := pub) (t := 15)
-    (by rw [bx_len]; omega) (by rw [get15]; exact stw_write_mem) hr rfl hact
+  have hw := msg_mem_busList (A := fullAir D (m5bX host prev post n) nb np) (pub := pub) (t := 14)
+    (by rw [bx_len]; omega) (by rw [get14]; exact stw_write_mem) hr rfl hact
   have hwr := (holds_perm hH B_WRITE).mem_iff.1 hw
   rcases bus_split hwr with ⟨t, ht, r', hr', i, hi, hb, hsd, hp, he⟩ | ⟨k, hk, r', hr', i, hi, hb, hsd, hp, he⟩
   · by_cases h7 : t = 7
@@ -268,9 +265,8 @@ theorem req_acc (hh : HostOK host) (hH : Holds (fullAir D (m5bX host prev post n
       · show ((Wsa.c "seg").eval tr 7 r' pub).toNat = q.seg
         rw [← he.1, ← eseg, KeyDigest.ofNat_toNat', Nat.mod_eq_of_lt b2]
     · exact absurd hb (noBus_ne (m5a_noWrite D t ht h7) hi)
-  · rcases x_cases hh hk hi with ⟨rfl, h⟩ | ⟨rfl, h⟩ | ⟨rfl, h⟩ | ⟨rfl, h⟩ | ⟨rfl, h⟩
+  · rcases x_cases hh hk hi with ⟨rfl, h⟩ | ⟨rfl, h⟩ | ⟨rfl, h⟩ | ⟨rfl, h⟩
     · exact absurd (hb.symm.trans h) (by decide)
-    · exact absurd hb (noBus_ne shas_noWrite h)
     · exact absurd hb (noBus_ne stb_noWrite h)
     · exact (filter_none stw_write_r h hb hsd).elim
     · rcases h with h | h <;> exact absurd (hb.symm.trans h) (by decide)

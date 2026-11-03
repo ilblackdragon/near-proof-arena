@@ -99,15 +99,15 @@ theorem kd_inj {i j : Nat} (hi : i < WsLen.wsLen pub) (hj : j < WsLen.wsLen pub)
     (h : wsbE.kdV tr pub 5 i = wsbE.kdV tr pub 5 j) : i = j := by
   have s := hP.hsil
   exact wsb_kd_inj hP.hH (by have := hP.hD; omega) hP.hCR (fun T hT => (s T hT).1) (fun T hT => (s T hT).2.1)
-    (fun T hT => (s T hT).2.2.1) (fun T hT => (s T hT).2.2.2.1) (fun T hT => (s T hT).2.2.2.2.1)
-    (fun T hT => (s T hT).2.2.2.2.2.1) (fun T hT => (s T hT).2.2.2.2.2.2) hi hj h
+    (fun T hT => (s T hT).2.2.1) hP.hxB (fun T hT => (s T hT).2.2.2.1)
+    (fun T hT => (s T hT).2.2.2.2.1) (fun T hT => (s T hT).2.2.2.2.2) hi hj h
 
 theorem kd_key {i : Nat} (hi : i < WsLen.wsLen pub) :
     wsbE.kdV tr pub 5 i = pairs (sha256 (wkey tr pub i)) := by
   have s := hP.hsil
   obtain ⟨hi5, -, -, ri⟩ := phase0 hP.hH (by have := hP.hD; omega) hi
-  exact KeyDigest.wsb_kd hP.hH (fun T hT => (s T hT).2.2.2.1) (fun T hT => (s T hT).2.2.2.2.1)
-    (fun T hT => (s T hT).2.2.2.2.2.1) (fun T hT => (s T hT).2.2.2.2.2.2) hi5 ri
+  exact KeyDigest.wsb_kd hP.hH hP.hxB (fun T hT => (s T hT).2.2.2.1)
+    (fun T hT => (s T hT).2.2.2.2.1) (fun T hT => (s T hT).2.2.2.2.2) hi5 ri
 
 /-- **The FINAL value of a real entry is its latest written value** (`final_latest` instantiated). -/
 theorem final_val {i : Nat} (hi : i < WsLen.wsLen pub) :

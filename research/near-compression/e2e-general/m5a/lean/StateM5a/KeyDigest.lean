@@ -136,6 +136,61 @@ theorem sender_set (b : Nat) (ts : List Nat)
       exact List.getElem_mem ..
     exact (not_sends (hx _ hmem) hi hb hs).elim
 
+/-- **The premise on the extra tables' `SHA_BYTES` sends** (M5a-8: one SHA-256 table for the M5a
+and the STATE messages): every message an extra table (index `≥ 12` of `fullAir D extra nb np`)
+sends on `SHA_BYTES` with a positive multiplicity has a message id (its head) `≥ ID_ST`.  The M5a
+senders `KEY` / `BR` / `SN` / `SNC` use ids `< ID_ST` (`ID_KEY + kid`, `ID_BR/ID_SN + 2·rid + par`
+with `kid, rid < 2^20`), so the extra senders cannot forge an M5a message's bytes. -/
+def _root_.StateM5a.XSbHi (D : Nat) (extra : List Table) (nb np : Nat) (tr : Trace Fp) (pub : List Fp) :
+    Prop :=
+  ∀ t (ht : t < (fullAir D extra nb np).tables.length), (m5aAir D).tables.length ≤ t →
+    ∀ r, r < tr.height t → ∀ i ∈ ((fullAir D extra nb np).tables[t]).interactions,
+      i.bus = B_SHA_BYTES → i.send = true → 0 < i.multNat tr t r pub →
+        ∃ x ∈ (i.msgVal tr t r pub).head?, ID_ST ≤ x.toNat
+
+/-- Silent extra tables satisfy `XSbHi` (the M5a premise before M5a-8). -/
+theorem xsbHi_of_silent (hx : ∀ T ∈ extra, sendsOn T.interactions B_SHA_BYTES = false) :
+    XSbHi D extra nb np tr pub := by
+  intro t ht hle r _ i hi hb hs _
+  have hmem : (fullAir D extra nb np).tables[t] ∈ extra := by
+    simp only [fullAir]
+    rw [List.getElem_append_right (by omega)]
+    exact List.getElem_mem ..
+  exact (not_sends (hx _ hmem) hi hb hs).elim
+
+/-- Senders on `SHA_BYTES` among a set of `m5aAir` tables, or an extra table under an id
+`≥ ID_ST`. -/
+theorem sender_set_hi (ts : List Nat)
+    (hS : ∀ t (ht : t < (m5aAir D).tables.length), t ∉ ts →
+      sendsOn ((m5aAir D).tables[t]).interactions B_SHA_BYTES = false)
+    (hx : XSbHi D extra nb np tr pub) {m : List Fp}
+    (hm : m ∈ busList (fullAir D extra nb np) tr pub B_SHA_BYTES true) :
+    (∃ t ∈ ts, ∃ ht : t < (m5aAir D).tables.length, ∃ r, r < tr.height t ∧
+      ∃ i ∈ ((m5aAir D).tables[t]).interactions, i.bus = B_SHA_BYTES ∧ i.send = true ∧
+        0 < i.multNat tr t r pub ∧ m = i.msgVal tr t r pub) ∨ ∃ x ∈ m.head?, ID_ST ≤ x.toNat := by
+  obtain ⟨t, ht, r, hr, i, hi, hb, hs, hp, rfl⟩ := mem_busList.1 hm
+  by_cases hlt : t < (m5aAir D).tables.length
+  · rw [fullAir_get hlt ht] at hi
+    by_cases e : t ∈ ts
+    · exact .inl ⟨t, e, hlt, r, hr, i, hi, hb, hs, hp, rfl⟩
+    · exact (not_sends (hS t hlt e) hi hb hs).elim
+  · exact .inr (hx t ht (by omega) r hr i hi hb hs hp)
+
+/-- A `SHA_BYTES` message under an id `< ID_ST` was sent by one of the tables `ts`. -/
+theorem sender_lo (ts : List Nat)
+    (hS : ∀ t (ht : t < (m5aAir D).tables.length), t ∉ ts →
+      sendsOn ((m5aAir D).tables[t]).interactions B_SHA_BYTES = false)
+    (hx : XSbHi D extra nb np tr pub) {id : Fp} {rest : List Fp}
+    (hm : id :: rest ∈ busList (fullAir D extra nb np) tr pub B_SHA_BYTES true) (hid : id.toNat < ID_ST) :
+    ∃ t ∈ ts, ∃ ht : t < (m5aAir D).tables.length, ∃ r, r < tr.height t ∧
+      ∃ i ∈ ((m5aAir D).tables[t]).interactions, i.bus = B_SHA_BYTES ∧ i.send = true ∧
+        0 < i.multNat tr t r pub ∧ id :: rest = i.msgVal tr t r pub := by
+  rcases sender_set_hi ts hS hx hm with h | ⟨x, hxm, hle⟩
+  · exact h
+  · simp only [List.head?_cons, Option.mem_def, Option.some.injEq] at hxm
+    subst hxm
+    omega
+
 theorem head_eval {i : Interaction} {e : Expr} (h : i.msg.head? = some e) {t r : Nat} :
     (i.msgVal tr t r pub).head? = some (e.eval tr t r pub) := by
   simp only [Interaction.msgVal, List.head?_map, h, Option.map_some]
@@ -255,7 +310,7 @@ theorem ev_id2' {t r : Nat} (base : Nat) (x : Expr) (hx : ev tr t r pub x < 2 ^ 
 /-- **A byte hashed under `ID_KEY + kid`** (`kid < 2^20`) comes from the `KEY` row `i` of key
 `kid`. -/
 theorem key_byte (hH : Holds (fullAir D extra nb np) pub tr)
-    (hxB : ∀ T ∈ extra, sendsOn T.interactions B_SHA_BYTES = false)
+    (hxB : XSbHi D extra nb np tr pub)
     (hxK : ∀ T ∈ extra, sendsOn T.interactions B_KC = false)
     {kid : Nat} (hkid : kid < 2 ^ 20) {id x y : Fp} (hid : id.toNat = ID_KEY + kid)
     (hm : [id, x, y] ∈ busList (fullAir D extra nb np) tr pub B_SHA_BYTES false) :
@@ -267,8 +322,8 @@ theorem key_byte (hH : Holds (fullAir D extra nb np) pub tr)
     Nat.pow_le_pow_right (by decide) (hH.logBound 2 (by rw [fullAir_len]; omega)).2
   have hH3 : tr.height 3 ≤ 2 ^ 20 :=
     Nat.pow_le_pow_right (by decide) (hH.logBound 3 (by rw [fullAir_len]; omega)).2
-  obtain ⟨t, hts, ht, r, hr, i, hi, hb, hs, hp, he⟩ := sender_set B_SHA_BYTES [1, 2, 3, 8] (sb_only D) hxB
-    (recv_sent hH hm)
+  obtain ⟨t, hts, ht, r, hr, i, hi, hb, hs, hp, he⟩ := sender_lo [1, 2, 3, 8] (sb_only D) hxB
+    (recv_sent hH hm) (by rw [hid, show ID_KEY = 16777216 from rfl, show ID_ST = 67108864 from rfl]; omega)
   have hhead := congrArg List.head? he
   simp only [List.head?_cons] at hhead
   simp only [List.mem_cons, List.not_mem_nil, or_false] at hts
@@ -363,6 +418,83 @@ theorem key_byte (hH : Holds (fullAir D extra nb np) pub tr)
       rw [ev_id2' _ _ hrid (by decide), hid] at this
       simp [ID_KEY, ID_SN] at this; omega
 
+/-- **The `m5aAir` `SHA_BYTES` senders use ids `< ID_ST`**: `KEY` `ID_KEY + kid` (`kid < 2^20`),
+`BR` / `SN` `ID_BR / ID_SN + 2·rid (+1)` (`rid` = the row), `SNC` `ID_SN + 2·rid (+1)` (an active
+row, `rid` an `SN` row index, `snc_rid`). -/
+theorem m5a_sb_lo (hH : Holds (fullAir D extra nb np) pub tr)
+    (hxK : ∀ T ∈ extra, sendsOn T.interactions B_KC = false)
+    {t : Nat} (hts : t ∈ [1, 2, 3, 8]) (ht : t < (m5aAir D).tables.length) {r : Nat} (hr : r < tr.height t)
+    {i : Interaction} (hi : i ∈ ((m5aAir D).tables[t]).interactions) (hb : i.bus = B_SHA_BYTES)
+    (hs : i.send = true) (hp : 0 < i.multNat tr t r pub) :
+    ∃ x ∈ (i.msgVal tr t r pub).head?, x.toNat < ID_ST := by
+  have hlog := key_log hH
+  have hc := key_hc hH
+  have hH2 : tr.height 2 ≤ 2 ^ 20 :=
+    Nat.pow_le_pow_right (by decide) (hH.logBound 2 (by rw [fullAir_len]; omega)).2
+  have hH3 : tr.height 3 ≤ 2 ^ 20 :=
+    Nat.pow_le_pow_right (by decide) (hH.logBound 3 (by rw [fullAir_len]; omega)).2
+  have eST : ID_ST = 67108864 := rfl
+  simp only [List.mem_cons, List.not_mem_nil, or_false] at hts
+  rcases hts with rfl | rfl | rfl | rfl
+  · -- `KEY`
+    change i ∈ Key.interactions at hi
+    obtain rfl := filter_one_mem key_sb_s hi hb hs
+    have ha := eval_one_ev (multNat_one_bit rfl hp)
+    obtain ⟨hk, -, -, -⟩ := key_inv hc hlog r hr ha
+    refine ⟨_, head_eval (e := K ID_KEY + Key.c "kid") rfl, ?_⟩
+    change ev tr 1 r pub (K ID_KEY + Key.c "kid") < ID_ST
+    have hH1 : tr.height 1 ≤ 2 ^ 20 := Nat.pow_le_pow_right (by decide) hlog
+    rw [ev_id _ _ (by rw [ev_kc]; omega) (by decide), ev_kc, eST, show ID_KEY = 16777216 from rfl]
+    omega
+  · -- `BR`
+    change i ∈ Br.interactions at hi
+    have := List.all_eq_true.1 br_sb_ids i hi
+    simp only [hb, hs, decide_true, Bool.and_self, Bool.not_true, Bool.false_or, Bool.or_eq_true,
+      decide_eq_true_eq] at this
+    have hrid := br_rid hH r hr
+    rcases this with h | h
+    · refine ⟨_, head_eval h, ?_⟩
+      change ev tr 2 r pub (K ID_BR + sm 2 (Br.c "rid")) < ID_ST
+      rw [ev_id2 _ _ (by omega) (by decide), hrid, eST, show ID_BR = 33554432 from rfl]
+      omega
+    · refine ⟨_, head_eval h, ?_⟩
+      change ev tr 2 r pub (K ID_BR + sm 2 (Br.c "rid") + 1) < ID_ST
+      rw [ev_id2' _ _ (by omega) (by decide), hrid, eST, show ID_BR = 33554432 from rfl]
+      omega
+  · -- `SN`
+    change i ∈ Sn.interactions at hi
+    have := List.all_eq_true.1 sn_sb_ids i hi
+    simp only [hb, hs, decide_true, Bool.and_self, Bool.not_true, Bool.false_or, Bool.or_eq_true,
+      decide_eq_true_eq] at this
+    have hrid := sn_rid hH r hr
+    rcases this with h | h
+    · refine ⟨_, head_eval h, ?_⟩
+      change ev tr 3 r pub (K ID_SN + sm 2 (Sn.c "rid")) < ID_ST
+      rw [ev_id2 _ _ (by omega) (by decide), hrid, eST, show ID_SN = 50331648 from rfl]
+      omega
+    · refine ⟨_, head_eval h, ?_⟩
+      change ev tr 3 r pub (K ID_SN + sm 2 (Sn.c "rid") + 1) < ID_ST
+      rw [ev_id2' _ _ (by omega) (by decide), hrid, eST, show ID_SN = 50331648 from rfl]
+      omega
+  · -- `SNC`
+    change i ∈ Snc.interactions at hi
+    have := List.all_eq_true.1 snc_sb_ids i hi
+    simp only [hb, hs, decide_true, Bool.and_self, Bool.not_true, Bool.false_or, List.any_eq_true,
+      List.mem_range, Bool.or_eq_true, Bool.and_eq_true, decide_eq_true_eq] at this
+    obtain ⟨mm, hmm, h | h⟩ := this
+    · have ha := snc_ha_act (snc_hc hH r hr) mm hmm (multNat_one_bit h.1 hp)
+      have hrid := snc_rid hH hxK _ r hr ha rfl
+      refine ⟨_, head_eval h.2, ?_⟩
+      change ev tr 8 r pub (K ID_SN + sm 2 (Snc.c "rid")) < ID_ST
+      rw [ev_id2 _ _ hrid (by decide), eST, show ID_SN = 50331648 from rfl]
+      omega
+    · have ha := snc_ha_act (snc_hc hH r hr) mm hmm (multNat_one_bit h.1 hp)
+      have hrid := snc_rid hH hxK _ r hr ha rfl
+      refine ⟨_, head_eval h.2, ?_⟩
+      change ev tr 8 r pub (K ID_SN + sm 2 (Snc.c "rid") + 1) < ID_ST
+      rw [ev_id2' _ _ hrid (by decide), eST, show ID_SN = 50331648 from rfl]
+      omega
+
 end
 
 /-! ## `KDIG` -/
@@ -384,7 +516,7 @@ variable {tr : Trace Fp} {pub : List Fp} {D : Nat} {extra : List Table} {nb np :
 
 /-- **The digest a closing `KEY` row receives is `sha256` of its key's bytes.** -/
 theorem key_digest (hH : Holds (fullAir D extra nb np) pub tr)
-    (hxB : ∀ T ∈ extra, sendsOn T.interactions B_SHA_BYTES = false)
+    (hxB : XSbHi D extra nb np tr pub)
     (hxD : ∀ T ∈ extra, sendsOn T.interactions B_SHA_DIGEST = false)
     (hxK : ∀ T ∈ extra, sendsOn T.interactions B_KC = false)
     {r : Nat} (hr : r < tr.height 1) (hl : kc tr r "last" = 1) :
@@ -482,7 +614,7 @@ variable {tr : Trace Fp} {pub : List Fp} {D : Nat} {extra : List Table} {nb np :
 
 /-- **Every `KDIG` message sent is `(kid, pairs (sha256 (keyBytes kid)))`.** -/
 theorem kdig_sent (hH : Holds (fullAir D extra nb np) pub tr)
-    (hxB : ∀ T ∈ extra, sendsOn T.interactions B_SHA_BYTES = false)
+    (hxB : XSbHi D extra nb np tr pub)
     (hxD : ∀ T ∈ extra, sendsOn T.interactions B_SHA_DIGEST = false)
     (hxK : ∀ T ∈ extra, sendsOn T.interactions B_KC = false)
     (hxG : ∀ T ∈ extra, sendsOn T.interactions B_KDIG = false) {m : List Fp}
@@ -519,7 +651,7 @@ theorem kdig_sent (hH : Holds (fullAir D extra nb np) pub tr)
 
 /-- **`KDIG` lookups**: every received `KDIG` message is `(kid, pairs (sha256 (keyBytes kid)))`. -/
 theorem kdig_recv (hH : Holds (fullAir D extra nb np) pub tr)
-    (hxB : ∀ T ∈ extra, sendsOn T.interactions B_SHA_BYTES = false)
+    (hxB : XSbHi D extra nb np tr pub)
     (hxD : ∀ T ∈ extra, sendsOn T.interactions B_SHA_DIGEST = false)
     (hxK : ∀ T ∈ extra, sendsOn T.interactions B_KC = false)
     (hxG : ∀ T ∈ extra, sendsOn T.interactions B_KDIG = false) {m : List Fp}
@@ -532,7 +664,7 @@ theorem wsb_kdig_mem : rcv B_KDIG (Wsb.c "real") (Wsb.c "kid" :: Wsb.vec "kd" 16
 
 /-- **A real `WSB` row's `kd` limbs are `pairs (sha256 (keyBytes kid))`** (so `< 2^16`). -/
 theorem wsb_kd (hH : Holds (fullAir D extra nb np) pub tr)
-    (hxB : ∀ T ∈ extra, sendsOn T.interactions B_SHA_BYTES = false)
+    (hxB : XSbHi D extra nb np tr pub)
     (hxD : ∀ T ∈ extra, sendsOn T.interactions B_SHA_DIGEST = false)
     (hxK : ∀ T ∈ extra, sendsOn T.interactions B_KC = false)
     (hxG : ∀ T ∈ extra, sendsOn T.interactions B_KDIG = false)
