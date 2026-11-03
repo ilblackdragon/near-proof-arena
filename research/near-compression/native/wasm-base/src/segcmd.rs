@@ -3,6 +3,8 @@
 //!   nearproof-wasm-base segcheck  <airSeg.json> <airM2.json> <prep.json> <steps_per_segment>
 //!   nearproof-wasm-base segprove  <airSeg.json> <airM2.json> <prep.json> <steps_per_segment>
 //!   nearproof-wasm-base segtamper <airSeg.json> <airM2.json> <prep.json> <steps_per_segment> <segment>
+//!   nearproof-wasm-base segdump   <airSeg.json> <airM2.json> <prep.json> <steps_per_segment> <out_prefix>
+//!     (M4c: write every segment's trace, publics and chip inputs to `<out_prefix>-<i>.bin`, `dump.rs`)
 //!
 //! `<airSeg.json>` is `wasmbase-tool airSeg` (M4) or `airSegMP` (M4b, the multiproof MPATH; its
 //! tamper battery adds the MPATH-MP cases, `tampers_mp`).
@@ -101,6 +103,20 @@ pub fn cmd_segcheck(a: &[String]) {
     }
     assert!(chain_ok(&segs), "boundary chain");
     println!("SEGCHECK OK {} segments chained: B_out(k) = B_in(k+1) for every k", segs.len());
+}
+
+/// M4c: dump every segment (after the Rust pre-check) for the Lean `HoldsX`/`ChipIf` checker.
+pub fn cmd_segdump(a: &[String]) {
+    let (seg_air, m2_air) = (load(&a[0]), load(&a[1]));
+    let k: u64 = a[3].parse().unwrap();
+    let (_prep, _g, segs) = segments(&seg_air, &m2_air, &a[2], k);
+    for (i, s) in segs.iter().enumerate() {
+        report(&seg_air, i, s);
+        seg::precheck(&seg_air, &s.mats, &s.pubs, &s.comps).unwrap_or_else(|e| panic!("segment {i}: {e}"));
+        crate::dump::write(&format!("{}-{i}.bin", a[4]), &s.mats, &s.pubs, &s.comps);
+    }
+    assert!(chain_ok(&segs), "boundary chain");
+    println!("SEGDUMP OK {} segments", segs.len());
 }
 
 fn airs(spec: &AirSpec) -> Vec<AirRef<Sha384Config>> {

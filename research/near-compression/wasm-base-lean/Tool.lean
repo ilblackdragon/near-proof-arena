@@ -1,5 +1,6 @@
 import WasmBase.ToolCore
 import WasmBase.Census
+import WasmBase.Check.TraceDump
 /-!
 `wasmbase-tool` — exporter and verifier-side preparation for the direct-Wasm base layer.
 
@@ -50,6 +51,8 @@ def censusCmd (path exportName : String) : IO Unit := do
 def main (args : List String) : IO Unit := do
   match args with
   | ["census", path, e] => censusCmd path e
+  | ["holds", a, l, n, path] => HoldsCheck.holdsCmd a l.toNat! n.toNat! path
+  | ["holds", a, l, n, path, a2, l2, n2] => HoldsCheck.holdsCmd a l.toNat! n.toNat! path (some (a2, l2.toNat!, n2.toNat!))
   | ["air", l, n] => IO.println (airJson (wasmBaseAir l.toNat! n.toNat!))
   | ["airH", l, n] => IO.println (airJson (wasmBaseHostAir l.toNat! n.toNat!))
   | ["airR", l, n] => IO.println (airJson (wasmBaseRegAir l.toNat! n.toNat!))
