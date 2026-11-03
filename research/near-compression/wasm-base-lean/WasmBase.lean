@@ -120,5 +120,4 @@ import WasmBase.Main.SegShaBytes
 import WasmBase.Main.SegShaMemb
 import WasmBase.Main.SegShaCut
 import WasmBase.Main.BusCount
-import WasmBase.Main.SegHoldsX
 import WasmBase.Main.SegMP
