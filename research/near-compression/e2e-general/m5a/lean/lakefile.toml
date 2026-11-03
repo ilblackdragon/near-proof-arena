@@ -1,0 +1,21 @@
+# E2E M5a: the in-circuit state machine foundation (INTAKE, working-set tree, FINAL).
+# The AIR is a `ZkFormal.Air` value (single source of truth): `m5a-tool air` exports it for the
+# Rust prover (`../prover`), and the lemmas in `StateM5a/` are stated about the same value.
+name = "StateM5a"
+version = "0.1.0"
+defaultTargets = ["StateM5a", "m5a-tool"]
+
+[leanOptions]
+autoImplicit = false
+relaxedAutoImplicit = false
+
+[[lean_lib]]
+name = "StateM5a"
+
+[[lean_exe]]
+name = "m5a-tool"
+root = "Tool"
+
+[[require]]
+name = "ZkFormal"
+path = "../../../../../zk-formal"
