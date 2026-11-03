@@ -22,7 +22,7 @@ local notation "P" => 2013265921
 
 /-- The non-store part of a `BR` row's facts (premises). -/
 structure BrRest (σ : Store) (tr : Trace Fp) (pub : List Fp) (r : Nat) : Prop where
-  ranges : BrRanges tr pub r
+  ranges : BrRangesW tr pub r
   mat : ev tr 2 r pub (Br.c "oDL") = 1 ∨ ev tr 2 r pub (Br.c "oUN") = 1 →
     MatRel σ (keyOf tr) (ev tr 2 r pub (Br.c "kid2")) (ev tr 2 r pub (Br.c "st2")) (ev tr 2 r pub (Br.c "lvlen"))
       (bytesOf (((List.range 16).map fun i => Br.c "lvh" i).map (E tr 2 r pub)))

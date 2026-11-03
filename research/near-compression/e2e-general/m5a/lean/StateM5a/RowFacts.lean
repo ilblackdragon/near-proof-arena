@@ -31,7 +31,7 @@ set_option maxRecDepth 100000
 structure BrStore (σ : Store) (tr : Trace Fp) (pub : List Fp) (r : Nat) : Prop where
   old : OldOK σ (brIn tr pub r) (brOld tr pub r)
   new : ev tr 2 r pub (Br.c "gnew") = 1 → NewOK σ (brOut tr pub r) (brNew tr pub r)
-  ranges : BrRanges tr pub r
+  ranges : BrRangesW tr pub r
   /-- `oDL` / `oUN`: the `MATQ`/`MATR` answer (`BusSplit.mat_reqresp`; responders `SN.oLM`). -/
   mat : ev tr 2 r pub (Br.c "oDL") = 1 ∨ ev tr 2 r pub (Br.c "oUN") = 1 →
     MatRel σ (keyOf tr) (ev tr 2 r pub (Br.c "kid2")) (ev tr 2 r pub (Br.c "st2")) (ev tr 2 r pub (Br.c "lvlen"))
@@ -142,7 +142,9 @@ theorem brRowFacts_of {tr : Trace Fp} {pub : List Fp} {σ : Store} {D : Nat} {ex
   · brfacts hc hg
     have hg' : ev tr 2 r pub (Br.c "oDH" + Br.c "oDL") = 1 := by
       rw [ev_hadd, Nat.mod_eq_of_lt (by omega)]; omega
-    refine br_mono hc hg' hS.ranges (fun b hb => ?_)
+    refine br_mono hc hg' (hS.ranges.full hc (by omega) (fun hU t ht =>
+      WsDecode3.rng_rcv hH hxr (t := 2) (by simp [fullAir, m5aAir])
+        (by rw [h2]; exact memD_mem (br_mem_rng_nvl t ht)) hr (ev_one_eval hU))) (fun b hb => ?_)
     exact WsDecode3.rng_rcv hH hxr (t := 2) (by simp [fullAir, m5aAir])
       (by rw [h2]; exact memD_mem (br_mem_rng_dm b hb)) hr (ev_one_eval hg')
   · exact WsDecode3.rng_rcv hH hxr (t := 2) (by simp [fullAir, m5aAir])

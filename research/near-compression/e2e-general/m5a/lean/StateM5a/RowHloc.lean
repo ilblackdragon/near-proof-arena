@@ -26,12 +26,75 @@ open StateM5a.RowBrD1
 
 local notation "P" => 2013265921
 
+/-- **Range facts of an active `BR` row, each where it is used** (`BrRanges` asks them on every
+row): the old node's memory and value-length limbs and the old length `< P` (every active row);
+the new node's memory limbs and the child's answer limbs `nm` / `om` (rows with a new node only).
+`BrRangesW.full` gives `BrRanges` on a row with a new node (the new value-length limbs from the
+constraints: kept, cleared, or written with `RNG` bytes). -/
+def BrRangesW (tr : Trace Fp) (pub : List Fp) (r : Nat) : Prop :=
+  (∀ k, k < 4 → (bE tr pub r (Br.M.getD k 0)).toNat < 65536) ∧
+  (∀ k, k < 2 → (bE tr pub r (limb16 (fun t => Br.c "vl" t) k)).toNat < 65536) ∧
+  brVlen tr pub r < 2013265921 ∧
+  (ev tr 2 r pub (Br.c "gnew") = 1 → ∀ k, k < 4 → (bE tr pub r (Br.NM.getD k 0)).toNat < 65536 ∧
+    (bE tr pub r (Br.c "nm" k)).toNat < 65536 ∧ (bE tr pub r (Br.c "om" k)).toNat < 65536)
+
+set_option maxHeartbeats 4000000 in
+theorem br_mem_nvl_keep (t : Nat) (ht : t < 4) :
+    (Br.c "gnew" - Br.c "oUV" - Br.c "oDV") * (Br.c "nvl" t - Br.c "vl" t) ∈ Br.constraints := by brmem
+set_option maxHeartbeats 4000000 in
+theorem br_mem_nvl_none (t : Nat) (ht : t < 4) : (1 - Br.c "nhv") * Br.c "nvl" t ∈ Br.constraints := by brmem
+
+section
+variable {tr : Trace Fp} {pub : List Fp} {r : Nat}
+
+theorem ev_limb16_byte {v : Nat → Expr} {k : Nat} (ha : ev tr 2 r pub (v (2 * k)) < 256)
+    (hb : ev tr 2 r pub (v (2 * k + 1)) < 256) : ev tr 2 r pub (limb16 v k) < 65536 := by
+  unfold limb16
+  rw [ev_hadd, ev_hmul, show K 256 = Expr.const 256 from rfl, ev_const]
+  simp only [Nat.reduceMod]
+  rw [Nat.mod_eq_of_lt (show 256 * ev tr 2 r pub (v (2 * k + 1)) < P by omega),
+    Nat.mod_eq_of_lt (show ev tr 2 r pub (v (2 * k)) + 256 * ev tr 2 r pub (v (2 * k + 1)) < P by omega)]
+  omega
+
+theorem ev_limb16_congr {v w : Nat → Expr} {k : Nat} (ha : ev tr 2 r pub (v (2 * k)) = ev tr 2 r pub (w (2 * k)))
+    (hb : ev tr 2 r pub (v (2 * k + 1)) = ev tr 2 r pub (w (2 * k + 1))) :
+    ev tr 2 r pub (limb16 v k) = ev tr 2 r pub (limb16 w k) := by
+  unfold limb16; rw [ev_hadd, ev_hadd, ev_hmul, ev_hmul, ha, hb]
+
+/-- **`BrRanges` on a row with a new node.** -/
+theorem BrRangesW.full (hc : ∀ e ∈ Br.table.constraints, e.eval tr 2 r pub = 0) (hW : BrRangesW tr pub r)
+    (hg : ev tr 2 r pub (Br.c "gnew") = 1)
+    (hnvl : ev tr 2 r pub (Br.c "oUV") = 1 → ∀ t, t < 4 → ev tr 2 r pub (Br.c "nvl" t) < 256) :
+    BrRanges tr pub r := by
+  refine ⟨fun k hk => ⟨hW.1 k hk, (hW.2.2.2 hg k hk).1, (hW.2.2.2 hg k hk).2.1, (hW.2.2.2 hg k hk).2.2⟩,
+    fun k hk => ⟨hW.2.1 k hk, ?_⟩, hW.2.2.1⟩
+  have bU := bool_le (FieldRows.hold rfl hc (br_bool' "oUV" (by simp [flagNames])))
+  have bD := bool_le (FieldRows.hold rfl hc (br_bool' "oDV" (by simp [flagNames])))
+  show ev tr 2 r pub (limb16 (fun t => Br.c "nvl" t) k) < 65536
+  rcases (by omega : ev tr 2 r pub (Br.c "oUV") = 1 ∨ ev tr 2 r pub (Br.c "oUV") = 0) with hU | hU
+  · exact ev_limb16_byte (hnvl hU _ (by omega)) (hnvl hU _ (by omega))
+  rcases (by omega : ev tr 2 r pub (Br.c "oDV") = 1 ∨ ev tr 2 r pub (Br.c "oDV") = 0) with hD | hD
+  · have hn : ev tr 2 r pub (Br.c "nhv") = 0 := FieldVer.gate_zero (FieldRows.hold rfl hc br_mem_dvn) hD
+    have z : ∀ t, t < 4 → ev tr 2 r pub (Br.c "nvl" t) = 0 := fun t ht => FieldVer.gate_zero
+      (FieldRows.hold rfl hc (br_mem_nvl_none t ht)) (by rw [ev_sub, hn]; rfl)
+    have := ev_limb16_byte (v := fun t => Br.c "nvl" t) (k := k) (tr := tr) (pub := pub) (r := r)
+      (by rw [z _ (by omega)]; omega) (by rw [z _ (by omega)]; omega)
+    exact this
+  · have g1 : ev tr 2 r pub (Br.c "gnew" - Br.c "oUV" - Br.c "oDV") = 1 := by
+      rw [ev_sub, ev_sub, hg, hU, hD]
+    have e : ∀ t, t < 4 → ev tr 2 r pub (Br.c "nvl" t) = ev tr 2 r pub (Br.c "vl" t) := fun t ht =>
+      FieldVer.eq_of_gate (FieldRows.hold rfl hc (br_mem_nvl_keep t ht)) g1
+    rw [ev_limb16_congr (w := fun t => Br.c "vl" t) (e _ (by omega)) (e _ (by omega))]
+    exact hW.2.1 k hk
+
+end
+
 /-- The record-level facts of an active `BR` walk row (premises: `VER` / SHA-256 decoding, the
 `NIB` / `KLEN` lookups against the key table, range facts, the depth bound). -/
 structure BrRowFacts (σ : Store) (keyOf : Nat → List Nat) (tr : Trace Fp) (pub : List Fp) (r : Nat) : Prop where
   old : OldOK σ (brIn tr pub r) (brOld tr pub r)
   new : ev tr 2 r pub (Br.c "gnew") = 1 → NewOK σ (brOut tr pub r) (brNew tr pub r)
-  ranges : BrRanges tr pub r
+  ranges : BrRangesW tr pub r
   nib : ev tr 2 r pub (Br.c "act" - Br.gEnd) = 1 →
     (keyOf (ev tr 2 r pub (Br.c "kid")))[ev tr 2 r pub (Br.c "d")]? = some (ev tr 2 r pub Br.nib)
   klen : ev tr 2 r pub Br.gEnd = 1 → (keyOf (ev tr 2 r pub (Br.c "kid"))).length = ev tr 2 r pub (Br.c "d")
@@ -137,27 +200,27 @@ theorem localOK_br_row {σ : Store} {keyOf : Nat → List Nat}
       (hF.depth (by brfacts hc hg; exact f1)) hF.old
   · exact localOK_oFA hc hg h1 (hF.nib (nib_mult hc hg (gEnd_val hc hg h1 (by simp)))) hF.old
   · exact localOK_oFV hc hg h1 (hF.klen (gEnd_one hc hg h1 (by simp))) hF.old
-      (hF.ranges.2.1 0 (by decide)).1 hF.ranges.2.2
+      (hF.ranges.2.1 0 (by decide)) hF.ranges.2.2.1
   · exact localOK_oDA hc hg h1 (hF.nib (nib_mult hc hg (gEnd_val hc hg h1 (by simp)))) hF.old
   · exact localOK_oDS hc hg h1 (hF.nib (nib_mult hc hg (gEnd_val hc hg h1 (by simp))))
       (hF.depth (by brfacts hc hg; exact f1)) hF.old
   · exact localOK_oDZ hc hg h1 (hF.klen (gEnd_one hc hg h1 (by simp))) hF.old
   · exact localOK_oUD hc hg h1 (hF.nib (nib_mult hc hg (gEnd_val hc hg h1 (by simp))))
-      (hF.depth (by brfacts hc hg; exact f1)) hF.old (hF.new (by brfacts hc hg; omega)) hF.ranges
+      (hF.depth (by brfacts hc hg; exact f1)) hF.old (hF.new (by brfacts hc hg; omega)) (hF.ranges.full hc (by brfacts hc hg; omega) hF.nvl)
   · exact localOK_oDH hc hg h1 (hF.nib (nib_mult hc hg (gEnd_val hc hg h1 (by simp))))
-      (hF.depth (by brfacts hc hg; exact f1)) hF.old (hF.new (by brfacts hc hg; omega)) hF.ranges (hF.mono (Or.inl h1))
+      (hF.depth (by brfacts hc hg; exact f1)) hF.old (hF.new (by brfacts hc hg; omega)) (hF.ranges.full hc (by brfacts hc hg; omega) hF.nvl) (hF.mono (Or.inl h1))
   · exact localOK_oDN hc hg h1 (hF.nib (nib_mult hc hg (gEnd_val hc hg h1 (by simp))))
-      (hF.depth (by brfacts hc hg; exact f1)) hF.old (hF.new (by brfacts hc hg; omega)) hF.ranges
+      (hF.depth (by brfacts hc hg; exact f1)) hF.old (hF.new (by brfacts hc hg; omega)) (hF.ranges.full hc (by brfacts hc hg; omega) hF.nvl)
   · exact localOK_oDL hc hg h1 (hF.nib (nib_mult hc hg (gEnd_val hc hg h1 (by simp))))
-      (hF.depth (by brfacts hc hg; exact f1)) hF.old (hF.new (by brfacts hc hg; omega)) hF.ranges
+      (hF.depth (by brfacts hc hg; exact f1)) hF.old (hF.new (by brfacts hc hg; omega)) (hF.ranges.full hc (by brfacts hc hg; omega) hF.nvl)
       (hF.mono (Or.inr h1)) (hF.mat (Or.inl h1))
   · exact localOK_oUV hc hg h1 (hF.klen (gEnd_one hc hg h1 (by simp))) hF.old
-      (hF.new (by brfacts hc hg; omega)) hF.ranges (hF.nvl h1)
+      (hF.new (by brfacts hc hg; omega)) (hF.ranges.full hc (by brfacts hc hg; omega) hF.nvl) (hF.nvl h1)
   · exact localOK_oDV hc hg h1 (hF.klen (gEnd_one hc hg h1 (by simp))) hF.old
-      (hF.new (by brfacts hc hg; omega)) hF.ranges
+      (hF.new (by brfacts hc hg; omega)) (hF.ranges.full hc (by brfacts hc hg; omega) hF.nvl)
   · have hm := nib_mult hc hg (gEnd_val hc hg h1 (by simp))
     exact localOK_oUN hc hg h1 (hF.nib hm) (by have := hF.nibd hm; omega) hF.old
-      (hF.new (by brfacts hc hg; omega)) hF.ranges (hF.mat (Or.inr h1)) (hF.key _)
+      (hF.new (by brfacts hc hg; omega)) (hF.ranges.full hc (by brfacts hc hg; omega) hF.nvl) (hF.mat (Or.inr h1)) (hF.key _)
   · have hm := nib_mult hc hg (gEnd_val hc hg h1 (by simp))
     exact localOK_oD1 hc hg h1 (hF.nib hm) (hF.nib2 h1) (by have := hF.nibd hm; omega) hF.old
       (hF.sib h1) (hF.key _)
