@@ -18,7 +18,9 @@ import StateM5a.BusSplit2
   shape discharged from `Holds` of the AIR the prover runs (`walk_traffic`, `walk_rootUniq`,
   `walk_deeper`), for any decoder.  What remains a premise: the depth bounds above, every decoded
   row's `LocalOK` (the per-row facts), the `TCH` chain (public tape) and the writing roots' link to
-  the committed changes.
+  the committed changes.  `Sem` covers every walk op, the extension split `oEX` included
+  (`UChain.extSplit`, `BusSplit2.localOK_extSplit`); `air_batched_changesS` is the same theorem
+  on the alias `SemS` (`BusSplit2.localOK_semS_iff`).
 -/
 
 namespace StateM5a.DecodeShape
@@ -246,8 +248,8 @@ theorem air_batched_changes (hCR : Walk.Sha256CR) (σ : Store) (keyOf : Nat → 
     post N a b hT hroot T hT0 hF
 
 open StateM5a.Store StateM5a.BusWalk NearSpec NearSpecV3.D2 in
-/-- **The same with the split-aware upsert semantics** `SemS` (`BusSplit2`: every op including the
-extension split `oEX`, whose step `UChain` cannot state). -/
+/-- **The same on the alias `SemS`** (`BusSplit2`: `SemS = Sem`, `localOK_semS_iff`), kept for code
+written against it; a corollary of `air_batched_changes`. -/
 theorem air_batched_changesS (hCR : Walk.Sha256CR) (σ : Store) (keyOf : Nat → List Nat)
     (Dc : Dec Ref Pay Res) (D : Nat) (extra : List Table) (nb np : Nat)
     (hH : Holds (fullAir D extra nb np) pub tr) (hD : D ≤ 30)
@@ -261,10 +263,9 @@ theorem air_batched_changesS (hCR : Walk.Sha256CR) (σ : Store) (keyOf : Nat →
     (hroot : ∀ j (hj : j < N), ∃ q ∈ walkRoots Dc tr pub, q.dn.ref = a j ∧ q.res.ref = b j ∧ q.dn.d = 0 ∧
       ∀ (hj' : j < cs.length), PayOf keyOf q.dn.pay cs[j] ∧ (cs[j].2 = none → RefKind q.res.rk))
     (T : PTrie) (hT0 : T.hashOf = prev) (hF : Full T ∧ T.wf = true) :
-    ∃ T', applyChanges (some T) cs = some (some T') ∧ rootHash (some T') = post := by
-  obtain ⟨hDn, hUp⟩ := walk_traffic Dc D extra nb np hH hx
-  exact bus_batched_changesS hCR σ keyOf (walk_shape Dc D extra nb np hH hD hbr hsn) hDn hUp hloc cs prev
-    post N a b hT hroot T hT0 hF
+    ∃ T', applyChanges (some T) cs = some (some T') ∧ rootHash (some T') = post :=
+  air_batched_changes hCR σ keyOf Dc D extra nb np hH hD hx hbr hsn
+    (fun r hr => localOK_semS_iff.1 (hloc r hr)) cs prev post N a b hT hroot T hT0 hF
 
 end
 

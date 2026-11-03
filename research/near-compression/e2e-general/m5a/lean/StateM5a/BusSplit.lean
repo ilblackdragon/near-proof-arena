@@ -26,8 +26,8 @@ carries it to the requester; the requester's step takes the relation as a premis
 * **Steps**: upsert `SN.oLX` `step_leafSplit` (`UChain.leafSplit`); delete `BR.oDL`
   `step_brLeaf` (the kept branch over a materialized leaf descriptor: not covered by
   `step_brKeep`, which takes the child's own ref), `BR.oD1` `step_brOne` (`DChain.brOne`, with the
-  sibling through `SIBQ`/`SIBA`).  `SN.oEX` needs a chain constructor `UChain` lacks: it is in
-  `StateM5a.BusSplit2` (spec-equation walk semantics).
+  sibling through `SIBQ`/`SIBA`).  `SN.oEX` (`UChain.extSplit`, same semantics `Sem`) is in
+  `StateM5a.BusSplit2`.
 * **`LocalOK`** wrappers: `localOK_leafSplit`, `localOK_brLeaf`, `localOK_brOne`.
 -/
 

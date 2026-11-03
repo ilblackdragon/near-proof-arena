@@ -320,3 +320,13 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.BusWalk.localOK_S_of_leaf
 #print axioms StateM5a.BusWalk.localOK_S_of_mode
 #print axioms StateM5a.BusWalk.bus_batched_changesS
+-- M5a-5: one upsert semantics (UChain.extSplit); SemUS / SemS are aliases of SemU / Sem
+#print axioms StateM5a.Steps.ext_split'
+#print axioms StateM5a.BusWalk.semUS_iff_semU
+#print axioms StateM5a.BusWalk.semUS_upsert
+#print axioms StateM5a.BusWalk.semS_eq_sem
+#print axioms StateM5a.BusWalk.semS_iff_sem
+#print axioms StateM5a.BusWalk.localOK_semS_iff
+#print axioms StateM5a.BusWalk.localOK_extSplitS
+#print axioms StateM5a.BusWalk.stepRowsS_of_stepRows
+#print axioms StateM5a.BusWalk.stepRows_of_semS
