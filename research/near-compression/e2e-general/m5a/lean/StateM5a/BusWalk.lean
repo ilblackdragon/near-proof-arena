@@ -49,6 +49,8 @@ inductive Cl : Sum PTrie Kids → Sum PTrie Kids → Prop
       Cl (.inr (.some c r)) (.inr (.some c' r'))
   | slot (k : List Nat) (x : Bytes) (m : Nat) :
       Cl (.inl (.leaf k (.ref x.length (sha256 x)) m)) (.inl (.leaf k (.val x) m))
+  | bval (x : Bytes) (cs cs' : Kids) (m : Nat) (hr : Cl (.inr cs) (.inr cs')) :
+      Cl (.inl (.branch (some (.ref x.length (sha256 x))) cs m)) (.inl (.branch (some (.val x)) cs' m))
 
 /-- **Collapsing keeps refinement** (no assumption). -/
 theorem cl_collapse {x y : Sum PTrie Kids} (h : Cl x y) : ∀ T, RB y T → RB x T := by
@@ -116,6 +118,23 @@ theorem cl_collapse {x y : Sum PTrie Kids} (h : Cl x y) : ∀ T, RB y T → RB x
       · simp only [RB, PTrie.refinedBy, true_and, SlotRefines]
         exact Or.inr ⟨x, rfl, rfl⟩
       · cases hv
+  | bval x cs cs' m hr ih =>
+    intro T hb
+    cases T with
+    | inr _ => exact hb.elim
+    | inl T₀ =>
+      cases T₀ <;> simp only [RB, PTrie.refinedBy] at hb
+      rename_i v₀ cs₀ m₀
+      obtain ⟨rfl, hv, hc⟩ := hb
+      cases v₀ with
+      | none => simp [OptSlotRefines] at hv
+      | some s₀ =>
+        simp only [OptSlotRefines, SlotRefines] at hv
+        rcases hv with rfl | ⟨v, hv, -⟩
+        · have := ih (.inr cs₀) hc
+          simp only [RB, PTrie.refinedBy, OptSlotRefines, SlotRefines, true_and] at this ⊢
+          exact ⟨Or.inr ⟨x, rfl, rfl⟩, this⟩
+        · cases hv
 
 /-! ## Records as nodes -/
 
@@ -230,7 +249,8 @@ inductive KCl (σ : Store) : RKids → Kids → Prop
 def RecCl (σ : Store) : Rec → PTrie → Prop
   | .leaf k v m, N => N = .leaf k v m ∨ ∃ x, v = .ref x.length (sha256 x) ∧ N = .leaf k (.val x) m
   | .ext k c m, N => ∃ t, N = .ext k t m ∧ ∃ P, Exp σ (.inl c) (.inl P) ∧ Cl (.inl P) (.inl t)
-  | .branch v cs m, N => ∃ ks, N = .branch v ks m ∧ KCl σ cs ks
+  | .branch v cs m, N => ∃ ks, (N = .branch v ks m ∨
+      ∃ x, v = some (.ref x.length (sha256 x)) ∧ N = .branch (some (.val x)) ks m) ∧ KCl σ cs ks
 
 /-- A row's new record `R'` under its output ref `b`: published under a version id, or a final
 node hashed to `b`'s digest. -/
@@ -275,9 +295,12 @@ theorem out_view {σ : Store} {b : Ref} {R : Rec} {N : PTrie} (hR : NewOK σ b R
       obtain ⟨t, rfl, P, hP, hPc⟩ := hc
       exact ⟨.ext k P m, .ext n k c m P hn hP, .ext _ _ _ _ hPc⟩
     | branch v cs m =>
-      obtain ⟨ks, rfl, hk⟩ := hc
+      obtain ⟨ks, hN, hk⟩ := hc
       obtain ⟨kp, he, hcl⟩ := kcl_exp hk
-      exact ⟨.branch v kp m, .branch n v cs m kp hn he, .branch _ _ _ _ hcl⟩
+      refine ⟨.branch v kp m, .branch n v cs m kp hn he, ?_⟩
+      rcases hN with rfl | ⟨x, rfl, rfl⟩
+      · exact .branch _ _ _ _ hcl
+      · exact .bval x _ _ _ hcl
   · refine ⟨.hash h, .dig h, .stub h R.toP N hh ?_⟩
     cases R with
     | leaf k v m =>
@@ -290,8 +313,10 @@ theorem out_view {σ : Store} {b : Ref} {R : Rec} {N : PTrie} (hR : NewOK σ b R
       | dig g => rw [exp_dig hP] at hPc; exact .ext _ _ _ _ hPc
       | vid _ => exact (hd : False).elim
     | branch v cs m =>
-      obtain ⟨ks, rfl, hk⟩ := hc
-      exact .branch _ _ _ _ (kcl_toK hk hd)
+      obtain ⟨ks, hN, hk⟩ := hc
+      rcases hN with rfl | ⟨x, rfl, rfl⟩
+      · exact .branch _ _ _ _ (kcl_toK hk hd)
+      · exact .bval x _ _ _ (kcl_toK hk hd)
 
 /-! ## Kids lemmas -/
 
@@ -570,6 +595,10 @@ theorem cl_wf {x y : Sum PTrie Kids} (h : Cl x y) : WFS x y := by
     intro hw
     refine ⟨⟨⟨hw.1.1.1, hw.1.1.2, ?_⟩, hw.1.2⟩, hw.2⟩
     exact ArenaCore.sha256_length x
+  | bval x cs cs' m _ ih =>
+    simp only [WFS, PTrie.wf, slotOk, Bool.and_eq_true, decide_eq_true_eq, beq_iff_eq] at ih ⊢
+    intro hw
+    exact ⟨⟨⟨hw.1.1, ArenaCore.sha256_length x⟩, ih 16 hw.1.2⟩, hw.2⟩
 
 theorem kids_wf_at : ∀ {ks : Kids} {n i : Nat} {c : PTrie}, Kids.wf ks n = true → Kids.at ks i = some c →
     c.wf = true
@@ -726,7 +755,7 @@ theorem step_brDesc {σ : Store} {K : List Nat} {x : Bytes} {d : Nat} {a c : Ref
   refine ⟨.branch v (Kids.put ks n (some tc)) m,
     .branch v (Kids.put (Kids.put ks n (some tc)) n (some tc')) (m + tc'.memD - cres.om), ?_⟩
   obtain ⟨P', hP', hcl⟩ := out_view hnew (N := .branch v (Kids.put (Kids.put ks n (some tc)) n (some tc'))
-    (m + tc'.memD - cres.om)) ⟨_, by rw [hnc], by
+    (m + tc'.memD - cres.om)) ⟨_, Or.inl (by rw [hnc]), by
       rw [kids_put_put]; exact kcl_put (kcl_of_exp hks) hat ⟨Pc', hPc', hclc⟩⟩
   refine ⟨P', hrv _ (.branch _ _ _ _ (rv_kids_put hat' hrc)), ?_, hP', hcl, by simp [PTrie.mem?, hom],
     ?_, ?_⟩
@@ -1147,7 +1176,7 @@ theorem step_brKeep {σ : Store} {keyOf : Nat → List Nat} {K : List Nat} {d : 
     · rw [hpp]; intro e; rw [e] at hlen; exact hcnt hlen.symm
     · rw [hpp]; intro hv e; rw [e] at hlen; exact hcnt1 hv hlen.symm
   · obtain ⟨P', hP', hcl'⟩ := out_view hnew (N := .branch v (Kids.put ks n oc)
-      (m - cres.om + (if cres.rk = RK_NONE then 0 else cres.nm))) ⟨_, rfl, hcl⟩
+      (m - cres.om + (if cres.rk = RK_NONE then 0 else cres.nm))) ⟨_, Or.inl rfl, hcl⟩
     refine Or.inr (Or.inl ⟨Or.inr (Or.inl hrk), rfl, P', hP', ?_, ?_, fun _ => ⟨_, _, _, rfl⟩⟩)
     · rw [hpp, hmem]; exact hcl'
     · show m - cres.om + delMem oc = res.nm
@@ -1253,7 +1282,7 @@ theorem step_brDelVal {σ : Store} {keyOf : Nat → List Nat} {K : List Nat} {d 
   intro P hP hPw
   obtain ⟨N, ⟨ks, rfl, hks⟩, hNw, hrv⟩ := in_view_wf hold hP hPw
   have hcl := kcl_of_exp hks
-  obtain ⟨P', hP', hcl'⟩ := out_view hnew (N := .branch none ks (m - valueMem s.len)) ⟨_, rfl, hcl⟩
+  obtain ⟨P', hP', hcl'⟩ := out_view hnew (N := .branch none ks (m - valueMem s.len)) ⟨_, Or.inl rfl, hcl⟩
   refine ⟨_, true, some (.branch none ks (m - valueMem s.len)), hrv _ (.refl _), hK ▸ DChain.brDelVal s ks m (by rw [kcl_present_length hcl 0]; exact hcnt),
     by simp [PTrie.mem?, hom], Or.inr (Or.inl ⟨Or.inr (Or.inl hrk), rfl, P', hP', hcl', ?_,
       fun _ => ⟨_, _, _, rfl⟩⟩), ?_⟩
@@ -1263,6 +1292,32 @@ theorem step_brDelVal {σ : Store} {keyOf : Nat → List Nat} {K : List Nat} {d 
     simp only [PTrie.wf, Bool.and_eq_true, decide_eq_true_eq] at hNw ⊢
     exact ⟨⟨trivial, hNw.1.2⟩, by omega⟩
 
+
+/-- Memory of an optional branch value (`0` without one). -/
+def valueMemOpt : Option Slot → Nat
+  | some s => valueMem s.len
+  | none => 0
+
+/-- **`BR.oUV`** (write the value of the branch the key ends at): the new branch holds
+`(|x|, sha256 x)`, memory `m + valueMem |x| − valueMem |old|` (`< 2^64`); the written value
+collapses to its `ValueRef` (`Cl.bval`). -/
+theorem step_brUpVal {σ : Store} {K : List Nat} {x : Bytes} {d : Nat} {a : Ref} {res : Res}
+    {bv : Option Slot} {rcs : RKids} {m : Nat} (hold : OldOK σ a (.branch bv rcs m)) (hK : K.drop d = [])
+    (hnew : NewOK σ res.ref (.branch (some (.ref x.length (sha256 x))) rcs
+      (m + valueMem x.length - valueMemOpt bv)))
+    (hom : res.om = m) (hnm : res.nm = m + valueMem x.length - valueMemOpt bv)
+    (hxl : x.length < 4294967296) (hnb : res.nm < 18446744073709551616) : SemU σ K x d a res := by
+  intro P hP hPw
+  obtain ⟨N, ⟨ks, rfl, hks⟩, hNw, hrv⟩ := in_view_wf hold hP hPw
+  obtain ⟨P', hP', hcl⟩ := out_view hnew (N := .branch (some (.val x)) ks
+    (m + valueMem x.length - valueMemOpt bv)) ⟨_, Or.inr ⟨x, rfl, rfl⟩, kcl_of_exp hks⟩
+  have hu : UChain (.branch bv ks m) [] x (.branch (some (.val x)) ks (m + valueMem x.length - valueMemOpt bv)) := by
+    cases bv <;> exact UChain.brVal _ ks m x
+  refine ⟨_, _, P', hrv _ (.refl _), hK ▸ hu, hP', hcl, by simp [PTrie.mem?, hom], ?_, ?_⟩
+  · show m + valueMem x.length - valueMemOpt bv = res.nm
+    rw [hnm]
+  · simp only [PTrie.wf, Bool.and_eq_true, decide_eq_true_eq, slotOk] at hNw ⊢
+    exact ⟨⟨hxl, hNw.1.2⟩, hnm ▸ hnb⟩
 
 /-! ## All changes: the induction on the root chain -/
 

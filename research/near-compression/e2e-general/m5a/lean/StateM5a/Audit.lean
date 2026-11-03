@@ -137,6 +137,7 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.Traffic.walk_sem
 #print axioms StateM5a.Traffic.tch_chain
 #print axioms StateM5a.Traffic.ver_recv
+#print axioms StateM5a.Traffic.reqresp
 #print axioms StateM5a.BusWalk.cl_collapse
 #print axioms StateM5a.BusWalk.in_view
 #print axioms StateM5a.BusWalk.out_view
@@ -171,6 +172,7 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.BusWalk.step_brVal
 #print axioms StateM5a.BusWalk.step_brValAbs
 #print axioms StateM5a.BusWalk.step_brDelVal
+#print axioms StateM5a.BusWalk.step_brUpVal
 #print axioms StateM5a.BusWalk.chain_changes
 #print axioms StateM5a.BusWalk.stepRows_of_sem
 #print axioms StateM5a.BusWalk.bus_batched_changes

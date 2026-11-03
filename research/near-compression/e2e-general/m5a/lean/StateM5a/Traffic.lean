@@ -403,4 +403,36 @@ theorem ver_recv (k : Nat) (hk : 0 < k) (part : R → Nat → P)
 
 end Store
 
+/-! ## Request / response buses (`MATQ`/`MATR`, `SIBQ`/`SIBA`, `SPQ`/`SPR`, `SXQ`/`SXR`) -/
+
+section ReqResp
+variable {Key X Y : Type}
+
+/-- **A response answers the request that was sent.**  Requests are keyed (e.g. `MATQ` by
+`(w, d, kid)`) and at most one request is sent per key; every request receive and response send
+belongs to a responder row that receives `(k, x)` and sends `(k, y)`.  Then a requester that sent
+`(k, x)` and received `(k, y)` got `y` from a responder that received exactly `x`: any relation
+every responder establishes between its request and its response holds for the requester's pair.
+(Responders need not be unique; only the request sends per key.) -/
+theorem reqresp (Rel : Key → X → Y → Prop) {reqS : List (Key × X)} {respR : List (Key × Y)}
+    (resp : List (Key × X × Y)) (key : Key → Nat)
+    (hreq : reqS.Perm (resp.map fun r => (r.1, r.2.1)))
+    (hresp : (resp.map fun r => (r.1, r.2.2)).Perm respR)
+    (huniq : ∀ k, reqS.countP (fun p => decide (key p.1 = key k)) ≤ 1)
+    (hkey : ∀ k k', key k = key k' → k = k')
+    (hrel : ∀ r ∈ resp, Rel r.1 r.2.1 r.2.2) :
+    ∀ k x y, (k, x) ∈ reqS → (k, y) ∈ respR → Rel k x y := by
+  intro k x y hx hy
+  obtain ⟨r, hr, e⟩ := List.mem_map.1 (hresp.mem_iff.2 hy)
+  have hq : (r.1, r.2.1) ∈ reqS := hreq.mem_iff.2 (List.mem_map.2 ⟨r, hr, rfl⟩)
+  simp only [Prod.mk.injEq] at e
+  obtain ⟨e1, e2⟩ := e
+  have := countP_le_one (huniq k) hx hq (by simp) (by simp [e1])
+  simp only [Prod.mk.injEq] at this
+  have h := hrel r hr
+  rw [e1, e2, ← this.2] at h
+  exact h
+
+end ReqResp
+
 end StateM5a.Traffic
