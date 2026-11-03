@@ -180,3 +180,4 @@ import WasmBase.Main.HostIfCover
 import WasmBase.Main.HostEffTwin
 import WasmBase.Main.HostCoverAir
 import WasmBase.Main.HostTwinP
+import WasmBase.Main.SegSoundSigmaP
