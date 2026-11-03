@@ -735,5 +735,27 @@ circuit change.
   in Lean, working-set field decoding and segment composition, the `ViewImpl` parameters, the
   completeness gaps of M5a-2.
 
-**Next:** the per-row decoded facts (`LocalOK` from the AIR) and the depth bounds, then M5b (STATE rows produce the writes now on
-the public tape).
+**M5a-5 (sixth session, 2026-11-03) [M][K]:** log
+[`docs/logs/e2e-m5a5-state-2026-11-03.md`](../logs/e2e-m5a5-state-2026-11-03.md).
+* **AIR**: `wsLen` = public value 16 (`WSB` `real ↔ i < wsLen`, `WSL` `i < wsLen`), kept in the
+  state commitment. Five soundness fixes from the per-row decoding and an audit of the whole AIR
+  for field wrap-around / unranged bytes / truncated spec subtraction: `BR` `oUV` length
+  `nvl₃ = 0` and `SN` new-leaf memory `nmem₃ ∈ {0,1}` (both real holes: a value `+ P` passed),
+  `BR` `oDH`/`oDL` `om ≤ mem`, `BR` old length `vl₃ = 0`, `RNG` on version-published value
+  bytes. T1/T2/synthetic/T2-seg3x5 re-proved (roots = Lean oracle), all mutants rejected
+  (6 new). Open for M5b: range-check `WSA` times once they are prover-chosen.
+* **Lean**: one upsert semantics (`UChain.extSplit`; `SemS = Sem`); keys / `NIB` / `KLEN` / `KDIG`
+  / `ORD` decoded, depth bounds, `SNC` chain, the public tape as a Lean table, writing roots in
+  key order — `FinalOrder.air_final_sorted` (`applyChanges (sortKV committed)` reaches
+  `post_state_root`); concrete decoder, all 14 `BR` ops and 12 `SN` walk ops `LocalOK`, `BR`
+  records from `VER` and SHA-256, `MATR`/`SIBA` answers — `SnResp.air_final_sorted_sn2`; working
+  set from `Holds` (`ws_entries`: FINAL leaves = INTAKE entries with their latest writes);
+  `StViewParams` for lane B (`stD_binding_B`), lane E's obligations as `StViewE`; non-vacuity
+  (`ChipStub`: `Holds` of the prover's AIR is satisfiable with a stub `IF384` sender; no theorem
+  vacuous).
+* **Open:** `SN` splits (`oLX`/`oEX` via the split buses), continued keys, `SN` records from
+  `VER`/SHA and limb ranges, `BR` `OslApart`; `committed ~ cs` (M5b); lane E `StViewE`;
+  completeness gaps.
+
+**Next:** the remaining `SN` premises (splits, continued keys, `SN` records), then M5b (STATE
+rows produce the writes now on the public tape; range-check `WSA` times).
