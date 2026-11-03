@@ -602,6 +602,45 @@ theorem unreach_row_step_m2 (X : M2Ctx) {nloc ngl : Nat} {pub : List F} {tr : Tr
   rw [hfeq] at hle hlt ⊢
   exact ⟨X.step_unreach_spec hfr hk hfn hpcf hins hfee hle hlt, hc, hp, hh⟩
 
+/-! ## Why the base `Ctx` cannot carry these rows
+
+The base row machinery (`RowSpec2`, `RowFacts2`, `RelW`, `exec_of_rows`, every base row lemma) is
+stated over `X : Ctx`, and `Ctx.hM : checkModule … = some M`.  The two lemmas below make precise that
+such an `X` never has a conversion or an `unreachable` in a checked function, so a `RowFacts2 X …` for
+a CONV/UNREACH row would be a statement about no module at all.  That is why this file works over
+`M2Ctx`, and why the full M2 theorem needs the base stack generalised off `checkModule` (see the M2
+README, "Update: M2 soundness"). -/
+
+/-- No base-checked function contains a conversion. -/
+theorem ctx_no_conv (X : Ctx) {k pc op : Nat} (hk : k < X.nf)
+    (hins : (X.pfOf k).code[pc]? = some (.num op)) (hop : isConvOp op = true) : False := by
+  have hpc : pc < (X.pfOf k).code.size := by
+    rcases Nat.lt_or_ge pc (X.pfOf k).code.size with h | h
+    · exact h
+    · rw [Array.getElem?_eq_none h] at hins; simp at hins
+  have hv := (X.factsOf hk).verify pc hpc
+  have hf : isFamilyNum op = false := by
+    rcases isConvOp_cases hop with rfl | rfl | rfl <;> decide
+  obtain ⟨ls, h, hl, hh⟩ : ∃ ls h, (X.ckOf k).labels[pc]? = some ls ∧ (X.ckOf k).heights[pc]? = some h :=
+    ⟨_, _, Array.getElem?_eq_getElem (by rw [(X.factsOf hk).lsize]; exact hpc),
+      Array.getElem?_eq_getElem (by rw [(X.factsOf hk).hsize]; exact hpc)⟩
+  simp [verifyAt, hins, hl, hh, kindOf, hf] at hv
+
+/-- No base-checked function contains `unreachable`. -/
+theorem ctx_no_unreach (X : Ctx) {k pc : Nat} (hk : k < X.nf)
+    (hins : (X.pfOf k).code[pc]? = some .unreachable) : False := by
+  have hpc : pc < (X.pfOf k).code.size := by
+    rcases Nat.lt_or_ge pc (X.pfOf k).code.size with h | h
+    · exact h
+    · rw [Array.getElem?_eq_none h] at hins; simp at hins
+  have hv := (X.factsOf hk).verify pc hpc
+  obtain ⟨ls, h, hl, hh⟩ : ∃ ls h, (X.ckOf k).labels[pc]? = some ls ∧ (X.ckOf k).heights[pc]? = some h :=
+    ⟨_, _, Array.getElem?_eq_getElem (by rw [(X.factsOf hk).lsize]; exact hpc),
+      Array.getElem?_eq_getElem (by rw [(X.factsOf hk).hsize]; exact hpc)⟩
+  simp [verifyAt, hins, hl, hh, kindOf] at hv
+
+#print axioms ctx_no_conv
+#print axioms ctx_no_unreach
 #print axioms conv_row_m2
 #print axioms unreach_row_m2
 #print axioms M2Ctx.step_eq_exec
