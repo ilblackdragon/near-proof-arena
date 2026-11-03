@@ -1,0 +1,326 @@
+c2ac9ddce5444ea51632cbe35d1510232e396bea524622d770b66986477bbbec  /data/illia/nearproof-deps/e2e-laneA/m2mut/refill.json
+DUMP seg-0.bin: 32 tables (AIR seg 0 0: 32), 105 publics (AIR: 105), 62 chip compressions, cells 1462616
+  heights [4, 4, 4, 4, 4, 4, 8, 4, 4, 16, 4, 4, 4, 4, 4, 65536, 65536, 256, 4, 16, 16, 4, 4, 4, 64, 8, 4, 16, 4, 4, 16, 16]
+  widths match the AIR tables: true
+  pubLen true heights true busLoad<P true constraints true
+  occurrences 340268 (nonzero count 5646)
+  Lean-tables-only balance: 992 unbalanced keys on buses [103]; first [(103, ([0, 0, 368344, 716296, 3337959, 1889543, 610739, 1615498], 2013265920)), (103, ([0, 1, 1105175, 708995, 2381376, 940345, 444344, 347131], 2013265920)), (103, ([0, 2, 2865, 1261566, 1690825, 1578257, 1325890, 2338066], 2013265920)), (103, ([0, 3, 1675175, 1076007, 3588875, 1724324, 60919, 1174866], 2013265920)), (103, ([0, 4, 2, 0, 1, 0, 0, 0], 2013265920)), (103, ([0, 5, 0, 0, 0, 0, 0, 0], 2013265920))]
+RESULT Holds  (seg 0 0): NOT satisfied  [checkHolds = false; checkHolds_sound]
+RESULT HoldsX (seg 0 0): SATISFIED  [checkHoldsX = true; checkHoldsX_sound]
+  chip: 62 compressions, 992 bus-103 sends; contract shape/ids true
+RESULT HoldsX ∧ ChipIf compressW (seg 0 0): SATISFIED  [checkSeg = true; checkSeg_sound]
+PREMISE CutoHiLimbs: holds
+PREMISE HostBLinked: holds
+PREMISE RegCLinked: holds
+PREMISE (initS tr pub).Nodup: holds
+PREMISE TombDead tr pub (finS tr pub): holds
+PREMISE hst0: pub[pubStatus] = 0: holds
+PREMISE hlen: |actListM2| < 2^28: holds
+PREMISE htin: pub[pubTIn] < 2^28: holds
+DUMP segmp-0.bin: 32 tables (AIR segMP 0 0: 32), 105 publics (AIR: 105), 62 chip compressions, cells 1462504
+  heights [4, 4, 4, 4, 4, 4, 8, 4, 4, 16, 4, 4, 4, 4, 4, 65536, 65536, 256, 4, 16, 16, 4, 4, 4, 64, 8, 4, 16, 4, 4, 16, 16]
+  widths match the AIR tables: true
+  pubLen true heights true busLoad<P true constraints true
+  occurrences 340332 (nonzero count 5676)
+  Lean-tables-only balance: 992 unbalanced keys on buses [103]; first [(103, ([0, 0, 368344, 716296, 3337959, 1889543, 610739, 1615498], 2013265920)), (103, ([0, 1, 1105175, 708995, 2381376, 940345, 444344, 347131], 2013265920)), (103, ([0, 2, 2865, 1261566, 1690825, 1578257, 1325890, 2338066], 2013265920)), (103, ([0, 3, 1675175, 1076007, 3588875, 1724324, 60919, 1174866], 2013265920)), (103, ([0, 4, 2, 0, 1, 0, 0, 0], 2013265920)), (103, ([0, 5, 0, 0, 0, 0, 0, 0], 2013265920))]
+RESULT Holds  (segMP 0 0): NOT satisfied  [checkHolds = false; checkHolds_sound]
+RESULT HoldsX (segMP 0 0): SATISFIED  [checkHoldsX = true; checkHoldsX_sound]
+  chip: 62 compressions, 992 bus-103 sends; contract shape/ids true
+RESULT HoldsX ∧ ChipIf compressW (segMP 0 0): SATISFIED  [checkSeg = true; checkSeg_sound]
+PREMISE CutoHiLimbs: holds
+PREMISE HostBLinked: holds
+PREMISE RegCLinked: holds
+PREMISE (initS tr pub).Nodup: holds
+PREMISE TombDead tr pub (finS tr pub): holds
+PREMISE hst0: pub[pubStatus] = 0: holds
+PREMISE hlen: |actListM2| < 2^28: holds
+PREMISE htin: pub[pubTIn] < 2^28: holds
+DUMP seg-1.bin: 32 tables (AIR seg 0 0: 32), 105 publics (AIR: 105), 41 chip compressions, cells 1463584
+  heights [4, 4, 4, 4, 4, 8, 8, 4, 4, 16, 4, 4, 4, 4, 4, 65536, 65536, 256, 4, 16, 16, 4, 4, 4, 64, 4, 8, 4, 4, 4, 16, 32]
+  widths match the AIR tables: true
+  pubLen true heights true busLoad<P true constraints true
+  occurrences 340604 (nonzero count 4495)
+  Lean-tables-only balance: 656 unbalanced keys on buses [103]; first [(103, ([0, 0, 368344, 716296, 3337959, 1889543, 610739, 1615498], 2013265920)), (103, ([0, 1, 1105175, 708995, 2381376, 940345, 444344, 347131], 2013265920)), (103, ([0, 2, 2865, 1261566, 1690825, 1578257, 1325890, 2338066], 2013265920)), (103, ([0, 3, 1675175, 1076007, 3588875, 1724324, 60919, 1174866], 2013265920)), (103, ([0, 4, 2, 0, 1, 0, 0, 0], 2013265920)), (103, ([0, 5, 0, 0, 0, 0, 0, 0], 2013265920))]
+RESULT Holds  (seg 0 0): NOT satisfied  [checkHolds = false; checkHolds_sound]
+RESULT HoldsX (seg 0 0): SATISFIED  [checkHoldsX = true; checkHoldsX_sound]
+  chip: 41 compressions, 656 bus-103 sends; contract shape/ids true
+RESULT HoldsX ∧ ChipIf compressW (seg 0 0): SATISFIED  [checkSeg = true; checkSeg_sound]
+PREMISE CutoHiLimbs: holds
+PREMISE HostBLinked: holds
+PREMISE RegCLinked: holds
+PREMISE (initS tr pub).Nodup: holds
+PREMISE TombDead tr pub (finS tr pub): holds
+PREMISE hst0: pub[pubStatus] = 0: holds
+PREMISE hlen: |actListM2| < 2^28: holds
+PREMISE htin: pub[pubTIn] < 2^28: holds
+DUMP segmp-1.bin: 32 tables (AIR segMP 0 0: 32), 105 publics (AIR: 105), 41 chip compressions, cells 1463472
+  heights [4, 4, 4, 4, 4, 8, 8, 4, 4, 16, 4, 4, 4, 4, 4, 65536, 65536, 256, 4, 16, 16, 4, 4, 4, 64, 4, 8, 4, 4, 4, 16, 32]
+  widths match the AIR tables: true
+  pubLen true heights true busLoad<P true constraints true
+  occurrences 340668 (nonzero count 4525)
+  Lean-tables-only balance: 656 unbalanced keys on buses [103]; first [(103, ([0, 0, 368344, 716296, 3337959, 1889543, 610739, 1615498], 2013265920)), (103, ([0, 1, 1105175, 708995, 2381376, 940345, 444344, 347131], 2013265920)), (103, ([0, 2, 2865, 1261566, 1690825, 1578257, 1325890, 2338066], 2013265920)), (103, ([0, 3, 1675175, 1076007, 3588875, 1724324, 60919, 1174866], 2013265920)), (103, ([0, 4, 2, 0, 1, 0, 0, 0], 2013265920)), (103, ([0, 5, 0, 0, 0, 0, 0, 0], 2013265920))]
+RESULT Holds  (segMP 0 0): NOT satisfied  [checkHolds = false; checkHolds_sound]
+RESULT HoldsX (segMP 0 0): SATISFIED  [checkHoldsX = true; checkHoldsX_sound]
+  chip: 41 compressions, 656 bus-103 sends; contract shape/ids true
+RESULT HoldsX ∧ ChipIf compressW (segMP 0 0): SATISFIED  [checkSeg = true; checkSeg_sound]
+PREMISE CutoHiLimbs: holds
+PREMISE HostBLinked: holds
+PREMISE RegCLinked: holds
+PREMISE (initS tr pub).Nodup: holds
+PREMISE TombDead tr pub (finS tr pub): holds
+PREMISE hst0: pub[pubStatus] = 0: holds
+PREMISE hlen: |actListM2| < 2^28: holds
+PREMISE htin: pub[pubTIn] < 2^28: holds
+DUMP seg-2.bin: 32 tables (AIR seg 0 0: 32), 105 publics (AIR: 105), 55 chip compressions, cells 1468376
+  heights [4, 8, 4, 4, 4, 4, 16, 4, 4, 8, 4, 4, 4, 4, 4, 65536, 65536, 256, 4, 16, 16, 4, 4, 4, 64, 64, 4, 64, 4, 4, 32, 64]
+  widths match the AIR tables: true
+  pubLen true heights true busLoad<P true constraints true
+  occurrences 343988 (nonzero count 5672)
+  Lean-tables-only balance: 880 unbalanced keys on buses [103]; first [(103, ([0, 0, 368344, 716296, 3337959, 1889543, 610739, 1615498], 2013265920)), (103, ([0, 1, 1105175, 708995, 2381376, 940345, 444344, 347131], 2013265920)), (103, ([0, 2, 2865, 1261566, 1690825, 1578257, 1325890, 2338066], 2013265920)), (103, ([0, 3, 1675175, 1076007, 3588875, 1724324, 60919, 1174866], 2013265920)), (103, ([0, 4, 0, 0, 1, 0, 0, 0], 2013265920)), (103, ([0, 5, 1, 0, 0, 2, 0, 0], 2013265920))]
+RESULT Holds  (seg 0 0): NOT satisfied  [checkHolds = false; checkHolds_sound]
+RESULT HoldsX (seg 0 0): SATISFIED  [checkHoldsX = true; checkHoldsX_sound]
+  chip: 55 compressions, 880 bus-103 sends; contract shape/ids true
+RESULT HoldsX ∧ ChipIf compressW (seg 0 0): SATISFIED  [checkSeg = true; checkSeg_sound]
+PREMISE CutoHiLimbs: holds
+PREMISE HostBLinked: holds
+PREMISE RegCLinked: holds
+PREMISE (initS tr pub).Nodup: holds
+PREMISE TombDead tr pub (finS tr pub): holds
+PREMISE hst0: pub[pubStatus] = 0: holds
+PREMISE hlen: |actListM2| < 2^28: holds
+PREMISE htin: pub[pubTIn] < 2^28: holds
+DUMP segmp-2.bin: 32 tables (AIR segMP 0 0: 32), 105 publics (AIR: 105), 55 chip compressions, cells 1468264
+  heights [4, 8, 4, 4, 4, 4, 16, 4, 4, 8, 4, 4, 4, 4, 4, 65536, 65536, 256, 4, 16, 16, 4, 4, 4, 64, 64, 4, 64, 4, 4, 32, 64]
+  widths match the AIR tables: true
+  pubLen true heights true busLoad<P true constraints true
+  occurrences 344052 (nonzero count 5702)
+  Lean-tables-only balance: 880 unbalanced keys on buses [103]; first [(103, ([0, 0, 368344, 716296, 3337959, 1889543, 610739, 1615498], 2013265920)), (103, ([0, 1, 1105175, 708995, 2381376, 940345, 444344, 347131], 2013265920)), (103, ([0, 2, 2865, 1261566, 1690825, 1578257, 1325890, 2338066], 2013265920)), (103, ([0, 3, 1675175, 1076007, 3588875, 1724324, 60919, 1174866], 2013265920)), (103, ([0, 4, 0, 0, 1, 0, 0, 0], 2013265920)), (103, ([0, 5, 1, 0, 0, 2, 0, 0], 2013265920))]
+RESULT Holds  (segMP 0 0): NOT satisfied  [checkHolds = false; checkHolds_sound]
+RESULT HoldsX (segMP 0 0): SATISFIED  [checkHoldsX = true; checkHoldsX_sound]
+  chip: 55 compressions, 880 bus-103 sends; contract shape/ids true
+RESULT HoldsX ∧ ChipIf compressW (segMP 0 0): SATISFIED  [checkSeg = true; checkSeg_sound]
+PREMISE CutoHiLimbs: holds
+PREMISE HostBLinked: holds
+PREMISE RegCLinked: holds
+PREMISE (initS tr pub).Nodup: holds
+PREMISE TombDead tr pub (finS tr pub): holds
+PREMISE hst0: pub[pubStatus] = 0: holds
+PREMISE hlen: |actListM2| < 2^28: holds
+PREMISE htin: pub[pubTIn] < 2^28: holds
+DUMP seg-3.bin: 32 tables (AIR seg 0 0: 32), 105 publics (AIR: 105), 42 chip compressions, cells 1458836
+  heights [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 65536, 65536, 256, 4, 4, 4, 4, 4, 4, 64, 4, 4, 4, 4, 4, 64, 64]
+  widths match the AIR tables: true
+  pubLen true heights true busLoad<P true constraints true
+  occurrences 335452 (nonzero count 1528)
+  Lean-tables-only balance: 672 unbalanced keys on buses [103]; first [(103, ([0, 0, 368344, 716296, 3337959, 1889543, 610739, 1615498], 2013265920)), (103, ([0, 1, 1105175, 708995, 2381376, 940345, 444344, 347131], 2013265920)), (103, ([0, 2, 2865, 1261566, 1690825, 1578257, 1325890, 2338066], 2013265920)), (103, ([0, 3, 1675175, 1076007, 3588875, 1724324, 60919, 1174866], 2013265920)), (103, ([0, 4, 2, 0, 1, 0, 0, 0], 2013265920)), (103, ([0, 5, 0, 0, 0, 1, 0, 0], 2013265920))]
+RESULT Holds  (seg 0 0): NOT satisfied  [checkHolds = false; checkHolds_sound]
+RESULT HoldsX (seg 0 0): SATISFIED  [checkHoldsX = true; checkHoldsX_sound]
+  chip: 42 compressions, 672 bus-103 sends; contract shape/ids true
+RESULT HoldsX ∧ ChipIf compressW (seg 0 0): SATISFIED  [checkSeg = true; checkSeg_sound]
+PREMISE CutoHiLimbs: holds
+PREMISE HostBLinked: holds
+PREMISE RegCLinked: holds
+PREMISE (initS tr pub).Nodup: holds
+PREMISE TombDead tr pub (finS tr pub): holds
+PREMISE hst0: pub[pubStatus] = 0: FAILS
+PREMISE hlen: |actListM2| < 2^28: holds
+PREMISE htin: pub[pubTIn] < 2^28: holds
+DUMP segmp-3.bin: 32 tables (AIR segMP 0 0: 32), 105 publics (AIR: 105), 42 chip compressions, cells 1458808
+  heights [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 65536, 65536, 256, 4, 4, 4, 4, 4, 4, 64, 4, 4, 4, 4, 4, 64, 64]
+  widths match the AIR tables: true
+  pubLen true heights true busLoad<P true constraints true
+  occurrences 335468 (nonzero count 1528)
+  Lean-tables-only balance: 672 unbalanced keys on buses [103]; first [(103, ([0, 0, 368344, 716296, 3337959, 1889543, 610739, 1615498], 2013265920)), (103, ([0, 1, 1105175, 708995, 2381376, 940345, 444344, 347131], 2013265920)), (103, ([0, 2, 2865, 1261566, 1690825, 1578257, 1325890, 2338066], 2013265920)), (103, ([0, 3, 1675175, 1076007, 3588875, 1724324, 60919, 1174866], 2013265920)), (103, ([0, 4, 2, 0, 1, 0, 0, 0], 2013265920)), (103, ([0, 5, 0, 0, 0, 1, 0, 0], 2013265920))]
+RESULT Holds  (segMP 0 0): NOT satisfied  [checkHolds = false; checkHolds_sound]
+RESULT HoldsX (segMP 0 0): SATISFIED  [checkHoldsX = true; checkHoldsX_sound]
+  chip: 42 compressions, 672 bus-103 sends; contract shape/ids true
+RESULT HoldsX ∧ ChipIf compressW (segMP 0 0): SATISFIED  [checkSeg = true; checkSeg_sound]
+PREMISE CutoHiLimbs: holds
+PREMISE HostBLinked: holds
+PREMISE RegCLinked: holds
+PREMISE (initS tr pub).Nodup: holds
+PREMISE TombDead tr pub (finS tr pub): holds
+PREMISE hst0: pub[pubStatus] = 0: FAILS
+PREMISE hlen: |actListM2| < 2^28: holds
+PREMISE htin: pub[pubTIn] < 2^28: holds
+DUMP refill.M2.bin: 30 tables (AIR m2 5 1: 30), 23 publics (AIR: 23), 0 chip compressions, cells 1453748
+  heights [4, 8, 4, 4, 4, 16, 32, 4, 8, 32, 4, 4, 4, 4, 4, 65536, 65536, 256, 64, 16, 4, 4, 4, 4, 64, 64, 8, 64, 4, 4]
+  widths match the AIR tables: true
+  pubLen true heights true busLoad<P true constraints true
+  occurrences 333336 (nonzero count 1900)
+RESULT Holds  (m2 5 1): SATISFIED  [checkHolds = true; checkHolds_sound]
+RESULT HoldsX (m2 5 1): SATISFIED  [checkHoldsX = true; checkHoldsX_sound]
+PREMISE HostBLinked: holds
+PREMISE RegCLinked: holds
+PREMISE hst12/hstStatus: pub[pubStatus] ∈ {1, 2}: holds
+PREMISE hlen: |actListM2| < 2^28: holds
+PREMISE hinitTp: every init message has tp = 0: holds
+PREMISE hinitNd: init messages Nodup: holds
+DUMP refill.M2r.bin: 31 tables (AIR m2r 5 1: 31), 23 publics (AIR: 23), 0 chip compressions, cells 1453888
+  heights [4, 8, 4, 4, 4, 16, 32, 4, 8, 32, 4, 4, 4, 4, 4, 65536, 65536, 256, 64, 16, 4, 4, 4, 4, 64, 64, 8, 64, 4, 4, 4]
+  widths match the AIR tables: true
+  pubLen true heights true busLoad<P true constraints true
+  occurrences 333604 (nonzero count 1910)
+RESULT Holds  (m2r 5 1): SATISFIED  [checkHolds = true; checkHolds_sound]
+RESULT HoldsX (m2r 5 1): SATISFIED  [checkHoldsX = true; checkHoldsX_sound]
+DUMP refill.M3.bin: 34 tables (AIR m3 5 1: 34), 23 publics (AIR: 23), 0 chip compressions, cells 1454072
+  heights [4, 8, 4, 4, 4, 16, 32, 4, 8, 32, 4, 4, 4, 4, 4, 65536, 65536, 256, 64, 16, 4, 4, 4, 4, 64, 64, 8, 64, 4, 4, 4, 4, 4, 4]
+  widths match the AIR tables: true
+  pubLen true heights true busLoad<P true constraints true
+  occurrences 333740 (nonzero count 1913)
+RESULT Holds  (m3 5 1): SATISFIED  [checkHolds = true; checkHolds_sound]
+RESULT HoldsX (m3 5 1): SATISFIED  [checkHoldsX = true; checkHoldsX_sound]
+DUMP fib10.air.bin: 22 tables (AIR base 0 0: 22), 13 publics (AIR: 13), 0 chip compressions, cells 1565952
+  heights [4, 512, 4, 4, 4, 256, 512, 4, 512, 512, 4, 4, 4, 256, 256, 65536, 65536, 32, 256, 4, 4, 4]
+  widths match the AIR tables: true
+  pubLen true heights true busLoad<P true constraints true
+  occurrences 384236 (nonzero count 19696)
+RESULT Holds  (base 0 0): SATISFIED  [checkHolds = true; checkHolds_sound]
+RESULT HoldsX (base 0 0): SATISFIED  [checkHoldsX = true; checkHoldsX_sound]
+DUMP hashloop8.air.bin: 22 tables (AIR base 3 0: 22), 16 publics (AIR: 16), 0 chip compressions, cells 1459124
+  heights [4, 16, 32, 8, 64, 32, 128, 4, 32, 128, 4, 4, 4, 4, 4, 65536, 65536, 64, 4, 4, 4, 4]
+  widths match the AIR tables: true
+  pubLen true heights true busLoad<P true constraints true
+  occurrences 334656 (nonzero count 4191)
+RESULT Holds  (base 3 0): SATISFIED  [checkHolds = true; checkHolds_sound]
+RESULT HoldsX (base 3 0): SATISFIED  [checkHoldsX = true; checkHoldsX_sound]
+DUMP fib10.airH.bin: 26 tables (AIR host 0 0: 26), 13 publics (AIR: 13), 0 chip compressions, cells 1567088
+  heights [4, 512, 4, 4, 4, 256, 512, 4, 512, 512, 4, 4, 4, 256, 256, 65536, 65536, 32, 256, 4, 4, 4, 4, 4, 64, 4]
+  widths match the AIR tables: true
+  pubLen true heights true busLoad<P true constraints true
+  occurrences 384680 (nonzero count 19696)
+RESULT Holds  (host 0 0): SATISFIED  [checkHolds = true; checkHolds_sound]
+RESULT HoldsX (host 0 0): SATISFIED  [checkHoldsX = true; checkHoldsX_sound]
+RESULT Holds  (base 0 0) on the same trace: SATISFIED  [checkHolds = true; checkHolds_sound]
+DUMP fib10.airR.bin: 27 tables (AIR reg 0 0: 27), 13 publics (AIR: 13), 0 chip compressions, cells 1567152
+  heights [4, 512, 4, 4, 4, 256, 512, 4, 512, 512, 4, 4, 4, 256, 256, 65536, 65536, 32, 256, 4, 4, 4, 4, 4, 64, 4, 4]
+  widths match the AIR tables: true
+  pubLen true heights true busLoad<P true constraints true
+  occurrences 384728 (nonzero count 19696)
+RESULT Holds  (reg 0 0): SATISFIED  [checkHolds = true; checkHolds_sound]
+RESULT HoldsX (reg 0 0): SATISFIED  [checkHoldsX = true; checkHoldsX_sound]
+DUMP fib10.airX.bin: 27 tables (AIR hash 0 0: 27), 13 publics (AIR: 13), 0 chip compressions, cells 1569288
+  heights [4, 512, 4, 4, 4, 256, 512, 4, 512, 512, 4, 4, 4, 256, 256, 65536, 65536, 32, 256, 4, 4, 4, 4, 4, 64, 4, 4]
+  widths match the AIR tables: true
+  pubLen true heights true busLoad<P true constraints true
+  occurrences 384704 (nonzero count 19696)
+RESULT Holds  (hash 0 0): SATISFIED  [checkHolds = true; checkHolds_sound]
+RESULT HoldsX (hash 0 0): SATISFIED  [checkHoldsX = true; checkHoldsX_sound]
+DUMP hostkat8.airH.bin: 26 tables (AIR host 2 0: 26), 15 publics (AIR: 15), 0 chip compressions, cells 1451572
+  heights [4, 32, 4, 4, 4, 8, 32, 4, 16, 64, 4, 4, 4, 4, 4, 65536, 65536, 32, 8, 4, 4, 4, 16, 16, 64, 16]
+  widths match the AIR tables: true
+  pubLen true heights true busLoad<P true constraints true
+  occurrences 332316 (nonzero count 2118)
+RESULT Holds  (host 2 0): SATISFIED  [checkHolds = true; checkHolds_sound]
+RESULT HoldsX (host 2 0): SATISFIED  [checkHoldsX = true; checkHoldsX_sound]
+  base: shape true; 101 unbalanced keys on buses [0, 1, 2, 3, 4]; first [(0, ([3, 4, 2, 0, 0, 0], 1)), (0, ([3, 19, 18, 0, 0, 0], 1)), (0, ([3, 34, 34, 0, 0, 0], 1))]
+RESULT Holds  (base 2 0) on the same trace: NOT satisfied  [checkHolds = false; checkHolds_sound]
+DUMP hostkat8.airR.bin: 27 tables (AIR reg 2 0: 27), 15 publics (AIR: 15), 0 chip compressions, cells 1451428
+  heights [4, 32, 4, 4, 4, 8, 32, 4, 16, 64, 4, 4, 4, 4, 4, 65536, 65536, 32, 4, 4, 4, 4, 16, 16, 64, 4, 4]
+  widths match the AIR tables: true
+  pubLen true heights true busLoad<P true constraints true
+  occurrences 332180 (nonzero count 1995)
+RESULT Holds  (reg 2 0): SATISFIED  [checkHolds = true; checkHolds_sound]
+RESULT HoldsX (reg 2 0): SATISFIED  [checkHoldsX = true; checkHoldsX_sound]
+DUMP hostkat8.airX.bin: 27 tables (AIR hash 2 0: 27), 15 publics (AIR: 15), 0 chip compressions, cells 1453784
+  heights [4, 32, 4, 4, 4, 8, 32, 4, 16, 64, 4, 4, 4, 4, 4, 65536, 65536, 32, 8, 4, 4, 4, 16, 16, 64, 16, 4]
+  widths match the AIR tables: true
+  pubLen true heights true busLoad<P true constraints true
+  occurrences 332352 (nonzero count 2118)
+RESULT Holds  (hash 2 0): SATISFIED  [checkHolds = true; checkHolds_sound]
+RESULT HoldsX (hash 2 0): SATISFIED  [checkHoldsX = true; checkHoldsX_sound]
+DUMP hostctxreg.airH.bin: 26 tables (AIR host 0 0: 26), 13 publics (AIR: 13), 0 chip compressions, cells 1447148
+  heights [4, 4, 4, 4, 4, 4, 8, 4, 4, 4, 4, 4, 4, 4, 4, 65536, 65536, 16, 8, 4, 4, 4, 8, 8, 64, 16]
+  widths match the AIR tables: true
+  pubLen true heights true busLoad<P true constraints true
+  occurrences 330360 (nonzero count 600)
+RESULT Holds  (host 0 0): SATISFIED  [checkHolds = true; checkHolds_sound]
+RESULT HoldsX (host 0 0): SATISFIED  [checkHoldsX = true; checkHoldsX_sound]
+  base: shape true; 63 unbalanced keys on buses [0, 1, 2, 3, 4]; first [(0, ([1, 2, 2, 0, 0, 0], 1)), (0, ([2, 3, 2, 0, 0, 0], 2013265920)), (0, ([3, 4, 4, 0, 0, 0], 1))]
+RESULT Holds  (base 0 0) on the same trace: NOT satisfied  [checkHolds = false; checkHolds_sound]
+DUMP hostctxreg.airR.bin: 27 tables (AIR reg 0 0: 27), 13 publics (AIR: 13), 0 chip compressions, cells 1451964
+  heights [4, 4, 4, 4, 4, 4, 8, 4, 4, 4, 4, 4, 4, 4, 4, 65536, 65536, 16, 128, 4, 4, 4, 8, 8, 64, 128, 128]
+  widths match the AIR tables: true
+  pubLen true heights true busLoad<P true constraints true
+  occurrences 333696 (nonzero count 1207)
+RESULT Holds  (reg 0 0): SATISFIED  [checkHolds = true; checkHolds_sound]
+RESULT HoldsX (reg 0 0): SATISFIED  [checkHoldsX = true; checkHoldsX_sound]
+DUMP hostctxreg.airX.bin: 27 tables (AIR hash 0 0: 27), 13 publics (AIR: 13), 0 chip compressions, cells 1449352
+  heights [4, 4, 4, 4, 4, 4, 8, 4, 4, 4, 4, 4, 4, 4, 4, 65536, 65536, 16, 8, 4, 4, 4, 8, 8, 64, 16, 4]
+  widths match the AIR tables: true
+  pubLen true heights true busLoad<P true constraints true
+  occurrences 330388 (nonzero count 600)
+RESULT Holds  (hash 0 0): SATISFIED  [checkHolds = true; checkHolds_sound]
+RESULT HoldsX (hash 0 0): SATISFIED  [checkHoldsX = true; checkHoldsX_sound]
+DUMP hashloop8.airH.bin: 26 tables (AIR host 3 0: 26), 16 publics (AIR: 16), 0 chip compressions, cells 1460260
+  heights [4, 16, 32, 8, 64, 32, 128, 4, 32, 128, 4, 4, 4, 4, 4, 65536, 65536, 64, 4, 4, 4, 4, 4, 4, 64, 4]
+  widths match the AIR tables: true
+  pubLen true heights true busLoad<P true constraints true
+  occurrences 335100 (nonzero count 4191)
+RESULT Holds  (host 3 0): SATISFIED  [checkHolds = true; checkHolds_sound]
+RESULT HoldsX (host 3 0): SATISFIED  [checkHoldsX = true; checkHoldsX_sound]
+RESULT Holds  (base 3 0) on the same trace: SATISFIED  [checkHolds = true; checkHolds_sound]
+DUMP hashloop8.airR.bin: 27 tables (AIR reg 3 0: 27), 16 publics (AIR: 16), 0 chip compressions, cells 1460324
+  heights [4, 16, 32, 8, 64, 32, 128, 4, 32, 128, 4, 4, 4, 4, 4, 65536, 65536, 64, 4, 4, 4, 4, 4, 4, 64, 4, 4]
+  widths match the AIR tables: true
+  pubLen true heights true busLoad<P true constraints true
+  occurrences 335148 (nonzero count 4191)
+RESULT Holds  (reg 3 0): SATISFIED  [checkHolds = true; checkHolds_sound]
+RESULT HoldsX (reg 3 0): SATISFIED  [checkHoldsX = true; checkHoldsX_sound]
+DUMP hashloop8.airX.bin: 27 tables (AIR hash 3 0: 27), 16 publics (AIR: 16), 0 chip compressions, cells 1462460
+  heights [4, 16, 32, 8, 64, 32, 128, 4, 32, 128, 4, 4, 4, 4, 4, 65536, 65536, 64, 4, 4, 4, 4, 4, 4, 64, 4, 4]
+  widths match the AIR tables: true
+  pubLen true heights true busLoad<P true constraints true
+  occurrences 335124 (nonzero count 4191)
+RESULT Holds  (hash 3 0): SATISFIED  [checkHolds = true; checkHolds_sound]
+RESULT HoldsX (hash 3 0): SATISFIED  [checkHoldsX = true; checkHoldsX_sound]
+DUMP fib10.airIfH.bin: 27 tables (AIR ifHost 0 0: 27), 13 publics (AIR: 13), 0 chip compressions, cells 1567144
+  heights [4, 512, 4, 4, 4, 256, 512, 4, 512, 512, 4, 4, 4, 256, 256, 65536, 65536, 32, 256, 4, 4, 4, 4, 4, 64, 4, 4]
+  widths match the AIR tables: true
+  pubLen true heights true busLoad<P true constraints true
+  occurrences 384704 (nonzero count 19696)
+RESULT Holds  (ifHost 0 0): SATISFIED  [checkHolds = true; checkHolds_sound]
+RESULT HoldsX (ifHost 0 0): SATISFIED  [checkHoldsX = true; checkHoldsX_sound]
+DUMP fib10.airIfR.bin: 28 tables (AIR ifReg 0 0: 28), 13 publics (AIR: 13), 0 chip compressions, cells 1567236
+  heights [4, 512, 4, 4, 4, 256, 512, 4, 512, 512, 4, 4, 4, 256, 256, 65536, 65536, 32, 256, 4, 4, 4, 4, 4, 64, 4, 4, 4]
+  widths match the AIR tables: true
+  pubLen true heights true busLoad<P true constraints true
+  occurrences 384784 (nonzero count 19696)
+RESULT Holds  (ifReg 0 0): SATISFIED  [checkHolds = true; checkHolds_sound]
+RESULT HoldsX (ifReg 0 0): SATISFIED  [checkHoldsX = true; checkHoldsX_sound]
+DUMP hostkat8.airIfH.bin: 27 tables (AIR ifHost 2 0: 27), 15 publics (AIR: 15), 0 chip compressions, cells 1451628
+  heights [4, 32, 4, 4, 4, 8, 32, 4, 16, 64, 4, 4, 4, 4, 4, 65536, 65536, 32, 8, 4, 4, 4, 16, 16, 64, 16, 4]
+  widths match the AIR tables: true
+  pubLen true heights true busLoad<P true constraints true
+  occurrences 332340 (nonzero count 2118)
+RESULT Holds  (ifHost 2 0): SATISFIED  [checkHolds = true; checkHolds_sound]
+RESULT HoldsX (ifHost 2 0): SATISFIED  [checkHoldsX = true; checkHoldsX_sound]
+DUMP hostkat8.airIfR.bin: 28 tables (AIR ifReg 2 0: 28), 15 publics (AIR: 15), 0 chip compressions, cells 1451536
+  heights [4, 32, 4, 4, 4, 8, 32, 4, 16, 64, 4, 4, 4, 4, 4, 65536, 65536, 32, 4, 4, 4, 4, 16, 16, 64, 4, 4, 4]
+  widths match the AIR tables: true
+  pubLen true heights true busLoad<P true constraints true
+  occurrences 332248 (nonzero count 1995)
+RESULT Holds  (ifReg 2 0): SATISFIED  [checkHolds = true; checkHolds_sound]
+RESULT HoldsX (ifReg 2 0): SATISFIED  [checkHoldsX = true; checkHoldsX_sound]
+DUMP hostctxreg.airIfH.bin: 27 tables (AIR ifHost 0 0: 27), 13 publics (AIR: 13), 0 chip compressions, cells 1447204
+  heights [4, 4, 4, 4, 4, 4, 8, 4, 4, 4, 4, 4, 4, 4, 4, 65536, 65536, 16, 8, 4, 4, 4, 8, 8, 64, 16, 4]
+  widths match the AIR tables: true
+  pubLen true heights true busLoad<P true constraints true
+  occurrences 330384 (nonzero count 600)
+RESULT Holds  (ifHost 0 0): SATISFIED  [checkHolds = true; checkHolds_sound]
+RESULT HoldsX (ifHost 0 0): SATISFIED  [checkHoldsX = true; checkHoldsX_sound]
+DUMP hostctxreg.airIfR.bin: 28 tables (AIR ifReg 0 0: 28), 13 publics (AIR: 13), 0 chip compressions, cells 1452676
+  heights [4, 4, 4, 4, 4, 4, 8, 4, 4, 4, 4, 4, 4, 4, 4, 65536, 65536, 16, 128, 4, 4, 4, 8, 8, 64, 128, 4, 128]
+  widths match the AIR tables: true
+  pubLen true heights true busLoad<P true constraints true
+  occurrences 334624 (nonzero count 1207)
+RESULT Holds  (ifReg 0 0): SATISFIED  [checkHolds = true; checkHolds_sound]
+RESULT HoldsX (ifReg 0 0): SATISFIED  [checkHoldsX = true; checkHoldsX_sound]
+DUMP fib10.airIf.bin: 23 tables (AIR if 0 0: 23), 13 publics (AIR: 13), 0 chip compressions, cells 1566008
+  heights [4, 512, 4, 4, 4, 256, 512, 4, 512, 512, 4, 4, 4, 256, 256, 65536, 65536, 32, 256, 4, 4, 4, 4]
+  widths match the AIR tables: true
+  pubLen true heights true busLoad<P true constraints true
+  occurrences 384260 (nonzero count 19696)
+RESULT Holds  (if 0 0): SATISFIED  [checkHolds = true; checkHolds_sound]
+RESULT HoldsX (if 0 0): SATISFIED  [checkHoldsX = true; checkHoldsX_sound]
+NONVACUITY DONE

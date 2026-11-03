@@ -9,7 +9,8 @@ W=${1:?}; BENCH=${2:?}; REFILL=${3:?}
 TOOL=$HERE/../../wasm-base-lean/.lake/build/bin/wasmbase-tool
 BIN=${WASMBASE_BIN:-$HERE/../../native/wasm-base/target/release/nearproof-wasm-base}
 mkdir -p "$W"; cd "$W"
-"$TOOL" airSeg 0 0 > airSeg.json
+# the segment AIR: `airSegMP` (wasmBaseSegAirMP, the default since M4c: `seg_sound_mp`) or `airSeg` (M4)
+"$TOOL" "${SEG_AIR:-airSegMP}" 0 0 > airSeg.json
 "$TOOL" airM2 2 1 > airM2-2-1.json
 "$TOOL" airM2 5 1 > airM2-5-1.json
 "$BIN" segcheck airSeg.json airM2-2-1.json "$BENCH" 262144 > segcheck-bench.log 2>&1

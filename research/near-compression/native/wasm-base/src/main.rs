@@ -15,6 +15,7 @@ mod tracegen;
 // E2E M4: the segment AIR's builder and commands, and the native SHA-512 compression chip (v4)
 mod seg;
 mod segcmd;
+mod dump;
 #[allow(dead_code, clippy::all)]
 mod s384 {
     pub mod air;
@@ -232,6 +233,16 @@ fn report_shape(spec: &AirSpec, g: &Gen) {
         );
     }
     println!("STEPS {} S_UNITS {} CELLS_TOTAL {} CELLS_ACTIVE {}", g.steps, g.s_units, cells(g), active_cells);
+}
+
+/// M4c: `dump <air.json> <prep.json> <out.bin>` — the checked trace of `check`, for the Lean checker.
+fn cmd_dump(air_path: &str, prep_path: &str, out: &str) {
+    let spec = load(air_path);
+    let (_prep, g) = generate(&spec, prep_path);
+    tracegen::check_constraints(&spec, &g).expect("constraints");
+    tracegen::check_buses(&spec, &g).expect("buses");
+    report_shape(&spec, &g);
+    dump::write(out, &g.mats, &g.pubs, &[]);
 }
 
 fn cmd_check(air_path: &str, prep_path: &str) {
@@ -1561,6 +1572,8 @@ fn main() {
         Some("segcheck") => segcmd::cmd_segcheck(&a[2..]),
         Some("segprove") => segcmd::cmd_segprove(&a[2..]),
         Some("segtamper") => segcmd::cmd_segtamper(&a[2..]),
+        Some("segdump") => segcmd::cmd_segdump(&a[2..]),
+        Some("dump") => cmd_dump(&a[2], &a[3], &a[4]),
         _ => eprintln!("usage: see source header"),
     }
     let _: Option<RowMajorMatrix<F>> = None;

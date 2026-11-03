@@ -1,0 +1,36 @@
+TRACE steps 3144 cuts 6 tracegen 0.05s
+SEGBUILD 0 0.15s
+SEGBUILD 1 0.22s
+SEGBUILD 2 0.26s
+SEGBUILD 3 0.27s
+SEGBUILD 4 0.33s
+SEGBUILD 5 0.32s
+SEGBUILD 6 0.33s
+HONEST segment 1 verifies
+REJECTED pub nblk_out+64 (forged out-size) (rows honest): verifier: BatchConstraintError(SumClaimMismatch { sum_claim: BinomialExtensionField { value: [826058425, 495142352, 1837857416, 1874496141, 1334283659, 1550462210, 1641578034, 28907511, 1931370517, 893002416, 1547755238, 385487496], _phantom: PhantomData<p3_monty_31::monty_31::MontyField31<p3_baby_bear::baby_bear::BabyBearParameters>> }, sum_univ_domain_s_0: BinomialExtensionField { value: [943798124, 819949220, 1193762616, 176642961, 1192863583, 1271107043, 1132131185, 1910570329, 540803288, 1860724966, 135589955, 1416589821], _phantom: PhantomData<p3_monty_31::monty_31::MontyField31<p3_baby_bear::baby_bear::BabyBearParameters>> } }) [precheck: SEGG row 0 constraint 1 = 2013265857]
+REJECTED pub nblk_in+64 (forged in-size) (rows honest): prover error [precheck: SEGG row 0 constraint 0 = 2013265857]
+REJECTED pub D_out+1 (rows honest): verifier: BatchConstraintError(SumClaimMismatch { sum_claim: BinomialExtensionField { value: [741080308, 114357011, 1176301678, 426047707, 895248115, 663083384, 140636165, 684479377, 1130721931, 1174707200, 14788732, 717622068], _phantom: PhantomData<p3_monty_31::monty_31::MontyField31<p3_baby_bear::baby_bear::BabyBearParameters>> }, sum_univ_domain_s_0: BinomialExtensionField { value: [15491276, 1497307749, 861325249, 1083793968, 521346647, 1355810454, 339348887, 1328539037, 684890582, 677100905, 102130632, 1962088234], _phantom: PhantomData<p3_monty_31::monty_31::MontyField31<p3_baby_bear::baby_bear::BabyBearParameters>> } }) [precheck: MPATH row 0 constraint 20 = 1]
+REJECTED pub D_in+1 (rows honest): prover error [precheck: SEGG row 0 constraint 2 = 1]
+REJECTED pub MEMB bound (104)-1 (rows honest): prover error [precheck: 2 unbalanced messages by bus {3: 2}; first [((3, [65532]), 1, Some(("CMP", 5))), ((3, [65534]), -1, Some(("CMP", 7)))]]
+REJECTED SEGG pout+1 with pub nblk_out+64 (forged final size): prover error [precheck: 2 unbalanced messages by bus {2: 2}; first [((2, [8, 0, 0, 1025, 0, 0, 0, 948]), 1, Some(("MEMG", 0))), ((2, [8, 0, 0, 1026, 0, 0, 0, 948]),]
+REJECTED SEGG pin+1 with pub nblk_in+64 (forged initial size): prover error [precheck: 6 unbalanced messages by bus {2: 2, 3: 4}; first [((2, [8, 0, 0, 1024, 0, 0, 0, 500]), -1, Some(("MEMG", 0))), ((2, [8, 0, 0, 1025, 0, 0, 0,]
+REJECTED SEGG tz+1 (final size message time): prover error [precheck: 2 unbalanced messages by bus {2: 2}; first [((2, [8, 0, 0, 1025, 0, 0, 0, 948]), 1, Some(("MEMG", 0))), ((2, [8, 0, 0, 1025, 0, 0, 0, 949]),]
+REJECTED SEGG lift root pn0+1 (forged root after the depth change): prover error [precheck: 4 unbalanced messages by bus {16: 2, 103: 2}; first [((16, [1, 1249547, 72528, 3007819, 374619, 810727, 2616181, 304229, 1656442, 1011270, 1]
+REJECTED SEGG lift=0 (depth change without the lift root): prover error [precheck: SEGG row 0 constraint 2 = 2013265920]
+REJECTED SEGG old left child oL0+1 (old root not the in-root): prover error [precheck: 4 unbalanced messages by bus {16: 2, 17: 2}; first [((16, [0, 424304, 1769523, 98758, 949093, 265001, 1905642, 1952647, 1544501, 2372344, 14]
+REJECTED SEGG touched child L marked untouched: prover error [precheck: SEGG row 0 constraint 10 = 390677]
+REJECTED SEGG touched child R marked untouched: prover error [precheck: SEGG row 0 constraint 11 = 1360942]
+REJECTED MPATH node (D_in, 1) old digest po0+1 (old right subtree not zero): prover error [precheck: 4 unbalanced messages by bus {17: 2, 103: 2}; first [((17, [16, 1, 220105, 1774383, 4128247, 442817, 1915756, 2734015, 430846, 17724, 211606]
+REJECTED MEMBG out byte bo3+1 (grown content forged): prover error [precheck: 4 unbalanced messages by bus {2: 2, 103: 2}; first [((2, [3, 67108867, 0, 0, 0, 0, 0, 948]), 1, Some(("MEMBG", 0))), ((2, [3, 67108867, 0, 1]
+REJECTED MEMBG tg-1 on the whole block (zero bytes before the grow): prover error [precheck: 2050 unbalanced messages by bus {2: 2048, 213: 2}; first [((2, [3, 67108864, 0, 0, 0, 0, 0, 947]), 1, Some(("MEMBG", 0))), ((2, [3, 67108864]
+REJECTED MEMBG tg=t_in (grown block present at the segment start): prover error [precheck: 2050 unbalanced messages by bus {2: 2048, 213: 2}; first [((2, [3, 67108864, 0, 0, 0, 0, 0, 500]), 1, Some(("MEMBG", 0))), ((2, [3, 67108864]
+REJECTED MEMBG gold+1 on the padding row: prover error [precheck: 4 unbalanced messages by bus {3: 2, 213: 2}; first [((3, [0]), -1, Some(("ADD", 0))), ((3, [2013265857]), 1, Some(("MEMBG", 8))), ((213, [94]
+REJECTED MEMBG blk+1 on the whole block: prover error [precheck: 39 unbalanced messages by bus {2: 32, 3: 5, 15: 2}; first [((2, [3, 67108872, 0, 0, 0, 0, 0, 948]), -1, Some(("STORE", 9))), ((2, [3, 671088]
+REJECTED MEMBG out-leaf limb hoO0+1 (padding row): prover error [precheck: 4 unbalanced messages by bus {15: 2, 103: 2}; first [((15, [65536, 0, 84982, 882225, 3356648, 688007, 356054, 3595565, 2060127, 387053, 2807]
+REJECTED MEMBG block dropped (rows inactive): prover error [precheck: MEMBG row 8 constraint 13 = 1]
+REJECTED MPATH grown leaf L with old digest oL0+1 (old leaf not zleaf): prover error [precheck: 4 unbalanced messages by bus {15: 2, 103: 2}; first [((15, [65536, 0, 84982, 882225, 3356648, 688007, 356054, 3595565, 2060127, 387053, 2807]
+REJECTED MEMG grow gm+1: prover error [precheck: 1 unbalanced messages by bus {213: 1}; first [((213, [948, 1024, 1025]), -1, Some(("MEMG", 0)))]]
+REJECTED MEMG grow old+1: prover error [precheck: MEMG row 0 constraint 7 = 2013265920]
+REJECTED MEMG grow n0+1, d-1 (grow by one more page): prover error [precheck: 12 unbalanced messages by bus {0: 2, 2: 4, 3: 4, 213: 2}; first [((0, [19, 949, 1358, 0, 0, 0]), -1, Some(("STACK", 0))), ((0, [19, 949, 135]
+REJECTED MEMG grow tz+1 (size message time): prover error [precheck: 4 unbalanced messages by bus {2: 2, 3: 2}; first [((2, [8, 0, 0, 1024, 0, 0, 0, 500]), 1, Some(("SEGG", 0))), ((2, [8, 0, 0, 1024, 0, 0, 0, ]
+SEGTAMPER 26 rejected, 0 accepted

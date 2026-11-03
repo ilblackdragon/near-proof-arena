@@ -3,9 +3,14 @@
 //!   nearproof-wasm-base segcheck  <airSeg.json> <airM2.json> <prep.json> <steps_per_segment>
 //!   nearproof-wasm-base segprove  <airSeg.json> <airM2.json> <prep.json> <steps_per_segment>
 //!   nearproof-wasm-base segtamper <airSeg.json> <airM2.json> <prep.json> <steps_per_segment> <segment>
+//!   nearproof-wasm-base segdump   <airSeg.json> <airM2.json> <prep.json> <steps_per_segment> <out_prefix>
+//!     (M4c: write every segment's trace, publics and chip inputs to `<out_prefix>-<i>.bin`, `dump.rs`)
 //!
-//! `<airSeg.json>` is `wasmbase-tool airSeg` (M4) or `airSegMP` (M4b, the multiproof MPATH; its
-//! tamper battery adds the MPATH-MP cases, `tampers_mp`).
+//! `<airSeg.json>` is `wasmbase-tool airSegMP` (M4b, the multiproof MPATH: the default segment AIR
+//! since M4c, sound by `seg_sound_mp`; its tamper battery adds the MPATH-MP cases, `tampers_mp`),
+//! `airSeg` (M4, still accepted), or `airSegG` (M4c, segments containing `memory.grow`: then
+//! `<airM2.json>` is `airM3` and the prep `prepM3`; tampers add `tampers_g`, and `SEG_TAMPER_G=1`
+//! runs only those).  The prover picks the variant from the json.
 use crate::air::{AirSpec, JsonAir};
 use crate::config::{F, Sha384Config, Sha384RefEngine};
 use crate::s384;
@@ -57,12 +62,16 @@ fn report(spec: &AirSpec, i: usize, s: &SegInst) {
         s.b_in.t, s.b_out.t, s.b_out.t - s.b_in.t, s.halted, st.stream_in, st.stream_out, st.blocks, st.blocks_ro,
         st.drops, st.tombs, st.comps, st.comps_stream, st.comps_memb, st.comps_mpath
     );
+    if st.pages.0 != st.pages.1 || st.grown + st.high > 0 {
+        println!("  GROW pages {} -> {} | grown blocks (MEMBG) {} | old blocks above 64 MiB (MEMBH) {} | depth lift {}",
+            st.pages.0, st.pages.1, st.grown, st.high, st.lift);
+    }
     let mut bnd_cells = 0usize;
     let mut instr_cells = 0usize;
     for (t, m) in spec.tables.iter().zip(&s.mats) {
         let w = t.cols.len();
         let h = m.values.len() / w;
-        if ["SEGB", "CUTI", "CUTO", "MEMB", "MPATH", "DROP"].contains(&t.name.as_str()) {
+        if ["SEGB", "CUTI", "CUTO", "MEMB", "MPATH", "DROP", "SEGG", "MEMBG", "MEMBH"].contains(&t.name.as_str()) {
             bnd_cells += h * w;
         } else {
             instr_cells += h * w;
@@ -101,6 +110,20 @@ pub fn cmd_segcheck(a: &[String]) {
     }
     assert!(chain_ok(&segs), "boundary chain");
     println!("SEGCHECK OK {} segments chained: B_out(k) = B_in(k+1) for every k", segs.len());
+}
+
+/// M4c: dump every segment (after the Rust pre-check) for the Lean `HoldsX`/`ChipIf` checker.
+pub fn cmd_segdump(a: &[String]) {
+    let (seg_air, m2_air) = (load(&a[0]), load(&a[1]));
+    let k: u64 = a[3].parse().unwrap();
+    let (_prep, _g, segs) = segments(&seg_air, &m2_air, &a[2], k);
+    for (i, s) in segs.iter().enumerate() {
+        report(&seg_air, i, s);
+        seg::precheck(&seg_air, &s.mats, &s.pubs, &s.comps).unwrap_or_else(|e| panic!("segment {i}: {e}"));
+        crate::dump::write(&format!("{}-{i}.bin", a[4]), &s.mats, &s.pubs, &s.comps);
+    }
+    assert!(chain_ok(&segs), "boundary chain");
+    println!("SEGDUMP OK {} segments", segs.len());
 }
 
 fn airs(spec: &AirSpec) -> Vec<AirRef<Sha384Config>> {
@@ -273,7 +296,8 @@ pub fn cmd_segtamper(a: &[String]) {
     };
     run(&s.mats, &s.pubs, &s.comps, &s.pubs).expect("honest segment must verify");
     println!("HONEST segment {which} verifies");
-    let cases = tampers(&seg_air, s, &segs, which);
+    // `SEG_TAMPER_G=1`: only the `wasmBaseSegAirG` cases (`tampers_g`)
+    let cases = if std::env::var("SEG_TAMPER_G").is_ok_and(|v| !v.is_empty()) { tampers_g(&seg_air, s) } else { tampers(&seg_air, s, &segs, which) };
     let (mut rej, mut acc) = (0, 0);
     for (name, mats, pubs, comps, want) in cases {
         let pre = seg::precheck(&seg_air, &mats, &pubs, &comps).err().unwrap_or_else(|| "precheck passes".into());
@@ -399,6 +423,10 @@ fn tampers(spec: &AirSpec, s: &SegInst, segs: &[SegInst], which: usize) -> Vec<C
     // (f') MPATH as a multiproof (`wasmBaseSegAirMP`)
     if spec.tables[ti("MPATH")].cols.iter().any(|c| c == "idx") {
         out.extend(tampers_mp(spec, s));
+        // (f'') `wasmBaseSegAirG`: the size message, grown blocks, the lift root
+        if spec.tables.iter().any(|t| t.name == "SEGG") {
+            out.extend(tampers_g(spec, s));
+        }
     } else
     // (f) MPATH: sibling, direction bit, root chain
     {
@@ -428,6 +456,203 @@ fn tampers(spec: &AirSpec, s: &SegInst, segs: &[SegInst], which: usize) -> Vec<C
             set(&mut m, "HOST", r, "gb0", &|v| v + one);
             out.push(("HOST gas register segb limb+1".into(), m, s.pubs.clone(), s.comps.clone(), s.pubs.clone()));
         }
+    }
+    // (h) the call-key bus (E2E M4c, LINK): HOSTB / REG-C rows whose `(ts, hid)` is no HOST row's
+    if spec.tables[ti("HOST")].cols.iter().any(|c| c == "nk") {
+        out.extend(tampers_key(spec, s));
+    }
+    out
+}
+
+/// Tampers of the call-key bus (`Seg.busHKey`).  Each forges a HOSTB / REG-C call key that no active
+/// HOST row offers, in a way the other buses and constraints do not see (the M4c CORE counterexamples
+/// to `HostBLinked.linked` / `RegCLinked`), or forges HOST's multiplicity `nk`.
+fn tampers_key(spec: &AirSpec, s: &SegInst) -> Vec<Case> {
+    let mut out: Vec<Case> = vec![];
+    let ti = |n: &str| spec.index(n);
+    let col = |n: &str, c: &str| spec.tables[ti(n)].col(c);
+    let one = F::ONE;
+    let rows = |m: &Vec<RowMajorMatrix<F>>, t: &str| m[ti(t)].values.len() / m[ti(t)].width;
+    let get = |m: &Vec<RowMajorMatrix<F>>, t: &str, r: usize, c: &str| m[ti(t)].values[r * m[ti(t)].width + col(t, c)];
+    let put = |m: &mut Vec<RowMajorMatrix<F>>, t: &str, r: usize, c: &str, v: F| {
+        let (i, cc) = (ti(t), col(t, c));
+        let w = m[i].width;
+        m[i].values[r * w + cc] = v;
+    };
+    // a HOST call whose key is looked up
+    let hk = (0..rows(&s.mats, "HOST")).find(|&r| get(&s.mats, "HOST", r, "act") == one && get(&s.mats, "HOST", r, "nk") != F::ZERO);
+    if let Some(r) = hk {
+        let (ts, hid) = (get(&s.mats, "HOST", r, "ts"), get(&s.mats, "HOST", r, "hid"));
+        // (h1) relabel the call's hid (+1000) on HOSTB and/or REG-C rows: bus 210 between them and
+        // every group constraint stay consistent; only the key lookup has no HOST row to land on
+        for (name, tabs) in [("HOSTB+REG-C call key relabelled (hid+1000)", vec!["HOSTB", "REG"]),
+            ("HOSTB call key relabelled (hid+1000)", vec!["HOSTB"]), ("REG-C call key relabelled (hid+1000)", vec!["REG"])] {
+            let mut m = s.mats.clone();
+            let mut n = 0;
+            for t in tabs.iter() {
+                for q in 0..rows(&m, t) {
+                    if get(&m, t, q, "act") == one && get(&m, t, q, "ts") == ts && get(&m, t, q, "hid") == hid {
+                        put(&mut m, t, q, "hid", hid + F::from_u32(1000));
+                        n += 1;
+                    }
+                }
+            }
+            if n > 0 {
+                out.push((format!("{name}, {n} rows"), m, s.pubs.clone(), s.comps.clone(), s.pubs.clone()));
+            }
+        }
+        // (h2) HOST offers its key once more / once less than it is looked up
+        for (name, d) in [("HOST nk+1", one), ("HOST nk-1", -one)] {
+            let mut m = s.mats.clone();
+            put(&mut m, "HOST", r, "nk", get(&s.mats, "HOST", r, "nk") + d);
+            out.push((name.into(), m, s.pubs.clone(), s.comps.clone(), s.pubs.clone()));
+        }
+    }
+    // (h3) a foreign HOSTB response group in a padding row: `dir = 1`, `reg = 0`, one byte, its own
+    // group; its bus-210 pair cancels, no CH traffic, the BYTE/R16 multiplicities are recounted
+    let hb = ti("HOSTB");
+    if let Some(r) = (0..rows(&s.mats, "HOSTB")).rev().find(|&r| get(&s.mats, "HOSTB", r, "act") == F::ZERO) {
+        let mut m = s.mats.clone();
+        let w = m[hb].width;
+        for x in m[hb].values[r * w..(r + 1) * w].iter_mut() {
+            *x = F::ZERO;
+        }
+        for (c, v) in [("act", 1u32), ("dir", 1), ("f", 1), ("len", 1), ("ts", 7), ("hid", 999)] {
+            put(&mut m, "HOSTB", r, c, F::from_u32(v));
+        }
+        seg::recount(spec, &mut m, &s.pubs);
+        out.push(("HOSTB foreign response group (ts 7, hid 999) in a padding row".into(), m, s.pubs.clone(), s.comps.clone(), s.pubs.clone()));
+    }
+    out
+}
+
+/// Tampers of `wasmBaseSegAirG`'s new parts (E2E M4c): the memory size across the cut (public
+/// `nblk`/`D` and SEGG's size message), grown blocks (MEMBG), old blocks above 64 MiB (MEMBH), the
+/// lift root after a depth change (SEGG), MEMG's grow rows.
+fn tampers_g(spec: &AirSpec, s: &SegInst) -> Vec<Case> {
+    let mut out: Vec<Case> = vec![];
+    let one = F::ONE;
+    let zero = F::ZERO;
+    let tab = |n: &str| spec.index(n);
+    let get = |t: &str, r: usize, c: &str| {
+        let i = tab(t);
+        s.mats[i].values[r * s.mats[i].width + spec.tables[i].col(c)]
+    };
+    let height = |t: &str| {
+        let i = tab(t);
+        s.mats[i].values.len() / s.mats[i].width
+    };
+    let edit = |edits: &[(&str, usize, &str, F)]| {
+        let mut m = s.mats.clone();
+        for &(t, r, c, v) in edits {
+            let i = tab(t);
+            let w = m[i].width;
+            m[i].values[r * w + spec.tables[i].col(c)] = v;
+        }
+        m
+    };
+    let mut push = |name: String, m: Vec<RowMajorMatrix<F>>, pubs: Vec<F>| {
+        out.push((name, m, pubs.clone(), s.comps.clone(), pubs));
+    };
+    let f64_ = |x: u64| F::from_u64(x);
+    // (1) the public geometry, rows honest: the proof must not verify against the forged statement
+    for (name, idx, d) in [("pub nblk_out+64 (forged out-size)", seg::PUB_NBLK_OUT, 64u64), ("pub nblk_in+64 (forged in-size)", seg::PUB_NBLK_IN, 64),
+        ("pub D_out+1", seg::PUB_DEPTH, 1), ("pub D_in+1", seg::PUB_DEPTH_IN, 1), ("pub MEMB bound (104)-1", seg::PUB_NBLK, F::NEG_ONE.as_canonical_u32() as u64)] {
+        let mut p = s.pubs.clone();
+        p[idx] += f64_(d);
+        push(format!("{name} (rows honest)"), s.mats.clone(), p);
+    }
+    // (2) forged size with consistent public values: SEGG's size message no longer matches MEMG's
+    {
+        let mut p = s.pubs.clone();
+        p[seg::PUB_NBLK_OUT] += f64_(64);
+        push("SEGG pout+1 with pub nblk_out+64 (forged final size)".into(), edit(&[("SEGG", 0, "pout", get("SEGG", 0, "pout") + one)]), p);
+        let mut p = s.pubs.clone();
+        p[seg::PUB_NBLK_IN] += f64_(64);
+        push("SEGG pin+1 with pub nblk_in+64 (forged initial size)".into(), edit(&[("SEGG", 0, "pin", get("SEGG", 0, "pin") + one)]), p);
+        push("SEGG tz+1 (final size message time)".into(), edit(&[("SEGG", 0, "tz", get("SEGG", 0, "tz") + one)]), s.pubs.clone());
+    }
+    // (3) the lift root after a depth change
+    if get("SEGG", 0, "lift") == one {
+        push("SEGG lift root pn0+1 (forged root after the depth change)".into(), edit(&[("SEGG", 0, "pn0", get("SEGG", 0, "pn0") + one)]), s.pubs.clone());
+        push("SEGG lift=0 (depth change without the lift root)".into(), edit(&[("SEGG", 0, "lift", zero)]), s.pubs.clone());
+        push("SEGG old left child oL0+1 (old root not the in-root)".into(), edit(&[("SEGG", 0, "oL0", get("SEGG", 0, "oL0") + one)]), s.pubs.clone());
+        for side in ["L", "R"] {
+            let nd = format!("nd{side}");
+            let n0 = format!("n{side}0");
+            if get("SEGG", 0, &nd) == one {
+                push(format!("SEGG touched child {side} marked untouched"), edit(&[("SEGG", 0, &nd, zero)]), s.pubs.clone());
+            } else {
+                push(format!("SEGG untouched child {side} stub n{side}0+1"), edit(&[("SEGG", 0, &n0, get("SEGG", 0, &n0) + one)]), s.pubs.clone());
+            }
+        }
+        // the lift claimed with the old right subtree forged (a nonzero grown half): the right
+        // child's MPATH node row with its old output changed consistently is rejected by SEGG's
+        // constant `Z_16` on bus 17
+        let mi = tab("MPATH");
+        let d_in = s.pubs[seg::PUB_DEPTH_IN];
+        if let Some(r) = (0..height("MPATH")).find(|&r| get("MPATH", r, "act") == one && get("MPATH", r, "lvl") == d_in && get("MPATH", r, "idx") == one) {
+            let _ = mi;
+            push("MPATH node (D_in, 1) old digest po0+1 (old right subtree not zero)".into(), edit(&[("MPATH", r, "po0", get("MPATH", r, "po0") + one)]), s.pubs.clone());
+        }
+    }
+    // (4) grown blocks
+    if let Some(r) = (0..height("MEMBG")).find(|&r| get("MEMBG", r, "p0") == one) {
+        let tg = get("MEMBG", r, "tg");
+        push("MEMBG out byte bo3+1 (grown content forged)".into(), edit(&[("MEMBG", r, "bo3", get("MEMBG", r, "bo3") + one)]), s.pubs.clone());
+        let mut e: Vec<(&str, usize, &str, F)> = vec![];
+        for k in 0..9 {
+            e.push(("MEMBG", r + k, "tg", tg - one));
+        }
+        push("MEMBG tg-1 on the whole block (zero bytes before the grow)".into(), edit(&e), s.pubs.clone());
+        let t_in = s.pubs[seg::PUB_T_IN];
+        let mut e: Vec<(&str, usize, &str, F)> = vec![];
+        for k in 0..9 {
+            e.push(("MEMBG", r + k, "tg", t_in));
+        }
+        push("MEMBG tg=t_in (grown block present at the segment start)".into(), edit(&e), s.pubs.clone());
+        push("MEMBG gold+1 on the padding row".into(), edit(&[("MEMBG", r + 8, "gold", get("MEMBG", r + 8, "gold") + one)]), s.pubs.clone());
+        let mut e: Vec<(&str, usize, &str, F)> = vec![];
+        for k in 0..9 {
+            e.push(("MEMBG", r + k, "blk", get("MEMBG", r + k, "blk") + one));
+        }
+        push("MEMBG blk+1 on the whole block".into(), edit(&e), s.pubs.clone());
+        push("MEMBG out-leaf limb hoO0+1 (padding row)".into(), edit(&[("MEMBG", r + 8, "hoO0", get("MEMBG", r + 8, "hoO0") + one)]), s.pubs.clone());
+        let mut e: Vec<(&str, usize, &str, F)> = vec![];
+        for k in 0..9 {
+            e.push(("MEMBG", r + k, "act", zero));
+            e.push(("MEMBG", r + k, &["p0", "p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8"][k], zero));
+        }
+        push("MEMBG block dropped (rows inactive)".into(), edit(&e), s.pubs.clone());
+        // the multiproof receives the grown leaf with a nonzero old digest
+        let blk = get("MEMBG", r + 8, "blk");
+        for (sbit, side) in [(zero, "L"), (one, "R")] {
+            let lf = format!("lf{side}");
+            if let Some(mr) = (0..height("MPATH")).find(|&x| get("MPATH", x, &lf) == one && get("MPATH", x, "idx") * F::from_u32(2) + sbit == blk) {
+                let o0 = format!("o{side}0");
+                push(format!("MPATH grown leaf {side} with old digest o{side}0+1 (old leaf not zleaf)"), edit(&[("MPATH", mr, &o0, get("MPATH", mr, &o0) + one)]), s.pubs.clone());
+            }
+        }
+    }
+    // (5) old blocks above 64 MiB
+    if let Some(r) = (0..height("MEMBH")).find(|&r| get("MEMBH", r, "p0") == one) {
+        let mut e: Vec<(&str, usize, &str, F)> = vec![];
+        for k in 0..9 {
+            e.push(("MEMBH", r + k, "blk", get("MEMBH", r + k, "blk") + one));
+        }
+        push("MEMBH blk+1 on the whole block".into(), edit(&e), s.pubs.clone());
+        push("MEMBH in-byte bi7+1".into(), edit(&[("MEMBH", r, "bi7", get("MEMBH", r, "bi7") + one)]), s.pubs.clone());
+    }
+    // (6) MEMG
+    if let Some(r) = (0..height("MEMG")).find(|&r| get("MEMG", r, "f_grow") == one && get("MEMG", r, "ok") == one) {
+        push("MEMG grow gm+1".into(), edit(&[("MEMG", r, "gm", get("MEMG", r, "gm") + one)]), s.pubs.clone());
+        push("MEMG grow old+1".into(), edit(&[("MEMG", r, "old", get("MEMG", r, "old") + one)]), s.pubs.clone());
+        push("MEMG grow n0+1, d-1 (grow by one more page)".into(),
+            edit(&[("MEMG", r, "n0", get("MEMG", r, "n0") + one), ("MEMG", r, "d", get("MEMG", r, "d") - one)]), s.pubs.clone());
+        push("MEMG grow tz+1 (size message time)".into(), edit(&[("MEMG", r, "tz", get("MEMG", r, "tz") + one)]), s.pubs.clone());
+    }
+    if let Some(r) = (0..height("MEMG")).find(|&r| get("MEMG", r, "f_size") == one) {
+        push("MEMG memory.size old+1".into(), edit(&[("MEMG", r, "old", get("MEMG", r, "old") + one)]), s.pubs.clone());
     }
     out
 }

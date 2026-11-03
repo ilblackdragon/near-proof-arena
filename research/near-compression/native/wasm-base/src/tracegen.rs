@@ -403,6 +403,10 @@ pub struct CutSnap {
     pub mem_end: std::collections::BTreeMap<u64, (u64, u64)>,
     /// the memory values at the segment's start for the same blocks
     pub mem_start: std::collections::BTreeMap<u64, u64>,
+    /// E2E M4c (`wasmBaseSegAirG`): the memory size in pages at `t`, and every successful grow
+    /// `(tg, old, new)` of the call up to `t`
+    pub pages: u64,
+    pub grows: Vec<(u64, u64, u64)>,
 }
 
 pub struct Gen {
@@ -485,6 +489,13 @@ impl Mem<'_> {
         if a >= self.prep.mem {
             // a grown byte: zero, produced by GINIT at its grow's time
             let g = *self.grows.iter().find(|g| 65536 * g.1 <= a && a < 65536 * g.2).expect("grown byte");
+            if g.0 <= self.base_tp {
+                // E2E M4c: grown before the current segment's start, so it is an ordinary byte of the
+                // segment's in-memory (`MEMB`, produced at `t_in`); never in the uncut M3 trace
+                // (`base_tp = 0 < tg`)
+                self.cur.insert(a, (0, self.base_tp));
+                return (0, self.base_tp);
+            }
             self.ginit.insert(a, g);
             self.cur.insert(a, (0, g.0));
             return (0, g.0);
@@ -756,6 +767,8 @@ pub fn generate_cuts(air: &AirSpec, prep: &Prep, cut_at: &[u64]) -> Gen {
                 touched: tb,
                 mem_end,
                 mem_start: ms,
+                pages: mem.size / 65536,
+                grows: mem.grows.clone(),
             }
         }};
     }
@@ -795,6 +808,8 @@ pub fn generate_cuts(air: &AirSpec, prep: &Prep, cut_at: &[u64]) -> Gen {
             mem_start = mem.cur.iter().map(|(&a, &(b, _))| (a, b)).collect();
             mem.base_tp = tc;
             mem.touched.clear();
+            // E2E M4c: the memory-size message (space 8) is produced again at the cut (`SEGG`)
+            m3.tp = tc;
             gas_reg.2 = tc;
             dead.clear();
             tombs.clear();

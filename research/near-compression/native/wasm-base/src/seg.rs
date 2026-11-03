@@ -15,6 +15,12 @@
 //! The seg AIR may also be `wasmBaseSegAirMP` (`WasmBase/SegAirMP.lean`, E2E M4b; detected by an
 //! `idx` column in MPATH): MPATH is then the batched Merkle multiproof, one row per touched tree
 //! node (`multiproof_rows`), and SEGB's `nbt` is 1 (a root row) or 0.
+//!
+//! E2E M4c: `wasmBaseSegAirG` (`WasmBase/SegAirG.lean`, detected by a `SEGG` table; the full run is
+//! then traced at `wasmBaseM3Air`): MEMG rows are copied, a block grown in the segment is a MEMBG
+//! block (zero bytes produced at the grow's time, old leaf = the zero leaf), an old block above
+//! 64 MiB a MEMBH block, SEGG carries the size message across the cut and, when the depth grows
+//! (16 -> 17), is the root of the lifted tree (`Tree::lift`, `LiftRoot`).
 use crate::air::{AirSpec, TableSpec};
 use crate::s384::reference::{Comp, SHA384_IV, sha2_compress};
 use crate::tracegen::{CutSnap, Gen, Live, Prep, image_byte, limbs};
@@ -57,6 +63,11 @@ pub const PUB_MEM_OUT: usize = 85;
 pub const PUB_DEPTH: usize = 103;
 pub const PUB_NBLK: usize = 104;
 pub const NUM_PUB: usize = 105;
+// `wasmBaseSegAirG` (`WasmBase/SegAirG.lean`, E2E M4c): pub 103 is `D_out`, 104 `min(nblk_in, 2^16)`
+pub const PUB_NBLK_IN: usize = 105;
+pub const PUB_NBLK_OUT: usize = 106;
+pub const PUB_DEPTH_IN: usize = 107;
+pub const NUM_PUB_G: usize = 108;
 
 /// The boundary a segment starts or ends at (the public values' content).
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -71,6 +82,24 @@ pub struct Bnd {
     pub segb: u64,
     pub ctx: [u64; 6],
     pub mem: [u64; 6],
+    /// the memory geometry (`nblk = 64·pages`, `D = memDepth`)
+    pub nblk: u64,
+    pub depth: u64,
+}
+
+/// `WasmView.memDepth`: `bitlen (max nblk 2 − 1)`.
+pub fn depth_of(nblk: u64) -> usize {
+    (usize::BITS - ((nblk as usize).max(2) - 1).leading_zeros()) as usize
+}
+
+/// The zero-subtree roots `Z_0 = sha384 0¹⁰²⁴`, `Z_{k+1} = H(Z_k ‖ Z_k)` (`Seg.Grow.zrootW`).
+pub fn zero_roots(n: usize) -> Vec<[u64; 6]> {
+    let mut z = vec![leaf_hash(&[0u64; 1024])];
+    for k in 0..n {
+        let x = node_hash(&z[k], &z[k]);
+        z.push(x);
+    }
+    z
 }
 
 // ------------------------------------------------------------------------------------------
@@ -225,6 +254,17 @@ impl Tree {
     }
     pub fn root(&self) -> [u64; 6] {
         self.lv[self.d][0]
+    }
+    /// E2E M4c: one more level; the old tree is the left subtree, the right one is all-zero.
+    pub fn lift(&mut self) {
+        let z = zero_roots(self.d);
+        for l in 0..=self.d {
+            let n = self.lv[l].len();
+            self.lv[l].extend(std::iter::repeat_n(z[l], n));
+        }
+        let r = node_hash(&self.lv[self.d][0], &self.lv[self.d][1]);
+        self.lv.push(vec![r]);
+        self.d += 1;
     }
 }
 
@@ -404,6 +444,12 @@ pub struct SegStats {
     pub comps_stream: usize,
     pub comps_memb: usize,
     pub comps_mpath: usize,
+    /// E2E M4c: pages at the segment's start / end, blocks grown in it (MEMBG), old blocks above
+    /// 64 MiB (MEMBH), whether the tree depth increased (SEGG's lift root)
+    pub pages: (u64, u64),
+    pub grown: usize,
+    pub high: usize,
+    pub lift: bool,
 }
 
 pub struct SegInst {
@@ -440,9 +486,20 @@ pub fn build(seg: &AirSpec, m2: &AirSpec, g: &Gen, prep: &Prep, k: usize, tree: 
     let si = |n: &str| seg.index(n);
     let full = |n: &str| (&m2.tables[m2.index(n)], &g.mats[m2.index(n)]);
 
+    // `wasmBaseSegAirG` (E2E M4c): MEMG, SEGG, MEMBG; the full run is then `wasmBaseM3Air`'s
+    let grow_air = seg.tables.iter().any(|t| t.name == "SEGG");
+    let (nblk_in, nblk_out) = (64 * c0.pages, 64 * c1.pages);
+    if !grow_air {
+        assert_eq!((nblk_in, nblk_out), (prep.mem >> 10, prep.mem >> 10), "memory.grow needs the segment AIR airSegG");
+    }
+    let mut names: Vec<&str> = vec!["ADD", "BIT", "MUL", "SHIFT", "CMP", "CONST", "STACK", "CTRL", "LOCAL", "DIV", "LOAD",
+        "STORE", "CALL", "RET", "IF", "CONV", "UNREACH", "HOSTO", "HOSTB", "REG", "HOST"];
+    if grow_air {
+        names.push("MEMG");
+    }
+
     // ---- copied rows -------------------------------------------------------------------------
-    for name in ["ADD", "BIT", "MUL", "SHIFT", "CMP", "CONST", "STACK", "CTRL", "LOCAL", "DIV", "LOAD", "STORE",
-        "CALL", "RET", "IF", "CONV", "UNREACH", "HOSTO", "HOSTB", "REG", "HOST"] {
+    for name in names {
         let (fs, fm) = full(name);
         let key = if name == "HOSTO" { "q0" } else { "ts" };
         let rows = rows_in(fs, fm, key, t_in, t_out);
@@ -451,7 +508,13 @@ pub fn build(seg: &AirSpec, m2: &AirSpec, g: &Gen, prep: &Prep, k: usize, tree: 
         for r in rows {
             tb.push();
             for (ci, c) in fs.cols.iter().enumerate() {
-                tb.s(c, r[ci]);
+                if spec.cols.iter().any(|x| x == c) {
+                    tb.s(c, r[ci]);
+                } else if !["atp", "ahp"].contains(&c.as_str()) {
+                    // the full run is `wasmBaseM3Air` (HOST-W, REG-A): HOST-W's tag columns must be
+                    // zero (all-i64 host signatures, = HOST'); REG-A's absent header is dropped
+                    assert!(r[ci] == F::ZERO, "{name}.{c} = {} has no column in the segment AIR (i32 host signature)", r[ci]);
+                }
             }
         }
         let (extra, pad): (usize, Vec<(&str, u64)>) = match name {
@@ -533,7 +596,22 @@ pub fn build(seg: &AirSpec, m2: &AirSpec, g: &Gen, prep: &Prep, k: usize, tree: 
 
     // ---- MEMB + MPATH ----------------------------------------------------------------------------
     let mem_in = tree.root();
-    let mut memb = Tb::new(&seg.tables[si("MEMB")]);
+    let d_in = tree.d;
+    assert_eq!(d_in, depth_of(nblk_in), "tree depth at the segment's start");
+    let d_out = depth_of(nblk_out);
+    // E2E M4c: a depth increase (NEAR: 16 -> 17 at most) lifts the tree first; SEGG is the root
+    let lift = d_out > d_in;
+    if lift {
+        assert!(grow_air && d_out == d_in + 1 && d_in == 16, "depth {d_in} -> {d_out}: only the lift 16 -> 17 is supported");
+        tree.lift();
+    }
+    let mut membg = if grow_air { Some(Tb::new(&seg.tables[si("MEMBG")])) } else { None };
+    // MEMBG blocks per grow time (MEMG's lookup multiplicity `gm`)
+    let mut gm: HashMap<u64, u64> = HashMap::new();
+    let zleaf = leaf_hash(&[0u64; 1024]);
+    let mut memb0 = Tb::new(&seg.tables[si("MEMB")]);
+    // MEMBH (`wasmBaseSegAirG`): MEMB for old blocks `>= 2^16` (grown in an earlier segment)
+    let mut membh = if grow_air { Some(Tb::new(&seg.tables[si("MEMBH")])) } else { None };
     let mut mp = Tb::new(&seg.tables[si("MPATH")]);
     let (mut nro, nb) = (0usize, c1.touched.len());
     let comps0 = sha.comps.len();
@@ -543,10 +621,66 @@ pub fn build(seg: &AirSpec, m2: &AirSpec, g: &Gen, prep: &Prep, k: usize, tree: 
     let mut mp_leaves: Vec<(u64, bool, [u64; 6])> = vec![];
     for (kb, &b) in c1.touched.iter().enumerate() {
         let base = b << 10;
+        if b >= nblk_in {
+            // E2E M4c: a block grown in this segment (MEMBG): zero bytes produced at the grow's time,
+            // the final bytes hashed, the old leaf is the zero leaf
+            let mg = membg.as_mut().expect("a grown block needs the segment AIR airSegG");
+            let &(tg, gold, gnew) = c1.grows.iter().find(|g| 64 * g.1 <= b && b < 64 * g.2).expect("grown block without a grow");
+            assert!(tg > t_in && tg <= t_out, "block {b} grown outside the segment");
+            assert_eq!(tree.lv[0][b as usize], zleaf, "grown block {b}: old leaf is not the zero leaf");
+            *gm.entry(tg).or_default() += 1;
+            // a byte the segment never accessed keeps MEMBG's own message (time `tg`)
+            let bout: Vec<(u64, u64)> = (0..1024)
+                .map(|i| {
+                    let (v, tp) = c1.mem_end[&(base + i)];
+                    if tp == t_in {
+                        assert_eq!(v, 0);
+                        (0, tg)
+                    } else {
+                        (v, tp)
+                    }
+                })
+                .collect();
+            let mut ho = SHA384_IV;
+            for row in 0..9usize {
+                mg.push();
+                mg.u("act", 1);
+                mg.u(&format!("p{row}"), 1);
+                mg.u("blk", b);
+                mg.u("tg", tg);
+                mg.u("gold", gold);
+                mg.u("gnew", gnew);
+                let bo: Vec<u64> = if row < 8 { (0..128).map(|i| bout[128 * row + i].0).collect() } else { vec![0; 128] };
+                if row < 8 {
+                    for i in 0..128 {
+                        mg.u(&format!("bo{i}"), bo[i]);
+                        mg.u(&format!("tq{i}"), bout[128 * row + i].1);
+                    }
+                    for w in 0..16 {
+                        mg.u(&format!("so5_{w}"), bo[8 * w + 5] >> 5);
+                        mg.u(&format!("so2_{w}"), bo[8 * w + 2] >> 2);
+                    }
+                }
+                let blk_out = if row < 8 { be_words(&bo) } else { pad_block(8192) };
+                let (cid, out) = sha.comp(ho, blk_out);
+                mg.u("cidO", cid);
+                for (i, l) in limbs24(&ho).into_iter().enumerate() {
+                    mg.u(&format!("hiO{i}"), l);
+                }
+                for (i, l) in limbs24(&out).into_iter().enumerate() {
+                    mg.u(&format!("hoO{i}"), l);
+                }
+                ho = out;
+            }
+            mp_leaves.push((b, false, d6(&ho)));
+            let _ = kb;
+            continue;
+        }
         let bin: Vec<u64> = (0..1024).map(|i| c1.mem_start[&(base + i)]).collect();
         let bout: Vec<(u64, u64)> = (0..1024).map(|i| c1.mem_end[&(base + i)]).collect();
         let ro = bin.iter().zip(bout.iter()).all(|(a, o)| *a == o.0);
         nro += ro as usize;
+        let memb: &mut Tb = if b >= 1 << 16 { membh.as_mut().expect("a block above 64 MiB needs airSegG") } else { &mut memb0 };
         let (mut hi, mut ho) = (SHA384_IV, SHA384_IV);
         for row in 0..9usize {
             memb.push();
@@ -673,15 +807,73 @@ pub fn build(seg: &AirSpec, m2: &AirSpec, g: &Gen, prep: &Prep, k: usize, tree: 
             }
         }
     }
+    let mut lift_root: Option<LiftRoot> = None;
     if multiproof {
         let nc_before = sha.comps.len();
-        multiproof_rows(&mut mp, &mut sha, tree, &mp_leaves);
+        lift_root = multiproof_rows(&mut mp, &mut sha, tree, &mp_leaves, lift);
         comps_mpath += sha.comps.len() - nc_before;
+    } else {
+        assert!(!grow_air, "airSegG has the multiproof MPATH");
+    }
+    if let Some(lr) = &lift_root {
+        assert_eq!(lr.old_l, mem_in, "lift: the old root is the left child");
     }
     let comps_memb = sha.comps.len() - comps0 - comps_mpath;
     let mem_out = tree.root();
-    mats[si("MEMB")] = Some(memb.finish(0, &[]));
+    mats[si("MEMB")] = Some(memb0.finish(0, &[]));
+    if let Some(mh) = membh {
+        mats[si("MEMBH")] = Some(mh.finish(0, &[]));
+    }
     mats[si("MPATH")] = Some(mp.finish(0, &[]));
+    if let Some(mg) = membg {
+        mats[si("MEMBG")] = Some(mg.finish(0, &[]));
+    }
+    if grow_air {
+        // MEMG: the grow rows' lookup multiplicity, and the size message's final producer time
+        let i = si("MEMG");
+        let spec = &seg.tables[i];
+        let m = mats[i].as_mut().unwrap();
+        let w = spec.cols.len();
+        let (cts, cok, cgm, cfg, cfs) = (spec.col("ts"), spec.col("ok"), spec.col("gm"), spec.col("f_grow"), spec.col("f_size"));
+        let mut tz = t_in;
+        let mut used = 0u64;
+        for r in m.values.chunks_mut(w) {
+            if r[cfg] == F::ZERO && r[cfs] == F::ZERO {
+                continue;
+            }
+            let ts = r[cts].as_canonical_u32() as u64;
+            tz = tz.max(ts);
+            let g = if r[cok] == F::ONE { gm.get(&ts).copied().unwrap_or(0) } else { 0 };
+            used += g;
+            r[cgm] = fe(g);
+        }
+        assert_eq!(used, gm.values().sum::<u64>(), "MEMBG block without its MEMG grow row");
+        // SEGG: the size message across the cut, and the lift root
+        let mut sg = Tb::new(&seg.tables[si("SEGG")]);
+        sg.push();
+        sg.u("pin", c0.pages);
+        sg.u("pout", c1.pages);
+        sg.u("tz", tz);
+        if let Some(lr) = &lift_root {
+            sg.u("lift", 1);
+            sg.u("ndL", lr.nd[0] as u64);
+            sg.u("ndR", lr.nd[1] as u64);
+            sg.u("cidN", lr.cid);
+            for (pre, val) in [("oL", &lr.old_l), ("nL", &lr.new[0]), ("nR", &lr.new[1])] {
+                for (i, x) in limbs18(val).into_iter().enumerate() {
+                    sg.u(&format!("{pre}{i}"), x);
+                }
+            }
+            for (i, x) in limbs24(&lr.out).into_iter().enumerate() {
+                if i < 18 {
+                    sg.u(&format!("pn{i}"), x);
+                } else {
+                    sg.u(&format!("xn{}", i - 18), x);
+                }
+            }
+        }
+        mats[si("SEGG")] = Some(sg.finish(0, &[]));
+    }
 
     // ---- SEGB --------------------------------------------------------------------------------------
     let depth_out = c1.depth_of.iter().find(|x| x.0 == c1.cid).map(|x| x.1).unwrap();
@@ -691,13 +883,24 @@ pub fn build(seg: &AirSpec, m2: &AirSpec, g: &Gen, prep: &Prep, k: usize, tree: 
     sb.u("m0", *lookups.get(&0).unwrap_or(&0));
     sb.u("gtpf", if c1.gas.2 <= t_in { t_in } else { c1.gas.2 });
     // the multiproof's root row closes RCH with `[1] ++ memOut`
-    sb.u("nbt", if multiproof { (nb > 0) as u64 } else { nb as u64 });
+    sb.u("nbt", if multiproof { (nb > 0 || lift) as u64 } else { nb as u64 });
     mats[si("SEGB")] = Some(sb.finish(0, &[]));
 
     let depth_in = c0.depth_of.iter().find(|x| x.0 == c0.cid).map(|x| x.1).unwrap();
-    let b_in = Bnd { pc: c0.pc, t: t_in, s: c0.s, sb: c0.sb, cid: depth_in, sseg: c0.gas.0, segb: c0.gas.1, ctx: ctx_in, mem: mem_in };
-    let b_out = Bnd { pc: c1.pc, t: t_out, s: c1.s, sb: c1.sb, cid: depth_out, sseg: c1.gas.0, segb: c1.gas.1, ctx: ctx_out, mem: mem_out };
-    let pubs = pubs_of(&b_in, &b_out, c1.halted, prep, tree.d as u64);
+    let b_in = Bnd { pc: c0.pc, t: t_in, s: c0.s, sb: c0.sb, cid: depth_in, sseg: c0.gas.0, segb: c0.gas.1, ctx: ctx_in, mem: mem_in,
+        nblk: nblk_in, depth: d_in as u64 };
+    let b_out = Bnd { pc: c1.pc, t: t_out, s: c1.s, sb: c1.sb, cid: depth_out, sseg: c1.gas.0, segb: c1.gas.1, ctx: ctx_out, mem: mem_out,
+        nblk: nblk_out, depth: d_out as u64 };
+    assert_eq!(tree.d, d_out);
+    let mut pubs = pubs_of(&b_in, &b_out, c1.halted, prep, tree.d as u64);
+    if grow_air {
+        pubs[PUB_NBLK] = fe(nblk_in.min(1 << 16));
+        pubs.push(fe(nblk_in));
+        pubs.push(fe(nblk_out));
+        pubs.push(fe(d_in as u64));
+        assert_eq!(pubs.len(), NUM_PUB_G);
+    }
+    assert_eq!(pubs.len(), seg.num_pub);
 
     // ---- lookup tables -------------------------------------------------------------------------------
     for name in ["RANGE16", "BYTE", "CODE", "FUNC", "HOSTT"] {
@@ -706,6 +909,7 @@ pub fn build(seg: &AirSpec, m2: &AirSpec, g: &Gen, prep: &Prep, k: usize, tree: 
     }
     let mut mats: Vec<RowMajorMatrix<F>> = mats.into_iter().enumerate().map(|(i, m)| m.unwrap_or_else(|| panic!("table {} not built", seg.tables[i].name))).collect();
     recount(seg, &mut mats, &pubs);
+    fill_hkey(seg, &mut mats, &pubs);
     let stats = SegStats {
         blocks: nb,
         blocks_ro: nro,
@@ -717,6 +921,10 @@ pub fn build(seg: &AirSpec, m2: &AirSpec, g: &Gen, prep: &Prep, k: usize, tree: 
         comps_stream,
         comps_memb,
         comps_mpath,
+        pages: (c0.pages, c1.pages),
+        grown: c1.touched.iter().filter(|&&b| b >= nblk_in).count(),
+        high: c1.touched.iter().filter(|&&b| b >= 1 << 16 && b < nblk_in).count(),
+        lift,
     };
     SegInst { mats, pubs, comps: sha.comps, b_in, b_out, halted: c1.halted, stats }
 }
@@ -725,14 +933,29 @@ pub fn build(seg: &AirSpec, m2: &AirSpec, g: &Gen, prep: &Prep, k: usize, tree: 
 /// once with the old children and once with the new ones (skipped when both children are
 /// unchanged).  `leaves`: the touched blocks `(blk, ro, new leaf)`; `tree` is the tree at the
 /// segment's start and is advanced to its end.
-fn multiproof_rows(mp: &mut Tb, sha: &mut Sha, tree: &mut Tree, leaves: &[(u64, bool, [u64; 6])]) {
-    if leaves.is_empty() {
-        return;
+fn multiproof_rows(mp: &mut Tb, sha: &mut Sha, tree: &mut Tree, leaves: &[(u64, bool, [u64; 6])], lift: bool) -> Option<LiftRoot> {
+    if leaves.is_empty() && !lift {
+        return None;
     }
     assert!(tree.d <= 30, "the multiproof's level bits need D ≤ 30");
     // touched positions of the current level: new digest and (level 0) the leaf's ro flag
     let mut cur: BTreeMap<usize, ([u64; 6], u64)> = leaves.iter().map(|&(b, ro, d)| (b as usize, (d, ro as u64))).collect();
     for lvl in 1..=tree.d {
+        if lift && lvl == tree.d {
+            // E2E M4c: SEGG's lift row is the root `(D, 0)`: old children = the in-root and `Z_{D-1}`
+            // (never hashed), new children from the touched nodes `(D-1, 0/1)`; one compression
+            let z = zero_roots(tree.d - 1)[tree.d - 1];
+            let old = [tree.lv[lvl - 1][0], tree.lv[lvl - 1][1]];
+            assert_eq!(old[1], z, "lift: the right subtree is not all-zero");
+            let nd = [cur.contains_key(&0), cur.contains_key(&1)];
+            let new = [0usize, 1].map(|s| cur.get(&s).map(|x| x.0).unwrap_or(old[s]));
+            let (cid, out) = sha.comp(SHA384_IV, node_block(&new[0], &new[1]));
+            for (&i, &(d, _)) in cur.iter() {
+                tree.lv[lvl - 1][i] = d;
+            }
+            tree.lv[lvl][0] = d6(&out);
+            return Some(LiftRoot { nd, old_l: old[0], new, cid, out });
+        }
         let mut next: BTreeMap<usize, ([u64; 6], u64)> = BTreeMap::new();
         let parents: std::collections::BTreeSet<usize> = cur.keys().map(|&i| i >> 1).collect();
         for n in parents {
@@ -796,6 +1019,17 @@ fn multiproof_rows(mp: &mut Tb, sha: &mut Sha, tree: &mut Tree, leaves: &[(u64, 
     for (&i, &(d, _)) in cur.iter() {
         tree.lv[tree.d][i] = d;
     }
+    None
+}
+
+/// SEGG's lift row (`wasmBaseSegAirG`): touched flags and new digests of the root's children, the
+/// old left child (the in-root), the compression id and its output.
+pub struct LiftRoot {
+    pub nd: [bool; 2],
+    pub old_l: [u64; 6],
+    pub new: [[u64; 6]; 2],
+    pub cid: u64,
+    pub out: [u64; 8],
 }
 
 pub fn pubs_of(b_in: &Bnd, b_out: &Bnd, halted: u64, prep: &Prep, depth: u64) -> Vec<F> {
@@ -886,6 +1120,54 @@ pub fn recount(spec: &AirSpec, mats: &mut [RowMajorMatrix<F>], pubs: &[F]) {
     }
 }
 
+/// The call-key bus (`Seg.busHKey`, E2E M4c): HOSTB and REG-C look their `[ts, hid]` up with their
+/// `act` flag; HOST offers its key with the multiplicity column `nk`.  Sets `nk` on every active HOST
+/// row to the number of lookups of its key (0 elsewhere).  A no-op for an AIR without `nk`.
+pub const BUS_HKEY: u16 = 214;
+pub fn fill_hkey(spec: &AirSpec, mats: &mut [RowMajorMatrix<F>], pubs: &[F]) {
+    let hi = spec.index("HOST");
+    let ht = &spec.tables[hi];
+    if !ht.cols.iter().any(|c| c == "nk") {
+        return;
+    }
+    let mut cnt: HashMap<Vec<u32>, u64> = HashMap::new();
+    for (ti, t) in spec.tables.iter().enumerate() {
+        let w = t.cols.len();
+        let h = mats[ti].values.len() / w;
+        for it in t.inters.iter().filter(|i| i.send && i.bus == BUS_HKEY) {
+            for r in 0..h {
+                let m = &mats[ti].values;
+                let cur = &m[r * w..(r + 1) * w];
+                let nxt = &m[((r + 1) % h) * w..((r + 1) % h + 1) * w];
+                let sl = sel(r, h);
+                let c = it.count.eval_f(cur, nxt, pubs, sl).as_canonical_u32();
+                if c == 0 {
+                    continue;
+                }
+                let msg: Vec<u32> = it.msg.iter().map(|e| e.eval_f(cur, nxt, pubs, sl).as_canonical_u32()).collect();
+                *cnt.entry(msg).or_default() += c as u64;
+            }
+        }
+    }
+    let recv = ht.inters.iter().find(|i| !i.send && i.bus == BUS_HKEY).expect("HOST: no call-key offer");
+    let (w, nk, act) = (ht.cols.len(), ht.col("nk"), ht.col("act"));
+    let h = mats[hi].values.len() / w;
+    for r in 0..h {
+        let v = {
+            let m = &mats[hi].values;
+            let cur = &m[r * w..(r + 1) * w];
+            if cur[act] == F::ZERO {
+                0
+            } else {
+                let nxt = &m[((r + 1) % h) * w..((r + 1) % h + 1) * w];
+                let msg: Vec<u32> = recv.msg.iter().map(|e| e.eval_f(cur, nxt, pubs, sel(r, h)).as_canonical_u32()).collect();
+                cnt.remove(&msg).unwrap_or(0)
+            }
+        };
+        mats[hi].values[r * w + nk] = fe(v);
+    }
+}
+
 /// The chip's interface sends for a list of compressions (what the native SHA-512 AIR emits).
 pub fn chip_if(comps: &[Comp]) -> Vec<Vec<u32>> {
     let mut out = vec![];
@@ -906,6 +1188,8 @@ pub fn chip_if(comps: &[Comp]) -> Vec<Vec<u32>> {
 /// Constraint check on every row and bus balance over every table plus the chip's sends.
 pub fn precheck(spec: &AirSpec, mats: &[RowMajorMatrix<F>], pubs: &[F], comps: &[Comp]) -> Result<(), String> {
     let mut bal: HashMap<(u16, Vec<u32>), i128> = HashMap::new();
+    // the first (table, row) that touches each message (diagnostics only)
+    let mut who: HashMap<(u16, Vec<u32>), (String, usize)> = HashMap::new();
     for (ti, t) in spec.tables.iter().enumerate() {
         let m = &mats[ti];
         let w = t.cols.len();
@@ -927,6 +1211,7 @@ pub fn precheck(spec: &AirSpec, mats: &[RowMajorMatrix<F>], pubs: &[F], comps: &
                 }
                 let msg: Vec<u32> = it.msg.iter().map(|e| e.eval_f(cur, nxt, pubs, sl).as_canonical_u32()).collect();
                 let c = if c > (P as u32) / 2 { -((P - c as u64) as i128) } else { c as i128 };
+                who.entry((it.bus, msg.clone())).or_insert((t.name.clone(), r));
                 *bal.entry((it.bus, msg)).or_insert(0) += if it.send { c } else { -c };
             }
         }
@@ -943,6 +1228,7 @@ pub fn precheck(spec: &AirSpec, mats: &[RowMajorMatrix<F>], pubs: &[F], comps: &
         for ((b, _), _) in bad.iter() {
             *by.entry(*b).or_default() += 1;
         }
-        Err(format!("{} unbalanced messages by bus {:?}; first {:?}", bad.len(), by, &bad[..bad.len().min(3)]))
+        let first: Vec<_> = bad[..bad.len().min(3)].iter().map(|(k, v)| (k.clone(), **v, who.get(*k).cloned())).collect();
+        Err(format!("{} unbalanced messages by bus {:?}; first {:?}", bad.len(), by, first))
     }
 }
