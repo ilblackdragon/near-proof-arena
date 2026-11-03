@@ -4,7 +4,74 @@ Status: **research run, owner's relaxed targets of 2026-10-31.** `security_estab
 `zero_knowledge_established=false` in every RESULT.json. No GPU was used; GPU latencies are
 model projections only (`../prover-budget/model.py`). No Lean spec or checker change.
 
-## 0. Update 2026-11-03 (lane E2E-D): ZK lever on
+## 0. Update 2026-11-03, milestone D-2 (lane E2E-D): full zero-knowledge masking of the FINAL proof
+
+The FINAL layer now runs `NEARPROOF_ZK_FINAL=5`. That is the PCS-level hiding of §0b plus PIOP
+masking: masked GKR, masked batch sumcheck with column masks, and masked stacking reduction
+(`ZK-ARGUMENT.md` §4, `native/recursion/patches/zk-piop.patch`). It also uses the
+slice-splitting packing, which is now fixed. For each of the 3 D0a chunks, the FINAL layer was
+re-proved from the existing L4 checkpoint (`scripts/run_zk4.sh zk5`). The base (`zk = 1`) and
+L1–L4 are not affected by FINAL-only masking. Every packet was then verified in fresh
+processes. `zero_knowledge_established=false` (reason below).
+
+| target (owner, 2026-11-03) | result | met? |
+|---|---|---|
+| mask the core proof steps of FINAL | built, see the list below | **yes** |
+| one simulator plus a concrete hiding error | `ZK-ARGUMENT.md` §6: ε_ZK ≤ 2^-185 + ε_D + ε_E, where ε_D and ε_E are two composition lemmas (base-field cells absorbing extension-field functionals) that are argued but not proved | **written; not established** |
+| two-witness test, witness-guessing distinguisher | `results/zk/zk-guess.txt` (§0.3) | see §0.3 |
+| split packing (`zk = 3`) | fixed. FINAL layout is 68 stacked columns (`zk = 4` would be 98; non-ZK 53 + 15 mask columns), with 1,537 slices | **yes** |
+| proof ≤ ~400 KB with ZK | **319,695 / 320,464 / 319,779 B** | **yes** |
+| verify < 200 ms, one core | **40–50 ms** fresh process, 5 runs per chunk, host load 13–19; the FINAL check itself is 24–26 ms | **yes** |
+| 128-bit PQ | minimum 268.2 bits per round, unchanged (`results/zk5/*/soundness.txt`) | parameters yes; `security_established=false` |
+
+What is masked:
+* **Masked GKR.** A root sumcheck replaces the upstream messages for the two half sums and for
+  `q_0`, the product of all denominators. Off-cube level masks are added, and every layer
+  sumcheck gets a Libra mask.
+* **Masked batch sumcheck.** It has a Libra mask and last-variable column masks, and the per-AIR
+  LogUp terms are no longer sent. The public program columns stay unmasked, because V_d checks
+  them.
+* **Masked stacking reduction.** Sparse mask claims plus a committed-column Libra mask.
+
+### 0.1 Results (full ZK, `zk = 5`)
+
+| | d1/00-h10006-s3 | d1/00-h10007-s0 | d2/05-h10042-s3 |
+|---|---:|---:|---:|
+| **packet B (full ZK)** | **319,695** | **320,464** | **319,779** |
+| packet B, PCS-ZK only (`zk = 2`, §0b) | 325,613 | 324,534 | 326,243 |
+| packet B, non-ZK (10-31) | 306,839 | 307,314 | 307,427 |
+| FINAL sections: gkr / relations / stacking / whir | 42,828 / 24,436 / 5,440 / 243,960 | 42,828 / 24,436 / 5,440 / 244,590 | 42,828 / 24,436 / 5,440 / 244,044 |
+| FINAL prove, including 2 self-verifications, s (10 threads, load 13–19) | 637 | 528 | 763 |
+| verify, fresh process, 1 thread (min–max of 6) | 40.3–50.0 ms | 41.3–50.4 ms | 41.0–41.9 ms |
+| of which the FINAL protocol check | 23.9–24.7 ms | 25.3–26.1 ms | 24.5–24.8 ms |
+| negatives (fresh verifier each) | 21/21 | 21/21 | 21/21 |
+
+Where the bytes went, relative to `zk = 2`:
+* GKR +5.2 KB: the masked root, plus per layer the Libra sum, `p_xi_1` (no longer derived) and
+  two more last-round evaluations.
+* Relations −0.3 KB: the per-AIR terms are gone; one round gains extra evaluations.
+* Stacking and WHIR −12.7 KB: 68 instead of 95 stacked columns. The split packing removes the
+  30-column packing loss, and the 3 PIOP mask columns are added back.
+
+Relative to non-ZK, full ZK costs +12.4 to +13.2 KB. Raw logs: `results/zk/zk5/`, with sha256
+manifests of each packet, proof and setup. Verify now runs public-input preparation in process
+(see §0.4).
+
+### 0.2 Sizes at 268 and 274 bits per round (FINAL layer)
+
+See `results/zk/zk5-extra.txt`: chunk 1, full ZK, `NEARPROOF_FINAL_RBR=274`.
+
+### 0.3 Hiding tests
+
+`results/zk/zk-diff-zk5.txt` and `results/zk/zk-guess.txt`. See ZK-ARGUMENT.md §8.2.
+
+### 0.4 Verify in process (sub-agent)
+
+`statepublic` is now a library call, and the TAPE evaluation is folded.
+`results/zk/verify-inprocess.txt` has 32–34 ms on the `zk = 2` packets. The FINAL protocol check
+is 16–18 ms with `zk = 2` and 24–26 ms with `zk = 5`.
+
+## 0b. Update 2026-11-03 (lane E2E-D, D-1): PCS-level ZK lever on
 
 Owner targets (2026-11-03): 128-bit PQ, SHA-384, proven bounds; ZK with only the chunk-header
 outputs plus trusted facts public; proof **~400 KB accepted with ZK**; verify < 200 ms.
@@ -17,7 +84,7 @@ outputs plus trusted facts public; proof **~400 KB accepted with ZK**; verify < 
 | verify < 200 ms | 129–283 ms single core on a host at load 20–22 (5 fresh processes per chunk); the FINAL protocol check is 20–48 ms of it, the rest is `statepublic` (45–118 ms) and claim/TAPE preparation, both unchanged by ZK. 10-31 idle-host figure for the same pipeline: 104–112 ms | **yes on an idle host; no under the current contention for 2 of 3 chunks** (the ZK lever adds ≈ 1–5 ms) |
 | 128-bit PQ, proven bounds | unchanged: min 268.2 RBR bits (FINAL WHIR query); the ZK lever adds no round, challenge or claim (`results/zk/soundness-final-zk2.txt`) | parameters yes; `security_established=false` |
 
-### 0.1 Results table (ZK lever on)
+### 0b.1 Results table (ZK lever on)
 
 | | d1/00-h10006-s3 | d1/00-h10007-s0 | d2/05-h10042-s3 |
 |---|---:|---:|---:|
@@ -39,7 +106,7 @@ outputs plus trusted facts public; proof **~400 KB accepted with ZK**; verify < 
 during the runs), so CPU times are as measured. Every level natively re-verified before the next.
 Per-run numbers `results/zk/<run>.json`, sha256 manifests `results/zk/<run>.manifest.json`.
 
-### 0.2 ZK size levers measured
+### 0b.2 ZK size levers measured
 
 | lever | FINAL packet | Δ vs non-ZK (306,839 B, same chunk) | source |
 |---|---:|---:|---|
@@ -54,7 +121,7 @@ Grinding on mask spot checks and fewer HVZK masks were the 10-31 candidates for 
 HVZK-WHIR overhead; they are moot: the batching construction has no mask oracles and no extra
 queries, so its cost is the width of the opened rows, not a security-level-dependent query count.
 
-### 0.3 Per-round soundness of the ZK wrap (FINAL, pinned), and the 274-bit variant
+### 0b.3 Per-round soundness of the ZK wrap (FINAL, pinned), and the 274-bit variant
 
 `results/zk/soundness-final-zk2.txt` (pinned FINAL, `zk = 2`): LogUp 321.9, GKR sumcheck 369.3,
 GKR batching 370.9, zerocheck 355.0, constraint batching 350.8, stacked reduction 351.5, WHIR
@@ -68,7 +135,7 @@ is not instantiated): queries [47, 43, 31, 25], min **274.0** bits, FINAL packet
 325,613 B at 268 (same chunk, same L4): **+3.9 KB, not material** (`results/zk/replay-zk2-rbr274.txt`).
 Only the FINAL layer was re-targeted here; the inner levels and the base stay at 268.
 
-### 0.4 Hiding checks run
+### 0b.4 Hiding checks run
 
 * `zk-diff` of two FINAL proofs from the same L4 (same witness, fresh randomness):
   `results/zk/zk-diff-replay-same-witness.txt`. Root, every WHIR field, stacked openings differ; the
