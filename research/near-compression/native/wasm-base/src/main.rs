@@ -283,7 +283,37 @@ fn hostb_payloads(spec: &AirSpec, g: &Gen) -> Vec<(u64, u64, Vec<u8>)> {
             groups.entry((col(r, 0), col(r, 5))).or_default().insert(col(r, 2), col(r, 3) as u8);
         }
     }
-    groups.into_iter().map(|((ts, hid), b)| (ts, hid, b.into_values().collect())).collect()
+    // E2E M2: only the payloads of **successful** host calls are outputs (a `log_utf8` that aborts
+    // on bad UTF-8 still reads its bytes, but logs nothing), and a successful `value_return` /
+    // `log_utf8` of length 0 has no HOSTB rows but is still an output (the empty string).
+    let Some(hi) = spec.tables.iter().position(|t| t.name == "HOST") else {
+        return groups.into_iter().map(|((ts, hid), b)| (ts, hid, b.into_values().collect())).collect();
+    };
+    let ht = &spec.tables[hi];
+    let hw = ht.cols.len();
+    let (cts, chid, cst, cact) = (ht.col("ts"), ht.col("hid"), ht.col("st"), ht.col("act"));
+    let hm = &g.mats[hi];
+    let hcol = |r: usize, c: usize| hm.values[r * hw + c].as_canonical_u32() as u64;
+    let mut calls: std::collections::BTreeMap<u64, (u64, u64)> = Default::default();
+    for r in 0..hm.values.len() / hw {
+        if hcol(r, cact) == 1 {
+            calls.insert(hcol(r, cts), (hcol(r, chid), hcol(r, cst)));
+        }
+    }
+    let mut out: Vec<(u64, u64, Vec<u8>)> = vec![];
+    for (&ts, &(hid, st)) in calls.iter() {
+        if st != 0 {
+            continue;
+        }
+        for h in [hid, hid + 256] {
+            match groups.remove(&(ts, h)) {
+                Some(b) => out.push((ts, h, b.into_values().collect())),
+                None if h == hid && (hid == 45 || hid == 50) => out.push((ts, h, vec![])),
+                None => {}
+            }
+        }
+    }
+    out
 }
 
 /// `check-tape <air.json> <prep.json>...`: E2E M3.  For each prep (one call's chunk host tape,
@@ -1000,6 +1030,81 @@ fn cmd_tamper(air_path: &str, prep_path: &str) {
             let w = g.mats[ta].width;
             g.mats[ta].values.swap(c, w + c);
         })));
+    }
+    // ---- E2E M2 (`wasmBaseM2Air`): CONV (wrap / extend) and UNREACH ----
+    if let Ok(tcv) = std::panic::catch_unwind(|| tb("CONV")) {
+        let w = g.mats[tcv].width;
+        let nrows = g.rows_per_table[tcv].1;
+        let at = |r: usize, c: &str| g.mats[tcv].values[r * w + col(tcv, c)];
+        for flag in ["f_wrap", "f_extu", "f_exts"] {
+            if let Some(r) = (0..nrows).find(|&r| at(r, flag) == F::ONE) {
+                // a wrong converted value: the low limbs are the output limbs
+                cases.push((format!("CONV[{flag} row {r}].a0+1"), cell(tcv, r, col(tcv, "a0"), plus1())));
+                cases.push((format!("CONV[{flag} row {r}].a1+1"), cell(tcv, r, col(tcv, "a1"), plus1())));
+                cases.push((format!("CONV[{flag} row {r}].ta+1"), cell(tcv, r, col(tcv, "ta"), plus1())));
+                // another conversion at the same pc (the FETCH op changes)
+                let other = if flag == "f_wrap" { "f_extu" } else { "f_wrap" };
+                let (cf, co) = (col(tcv, flag), col(tcv, other));
+                cases.push((format!("CONV[{flag} row {r}] as {other}"), Box::new(move |g: &mut Gen| {
+                    let w = g.mats[tcv].width;
+                    g.mats[tcv].values[r * w + cf] = F::ZERO;
+                    g.mats[tcv].values[r * w + co] = F::ONE;
+                })));
+                // the sign bit: forge extend_s's upper limbs (sgn flipped, rl moved to keep limb 1)
+                if flag == "f_exts" {
+                    let (cs, cr) = (col(tcv, "sgn"), col(tcv, "rl"));
+                    cases.push((format!("CONV[f_exts row {r}] sgn flip"), Box::new(move |g: &mut Gen| {
+                        let w = g.mats[tcv].width;
+                        let s = g.mats[tcv].values[r * w + cs];
+                        g.mats[tcv].values[r * w + cs] = F::ONE - s;
+                        g.mats[tcv].values[r * w + cr] += if s == F::ONE { F::from_u64(32768) } else { -F::from_u64(32768) };
+                    })));
+                }
+                // an active row with no flag (counts vanish): the step disappears from the chain
+                cases.push((format!("CONV[{flag} row {r}] all flags 0"), cell(tcv, r, col(tcv, flag), Box::new(|_| F::ZERO))));
+            }
+        }
+    }
+    if let Ok(tu) = std::panic::catch_unwind(|| tb("UNREACH")) {
+        if g.rows_per_table[tu].1 > 0 {
+            cases.push(("UNREACH.act=0".into(), cell(tu, 0, col(tu, "act"), Box::new(|_| F::ZERO))));
+            cases.push(("UNREACH.fee+1".into(), cell(tu, 0, col(tu, "fee"), plus1())));
+            cases.push(("UNREACH.pc+1".into(), cell(tu, 0, col(tu, "pc"), plus1())));
+        }
+    }
+    // REG-C: the clear group of a register refill
+    let regc = std::panic::catch_unwind(|| tb("REG")).ok().filter(|&t| spec.tables[t].cols.iter().any(|c| c == "clr"));
+    if let Some(tr) = regc {
+        let w = g.mats[tr].width;
+        let nrows = g.rows_per_table[tr].1;
+        let at = |r: usize, c: &str| g.mats[tr].values[r * w + col(tr, c)];
+        let clr: Vec<usize> = (0..nrows).filter(|&r| at(r, "clr") == F::ONE).collect();
+        if let Some(&rb) = clr.iter().find(|&&r| at(r, "kind") == F::ZERO) {
+            // keep the old byte live (no clear): two messages in the slot
+            cases.push((format!("REGC[clear byte row {rb}].clr=0"), cell(tr, rb, col(tr, "clr"), Box::new(|_| F::ZERO))));
+            // clear a different value than the register holds
+            cases.push((format!("REGC[clear byte row {rb}].byte+1"), cell(tr, rb, col(tr, "byte"), plus1())));
+        }
+        if let Some(&rl) = clr.iter().find(|&&r| at(r, "kind") == F::ONE) {
+            cases.push((format!("REGC[clear len row {rl}].clr=0"), cell(tr, rl, col(tr, "clr"), Box::new(|_| F::ZERO))));
+            cases.push((format!("REGC[clear len row {rl}].len+1"), cell(tr, rl, col(tr, "len"), plus1())));
+            // the refill that follows the clear is for another register / another time
+            if rl + 1 < nrows {
+                cases.push((format!("REGC[fill after clear, row {}].rid+1", rl + 1), cell(tr, rl + 1, col(tr, "rid"), plus1())));
+                cases.push((format!("REGC[fill after clear, row {}].ts+1", rl + 1), cell(tr, rl + 1, col(tr, "ts"), plus1())));
+            }
+        }
+        // a spurious clear on an ordinary read group's length row
+        if let Some(r) = (0..nrows).find(|&r| at(r, "rd") == F::ONE && at(r, "clr") == F::ZERO && at(r, "kind") == F::ONE
+            && at(r, "act") == F::ONE) {
+            cases.push((format!("REGC[read len row {r}].clr=1"), cell(tr, r, col(tr, "clr"), Box::new(|_| F::ONE))));
+        }
+    }
+    // `TAMPER_ONLY=CONV,UNREACH`: run only the cases whose name starts with one of the prefixes
+    if let Ok(only) = std::env::var("TAMPER_ONLY") {
+        let pre: Vec<String> = only.split(',').map(|s| s.to_string()).collect();
+        cases.retain(|(n, _)| pre.iter().any(|p| n.starts_with(p.as_str())));
+        expected_accept.retain(|(n, _)| pre.iter().any(|p| n.starts_with(p.as_str())));
     }
     // the SHA-256 cases first: they are the newest and a long run can exhaust memory on the
     // pre-existing suite before reaching the end of the list

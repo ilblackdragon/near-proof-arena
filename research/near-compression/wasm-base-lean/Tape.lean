@@ -58,7 +58,7 @@ with the checker's context, store and budget), or an `eligible:false` object. -/
 def tapePrep (cfg : NearCfg) (p : Prepared) (fi : Nat) (s0 : St) (fuel : Nat) : String × Option St :=
   let nImp := p.m.imports.size
   let fn := fi - nImp
-  match checkModuleIfH cfg p fn with
+  match checkModuleM2 cfg p fn with
   | none => ("{\"eligible\":false}", none)
   | some MH =>
     let M := MH.mod

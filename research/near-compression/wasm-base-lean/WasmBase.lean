@@ -64,6 +64,11 @@ import WasmBase.Main.RegWalk
 import WasmBase.Main.RegSend
 import WasmBase.Main.MemIOLink
 import WasmBase.Main.RegMemLink
+import WasmBase.M2Check
+import WasmBase.M2Air
+import WasmBase.Census
+import WasmBase.Main.M2Link
+import WasmBase.Main.RegWalkG
 import WasmBase.ShaAir
 import WasmBase.ShaSound
 import WasmBase.ShaVectors

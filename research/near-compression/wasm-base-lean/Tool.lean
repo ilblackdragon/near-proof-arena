@@ -1,4 +1,5 @@
 import WasmBase.ToolCore
+import WasmBase.Census
 /-!
 `wasmbase-tool` — exporter and verifier-side preparation for the direct-Wasm base layer.
 
@@ -22,8 +23,26 @@ import WasmBase.ToolCore
 
 open NearSpecV3.Wasm WasmBase ZkFormal.Algebra
 
+/-- `census <wasm> <export>`: why `checkModuleIfH` rejects the export (E2E M2). -/
+def censusCmd (path exportName : String) : IO Unit := do
+  let code ← IO.FS.readBinFile path
+  match prepare pv86 code with
+  | .ok p =>
+    let some (_, _, fi) := p.m.exports.find? (fun (n, k, _) => n = exportName && k = 0)
+      | throw (IO.userError "export not found")
+    let fn := fi - p.m.imports.size
+    let ok := (checkModuleIfH pv86 p fn).isSome
+    IO.println s!"eligible {ok}"
+    for (f, rs) in census pv86 p fn do
+      IO.println s!"  fn {f}: {rs.map fun (r, n) => s!"{r}x{n}"}"
+    IO.println s!"eligibleM2 {(checkModuleM2 pv86 p fn).isSome}"
+    for (f, rs) in censusM2 pv86 p fn do
+      if !rs.isEmpty then IO.println s!"  fn {f}: {rs.map fun (r, n) => s!"{r}x{n}"}"
+  | _ => IO.println "prepare failed"
+
 def main (args : List String) : IO Unit := do
   match args with
+  | ["census", path, e] => censusCmd path e
   | ["air", l, n] => IO.println (airJson (wasmBaseAir l.toNat! n.toNat!))
   | ["airH", l, n] => IO.println (airJson (wasmBaseHostAir l.toNat! n.toNat!))
   | ["airR", l, n] => IO.println (airJson (wasmBaseRegAir l.toNat! n.toNat!))
@@ -32,6 +51,10 @@ def main (args : List String) : IO Unit := do
   | ["prep", path, exportName, g0, inp] => prep path exportName g0.toNat! inp
   | ["prepIf", path, exportName, g0] => prepIf path exportName g0.toNat!
   | ["prepIf", path, exportName, g0, inp] => prepIf path exportName g0.toNat! inp
+  | ["prepM2", path, exportName, g0] => prepIf path exportName g0.toNat! "" checkModuleM2
+  | ["prepM2", path, exportName, g0, inp] => prepIf path exportName g0.toNat! inp checkModuleM2
+  | ["airM2", l, n] => IO.println (airJson (wasmBaseM2Air l.toNat! n.toNat!))
+  | ["evalM2", l, n, path] => evalPoints l.toNat! n.toNat! path 5
   | ["airIf", l, n] => IO.println (airJson (wasmBaseIfAir l.toNat! n.toNat!))
   | ["airIfH", l, n] => IO.println (airJson (wasmBaseIfHostAir l.toNat! n.toNat!))
   | ["airIfR", l, n] => IO.println (airJson (wasmBaseIfRegAir l.toNat! n.toNat!))
