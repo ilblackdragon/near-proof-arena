@@ -63,6 +63,12 @@ def m2Special (p : Prepared) : Instr → Bool
   | .call fi => decide (fi < p.m.imports.size)
   | _ => false
 
+/-- The opcodes an M2-addition record carries (conversions, `unreachable` = 0, `else` = `opJump`,
+`if` = `opIf`, a host call `opHost`/`0x242`, `memory.grow`/`size` `0x240`/`0x241`). -/
+def m2OpNat (n : Nat) : Bool :=
+  n == 0 || n == 0xA7 || n == 0xAC || n == 0xAD || n == 0x102 || n == 0x106 || n == 0x1FF ||
+  n == 0x240 || n == 0x241 || n == 0x242
+
 /-- Everything the base-faithful proof uses from `check`. -/
 structure CheckFacts (cfg : NearCfg) (p : Prepared) (fn off : Nat) (cinfo : Nat → Option Nat) (pf : PFunc)
     (ck : CheckOut) : Prop where
@@ -88,6 +94,17 @@ structure CheckFacts (cfg : NearCfg) (p : Prepared) (fn off : Nat) (cinfo : Nat 
   recs : ∀ pc, pc < pf.code.size → ∃ ins, pf.code[pc]? = some ins ∧ (m2Special p ins = false →
     ∃ fee, feeUnits cfg pf.gas[pc]? = some fee ∧ fee ≤ ck.maxFee ∧
     recordOf off cinfo (ck.labels[pc]?.getD []) (ck.heights[pc]?.getD 0) fee (off + pc) ins = ck.records[pc]?)
+  /-- at an M2 addition the record carries an M2 opcode (so no base chip's FETCH can match it) -/
+  special : ∀ pc, pc < pf.code.size → ∀ ins, pf.code[pc]? = some ins → m2Special p ins = true →
+    ∃ op rest, ck.records[pc]? = some ((off + pc) :: op :: rest) ∧ m2OpNat op = true
+  /-- at an `else` (M2): the true arm ends at `label.height + arity`, the label target carries the
+  outer labels at that height, and the record is CTRL's jump to the target -/
+  elseF : ∀ pc, pc < pf.code.size → pf.code[pc]? = some .else_ → ∃ lab rest fee,
+    ck.labels[pc]? = some (lab :: rest) ∧ ck.heights[pc]?.getD 0 = lab.height + lab.arity ∧
+    lab.target < pf.code.size ∧ ck.labels[lab.target]? = some rest ∧
+    ck.heights[lab.target]? = some (ck.heights[pc]?.getD 0) ∧
+    feeUnits cfg pf.gas[pc]? = some fee ∧ fee ≤ ck.maxFee ∧
+    ck.records[pc]? = some [off + pc, Chips.Ctrl.opJump, ck.heights[pc]?.getD 0, fee, lab.target + off, 0, 0, 0]
   arity : ck.arity = pf.type.results.size
   resTag : ck.resTag = if pf.type.results[0]? == some .i64 then 1 else 0
   localTags : ck.localTags = (pf.type.params.toList ++ pf.locals.toList).map vtTag
@@ -210,7 +227,8 @@ theorem check_sound {cfg : NearCfg} {p : Prepared} {fn off : Nat} {cinfo : Nat �
               verify := fun pc hpc _ _ _ => by have := g7 pc hpc; simp_all,
               hBound := fun pc hpc => by have := g7 pc hpc; simp_all,
               records := by simp [hlen],
-              recs := ?_, arity := rfl, resTag := rfl, localTags := rfl, locIdx := ?_,
+              recs := ?_, special := ?_, elseF := ?_,
+              arity := rfl, resTag := rfl, localTags := rfl, locIdx := ?_,
               np := rfl, nl := rfl, charge := rfl, chargeLt := gch,
               prologue := Nat.div_mul_cancel (Nat.dvd_of_mod_eq_zero gpro), prologueLt := gprl, regPos := greg }⟩
             · intro t ht
@@ -239,6 +257,12 @@ theorem check_sound {cfg : NearCfg} {p : Prepared} {fn off : Nat} {cinfo : Nat �
               have := recMax pc hpc
               rw [recordOf_fee h3] at this
               exact this
+            · intro pc hpc ins hins hs
+              have := verifyAt_special (g7 pc hpc).1 hins
+              rw [hs] at this; cases this
+            · intro pc hpc hins
+              have := verifyAt_special (g7 pc hpc).1 hins
+              simp [m2Special] at this
             · intro i hi x hx
               rw [Array.all_eq_true] at g4
               obtain ⟨k, hk, rfl⟩ := Array.mem_iff_getElem.mp (Array.mem_toList_iff.mp hi)
@@ -283,6 +307,14 @@ theorem CheckFacts.of_parts {cfg : NearCfg} {p : Prepared} {fn off : Nat} {cinfo
     (recs : ∀ pc, pc < pf.code.size → ∃ ins, pf.code[pc]? = some ins ∧ (m2Special p ins = false →
       ∃ fee, feeUnits cfg pf.gas[pc]? = some fee ∧ fee ≤ ck.maxFee ∧
       recordOf off cinfo (ck.labels[pc]?.getD []) (ck.heights[pc]?.getD 0) fee (off + pc) ins = ck.records[pc]?))
+    (special : ∀ pc, pc < pf.code.size → ∀ ins, pf.code[pc]? = some ins → m2Special p ins = true →
+      ∃ op rest, ck.records[pc]? = some ((off + pc) :: op :: rest) ∧ m2OpNat op = true)
+    (elseF : ∀ pc, pc < pf.code.size → pf.code[pc]? = some .else_ → ∃ lab rest fee,
+      ck.labels[pc]? = some (lab :: rest) ∧ ck.heights[pc]?.getD 0 = lab.height + lab.arity ∧
+      lab.target < pf.code.size ∧ ck.labels[lab.target]? = some rest ∧
+      ck.heights[lab.target]? = some (ck.heights[pc]?.getD 0) ∧
+      feeUnits cfg pf.gas[pc]? = some fee ∧ fee ≤ ck.maxFee ∧
+      ck.records[pc]? = some [off + pc, Chips.Ctrl.opJump, ck.heights[pc]?.getD 0, fee, lab.target + off, 0, 0, 0])
     (arity : ck.arity = pf.type.results.size)
     (resTag : ck.resTag = if pf.type.results[0]? == some .i64 then 1 else 0)
     (localTags : ck.localTags = (pf.type.params.toList ++ pf.locals.toList).map vtTag)
@@ -295,7 +327,7 @@ theorem CheckFacts.of_parts {cfg : NearCfg} {p : Prepared} {fn off : Nat} {cinfo
     { func := hpf, params := g1, nloc := g1a, results := g1b,
       resTypes := ?_, locTypes := ?_, parTypes := ?_, codeLt := g5, gasSize := g5a,
       lsize := lsize, hsize := hsize, l0 := l0, h0 := h0, verify := verify, hBound := hBound,
-      records := records, recs := recs, arity := arity, resTag := resTag, localTags := localTags,
+      records := records, recs := recs, special := special, elseF := elseF, arity := arity, resTag := resTag, localTags := localTags,
       locIdx := ?_, np := np, nl := nl, charge := charge, chargeLt := gch,
       prologue := by rw [prologue]; exact Nat.div_mul_cancel (Nat.dvd_of_mod_eq_zero gpro),
       prologueLt := by rw [prologue]; exact gprl, regPos := greg }
