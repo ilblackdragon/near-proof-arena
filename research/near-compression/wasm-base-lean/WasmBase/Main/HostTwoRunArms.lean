@@ -1,7 +1,30 @@
 import WasmBase.Main.HostTwoRun
 
 /-!
-# WasmBase.Main.HostTwoRunArms — the two-run footprint of the host arms and of `callHost` (E2E M6.1)
+# WasmBase.Main.HostTwoRunArms — the two-run footprint of every host arm (E2E M6.1)
+
+`ArmTwo name`: from a start pair `Low A k s0 s0'` (equal host parts, shared stack top of `k ≥ nargs
+name` entries, memories agreeing on `A`) with `A ⊇ readSetOf name s0`, the arm's two runs correspond
+(`RC (Tw s0 s0' k A)`: equal values/errors, twinned end states).  Proof per arm (`arm_two`): compute
+the pops (`popArgs_two`, the arguments are the left state's, `argsOf`), then `rel_auto`, then close
+the read-set side goals (`readMemH`'s range) and the byte-loop goals (`tw_rd`).
+
+**Read sets** (`reads name s`, a list of `Rd`; `readSetOf name s := rdSet s (reads name s)`), in
+terms of the left state's arguments `argN n s i`:
+* `mr ptr len` (`memOrRegH`): `[ptr, ptr + len)` unless `len = u64::MAX` (then a register: no bytes);
+* `m ptr len` (`readMemH`, `getU128H` = 16 bytes);
+* `u8 ptr len` (`utf8H`): `[ptr, ptr + len)`, or for the NUL-terminated form the window
+  `[ptr, ptr + maxTotalLogLength]` — **a superset** of the scanned bytes (the scan stops at the first
+  `0`);
+* `tail ptr`: `[ptr, memBytes)` — **coarse**: the UTF-16 arms (`log_utf16`, `abort`), whose lengths are
+  themselves read from memory or found by a scan.
+Exact for every other arm on continuing runs, except `ed25519_verify` (`msg`/`pk` are in the set even
+when an invalid signature returns early).  A superset only strengthens the hypothesis; for the
+coverage hypothesis of M6.2 (`HostReadCovered`) the superset arms need their HOSTB rows to carry the
+whole set.
+
+Covered: **all 75 arms of `hostCall`** (`arm2_*`, collected as `armTwo_all` in
+`Main/HostTwoRunCall.lean`) and **all 14 curve arms of `cryptoHostCall`** (`arm2c_*`, `ArmTwoC`).
 -/
 
 namespace WasmBase
@@ -110,6 +133,20 @@ def nargs (name : String) : Nat :=
   | "promise_batch_action_use_global_contract_by_account_id" => 3
   | "promise_batch_action_state_init" => 4 | "promise_batch_action_state_init_by_account_id" => 4
   | "set_state_init_data_entry" => 6
+  | "ecrecover" => 7
+  | "p256_verify" => 6
+  | "alt_bn128_g1_multiexp" => 3
+  | "alt_bn128_g1_sum" => 3
+  | "alt_bn128_pairing_check" => 2
+  | "bls12381_p1_sum" => 3
+  | "bls12381_p2_sum" => 3
+  | "bls12381_g1_multiexp" => 3
+  | "bls12381_g2_multiexp" => 3
+  | "bls12381_p1_decompress" => 3
+  | "bls12381_p2_decompress" => 3
+  | "bls12381_map_fp_to_g1" => 3
+  | "bls12381_map_fp2_to_g2" => 3
+  | "bls12381_pairing_check" => 2
   | _ => 0
 
 /-- **The memory reads of each arm**, in terms of the left state's arguments (`argsOf`). -/
@@ -205,6 +242,34 @@ def reads (name : String) (s : St) : List Rd :=
       [.mr (argN 4 s 2) (argN 4 s 1), .m (argN 4 s 3) 16]
   | "set_state_init_data_entry" =>
       [.mr (argN 6 s 3) (argN 6 s 2), .mr (argN 6 s 5) (argN 6 s 4)]
+  | "ecrecover" =>
+      [.mr (argN 7 s 3) (argN 7 s 2), .mr (argN 7 s 1) (argN 7 s 0)]
+  | "p256_verify" =>
+      [.mr (argN 6 s 1) (argN 6 s 0), .mr (argN 6 s 3) (argN 6 s 2), .mr (argN 6 s 5) (argN 6 s 4)]
+  | "alt_bn128_g1_multiexp" =>
+      [.mr (argN 3 s 1) (argN 3 s 0)]
+  | "alt_bn128_g1_sum" =>
+      [.mr (argN 3 s 1) (argN 3 s 0)]
+  | "alt_bn128_pairing_check" =>
+      [.mr (argN 2 s 1) (argN 2 s 0)]
+  | "bls12381_p1_sum" =>
+      [.mr (argN 3 s 1) (argN 3 s 0)]
+  | "bls12381_p2_sum" =>
+      [.mr (argN 3 s 1) (argN 3 s 0)]
+  | "bls12381_g1_multiexp" =>
+      [.mr (argN 3 s 1) (argN 3 s 0)]
+  | "bls12381_g2_multiexp" =>
+      [.mr (argN 3 s 1) (argN 3 s 0)]
+  | "bls12381_p1_decompress" =>
+      [.mr (argN 3 s 1) (argN 3 s 0)]
+  | "bls12381_p2_decompress" =>
+      [.mr (argN 3 s 1) (argN 3 s 0)]
+  | "bls12381_map_fp_to_g1" =>
+      [.mr (argN 3 s 1) (argN 3 s 0)]
+  | "bls12381_map_fp2_to_g2" =>
+      [.mr (argN 3 s 1) (argN 3 s 0)]
+  | "bls12381_pairing_check" =>
+      [.mr (argN 2 s 1) (argN 2 s 0)]
   | _ => []
 
 /-- **The read set of an arm** at the left start state. -/
@@ -336,6 +401,44 @@ theorem arm2_promise_batch_action_use_global_contract_by_account_id : ArmTwo "pr
 theorem arm2_promise_batch_action_state_init : ArmTwo "promise_batch_action_state_init" := by arm_two "promise_batch_action_state_init"
 theorem arm2_promise_batch_action_state_init_by_account_id : ArmTwo "promise_batch_action_state_init_by_account_id" := by arm_two "promise_batch_action_state_init_by_account_id"
 theorem arm2_set_state_init_data_entry : ArmTwo "set_state_init_data_entry" := by arm_two "set_state_init_data_entry"
+
+
+/-- **The two-run statement for one curve arm** (`cryptoHostCall`, the successor table). -/
+def ArmTwoC (name : String) : Prop :=
+  ∀ (s0 s0' : St) (k : Nat) (A : Nat → Prop) (h : HM Unit), cryptoHostCall name = some h →
+    Low A k s0 s0' → nargs name ≤ k → (∀ b, readSetOf name s0 b → A b) →
+    RC (Tw s0 s0' k A) (fun _ => True) (h s0) (h s0')
+
+syntax "arm_twoC " str : tactic
+macro_rules
+  | `(tactic| arm_twoC $nm) => `(tactic|
+      (intro s0 s0' k A h e hL hk hA
+       have e2 : cryptoHostCall $nm = some _ := rfl
+       rw [e2] at e; injection e with e; subst e; clear e2
+       conv at hk => lhs; whnf
+       unfold readSetOf at hA
+       conv at hA => enter [b, 1, 2]; whnf
+       simp only [rdSet, rdIn] at hA
+       apply rc_popArgs_bind hL hk
+       rel_auto
+       all_goals first
+         | (intro _ i hi; apply hA; simp only [argsOf_get, Prod.mk.injEq] at *; omega)
+         | tw_rd hA))
+
+theorem arm2c_ecrecover : ArmTwoC "ecrecover" := by arm_twoC "ecrecover"
+theorem arm2c_p256_verify : ArmTwoC "p256_verify" := by arm_twoC "p256_verify"
+theorem arm2c_alt_bn128_g1_multiexp : ArmTwoC "alt_bn128_g1_multiexp" := by arm_twoC "alt_bn128_g1_multiexp"
+theorem arm2c_alt_bn128_g1_sum : ArmTwoC "alt_bn128_g1_sum" := by arm_twoC "alt_bn128_g1_sum"
+theorem arm2c_alt_bn128_pairing_check : ArmTwoC "alt_bn128_pairing_check" := by arm_twoC "alt_bn128_pairing_check"
+theorem arm2c_bls12381_p1_sum : ArmTwoC "bls12381_p1_sum" := by arm_twoC "bls12381_p1_sum"
+theorem arm2c_bls12381_p2_sum : ArmTwoC "bls12381_p2_sum" := by arm_twoC "bls12381_p2_sum"
+theorem arm2c_bls12381_g1_multiexp : ArmTwoC "bls12381_g1_multiexp" := by arm_twoC "bls12381_g1_multiexp"
+theorem arm2c_bls12381_g2_multiexp : ArmTwoC "bls12381_g2_multiexp" := by arm_twoC "bls12381_g2_multiexp"
+theorem arm2c_bls12381_p1_decompress : ArmTwoC "bls12381_p1_decompress" := by arm_twoC "bls12381_p1_decompress"
+theorem arm2c_bls12381_p2_decompress : ArmTwoC "bls12381_p2_decompress" := by arm_twoC "bls12381_p2_decompress"
+theorem arm2c_bls12381_map_fp_to_g1 : ArmTwoC "bls12381_map_fp_to_g1" := by arm_twoC "bls12381_map_fp_to_g1"
+theorem arm2c_bls12381_map_fp2_to_g2 : ArmTwoC "bls12381_map_fp2_to_g2" := by arm_twoC "bls12381_map_fp2_to_g2"
+theorem arm2c_bls12381_pairing_check : ArmTwoC "bls12381_pairing_check" := by arm_twoC "bls12381_pairing_check"
 
 end TwoRun
 end WasmBase

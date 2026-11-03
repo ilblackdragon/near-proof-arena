@@ -3,11 +3,13 @@ import WasmBase.Main.HostTwoRunArms
 /-!
 # WasmBase.Main.HostTwoRunCall — `callHost_two_run`: a host call cannot tell low-equivalent states apart (E2E M6.1)
 
-* `armTwo_all`: every arm of D3α's `hostCall` (75 names, `hostNames`) satisfies `ArmTwo`
+* `armTwo_all`: every arm of D3α's `hostCall` (75 names, `hostNames`) satisfies `ArmTwo`;
+  `armTwoC_all`: every curve arm of `cryptoHostCall` (14 names) satisfies `ArmTwoC`
   (`Main/HostTwoRunArms.lean`).
 * `HostEff`, `HostEff.apply`: a host call's effect as data — the shared stack top replaced, a list of
   byte writes, the new host part (gas, context, storage, logs, promises, registers, …).
-* **`callHost_two_run`**: from `Low (readSetOf name s) k s s'` (equal host parts, equal top-`k` stack
+* **`callHost_two_run`** (every name with an arm, `HostArm`: 75 `hostCall` + 14 curve arms under the
+  successor selector; `callHost_two_run_corpus` for the corpus hosts): from `Low (readSetOf name s) k s s'` (equal host parts, equal top-`k` stack
   entries, `k ≥ nargs name`, well-sized pages of equal count, equal bytes on the arm's read set),
   `callHost s name` and `callHost s' name` correspond (`CallCorr`): both continue, both abort with
   the same message, or both are unmodeled with the same message; continuing/aborting post-states are
@@ -186,6 +188,28 @@ theorem armTwo_all (name : String) : ArmTwo name := by
   case h_75 => exact arm2_set_state_init_data_entry s0 s0' k A h e
   all_goals cases e
 
+set_option maxHeartbeats 20000000 in
+/-- **Every curve arm** (`cryptoHostCall`, 14 names) satisfies the two-run statement. -/
+theorem armTwoC_all (name : String) : ArmTwoC name := by
+  intro s0 s0' k A h e
+  unfold cryptoHostCall at e
+  split at e
+  case h_1 => exact arm2c_ecrecover s0 s0' k A h e
+  case h_2 => exact arm2c_p256_verify s0 s0' k A h e
+  case h_3 => exact arm2c_alt_bn128_g1_multiexp s0 s0' k A h e
+  case h_4 => exact arm2c_alt_bn128_g1_sum s0 s0' k A h e
+  case h_5 => exact arm2c_alt_bn128_pairing_check s0 s0' k A h e
+  case h_6 => exact arm2c_bls12381_p1_sum s0 s0' k A h e
+  case h_7 => exact arm2c_bls12381_p2_sum s0 s0' k A h e
+  case h_8 => exact arm2c_bls12381_g1_multiexp s0 s0' k A h e
+  case h_9 => exact arm2c_bls12381_g2_multiexp s0 s0' k A h e
+  case h_10 => exact arm2c_bls12381_p1_decompress s0 s0' k A h e
+  case h_11 => exact arm2c_bls12381_p2_decompress s0 s0' k A h e
+  case h_12 => exact arm2c_bls12381_map_fp_to_g1 s0 s0' k A h e
+  case h_13 => exact arm2c_bls12381_map_fp2_to_g2 s0 s0' k A h e
+  case h_14 => exact arm2c_bls12381_pairing_check s0 s0' k A h e
+  all_goals cases e
+
 /-! ## 2. The read set only looks at the stack and the page count -/
 
 theorem popsF_fst_congr : ∀ (j : Nat) (s t : St) (out : Array Nat), s.stack = t.stack →
@@ -308,11 +332,15 @@ theorem sync_congr {s s' : St} (hg : s'.gas = s.gas) :
       · cases h
       · cases h; rfl
 
+/-- `name` has an arm at `s`: a `hostCall` arm, or (successor selector on) a curve arm. -/
+def HostArm (s : St) (name : String) : Prop :=
+  (hostCall name).isSome = true ∨ (s.curveHosts = true ∧ (cryptoHostCall name).isSome = true)
+
 /-- **`callHost_two_run`: a host call cannot tell low-equivalent states apart.**  For an arm of
 `hostCall`, from `Low A k s s'` with `A` covering the arm's read set at `s` and `k ≥ nargs name`, the
 two calls give corresponding results (`CallCorr`). -/
 theorem callHost_two_run {name : String} {s s' : St} {k : Nat} {A : Nat → Prop}
-    (hL : Low A k s s') (hn : (hostCall name).isSome) (hk : nargs name ≤ k)
+    (hL : Low A k s s') (hn : HostArm s name) (hk : nargs name ≤ k)
     (hA : ∀ b, readSetOf name s b → A b) :
     CallCorr s s' k A (callHost s name) (callHost s' name) := by
   have eqs := Tw.eqs (tw_start hL)
@@ -332,13 +360,22 @@ theorem callHost_two_run {name : String} {s s' : St} {k : Nat} {A : Nat → Prop
     have hd : dispatchArm { s' with gas := s1.gas } name = dispatchArm s1 name := by
       unfold dispatchArm; rw [hs1]; simp only [ecurve]
     rw [hd]
-    obtain ⟨h, eh⟩ := Option.isSome_iff_exists.mp hn
-    have hd1 : dispatchArm s1 name = some h := by unfold dispatchArm; rw [eh]
-    rw [hd1]
-    dsimp only
     have hA1 : ∀ b, readSetOf name s1 b → A b := by
       rw [hs1, readSetOf_congr name (s := { s with gas := s1.gas }) (t := s) rfl rfl]; exact hA
-    have hrc := armTwo_all name s1 { s' with gas := s1.gas } k A h eh hL1 hk hA1
+    obtain ⟨h, hd1, hrc⟩ : ∃ h, dispatchArm s1 name = some h ∧
+        RC (Tw s1 { s' with gas := s1.gas } k A) (fun _ => True) (h s1) (h { s' with gas := s1.gas }) := by
+      cases eh : hostCall name with
+      | some h =>
+        exact ⟨h, by unfold dispatchArm; rw [eh], armTwo_all name s1 { s' with gas := s1.gas } k A h eh hL1 hk hA1⟩
+      | none =>
+        rcases hn with hn | ⟨hc, hn⟩
+        · rw [eh] at hn; cases hn
+        · obtain ⟨h, ech⟩ := Option.isSome_iff_exists.mp hn
+          have hc1 : s1.curveHosts = true := by rw [hs1]; exact hc
+          exact ⟨h, by unfold dispatchArm; rw [eh]; simp only [hc1, if_true]; exact ech,
+            armTwoC_all name s1 { s' with gas := s1.gas } k A h ech hL1 hk hA1⟩
+    rw [hd1]
+    dsimp only
     have hv : visW s1 = visW s := by rw [hs1]; rfl
     have hv' : visW ({ s' with gas := s1.gas } : St) = visW s' := rfl
     simp only [EStateM.run]
@@ -367,7 +404,7 @@ post-states are one `HostEff` applied to `s` and `s'`: the same values popped an
 shared top `k`), the same bytes written, the same new host side (`sideR`) and gas register; frames,
 globals, the stack below the top `k` and all unwritten bytes are each side's own. -/
 theorem callHost_two_run_cont {name : String} {s s' : St} {k : Nat} {A : Nat → Prop}
-    (hL : Low A k s s') (hn : (hostCall name).isSome) (hk : nargs name ≤ k)
+    (hL : Low A k s s') (hn : HostArm s name) (hk : nargs name ≤ k)
     (hA : ∀ b, readSetOf name s b → A b) {x : St} (hx : callHost s name = .cont x) :
     ∃ (x' : St) (eff : HostEff), callHost s' name = .cont x' ∧ eff.k = k ∧ x = eff.apply s ∧
       x' = eff.apply s' ∧ sideR x = sideR x' ∧ x.gas.g = x'.gas.g := by
@@ -383,7 +420,7 @@ theorem callHost_two_run_cont {name : String} {s s' : St} {k : Nat} {A : Nat →
 
 /-- **`callHost_two_run`, abort form.** -/
 theorem callHost_two_run_abort {name : String} {s s' : St} {k : Nat} {A : Nat → Prop}
-    (hL : Low A k s s') (hn : (hostCall name).isSome) (hk : nargs name ≤ k)
+    (hL : Low A k s s') (hn : HostArm s name) (hk : nargs name ≤ k)
     (hA : ∀ b, readSetOf name s b → A b) {x : St} {err : String} (hx : callHost s name = .abort x err) :
     ∃ (x' : St) (eff : HostEff), callHost s' name = .abort x' err ∧ eff.k = k ∧ x = eff.apply s ∧
       x' = eff.apply s' := by
@@ -397,7 +434,26 @@ theorem callHost_two_run_abort {name : String} {s s' : St} {k : Nat} {A : Nat �
     exact ⟨x', eff, rfl, hk', e1, e2⟩
   | _ => intro h; exact h.elim
 
+/-! ## 5. The corpus hosts -/
+
+/-- The host functions the corpus calls dynamically (m3 sweep: `input`, `register_len`,
+`read_register`, `storage_write`, `log_utf8`, `value_return`; m2: `ed25519_verify`). -/
+def corpusHosts : List String :=
+  ["input", "register_len", "read_register", "storage_write", "log_utf8", "value_return", "ed25519_verify"]
+
+theorem corpus_isArm {name : String} (h : name ∈ corpusHosts) (s : St) : HostArm s name := by
+  simp only [corpusHosts, List.mem_cons, List.mem_nil_iff, or_false] at h
+  rcases h with rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> exact Or.inl rfl
+
+/-- **`callHost_two_run` on the corpus hosts.** -/
+theorem callHost_two_run_corpus {name : String} (hmem : name ∈ corpusHosts) {s s' : St} {k : Nat}
+    {A : Nat → Prop} (hL : Low A k s s') (hk : nargs name ≤ k) (hA : ∀ b, readSetOf name s b → A b) :
+    CallCorr s s' k A (callHost s name) (callHost s' name) :=
+  callHost_two_run hL (corpus_isArm hmem s) hk hA
+
 #print axioms armTwo_all
+#print axioms armTwoC_all
+#print axioms callHost_two_run_corpus
 #print axioms callHost_two_run
 #print axioms callHost_two_run_cont
 #print axioms callHost_two_run_abort

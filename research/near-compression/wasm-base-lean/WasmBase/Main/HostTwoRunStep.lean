@@ -134,7 +134,7 @@ theorem step_host_two_run (cfg : NearCfg) (p : Prepared) {s s' : St} {f f' : Fra
       unfold setFrame; split <;> rfl
     have hA1 : ∀ b, readSetOf name (setFrame { s with gas := G } { f with pc := f.pc + 1 }) b → A b := by
       rw [readSetOf_congr name hst (by rw [hpg])]; exact hA
-    obtain ⟨x', eff, h1, -, h2, h3, h4, h5⟩ := callHost_two_run_cont hL1 hn hk hA1 hc
+    obtain ⟨x', eff, h1, -, h2, h3, h4, h5⟩ := callHost_two_run_cont hL1 (Or.inl hn) hk hA1 hc
     exact ⟨x', eff, h1, h2, h3, h4, h5⟩
   obtain ⟨n1, n2⟩ := step_call cfg p hfr hpf hcode himp hname
   obtain ⟨m1, m2⟩ := step_call cfg p hfr' hpf' hcode' himp hname
