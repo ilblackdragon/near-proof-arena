@@ -266,4 +266,127 @@ theorem spaceIn_of {T : Table} {loc : Bool} (hS : SpForm T loc = true) {tr : Tra
           ((2 : Nat) : F) := by rw [show ((1 : Nat) : F) = 1 from rfl]; grind
       rw [this]; rfl
 
+/-- On an active instruction row of a segment trace, every consumed/produced message is `SpaceIn`. -/
+theorem seg_instr_spaceIn {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsX (wasmBaseSegAir nloc ngl) pub tr)
+    {t r : Nat} (htI : IsInstrM2 t) (hr : r < tr.height t) {s : Bool} {m : List F}
+    (hm : m ∈ rowMsgs (chipM2 t) tr pub t r busStk s) :
+    SpaceIn (rowIn (chipM2 t) tr pub t r) (decMsg m) := by
+  refine spaceIn_of (instr_spform t htI) (fun hl => ?_) hm
+  have h9 : t = 9 := by simpa using hl
+  subst h9
+  have hT : (wasmBaseSegAir nloc ngl).tables[9]'(by simp [seg_air_len]) = Local.table := seg_chipT nloc ngl 9 (by omega) (by omega)
+  have hcon := table_constr_eqX H (by simp [seg_air_len]) Local.table hT hr
+  obtain ⟨hsum, -⟩ := local_count_vals_of hcon
+  have e9 : chipM2 9 = Local.table := rfl
+  rw [e9]
+  refine ⟨?_, ?_⟩
+  · have hP := P_val
+    have ev : Local.isG.eval (tr.row pub 9 r) = ((rowNat tr 9 r 26 + rowNat tr 9 r 27 : Nat) : F) := by
+      simp only [Local.isG, Local.fGGet, Local.fGSet, v, Expr.eval, Trace.row, rowNat, Fp.cast_toNat,
+        Lean.Grind.Semiring.natCast_add]
+    rw [ev]
+    rcases (by omega : rowNat tr 9 r 26 + rowNat tr 9 r 27 = 0 ∨ rowNat tr 9 r 26 + rowNat tr 9 r 27 = 1) with h | h <;>
+      rw [h]
+    · left; rfl
+    · right; rfl
+  · rw [← stE_eval]; rfl
+
+/-- The chain position of every action row: its STATE time is in `t_in + 1 … t_in + n`. -/
+theorem seg_row_lvl {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsX (wasmBaseSegAir nloc ngl) pub tr)
+    (hts : ∀ ρ ∈ actListM2 tr pub, lvl (rowOutM tr pub ρ) = lvl (rowInM tr pub ρ) + 1)
+    (hsz : (pub.getD pubTIn 0).toNat + (actListM2 tr pub).length + 1 < P) :
+    ∀ ρ ∈ actListM2 tr pub, (lvl (rowInM tr pub ρ)).toNat ≤ (pub.getD pubTIn 0).toNat + (actListM2 tr pub).length := by
+  intro ρ hρ
+  let act := actListM2 tr pub
+  let g : Nat × Nat → List F × List F := fun r => (rowInM tr pub r, rowOutM tr pub r)
+  have hE1 : (act.map g).map Prod.snd = act.map (rowOutM tr pub) := by simp [g, List.map_map]
+  have hE2 : (act.map g).map Prod.fst = act.map (rowInM tr pub) := by simp [g, List.map_map]
+  have hstepE : ∀ e ∈ act.map g, lvl e.2 = lvl e.1 + 1 := by
+    intro e he
+    obtain ⟨r, hr, rfl⟩ := List.mem_map.mp he
+    exact hts r hr
+  obtain ⟨es, hes, hpath⟩ := chain (act.map g) (segM0 tr pub) (segMF tr pub) lvl
+    (by rw [hE1, hE2]; exact seg_hst H) hstepE (by simp [act]; omega)
+  obtain ⟨lk, -⟩ := path_levels lvl es _ _ hpath (fun e he => hstepE e (hes.subset he))
+  have hl : es.length = act.length := by rw [hes.length_eq]; simp
+  have hal : act.length = (actListM2 tr pub).length := rfl
+  have hmem : g ρ ∈ es := hes.symm.subset (List.mem_map_of_mem hρ)
+  obtain ⟨k, hk, hek⟩ := List.getElem_of_mem hmem
+  have e := lk k hk
+  rw [hek] at e
+  have e0 : lvl (segM0 tr pub) = pub.getD pubTIn 0 + 1 := by rw [segM0_eq]; rfl
+  rw [e0] at e
+  have e' : lvl (rowInM tr pub ρ) = (((pub.getD pubTIn 0).toNat + 1 + k : Nat) : F) := by
+    rw [show (g ρ).1 = rowInM tr pub ρ from rfl] at e
+    rw [e, Lean.Grind.Semiring.natCast_add, Lean.Grind.Semiring.natCast_add, Fp.cast_toNat]; rfl
+  rw [e', Fp.toNat_cast_of_lt (by omega)]
+  omega
+
+theorem consProd_instr {tr : Trace} {pub : List F} {t r : Nat} (hne : t ≠ 22) :
+    consCHS tr pub (t, r) = rowCons (chipM2 t) tr pub t r ∧ prodCHS tr pub (t, r) = rowProd (chipM2 t) tr pub t r ∧
+      rowInM tr pub (t, r) = rowIn (chipM2 t) tr pub t r := by
+  have ec : chipTM2 t = chipM2 t := by simp [chipTM2, hne]
+  obtain ⟨eC, eP⟩ := gasH_nil_of_ne (tr := tr) (pub := pub) (ρ := (t, r)) hne
+  refine ⟨?_, ?_, by simp [rowInM, ec]⟩
+  · rw [eC]; simp [consCHM2, rowConsM, hostbConsH, regConsH, hne, ec]
+  · rw [eP]; simp [prodCHM2, rowProdM, hostbProdH, regProdH, hne, ec]
+
+/-- A `SpaceIn` message of a row whose STATE time is below `2^30`, at a related state, is in an allowed
+space and not in the register space 6. -/
+theorem spaceIn_ok {inS : List F} {x : Msg} (hx : SpaceIn inS x) (hlv : (lvl inS).toNat < 2 ^ 30)
+    {pcN t S sb cid : Nat} (hin : inS = stMsg pcN t S 0 sb cid) (hcid : cid < 2 ^ 28) :
+    SpaceOK x ∧ x.space ≠ 6 := by
+  have hP := P_val
+  have h5 : inS.getD 5 0 = ((cid : Nat) : F) := by rw [hin]; rfl
+  have h1 : inS.getD 1 0 = lvl inS := rfl
+  have c16 : ∀ n, n + 16 < P → ((16 : F) + ((n : Nat) : F)).toNat = 16 + n := by
+    intro n hn
+    rw [show (16 : F) = ((16 : Nat) : F) from rfl, ← Lean.Grind.Semiring.natCast_add, Fp.toNat_cast_of_lt (by omega)]
+  have l16 : ((16 : F) + lvl inS).toNat = 16 + (lvl inS).toNat := by
+    conv => lhs; rw [← Fp.cast_toNat (lvl inS)]
+    exact c16 _ (by omega)
+  unfold SpaceIn at hx
+  rw [h5, h1, l16, c16 cid (by omega)] at hx
+  unfold SpaceOK
+  omega
+
+/-- **The space clause at an instruction row** (`RowQ` for `SpC`), from the trace: an instruction
+row produces messages in allowed spaces only. -/
+theorem seg_instr_rowQ_sp {X : Ctx} {nloc ngl : Nat} {pub : List F} {tr : Trace}
+    (H : HoldsX (wasmBaseSegAir nloc ngl) pub tr) {ρ : Nat × Nat} (hρ : ρ ∈ actListM2 tr pub) (hne : ρ.1 ≠ 22)
+    (hlv : (lvl (rowInM tr pub ρ)).toNat < 2 ^ 30) :
+    RowQ X (fun _ live => SpC live) (rowInM tr pub ρ) (consCHS tr pub ρ) (prodCHS tr pub ρ) := by
+  obtain ⟨t, r⟩ := ρ
+  simp only at hne
+  rcases mem_actListM2 hρ with ⟨h22, -, -⟩ | ⟨htI, hr, -⟩
+  · exact absurd h22 hne
+  obtain ⟨-, eP, eI⟩ := consProd_instr (tr := tr) (pub := pub) (r := r) hne
+  refine rowQ_space fun E s f tps tpl tt pc S live a b R hin x hx => ?_
+  rw [eP] at hx
+  obtain ⟨m, hm, rfl⟩ := List.mem_map.mp hx
+  rw [eI] at hin hlv
+  exact (spaceIn_ok (seg_instr_spaceIn H htI hr hm) hlv hin R.cidLt).1
+
+/-- **The register and well-formedness clauses at an instruction row** (`RowQ` for `RegC`, `RegWF`),
+from the trace and `RegKeep` (the row's step keeps the register file): an instruction row neither
+consumes nor produces a space-6 message. -/
+theorem seg_instr_rowQ_reg {X : Ctx} {nloc ngl : Nat} {pub : List F} {tr : Trace}
+    (H : HoldsX (wasmBaseSegAir nloc ngl) pub tr) {ρ : Nat × Nat} (hρ : ρ ∈ actListM2 tr pub) (hne : ρ.1 ≠ 22)
+    (hlv : (lvl (rowInM tr pub ρ)).toNat < 2 ^ 30) (hk : RegKeep X (rowInM tr pub ρ)) :
+    RowQ X (fun s live => RegC live s) (rowInM tr pub ρ) (consCHS tr pub ρ) (prodCHS tr pub ρ) := by
+  obtain ⟨t, r⟩ := ρ
+  simp only at hne
+  rcases mem_actListM2 hρ with ⟨h22, -, -⟩ | ⟨htI, hr, -⟩
+  · exact absurd h22 hne
+  obtain ⟨eC, eP, eI⟩ := consProd_instr (tr := tr) (pub := pub) (r := r) hne
+  intro E s f tps tpl tt pc S live a b s' R hin hl hs hQ
+  have six : ∀ (sd : Bool) (m : List F), m ∈ rowMsgs (chipM2 t) tr pub t r busStk sd → (decMsg m).space ≠ 6 := by
+    intro sd m hm
+    have hin' := hin; rw [eI] at hin'
+    have hlv' := hlv; rw [eI] at hlv'
+    exact (spaceIn_ok (seg_instr_spaceIn H htI hr hm) hlv' hin' R.cidLt).2
+  refine rowQ_reg_keep (fun x hx => ?_) (fun x hx => ?_) hk E s f tps tpl tt pc S live a b s' R hin hl hs hQ
+  · rw [eC] at hx; obtain ⟨m, hm, rfl⟩ := List.mem_map.mp hx; exact six false m hm
+  · rw [eP] at hx; obtain ⟨m, hm, rfl⟩ := List.mem_map.mp hx; exact six true m hm
+
 end WasmBase
