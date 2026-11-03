@@ -267,8 +267,98 @@ theorem membg_range' {r : Nat} (hr : r < tr.height 34) (hp8 : mgN tr r 9 = 1)
 
 end send
 
+/-! ## Every grown block belongs to a successful `memory.grow` row of the segment -/
+
+/-- Only MEMG receives on the grow bus 213, only MEMBG sends on it. -/
+theorem segG_grow_bus (nloc ngl : Nat) :
+    ∀ t (ht : t < (wasmBaseSegAirG nloc ngl).tables.length),
+      ((wasmBaseSegAirG nloc ngl).tables[t]'ht).inters.all
+        (fun i => i.bus != busGrow || (decide (t = 32) && !i.send) || (decide (t = 34) && i.send)) = true := by
+  have e : (wasmBaseSegAirG nloc ngl).tables = (wasmBaseSegAirG 0 0).tables := rfl
+  have h0 : ∀ t (ht : t < (wasmBaseSegAirG 0 0).tables.length),
+      ((wasmBaseSegAirG 0 0).tables[t]'ht).inters.all
+        (fun i => i.bus != busGrow || (decide (t = 32) && !i.send) || (decide (t = 34) && i.send)) = true := by
+    decide +kernel
+  simp only [e]; exact h0
+
+theorem memg_grow_recv : MemG.table.inters.filter (fun i => i.bus = busGrow ∧ i.send = false) =
+    [⟨busGrow, false, v MemG.gm, [v cTs, v MemG.old, MemG.newE]⟩] := by decide +kernel
+
+theorem membg_grow_send : MembG.table.inters.filter (fun i => i.bus = busGrow ∧ i.send = true) =
+    [⟨busGrow, true, MembG.p 8, [MembG.c "tg", MembG.c "gold", MembG.c "gnew"]⟩] := by decide +kernel
+
+theorem mem_filter_of {T : Table} {i : Inter} {b : Nat} {s : Bool} (hi : i ∈ T.inters) (hb : i.bus = b)
+    (hs : i.send = s) : i ∈ T.inters.filter (fun i => i.bus = b ∧ i.send = s) :=
+  List.mem_filter.mpr ⟨hi, by simp [hb, hs]⟩
+
+/-- A successful grow row's offer `[ts, old, old + n]` (field values). -/
+def growMsg (tr : Trace) (pub : List F) (r : Nat) : List F :=
+  [v cTs, v MemG.old, MemG.newE].map (·.eval (tr.row pub 32 r))
+
+section link
+variable {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsX (wasmBaseSegAirG nloc ngl) pub tr)
+include H
+
+/-- **Every grown block of the segment belongs to a successful grow row of the segment**: an active
+MEMBG padding row's `[tg, gold, gnew]` is a MEMG row's `[ts, old, old + n]` with `ok = 1`.  (The
+link that fuses MEMBG's zero-byte productions into that grow row's productions.) -/
+theorem membg_grow_link {r : Nat} (hr : r < tr.height 34) (hp8 : rowNat tr 34 r 9 = 1) :
+    ∃ r', r' < tr.height 32 ∧ rowNat tr 32 r' MemG.ok = 1 ∧
+      [MembG.c "tg", MembG.c "gold", MembG.c "gnew"].map (·.eval (tr.row pub 34 r)) = growMsg tr pub r' := by
+  have hx : busGrow ≠ extBus := by decide
+  have hcnt : ((MembG.p 8).eval (tr.row pub 34 r)).toNat = 1 := by
+    rw [MembG.p, MembG.c, mg_ix_p 8 (by decide), col_eval_nat, hp8]; decide
+  have hi : (⟨busGrow, true, MembG.p 8, [MembG.c "tg", MembG.c "gold", MembG.c "gnew"]⟩ : Inter) ∈
+      ((wasmBaseSegAirG nloc ngl).tables[34]'(segG_lt nloc ngl 34 (by decide))).inters := by
+    rw [segG_t34']
+    have := membg_grow_send ▸ List.mem_singleton_self _
+    exact (List.mem_filter.mp this).1
+  have ho := occ_of_inter (segG_lt nloc ngl 34 (by decide)) hr hi hcnt
+  refine lookup_soundX H busGrow hx
+    (fun m => ∃ r', r' < tr.height 32 ∧ rowNat tr 32 r' MemG.ok = 1 ∧ m = growMsg tr pub r') ?_ ?_ ho rfl rfl rfl
+  · intro o ho' hb hs hc
+    obtain ⟨t, ht, r', hr', i, hi', rfl⟩ := mem_occs.mp ho'
+    simp only at hb hs hc ⊢
+    have hall := List.all_eq_true.mp (segG_grow_bus nloc ngl t ht) i hi'
+    simp only [hb, bne_self_eq_false, Bool.false_or, Bool.or_eq_true, Bool.and_eq_true, decide_eq_true_eq,
+      hs, Bool.not_false, and_true, Bool.false_eq_true, and_false, or_false] at hall
+    subst hall
+    rw [segG_t32'] at hi'
+    have hf := mem_filter_of hi' hb hs
+    rw [memg_grow_recv, List.mem_singleton] at hf
+    subst hf
+    refine ⟨r', hr', ?_, rfl⟩
+    have hgm : rowNat tr 32 r' MemG.gm ≠ 0 := by
+      intro h0; apply hc; simp only [col_eval_nat, h0]; rfl
+    have hb' := segG_memg_constr H hr' (e := bool (v MemG.ok)) (by simp [MemG.table, MemG.constraints])
+    simp only [Chips.bool, Expr.eval_mul', Expr.eval_sub', Expr.eval_ofNat', col_eval_nat] at hb'
+    rcases bool_nat (rowNat_lt tr 32 r' MemG.ok) hb' with h | h
+    · exact absurd (segG_grow_gm H hr' h) hgm
+    · exact h
+  · intro o ho' hb hs
+    obtain ⟨t, ht, r', hr', i, hi', rfl⟩ := mem_occs.mp ho'
+    simp only at hb hs ⊢
+    have hall := List.all_eq_true.mp (segG_grow_bus nloc ngl t ht) i hi'
+    simp only [hb, bne_self_eq_false, Bool.false_or, Bool.or_eq_true, Bool.and_eq_true, decide_eq_true_eq,
+      hs, Bool.not_true, and_false, false_or, and_true] at hall
+    have h34 : t = 34 := by
+      rcases hall with ⟨-, h⟩ | h
+      · exact absurd h (by decide)
+      · exact h
+    subst h34
+    rw [segG_t34'] at hi'
+    have hf := mem_filter_of hi' hb hs
+    rw [membg_grow_send, List.mem_singleton] at hf
+    subst hf
+    have hpb := membg_constr H hr' (e := Chips.bool (MembG.p 8)) (any_mem (by decide))
+    simp only [Chips.bool, Expr.eval_mul', Expr.eval_sub', Expr.eval_ofNat'] at hpb
+    exact bit_toNat (bool_cases hpb)
+
+end link
+
 end WasmBase
 
 #print axioms WasmBase.segG_hsend_r16
 #print axioms WasmBase.segG_grow_ok'
 #print axioms WasmBase.membg_range'
+#print axioms WasmBase.membg_grow_link
