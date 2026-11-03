@@ -68,7 +68,7 @@ theorem const_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
   simp only [fetch, cnt] at hfetch
   -- gas facts need the record; get the pc first
   obtain ⟨pc0, hpc0, hm0⟩ := fetch_pc hpub L hfetch
-  have hrec := fetch_rec hpub L hfetch hm0 hpc0
+  have hrec := fetch_rec hpub L hfetch hm0 hpc0 (by m2ns)
   obtain ⟨q, l, ins, fee, rec, hq, hl, hoff, hins, hfee, hfl, hrc, hm⟩ := hrec
   have CF := X.factsOf hq
   obtain ⟨op, x0, x1, x2, x3, hre, hcase⟩ := recordOf_spec hrc

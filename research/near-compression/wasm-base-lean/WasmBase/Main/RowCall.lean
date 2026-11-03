@@ -337,7 +337,7 @@ theorem call_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
     (by simp [Call.inters])
   simp only [fetch, cntA] at hfetch
   obtain ⟨pc0, hpc0, hm0⟩ := fetch_pc hpub L hfetch
-  obtain ⟨q, l, ins, fee, rec, hq, hl, hoff, hins, hfee, hfl, hrc, hm⟩ := fetch_rec hpub L hfetch hm0 hpc0
+  obtain ⟨q, l, ins, fee, rec, hq, hl, hoff, hins, hfee, hfl, hrc, hm⟩ := fetch_rec hpub L hfetch hm0 hpc0 (by m2ns)
   have CF := X.factsOf hq
   obtain ⟨op, x0, x1, x2, x3, hre, hcase⟩ := recordOf_spec hrc
   rw [hre] at hm
@@ -453,7 +453,10 @@ theorem call_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
     exact ⟨n, hn, e.trans (cell_cast tr 13 r 1)⟩
   -- the fee bound
   obtain ⟨ins', hins', hrec0'⟩ := CF.recs l hl
-  obtain ⟨fee'', hfee', hfl', -⟩ := hrec0' (L.base q hq l ins' hins')
+  have hns' : m2Special X.p ins' = false := by
+    have e : ins' = ins := by rw [hins] at hins'; exact (Option.some.inj hins').symm
+    rw [e, hfi]; simp only [m2Special, decide_eq_false_iff_not, Nat.not_lt]; omega
+  obtain ⟨fee'', hfee', hfl', -⟩ := hrec0' hns'
   have hfee2 : fee'' = fee := by rw [hfee] at hfee'; exact (Option.some.inj hfee').symm
   have hfeeK : fee + (X.ckOf k').prologue ≤ X.maxFee := by have := X.callFee_le hq hk'; omega
   have mtc : ∀ j, j < 8 → r16 (v cTs - v (Call.tP j) - 1 - B16 * v (Call.hP j)) (v (Call.pf j)) ∈ Call.inters ∧
