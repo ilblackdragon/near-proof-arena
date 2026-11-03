@@ -146,6 +146,10 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.BusWalk.step_brDesc
 #print axioms StateM5a.BusWalk.step_extDesc
 #print axioms StateM5a.BusWalk.localOK_upsert
+#print axioms StateM5a.BusWalk.localOK_delete
+#print axioms StateM5a.BusWalk.localOK_find
+#print axioms StateM5a.BusWalk.cl_wf
+#print axioms StateM5a.BusWalk.in_view_wf
 #print axioms StateM5a.BusWalk.chain_changes
 #print axioms StateM5a.BusWalk.stepRows_of_sem
 #print axioms StateM5a.BusWalk.bus_batched_changes

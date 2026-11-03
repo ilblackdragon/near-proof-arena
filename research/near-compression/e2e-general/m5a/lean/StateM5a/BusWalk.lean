@@ -530,6 +530,96 @@ theorem ver_store (hCR : Sha256CR) {P : Type} (k : Nat) (hk : 0 < k) (part : Rec
   · obtain ⟨hd, hw, hs, hhh⟩ := hh
     exact Or.inr ⟨h, e, hd, hw, hs, hhh⟩
 
+/-! ## Well-formedness along the walk -/
+
+theorem hashOf_length (t : PTrie) (h : t.wf = true) : t.hashOf.length = 32 := by
+  cases t with
+  | hash g => simpa [PTrie.wf, PTrie.hashOf] using h
+  | leaf => exact ArenaCore.sha256_length _
+  | ext => exact ArenaCore.sha256_length _
+  | branch v cs m => cases v <;> exact ArenaCore.sha256_length _
+
+/-- `wf` on `Sum PTrie Kids` (kids: for every slot count). -/
+def WFS : Sum PTrie Kids → Sum PTrie Kids → Prop
+  | .inl a, .inl b => b.wf = true → a.wf = true
+  | .inr a, .inr b => ∀ n, Kids.wf b n = true → Kids.wf a n = true
+  | _, _ => True
+
+/-- **Collapsing keeps well-formedness** (digests are 32 bytes). -/
+theorem cl_wf {x y : Sum PTrie Kids} (h : Cl x y) : WFS x y := by
+  induction h with
+  | refl x => cases x <;> simp [WFS]
+  | stub h n n' hh _ ih =>
+    simp only [WFS] at ih ⊢
+    intro hw
+    simp [PTrie.wf, ← hh, hashOf_length n (ih hw)]
+  | ext k c c' m _ ih =>
+    simp only [WFS, PTrie.wf, Bool.and_eq_true] at ih ⊢
+    intro hw; exact ⟨⟨⟨hw.1.1.1, ih hw.1.1.2⟩, hw.1.2⟩, hw.2⟩
+  | branch v cs cs' m _ ih =>
+    simp only [WFS, PTrie.wf, Bool.and_eq_true] at ih ⊢
+    intro hw; exact ⟨⟨hw.1.1, ih 16 hw.1.2⟩, hw.2⟩
+  | knone r r' _ ih =>
+    simp only [WFS, Kids.wf, Bool.and_eq_true] at ih ⊢
+    intro n hw; exact ⟨hw.1, ih _ hw.2⟩
+  | ksome c c' r r' _ _ ihc ihr =>
+    simp only [WFS, Kids.wf, Bool.and_eq_true] at ihc ihr ⊢
+    intro n hw; exact ⟨⟨hw.1.1, ihc hw.1.2⟩, ihr _ hw.2⟩
+  | slot k x m =>
+    simp only [WFS, PTrie.wf, slotOk, Bool.and_eq_true, decide_eq_true_eq, beq_iff_eq] at ⊢
+    intro hw
+    refine ⟨⟨⟨hw.1.1.1, hw.1.1.2, ?_⟩, hw.1.2⟩, hw.2⟩
+    exact ArenaCore.sha256_length x
+
+theorem kids_wf_at : ∀ {ks : Kids} {n i : Nat} {c : PTrie}, Kids.wf ks n = true → Kids.at ks i = some c →
+    c.wf = true
+  | .nil, _, i, _, _, h => by cases i <;> simp [Kids.at] at h
+  | .none r, _, 0, _, _, h => by simp [Kids.at] at h
+  | .some c' r, _, 0, c, hw, h => by
+    simp only [Kids.at, Option.some.injEq] at h; subst h
+    simp only [Kids.wf, Bool.and_eq_true] at hw; exact hw.1.2
+  | .none r, _, i + 1, _, hw, h => by
+    simp only [Kids.wf, Bool.and_eq_true] at hw; simp only [Kids.at] at h; exact kids_wf_at hw.2 h
+  | .some c' r, _, i + 1, _, hw, h => by
+    simp only [Kids.wf, Bool.and_eq_true] at hw; simp only [Kids.at] at h; exact kids_wf_at hw.2 h
+
+theorem kids_wf_put : ∀ {ks : Kids} {n i : Nat} {c t : PTrie}, Kids.wf ks n = true →
+    Kids.at ks i = some c → t.wf = true → Kids.wf (Kids.put ks i (some t)) n = true
+  | .nil, _, i, _, _, _, h, _ => by cases i <;> simp [Kids.at] at h
+  | .none r, _, 0, _, _, _, h, _ => by simp [Kids.at] at h
+  | .some c' r, _, 0, _, _, hw, _, ht => by
+    simp only [Kids.wf, Bool.and_eq_true] at hw
+    simp only [Kids.put, Kids.wf, Bool.and_eq_true]; exact ⟨⟨hw.1.1, ht⟩, hw.2⟩
+  | .none r, _, i + 1, _, _, hw, h, ht => by
+    simp only [Kids.wf, Bool.and_eq_true] at hw; simp only [Kids.at] at h
+    simp only [Kids.put, Kids.wf, Bool.and_eq_true]; exact ⟨hw.1, kids_wf_put hw.2 h ht⟩
+  | .some c' r, _, i + 1, _, _, hw, h, ht => by
+    simp only [Kids.wf, Bool.and_eq_true] at hw; simp only [Kids.at] at h
+    simp only [Kids.put, Kids.wf, Bool.and_eq_true]; exact ⟨hw.1, kids_wf_put hw.2 h ht⟩
+
+/-- The input view with well-formedness: the revealed node is well-formed when the expansion is
+(a version's expansion is the node itself; a hashed node is `wf` by `OldOK`). -/
+theorem in_view_wf {σ : Store} {a : Ref} {R : Rec} {P : PTrie} (hR : OldOK σ a R)
+    (he : Exp σ (.inl a) (.inl P)) (hPw : P.wf = true) :
+    ∃ N, RecExp σ R N ∧ N.wf = true ∧ ∀ t, Rv (.inl N) (.inl t) → Rv (.inl P) (.inl t) := by
+  rcases hR with ⟨n, rfl, hn⟩ | ⟨h, rfl, hd, hw, hs, hh⟩
+  · obtain ⟨N, hN, hrv⟩ := in_view (Or.inl ⟨n, rfl, hn⟩) he
+    have : N = P := by
+      cases he with
+      | leaf _ k v m hn' => rw [hn] at hn'; cases hn'; exact hN
+      | ext _ k c m t hn' hc =>
+        rw [hn] at hn'; cases hn'
+        obtain ⟨P₁, rfl, hP₁⟩ := hN
+        cases exp_functional hP₁ hc; rfl
+      | branch _ v cs m ks hn' hc =>
+        rw [hn] at hn'; cases hn'
+        obtain ⟨ks₁, rfl, hk₁⟩ := hN
+        cases exp_functional hk₁ hc; rfl
+    subst this
+    exact ⟨N, hN, hPw, hrv⟩
+  · rw [exp_dig he]
+    exact ⟨R.toP, recExp_toP hd, hw, fun t ht => .stub h R.toP t (toP_not_hash R) hw hs hh ht⟩
+
 /-! ## Walk payloads, results, semantics -/
 
 /-- `DOWN` payload: key id, mode (`0` find, `1` upsert, `2` delete), the written value's
@@ -553,31 +643,37 @@ structure Res where
   avh : Bytes
   fpres : Nat
 
-/-- Upsert walk below depth `d`: the expansion of the input ref reveals to a trie on which the
-rows' upsert chain runs; its result collapses to the expansion of the output ref; the old /
-new memories are the result's. -/
+/-- Upsert walk below depth `d`: the expansion of the input ref (well-formed) reveals to a trie on
+which the rows' upsert chain runs; its result is well-formed and collapses to the expansion of
+the output ref; the old / new memories are the result's. -/
 def SemU (σ : Store) (K : List Nat) (x : Bytes) (d : Nat) (a : Ref) (res : Res) : Prop :=
-  ∀ P, Exp σ (.inl a) (.inl P) → ∃ t₁ t₁' P', Rv (.inl P) (.inl t₁) ∧ UChain t₁ (K.drop d) x t₁' ∧
-    Exp σ (.inl res.ref) (.inl P') ∧ Cl (.inl P') (.inl t₁') ∧ t₁.mem? = some res.om ∧ t₁'.memD = res.nm
+  ∀ P, Exp σ (.inl a) (.inl P) → P.wf = true → ∃ t₁ t₁' P', Rv (.inl P) (.inl t₁) ∧
+    UChain t₁ (K.drop d) x t₁' ∧ Exp σ (.inl res.ref) (.inl P') ∧ Cl (.inl P') (.inl t₁') ∧
+    t₁.mem? = some res.om ∧ t₁'.memD = res.nm ∧ t₁'.wf = true
 
 /-- Result kinds that carry a ref (`H`, `HB`, `HE`, `SAME`). -/
 def RefKind (rk : Nat) : Prop := rk = RK_H ∨ rk = RK_HB ∨ rk = RK_HE ∨ rk = RK_SAME
 
-/-- What a delete result says about the subtree left. -/
+/-- What a delete result says about the subtree left: nothing (`NONE`), the unchanged node
+(`SAME`, its own ref), a rewritten node under its ref with its memory (`H` / `HE`, `HB` a kept
+branch), or a leaf descriptor (`LD`: key `K_kid2[st2..]`, the leaf's value ref). -/
 def DRes (σ : Store) (keyOf : Nat → List Nat) (res : Res) : Option PTrie → Prop
   | none => res.rk = RK_NONE
-  | some t' => (RefKind res.rk ∧ ∃ P', Exp σ (.inl res.ref) (.inl P') ∧ Cl (.inl P') (.inl t') ∧
-      t'.memD = res.nm) ∨
+  | some t' => (res.rk = RK_SAME ∧ ∃ P', Exp σ (.inl res.ref) (.inl P') ∧ Cl (.inl P') (.inl t')) ∨
+    ((res.rk = RK_H ∨ res.rk = RK_HB ∨ res.rk = RK_HE) ∧ ∃ P', Exp σ (.inl res.ref) (.inl P') ∧
+      Cl (.inl P') (.inl t') ∧ t'.memD = res.nm ∧ (res.rk = RK_HB → ∃ v cs m, t' = .branch v cs m)) ∨
     (res.rk = RK_LD ∧ ∃ m2, t' = .leaf ((keyOf res.kid2).drop res.st2) (.ref res.alen res.avh) m2)
 
 /-- Delete walk below depth `d`. -/
 def SemD (σ : Store) (keyOf : Nat → List Nat) (K : List Nat) (d : Nat) (a : Ref) (res : Res) : Prop :=
-  ∀ P, Exp σ (.inl a) (.inl P) → ∃ t₁ b o, Rv (.inl P) (.inl t₁) ∧ DChain t₁ (K.drop d) (b, o) ∧
-    t₁.mem? = some res.om ∧ DRes σ keyOf res o
+  ∀ P, Exp σ (.inl a) (.inl P) → P.wf = true → ∃ t₁ b o, Rv (.inl P) (.inl t₁) ∧
+    DChain t₁ (K.drop d) (b, o) ∧ t₁.mem? = some res.om ∧ DRes σ keyOf res o ∧
+    ∀ t', o = some t' → t'.wf = true
 
 /-- Find walk below depth `d` (INTAKE): the answer is absent (`fpres = 0`) or the value ref. -/
 def SemF (σ : Store) (K : List Nat) (d : Nat) (a : Ref) (res : Res) : Prop :=
-  ∀ P, Exp σ (.inl a) (.inl P) → ∃ t₁ ans, Rv (.inl P) (.inl t₁) ∧ FChain t₁ (K.drop d) ans ∧
+  ∀ P, Exp σ (.inl a) (.inl P) → P.wf = true → ∃ t₁ ans, Rv (.inl P) (.inl t₁) ∧
+    FChain t₁ (K.drop d) ans ∧
     ((res.fpres = 0 ∧ ans = none) ∨ (res.fpres = 1 ∧ ans = some (.ref res.alen res.avh)))
 
 /-- The walk property of a `DOWN` position, by mode. -/
@@ -591,61 +687,76 @@ def Sem (σ : Store) (keyOf : Nat → List Nat) (_w d : Nat) (a : Ref) (pay : Pa
 /-! ## Row-local steps (upsert) -/
 
 /-- **`SN.oLR`** (leaf replace): the old leaf `k ↦ s` (`k` = the rest of the walk key: nibble
-lookups + `KLEN`), the new leaf `k ↦ (|x|, sha256 x)` published under the output ref. -/
+lookups + `KLEN`), the new leaf `k ↦ (|x|, sha256 x)` published under the output ref.  Row
+bounds: the value length (`< 2^32`, its 4 length bytes) and the new memory (`< 2^64`, 4 limbs of
+16 bits). -/
 theorem step_leafRep {σ : Store} {K : List Nat} {x : Bytes} {d : Nat} {a : Ref} {res : Res}
     {k : List Nat} {s : Slot} {m : Nat} (hold : OldOK σ a (.leaf k s m)) (hK : K.drop d = k)
     (hnew : NewOK σ res.ref (.leaf k (.ref x.length (sha256 x)) (leafMem k x.length)))
-    (hom : res.om = m) (hnm : res.nm = leafMem k x.length) : SemU σ K x d a res := by
-  intro P hP
-  obtain ⟨N, hN, hrv⟩ := in_view hold hP
+    (hom : res.om = m) (hnm : res.nm = leafMem k x.length) (hxl : x.length < 4294967296)
+    (hnb : res.nm < 18446744073709551616) : SemU σ K x d a res := by
+  intro P hP hPw
+  obtain ⟨N, hN, hNw, hrv⟩ := in_view_wf hold hP hPw
   simp only [RecExp] at hN; subst hN
   obtain ⟨P', hP', hcl⟩ := out_view hnew (N := newLeaf k x) (Or.inr ⟨x, rfl, rfl⟩)
-  refine ⟨_, _, P', hrv _ (.refl _), hK ▸ UChain.leafRep k s m x, hP', hcl, ?_, ?_⟩
+  refine ⟨_, _, P', hrv _ (.refl _), hK ▸ UChain.leafRep k s m x, hP', hcl, ?_, ?_, ?_⟩
   · simp [PTrie.mem?, hom]
   · simp [newLeaf, PTrie.memD, PTrie.mem?, hnm]
+  · simp only [PTrie.wf, Bool.and_eq_true, decide_eq_true_eq] at hNw
+    simp only [newLeaf, PTrie.wf, slotOk, Bool.and_eq_true, decide_eq_true_eq]
+    exact ⟨⟨⟨hNw.1.1.1, hxl⟩, hnm ▸ hnb⟩, hNw.2⟩
 
 /-- **`BR.oUD`** (branch descend): the old branch's slot `n` (= the walk key's nibble `d`) holds
 the child ref sent down; the new branch holds the child's result ref in slot `n`, memory
-`m + nm − om`. -/
+`m + nm − om` (`< 2^64`). -/
 theorem step_brDesc {σ : Store} {K : List Nat} {x : Bytes} {d : Nat} {a c : Ref} {res cres : Res}
     {v : Option Slot} {rcs : RKids} {m n : Nat} (hold : OldOK σ a (.branch v rcs m))
     (hat : rcs.at n = some c) (hK : K.drop d = n :: K.drop (d + 1))
     (hnew : NewOK σ res.ref (.branch v (rcs.put n (some cres.ref)) (m + cres.nm - cres.om)))
-    (hom : res.om = m) (hnm : res.nm = m + cres.nm - cres.om)
+    (hom : res.om = m) (hnm : res.nm = m + cres.nm - cres.om) (hnb : res.nm < 18446744073709551616)
     (hc : SemU σ K x (d + 1) c cres) : SemU σ K x d a res := by
-  intro P hP
-  obtain ⟨N, ⟨ks, rfl, hks⟩, hrv⟩ := in_view hold hP
+  intro P hP hPw
+  obtain ⟨N, ⟨ks, rfl, hks⟩, hNw, hrv⟩ := in_view_wf hold hP hPw
   obtain ⟨Pc, hat', hPc⟩ := kexp_at hks hat
-  obtain ⟨tc, tc', Pc', hrc, huc, hPc', hclc, hmc, hnc⟩ := hc Pc hPc
+  simp only [PTrie.wf, Bool.and_eq_true] at hNw
+  obtain ⟨tc, tc', Pc', hrc, huc, hPc', hclc, hmc, hnc, hwc⟩ := hc Pc hPc (kids_wf_at hNw.1.2 hat')
   have hput := kids_put_at tc hat'
   refine ⟨.branch v (Kids.put ks n (some tc)) m,
     .branch v (Kids.put (Kids.put ks n (some tc)) n (some tc')) (m + tc'.memD - cres.om), ?_⟩
   obtain ⟨P', hP', hcl⟩ := out_view hnew (N := .branch v (Kids.put (Kids.put ks n (some tc)) n (some tc'))
     (m + tc'.memD - cres.om)) ⟨_, by rw [hnc], by
       rw [kids_put_put]; exact kcl_put (kcl_of_exp hks) hat ⟨Pc', hPc', hclc⟩⟩
-  refine ⟨P', hrv _ (.branch _ _ _ _ (rv_kids_put hat' hrc)), ?_, hP', hcl, by simp [PTrie.mem?, hom], ?_⟩
+  refine ⟨P', hrv _ (.branch _ _ _ _ (rv_kids_put hat' hrc)), ?_, hP', hcl, by simp [PTrie.mem?, hom],
+    ?_, ?_⟩
   · rw [hK]; exact UChain.brDesc v _ m n _ tc tc' cres.om x hput hmc huc
   · show m + tc'.memD - cres.om = res.nm
     rw [hnc, hnm]
+  · simp only [PTrie.wf, Bool.and_eq_true, decide_eq_true_eq]
+    rw [kids_put_put, hnc, ← hnm]
+    exact ⟨⟨hNw.1.1, kids_wf_put hNw.1.2 hat' hwc⟩, hnb⟩
 
 /-- **`SN.oEU`** (extension descend): the old extension `k` (= the walk key's nibbles
 `d … d + |k|`) over the child ref sent down at depth `d + |k|`; the new extension over the
-child's result ref, memory `m + nm − om`. -/
+child's result ref, memory `m + nm − om` (`< 2^64`). -/
 theorem step_extDesc {σ : Store} {K : List Nat} {x : Bytes} {d : Nat} {a c : Ref} {res cres : Res}
     {k : List Nat} {m : Nat} (hold : OldOK σ a (.ext k c m))
     (hK : K.drop d = k ++ K.drop (d + k.length))
     (hnew : NewOK σ res.ref (.ext k cres.ref (m + cres.nm - cres.om)))
-    (hom : res.om = m) (hnm : res.nm = m + cres.nm - cres.om)
+    (hom : res.om = m) (hnm : res.nm = m + cres.nm - cres.om) (hnb : res.nm < 18446744073709551616)
     (hc : SemU σ K x (d + k.length) c cres) : SemU σ K x d a res := by
-  intro P hP
-  obtain ⟨N, ⟨Pc, rfl, hPc⟩, hrv⟩ := in_view hold hP
-  obtain ⟨tc, tc', Pc', hrc, huc, hPc', hclc, hmc, hnc⟩ := hc Pc hPc
+  intro P hP hPw
+  obtain ⟨N, ⟨Pc, rfl, hPc⟩, hNw, hrv⟩ := in_view_wf hold hP hPw
+  simp only [PTrie.wf, Bool.and_eq_true] at hNw
+  obtain ⟨tc, tc', Pc', hrc, huc, hPc', hclc, hmc, hnc, hwc⟩ := hc Pc hPc hNw.1.1.2
   obtain ⟨P', hP', hcl⟩ := out_view hnew (N := .ext k tc' (m + tc'.memD - cres.om))
     ⟨tc', by rw [hnc], Pc', hPc', hclc⟩
-  refine ⟨.ext k tc m, _, P', hrv _ (.ext _ _ _ _ hrc), ?_, hP', hcl, by simp [PTrie.mem?, hom], ?_⟩
+  refine ⟨.ext k tc m, _, P', hrv _ (.ext _ _ _ _ hrc), ?_, hP', hcl, by simp [PTrie.mem?, hom], ?_, ?_⟩
   · rw [hK]; exact UChain.extDesc k _ tc tc' m cres.om x hmc huc
   · show m + tc'.memD - cres.om = res.nm
     rw [hnc, hnm]
+  · simp only [PTrie.wf, Bool.and_eq_true, decide_eq_true_eq]
+    rw [hnc, ← hnm]
+    exact ⟨⟨⟨hNw.1.1.1, hwc⟩, hnb⟩, by simpa using hNw.2⟩
 
 /-! ## Row-local steps as `LocalOK` -/
 
@@ -671,53 +782,95 @@ theorem localOK_upsert {σ : Store} {keyOf : Nat → List Nat} (r : WRow Ref Pay
     intro hch x h1 h2
     exact hs x h1 h2 (hch x h1 h2)
 
+/-- A delete row's local step, from its `SemD` step. -/
+theorem localOK_delete {σ : Store} {keyOf : Nat → List Nat} (r : WRow Ref Pay Res)
+    (hmode : r.din.pay.mode = 2)
+    (hstep : match r.dout with
+      | none => SemD σ keyOf (keyOf r.din.pay.kid) r.din.d r.din.ref r.uout
+      | some c => c.pay = r.din.pay ∧ (SemD σ keyOf (keyOf r.din.pay.kid) c.d c.ref r.uin →
+          SemD σ keyOf (keyOf r.din.pay.kid) r.din.d r.din.ref r.uout)) :
+    LocalOK (Sem σ keyOf) r := by
+  unfold LocalOK
+  cases hc : r.dout with
+  | none =>
+    rw [hc] at hstep
+    simp only [Sem, hmode]; exact hstep
+  | some c =>
+    rw [hc] at hstep
+    obtain ⟨hp, hs⟩ := hstep
+    simp only [Sem, hp, hmode]
+    exact hs
+
+/-- A find row's local step, from its `SemF` step. -/
+theorem localOK_find {σ : Store} {keyOf : Nat → List Nat} (r : WRow Ref Pay Res)
+    (hmode : r.din.pay.mode = 0)
+    (hstep : match r.dout with
+      | none => SemF σ (keyOf r.din.pay.kid) r.din.d r.din.ref r.uout
+      | some c => c.pay = r.din.pay ∧ (SemF σ (keyOf r.din.pay.kid) c.d c.ref r.uin →
+          SemF σ (keyOf r.din.pay.kid) r.din.d r.din.ref r.uout)) :
+    LocalOK (Sem σ keyOf) r := by
+  unfold LocalOK
+  cases hc : r.dout with
+  | none =>
+    rw [hc] at hstep
+    simp only [Sem, hmode]; exact hstep
+  | some c =>
+    rw [hc] at hstep
+    obtain ⟨hp, hs⟩ := hstep
+    simp only [Sem, hp, hmode]
+    exact hs
+
 /-! ## All changes: the induction on the root chain -/
 
 /-- One committed change's rows, on the expansion `P` of the change's input ref: reveal, run the
-change's chain, collapse to the expansion of the output ref `a'`. -/
+change's chain to a well-formed trie, collapse to the expansion of the output ref `a'`. -/
 def StepRows (σ : Store) (P : PTrie) (a' : Ref) : Bytes × Option Bytes → Prop
   | (k, some x) => ∃ t₁ t₁' P', Rv (.inl P) (.inl t₁) ∧ UChain t₁ (nibbles k) x t₁' ∧
-      Exp σ (.inl a') (.inl P') ∧ Cl (.inl P') (.inl t₁')
+      Exp σ (.inl a') (.inl P') ∧ Cl (.inl P') (.inl t₁') ∧ t₁'.wf = true
   | (k, none) => ∃ t₁ t₁' P' b, Rv (.inl P) (.inl t₁) ∧ DChain t₁ (nibbles k) (b, some t₁') ∧
-      Exp σ (.inl a') (.inl P') ∧ Cl (.inl P') (.inl t₁')
+      Exp σ (.inl a') (.inl P') ∧ Cl (.inl P') (.inl t₁') ∧ t₁'.wf = true
 
 /-- **Every change, along the root chain.**  `A j` is the root ref after `j` changes; each
-change's rows step from (the expansion of) `A j` to `A (j + 1)`; `A 0` is the digest
+change's rows step from (the well-formed expansion of) `A j` to `A (j + 1)`; `A 0` is the digest
 `prev_state_root` of the witness trie and the last ref the digest `post`.  Then `applyChanges`
-on the witness succeeds with `rootHash = post`.  Premises: `Sha256CR`, `KeepsFW`. -/
-theorem chain_changes (hCR : Sha256CR) (hKeep : KeepsFW) (σ : Store) :
+on the witness succeeds with `rootHash = post`.  Premise: `Sha256CR` only (`KeepsFW` is replaced
+by the rows' `t₁'.wf`, `Store.keepsFWRows`). -/
+theorem chain_changes (hCR : Sha256CR) (σ : Store) :
     ∀ (cs : List (Bytes × Option Bytes)) (A : Nat → Ref) (P : PTrie) (T : PTrie),
-      Exp σ (.inl (A 0)) (.inl P) → P.refinedBy T → Full T ∧ T.wf = true →
-      (∀ j (hj : j < cs.length) P, Exp σ (.inl (A j)) (.inl P) → StepRows σ P (A (j + 1)) cs[j]) →
+      Exp σ (.inl (A 0)) (.inl P) → P.wf = true → P.refinedBy T → Full T ∧ T.wf = true →
+      (∀ j (hj : j < cs.length) P, Exp σ (.inl (A j)) (.inl P) → P.wf = true →
+        StepRows σ P (A (j + 1)) cs[j]) →
       ∀ post, A cs.length = .dig post →
       ∃ T', applyChanges (some T) cs = some (some T') ∧ rootHash (some T') = post
-  | [], A, P, T, hP, h0, _, _, post, hn => by
+  | [], A, P, T, hP, _, h0, _, _, post, hn => by
     refine ⟨T, rfl, ?_⟩
     simp only [List.length_nil] at hn
     rw [hn] at hP
     rw [exp_dig hP] at h0
     simpa [PTrie.refinedBy, rootHash] using h0.symm
-  | (k, v) :: rest, A, P, T, hP, h0, hF, hrows, post, hn => by
-    have hr0 := hrows 0 (by simp) P hP
+  | (k, v) :: rest, A, P, T, hP, hPw, h0, hF, hrows, post, hn => by
+    have hr0 := hrows 0 (by simp) P hP hPw
     simp only [List.getElem_cons_zero] at hr0
-    obtain ⟨T₁, P₁, hT₁, hP₁, h1⟩ : ∃ T₁ P₁, stepOf k v T = some T₁ ∧
-        Exp σ (.inl (A 1)) (.inl P₁) ∧ P₁.refinedBy T₁ := by
+    obtain ⟨T₁, P₁, hA, hP₁, hP₁w, h1, hF₁⟩ : ∃ T₁ P₁, applyChange (some T) k v = some (some T₁) ∧
+        Exp σ (.inl (A 1)) (.inl P₁) ∧ P₁.wf = true ∧ P₁.refinedBy T₁ ∧ Full T₁ ∧ T₁.wf = true := by
       cases v with
       | some x =>
-        obtain ⟨t₁, t₁', P', hr, hc, hP', hcl⟩ := hr0
+        obtain ⟨t₁, t₁', P', hr, hc, hP', hcl, hw'⟩ := hr0
         have h1 := rv_refinedBy hCR StateM5a.SerInj.nodeSerInj hr (.inl T) h0 hF
         obtain ⟨T', hT', h2⟩ := upsert_step (nibbles k) x t₁ t₁' T hc h1
-        exact ⟨T', P', by simp [stepOf, applyChange, hT'], hP', cl_collapse hcl (.inl T') h2⟩
+        have hA : applyChange (some T) k (some x) = some (some T') := by simp [applyChange, hT']
+        exact ⟨T', P', hA, hP', (cl_wf hcl : WFS _ _) hw', cl_collapse hcl (.inl T') h2,
+          keepsFWRows T T' t₁ t₁' k (some x) hF h1 (change_upsert hc) hw' hA⟩
       | none =>
-        obtain ⟨t₁, t₁', P', b, hr, hc, hP', hcl⟩ := hr0
+        obtain ⟨t₁, t₁', P', b, hr, hc, hP', hcl, hw'⟩ := hr0
         have h1 := rv_refinedBy hCR StateM5a.SerInj.nodeSerInj hr (.inl T) h0 hF
         obtain ⟨T', hT', h2⟩ := del_step k t₁ t₁' T ⟨b, hc⟩ h1
-        exact ⟨T', P', hT', hP', cl_collapse hcl (.inl T') h2⟩
-    have hA := stepOf_some hT₁
-    obtain ⟨T'', h2, h3⟩ := chain_changes hCR hKeep σ rest (fun j => A (j + 1)) P₁ T₁ hP₁ h1
-      (hKeep T T₁ k v hF hA)
-      (fun j hj P hP => by
-        have := hrows (j + 1) (by simp; omega) P hP
+        have hA := stepOf_some hT'
+        exact ⟨T', P', hA, hP', (cl_wf hcl : WFS _ _) hw', cl_collapse hcl (.inl T') h2,
+          keepsFWRows T T' t₁ t₁' k none hF h1 (change_del hc) hw' hA⟩
+    obtain ⟨T'', h2, h3⟩ := chain_changes hCR σ rest (fun j => A (j + 1)) P₁ T₁ hP₁ hP₁w h1 ⟨hF₁.1, hF₁.2⟩
+      (fun j hj P hP hPw => by
+        have := hrows (j + 1) (by simp; omega) P hP hPw
         simp only [List.getElem_cons_succ] at this
         exact this) post (by simpa using hn)
     exact ⟨T'', by simp [applyChanges, hA, h2], h3⟩
@@ -734,20 +887,20 @@ theorem stepRows_of_sem {σ : Store} {keyOf : Nat → List Nat} {q : Root Ref Pa
     {ch : Bytes × Option Bytes} (hd : q.dn.d = 0) (hpay : PayOf keyOf q.dn.pay ch)
     (hrk : ch.2 = none → RefKind q.res.rk)
     (hs : Sem σ keyOf q.dn.w q.dn.d q.dn.ref q.dn.pay q.res) :
-    ∀ P, Exp σ (.inl q.dn.ref) (.inl P) → StepRows σ P q.res.ref ch := by
-  intro P hP
+    ∀ P, Exp σ (.inl q.dn.ref) (.inl P) → P.wf = true → StepRows σ P q.res.ref ch := by
+  intro P hP hPw
   obtain ⟨k, v⟩ := ch
   cases v with
   | some x =>
     obtain ⟨hk, hm, hl, hh⟩ := hpay
     simp only [Sem, hm, hd, hk] at hs
-    obtain ⟨t₁, t₁', P', hr, hc, hP', hcl, -⟩ := hs x hl hh P hP
-    exact ⟨t₁, t₁', P', hr, by simpa using hc, hP', hcl⟩
+    obtain ⟨t₁, t₁', P', hr, hc, hP', hcl, -, -, hw⟩ := hs x hl hh P hP hPw
+    exact ⟨t₁, t₁', P', hr, by simpa using hc, hP', hcl, hw⟩
   | none =>
     obtain ⟨hk, hm⟩ := hpay
     have hrk := hrk rfl
     simp only [Sem, hm, hd, hk] at hs
-    obtain ⟨t₁, b, o, hr, hc, -, hres⟩ := hs P hP
+    obtain ⟨t₁, b, o, hr, hc, -, hres, hw⟩ := hs P hP hPw
     simp only [List.drop_zero] at hc
     cases o with
     | none =>
@@ -755,8 +908,9 @@ theorem stepRows_of_sem {σ : Store} {keyOf : Nat → List Nat} {q : Root Ref Pa
       rcases hrk with h | h | h | h <;> rw [hres] at h <;> simp [RK_NONE, RK_H, RK_HB, RK_HE, RK_SAME] at h
     | some t' =>
       simp only [DRes] at hres
-      rcases hres with ⟨-, P', hP', hcl, -⟩ | ⟨h, -⟩
-      · exact ⟨t₁, t', P', b, hr, hc, hP', hcl⟩
+      rcases hres with ⟨-, P', hP', hcl⟩ | ⟨-, P', hP', hcl, -⟩ | ⟨h, -⟩
+      · exact ⟨t₁, t', P', b, hr, hc, hP', hcl, hw t' rfl⟩
+      · exact ⟨t₁, t', P', b, hr, hc, hP', hcl, hw t' rfl⟩
       · rcases hrk with e | e | e | e <;> rw [h] at e <;> simp [RK_LD, RK_H, RK_HB, RK_HE, RK_SAME] at e
 
 /-- **Batched FINAL from the bus traffic.**  The trie rows and walk roots satisfy the walk
@@ -766,9 +920,9 @@ writing `WSB` rows `j < N` receive `TCH(j, a j)` and send `TCH(j + 1, b j)` agai
 root of change `cs[j]`'s walk (depth `0`, input ref `a j`, result ref `b j`, payload the change's
 key / value, a ref result kind for a delete — the `WSB` constraints).  Then on any revealed,
 well-formed witness trie with root hash `prev_state_root`, the spec's `applyChanges` succeeds and
-its `rootHash` is `post_state_root`.  Premises: `Sha256CR` and `KeepsFW` (`NodeSerInj` is
-proved). -/
-theorem bus_batched_changes (hCR : Sha256CR) (hKeep : KeepsFW) (σ : Store) (keyOf : Nat → List Nat)
+its `rootHash` is `post_state_root`.  Premise: `Sha256CR` only (`NodeSerInj` is proved; the
+false `KeepsFW` is not used). -/
+theorem bus_batched_changes (hCR : Sha256CR) (σ : Store) (keyOf : Nat → List Nat)
     {roots : List (Root Ref Pay Res)} {rows : List (WRow Ref Pay Res)} (hs : WalkShape roots rows)
     (hD : (downSends roots rows).Perm (downRecvs rows)) (hU : (upSends rows).Perm (upRecvs roots rows))
     (hloc : ∀ r ∈ rows, LocalOK (Sem σ keyOf) r)
@@ -781,12 +935,13 @@ theorem bus_batched_changes (hCR : Sha256CR) (hKeep : KeepsFW) (σ : Store) (key
   obtain ⟨hN, ha, hpost⟩ := tch_chain hT
   subst hN
   have hsem := walk_sem (Sem σ keyOf) hs hD hU hloc
-  refine chain_changes hCR hKeep σ cs (chainAt (Ref.dig prev) b) (.hash prev) T (.dig prev)
-    (by simp [PTrie.refinedBy, hT0]) hF ?_ post hpost.symm
-  intro j hj P hP
+  refine chain_changes hCR σ cs (chainAt (Ref.dig prev) b) (.hash prev) T (.dig prev)
+    (by simp [PTrie.wf, ← hT0, hashOf_length T hF.2]) (by simp [PTrie.refinedBy, hT0]) hF ?_ post
+    hpost.symm
+  intro j hj P hP hPw
   obtain ⟨q, hq, hqa, hqb, hqd, hpay⟩ := hroot j hj
   obtain ⟨hpay, hrk⟩ := hpay hj
-  have := stepRows_of_sem hqd hpay hrk (hsem q hq) P (by rw [hqa, ha j hj]; exact hP)
+  have := stepRows_of_sem hqd hpay hrk (hsem q hq) P (by rw [hqa, ha j hj]; exact hP) hPw
   rw [hqb] at this
   exact this
 
