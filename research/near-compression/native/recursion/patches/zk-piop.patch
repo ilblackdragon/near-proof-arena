@@ -280,6 +280,96 @@
  
  #[cfg(feature = "lean")]
  pub mod lean;
+--- a/stark-backend-unified/crates/stark-backend/src/any_air.rs
++++ b/stark-backend-unified/crates/stark-backend/src/any_air.rs
+@@ -31,6 +31,12 @@
+     fn max_log_trace_height(&self) -> Option<usize> {
+         None
+     }
++    /// [E2E-D zk-piop] Common-main columns whose content is public (fixed by the statement or the
++    /// setup, e.g. a pinned program table). Under PIOP masking (`WhirLevers::zk >= 4`) their
++    /// openings are sent unmasked so that a verifier can check them against public data.
++    fn zk_public_columns(&self) -> Vec<usize> {
++        vec![]
++    }
+ }
+ 
+ /// Shared reference to any Interactive Air.
+--- a/stark-backend-unified/crates/stark-backend/src/keygen/mod.rs
++++ b/stark-backend-unified/crates/stark-backend/src/keygen/mod.rs
+@@ -81,7 +81,7 @@
+             .into_iter()
+             .map(|keygen_builder| {
+                 // Second pass: get final constraints, where RAP phase constraints may have changed
+-                keygen_builder.generate_pk(max_constraint_degree, params.whir.levers.next_mask)
++                keygen_builder.generate_pk_zk(max_constraint_degree, params.whir.levers.next_mask, params.whir.levers.zk_piop())
+             })
+             .collect::<Result<Vec<_>, KeygenError>>()?;
+ 
+@@ -258,6 +258,16 @@
+         max_constraint_degree: usize,
+         next_mask: bool,
+     ) -> Result<StarkProvingKey<SC>, KeygenError> {
++        self.generate_pk_zk(max_constraint_degree, next_mask, false)
++    }
++
++    /// [E2E-D zk-piop] [`Self::generate_pk`]; with `zk_piop` the AIR's public columns are recorded.
++    pub fn generate_pk_zk(
++        self,
++        max_constraint_degree: usize,
++        next_mask: bool,
++        zk_piop: bool,
++    ) -> Result<StarkProvingKey<SC>, KeygenError> {
+         let air_name = self.air.name();
+ 
+         let width = self.trace_width();
+@@ -316,6 +326,7 @@
+             // M4 (per-table height cap): the AIR's `maxLog` goes into the vk and is enforced by
+             // every verifier (`verifier::verify` and the NV program generator).
+             max_log_trace_height,
++            zk_public_cols: if zk_piop { self.air.zk_public_columns() } else { vec![] },
+         };
+ 
+         let unused_variables = find_unused_vars(&dag, &vparams.width, need_rot);
+--- a/stark-backend-unified/crates/stark-backend/src/keygen/types.rs
++++ b/stark-backend-unified/crates/stark-backend/src/keygen/types.rs
+@@ -112,6 +112,10 @@
+     /// outgrows its table's cap cannot be verified under a vk that pins the cap.
+     #[serde(default, skip_serializing_if = "Option::is_none")]
+     pub max_log_trace_height: Option<usize>,
++    /// [E2E-D zk-piop] Common-main columns with public content: under PIOP masking their (plain)
++    /// openings are not masked. Set only for `zk >= 4` keys (empty: serialized as before).
++    #[serde(default, skip_serializing_if = "Vec::is_empty")]
++    pub zk_public_cols: Vec<usize>,
+ }
+ 
+ impl StarkVerifyingParams {
+--- a/stark-backend-unified/crates/stark-backend/src/soundness/vk.rs
++++ b/stark-backend-unified/crates/stark-backend/src/soundness/vk.rs
+@@ -185,6 +185,7 @@
+                             num_public_values: 3,
+                             need_rot: false,
+                             rot_mask: None,
++                            zk_public_cols: vec![],
+                             max_log_trace_height: None,
+                         },
+                         symbolic_constraints: constraints_with_counts(4, 0),
+@@ -203,6 +204,7 @@
+                             num_public_values: 0,
+                             need_rot: false,
+                             rot_mask: None,
++                            zk_public_cols: vec![],
+                             max_log_trace_height: None,
+                         },
+                         symbolic_constraints: constraints_with_counts(0, 1),
+@@ -221,6 +223,7 @@
+                             num_public_values: 0,
+                             need_rot: false,
+                             rot_mask: None,
++                            zk_public_cols: vec![],
+                             max_log_trace_height: None,
+                         },
+                         symbolic_constraints: constraints_with_counts(0, 1),
 --- a/stark-backend-unified/crates/stark-backend/src/config.rs
 +++ b/stark-backend-unified/crates/stark-backend/src/config.rs
 @@ -372,8 +372,10 @@
@@ -295,12 +385,13 @@
      #[serde(default, skip_serializing_if = "zk_is_off")]
      pub zk: u8,
  }
-@@ -400,11 +402,21 @@
-         match self.zk {
+@@ -401,10 +403,23 @@
              0 => (0, 0),
              1 => (ZK_RESERVE_ROWS, 0),
--            2 | 3 => (ZK_RESERVE_ROWS, ZK_MASK_COLS),
-+            2..=5 => (ZK_RESERVE_ROWS, ZK_MASK_COLS),
+             2 | 3 => (ZK_RESERVE_ROWS, ZK_MASK_COLS),
++            // the PIOP masks take three more columns (`zk::mask_columns`), so that the WHIR
++            // one-time pad keeps ZK_MASK_COLS columns no other message refers to
++            4 | 5 => (ZK_RESERVE_ROWS, ZK_MASK_COLS + 3),
              z => panic!("unknown zk lever {z}"),
          }
      }
@@ -601,6 +692,31 @@
          let mut queue: std::collections::VecDeque<(usize, usize, StackedSlice)> = entries.into();
          let mut placed = Vec::with_capacity(queue.len());
          let mut fill: Vec<usize> = Vec::new();
+@@ -516,8 +516,13 @@
+                     if can_split && (len > cap || fill.iter().any(|&f| f + len / 2 <= cap)) {
+                         let (e, off, cl) = (s.log_height - 1, s.src_row, s.col_log_height());
+                         let mk = |o| StackedSlice { col_idx: 0, row_idx: 0, log_height: e, src_row: o, col_log_height: cl };
+-                        queue.push_front((m, j, mk(off + (1 << e))));
+-                        queue.push_front((m, j, mk(off)));
++                        // [E2E-D 2026-11-03 fix] re-queue the halves behind every remaining larger
++                        // slice: placing them at the front let a later full-size slice land at a
++                        // fill pointer aligned only to the half size (misaligned slice, wrong
++                        // stacking-reduction indices: the zk = 3 FinalSumMismatch).
++                        let pos = queue.iter().position(|(_, _, t)| t.log_height <= e).unwrap_or(queue.len());
++                        queue.insert(pos, (m, j, mk(off + (1 << e))));
++                        queue.insert(pos, (m, j, mk(off)));
+                         continue;
+                     }
+                     if len > cap {
+@@ -527,7 +532,7 @@
+                     fill.len() - 1
+                 }
+             };
+-            debug_assert_eq!(fill[c] % len, 0, "zk layout alignment");
++            assert_eq!(fill[c] % len, 0, "zk layout alignment");
+             s.col_idx = c;
+             s.row_idx = fill[c];
+             fill[c] += len;
 --- a/stark-backend-unified/crates/stark-backend/src/prover/stacked_reduction.rs
 +++ b/stark-backend-unified/crates/stark-backend/src/prover/stacked_reduction.rs
 @@ -121,6 +121,7 @@
@@ -695,7 +811,22 @@
  }
  
  pub mod batch_constraints;
-@@ -200,16 +204,38 @@
+@@ -125,7 +129,14 @@
+         return Err(VerifierError::EmptyTraces);
+     }
+     // We verify the proof shape early to return error and prevent later panics
++    let t_phase = std::time::Instant::now();
++    let phase = |name: &str| {
++        if std::env::var("NEARPROOF_VERIFY_PHASES").is_ok() {
++            eprintln!("VERIFY_PHASE {name} {:.3} ms", t_phase.elapsed().as_secs_f64() * 1e3);
++        }
++    };
+     let layouts = verify_proof_shape::<SC>(mvk, proof)?;
++    phase("proof_shape");
+ 
+     let mut trace_id_to_air_id: Vec<usize> = (0..num_airs).collect();
+     trace_id_to_air_id.sort_by_key(|&air_id| {
+@@ -200,16 +211,39 @@
          .iter()
          .map(|&air_id| trace_vdata[air_id].as_ref().unwrap().log_height as isize - l_skip as isize)
          .collect();
@@ -709,6 +840,7 @@
 -        &n_per_trace,
 -        &omega_skip_pows,
 -    )?;
++    phase("preamble");
 +    // [E2E-D zk-piop] masked GKR / batch sumcheck; their sparse claims go to the stacking reduction
 +    let (r, zk_in) = if params.whir.levers.zk_piop() {
 +        if layouts.len() != 1 {
@@ -744,16 +876,17 @@
  
      // [e2e verify] record the batch point r for callers that check openings at it.
      LAST_ZEROCHECK_POINT.with(|c| *c.borrow_mut() = Some(Box::new(r.clone())));
-@@ -236,7 +262,7 @@
+@@ -236,7 +270,8 @@
          }
      }
  
 -    let u_prism = verify_stacked_reduction::<SC, TS>(
++    phase("gkr_batch");
 +    let u_prism = crate::verifier::stacked_reduction::verify_stacked_reduction_with::<SC, TS>(
          transcript,
          stacking_proof,
          &layouts,
-@@ -246,6 +272,7 @@
+@@ -246,6 +281,7 @@
          &proof.batch_constraint_proof.column_openings,
          &r,
          &omega_skip_pows,
@@ -761,6 +894,26 @@
      )?;
  
      // [e2e tape-eval] record the stacking point for callers that bind cached openings at it.
+@@ -265,14 +301,17 @@
+         commits.extend(&trace_vdata[air_id].as_ref().unwrap().cached_commitments);
+     }
+ 
+-    verify_whir::<SC, TS>(
++    phase("stacking");
++    let whir_res = verify_whir::<SC, TS>(
+         transcript,
+         config,
+         whir_proof,
+         &stacking_proof.stacking_openings,
+         &commits,
+         &u_cube,
+-    )?;
++    );
++    phase("whir");
++    whir_res?;
+ 
+     Ok(())
+ }
 --- a/stark-backend-unified/crates/stark-backend/src/verifier/proof_shape.rs
 +++ b/stark-backend-unified/crates/stark-backend/src/verifier/proof_shape.rs
 @@ -438,17 +438,19 @@
@@ -789,7 +942,7 @@
          );
 --- a/stark-backend-unified/crates/stark-backend/src/verifier/batch_constraints.rs
 +++ b/stark-backend-unified/crates/stark-backend/src/verifier/batch_constraints.rs
-@@ -531,3 +531,282 @@
+@@ -531,3 +531,293 @@
          evaluator.eval_is_transition(),
      ]
  }
@@ -1047,11 +1200,22 @@
 +            denom += eq_3b * d_i;
 +        }
 +        evaluated_claim += (num + mu * denom) * eq_sharp_ns[n_lift];
-+        // column masks of this trace: y_last(1 - y_last) at its last variable
++        // column masks of this trace: y_last(1 - y_last) at its last variable; the plain
++        // openings of public columns (`zk_public_cols`) are unmasked (weight 0)
 +        let z_t = rs[n_lift] * (SC::EF::ONE - rs[n_lift]);
-+        let m = air_openings[0].len();
-+        col_masks.push((col_off..col_off + m).map(|k| (k, z_t)).collect_vec());
-+        col_off += m;
++        let public = &vk.params.zk_public_cols;
++        let mut entries = Vec::with_capacity(air_openings[0].len());
++        for (c, &has_rot) in masks_per_trace[trace_idx][0].iter().enumerate() {
++            let w = if public.contains(&c) { SC::EF::ZERO } else { z_t };
++            entries.push((col_off, w));
++            col_off += 1;
++            if has_rot {
++                entries.push((col_off, z_t));
++                col_off += 1;
++            }
++        }
++        debug_assert_eq!(entries.len(), air_openings[0].len());
++        col_masks.push(entries);
 +    }
 +    debug_assert_eq!(col_off, lay.end);
 +
@@ -2222,7 +2386,7 @@
      };
      // Derived-claims lever: the verifier recomputes these, so they are not part of the proof.
      if mpk.params.whir.levers.gkr_derive_claims && !gkr_proof.claims_per_layer.is_empty() {
-@@ -2128,3 +2165,414 @@
+@@ -2128,3 +2165,417 @@
      }
      Ok((gkr_proof, batch_constraint_proof, r))
  }
@@ -2400,21 +2564,24 @@
 +    // Column-mask coefficients per trace: main matrix and rotated matrix vectors.
 +    let mut col_masks: Vec<Vec<(usize, EF<SC>)>> = Vec::with_capacity(num_traces);
 +    let mut mat_masks: Vec<Vec<Vec<EF<SC>>>> = Vec::with_capacity(num_traces);
-+    let mut col_coefs: Vec<Vec<usize>> = Vec::with_capacity(num_traces);
++    let mut col_coefs: Vec<Vec<(usize, bool)>> = Vec::with_capacity(num_traces);
 +    {
 +        let mut k = lay.cols;
 +        for (t, helper) in prover.eval_helpers.iter().enumerate() {
 +            let rot = &helper.rot_masks[0];
++            let public = &mpk.per_air[ctx.per_trace[t].0].vk.params.zk_public_cols;
 +            let mut main = Vec::with_capacity(rot.len());
 +            let mut rotv = Vec::with_capacity(rot.len());
 +            let mut ks = Vec::with_capacity(opening_counts[t]);
-+            for &has_rot in rot {
-+                main.push(coefs.get::<EF<SC>>(k));
-+                ks.push(k);
++            for (c, &has_rot) in rot.iter().enumerate() {
++                // public columns: plain opening unmasked (weight 0 in the stacking claim)
++                let is_pub = public.contains(&c);
++                main.push(if is_pub { EF::<SC>::ZERO } else { coefs.get::<EF<SC>>(k) });
++                ks.push((k, !is_pub));
 +                k += 1;
 +                if has_rot {
 +                    rotv.push(coefs.get::<EF<SC>>(k));
-+                    ks.push(k);
++                    ks.push((k, true));
 +                    k += 1;
 +                } else {
 +                    rotv.push(EF::<SC>::ZERO);
@@ -2566,7 +2733,7 @@
 +    claims.push(SparseClaim { terms, value });
 +    for (t, ks) in col_coefs.iter().enumerate() {
 +        let z = r[n_lifts[t]] * (one - r[n_lifts[t]]);
-+        col_masks.push(ks.iter().map(|&k| (k, z)).collect());
++        col_masks.push(ks.iter().map(|&(k, masked)| (k, if masked { z } else { EF::<SC>::ZERO })).collect());
 +    }
 +    ZK_HANDOFF.with(|c| *c.borrow_mut() = Some(Box::new(ZkHandoff::<EF<SC>> { claims, col_masks })));
 +
@@ -2675,3 +2842,22 @@
          } = &proof.stacking_proof;
  
          let lambda = ts.sample_ext();
+--- a/openvm-sha384/crates/recursion/src/nv/uair.rs
++++ b/openvm-sha384/crates/recursion/src/nv/uair.rs
+@@ -177,6 +177,16 @@
+             NV_WIDTH
+         }
+     }
++    /// [E2E-D zk-piop] Without the program part (the FINAL layer) the program columns P0..P3 are
++    /// in common main and hold the pinned (public) program: V_d checks their openings
++    /// (`vd::check_final_program_at`), so a zero-knowledge FINAL proof sends them unmasked.
++    fn zk_public_columns(&self) -> Vec<usize> {
++        if self.program_part {
++            vec![]
++        } else {
++            (U_P..U_P + 4).collect()
++        }
++    }
+ }
+ 
+ /// Split an NvAir trace into (common main without P0..P3, the program part P0..P3).

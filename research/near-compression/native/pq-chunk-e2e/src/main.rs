@@ -417,6 +417,12 @@ fn chain(
     let mut fc = circ.clone_shape();
     fc.program_part = false;
     fc.tight_floor = None;
+    // [E2E-D] witness-guessing distinguisher: NEARPROOF_ZK_GUESS=DIR (FINAL.proof + SETUP.json of
+    // a packet) tests this checkpoint's FINAL trace (the witness) against that proof and exits.
+    if let Ok(dir) = std::env::var("NEARPROOF_ZK_GUESS") {
+        zk_guess(&fc, &vk, &p, Path::new(&dir));
+        return;
+    }
     let final_started = std::time::Instant::now();
     println!("FINAL_PHASE start");
     let (fv, fp, b, _) = prove_level(&fc, &final_engine, &vk, &p);
@@ -716,6 +722,82 @@ fn verify_bench(air: &str, public: &str, setup_path: &str, bundle: &str, reps: u
         med(tf)
     );
 }
+/// [E2E-D] Witness-guessing distinguisher. Given a FINAL proof and a candidate witness (the FINAL
+/// trace generated from an L4 checkpoint), recompute every column opening the proof reveals —
+/// the prismatic MLE of the candidate trace column (and its next-row rotation) at the batch point
+/// `r` the verifier derives from the proof — and count how many equal the proof's values. Without
+/// PIOP masking the true witness matches every opening (the proof identifies its witness); with
+/// masking only the public columns (`zk_public_cols`, the pinned program) can match.
+fn zk_guess(fc: &NvCircuit, vk: &MultiStarkVerifyingKey<SC>, p: &Proof<SC>, dir: &Path) {
+    use openvm_stark_backend::poly_common::{eval_eq_uni, evals_eq_hypercube_serial};
+    use p3_field::{PrimeCharacteristicRing, TwoAdicField};
+    let mut setup: Setup = serde_json::from_slice(&std::fs::read(dir.join("SETUP.json")).unwrap()).unwrap();
+    setup.final_vk.inner.params.whir.domain_odd_factor = setup.domain_odd_factor;
+    let fp = read_proof(&dir.join("FINAL.proof"));
+    let engine = Sha384CpuEngine::new_final(setup.final_vk.inner.params.clone());
+    let _ = openvm_stark_backend::verifier::take_last_zerocheck_point::<Ef>();
+    engine.verify(&setup.final_vk, &fp).expect("final proof");
+    let r = openvm_stark_backend::verifier::take_last_zerocheck_point::<Ef>().expect("batch point");
+    let (mats, _) = fc.generate(vk, p);
+    let mvk = &setup.final_vk.inner;
+    let l_skip = mvk.params.l_skip;
+    let omega = openvm_recursion_circuit::sha384::config::F::two_adic_generator(l_skip);
+    let mut order: Vec<usize> = (0..mvk.per_air.len()).filter(|&a| fp.trace_vdata[a].is_some()).collect();
+    order.sort_by_key(|&a| (std::cmp::Reverse(fp.trace_vdata[a].as_ref().unwrap().log_height), a));
+    let (mut tot, mut hit, mut tot_pub, mut hit_pub) = (0usize, 0usize, 0usize, 0usize);
+    for (t, &air) in order.iter().enumerate() {
+        let m = &mats[air];
+        let h = m.height();
+        let n = (h.trailing_zeros() as usize).saturating_sub(l_skip);
+        assert_eq!(fp.trace_vdata[air].as_ref().unwrap().log_height, n + l_skip, "candidate trace shape");
+        let lz: Vec<Ef> = (0..1usize << l_skip)
+            .map(|z| eval_eq_uni(l_skip, r[0], Ef::from(omega.exp_u64(z as u64))))
+            .collect();
+        let eqy = evals_eq_hypercube_serial(&r[1..=n]);
+        let w: Vec<Ef> = (0..h).map(|row| lz[row & ((1 << l_skip) - 1)] * eqy[row >> l_skip]).collect();
+        let mask = mvk.per_air[air].params.opening_masks()[0].clone();
+        let public = &mvk.per_air[air].params.zk_public_cols;
+        let openings = openvm_stark_backend::proof::column_openings_by_mask(
+            &fp.batch_constraint_proof.column_openings[t][0],
+            &mask,
+        );
+        let width = m.width();
+        let cols: Vec<(Ef, Ef)> = (0..width)
+            .map(|c| {
+                let mut plain = Ef::ZERO;
+                let mut rot = Ef::ZERO;
+                for row in 0..h {
+                    plain += w[row] * m.values[row * width + c];
+                    rot += w[row] * m.values[((row + 1) % h) * width + c];
+                }
+                (plain, rot)
+            })
+            .collect();
+        for (c, ((pl, rt), &has_rot)) in cols.iter().zip(&mask).enumerate() {
+            let (o, orot) = openings[c];
+            // the pinned program columns of the NvAir are public in every mode
+            let up = openvm_recursion_circuit::nv::uair::U_P;
+            let is_pub = public.contains(&c) || (air == 0 && (up..up + 4).contains(&c));
+            if is_pub {
+                tot_pub += 1;
+                hit_pub += (o == *pl) as usize;
+            } else {
+                tot += 1;
+                hit += (o == *pl) as usize;
+            }
+            if has_rot {
+                tot += 1;
+                hit += (orot == *rt) as usize;
+            }
+        }
+    }
+    println!(
+        "ZK_GUESS proof={} zk={} witness_openings_matched={hit}/{tot} public_column_openings_matched={hit_pub}/{tot_pub}",
+        dir.display(),
+        setup.final_vk.inner.params.whir.levers.zk
+    );
+}
+
 /// [E2E-D] Hiding sanity check: field-by-field comparison of two proofs of the same statement.
 /// Every proof field is flattened to its scalar leaves (field-element coefficients, digest bytes,
 /// lengths); leaves are grouped by path with indices removed, and each group reports how many

@@ -13,6 +13,10 @@ OUTDIR=${3:-$HERE/patches}
 SB=stark-backend-unified/crates
 PIOP_FILES="$SB/stark-backend/src/zk.rs
 $SB/stark-backend/src/lib.rs
+$SB/stark-backend/src/any_air.rs
+$SB/stark-backend/src/keygen/mod.rs
+$SB/stark-backend/src/keygen/types.rs
+$SB/stark-backend/src/soundness/vk.rs
 $SB/stark-backend/src/config.rs
 $SB/stark-backend/src/proof.rs
 $SB/stark-backend/src/prover/stacked_pcs.rs
@@ -29,7 +33,8 @@ $SB/cpu-backend/src/fast/gkr.rs
 $SB/cpu-backend/src/logup_zerocheck/mod.rs
 openvm-sha384/crates/recursion/src/batch_constraint/mod.rs
 openvm-sha384/crates/recursion/src/gkr/mod.rs
-openvm-sha384/crates/recursion/src/stacking/mod.rs"
+openvm-sha384/crates/recursion/src/stacking/mod.rs
+openvm-sha384/crates/recursion/src/nv/uair.rs"
 T=$(mktemp -d /data/illia/nearproof-deps/.mkpatch.XXXX); trap 'rm -rf "$T"' EXIT
 mkdir -p "$T/b"
 # every file the two earlier patches or this one touch, from PRISTINE (absent = new file)

@@ -27,6 +27,8 @@ struct Mixed {
     log_fib: usize,
     log_send: usize,
     log_recv: usize,
+    /// sender rows that are nonzero (the rest is a zero tail: tight heights, chunked slices)
+    send_live: usize,
 }
 
 impl TestFixture<SC> for Mixed {
@@ -53,13 +55,19 @@ impl TestFixture<SC> for Mixed {
         // sender: rows (1, v, 7v) with v = i mod R; receiver: rows (S/R, v, 7v), R = receiver height
         let (ns, nr) = (1usize << self.log_send, 1usize << self.log_recv);
         let mut snd = vec![];
+        let mut cnt = vec![0usize; nr];
         for i in 0..ns {
-            let v = (i % nr) as u64;
-            snd.extend([F::ONE, F::from_u64(v + 5), F::from_u64(7 * v + 1)]);
+            if i < self.send_live {
+                let v = i % nr;
+                cnt[v] += 1;
+                snd.extend([F::ONE, F::from_usize(v + 5), F::from_usize(7 * v + 1)]);
+            } else {
+                snd.extend([F::ZERO; 3]);
+            }
         }
         let mut rcv = vec![];
-        for v in 0..nr as u64 {
-            rcv.extend([F::from_usize(ns / nr), F::from_u64(v + 5), F::from_u64(7 * v + 1)]);
+        for v in 0..nr {
+            rcv.extend([F::from_usize(cnt[v]), F::from_usize(v + 5), F::from_usize(7 * v + 1)]);
         }
         ProvingContext::new(vec![
             (0, AirProvingContext::simple(ColMajorMatrix::from_row_major(&fib), vec![F::ZERO, F::ONE, f_n])),
@@ -121,8 +129,14 @@ fn roundtrip(p: &Proof<SC>) -> Proof<SC> {
 pub fn run(args: &[String]) {
     let log_fib: usize = args.first().map(|s| s.parse().unwrap()).unwrap_or(9);
     let n_stack: usize = args.get(1).map(|s| s.parse().unwrap()).unwrap_or(12);
-    let fx = Mixed { log_fib, log_send: 7, log_recv: 5 };
-    for zk in [0u8, 2, 4] {
+    let zks: Vec<u8> = args
+        .get(2)
+        .map(|s| s.split(',').map(|x| x.parse().unwrap()).collect())
+        .unwrap_or_else(|| vec![0, 2, 4]);
+    let log_send: usize = args.get(3).map(|s| s.parse().unwrap()).unwrap_or(7);
+    let send_live: usize = args.get(4).map(|s| s.parse().unwrap()).unwrap_or(1 << log_send);
+    let fx = Mixed { log_fib, log_send, log_recv: 5, send_live };
+    for zk in zks {
         let engine = Sha384CpuEngine::new_final(params(zk, n_stack));
         let t = std::time::Instant::now();
         let (vk, proof) = fx.keygen_and_prove(&engine);
