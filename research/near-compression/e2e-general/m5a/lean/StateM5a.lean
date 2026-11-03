@@ -67,3 +67,8 @@ import StateM5a.RowBrV2
 import StateM5a.RowBrL
 import StateM5a.RowBrUN
 import StateM5a.RowBrD1
+import StateM5a.VerBus
+import StateM5a.VerDec
+import StateM5a.VerRead
+import StateM5a.VerStore
+import StateM5a.VerAssembly

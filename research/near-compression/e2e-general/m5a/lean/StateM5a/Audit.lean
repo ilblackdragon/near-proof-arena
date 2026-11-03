@@ -11,6 +11,7 @@ import StateM5a.Steps
 import StateM5a.RowBrF
 import StateM5a.RowHloc
 import StateM5a.RowFacts
+import StateM5a.VerAssembly
 import StateM5a.StepsT2
 import StateM5a.Walk
 import StateM5a.SerInj
@@ -495,3 +496,10 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.RowBrD1.localOK_oD1
 #print axioms StateM5a.RowHloc.walkOps_covered
 #print axioms StateM5a.RowFacts.keyOf_bounds
+#print axioms StateM5a.VerDec.dec_of_parts
+#print axioms StateM5a.VerDec.brOld_dec
+#print axioms StateM5a.VerRead.br_rd_part
+#print axioms StateM5a.VerStore.br_oldOK
+#print axioms StateM5a.VerStore.br_newOK
+#print axioms StateM5a.VerStore.brVers_nodup
+#print axioms StateM5a.VerAssembly.air_final_sorted_ver
