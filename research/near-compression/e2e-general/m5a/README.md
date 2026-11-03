@@ -4,6 +4,127 @@ Plan: `docs/zk-formal/E2E-GENERAL-CHUNK-PLAN.md` §3.2 (the `stRoot` working set
 Date 2026-11-03. Labels: **[M]** measured here, **[K]** kernel-checked Lean (std axioms),
 **[S]** stated / design only.
 
+## M5a-7 (eighth session, 2026-11-03): split rows compiled, every short-key and memory premise from `Holds`, STATE rows sound, M5b end to end
+
+Log `docs/logs/e2e-m5a7-state-2026-11-03.md`. **No AIR change** this session (the AIR, the
+exported `m5a.json` / `m5b` AIR and every root are those of M5a-6 / M5b; nothing to re-prove).
+Lean: `lake build StateM5a m5a-tool` green, std axioms only (`Audit.lean` prints every new
+headline), every module compiles in seconds under 1 GB.
+
+### Headline [K]: `M5bFinal.m5b_final` — the M5b AIR end to end
+
+From `Holds` of the AIR the prover runs for M5b (`fullAir D (m5bX host prev post n)`: M5a tables,
+STATE rows `SHAS`/`STB`/`STW`, the public tape), the semantic premises of `M5b.prem` (chip
+contract, `CompressOK`, `NodeCR`, `LeafCR`, `Sha256CR`, `1 ≤ D ≤ 20`), the named producer premise
+`StSound.HostReqs` (below) and the **continued-key premises** (`SnFreshLong`, `SnContRest`,
+`hlongS`, `hlongM`):
+
+```
+∃ T', applyChanges (some T) (sortKV (committedOf T reqs)) = some (some T') ∧ rootHash (some T') = post
+```
+
+where `committedOf T reqs = ((reqs.foldl Req.apply (Ovl.ofTrie T)).commit).committed` is the
+**spec's own overlay** (`NearSpecV3.D2.State`: nearcore's `TrieUpdate` set / remove / commit) of the
+execution's storage requests. Pieces:
+
+| piece | statement | module |
+|---|---|---|
+| STATE rows sound | every `WRITE` an `STW` row sends is `(seg, ts, pack2 (sha256 key), pr, |v|, pack2 dv)` for an `SREQ (ts, pr, seg, klen, kptr, vlen, vptr)` and the bytes `key` / `val` carried by `HB (ts, kptr + j, key[j])` (`dv = sha256 val`, `sha256 []` for an empty value, `0` for a remove); bytes `< 256` from `SHAS`'s own contract; `ID_ST + m` does not wrap (`m ≤ row < 2^20`) | `StSound` (`write_sent`, `write_recv`, `stw_row`, `desc_msg`; `StSoundA/B/E`) |
+| `committed ~ cs` | `final_changes_m5b`: `∃ cs, |cs| = |wrRows| ∧ FinalChanges cs ∧ (committedOf T reqs).Perm cs` | `StSoundW`, `StSoundF1/F2/F3`, `StSoundF` |
+| split rows | `oLX`/`oEX` at `cont = 0` `LocalOK` | `SnSplit*` |
+| memory limbs | `SnUpLimbs`, `SnMatLimbs`, `OslNodeLimbs`, `oEP`/`oEM` `unm` (and `SnContMem` for continued keys) | `SnLimbsAll`, `SnFreshLimbs`, `SnCont*` |
+| assembly | `SnFinal5.air_final_sorted_sn5`: `air_final_sorted_sn4` with all of the above discharged | `SnFinal5` |
+
+**`HostReqs`** (premise, the producer side; lane A's memory argument on the full AIR): the host only
+sends; the `SREQ` messages sent are exactly `reqs`' messages; there is `mem : Fp → Fp → Fp` with
+every `HB` sent `= (ts, p, mem ts p)` and each request's key / value bytes read from it; `ts`, `seg`,
+lengths `< p`; requests in strictly increasing `(seg, ts)` order. Honest T1 satisfies it (the
+public `HTAPE` has one `SREQ` per executed request, its `HB` entries are the call's memory bytes,
+`ts < 2^24`, segments are consecutive chunks of execution). `reqs` must be the committed requests
+in execution order (one commit of all = commit per receipt).
+
+### Split rows: why `SnSplit` needed > 24 GB, and the fix
+
+The memory went to `omega` on goals whose atoms are `ev tr 3 r pub (Sn.c "…")` (string-indexed
+column lookups): `fresh_flags` (~25 flag atoms, a disjunction, 6 goals) alone exceeded 12 GB and
+was killed at 16 / 20 GB (`omega`'s atom comparison unfolds the column lookups). Stating the
+arithmetic over plain naturals (`SnFresh.fresh_arith`, `SnLimbsAll.gnew_arith`, a small
+`gX_of_split`) and applying it to the hypotheses makes the file compile in about a second. The
+M5a-6 `lean-wip/` files are now modules (`lean-wip/` removed): `SnFresh` (`FreshRel`, `fresh_short`),
+`SnSplitHop` (`SPR` decoding, `gX_of` re-proved, `osl_of_split`, `ep_of_split`), `SnSplit`
+(`split_ans`), `SnSplitKeys` (`split_keys`, `split_row`), `SnSplitLX` (`localOK_oLX`), `SnSplitEXA`
+(`ex_mem`), `SnSplitEX` (`localOK_oEX`); the never-compiled proofs needed small repairs (missing
+`RowBrN` open, `bE`/`E` abbreviations under `rw`, metavariables in `memChain_sound`'s bounds,
+`gX_of`'s field arithmetic).
+
+### Memory limbs from `Holds` [K]
+
+* `SnLimbsAll.snUpLimbs_of` / `snMatLimbs_of`: `UP` positions `20..23` are `gnu·NM + gX·sm` (a new
+  node's limbs; a split row's `sm` = its `SPR` sender's new memory: `oSL` `BR` `NM` or `oEP` `SN`
+  `NM`), `24..27` are `(mU + mD)·M`; `MATR` is the `oLM` row's new memory.
+* `SnFreshLimbs`: `oslNodeLimbs_of` (`nm2 = xm` over a node: `0` on a leaf split, the
+  extension's child memory `CM` (`cmb` in `RNG`) or the re-keyed extension's `sxm` = an `oEM` row's
+  `NM`), `oep_unm_lt` (`SPR`), `oem_unm_lt` (`SXQ`: the split row's `CM`), `snFreshNew_of`.
+* `SnCont*` (sub-agent): `snContMem_of` — the continued keys' memory limbs. A continued head is
+  always hashed; its SHA-256 message has length `serLen`, `SNC` chunk bytes land at
+  `5 + 32c + m < 5 + hplen` (never on payload / memory positions), so the memory bytes are message
+  bytes `< 256`. Modules `SnContHead` (head facts: `a_j`, `ha_m = [m < 32]`, `hplen = 32 + rl/2`),
+  `SnContChain` (`SNC` chunk shape, `snc_head`: every active chunk belongs to a continued head
+  whose `rl` it determines, from "sent `KCR` ⇒ received"), `SnContByte` (`cont_byte`: who sends a
+  byte under an `SN` id), `SnContSer`, `SnContMem` (`cont_msg`), `SnContLimbs`. New static premise
+  `hxRr` (no extra table touches `KCR`; true of the tape and the STATE tables).
+
+### Continued keys: full-key records [K], row relations left [S]
+
+For `cont = 1` rows the decoder's `snKey` (and so `snOld` / `snNew` / `gRecS`) reads `Sn.c "k" j` for
+`j < klen` with `klen = 62 + odd + rl > 64`, i.e. columns past the 64 head nibbles, so the internal
+records of a continued row need the full key. `snRow` itself (`din`/`dout`/`uin`/`uout`) carries no
+key, so `SnContRest` as stated is the right target. Done (sub-agent, `SnContSer2`, `SnContRec1..4`):
+
+* `SnContRec2.cont_node`: a continued head's digest is `sha256 ([3·isE, hplen, 0, 0, 0] ++ hp₀..₃₁ ++ M
+  ++ payload ++ memory)` with `M` the `SNC` part, every entry a byte, `hplen < 256`;
+* `SnContRec3.grecK_hashed`: the record over the decoded key (`hexPrefix` of the decoded nibbles) is
+  `Hashed`; `snOldC` / `snNewC` = the record over `ckey` (a key of length `2(hplen − 1) + odd`,
+  nibbles `< 16`, whose record is hashed to the head's digest; exists by `cont_old_key` /
+  `cont_new_key`);
+* **`SnContRec4.cont_oldOK` / `cont_newOK`**: `OldOK σ (snIn r) (snOldC r)` / `NewOK σ (snOut r)
+  (snNewC r)` for every continued row with an old / new node — no CR needed.
+
+Left: (i) `ckey`'s link to the walk key (its first `62 + odd` nibbles are the head's `k_j` — a
+pure `hp_m` lemma; its later nibbles are an `SNC` row's `k_i`, whose position / key id / lookup flag
+the `KC` chain forces, so its `NIB` lookups tie them to `keyOf kid`); (ii) the `LocalOK` cases over
+`snOldC` / `snNewC` (`SnContRest`); (iii) `hlongS` / `hlongM`, `SnFreshLong`. None of these
+premises is used on T1 / T2 / the synthetic cases (no key longer than the head there).
+**New completeness gap:** the head serializes the u32 hex-prefix length as `(hplen, 0, 0, 0)`, so
+`hplen < 256`: keys longer than ~509 nibbles (≈ 254 bytes) cannot be proved; NEAR contract-data
+keys go up to 2 KiB.
+
+### Tooling (item 4) [M]
+
+`tracegen.py`: a tamper with no target row in the trace (e.g. `vbyte` needs a version-published
+`SN` leaf; synthetic `bval` has none) now prints `NOT APPLICABLE` and exits 3; `run.sh` reports it
+and continues the battery (before: `StopIteration`, the battery aborted). `logs/M5a7-mutants-tooling.txt`.
+
+### The +287 kB of the M5b proof (item 3, "tune if cheap") [M]
+
+Prover overrides `N_STACK` / `W_STACK` (env; unset = the old rule). M5b T1
+(`logs/M5a7-stacking-sweep.txt`): default `n 18, w 10` 1,526,081 B; `w 12` 1,530,407 B (+4 kB);
+`n 22, w 8` 1,897,033 B (359 s). So the jump is **not** the stacking width: against M5a-6 T1 the
+proof gains `relations` +57 kB (the 544-column `SHAS` table's openings) and `whir` +231 kB with the
+four extra tables. The lever is fewer tables — `SHAS` merged into the first SHA-256 table (the
+id-space generalization of `KeyDigest.sb_only` etc.), `STB`/`STW` folded — not cheap; left open.
+
+### Open after M5a-7
+
+1. Continued keys: `ckey` ↔ walk key (head and `SNC` lookups), then `SnContRest`,
+   `hlongS`/`hlongM`, `SnFreshLong` (the full-key records `cont_oldOK` / `cont_newOK` are done).
+2. `HostReqs` from lane A's `HOST` rows and memory argument (on T1 a statement about the public tape).
+3. Reads (`storage_read`/`has_key`: `WM` read access, value bytes back) — design only (§M5b).
+4. `SHAS` merged into the SHA-256 table (the +287 kB above).
+5. Completeness gaps: keys longer than ~254 bytes (`hplen < 256`, new), empty key (`klen = 0`: no
+   `STB` run, so no `DESC(mk, ts, kptr, 0)`), an empty
+   value must use `ve = 1`; a mismatch past the head's first 63 nibbles (known); lane E `StViewE`.
+
 ## M5b (first STATE rows, 2026-11-03): writes produced from raw key / value bytes
 
 Until now the working-set writes `WRITE(seg, t, kd16, present, len, vh16)` (received by `WSA`) came

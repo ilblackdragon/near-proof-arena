@@ -474,6 +474,10 @@ fn main() {
     let maxh = inst.mats.iter().chain(inst.native.iter().map(|(_, m)| m)).map(|m| m.values.len() / m.width).max().unwrap();
     let n_stack = [14usize, 18, 22].into_iter().find(|&n| (1usize << (n + 2)) >= maxh && total.div_ceil(1 << (n + 2)) + 4 <= 24).unwrap_or(22);
     let w_stack = (total.div_ceil(1 << (n_stack + 2)) + 4).max(8);
+    // M5a-7: overrides for the stacking-shape sweep (README §M5b, "+287 kB"); unset = the rule above
+    let env_n = |k: &str| std::env::var(k).ok().and_then(|v| v.parse::<usize>().ok());
+    let n_stack = env_n("N_STACK").unwrap_or(n_stack);
+    let w_stack = env_n("W_STACK").unwrap_or(if env_n("N_STACK").is_some() { (total.div_ceil(1 << (n_stack + 2)) + 4).max(8) } else { w_stack });
     let degree = inst.spec.iter().flat_map(|t| t.constraints.iter().map(deg)).max().unwrap_or(2).max(s384::air::DEGREE);
     let prm = params(n_stack, w_stack, degree);
     println!("PARAMS n_stack {} w_stack {} degree {}", prm.n_stack, prm.w_stack, prm.max_constraint_degree);

@@ -34,7 +34,9 @@ BIN=$TARGET_DIR/release/nearproof-e2e-m5a
 gen() { python3 "$HERE/tracegen.py" "$OUT/state.json" "$OUT/names.json" "$1" "${@:2}" ${UNBATCHED:+--unbatched} ${GENARGS:-}; }
 if [ "$MODE" = mutants ]; then
   for m in ${MUTANTS:-node prevalue omitwrite postroot absent extabsent branchval split splitext absdel squash chain verslot vernid vmcount finroot nidforge wsstale wssib wsdrop wsabsorb wsleaf}; do
-    gen "$OUT/mut-$m" --mutant "$m" > "$OUT/mut-$m.gen.txt"
+    rc=0; gen "$OUT/mut-$m" --mutant "$m" > "$OUT/mut-$m.gen.txt" || rc=$?
+    if [ "$rc" = 3 ]; then echo "$m: NOT APPLICABLE (no target row in this trace)"; continue; fi
+    [ "$rc" = 0 ] || { echo "$m: tracegen failed (exit $rc)"; cat "$OUT/mut-$m.gen.txt"; exit "$rc"; }
     nice -n 10 $HEAVY "$BIN" "$OUT/m5a.json" "$OUT/mut-$m" mutant | tee "$OUT/mut-$m.log" | grep -E "PRECHECK|REJECTED|ACCEPTED|VERIFY"
   done
 else

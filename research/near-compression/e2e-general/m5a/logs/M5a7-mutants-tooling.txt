@@ -1,0 +1,3 @@
+# M5a-7: the mutant battery no longer aborts on a mutant without a target row (synthetic bval, D=4)
+syn vbyte: NOT APPLICABLE (no target row in this trace)   [tracegen exit 3; was: StopIteration, battery aborted]
+syn lmwrap: PRECHECK FAIL: SN: constraint 210 fails on row 26 REJECTED (prover error) after 1.3s   [the battery continues]

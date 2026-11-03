@@ -1,3 +1,7 @@
+import StateM5a.SnContRec4
+import StateM5a.M5bFinal
+import StateM5a.SnFinal5
+import StateM5a.StSoundF
 import StateM5a.SnFinal4
 import StateM5a.SnSplitBus
 import StateM5a.FinalOrder
@@ -614,3 +618,43 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.SnSplitBus.sxq_src
 #print axioms StateM5a.SnSplitBus.sxr_src
 #print axioms StateM5a.SnSplitBus.oslQ_eq
+
+-- M5a-7: split rows, all memory limbs, STATE rows, committed ~ cs
+#print axioms StateM5a.SnSplit.fresh_flags
+#print axioms StateM5a.SnSplit.fresh_short
+#print axioms StateM5a.SnSplit.split_ans
+#print axioms StateM5a.SnSplitLoc.split_keys
+#print axioms StateM5a.SnSplitLoc.localOK_oLX
+#print axioms StateM5a.SnSplitLoc.ex_mem
+#print axioms StateM5a.SnSplitLoc.localOK_oEX
+#print axioms StateM5a.SnLimbsAll.gnew_of
+#print axioms StateM5a.SnLimbsAll.sm_lt
+#print axioms StateM5a.SnLimbsAll.snMatLimbs_of
+#print axioms StateM5a.SnLimbsAll.snUpLimbs_of
+#print axioms StateM5a.SnFreshLimbs.xm_lt
+#print axioms StateM5a.SnFreshLimbs.oslNodeLimbs_of
+#print axioms StateM5a.SnFreshLimbs.oep_unm_lt
+#print axioms StateM5a.SnFreshLimbs.oem_unm_lt
+#print axioms StateM5a.SnFreshLimbs.snFreshNew_of
+#print axioms StateM5a.SnFinal5.osl_limbs
+#print axioms StateM5a.SnFinal5.air_final_sorted_sn5
+#print axioms StateM5a.StSound.stw_row
+#print axioms StateM5a.StSound.write_sent
+#print axioms StateM5a.StSound.write_recv
+#print axioms StateM5a.StSound.desc_msg
+#print axioms StateM5a.StSound.wsa_mem_write
+#print axioms StateM5a.StSound.wsa_key
+#print axioms StateM5a.StSound.committedOf_eq
+#print axioms StateM5a.StSound.mem_ovl
+#print axioms StateM5a.StSound.final_latest
+#print axioms StateM5a.StSound.acc_req
+#print axioms StateM5a.StSound.req_acc
+#print axioms StateM5a.StSound.final_req
+#print axioms StateM5a.StSound.req_row
+#print axioms StateM5a.StSound.final_changes_m5b
+#print axioms StateM5a.SnContLimbs.snContMem_of
+#print axioms StateM5a.M5bFinal.m5b_final
+#print axioms StateM5a.SnContRec2.cont_node
+#print axioms StateM5a.SnContRec3.grecK_hashed
+#print axioms StateM5a.SnContRec4.cont_oldOK
+#print axioms StateM5a.SnContRec4.cont_newOK
