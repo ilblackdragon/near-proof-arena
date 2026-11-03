@@ -1,0 +1,2 @@
+ZK_GUESS proof=/data/illia/nearproof-deps/pq-e2e-d3/zk6/d1_00-h10006-s3 zk=6 witness_openings_matched=0/287 public_column_openings_matched=4/4 witness=d1_00-h10006-s3
+ZK_GUESS proof=/data/illia/nearproof-deps/pq-e2e-d3/zk6/d1_00-h10006-s3 zk=6 witness_openings_matched=0/287 public_column_openings_matched=0/4 witness=d1_00-h10007-s0

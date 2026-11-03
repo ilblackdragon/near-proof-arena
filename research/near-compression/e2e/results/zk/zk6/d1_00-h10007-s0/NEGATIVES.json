@@ -1,0 +1,210 @@
+{
+  "untouched": {
+    "accepted": true,
+    "expected": "accept",
+    "pass": true,
+    "tail": [
+      "VERIFY_PROFILE_MS total=47.25 setup_read_pin=3.88 setup_parse=5.70 air_pin_bundle_read=1.31 air_parse=5.29 statepublic=0.29 expected_claim_tape=2.35 proof_decode=0.41 final_verify=28.01",
+      "INDEPENDENT_VERIFY_OK bundle_bytes=325722 under_300000=false"
+    ]
+  },
+  "claim_byte_128_flipped": {
+    "accepted": false,
+    "expected": "reject",
+    "pass": true,
+    "tail": [
+      "thread 'main' (2657798) panicked at /data/illia/nearproof/.claude/worktrees/agent-ad0391273351ba435/research/near-compression/native/pq-chunk-e2e/src/main.rs:597:71:",
+      "claim/hint rejected: \"claim/hint preparation: invalid: segment does not start at prev_block_hash\"",
+      "note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
+    ]
+  },
+  "claim_byte_1604_flipped": {
+    "accepted": false,
+    "expected": "reject",
+    "pass": true,
+    "tail": [
+      "thread 'main' (2657804) panicked at /data/illia/nearproof/.claude/worktrees/agent-ad0391273351ba435/research/near-compression/native/pq-chunk-e2e/src/main.rs:597:71:",
+      "claim/hint rejected: \"claim/hint preparation: invalid: chunk slots do not match chunk_headers_root\"",
+      "note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
+    ]
+  },
+  "claim_byte_3209_flipped": {
+    "accepted": false,
+    "expected": "reject",
+    "pass": true,
+    "tail": [
+      "thread 'main' (2657814) panicked at /data/illia/nearproof/.claude/worktrees/agent-ad0391273351ba435/research/near-compression/native/pq-chunk-e2e/src/main.rs:597:71:",
+      "claim/hint rejected: \"claim/hint preparation: invalid: chunk slots do not match chunk_headers_root\"",
+      "note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
+    ]
+  },
+  "claim_byte_4814_flipped": {
+    "accepted": false,
+    "expected": "reject",
+    "pass": true,
+    "tail": [
+      "thread 'main' (2657821) panicked at /data/illia/nearproof/.claude/worktrees/agent-ad0391273351ba435/research/near-compression/native/pq-chunk-e2e/src/main.rs:597:71:",
+      "claim/hint rejected: \"claim/hint preparation: invalid: chunk slots do not match chunk_headers_root\"",
+      "note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
+    ]
+  },
+  "claim_byte_6290_flipped_ref_accepts": {
+    "accepted": true,
+    "expected": "accept",
+    "pass": true,
+    "tail": [
+      "VERIFY_PROFILE_MS total=52.37 setup_read_pin=2.68 setup_parse=5.96 air_pin_bundle_read=1.24 air_parse=5.66 statepublic=0.30 expected_claim_tape=2.55 proof_decode=0.43 final_verify=33.55",
+      "INDEPENDENT_VERIFY_OK bundle_bytes=325722 under_300000=false"
+    ]
+  },
+  "claim_of_other_chunk": {
+    "accepted": false,
+    "expected": "reject",
+    "pass": true,
+    "tail": [
+      "thread 'main' (2657846) panicked at /data/illia/nearproof/.claude/worktrees/agent-ad0391273351ba435/research/near-compression/native/pq-chunk-e2e/src/main.rs:597:71:",
+      "claim/hint rejected: \"claim/hint preparation: invalid: InvalidGasUsed\"",
+      "note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
+    ]
+  },
+  "hint_byte_flipped": {
+    "accepted": false,
+    "expected": "reject",
+    "pass": true,
+    "tail": [
+      "thread 'main' (2657847) panicked at /data/illia/nearproof/.claude/worktrees/agent-ad0391273351ba435/research/near-compression/native/pq-chunk-e2e/src/main.rs:597:71:",
+      "claim/hint rejected: \"claim/hint preparation: invalid: InvalidGasUsed\"",
+      "note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
+    ]
+  },
+  "base_point_u_flipped": {
+    "accepted": false,
+    "expected": "reject",
+    "pass": true,
+    "tail": [
+      "thread 'main' (2657848) panicked at /data/illia/nearproof/.claude/worktrees/agent-ad0391273351ba435/research/near-compression/native/pq-chunk-e2e/src/main.rs:577:6:",
+      "final verifier: \"statement digest differs from the claim\"",
+      "note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
+    ]
+  },
+  "base_point_u_last_flipped": {
+    "accepted": false,
+    "expected": "reject",
+    "pass": true,
+    "tail": [
+      "thread 'main' (2657857) panicked at /data/illia/nearproof/.claude/worktrees/agent-ad0391273351ba435/research/near-compression/native/pq-chunk-e2e/src/main.rs:577:6:",
+      "final verifier: \"statement digest differs from the claim\"",
+      "note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
+    ]
+  },
+  "proof_byte_0pct_flipped": {
+    "accepted": false,
+    "expected": "reject",
+    "pass": true,
+    "tail": [
+      "thread 'main' (2657867) panicked at /data/illia/nearproof/.claude/worktrees/agent-ad0391273351ba435/research/near-compression/native/pq-chunk-e2e/src/main.rs:577:6:",
+      "final verifier: \"final proof: BatchConstraintError(SumClaimMismatch { sum_claim: BinomialExtensionField { value: [1863652039, 747529871, 808039996, 1549516099, 651646273, 1053208982, 1852580357, 815725706, 303781528, 1773987605, 487100241, 1842807969], _phantom: PhantomData<p3_monty_31::monty_31::MontyField31<p3_baby_bear::baby_bear::BabyBearParameters>> }, sum_univ_domain_s_0: BinomialExtensionField { value: [1761922375, 1580909088, 1709789975, 797514196, 954240216, 1661853203, 743752451, 1784997502, 1232040990, 1308129252, 998678104, 582105844], _phantom: PhantomData<p3_monty_31::monty_31::MontyField31<p3_baby_bear::baby_bear::BabyBearParameters>> } })\"",
+      "note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
+    ]
+  },
+  "proof_byte_10pct_flipped": {
+    "accepted": false,
+    "expected": "reject",
+    "pass": true,
+    "tail": [
+      "thread 'main' (2657880) panicked at /data/illia/nearproof/.claude/worktrees/agent-ad0391273351ba435/research/near-compression/native/pq-chunk-e2e/src/main.rs:577:6:",
+      "final verifier: \"final proof: BatchConstraintError(SumClaimMismatch { sum_claim: BinomialExtensionField { value: [770558312, 1943477899, 1090856162, 1478570595, 1791861386, 1114424134, 1998567580, 982098138, 1931780890, 1244472930, 663715220, 1084233702], _phantom: PhantomData<p3_monty_31::monty_31::MontyField31<p3_baby_bear::baby_bear::BabyBearParameters>> }, sum_univ_domain_s_0: BinomialExtensionField { value: [1761922375, 1580909088, 1709789975, 797514196, 954240216, 1661853203, 743752451, 1784997502, 1232040990, 1308129252, 998678104, 582105844], _phantom: PhantomData<p3_monty_31::monty_31::MontyField31<p3_baby_bear::baby_bear::BabyBearParameters>> } })\"",
+      "note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
+    ]
+  },
+  "proof_byte_33pct_flipped": {
+    "accepted": false,
+    "expected": "reject",
+    "pass": true,
+    "tail": [
+      "thread 'main' (2657889) panicked at /data/illia/nearproof/.claude/worktrees/agent-ad0391273351ba435/research/near-compression/native/pq-chunk-e2e/src/main.rs:577:6:",
+      "final verifier: \"final proof: WhirError(MerkleVerify)\"",
+      "note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
+    ]
+  },
+  "proof_byte_50pct_flipped": {
+    "accepted": false,
+    "expected": "reject",
+    "pass": true,
+    "tail": [
+      "thread 'main' (2657898) panicked at /data/illia/nearproof/.claude/worktrees/agent-ad0391273351ba435/research/near-compression/native/pq-chunk-e2e/src/main.rs:577:6:",
+      "final verifier: \"final proof: WhirError(MerkleVerify)\"",
+      "note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
+    ]
+  },
+  "proof_byte_66pct_flipped": {
+    "accepted": false,
+    "expected": "reject",
+    "pass": true,
+    "tail": [
+      "thread 'main' (2657908) panicked at /data/illia/nearproof/.claude/worktrees/agent-ad0391273351ba435/research/near-compression/native/pq-chunk-e2e/src/main.rs:577:6:",
+      "final verifier: \"final proof: WhirError(MerkleVerify)\"",
+      "note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
+    ]
+  },
+  "proof_byte_90pct_flipped": {
+    "accepted": false,
+    "expected": "reject",
+    "pass": true,
+    "tail": [
+      "thread 'main' (2657925) panicked at /data/illia/nearproof/.claude/worktrees/agent-ad0391273351ba435/research/near-compression/native/pq-chunk-e2e/src/main.rs:577:6:",
+      "final verifier: \"final proof: WhirError(MerkleVerify)\"",
+      "note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
+    ]
+  },
+  "proof_last_byte_flipped": {
+    "accepted": false,
+    "expected": "reject",
+    "pass": true,
+    "tail": [
+      "thread 'main' (2657939) panicked at /data/illia/nearproof/.claude/worktrees/agent-ad0391273351ba435/research/near-compression/native/pq-chunk-e2e/src/main.rs:577:6:",
+      "final verifier: \"final proof: WhirError(QueryPhasePoWInvalid)\"",
+      "note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
+    ]
+  },
+  "trailing_byte": {
+    "accepted": false,
+    "expected": "reject",
+    "pass": true,
+    "tail": [
+      "  left: 324635",
+      " right: 324636",
+      "note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
+    ]
+  },
+  "truncated_proof": {
+    "accepted": false,
+    "expected": "reject",
+    "pass": true,
+    "tail": [
+      "thread 'main' (2657959) panicked at /data/illia/nearproof/.claude/worktrees/agent-ad0391273351ba435/research/near-compression/native/pq-chunk-e2e/src/main.rs:91:35:",
+      "proof codec: Error { kind: UnexpectedEof, message: \"failed to fill whole buffer\" }",
+      "note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
+    ]
+  },
+  "truncated_to_hint": {
+    "accepted": false,
+    "expected": "reject",
+    "pass": true,
+    "tail": [
+      "thread 'main' (2657986) panicked at /data/illia/nearproof/.claude/worktrees/agent-ad0391273351ba435/research/near-compression/native/pq-chunk-e2e/src/main.rs:500:5:",
+      "truncated hint",
+      "note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
+    ]
+  },
+  "untrusted_setup_pin": {
+    "accepted": false,
+    "expected": "reject",
+    "pass": true,
+    "tail": [
+      "  left: \"ba160bba4cade859cc7d72f8ff651aa7cc7df44177cf4583b709128b30cfdffc\"",
+      " right: \"0000000000000000000000000000000000000000000000000000000000000000\"",
+      "note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
+    ]
+  }
+}

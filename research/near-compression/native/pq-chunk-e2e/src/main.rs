@@ -911,14 +911,14 @@ fn main() {
                 let c = openvm_stark_backend::soundness::SoundnessCalculator::calculate_from_vk(&vk);
                 let w = &c.whir_details;
                 println!(
-                    "SOUNDNESS_BITS file={path} n_stack={} log_blowup={} queries={:?} logup={:.1} gkr_sumcheck={:.1} gkr_batching={:.1} zerocheck={:.1} constraint_batching={:.1} stacked_reduction={:.1} whir={:.1} total={:.1} whir_query={:.1} whir_proximity={:.1} whir_sumcheck={:.1} whir_fold={:.1} whir_ood={:.1} whir_gamma={:.1} whir_shift={:.1} whir_mu={:.1}",
+                    "SOUNDNESS_BITS file={path} n_stack={} log_blowup={} queries={:?} logup={:.1} gkr_sumcheck={:.1} gkr_batching={:.1} zerocheck={:.1} constraint_batching={:.1} stacked_reduction={:.1} whir={:.1} total={:.1} whir_query={:.1} whir_proximity={:.1} whir_sumcheck={:.1} whir_fold={:.1} whir_ood={:.1} whir_gamma={:.1} whir_shift={:.1} whir_mu={:.1} whir_nu={:.1}",
                     vk.inner.params.n_stack,
                     vk.inner.params.log_blowup,
                     vk.inner.params.whir.rounds.iter().map(|r| r.num_queries).collect::<Vec<_>>(),
                     c.logup_bits, c.gkr_sumcheck_bits, c.gkr_batching_bits, c.zerocheck_sumcheck_bits,
                     c.constraint_batching_bits, c.stacked_reduction_bits, c.whir_bits, c.total_bits,
                     w.query_bits, w.proximity_gaps_bits, w.sumcheck_bits, w.fold_rbr_bits, w.ood_rbr_bits,
-                    w.gamma_batching_bits, w.shift_rbr_bits, w.mu_batching_bits
+                    w.gamma_batching_bits, w.shift_rbr_bits, w.mu_batching_bits, w.nu_batching_bits
                 );
             }
         }
