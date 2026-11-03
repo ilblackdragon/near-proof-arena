@@ -173,6 +173,7 @@ import WasmBase.Main.SegGrowRow
 import WasmBase.M3Ctx
 import WasmBase.Main.SegSpaceG
 import WasmBase.Main.SegGrowFetch
+import WasmBase.Main.SegGrowMemg
 import WasmBase.Main.SegChainSigma
 import WasmBase.Main.HostTwoRun
 import WasmBase.Main.HostTwoRunArms
