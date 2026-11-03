@@ -1,0 +1,264 @@
+import WasmBase.Main.SegCuto
+import WasmBase.Main.SegLinkSpec
+
+/-!
+# WasmBase.Main.SegLink — the CUTO link (E2E M4b, S3)
+
+(module documentation at the end of the file's development; see `cuto_link`)
+-/
+
+namespace WasmBase
+
+open ZkFormal.Algebra Chips Seg
+open NearSpecV3.Wasm hiding P
+set_option linter.unusedSimpArgs false
+set_option maxRecDepth 100000
+
+/-! ## 1. CUTO row facts, as naturals -/
+
+theorem cuto_ix2 : ix Cut.Out.cols "space" = 47 ∧ ix Cut.Out.cols "slot" = 48 ∧ ix Cut.Out.cols "x2" = 49 ∧
+    ix Cut.Out.cols "tp" = 50 ∧ ix Cut.Out.cols "k0" = 51 ∧ ix Cut.Out.cols "k2" = 52 ∧
+    ix Cut.Out.cols "k4" = 53 ∧ ix Cut.Out.cols "k5" = 54 ∧ ix Cut.Out.cols "k6" = 55 ∧
+    ix Cut.Out.cols "kL" = 56 ∧ ix Cut.Out.cols "clo" = 57 ∧ ix Cut.Out.cols "chi" = 58 ∧
+    ix Cut.Out.cols "dep" = 59 ∧ ix Cut.Out.cols "mm" = 60 ∧ ix Cut.Out.cols "rlo" = 64 ∧
+    ix Cut.Out.cols "rhi" = 65 := by decide
+
+section
+variable {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsX (wasmBaseSegAir nloc ngl) pub tr)
+include H
+
+/-- A boolean column of CUTO is 0 or 1. -/
+theorem cuto_boolc {r : Nat} (hr : r < tr.height 31) {s : String} {i : Nat} (hi : ix Cut.Out.cols s = i)
+    (hm : bool (Cut.Out.c s) ∈ Cut.Out.constraints) : rowNat tr 31 r i = 0 ∨ rowNat tr 31 r i = 1 := by
+  have e := cuto_constr H hr hm
+  simp only [Chips.bool, Cut.Out.c, Cut.c, hi, v, Expr.eval_mul', Expr.eval_sub', Expr.eval_col,
+    Expr.eval_ofNat', row_cur] at e
+  exact bool_nat (rowNat_lt tr 31 r i) e
+
+/-- The kind flags of a CUTO row: bits, and on an active row exactly one is set. -/
+theorem cuto_kinds {r : Nat} (hr : r < tr.height 31) :
+    rowNat tr 31 r 51 ≤ 1 ∧ rowNat tr 31 r 52 ≤ 1 ∧ rowNat tr 31 r 53 ≤ 1 ∧ rowNat tr 31 r 54 ≤ 1 ∧
+      rowNat tr 31 r 55 ≤ 1 ∧ rowNat tr 31 r 56 ≤ 1 ∧
+      rowNat tr 31 r 51 + rowNat tr 31 r 52 + rowNat tr 31 r 53 + rowNat tr 31 r 54 + rowNat tr 31 r 55 +
+        rowNat tr 31 r 56 = rowNat tr 31 r 0 := by
+  obtain ⟨-, -, -, -, i51, i52, i53, i54, i55, i56, -⟩ := cuto_ix2
+  have b51 := cuto_boolc H hr i51 (by simp [Cut.Out.constraints])
+  have b52 := cuto_boolc H hr i52 (by simp [Cut.Out.constraints])
+  have b53 := cuto_boolc H hr i53 (by simp [Cut.Out.constraints])
+  have b54 := cuto_boolc H hr i54 (by simp [Cut.Out.constraints])
+  have b55 := cuto_boolc H hr i55 (by simp [Cut.Out.constraints])
+  have b56 := cuto_boolc H hr i56 (by simp [Cut.Out.constraints])
+  obtain ⟨ba, -⟩ := cuto_bits H hr
+  have e := cuto_constr H hr (e := Cut.Out.c "k0" + Cut.Out.c "k2" + Cut.Out.c "k4" + Cut.Out.c "k5" +
+    Cut.Out.c "k6" + Cut.Out.c "kL" - Cut.Out.c "act") (by simp [Cut.Out.constraints])
+  obtain ⟨i0, -⟩ := cuto_ix
+  simp only [Cut.Out.c, Cut.c, i0, i51, i52, i53, i54, i55, i56, v, Expr.eval_add', Expr.eval_sub',
+    Expr.eval_col, row_cur] at e
+  have hs : ((rowNat tr 31 r 51 + rowNat tr 31 r 52 + rowNat tr 31 r 53 + rowNat tr 31 r 54 +
+      rowNat tr 31 r 55 + rowNat tr 31 r 56 : Nat) : F) = ((rowNat tr 31 r 0 : Nat) : F) := by
+    simp only [Lean.Grind.Semiring.natCast_add]; grind
+  have hP := P_val
+  have := natEq hs (by omega) (rowNat_lt tr 31 r 0)
+  refine ⟨by omega, by omega, by omega, by omega, by omega, by omega, this⟩
+
+end
+
+theorem cuto_evalc (tr : Trace) (pub : List F) (r : Nat) {s : String} {i : Nat} (hi : ix Cut.Out.cols s = i) :
+    (Cut.Out.c s).eval (tr.row pub 31 r) = ((rowNat tr 31 r i : Nat) : F) := by
+  simp only [Cut.Out.c, Cut.c, hi, v, Expr.eval_col, row_cur]
+
+theorem cuto_evalF (tr : Trace) (pub : List F) (r : Nat) {k : Nat} (hk : k < 7) :
+    (Cut.Out.F k).eval (tr.row pub 31 r) = ((cutoF tr r k : Nat) : F) := by
+  simp only [Cut.Out.F, Cut.F, Cut.c, cuto_ix_lo k hk, cuto_ix_hi k hk, v, Expr.eval_add', Expr.eval_mul',
+    Expr.eval_col, Expr.eval_ofNat', row_cur, fcast, cutoF]
+
+theorem f_sub_eq {a b : F} (h : a - b = 0) : a = b := by grind
+theorem f_mul_one_sub {g a : F} (h : (1 - g) * a = 0) (hg : g = 0) : a = 0 := by subst hg; grind
+theorem f_mul_g {g a : F} (h : g * a = 0) (hg : g = 1) : a = 0 := by subst hg; grind
+
+section
+variable {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsX (wasmBaseSegAir nloc ngl) pub tr)
+include H
+
+/-- **The field facts of an active CUTO row** (with the chip limb bound): its kind decides the
+consumed space and how the hashed fields `F0, F1, F5` come from the raw columns. -/
+theorem cuto_fieldfacts (hl : CutoHiLimbs tr) {r : Nat} (hr : r < tr.height 31) (ha : rowNat tr 31 r 0 = 1) :
+    (rowNat tr 31 r 56 = 0 → rowNat tr 31 r 47 = 2 * rowNat tr 31 r 52 + 4 * rowNat tr 31 r 53 +
+        5 * rowNat tr 31 r 54 + 6 * rowNat tr 31 r 55 ∧ cutoF tr r 0 = rowNat tr 31 r 47) ∧
+    (rowNat tr 31 r 56 = 1 → ((rowNat tr 31 r 47 : Nat) : F) =
+        16 + ((rowNat tr 31 r 57 : Nat) : F) + ((65536 : Nat) : F) * ((rowNat tr 31 r 58 : Nat) : F)) ∧
+    (rowNat tr 31 r 53 = 0 → cutoF tr r 1 = rowNat tr 31 r 48) ∧
+    (rowNat tr 31 r 53 = 1 → cutoF tr r 1 = rowNat tr 31 r 59) ∧
+    (rowNat tr 31 r 53 = 0 → cutoF tr r 5 = rowNat tr 31 r 49) := by
+  obtain ⟨i47, i48, i49, -, -, i52, i53, i54, i55, i56, i57, i58, i59, -⟩ := cuto_ix2
+  have hP := P_val
+  have hF : ∀ k, k < 7 → cutoF tr r k < P := fun k hk => by have := cutoF_lt H hl hr ha hk; omega
+  have hN := rowNat_lt tr 31 r
+  have C := fun e he => cuto_constr H hr (e := e) he
+  have ev := fun {s : String} {i : Nat} (hi : ix Cut.Out.cols s = i) => cuto_evalc tr pub r hi
+  have eF := fun {k : Nat} (hk : k < 7) => cuto_evalF tr pub r hk
+  have e2 := C ((1 - Cut.Out.c "kL") * (Cut.Out.c "space" - 2 * Cut.Out.c "k2" - 4 * Cut.Out.c "k4" -
+    5 * Cut.Out.c "k5" - 6 * Cut.Out.c "k6")) (by simp [Cut.Out.constraints])
+  have e3 := C (Cut.Out.c "kL" * (Cut.Out.c "space" - 16 - Cut.Out.c "clo" - 65536 * Cut.Out.c "chi"))
+    (by simp [Cut.Out.constraints])
+  have e4 := C ((1 - Cut.Out.c "kL") * (Cut.Out.F 0 - Cut.Out.c "space")) (by simp [Cut.Out.constraints])
+  have e5 := C ((1 - Cut.Out.c "k4") * (Cut.Out.F 1 - Cut.Out.c "slot")) (by simp [Cut.Out.constraints])
+  have e6 := C (Cut.Out.c "k4" * (Cut.Out.F 1 - Cut.Out.c "dep")) (by simp [Cut.Out.constraints])
+  have e7 := C ((1 - Cut.Out.c "k4") * (Cut.Out.F 5 - Cut.Out.c "x2")) (by simp [Cut.Out.constraints])
+  simp only [Expr.eval_mul', Expr.eval_sub', Expr.eval_ofNat', ev i47, ev i48, ev i49, ev i52, ev i53,
+    ev i54, ev i55, ev i56, ev i57, ev i58, ev i59, eF (show 0 < 7 by omega), eF (show 1 < 7 by omega),
+    eF (show 5 < 7 by omega)] at e2 e3 e4 e5 e6 e7
+  refine ⟨fun h0 => ?_, fun h1 => ?_, fun h0 => ?_, fun h1 => ?_, fun h0 => ?_⟩
+  · have z : ((rowNat tr 31 r 56 : Nat) : F) = 0 := by rw [h0]; rfl
+    have a2 := f_sub_eq (f_mul_one_sub e2 z)
+    have a4 := f_sub_eq (f_mul_one_sub e4 z)
+    obtain ⟨-, -, b53, b54, b55, -⟩ := cuto_kinds H hr
+    have b52 := (cuto_kinds H hr).2.1
+    have k2 : ((rowNat tr 31 r 47 : Nat) : F) = ((2 * rowNat tr 31 r 52 + 4 * rowNat tr 31 r 53 +
+        5 * rowNat tr 31 r 54 + 6 * rowNat tr 31 r 55 : Nat) : F) := by
+      simp only [Lean.Grind.Semiring.natCast_add, Lean.Grind.Semiring.natCast_mul] at a2 ⊢
+      have := a2; grind
+    exact ⟨natEq k2 (hN 47) (by omega), natEq a4 (hF 0 (by omega)) (hN 47)⟩
+  · have z : ((rowNat tr 31 r 56 : Nat) : F) = 1 := by rw [h1]; rfl
+    have a3 := f_mul_g e3 z
+    grind
+  · have z : ((rowNat tr 31 r 53 : Nat) : F) = 0 := by rw [h0]; rfl
+    exact natEq (f_sub_eq (f_mul_one_sub e5 z)) (hF 1 (by omega)) (hN 48)
+  · have z : ((rowNat tr 31 r 53 : Nat) : F) = 1 := by rw [h1]; rfl
+    exact natEq (f_sub_eq (f_mul_g e6 z)) (hF 1 (by omega)) (hN 59)
+  · have z : ((rowNat tr 31 r 53 : Nat) : F) = 0 := by rw [h0]; rfl
+    exact natEq (f_sub_eq (f_mul_one_sub e7 z)) (hF 5 (by omega)) (hN 49)
+
+/-- A nonzero CIDMAP multiplicity is on a `k4` row (`(1 − k4)·mm = 0`). -/
+theorem cuto_mm {r : Nat} (hr : r < tr.height 31) (hm : rowNat tr 31 r 60 ≠ 0) : rowNat tr 31 r 53 = 1 := by
+  obtain ⟨-, -, -, -, -, -, i53, -, -, -, -, -, -, i60, -⟩ := cuto_ix2
+  have e := cuto_constr H hr (e := (1 - Cut.Out.c "k4") * Cut.Out.c "mm") (by simp [Cut.Out.constraints])
+  simp only [Expr.eval_mul', Expr.eval_sub', Expr.eval_ofNat', cuto_evalc tr pub r i53,
+    cuto_evalc tr pub r i60] at e
+  have hm' : ((rowNat tr 31 r 60 : Nat) : F) ≠ 0 := fun h0 => hm (natEq (R := 0) h0 (rowNat_lt tr 31 r 60) (by decide))
+  have g : (1 : F) - ((rowNat tr 31 r 53 : Nat) : F) = 0 := by
+    rcases mul_eq_zero' e with h | h
+    · exact h
+    · exact absurd h hm'
+  rcases Nat.lt_or_eq_of_le (cuto_kinds H hr).2.2.1 with h | h
+  · have h0 : rowNat tr 31 r 53 = 0 := by omega
+    rw [h0] at g; exact absurd g (by decide)
+  · exact h
+
+end
+
+/-! ## 2. CIDMAP (bus 14): only SEGB and CUTO, receive counts are bits, lookups resolve -/
+
+set_option maxRecDepth 100000 in
+/-- No table other than `SEGB` (0) and `CUTO` (31) has an interaction on bus 14. -/
+theorem seg_cidm_tables (nloc ngl : Nat) :
+    ∀ t (ht : t < (wasmBaseSegAir nloc ngl).tables.length), t ≠ 0 → t ≠ 31 →
+      ∀ i ∈ ((wasmBaseSegAir nloc ngl).tables[t]'ht).inters, i.bus ≠ 14 := by
+  have e : (wasmBaseSegAir nloc ngl).tables = (wasmBaseSegAir 0 0).tables := rfl
+  have h0 : ∀ t (ht : t < (wasmBaseSegAir 0 0).tables.length), t ≠ 0 → t ≠ 31 →
+      ((wasmBaseSegAir 0 0).tables[t]'ht).inters.all (fun i => i.bus != 14) = true := by
+    decide
+  have h : ∀ t (ht : t < (wasmBaseSegAir nloc ngl).tables.length), t ≠ 0 → t ≠ 31 →
+      ((wasmBaseSegAir nloc ngl).tables[t]'ht).inters.all (fun i => i.bus != 14) = true := by
+    simp only [e]; exact h0
+  intro t ht h0' h31 i hi
+  have := List.all_eq_true.mp (h t ht h0' h31) i hi
+  simpa using this
+
+set_option maxRecDepth 100000 in
+theorem segb_cidm :
+    Segb.table.inters.filter (fun i => i.bus = 14) =
+      [⟨busCidm, false, .first, [Segb.c "cidf", pv pubCidOut]⟩, ⟨busCidm, true, Segb.c "m0", [0, 0]⟩] := by
+  decide
+
+set_option maxRecDepth 100000 in
+theorem cuto_cidm :
+    Cut.Out.table.inters.filter (fun i => i.bus = 14) =
+      [⟨busCidm, false, Cut.Out.c "kL", [Cut.Out.c "space" - 16, Cut.Out.F 0 - 16]⟩,
+       ⟨busCidm, false, Cut.Out.c "k4", [Cut.Out.c "x2", Cut.Out.F 5]⟩,
+       ⟨busCidm, true, Cut.Out.c "mm", [Cut.Out.c "slot", Cut.Out.F 1]⟩] := by
+  decide
+
+theorem mem_filter14 {T : Table} {i : Inter} (hi : i ∈ T.inters) (hb : i.bus = 14) :
+    i ∈ T.inters.filter (fun i => i.bus = 14) := List.mem_filter.mpr ⟨hi, by simpa using hb⟩
+
+theorem seg_t31' (nloc ngl : Nat) :
+    (wasmBaseSegAir nloc ngl).tables[31]'(by simp [seg_air_len]) = Cut.Out.table := rfl
+
+section
+variable {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsX (wasmBaseSegAir nloc ngl) pub tr)
+include H
+
+/-- Receive counts on bus 14 are bits. -/
+theorem cidm_recv_bits :
+    ∀ o ∈ occs (wasmBaseSegAir nloc ngl) tr pub, o.1 = 14 → o.2.1 = false → o.2.2.2 ≤ 1 := by
+  intro o ho hob hos
+  obtain ⟨t, ht, r, hr, i, hi, rfl⟩ := mem_occs.mp ho
+  simp only at hob hos ⊢
+  by_cases h0 : t = 0
+  · subst h0
+    have hm := mem_filter14 hi hob
+    rw [seg_t0, segb_cidm] at hm
+    simp only [List.mem_cons, List.mem_nil_iff, or_false] at hm
+    rcases hm with rfl | rfl
+    · simp only [Expr.eval]; split <;> decide
+    · simp at hos
+  by_cases h31 : t = 31
+  · subst h31
+    have hm := mem_filter14 hi hob
+    rw [seg_t31', cuto_cidm] at hm
+    obtain ⟨-, -, -, -, -, -, i53, -, -, i56, -⟩ := cuto_ix2
+    obtain ⟨-, -, b53, -, -, b56, -⟩ := cuto_kinds H hr
+    simp only [List.mem_cons, List.mem_nil_iff, or_false] at hm
+    rcases hm with rfl | rfl | rfl
+    · simp only [cuto_evalc tr pub r i56, Fp.toNat_cast_of_lt (rowNat_lt tr 31 r 56)]; exact b56
+    · simp only [cuto_evalc tr pub r i53, Fp.toNat_cast_of_lt (rowNat_lt tr 31 r 53)]; exact b53
+    · simp at hos
+  · exact absurd hob (seg_cidm_tables nloc ngl t ht h0 h31 i hi)
+
+/-- **A CIDMAP query of a CUTO row is answered**: by SEGB's `0 ↦ 0`, or by an active `k4` row's
+`slot ↦ F1`. -/
+theorem cidm_provider {r : Nat} (hr : r < tr.height 31) {i : Inter}
+    (hi : i ∈ Cut.Out.table.inters) (hb : i.bus = 14) (hs : i.send = false)
+    (hc : (i.count.eval (tr.row pub 31 r)).toNat = 1) :
+    i.msg.map (·.eval (tr.row pub 31 r)) = [0, 0] ∨
+      ∃ r', r' < tr.height 31 ∧ rowNat tr 31 r' 53 = 1 ∧ rowNat tr 31 r' 0 = 1 ∧
+        i.msg.map (·.eval (tr.row pub 31 r)) =
+          [((rowNat tr 31 r' 48 : Nat) : F), ((cutoF tr r' 1 : Nat) : F)] := by
+  have ht31 : 31 < (wasmBaseSegAir nloc ngl).tables.length := by simp [seg_air_len]
+  have hocc := (mem_occs (A := wasmBaseSegAir nloc ngl) (tr := tr) (pub := pub)).mpr
+    ⟨31, ht31, r, hr, i, by rw [seg_t31']; exact hi, rfl⟩
+  obtain ⟨o', ho', hb', hs', hm', hc'⟩ := recv_has_send H 14 (cidm_recv_bits H) hocc hb hs hc
+  obtain ⟨t', ht', r', hr', i', hi', rfl⟩ := mem_occs.mp ho'
+  simp only at hb' hs' hm' hc'
+  by_cases h0 : t' = 0
+  · subst h0
+    have hm := mem_filter14 hi' hb'
+    rw [seg_t0, segb_cidm] at hm
+    simp only [List.mem_cons, List.mem_nil_iff, or_false] at hm
+    rcases hm with rfl | rfl
+    · simp at hs'
+    · left; rw [← hm']; simp; rfl
+  by_cases h31 : t' = 31
+  · subst h31
+    have hm := mem_filter14 hi' hb'
+    rw [seg_t31', cuto_cidm] at hm
+    simp only [List.mem_cons, List.mem_nil_iff, or_false] at hm
+    rcases hm with rfl | rfl | rfl
+    · simp at hs'
+    · simp at hs'
+    · right
+      obtain ⟨-, i48, -, -, -, -, -, -, -, -, -, -, -, i60, -⟩ := cuto_ix2
+      have hmm : rowNat tr 31 r' 60 ≠ 0 := by
+        intro h0; simp only [cuto_evalc tr pub r' i60, h0] at hc'; exact hc' rfl
+      have h53 := cuto_mm H hr' hmm
+      have ha : rowNat tr 31 r' 0 = 1 := by
+        have := (cuto_kinds H hr').2.2.2.2.2.2; have := (cuto_bits H hr').1; omega
+      refine ⟨r', hr', h53, ha, ?_⟩
+      rw [← hm']
+      simp only [List.map_cons, List.map_nil, cuto_evalc tr pub r' i48, cuto_evalF tr pub r' (show 1 < 7 by omega)]
+  · exact absurd hb' (seg_cidm_tables nloc ngl t' ht' h0 h31 i' hi')
+
+end
+
+end WasmBase
