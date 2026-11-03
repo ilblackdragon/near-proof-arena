@@ -1171,3 +1171,26 @@ rows produce the writes now on the public tape; range-check `WSA` times).
   continued-key rows and unused there). Left: `SnRest2` (split rows — partly done in
   `lean-wip/`, over the memory budget as written — and continued keys), `SnUpLimbs`/`SnMatLimbs`,
   `hlongS`/`hlongM`.
+
+**M5a-7 (eighth session, 2026-11-03) [K][M]:** README §"M5a-7", log
+[`docs/logs/e2e-m5a7-state-2026-11-03.md`](../logs/e2e-m5a7-state-2026-11-03.md). No AIR change.
+* **M5b end to end [K]:** `M5bFinal.m5b_final` — from `Holds` of the M5b prover AIR, the chip
+  contract and CR premises, the named producer premise `HostReqs` (the execution side's
+  `SREQ`/`HB` sends are the request list, memory a function of `(ts, pos)`, `(seg, ts)` order) and the
+  continued-key row relations: the **spec's own overlay** of the requests (`Ovl` set / remove /
+  commit) applied to the pre-state reaches `post_state_root`. Built from: STATE rows sound
+  (`StSound.write_sent`: every `WRITE` = `(seg, ts, sha256 key, pr, |v|, sha256 v)` of the `HB` bytes
+  of its `SREQ`), `committed ~ cs` (`StSound.final_changes_m5b`), and
+  `SnFinal5.air_final_sorted_sn5`.
+* **Split rows and limbs [K]:** the M5a-6 `lean-wip/` split proofs compiled (the > 24 GB was
+  `omega` over trace-column atoms; plain-Nat lemmas instead, every module < 1 GB); `SnUpLimbs`,
+  `SnMatLimbs`, `OslNodeLimbs`, the `oEP`/`oEM` child limbs and the continued keys' memory limbs
+  (`SnCont*`, `snContMem_of`) from `Holds`; continued-key full-key records
+  `SnContRec4.cont_oldOK` / `cont_newOK` (the decoder's `snKey` reads past the head for `cont = 1`).
+* **Tooling / cost [M]:** mutant battery no longer aborts on a tamper without a target row (`vbyte`
+  on `bval`: NOT APPLICABLE); the M5b +287 kB is not the stacking width (sweep: `w` 10 → 12 +4 kB,
+  `n` 22 worse) but the extra tables (`SHAS` openings +57 kB, WHIR +231 kB) — merging `SHAS` into the
+  SHA-256 table is the lever, left open.
+* **Open:** continued-key rows (`ckey` ↔ walk key, then `SnContRest`, `hlongS`/`hlongM`,
+  `SnFreshLong`), `HostReqs` from lane A's HOST rows, reads, `SHAS` merge, completeness gaps (keys
+  > ~254 bytes: `hplen < 256` — new; empty key), lane E `StViewE`.
