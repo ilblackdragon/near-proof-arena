@@ -119,10 +119,11 @@ accepts of a nearcore reject after: **0 in every row**.
 | W08 family | signed | 4,730 | 1,778 / 1,666 / 0 / 1,286 | same | 0 | pass → pass ¹ |
 | eth-wallet | signed | 10,650 | 1,721 / 5,971 / 0 / 2,958 | same | 0 | pass → pass ¹ |
 | mainnet shard 13 | signed | 1,223 | 944 / 0 / 0 / 279 | same | 0 | ¹ |
-| full corpus | allFeatures, signed | 235,716 | **pending** (§6) | | | |
+| full corpus | allFeatures | 235,716 | 76,431 / 159,190 / 95 / 0 | 76,431 / 159,191 / 94 / 0 | race → reject 1 (err) | pass → pass |
+| full corpus | signed | 235,716 | 73,783 / 159,175 / 0 / 2,758 | same | 0 | pass → pass |
 
-¹ Against the intermediate baseline `0b0f01ec…` (same G3 change, built before the fuel-proof
-merge); the final-baseline signed runs are in progress (§6). The signed tier has no global-contract
+¹ First measured against the intermediate baseline `0b0f01ec…`; rerun against the final baseline
+`461a7cd9…` → `644495ff…` (§6) with identical counts. The signed tier has no global-contract
 calls in domain and its race arm is the legacy cold-cache rule, so G3 moves nothing there.
 ² Pre-existing and identical before and after: 2 honest chunks with a distribution receipt and 5
 code mutants on a global-contract identifier that the committed (pre-W08) oracle does not label
@@ -147,21 +148,26 @@ now `domain_exclusion_where_in_domain`, a failure.
   `uncertain` flag produced; after the change every remaining race row is licensed by the oracle's
   race label (`domain_exclusion_asserted`): fixtures 4, pipeline-race 11, W08 97, eth-wallet 5.
 
-## 6. Pending: the full corpus
+## 6. Full corpus and final-baseline rerun (done 2026-11-03)
 
-The full-corpus runs (235,716 cases, both tiers, before `461a7cd9…` and after `644495ff…`) are running
-detached (`scripts/lane.sh`, 5 jobs each; host shared) into `/data/illia/nearproof-deps/g3-uncertain/rep/`,
-after the signed small populations. When `rep/status` lists `base ALL` and `after ALL`:
-
-```
-cd /data/illia/nearproof-deps/g3-uncertain && python3 summarize.py summary.json   # fills every row
-python3 tools/d3/replay_successor.py --rescore rep/<run> --out rep-rescore/<run>   # current harness
-```
-
-Expected from construction (only deploy-served executed calls can move): the 95 `allFeatures`
-corpus race exclusions (pre-W08 `code.*` mutants, nearcore rejects all 95, W08 §6) either stay
-(nearcore race) or become rejects; no signed row moves. Earlier corpus runs against `ee00c918…` /
-`0b0f01ec…` were stopped when main moved.
+Every population above was rerun with the integrated harness against the final baseline `461a7cd9…`
+(before) and `644495ff…` (after), detached into `/data/illia/nearproof-deps/g3-uncertain/rep/`
+(`rep/status`: `base ALL`, `after ALL`). `summarize.py summary.json` gives the table rows above, and
+`summary.json` here holds them with the result sha256.
+- **Full corpus, `allFeatures`:** exactly one row moved. It was a pre-W08 `code.*` mutant, and the
+  move was race → reject, which matches nearcore (it rejects that mutant).
+  - The other 94 race exclusions stay. They are among the 95 that W08 §6 shows nearcore rejects.
+- **Full corpus, `signed`:** nothing moved.
+- **Soundness:** `unsound` (a Lean accept of a nearcore reject) is 0 in every row.
+- **Harness status:** every after run passes except the pipeline-race family on `signed`.
+  - Its 7 rows are footnote ²: identical before and after, and all of them are exclusions, not
+    verdict disagreements. They were rescored with the current harness
+    (`rep-rescore/after-race-signed`), with the same result.
+  - The open question is only whether the oracle's in-domain label for global-contract shapes
+    should defer to the signed tier's statement exclusion. That is a harness/domain decision, left
+    open.
+  - The Gate-B freeze set (`fixtures-final`) does not include this family, and it passes on both
+    tiers ([gate-b-freeze-644495ff](../gate-b-freeze-644495ff/README.md)).
 
 ## Reproduce
 

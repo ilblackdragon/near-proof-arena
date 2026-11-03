@@ -1,0 +1,525 @@
+{
+ "census/allFeatures": {
+  "after_accepts_of_nearcore_rejects": 0,
+  "cases": 3138,
+  "harness": {
+   "after": {
+    "partition": {
+     "verdict_agree_outside_domain": 1945,
+     "verdict_compared_agree": 1193
+    },
+    "status": "pass"
+   },
+   "base": {
+    "partition": {
+     "verdict_agree_outside_domain": 1945,
+     "verdict_compared_agree": 1193
+    },
+    "status": "pass"
+   }
+  },
+  "moves": {},
+  "results_sha256": {
+   "after": "20dbb0fa14ed0b78328cb1ade4f6b704ac17353dfb9d4a36429500d4384e8574",
+   "base": "20dbb0fa14ed0b78328cb1ade4f6b704ac17353dfb9d4a36429500d4384e8574"
+  },
+  "verdicts": {
+   "after": {
+    "accept": 3138
+   },
+   "base": {
+    "accept": 3138
+   }
+  }
+ },
+ "census/signed": {
+  "after_accepts_of_nearcore_rejects": 0,
+  "cases": 3138,
+  "harness": {
+   "after": {
+    "partition": {
+     "domain_exclusion_asserted": 2403,
+     "verdict_agree_outside_domain": 735
+    },
+    "status": "pass"
+   },
+   "base": {
+    "partition": {
+     "domain_exclusion_asserted": 2403,
+     "verdict_agree_outside_domain": 735
+    },
+    "status": "pass"
+   }
+  },
+  "moves": {},
+  "results_sha256": {
+   "after": "a426b79d5f145aff78418d8986e189dcfe2662d4a586a9f864e35c3af9d3afc5",
+   "base": "a426b79d5f145aff78418d8986e189dcfe2662d4a586a9f864e35c3af9d3afc5"
+  },
+  "verdicts": {
+   "after": {
+    "accept": 735,
+    "ood": 2403
+   },
+   "base": {
+    "accept": 735,
+    "ood": 2403
+   }
+  }
+ },
+ "corpus/allFeatures": {
+  "after_accepts_of_nearcore_rejects": 0,
+  "cases": 235716,
+  "harness": {
+   "after": {
+    "partition": {
+     "domain_exclusion_asserted": 94,
+     "verdict_agree_outside_domain": 122377,
+     "verdict_compared_agree": 113245
+    },
+    "status": "pass"
+   },
+   "base": {
+    "partition": {
+     "domain_exclusion_asserted": 95,
+     "verdict_agree_outside_domain": 122377,
+     "verdict_compared_agree": 113244
+    },
+    "status": "pass"
+   }
+  },
+  "moves": {
+   "ood(race) -> reject (nearcore err)": 1
+  },
+  "results_sha256": {
+   "after": "ec259c202465c579713d3fdd4b33775cf30cefee25ba0a9539936f220949d0cf",
+   "base": "22ac6141b4adbef6956337d112afa79086bad025aea18a4872fa3a28d8837f43"
+  },
+  "verdicts": {
+   "after": {
+    "accept": 76431,
+    "ood(race)": 94,
+    "reject": 159191
+   },
+   "base": {
+    "accept": 76431,
+    "ood(race)": 95,
+    "reject": 159190
+   }
+  }
+ },
+ "corpus/signed": {
+  "after_accepts_of_nearcore_rejects": 0,
+  "cases": 235716,
+  "harness": {
+   "after": {
+    "partition": {
+     "domain_exclusion_asserted": 2513,
+     "domain_exclusion_independently_asserted": 245,
+     "verdict_agree_outside_domain": 120922,
+     "verdict_compared_agree": 112036
+    },
+    "status": "pass"
+   },
+   "base": {
+    "partition": {
+     "domain_exclusion_asserted": 2513,
+     "domain_exclusion_independently_asserted": 245,
+     "verdict_agree_outside_domain": 120922,
+     "verdict_compared_agree": 112036
+    },
+    "status": "pass"
+   }
+  },
+  "moves": {},
+  "results_sha256": {
+   "after": "cd5d6bab41faa7526b5ce3b12b9c62447c83723d8bdfe7f9996b11e36a7fd829",
+   "base": "cd5d6bab41faa7526b5ce3b12b9c62447c83723d8bdfe7f9996b11e36a7fd829"
+  },
+  "verdicts": {
+   "after": {
+    "accept": 73783,
+    "ood": 2758,
+    "reject": 159175
+   },
+   "base": {
+    "accept": 73783,
+    "ood": 2758,
+    "reject": 159175
+   }
+  }
+ },
+ "ethw/allFeatures": {
+  "after_accepts_of_nearcore_rejects": 0,
+  "cases": 10650,
+  "harness": {
+   "after": {
+    "partition": {
+     "domain_exclusion_asserted": 5,
+     "verdict_agree_outside_domain": 2185,
+     "verdict_compared_agree": 8460
+    },
+    "status": "pass"
+   },
+   "base": {
+    "partition": {
+     "domain_exclusion_asserted": 5,
+     "domain_exclusion_where_in_domain": 2,
+     "verdict_agree_outside_domain": 2185,
+     "verdict_compared_agree": 8458
+    },
+    "status": "fail"
+   }
+  },
+  "moves": {
+   "ood(race) -> reject (nearcore err)": 2
+  },
+  "results_sha256": {
+   "after": "2a6764c8adba9d2b74684776a5e8f78941664003c5ae10d05d932c29541a1c2f",
+   "base": "0e6498ea1c5711bbfe5eda64d34812c1980939fcd19a5ce1ff09600dd882331a"
+  },
+  "verdicts": {
+   "after": {
+    "accept": 2816,
+    "ood(race)": 5,
+    "reject": 7829
+   },
+   "base": {
+    "accept": 2816,
+    "ood(race)": 7,
+    "reject": 7827
+   }
+  }
+ },
+ "ethw/signed": {
+  "after_accepts_of_nearcore_rejects": 0,
+  "cases": 10650,
+  "harness": {
+   "after": {
+    "partition": {
+     "domain_exclusion_asserted": 2958,
+     "verdict_agree_outside_domain": 1408,
+     "verdict_compared_agree": 6284
+    },
+    "status": "pass"
+   },
+   "base": {
+    "partition": {
+     "domain_exclusion_asserted": 2958,
+     "verdict_agree_outside_domain": 1408,
+     "verdict_compared_agree": 6284
+    },
+    "status": "pass"
+   }
+  },
+  "moves": {},
+  "results_sha256": {
+   "after": "fd0b2e0804c19bb78b5b7aaee62b9dfa721fc437b45b3b584f42a14e82b748e3",
+   "base": "fd0b2e0804c19bb78b5b7aaee62b9dfa721fc437b45b3b584f42a14e82b748e3"
+  },
+  "verdicts": {
+   "after": {
+    "accept": 1721,
+    "ood": 2958,
+    "reject": 5971
+   },
+   "base": {
+    "accept": 1721,
+    "ood": 2958,
+    "reject": 5971
+   }
+  }
+ },
+ "fixtures/allFeatures": {
+  "after_accepts_of_nearcore_rejects": 0,
+  "cases": 1364,
+  "harness": {
+   "after": {
+    "partition": {
+     "domain_exclusion_asserted": 4,
+     "verdict_agree_outside_domain": 462,
+     "verdict_compared_agree": 898
+    },
+    "status": "pass"
+   },
+   "base": {
+    "partition": {
+     "domain_exclusion_asserted": 4,
+     "domain_exclusion_unasserted": 12,
+     "domain_exclusion_where_in_domain": 2,
+     "verdict_agree_outside_domain": 450,
+     "verdict_compared_agree": 896
+    },
+    "status": "fail"
+   }
+  },
+  "moves": {
+   "ood(race) -> accept (nearcore ok)": 8,
+   "ood(race) -> reject (nearcore err)": 6
+  },
+  "results_sha256": {
+   "after": "be7dc5c088d1d25f0104dc945d89d7416fa5b982539acaf97660c13bbd6affb7",
+   "base": "db32782ff51ce271b8d0338cc12babc69568576e0bae027c7441ecba23ef3553"
+  },
+  "verdicts": {
+   "after": {
+    "accept": 827,
+    "ood(race)": 4,
+    "reject": 533
+   },
+   "base": {
+    "accept": 819,
+    "ood(race)": 18,
+    "reject": 527
+   }
+  }
+ },
+ "fixtures/signed": {
+  "after_accepts_of_nearcore_rejects": 0,
+  "cases": 1364,
+  "harness": {
+   "after": {
+    "partition": {
+     "accept_above_g_alpha_agree": 200,
+     "domain_exclusion_asserted": 505,
+     "domain_exclusion_independently_asserted": 4,
+     "verdict_agree_outside_domain": 289,
+     "verdict_compared_agree": 366
+    },
+    "status": "pass"
+   },
+   "base": {
+    "partition": {
+     "accept_above_g_alpha_agree": 200,
+     "domain_exclusion_asserted": 505,
+     "domain_exclusion_independently_asserted": 4,
+     "verdict_agree_outside_domain": 289,
+     "verdict_compared_agree": 366
+    },
+    "status": "pass"
+   }
+  },
+  "moves": {},
+  "results_sha256": {
+   "after": "a544e250876371b78cd40a935142fd61e71cad4e9a753f2bf5a4532de94e9aa7",
+   "base": "a544e250876371b78cd40a935142fd61e71cad4e9a753f2bf5a4532de94e9aa7"
+  },
+  "verdicts": {
+   "after": {
+    "accept": 434,
+    "ood": 509,
+    "reject": 421
+   },
+   "base": {
+    "accept": 434,
+    "ood": 509,
+    "reject": 421
+   }
+  }
+ },
+ "race/allFeatures": {
+  "after_accepts_of_nearcore_rejects": 0,
+  "cases": 3853,
+  "harness": {
+   "after": {
+    "partition": {
+     "domain_exclusion_asserted": 11,
+     "verdict_agree_outside_domain": 424,
+     "verdict_compared_agree": 3418
+    },
+    "status": "pass"
+   },
+   "base": {
+    "partition": {
+     "domain_exclusion_asserted": 12,
+     "domain_exclusion_unasserted": 188,
+     "verdict_agree_outside_domain": 236,
+     "verdict_compared_agree": 3417
+    },
+    "status": "fail"
+   }
+  },
+  "moves": {
+   "ood(race) -> accept (nearcore ok)": 148,
+   "ood(race) -> reject (nearcore err)": 41
+  },
+  "results_sha256": {
+   "after": "a953ffc79469cd3ceea4a172896f205c23dabcb669acb04a79dee37f95042885",
+   "base": "027b06fe45097b67b5326fd74d26511d9811847ac0fd595abc124d6267f87751"
+  },
+  "verdicts": {
+   "after": {
+    "accept": 2588,
+    "ood(race)": 11,
+    "reject": 1254
+   },
+   "base": {
+    "accept": 2440,
+    "ood(race)": 200,
+    "reject": 1213
+   }
+  }
+ },
+ "race/signed": {
+  "after_accepts_of_nearcore_rejects": 0,
+  "cases": 3853,
+  "harness": {
+   "after": {
+    "partition": {
+     "domain_exclusion_asserted": 704,
+     "domain_exclusion_where_in_domain": 2,
+     "missing_code_cache_exclusion": 5,
+     "verdict_agree_outside_domain": 163,
+     "verdict_compared_agree": 2979
+    },
+    "status": "fail"
+   },
+   "base": {
+    "partition": {
+     "domain_exclusion_asserted": 704,
+     "domain_exclusion_where_in_domain": 2,
+     "missing_code_cache_exclusion": 5,
+     "verdict_agree_outside_domain": 163,
+     "verdict_compared_agree": 2979
+    },
+    "status": "fail"
+   }
+  },
+  "moves": {},
+  "results_sha256": {
+   "after": "74a360a8d81bbc4db5fc542d0bc2bd22cba4550292a31ab13d5b3f67e1cd71be",
+   "base": "74a360a8d81bbc4db5fc542d0bc2bd22cba4550292a31ab13d5b3f67e1cd71be"
+  },
+  "verdicts": {
+   "after": {
+    "accept": 2039,
+    "ood": 711,
+    "reject": 1103
+   },
+   "base": {
+    "accept": 2039,
+    "ood": 711,
+    "reject": 1103
+   }
+  }
+ },
+ "shard13/allFeatures": {
+  "after_accepts_of_nearcore_rejects": 0,
+  "cases": 1223,
+  "harness": {},
+  "moves": {},
+  "results_sha256": {
+   "after": "168541970216f21f82a5e9cf44952eda0db03996e9b499b8946dff28cadddafc",
+   "base": "ba474616bc360ccd37b5553779331a382ae1ee6fc0cabdc227fd72d8c301624a"
+  },
+  "verdicts": {
+   "after": {
+    "accept": 1223
+   },
+   "base": {
+    "accept": 1223
+   }
+  }
+ },
+ "shard13/signed": {
+  "after_accepts_of_nearcore_rejects": 0,
+  "cases": 1223,
+  "harness": {},
+  "moves": {},
+  "results_sha256": {
+   "after": "1a23a4d78f5a0eb856329cbda180378b46e55eb06c26d0c2c3fa7a66963067c2",
+   "base": "44ceda6587a92a85164cfc6a8bc5eb38c971f7e72ed2294faff878ed742245b3"
+  },
+  "verdicts": {
+   "after": {
+    "accept": 944,
+    "ood": 279
+   },
+   "base": {
+    "accept": 944,
+    "ood": 279
+   }
+  }
+ },
+ "w08/allFeatures": {
+  "after_accepts_of_nearcore_rejects": 0,
+  "cases": 4730,
+  "harness": {
+   "after": {
+    "partition": {
+     "domain_exclusion_asserted": 97,
+     "verdict_agree_outside_domain": 19,
+     "verdict_compared_agree": 4614
+    },
+    "status": "pass"
+   },
+   "base": {
+    "partition": {
+     "domain_exclusion_asserted": 97,
+     "domain_exclusion_where_in_domain": 30,
+     "verdict_agree_outside_domain": 19,
+     "verdict_compared_agree": 4584
+    },
+    "status": "fail"
+   }
+  },
+  "moves": {
+   "ood(race) -> reject (nearcore err)": 30
+  },
+  "results_sha256": {
+   "after": "a472b9c202851412fa0f25759cb958a00f0fa63fb1207e461d91b27b5afd60f6",
+   "base": "671d62b4316206561f2706df78c1c1df0ce147492b9f9792631856328f5ae290"
+  },
+  "verdicts": {
+   "after": {
+    "accept": 2759,
+    "ood(race)": 97,
+    "reject": 1874
+   },
+   "base": {
+    "accept": 2759,
+    "ood(race)": 127,
+    "reject": 1844
+   }
+  }
+ },
+ "w08/signed": {
+  "after_accepts_of_nearcore_rejects": 0,
+  "cases": 4730,
+  "harness": {
+   "after": {
+    "partition": {
+     "domain_exclusion_asserted": 1286,
+     "verdict_agree_outside_domain": 222,
+     "verdict_compared_agree": 3222
+    },
+    "status": "pass"
+   },
+   "base": {
+    "partition": {
+     "domain_exclusion_asserted": 1286,
+     "verdict_agree_outside_domain": 222,
+     "verdict_compared_agree": 3222
+    },
+    "status": "pass"
+   }
+  },
+  "moves": {},
+  "results_sha256": {
+   "after": "c7f503adb4c7b4da62edc6e636638d16492910cc1dacb6ec80d492dedc7f1fae",
+   "base": "c7f503adb4c7b4da62edc6e636638d16492910cc1dacb6ec80d492dedc7f1fae"
+  },
+  "verdicts": {
+   "after": {
+    "accept": 1778,
+    "ood": 1286,
+    "reject": 1666
+   },
+   "base": {
+    "accept": 1778,
+    "ood": 1286,
+    "reject": 1666
+   }
+  }
+ }
+}
