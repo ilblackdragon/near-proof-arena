@@ -602,14 +602,19 @@ theorem checkM2_facts {cfg : NearCfg} {p : Prepared} {fn off : Nat} {cinfo : Nat
     all_goals first
       | (simp at hr; done)
       | (simp only [Option.some.injEq] at hr; rw [← hr]
-         refine ⟨_, _, rfl, ?_⟩
-         simp only [m2OpNat, opMemGrowX, opMemSizeX, opUnreach, opHostX, Chips.opHost, Chips.IfC.opIf,
-           Chips.Ctrl.opJump]
-         decide)
+         refine ⟨_, _, rfl, ?_, ?_⟩
+         · simp only [m2OpNat, opMemGrowX, opMemSizeX, opUnreach, opHostX, Chips.opHost, Chips.IfC.opIf,
+             Chips.Ctrl.opJump]
+           decide
+         · first
+           | (intro _; rfl)
+           | (intro h; simp [opMemGrowX, opMemSizeX, opUnreach, opHostX, Chips.opHost, Chips.IfC.opIf,
+               Chips.Ctrl.opJump] at h))
       | (exfalso; simp_all [isConvOp]; done)
       | (simp only [Option.some.injEq] at hr; rw [← hr]
-         refine ⟨_, _, rfl, ?_⟩
-         simp only [m2OpNat, Bool.or_eq_true, beq_iff_eq] at hs ⊢; omega)
+         refine ⟨_, _, rfl, ?_, ?_⟩
+         · simp only [m2OpNat, Bool.or_eq_true, beq_iff_eq] at hs ⊢; omega
+         · simp only [Bool.or_eq_true, beq_iff_eq] at hs; simp only [Chips.Ctrl.opJump]; omega)
     all_goals done
   · intro pc hpc hins
     have hv := F.verify pc hpc

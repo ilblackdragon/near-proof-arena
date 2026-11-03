@@ -96,7 +96,8 @@ structure CheckFacts (cfg : NearCfg) (p : Prepared) (fn off : Nat) (cinfo : Nat 
     recordOf off cinfo (ck.labels[pc]?.getD []) (ck.heights[pc]?.getD 0) fee (off + pc) ins = ck.records[pc]?)
   /-- at an M2 addition the record carries an M2 opcode (so no base chip's FETCH can match it) -/
   special : ∀ pc, pc < pf.code.size → ∀ ins, pf.code[pc]? = some ins → m2Special p ins = true →
-    ∃ op rest, ck.records[pc]? = some ((off + pc) :: op :: rest) ∧ m2OpNat op = true
+    ∃ op rest, ck.records[pc]? = some ((off + pc) :: op :: rest) ∧ m2OpNat op = true ∧
+      (op = Chips.Ctrl.opJump → ins = .else_)
   /-- at an `else` (M2): the true arm ends at `label.height + arity`, the label target carries the
   outer labels at that height, and the record is CTRL's jump to the target -/
   elseF : ∀ pc, pc < pf.code.size → pf.code[pc]? = some .else_ → ∃ lab rest fee,
@@ -308,7 +309,8 @@ theorem CheckFacts.of_parts {cfg : NearCfg} {p : Prepared} {fn off : Nat} {cinfo
       ∃ fee, feeUnits cfg pf.gas[pc]? = some fee ∧ fee ≤ ck.maxFee ∧
       recordOf off cinfo (ck.labels[pc]?.getD []) (ck.heights[pc]?.getD 0) fee (off + pc) ins = ck.records[pc]?))
     (special : ∀ pc, pc < pf.code.size → ∀ ins, pf.code[pc]? = some ins → m2Special p ins = true →
-      ∃ op rest, ck.records[pc]? = some ((off + pc) :: op :: rest) ∧ m2OpNat op = true)
+      ∃ op rest, ck.records[pc]? = some ((off + pc) :: op :: rest) ∧ m2OpNat op = true ∧
+      (op = Chips.Ctrl.opJump → ins = .else_))
     (elseF : ∀ pc, pc < pf.code.size → pf.code[pc]? = some .else_ → ∃ lab rest fee,
       ck.labels[pc]? = some (lab :: rest) ∧ ck.heights[pc]?.getD 0 = lab.height + lab.arity ∧
       lab.target < pf.code.size ∧ ck.labels[lab.target]? = some rest ∧

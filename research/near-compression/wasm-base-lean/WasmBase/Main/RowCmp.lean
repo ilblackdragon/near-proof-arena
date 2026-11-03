@@ -196,7 +196,19 @@ theorem cmp_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
     (by simp [Cmp.inters, stdState])
   simp only [fetch, cntA] at hfetch
   obtain ⟨pc0, hpc0, hm0⟩ := fetch_pc hpub L hfetch
-  obtain ⟨q, l, ins, fee, rec, hq, hl, hoff, hins, hfee, hfl, hrc, hm⟩ := fetch_rec hpub L hfetch hm0 hpc0
+  obtain ⟨q, l, ins, fee, rec, hq, hl, hoff, hins, hfee, hfl, hrc, hm⟩ := fetch_rec hpub L hfetch hm0 hpc0 (by
+    intro n hn he
+    simp only [List.cons_append, List.nil_append, List.map_cons, List.map_nil, List.getD_cons_succ,
+      List.getD_cons_zero] at he
+    simp only [Cmp.op, Cmp.flags, List.zipIdx_cons, List.zipIdx_nil, List.map_cons, List.map_nil,
+      List.foldl_cons, List.foldl_nil, v, Expr.eval_add', Expr.eval_mul', Expr.eval_col, Expr.eval_c,
+      Expr.eval_ofNat', Trace.row, cell_cast, Cmp.is64, Cmp.fEqz, Cmp.fEq, Cmp.fNe, Cmp.fLtS, Cmp.fLtU,
+      Cmp.fGtS, Cmp.fGtU, Cmp.fLeS, Cmp.fLeU, Cmp.fGeS, Cmp.fGeU, Nat.reduceAdd] at he
+    simp only [← Lean.Grind.Semiring.natCast_mul, ← Lean.Grind.Semiring.natCast_add] at he
+    have e := natEq he (by omega) (by omega)
+    subst e
+    simp only [m2OpNat, Bool.or_eq_false_iff, beq_eq_false_iff_ne, ne_eq]
+    omega)
   have CF := X.factsOf hq
   obtain ⟨op, x0, x1, x2, x3, hre, hcase⟩ := recordOf_spec hrc
   have hlt := recordOf_op_lt hrc

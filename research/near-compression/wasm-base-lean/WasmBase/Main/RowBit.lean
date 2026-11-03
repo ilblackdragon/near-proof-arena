@@ -193,7 +193,7 @@ theorem bit_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
   have hfetch := hocc (fetch (v cPc) Bit.op (v cH) (v cFee) zeros4 Bit.act) (by simp [Bit.inters, stdState])
   simp only [fetch, cnt] at hfetch
   obtain ⟨pc0, hpc0, hm0⟩ := fetch_pc hpub L hfetch
-  obtain ⟨q, l, ins, fee, rec, hq, hl, hoff, hins, hfee, hfl, hrc, hm⟩ := fetch_rec hpub L hfetch hm0 hpc0
+  obtain ⟨q, l, ins, fee, rec, hq, hl, hoff, hins, hfee, hfl, hrc, hm⟩ := fetch_rec hpub L hfetch hm0 hpc0 (by m2ns)
   have CF := X.factsOf hq
   obtain ⟨op, x0, x1, x2, x3, hre, hcase⟩ := recordOf_spec hrc
   have hlt := recordOf_op_lt hrc

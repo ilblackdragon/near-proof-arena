@@ -876,7 +876,7 @@ exactly `N - 1` steps, having charged `R · S` gas: with status 1 it returns wit
 equal to the public result; with status 2 it traps. -/
 theorem wasm_base_exec (X : Ctx) {nloc ncode : Nat} {pub : List F} {tr : Trace}
     (H : Holds (wasmBaseAir nloc ncode) pub tr) (hpub : PubOK X nloc ncode pub)
-    (CF : ChipFacts X nloc ncode pub tr) (hcode : CodeOK X tr) (hfunc : FuncOK X tr) (hB : X.Base)
+    (CF : ChipFacts X nloc ncode pub tr) (hcode : CodeOK X tr) (hfunc : FuncOK X tr)
     (hfeeN : (pub.getD Boundary.pubN 0).toNat * (X.maxFee + 1) < P)
     (hgas : X.R * (pub.getD Boundary.pubS 0).toNat ≤ X.g0) (hg64 : X.g0 < 2 ^ 64)
     {s0 : St} {f0 : Frame} (hfr : s0.frames = [f0]) (hfn : f0.fn = X.fn) (hpc : f0.pc = 0)
@@ -898,7 +898,7 @@ theorem wasm_base_exec (X : Ctx) {nloc ncode : Nat} {pub : List F} {tr : Trace}
         X.R * (pub.getD Boundary.pubS 0).toNat + sN.gas.g = X.g0) := by
   have hP' := P_val
   have hbits := occ_bits H hpub CF
-  have L := looks_of H hcode hfunc (fun o ho hs => hbits o ho (Or.inl hs)) hB
+  have L := looks_of H hcode hfunc (fun o ho hs => hbits o ho (Or.inl hs))
   obtain ⟨ms1, ms2⟩ := msgs_state H hpub
   have hstP := msgs_perm H busState (fun o ho hb => hbits o ho (Or.inr (Or.inl hb)))
   rw [ms1, ms2] at hstP

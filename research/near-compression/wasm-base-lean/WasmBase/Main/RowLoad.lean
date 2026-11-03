@@ -355,7 +355,20 @@ theorem load_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
   simp only [fetch] at hfetch
   rw [cA] at hfetch
   obtain ⟨pc0, hpc0, hm0⟩ := fetch_pc hpub L hfetch
-  obtain ⟨q, l, ins, fee, rec, hq, hl, hoff, hins, hfee, hfl, hrc, hm⟩ := fetch_rec hpub L hfetch hm0 hpc0
+  have eOp0 : Load.op.eval (tr.row pub 11 r) = ((o.1 : Nat) : F) := by
+    rw [row_eq_natRow, load_op_eval _ _ k0 hk0 hone, ho]
+  have hopr0 : 0x28 ≤ o.1 ∧ o.1 ≤ 0x35 := by
+    have : ∀ k, k < 12 → 0x28 ≤ (Load.ops.getD k default).1 ∧ (Load.ops.getD k default).1 ≤ 0x35 := by decide
+    exact ho ▸ this k0 hk0
+  obtain ⟨q, l, ins, fee, rec, hq, hl, hoff, hins, hfee, hfl, hrc, hm⟩ := fetch_rec hpub L hfetch hm0 hpc0 (by
+    intro n hn he
+    simp only [List.cons_append, List.nil_append, List.map_cons, List.map_nil, List.getD_cons_succ,
+      List.getD_cons_zero] at he
+    rw [eOp0] at he
+    have e := natEq he (by omega) (by omega)
+    subst e
+    simp only [m2OpNat, Bool.or_eq_false_iff, beq_eq_false_iff_ne, ne_eq]
+    omega)
   have CF := X.factsOf hq
   obtain ⟨op, x0, x1, x2, x3, hre, hcase⟩ := recordOf_spec hrc
   have hoplt := recordOf_op_lt hrc
@@ -884,7 +897,20 @@ theorem store_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
   simp only [fetch] at hfetch
   rw [cA] at hfetch
   obtain ⟨pc0, hpc0, hm0⟩ := fetch_pc hpub L hfetch
-  obtain ⟨q, l, ins, fee, rec, hq, hl, hoff, hins, hfee, hfl, hrc, hm⟩ := fetch_rec hpub L hfetch hm0 hpc0
+  have eOp0 : Store.op.eval (tr.row pub 12 r) = ((o.1 : Nat) : F) := by
+    rw [row_eq_natRow, store_op_eval _ _ k0 hk0 hone, ho]
+  have hopr0 : 0x36 ≤ o.1 ∧ o.1 ≤ 0x3E := by
+    have : ∀ k, k < 7 → 0x36 ≤ (Store.ops.getD k default).1 ∧ (Store.ops.getD k default).1 ≤ 0x3E := by decide
+    exact ho ▸ this k0 hk0
+  obtain ⟨q, l, ins, fee, rec, hq, hl, hoff, hins, hfee, hfl, hrc, hm⟩ := fetch_rec hpub L hfetch hm0 hpc0 (by
+    intro n hn he
+    simp only [List.cons_append, List.nil_append, List.map_cons, List.map_nil, List.getD_cons_succ,
+      List.getD_cons_zero] at he
+    rw [eOp0] at he
+    have e := natEq he (by omega) (by omega)
+    subst e
+    simp only [m2OpNat, Bool.or_eq_false_iff, beq_eq_false_iff_ne, ne_eq]
+    omega)
   have CF := X.factsOf hq
   obtain ⟨op, x0, x1, x2, x3, hre, hcase⟩ := recordOf_spec hrc
   have hoplt := recordOf_op_lt hrc

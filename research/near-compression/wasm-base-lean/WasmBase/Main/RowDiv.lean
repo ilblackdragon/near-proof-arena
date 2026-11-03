@@ -46,7 +46,9 @@ theorem div_binop_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Tra
     simp only [isBinop, binops, List.mem_cons, List.mem_nil_iff, or_false] at hop; omega
   -- the fee bound, independent of the spec state
   obtain ⟨pc0, hpc0, hm0⟩ := fetch_pc hpub L hfo
-  obtain ⟨q, l, ins, fee, rec, hq, hl, hoff, hins, hfee, hfl, hrc, hm⟩ := fetch_rec hpub L hfo hm0 hpc0
+  have hop0 : 0x6A ≤ op := by
+    simp only [isBinop, binops, List.mem_cons, List.mem_nil_iff, or_false] at hop; omega
+  obtain ⟨q, l, ins, fee, rec, hq, hl, hoff, hins, hfee, hfl, hrc, hm⟩ := fetch_rec hpub L hfo hm0 hpc0 (by m2ns)
   have CF := X.factsOf hq
   obtain ⟨op', x0, x1, x2, x3, hre, hcase⟩ := recordOf_spec hrc
   rw [hre] at hm

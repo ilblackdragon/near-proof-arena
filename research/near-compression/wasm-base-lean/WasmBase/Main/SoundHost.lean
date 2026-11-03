@@ -117,7 +117,7 @@ becomes a `RowFactsSeg` at `seg t`/`seg t = seg t`/`seg (t+1)`; HOST rows are `H
 The instruction rows' accessors are `chipT`'s because `chipTHost` is the identity off table 22. -/
 theorem rowFactsSegMap_of {X : Ctx} {nloc ngl : Nat} {pub : List F} {tr : Trace}
     (H0 : Holds (wasmBaseAir nloc ngl) pub tr) (hpub : PubOK X nloc ngl pub)
-    (hcode : CodeOK X tr) (hfunc : FuncOK X tr) (hB : X.Base)
+    (hcode : CodeOK X tr) (hfunc : FuncOK X tr)
     {seg : Nat → Nat × Nat} (hkeep : SegKeep tr pub seg) (hhold : HoldRow X tr pub seg) :
     ∀ r ∈ actListHost tr pub,
       RowFactsSegMap X (rowInH tr pub r) (rowOutH tr pub r) (consCH tr pub r) (prodCH tr pub r) seg := by
@@ -129,7 +129,7 @@ theorem rowFactsSegMap_of {X : Ctx} {nloc ngl : Nat} {pub : List F} {tr : Trace}
     have hRF : RowFacts2 X (rowIn (chipT ρ.1) tr pub ρ.1 ρ.2) (rowOut (chipT ρ.1) tr pub ρ.1 ρ.2)
         (rowCons (chipT ρ.1) tr pub ρ.1 ρ.2) (rowProd (chipT ρ.1) tr pub ρ.1 ρ.2) :=
       (chipFacts X H0).rows
-        (looks_of H0 hcode hfunc (fun o ho hs => occ_bits H0 hpub (chipFacts X H0) o ho (Or.inl hs)) hB)
+        (looks_of H0 hcode hfunc (fun o ho hs => occ_bits H0 hpub (chipFacts X H0) o ho (Or.inl hs)))
         hpub ρ.1 h1 h9 ρ.2 hr ha
     have hIH : rowInH tr pub ρ = rowIn (chipT ρ.1) tr pub ρ.1 ρ.2 ∧
         rowOutH tr pub ρ = rowOut (chipT ρ.1) tr pub ρ.1 ρ.2 ∧
@@ -200,7 +200,7 @@ theorem wasm_base_exec_host_holds (X : Ctx) {nloc ngl : Nat} {pub : List F} {tr 
     (H : Holds (wasmBaseHostAir nloc ngl) pub tr)
     (H0 : Holds (wasmBaseAir nloc ngl) pub tr)
     (hb : HostBLinked tr pub)
-    (hpub : PubOK X nloc ngl pub) (hcode : CodeOK X tr) (hfunc : FuncOK X tr) (hB : X.Base)
+    (hpub : PubOK X nloc ngl pub) (hcode : CodeOK X tr) (hfunc : FuncOK X tr)
     (seg : Nat → Nat × Nat) (hkeep : SegKeep tr pub seg) (hhold : HoldRow X tr pub seg)
     (st : Nat) (hst12 : st = 1 ∨ st = 2)
     (hstStatus : (st : F) = pub.getD Boundary.pubStatus 0)
@@ -231,7 +231,7 @@ theorem wasm_base_exec_host_holds (X : Ctx) {nloc ngl : Nat} {pub : List F} {tr 
       run X.cfg X.p (actListHost tr pub).length s0 = .abort sN e ∧
       X.R * ((pub.getD Boundary.pubS 0).toNat - (seg ((actListHost tr pub).length + 1)).1) +
         sN.gas.g = (seg ((actListHost tr pub).length + 1)).2) := by
-  have hrows := rowFactsSegMap_of H0 hpub hcode hfunc hB hkeep hhold
+  have hrows := rowFactsSegMap_of H0 hpub hcode hfunc hkeep hhold
   have hbuses := host_buses H H0 hpub (chipFacts X H0) hb
   have hstPerm : (stMsg 0 1 0 0 0 0 :: (actListHost tr pub).map (rowOutH tr pub)).Perm
       ([tr.cell 0 0 Boundary.pcf, pub.getD Boundary.pubN 0, pub.getD Boundary.pubS 0,
