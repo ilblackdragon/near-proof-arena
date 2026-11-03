@@ -344,3 +344,39 @@ The exit test is unchanged: return bytes, logs and gas equal the chunk's outcome
 mutants rejected. Also found: `lake build WasmBase` fails on main at
 `WasmBase/HostCtx.lean:547`, a stale `current_contract_code_h` after `a286d805f`; the tool target
 still builds.
+
+### 5.1 M5a (state lane B): status, 2026-11-03
+
+See `research/near-compression/e2e-general/m5a/README.md` (commands, logs, cost census).
+
+**Done [M]:**
+* **INTAKE + working-set tree + FINAL proves on T1** (`d3c8/d3/02-h10196-s3`) on the main stack:
+  17 working-set keys, 10 committed changes (7 upserts, 3 deletes), taken from the clean-room
+  checker and cross-checked against the Lean `allFeatures --emit-full` write log. 156 trie-node
+  rows, 270 SHA-512 compressions; 1,243,380 B, 268.2-bit, prove 193 s (8 threads), verify 93 ms.
+* **Root equality:** the circuit's post-state root = the Lean run's `stateRoot` = the header's
+  (`1db48e38…`).
+* **Mutants 4/4 rejected:** tampered trie node (hash link), wrong pre-value (INTAKE answer),
+  omitted write (write log + root chain), wrong post-root (closing root).
+* The AIR (`KEY`, `BR`, `SN`, `KCMP`, `WSB`, `WSN`, `WSA` + the unchanged SHA-256 table + the
+  native SHA-512 chip) is a Lean `ZkFormal.Air` value interpreted unchanged by the prover. The trie
+  side walks the spec's own recursions (`findRef`, `upsert`, `del` with `squashBranch` /
+  `extendChild`); the working set is a SHA-384 tree of `(sha256 key, pre, cur, written)` leaves,
+  key-sorted by `KCMP`, with one Merkle-path row per write access and a root chain (`RCH`) a
+  segment boundary can carry.
+* **Cost:** 32.5 k cells per trie-node row (branch 42.0 k, short node 17.2 k, SHA-256 dominated),
+  129.5 k per INTAKE find, 286.1 k per FINAL change, 53.5 k per working-set key (key + order +
+  leaf digests), 149.3 k per write access at depth 5.
+
+**Lean [K]** (`StateM5a/`, std axioms, no `sorry`): every `BR`/`SN` op is one step of
+`PTrie.findRef`/`upsert`/`del` (`Steps`); the branch bitmap / children block and `hexPrefix` equal
+the rows' layout formulas (`Layout`); `KCMP` ⇒ `bytesLt` (`Order`); one write access updates
+exactly one leaf of the working set (`Merkle.write_access_sound`, collision-free hash); field-level
+`KEY` row lemma (`KeyField`). Open: field-level lemmas for the wide tables, the walk composition
+over the witness trie (needs `del` refinement and the no-collision identification), and the
+SHA-512 chip's interface in Lean.
+
+**Not yet:** T2 (`d3c9/d3/00-h10018-s0`, 52 keys / 42 changes) needs absent finds at a leaf or
+extension, branch-value finds, `splitLeaf`/`splitExt` inserts, absent deletes, `extendChild` onto a
+branch, and keys > 64 nibbles per node. Next: those rows, batched FINAL (one rewrite per touched
+node), the field-level lemmas, then M5b (STATE rows produce the writes now on the public tape).

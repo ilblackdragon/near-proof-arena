@@ -1,0 +1,8 @@
+SHA: width 544, constraints 1028, interactions 17
+KEY: width 63, constraints 59, interactions 6
+BR: width 795, constraints 1331, interactions 1130
+SN: width 419, constraints 664, interactions 303
+KCMP: width 14, constraints 26, interactions 6
+WSB: width 151, constraints 152, interactions 41
+WSN: width 67, constraints 27, interactions 21
+WSA: width 518, constraints 254, interactions 227

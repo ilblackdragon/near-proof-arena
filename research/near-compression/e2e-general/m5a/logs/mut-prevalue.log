@@ -1,0 +1,18 @@
+TABLE SHA    width  544 height 2^14 cells   8912896 constraints  1028 interactions    17 deg 4
+TABLE KEY    width   63 height 2^8  cells     16128 constraints    59 interactions     6 deg 4
+TABLE BR     width  795 height 2^7  cells    101760 constraints  1331 interactions  1130 deg 4
+TABLE SN     width  419 height 2^6  cells     26816 constraints   664 interactions   303 deg 4
+TABLE KCMP   width   14 height 2^6  cells       896 constraints    26 interactions     6 deg 4
+TABLE WSB    width  151 height 2^6  cells      9664 constraints   152 interactions    41 deg 5
+TABLE WSN    width   67 height 2^6  cells      4288 constraints    27 interactions    21 deg 4
+TABLE WSA    width  518 height 2^4  cells      8288 constraints   254 interactions   227 deg 2
+TABLE TAPE   width   37 height 2^4  cells       592 constraints     0 interactions     2 deg 0
+TABLE SHA512 width   83 height 2^16 cells   5439488 (native v4)
+TABLE SHA512T width    9 height 2^7  cells      1152 (native v4)
+CELLS 14521968; compressions 270
+TIME load+precheck 2.10s
+PRECHECK FAIL: 2 unbalanced messages by bus {6: 2}; first [((6, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 72, 9978, 35581, 4060, 39513, 19175, 35147, 9801, 17639, 35589, 21537, 56878, 39595, 53570, 46785, 48970, 44590, 1]), 1), ((6, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 73, 9978, 35581, 4060, 39513, 19175, 35147, 9801, 17639, 35589, 21537, 56878, 39595, 53570, 46785, 48970, 44590, 1]), 2013265920)]
+PARAMS n_stack 18 w_stack 18 degree 9
+TIME keygen 0.02s
+SOUNDNESS total=268.2 logup=329.3 proximity=316.2 query=268.2
+REJECTED (prover error) after 6.0s
