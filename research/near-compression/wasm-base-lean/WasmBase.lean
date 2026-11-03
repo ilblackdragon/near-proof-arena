@@ -143,3 +143,5 @@ import WasmBase.Main.SegReentry
 import WasmBase.Main.SegChain
 import WasmBase.Main.SegChainMP
 import WasmBase.Main.SegMemFrame
+import WasmBase.Main.SegMemPath
+import WasmBase.Main.SegMemRoot
