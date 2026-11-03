@@ -161,7 +161,9 @@ no longer hold:
 | **P-D3-4** `T3: Σ ops ≤ 2²²` derived from `G_α` | operator bound for the EXEC table height | **Supersede** | `G_α ≈ 3.45 Tgas` is 30× below 100 Tgas and 290× below 1 Pgas. `.allFeatures` has `gasCap := none` |
 | **P-D3-5** join on `Read.check` (artifact acceptance) | `check_iff` premise strictly stronger than `RelD3` | **Supersede by §3.4's theorem; keep the method** | Under ZK the witness is not an artifact the verifier holds, so the join is on the final verifier's acceptance. Keep the lesson: test every join by asking whether its premise is its conclusion |
 
-### 2.1 Owner decisions needed (recommended answers)
+### 2.1 Owner decisions (all recommended answers ADOPTED by the owner, 2026-11-03)
+
+D-1 (unbounded `allFeatures`), D-2 (section B private), D-3 (PREP sub-proof) with D-7 (non-native chips), and D-4/D-5/D-6 were all accepted as recommended. The superseded proposals in §2 are therefore retired for the PQ E2E track.
 
 | id | question | recommended answer |
 |---|---|---|
