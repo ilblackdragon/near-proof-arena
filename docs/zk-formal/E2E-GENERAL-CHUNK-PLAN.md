@@ -691,4 +691,23 @@ maps to §3.2's `stRoot` and will follow lane E's `CM` boundary record when §3.
   squash after a value delete / onto a non-leaf sibling, splits where a key ends at the branch,
   mismatch past 63 nibbles, the empty trie.
 
-**Next:** the bus-level step, then M5b (STATE rows produce the writes now on the public tape).
+**M5a-3 (fourth session, 2026-11-03) [K][M]:** log
+[`docs/logs/e2e-m5a3-state-2026-11-03.md`](../logs/e2e-m5a3-state-2026-11-03.md).
+* **Bus-level step [K].** `Bus.holds_perm` (`Holds` ⇒ every bus's sent list is a permutation of
+  its received list); `Traffic.walk_unique` (one active row per walk position — needed since `UP`
+  does not repeat the ref), `walk_sem`, `tch_chain`, `ver_recv`, `reqresp`; `BusWalk.ver_store`
+  (the store from `VER`), 23 row-local steps, and **`bus_batched_changes`**: walk shape +
+  `DOWN`/`UP`/`TCH` balance + every row's local step ⇒ `rootHash (applyChanges …)` =
+  `post_state_root` on the witness, premise `Sha256CR` only. `FieldWalk.br_gdn_gold`: a `BR` `DOWN`
+  sender is active (the `SN` analogue is open). `KeepsFW` is false (`not_keepsFW`); replaced by `keepsFWRows` /
+  `batched_changes'`; chain constructors for `oUV`/`oDV`/`oDZ`.
+* **Working-set cost [M].** One SHA-512 compression per leaf; per-write paths replaced by a
+  memory-checked `WM` bus and one batched path update per segment (`RCH` kept). T2 committed
+  cells 16.18 M → 10.73 M, 1,264,466 B, prove 149 s; T1 5.15 M, 1,238,300 B; synthetic 1.99 M;
+  roots unchanged; mutants 52/52 rejected (7 new). `WRITE` is now `(seg, t, kd, value)`.
+* **Open:** field-level decoding of the walk / store / working-set messages and the per-row
+  facts the steps take; steps for the split ops, `oDL`, `oD1`; the `WM`/`PT` bus step; the
+  SHA-512 chip interface; the completeness gaps of M5a-2.
+
+**Next:** the decoding lemmas and split-op steps, then M5b (STATE rows produce the writes now on
+the public tape).

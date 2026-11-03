@@ -4,6 +4,176 @@ Plan: `docs/zk-formal/E2E-GENERAL-CHUNK-PLAN.md` §3.2 (the `stRoot` working set
 Date 2026-11-03. Labels: **[M]** measured here, **[K]** kernel-checked Lean (std axioms),
 **[S]** stated / design only.
 
+## M5a-3 (fourth session, 2026-11-03)
+
+### Bus-level step [K] (`lean/StateM5a/{Bus,Traffic,BusWalk}.lean`, std axioms, no `sorry`)
+
+From bus balance to `rootHash (applyChanges …)`, with `Sha256CR` the only cryptographic premise:
+
+* **`Bus`** (generic, ZkFormal): `busList A tr pub b s` = the messages sent / received on bus `b`,
+  repeated by multiplicity; `count_busList` (= `busCount`), **`holds_perm`**: `Holds A pub tr` ⇒
+  on every bus the sent list is a permutation of the received list (the LogUp predicate in list
+  form); `perm_decode`: under an injective encoding the decoded message lists are permutations too.
+* **`Traffic`** (generic record-level traffic):
+  * **`walk_unique`**: at most one active row receives a `DOWN` at each `(w, d)`.  `UP` does not
+    repeat the node's ref, so this is what lets a parent trust the answer at `(w, d')`.  Proof:
+    the number of open `DOWN` edges of walk `w` crossing depth `d` is 1 at `d = 0` (one `WSB`
+    root per walk) and never grows (`cross_step`: a row at `d` that descends replaces the edge
+    that reached it), and the rows at `d` are at most the edges ending there.
+  * **`walk_sem`**: any property `Sem` that every active row's step carries from its child's
+    `(DOWN, UP)` pair to its own holds at every walk root (induction on depth, `child_of`).
+  * **`tch_chain`**: `TCH` balance makes the writing `WSB` rows one chain from the public
+    `TCH(0, prev)` to `TCH(n, post)` (row count `= n`, `a (j+1) = b j`).
+  * **`ver_recv`**: a `VER` reader's record (all parts) is one published record, if publishers
+    under one ref agree; **`reqresp`**: on a request / response bus (`MATQ`/`MATR`, `SIBQ`/`SIBA`,
+    `SPQ`/`SPR`, `SXQ`/`SXR`) with one request per key, the response a requester receives comes
+    from a responder that received exactly its request.
+* **`BusWalk`** (the M5a instantiation):
+  * **store**: `ver_store` — `σ = storeOf vers` (version-publishing rows' records by id; ids
+    distinct); every `VER` reader's record is `OldOK σ ref R` (a version id's record, or a record
+    hashed to the digest; digest publishers agree: `hashed_agree`, `Sha256CR` + `NodeSerInj` via
+    `shallow_eq`).
+  * **views**: `in_view_wf` (the expansion of a row's input ref reveals to its record with expanded
+    children, well-formed), `out_view` (a node whose children collapse to the expansions of the
+    published record's children collapses to the expansion of the output ref); `Cl` = collapse
+    including written values (`.ref |x| (sha256 x) ↦ .val x`, leaf `slot` and branch `bval`),
+    `cl_collapse` (keeps refinement), `cl_wf` (keeps `wf`).
+  * **walk semantics** `Sem` = `SemF` / `SemU` / `SemD` by mode, and **23 row-local steps**:
+    upsert `oLR`, `oUD`, `oEU`, `oUN` (with `MatRel`, the `MATQ`/`MATR` answer), `oUV`; delete
+    `oLD`, `oLZ`, `oEZ`, `oES`, `oED`, `oEB`, `oDA`, `oDS`, `oDH`/`oDN`, `oDZ`, `oDV`; find `oLF`,
+    `oLA`, `oEA`, `oEF`, `oFD`, `oFA`, `oFV` (`step_*`; `localOK_upsert`/`_delete`/`_find` turn
+    them into `Traffic.LocalOK`).
+  * **`chain_changes`** / **`bus_batched_changes`**: walk shape + `DOWN`/`UP`/`TCH` balance +
+    every row's `LocalOK` + the writing rows as roots of the committed changes ⇒ on any revealed,
+    well-formed witness trie with root `prev_state_root`, `applyChanges` succeeds and
+    `rootHash = post_state_root`.  **Premise `Sha256CR` only**: `KeepsFW` (false, see below) is
+    not used — well-formedness is carried along the walk (rows' memory / length bounds) and
+    `Store.keepsFWRows` transfers it to the witness.
+
+* **`FieldWalk`** (field level, from the exported constraints over BabyBear): `br_gdn_gold`
+  (`BR`: `gdn = 1 ⇒ gold = 1`, a `DOWN` sender is an active row), `sn_bool` and the `SN` one-hot
+  memberships; the `SN` analogue (`gdn = 1 ⇒ gwalk = 1 ∧ isE = 1 ∧ a₀ = 1 ⇒ 1 ≤ klen`) is open
+  (the direct proof exhausts memory; needs a staged proof).
+
+**What is still a premise** (open; field level / remaining ops): (1) decoding — each table's
+`DOWN`/`UP`/`TCH`/`VER` interaction message is the injective encoding of the decoded record
+(`perm_decode`'s hypotheses, refs as flag + 16 limbs); (2) `WalkShape` (`d' > d`: `BR` `d + 1`,
+`SN` `d + klen` with `klen ≥ 1` — open at field level (`FieldWalk` has `BR` only), the `SNC` chain bound on `rl` for a continued head is open; one root per walk: `WSB` `i` distinct,
+`W_FINAL` offset) and active-row bookkeeping (`gdn ≤ gold` from the one-hot bundles); (3) the
+per-row decoded facts each `step_*` takes (`OldOK` from `ver_store` / a hashing row, `NewOK`,
+nibble lookups `K.drop d = …`, mismatch witness, memory / length bounds, kept-branch counts);
+(4) row-local steps for the split ops (`oLX`/`oEX`/`oSL`/`oEP`/`oEM`/`oLM`), `oDL` and
+`oD1`/`oLS` (the bus tool is `reqresp`); (5) the link from the write tape / `WRITE` order to the
+change list (`KCMP` ⇒ `sortKV` is `Order`; the leaf ↔ change pairing is the `WSB` table).
+
+### M5a-3 Lean (state, priority 2) [K]
+
+* **`KeepsFW` is false** (`Store.not_keepsFW`: a `2^32`-byte value written into a well-formed
+  leaf). Replaced by what holds (`Keep`): `RP P a b` = refinement whose stubs cover subtrees with
+  property `P`; `upsert` and `del` commute with it for every `P` (`upsert_rp`, `del_rp`). With
+  `P = False`: a change keeps the witness revealed, unconditionally (`full_upsert`, `full_del`,
+  `full_applyChange`). With `P = wf`: every node of the spec's result is a node the rows
+  rewrote or an old subtree, so `t₁'.wf` (the rows' new trie: range-checked memory limbs,
+  nibbles, key / value lengths) gives `T'.wf` (`applyChange_wf_of_rows`). Together
+  `keepsFWRows : KeepsFWRows`.
+* **`batched_changes'`**: `batched_changes` without `KeepsFW`; premises `Sha256CR` and
+  `ChangeRowsW` (the rows of every change, with `t₁'.wf`). The old `batched_changes` and
+  `KeepsFW` are kept unchanged.
+* Chain constructors `UChain.brVal` (`oUV`), `DChain.brDelVal` (`oDV`), `DChain.brValAbs` (`oDZ`),
+  with their memory correspondence to `Br.memNew` in the docstrings; `uchain_sound` /
+  `dchain_sound` extended (all other users go through them).
+* `StepsBV.br_del_value_one` (+ `_leaf`, `_ext`, `_branch`, `_hash`, `br_del_value_none`): the
+  spec step of the squash after a value delete leaving one child, for a future row op.
+
+### M5a-3 cost: the working-set chip [M][K]
+
+M5a-2 left the SHA-512 working-set chip as the largest state cost (T2: 10.9 M of 16.2 M committed
+cells; `WSA` 170.6 k cells per write: `4 + 2D` compressions). M5a-3 changes what is hashed, keeps
+`RCH` as the per-segment working-set root, and re-proves T1, T2 and the synthetic case. (The
+sections below describe M5a-2 and M5a; their `WSA` = one Merkle path per write is replaced.)
+
+#### Design
+
+| | M5a-2 | M5a-3 |
+|---|---|---|
+| leaf digest | 2 compressions (`compress(compress(IV, B1), B2)`, 32 words, half of them zero) | **1 compression**: 16 words, `(pv₂ₜ, pv₂ₜ₊₁, kdₜ + 2¹⁶·xₜ)` / `(cv₂ₜ, cv₂ₜ₊₁, kd₈₊ₜ + 2¹⁶·x₈₊ₜ)`; the side slots `x` hold `pp + 2cp + 4wr` and the two lengths' 6-bit chunks, range-checked as bytes (`RNG`), with `kd` 16-bit, so the block determines the leaf (`WsCost.leafLimb_inj`) |
+| `WSB` (INTAKE + FINAL leaves) | 4 compressions per key | 2 per key |
+| one write | one `WSA` row: old leaf + new leaf + old path + new path = `4 + 2D` compressions | one `WSA` row with **no hashing**: it consumes the entry's latest value on a new memory bus `WM(seg, kd, value, wr, id)` (`idp < t`, 3 gap bytes) and sends its own at its time `t` |
+| per segment | – (the root moved once per write) | **one batched path update**: each touched leaf once (`WSL`: old and new leaf, 2 compressions; it opens and closes the entry's `WM` chain) and each node on the union of the touched paths once (`WSP`: old and new digest, 2 compressions; an untouched sibling is one digest for both trees). The top row takes `RCH(seg, old root)` and sends `RCH(seg + 1, new root)` |
+| `WRITE` (public tape in M5a, STATE rows in M5b) | `(kd, value)` | `(seg, t, kd, value)` |
+
+`RCH` stays the working-set root at each segment boundary (M5b's STATE segments cut there); `WSN`
+still builds the full INTAKE tree (`RCH(0)`) and the full FINAL tree (closes `RCH(nseg)`), so
+FINAL still enumerates every written leaf. The memory chain is per segment (its messages carry
+`seg`); nothing crosses a segment except `RCH`. The trace generator takes `--segs S` (default 1:
+the whole M5a write tape is one STATE segment) and `--extra-writes N` (an intermediate write before
+the final one for N keys, to exercise the chain); `run.sh` passes them via `GENARGS`.
+
+Per write (T2, D = 6, one segment): 16 compressions → 2·(42 + 51)/42 ≈ 4.4 (touched leaves 42,
+union-of-paths nodes 51); per key: 4 → 2. Compressions T1 270 → 150, T2 1,006 → 416, synthetic
+146 → 76; T2 now fits a 2¹⁶-row chip (was 2¹⁷), T1 2¹⁵ (was 2¹⁶), synthetic 2¹⁴ (was 2¹⁵).
+
+#### Results [M] (same stack and parameters as M5a-2; 8 threads)
+
+| | T1 (`d3c8/d3/02-h10196-s3`, D = 5) | T2 (`d3c9/d3/00-h10018-s0`, D = 6) | synthetic `bval` (D = 4) |
+|---|---|---|---|
+| keys / writes / segments | 17 / 10 / 1 | 52 / 42 / 1 | 8 / 7 / 1 |
+| SHA-512 compressions (M5a-2 → M5a-3) | 270 → **150** (`WSB` 34, `WSN` 62, `WSL` 20, `WSP` 34) | 1,006 → **416** (`WSB` 104, `WSN` 126, `WSL` 84, `WSP` 102) | 146 → **76** |
+| SHA-512 chip rows (padded) | 2¹⁶ → 2¹⁵ | 2¹⁷ → 2¹⁶ | 2¹⁵ → 2¹⁴ |
+| cells per write (`WSA` + segment update) | 149 k → 57.8 k | 170.6 k → **47.4 k** | – |
+| total used cells (`cost.py`) | 4.83 M → **3.55 M** | 14.97 M → **8.69 M** | 1.33 M |
+| committed (padded) cells | 7.87 M → **5.15 M** | 16.18 M → **10.73 M** | 3.35 M → **1.99 M** |
+| proof (268.2-bit) | 1,258,042 → **1,238,300 B** | 1,296,042 → **1,264,466 B** | 1,237,614 → **1,216,466 B** |
+| prove / verify / peak RSS | 260 s → **180 s** / 156 ms / 1.29 GB | 478 s → **149 s** / 108 ms / 1.73 GB | 130 s → **45 s** / 94 ms / 0.99 GB |
+| root (= Lean `stateRoot` / `m5a-tool apply`) | `1db48e38…249628` | `61f5330a…07993006` | `b2142cc9…bd07895` |
+
+Prove times are on the shared host (load ≈ 30, 8 threads). Logs:
+`logs/M5a3-{T1,T2,syn-bval}-{prove.log,stats.json,cost.json}`; hashes: `logs/SHA256SUMS-v4`.
+The prover binary changed only in its table-name list (`WSL`, `WSP`). With the working-set chip
+halved, T2's committed cells are now the SHA-256 table (4.46 M, trie side) and the SHA-512 chip
+(5.44 M; 416 of 512 compressions used).
+
+Multi-segment check: T2 with `--segs 3 --extra-writes 5` (47 writes, 3 segments, 5 keys written
+twice) and `--segs 7 --extra-writes 10` (52 writes, 7 segments) precheck (every constraint, every
+bus); 426 / 472 compressions (still 2¹⁶ rows). The first **proves**: 1,265,600 B, prove 121 s,
+verify 176 ms, root `61f5330a…` (`logs/M5a3-T2-seg3x5-*`).
+
+#### Mutants [M] (on the final AIR, `logs/M5a3-mutants.txt`)
+
+**T2 22/22, T1 14/14, synthetic 12/12, T2-seg3x5 4/4 rejected** (each fails the precheck and the
+prover refuses it). The 33 of M5a-2 (rerun; `omitwrite` now fails `WRITE` + `WM`), plus new ones
+for every new constraint and bus: `wsstale` (an access consumes another value than the latest →
+`WM`), `wssib` (an untouched sibling differs between the old and new tree → `WSP` keep
+constraint), `wsdrop` (a path node with no touched child → `WSP` child constraint), `wsabsorb` (an
+inactive path row absorbs a child → `(1 − act)·tl`), `wsleaf` (a touched leaf with another
+pre-length, consistently hashed → `PT`: its old digest is not the working set's leaf) on T2, T1 and
+the synthetic case; on T2 with segments and repeated writes: `wsorder` (two accesses to one key
+chained against time order → the `WSA` gap constraint), `wsseg` (a write attributed to another
+segment → `WRITE`/`WM`), `wsstale`, `omitwrite`.
+
+#### Lean [K] (std axioms, no `sorry`; `lake build StateM5a` prints the audit)
+
+* `Merkle.batch_update_sound`: a segment's update is a description `Upd` (untouched subtree
+  `keep h`, touched leaf `leaf o n`, path node `node l r`); with a collision-free node hash, if its
+  old digest is the working-set root then every touched leaf's old digest is the working set's leaf
+  at its position (`Agrees`) and its new digest is the root of the working set with exactly those
+  leaves replaced (`apply`). `root_succ_split` (+ `up_take`, `up_drop`): the level-by-level root
+  (`WSN`) is the hash of the halves' roots, so `RCH` means the same thing for both tables.
+  `write_access_sound` (one path) is kept.
+* `WsCost.chain_sound` / `chain_sound_any`: offline memory checking for one entry — if the sends
+  `(v0, 0) :: accesses.(new, t)` are a permutation of the receives `(vEnd, idEnd) ::
+  accesses.(old, prev)` and every access has `prev < t`, then sorted by time the accesses have
+  distinct times, each read its predecessor's value (`Reads`), and the closing value is the
+  latest write (`chain_strict` gives the strict order).
+* Field level (BabyBear, from the exported tables' constraints): `wsa_gap` (gap bytes ⇒ `idp < t`
+  for times `< 2²⁴`), `wsp_keep` (untouched child: one digest in both trees), `wsp_child` (an
+  active path node has a touched child), `wsp_off` (an inactive row has no multiplicity),
+  `wsl_kd` (a touched leaf's `kd` limbs are its bytes' 16-bit values); `leafLimb_inj`.
+* Open (as for the other buses): the bus-level step — that `WM`'s balance yields the per-entry
+  permutation of `chain_sound` (filter by `(seg, kd)`), and that `PT`/`RCH` balance yields an
+  `Upd` fitting depth `D` whose old digest is `RCH(seg)`; the leaf block's injectivity over the
+  whole block (`leafLimb_inj` is the per-limb step); the SHA-512 chip's interface in Lean.
+
 ## M5a-2 (third session, 2026-11-03): batched FINAL in the AIR
 
 Sections below this one describe M5a as first built (every walk row hashes its old and its new

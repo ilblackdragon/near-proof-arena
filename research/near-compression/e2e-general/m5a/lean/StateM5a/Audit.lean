@@ -12,6 +12,12 @@ import StateM5a.KeyField
 import StateM5a.Store
 import StateM5a.FieldVer
 import StateM5a.StepsBV
+import StateM5a.Bus
+import StateM5a.Traffic
+import StateM5a.BusWalk
+import StateM5a.FieldWalk
+import StateM5a.Keep
+import StateM5a.WsCost
 
 /-! Axiom audit of the M5a lemmas (`lake build StateM5a.Audit` prints them): every theorem must
 depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
@@ -123,3 +129,111 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.FieldRows2.br_sel
 #print axioms StateM5a.Store.del_step
 #print axioms StateM5a.Store.batched_changes
+#print axioms StateM5a.Bus.count_busList
+#print axioms StateM5a.Bus.holds_perm
+#print axioms StateM5a.Bus.perm_of_map_inj
+#print axioms StateM5a.Bus.perm_decode
+#print axioms StateM5a.Traffic.walk_unique
+#print axioms StateM5a.Traffic.child_of
+#print axioms StateM5a.Traffic.walk_rows
+#print axioms StateM5a.Traffic.walk_sem
+#print axioms StateM5a.Traffic.tch_chain
+#print axioms StateM5a.Traffic.ver_recv
+#print axioms StateM5a.Traffic.reqresp
+#print axioms StateM5a.BusWalk.cl_collapse
+#print axioms StateM5a.BusWalk.in_view
+#print axioms StateM5a.BusWalk.out_view
+#print axioms StateM5a.BusWalk.hashed_agree
+#print axioms StateM5a.BusWalk.ver_store
+#print axioms StateM5a.BusWalk.step_leafRep
+#print axioms StateM5a.BusWalk.step_brDesc
+#print axioms StateM5a.BusWalk.step_extDesc
+#print axioms StateM5a.BusWalk.localOK_upsert
+#print axioms StateM5a.BusWalk.localOK_delete
+#print axioms StateM5a.BusWalk.localOK_find
+#print axioms StateM5a.BusWalk.cl_wf
+#print axioms StateM5a.BusWalk.in_view_wf
+#print axioms StateM5a.BusWalk.rv_wf
+#print axioms StateM5a.BusWalk.kcl_present_length
+#print axioms StateM5a.BusWalk.same_res
+#print axioms StateM5a.BusWalk.step_leafDel
+#print axioms StateM5a.BusWalk.step_leafAbs
+#print axioms StateM5a.BusWalk.step_extAbs
+#print axioms StateM5a.BusWalk.step_extSame
+#print axioms StateM5a.BusWalk.step_extLeaf
+#print axioms StateM5a.BusWalk.step_extBranch
+#print axioms StateM5a.BusWalk.step_brAbs
+#print axioms StateM5a.BusWalk.step_brSame
+#print axioms StateM5a.BusWalk.step_brKeep
+#print axioms StateM5a.BusWalk.step_leafHit
+#print axioms StateM5a.BusWalk.step_leafMiss
+#print axioms StateM5a.BusWalk.step_extMiss
+#print axioms StateM5a.BusWalk.step_extFind
+#print axioms StateM5a.BusWalk.step_brFind
+#print axioms StateM5a.BusWalk.step_brEmpty
+#print axioms StateM5a.BusWalk.step_brVal
+#print axioms StateM5a.BusWalk.step_brValAbs
+#print axioms StateM5a.BusWalk.step_brDelVal
+#print axioms StateM5a.BusWalk.step_brUpVal
+#print axioms StateM5a.BusWalk.step_brNew
+#print axioms StateM5a.BusWalk.chain_changes
+#print axioms StateM5a.BusWalk.stepRows_of_sem
+#print axioms StateM5a.BusWalk.bus_batched_changes
+-- M5a-3: branch-value chain constructors (soundness through the extended matches)
+#print axioms StateM5a.Walk.uchain_sound
+#print axioms StateM5a.Walk.dchain_sound
+#print axioms StateM5a.Walk.uchain_witness
+#print axioms StateM5a.Refine.dchain_witness
+-- M5a-3: the squash after a value delete (spec steps)
+#print axioms StateM5a.StepsBV.br_del_value_one
+#print axioms StateM5a.StepsBV.br_del_value_one_leaf
+#print axioms StateM5a.StepsBV.br_del_value_one_ext
+#print axioms StateM5a.StepsBV.br_del_value_one_branch
+#print axioms StateM5a.StepsBV.br_del_value_one_hash
+#print axioms StateM5a.StepsBV.br_del_value_none
+-- M5a-3: `KeepsFW` weakened and proved; batched FINAL without it
+#print axioms StateM5a.Keep.rp_mem
+#print axioms StateM5a.Keep.rp_memD
+#print axioms StateM5a.Keep.splitLeaf_rp
+#print axioms StateM5a.Keep.splitExt_rp
+#print axioms StateM5a.Keep.upsert_rp
+#print axioms StateM5a.Keep.kids_upsert_rp
+#print axioms StateM5a.Keep.extendChild_rp
+#print axioms StateM5a.Keep.present_rp
+#print axioms StateM5a.Keep.squashBranch_rp
+#print axioms StateM5a.Keep.del_rp
+#print axioms StateM5a.Keep.kids_delAt_rp
+#print axioms StateM5a.Keep.slotOk_of_refines
+#print axioms StateM5a.Keep.rp_wf
+#print axioms StateM5a.Keep.krp_wf
+#print axioms StateM5a.Keep.rp_of_refinedBy
+#print axioms StateM5a.Keep.krp_of_refinedBy
+#print axioms StateM5a.Keep.upsert_wf_of_rows
+#print axioms StateM5a.Keep.del_wf_of_rows
+#print axioms StateM5a.Keep.applyChange_wf_of_rows
+#print axioms StateM5a.Store.not_keepsFW
+#print axioms StateM5a.Store.full_rp
+#print axioms StateM5a.Store.rp_full
+#print axioms StateM5a.Store.full_upsert
+#print axioms StateM5a.Store.full_del
+#print axioms StateM5a.Store.full_applyChange
+#print axioms StateM5a.Store.keepsFWRows
+#print axioms StateM5a.Store.ChangeRowsW.rows
+#print axioms StateM5a.Store.change_keep
+#print axioms StateM5a.Store.batched_changes'
+#print axioms StateM5a.Merkle.up_take
+#print axioms StateM5a.Merkle.up_drop
+#print axioms StateM5a.Merkle.root_succ_split
+#print axioms StateM5a.Merkle.Upd.apply_length
+#print axioms StateM5a.Merkle.batch_update_sound
+#print axioms StateM5a.WsCost.chain_sound
+#print axioms StateM5a.WsCost.chain_strict
+#print axioms StateM5a.WsCost.chain_sound_any
+#print axioms StateM5a.WsCost.leafLimb_inj
+#print axioms StateM5a.WsCost.wsa_gap
+#print axioms StateM5a.WsCost.wsp_keep
+#print axioms StateM5a.WsCost.wsp_child
+#print axioms StateM5a.WsCost.wsp_off
+#print axioms StateM5a.WsCost.wsl_kd
+#print axioms StateM5a.FieldWalk.br_gdn_gold
+#print axioms StateM5a.FieldWalk.sn_bool

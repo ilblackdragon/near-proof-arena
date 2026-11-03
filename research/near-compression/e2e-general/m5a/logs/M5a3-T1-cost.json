@@ -1,0 +1,85 @@
+{
+ "tables": {
+  "KEY": {
+   "rows": 171,
+   "width": 63,
+   "cells": 10773,
+   "sha256_msgs": 17,
+   "sha256_blocks": 17,
+   "sha256_cells": 166464
+  },
+  "BR": {
+   "rows": 96,
+   "width": 929,
+   "cells": 89184,
+   "sha256_msgs": 38,
+   "sha256_blocks": 111,
+   "sha256_cells": 1047200
+  },
+  "SN": {
+   "rows": 60,
+   "width": 604,
+   "cells": 36240,
+   "sha256_msgs": 46,
+   "sha256_blocks": 61,
+   "sha256_cells": 589152
+  },
+  "KCMP": {
+   "rows": 51,
+   "width": 14,
+   "cells": 714
+  },
+  "WSB": {
+   "rows": 64,
+   "width": 136,
+   "cells": 8704,
+   "sha512_comps": 34,
+   "sha512_cells": 361216
+  },
+  "WSN": {
+   "rows": 62,
+   "width": 67,
+   "cells": 4154,
+   "sha512_comps": 62,
+   "sha512_cells": 658688
+  },
+  "WSA": {
+   "rows": 10,
+   "width": 60,
+   "cells": 600,
+   "sha512_comps": 0,
+   "sha512_cells": 0
+  },
+  "WSL": {
+   "rows": 10,
+   "width": 170,
+   "cells": 1700,
+   "sha512_comps": 20,
+   "sha512_cells": 212480
+  },
+  "WSP": {
+   "rows": 17,
+   "width": 129,
+   "cells": 2193,
+   "sha512_comps": 34,
+   "sha512_cells": 361216
+  }
+ },
+ "summary": {
+  "trie_node_rows": 156,
+  "br_cells_per_row": 11837,
+  "sn_cells_per_row": 10423,
+  "cells_per_trie_node_row": 11293,
+  "ws_keys": 17,
+  "writes": 10,
+  "key_cells_per_key": 10468,
+  "wsb_cells_per_key": 21760,
+  "segments": 1,
+  "wsa_cells_per_write": 60,
+  "segment_update_cells_per_write": 57819,
+  "wsl_rows": 10,
+  "wsp_rows": 17,
+  "wsn_cells": 662842,
+  "total_used_cells": 3550678
+ }
+}

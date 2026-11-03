@@ -21,7 +21,7 @@ def main():
     d, names = sys.argv[1], json.load(open(sys.argv[2]))
     st = json.load(open(d + '/stats.json'))
     msgs = json.load(open(d + '/sha_msgs.json'))
-    widths = {t: len(names[t]) for t in ['KEY', 'BR', 'SN', 'KCMP', 'WSB', 'WSN', 'WSA']}
+    widths = {t: len(names[t]) for t in ['KEY', 'BR', 'SN', 'KCMP', 'WSB', 'WSN', 'WSA', 'WSL', 'WSP']}
     rows = st['rows']
     sha = {'KEY': [0, 0], 'BR': [0, 0], 'SN': [0, 0]}
     for m in msgs:
@@ -31,8 +31,10 @@ def main():
         sha[k][1] += b
     sha_cells = {k: v[0] * SHA_ROW + v[1] * SHA_BLK * SHA_ROW for k, v in sha.items()}
     D = names['D']
-    n_ws, n_w = st['ws_keys'], st['changes']
-    comp = {'WSB': 2 * 2 * n_ws, 'WSN': 2 * ((1 << D) - 1), 'WSA': n_w * (4 + 2 * D)}
+    n_ws, n_w = st['ws_keys'], st['writes']
+    # M5a-3: a leaf is one compression (both phases: 2 per key); a segment hashes each touched
+    # leaf and each node on its touched paths twice (old, new); a write access hashes nothing
+    comp = {'WSB': 2 * n_ws, 'WSN': 2 * ((1 << D) - 1), 'WSA': 0, 'WSL': 2 * rows['WSL'], 'WSP': 2 * rows['WSP']}
     assert sum(comp.values()) == st['compressions'], (comp, st['compressions'])
     out = {}
     for t in widths:
@@ -54,7 +56,10 @@ def main():
         ws_keys=n_ws, writes=n_w,
         key_cells_per_key=round((tot('KEY') + tot('KCMP')) / n_ws),
         wsb_cells_per_key=round(tot('WSB') / n_ws),
+        segments=st['segments'],
         wsa_cells_per_write=round(tot('WSA') / max(n_w, 1)),
+        segment_update_cells_per_write=round((tot('WSA') + tot('WSL') + tot('WSP')) / max(n_w, 1)),
+        wsl_rows=rows['WSL'], wsp_rows=rows['WSP'],
         wsn_cells=tot('WSN'),
         total_used_cells=sum(tot(t) for t in out))
     print(json.dumps(dict(tables=out, summary=summary), indent=1))
