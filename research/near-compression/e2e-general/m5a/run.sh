@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # E2E M5a: INTAKE + working-set tree + FINAL for one corpus chunk's main transition.
 #   run.sh CASE_DIR OUT_DIR [check|prove|mutants]      (D=5: working set ≤ 32 keys; D=6 for T2)
-#   MUTANTS="…" picks the mutant battery (default: the four statement-level ones + the T2 row tampers)
+#   MUTANTS="…" picks the mutant battery (default: the four statement-level ones, the T2 row tampers
+#   and the batched-FINAL ones); UNBATCHED=1 writes the first pass (every node hashed, as in M5a)
 # Box rules: ≤ 8 threads, HEAVY_MEM=32G, temp files under /data/illia/nearproof-deps.
 set -euo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
@@ -19,9 +20,9 @@ mkdir -p "$OUT"
 # 3. prover
 ( cd "$HERE/prover" && CARGO_TARGET_DIR=$DEPS/target nice -n 10 $HEAVY cargo build --release --offline -j 8 2>/dev/null )
 BIN=$DEPS/target/release/nearproof-e2e-m5a
-gen() { python3 "$HERE/tracegen.py" "$OUT/state.json" "$OUT/names.json" "$1" "${@:2}"; }
+gen() { python3 "$HERE/tracegen.py" "$OUT/state.json" "$OUT/names.json" "$1" "${@:2}" ${UNBATCHED:+--unbatched}; }
 if [ "$MODE" = mutants ]; then
-  for m in ${MUTANTS:-node prevalue omitwrite postroot absent extabsent branchval split splitext absdel squash chain}; do
+  for m in ${MUTANTS:-node prevalue omitwrite postroot absent extabsent branchval split splitext absdel squash chain verslot vernid vmcount finroot nidforge}; do
     gen "$OUT/mut-$m" --mutant "$m" > "$OUT/mut-$m.gen.txt"
     nice -n 10 $HEAVY "$BIN" "$OUT/m5a.json" "$OUT/mut-$m" mutant | tee "$OUT/mut-$m.log" | grep -E "PRECHECK|REJECTED|ACCEPTED|VERIFY"
   done

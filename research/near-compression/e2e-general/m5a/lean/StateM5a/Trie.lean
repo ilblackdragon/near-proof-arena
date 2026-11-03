@@ -123,11 +123,14 @@ def L : Layout :=
    ("ho", 32), ("hn", 32), ("nh", 32), ("nm", 4), ("om", 4), ("nmem", 8), ("cy", 4),
    ("inv1", 1), ("inv2", 1), ("dvlen", 1), ("dvh", 16),
    ("rk", 1), ("kid2", 1), ("st2", 1), ("lvlen", 1), ("lvh", 16), ("fpres", 1),
-   ("xl", 1), ("xk", 1), ("lvlen2", 1), ("lvh2", 16), ("nh2", 32), ("nm2", 4)]
+   ("xl", 1), ("xk", 1), ("lvlen2", 1), ("lvh2", 16), ("nh2", 32), ("nm2", 4),
+   ("gsha", 1), ("oref", 1), ("vm", VBITS), ("isn", 16), ("nref", 1), ("vmn", VBITS), ("nhf", 1),
+   ("nh2f", 1)]
 def T : Cols := ⟨L⟩
 def c (s : String) (j : Nat := 0) : Expr := T.c s j
 def nx (s : String) (j : Nat := 0) : Expr := T.n s j
 def ch (i b : Nat) : Expr := c "ch" (32 * i + b)
+def bitsOf (s : String) : List Expr := (List.range VBITS).map fun t => c s t
 def ops : List String :=
   ["oFD", "oFA", "oUD", "oUN", "oDH", "oDL", "oDN", "oD1", "oFV", "oDA", "oDS", "oSL"]
 
@@ -148,6 +151,29 @@ def chSel (b : Nat) : Expr := sumE ((List.range 16).map fun i => c "sel" i * ch 
 def chSib (b : Nat) : Expr := sumE ((List.range 16).map fun i => c "sr" i * ch i b)
 def M : List Expr := memLimbs T "mem"
 def NM : List Expr := memLimbs T "nmem"
+/-- Ref flag of the selected slot / of the remaining sibling (`1`: a version id). -/
+def isnSel : Expr := sumE ((List.range 16).map fun i => c "sel" i * c "isn" i)
+def isnSib : Expr := sumE ((List.range 16).map fun i => c "sr" i * c "isn" i)
+/-- The rewritten branch's slot `i`: bytes and ref flag (slot `sel` takes the child result, slot
+`sr` a split's old-side child). -/
+def newch (i b : Nat) : Expr := ch i b + c "sel" i * (c "nh" b - ch i b) + c "sr" i * (c "nh2" b - ch i b)
+def nisn (i : Nat) : Expr :=
+  c "isn" i + c "sel" i * (c "nhf" - c "isn" i) + c "sr" i * (c "nh2f" - c "isn" i)
+/-- The new node is final: hashed here (`gnew` and not a version id). -/
+def gfin : Expr := c "gnew" - c "nref"
+/-- The new node's version id (= its SHA-256 message id, unique per row). -/
+def nidN : Expr := K ID_BR + sm 2 (c "rid") + 1
+/-- A branch record on `VER`, in 17 parts (a message holds ≤ 63 fields), each led by
+`(tag, part, ref flag, ref limbs)`: part `i < 16` is slot `i` as `(f, f·isn, f·32 bytes)`; part 16
+is the value (`hasv`, the length as two 16-bit limbs, the 32 hash bytes) and the memory usage
+(`memLimbs`).  Limbs are used where the row reads the field only through those limbs. -/
+def rec (rf : Expr) (ref : List Expr) (fl : Nat → Expr) (isn : Nat → Expr) (cb : Nat → Nat → Expr)
+    (mem : List Expr) : List (List Expr) :=
+  let hd (part : Nat) : List Expr := [K VT_BR, K part, rf] ++ ref
+  ((List.range 16).map fun i =>
+    hd i ++ [fl i, fl i * isn i] ++ (List.range 32).map fun b => fl i * cb i b) ++
+  [hd 16 ++ [c "hasv", limb16 (fun t => c "vl" t) 0, limb16 (fun t => c "vl" t) 1] ++
+    (List.range 32).map (fun t => c "vh" t) ++ mem]
 def bmLo (f : Nat → Expr) : Expr := sumE ((List.range 8).map fun i => sm (2 ^ i) (f i))
 def bmHi (f : Nat → Expr) : Expr := sumE ((List.range 8).map fun i => sm (2 ^ i) (f (i + 8)))
 /-- The branch value length (4 little-endian bytes). -/
@@ -167,8 +193,17 @@ def memNew : List Expr :=
 
 def constraints : List Expr :=
   let A := c "act"
-  let flags := ["act", "mF", "mU", "mD", "hasv", "gnew", "gdn", "xl"] ++ ops
+  let flags := ["act", "mF", "mU", "mD", "hasv", "gnew", "gdn", "xl", "gsha", "oref", "nref", "nhf",
+    "nh2f"] ++ ops
   (flags.map fun s => bool (c s)) ++
+  -- versions: the old node is hashed here (`gsha`) or read from `VER` by its ref (`oref`: a
+  -- version id); the new node is hashed (final) or published under its version id (`nref`)
+  [c "gsha" * (1 - gold), c "oref" * (1 - gold), c "gsha" * c "oref", c "nref" * (1 - c "gnew"),
+   c "nref" * (c "hn" 0 - nidN)] ++
+  ((List.range 31).map fun b => c "nref" * c "hn" (b + 1)) ++
+  ((List.range VBITS).flatMap fun t => [(1 - c "gsha") * c "vm" t, (1 - c "gnew") * c "vmn" t]) ++
+  ((List.range 4).map fun t => (1 - c "hasv") * c "vl" t) ++
+  ((List.range 32).map fun t => (1 - c "hasv") * c "vh" t) ++
   ((List.range 16).flatMap fun i => [bool (c "f" i), bool (c "sel" i), bool (c "sr" i), bool (c "nf" i)]) ++
   [c "mF" + c "mU" + c "mD" + c "oSL" - A,
    c "oFD" + c "oFA" + c "oFV" - c "mF",
@@ -203,7 +238,8 @@ def constraints : List Expr :=
     [(1 - A) * c "f" i, c "oSL" * c "f" i, c "sr" i * (1 - c "f" i - c "oSL"), c "sr" i * c "sel" i,
      c "nf" i - c "gnew" * c "f" i - c "sel" i * c "oUN" + c "sel" i * c "oDN" -
        c "oSL" * (c "sel" i + c "sr" i),
-     (c "oUN" + c "oSL") * (c "lvh" i - c "dvh" i)]) ++
+     (c "oUN" + c "oSL") * (c "lvh" i - c "dvh" i),
+     bool (c "isn" i), c "isn" i * (1 - c "f" i), c "gsha" * c "isn" i, gfin * nisn i]) ++
   ((List.range 4).flatMap fun k => [c "oDN" * c "nm" k, (c "oUN" + c "oSL") * c "om" k]) ++
   memNew
 
@@ -222,7 +258,7 @@ def serBytes (id : Expr) (g gv : Expr) (fl : Nat → Expr) (rk : Nat → Expr) (
   ((List.range 32).map fun t => snd B_SHA_BYTES gv [id, K (5 + t), c "vh" t]) ++
   [snd B_SHA_BYTES g [id, 1 + sm 36 hv, bmLo fl], snd B_SHA_BYTES g [id, 2 + sm 36 hv, bmHi fl]] ++
   ((List.range 16).flatMap fun i => (List.range 32).map fun b =>
-    snd B_SHA_BYTES (fl i) [id, base + sm 32 (rk i) + K b, cb i b]) ++
+    snd B_SHA_BYTES (g * fl i) [id, base + sm 32 (rk i) + K b, cb i b]) ++
   ((List.range 8).map fun b =>
     snd B_SHA_BYTES g [id, base + sm 32 (sumE ((List.range 16).map fl)) + K b, mb b])
 
@@ -233,47 +269,56 @@ def interactions : List Interaction :=
   let gh := c "oUD" + c "oDH"
   let gmat := c "oDL" + c "oUN" + c "oSL"
   let xl := c "xl"; let s := c "oSL"
-  -- old node
-  serBytes idO gold (c "hasv") (fun i => c "f" i) rank (fun i b => ch i b) (fun b => c "mem" b) ++
-  [rcv B_SHA_DIGEST gold ([idO, serLen fun i => c "f" i] ++ (List.range 32).map fun b => c "ho" b)] ++
-  -- new node (slot `sel` takes the child result, slot `sr` a split's old-side child)
-  serBytes idN (c "gnew") (c "gnew" * c "hasv") (fun i => c "nf" i) nrank
-    (fun i b => ch i b + c "sel" i * (c "nh" b - ch i b) + c "sr" i * (c "nh2" b - ch i b))
-    (fun b => c "nmem" b) ++
-  [rcv B_SHA_DIGEST (c "gnew") ([idN, serLen fun i => c "nf" i] ++ (List.range 32).map fun b => c "hn" b),
-   -- this node's walk step
-   rcv B_DOWN gold ([w, d] ++ pack2 (fun b => c "ho" b) ++ [c "kid", mode, c "dvlen"] ++
+  let gsha := c "gsha"
+  -- old node: hashed here (`gsha`, then published on `VER` under its digest for the other readers)
+  -- or read from `VER` by its ref
+  serBytes idO gsha (gsha * c "hasv") (fun i => c "f" i) rank (fun i b => ch i b) (fun b => c "mem" b) ++
+  [rcv B_SHA_DIGEST gsha ([idO, serLen fun i => c "f" i] ++ (List.range 32).map fun b => c "ho" b)] ++
+  ((rec (c "oref") (pack2 fun b => c "ho" b) (fun i => c "f" i) (fun i => c "isn" i) ch M).map
+    fun m => rcv B_VER (gold - gsha) m) ++
+  ((rec 0 (pack2 fun b => c "ho" b) (fun i => c "f" i) (fun i => c "isn" i) ch M).map
+    fun m => sndBits B_VER (bitsOf "vm") m) ++
+  -- new node (slot `sel` takes the child result, slot `sr` a split's old-side child): hashed when
+  -- final, published on `VER` under its ref (digest or version id)
+  serBytes idN gfin (gfin * c "hasv") (fun i => c "nf" i) nrank newch (fun b => c "nmem" b) ++
+  [rcv B_SHA_DIGEST gfin ([idN, serLen fun i => c "nf" i] ++ (List.range 32).map fun b => c "hn" b)] ++
+  ((rec (c "nref") (pack2 fun b => c "hn" b) (fun i => c "nf" i) nisn newch NM).map
+    fun m => sndBits B_VER (bitsOf "vmn") m) ++
+  -- this node's walk step
+  [rcv B_DOWN gold ([w, d, c "oref"] ++ pack2 (fun b => c "ho" b) ++ [c "kid", mode, c "dvlen"] ++
      (List.range 16).map fun i => c "dvh" i),
    rcv B_NIB (A - c "oFV") [c "kid", d, nib],
    rcv B_KLEN (c "oFV") [c "kid", d],
-   snd B_DOWN (c "gdn") ([w, d + 1] ++ pack2 chSel ++ [c "kid", mode, c "dvlen"] ++
+   snd B_DOWN (c "gdn") ([w, d + 1, isnSel] ++ pack2 chSel ++ [c "kid", mode, c "dvlen"] ++
      (List.range 16).map fun i => c "dvh" i),
-   rcv B_UP (c "gdn") ([w, d + 1, c "rk"] ++
+   rcv B_UP (c "gdn") ([w, d + 1, c "rk", gh * c "nhf" + c "oDS" * isnSel] ++
      ((pack2 (fun b => c "nh" b)).zip (pack2 chSel)).map (fun (p, q) => gh * p + c "oDS" * q) ++
      ((List.range 4).map fun k => gh * c "nm" k) ++ ((List.range 4).map fun k => c "om" k) ++
      [c "oDL" * c "kid2", c "oDL" * c "st2", (c "oFD" + c "oDL") * c "lvlen"] ++
      ((List.range 16).map fun i => (c "oFD" + c "oDL") * c "lvh" i) ++ [c "oFD" * c "fpres"]),
    -- the one remaining sibling (`oD1`) is a revealed leaf; its key continues with nibble `sib`
-   snd B_SIBQ (c "oD1") ([w, d + 1] ++ pack2 chSib),
+   snd B_SIBQ (c "oD1") ([w, d + 1, isnSib] ++ pack2 chSib),
    rcv B_SIBA (c "oD1") ([w, d + 1, c "kid2", c "lvlen"] ++ (List.range 16).map fun i => c "lvh" i),
    rcv B_NIB (c "oD1") [c "kid2", d, sib],
    -- a split: the old-side child sits at slot `sib` = nibble `d` of the old key `xk`
    rcv B_NIB s [c "xk", d, sib],
    -- materialized child leaf (`oDL`: the child's descriptor; `oUN`, `oSL`: a new leaf)
    snd B_MATQ gmat ([w, d + 1, c "kid2", c "st2", c "lvlen"] ++ (List.range 16).map fun i => c "lvh" i),
-   rcv B_MATR gmat ([w, d + 1, c "kid2"] ++ pack2 (fun b => c "nh" b) ++ (List.range 4).map fun k => c "nm" k),
+   rcv B_MATR gmat ([w, d + 1, c "kid2", c "nhf"] ++ pack2 (fun b => c "nh" b) ++
+     (List.range 4).map fun k => c "nm" k),
    -- a split's old-side child: a leaf to materialize (`xl`) or a given node
    snd B_MATQ (s * xl) ([w, d + 1, c "xk", d + 1, c "lvlen2"] ++ (List.range 16).map fun i => c "lvh2" i),
-   rcv B_MATR (s * xl) ([w, d + 1, c "xk"] ++ pack2 (fun b => c "nh2" b) ++
+   rcv B_MATR (s * xl) ([w, d + 1, c "xk", c "nh2f"] ++ pack2 (fun b => c "nh2" b) ++
      (List.range 4).map fun k => c "nm2" k),
    rcv B_SPQ s ([w, d, c "kid", c "xk", xl] ++
      ((List.range 16).zip (pack2 fun b => c "nh2" b)).map
        (fun (i, p) => xl * c "lvh2" i + (1 - xl) * p) ++
-     [xl * c "lvlen2"] ++ ((List.range 4).map fun k => (1 - xl) * c "nm2" k) ++
+     [(1 - xl) * c "nh2f", xl * c "lvlen2"] ++ ((List.range 4).map fun k => (1 - xl) * c "nm2" k) ++
      [c "dvlen"] ++ (List.range 16).map fun i => c "dvh" i),
-   snd B_SPR s ([w, d] ++ pack2 (fun b => c "hn" b) ++ NM),
+   snd B_SPR s ([w, d, c "nref"] ++ pack2 (fun b => c "hn" b) ++ NM),
    -- result to the parent
-   snd B_UP gold ([w, d, c "oUD" + c "oUN" + sm 2 gKeep + sm 4 (c "oD1") + sm RK_SAME gSame] ++
+   snd B_UP gold ([w, d, c "oUD" + c "oUN" + sm 2 gKeep + sm 4 (c "oD1") + sm RK_SAME gSame,
+       c "gnew" * c "nref" + gSame * c "oref"] ++
      ((pack2 (fun b => c "hn" b)).zip (pack2 fun b => c "ho" b)).map
        (fun (p, q) => c "gnew" * p + gSame * q) ++
      NM.map (c "gnew" * ·) ++ M.map ((c "mU" + c "mD") * ·) ++
@@ -301,10 +346,25 @@ def L : Layout :=
    ("x", 36), ("mem", 8), ("ho", 32), ("hn", 32), ("nx", 36), ("nmem", 8), ("cy", 4),
    ("unm", 4), ("uom", 4), ("rkc", 1), ("alen", 1), ("avh", 16), ("fpres", 1),
    ("dvlen", 1), ("dvh", 16), ("sh", 16), ("sm", 4),
-   ("z", 1), ("iz", 1), ("sxh", 16), ("sxm", 4), ("xh", 16), ("xm", 4), ("cmb", 8), ("cy2", 4)]
+   ("z", 1), ("iz", 1), ("sxh", 16), ("sxm", 4), ("xh", 16), ("xm", 4), ("cmb", 8), ("cy2", 4),
+   ("gsha", 1), ("oref", 1), ("vm", VBITS), ("xf", 1), ("nref", 1), ("vmn", VBITS), ("nxf", 1),
+   ("shf", 1), ("sxhf", 1), ("xhf", 1)]
 def T : Cols := ⟨L⟩
 def c (s : String) (j : Nat := 0) : Expr := T.c s j
 def nx (s : String) (j : Nat := 0) : Expr := T.n s j
+def bitsOf (s : String) : List Expr := (List.range VBITS).map fun t => c s t
+/-- The new node is final: hashed here (`gnew` and not a version id). -/
+def gfin : Expr := c "gnew" - c "nref"
+def nidN : Expr := K ID_SN + sm 2 (c "rid") + 1
+/-- A leaf / extension record on `VER`, in 3 parts led by `(tag, part, ref flag, ref limbs)`:
+part 0 `(isL, klen, payload ref flag, 36 payload bytes, memLimbs)`, parts 1 and 2 the key nibbles
+`0..31`, `32..63`.  Rows whose key continues (`cont`) never use `VER` (the record holds 64
+nibbles). -/
+def rec (rf : Expr) (ref : List Expr) (xfl : Expr) (x : Nat → Expr) (mem : List Expr) : List (List Expr) :=
+  let hd (part : Nat) : List Expr := [K VT_SN, K part, rf] ++ ref
+  [hd 0 ++ [c "isL", c "klen", xfl] ++ (List.range 36).map x ++ mem,
+   hd 1 ++ (List.range 32).map (fun j => c "k" j),
+   hd 2 ++ (List.range 32).map (fun j => c "k" (32 + j))]
 def ops : List String :=
   ["oLF", "oLR", "oLD", "oLS", "oLM", "oEF", "oEU", "oED", "oLA", "oEA", "oLZ", "oEZ", "oES", "oEB",
    "oLX", "oEX", "oEP", "oEM"]
@@ -328,8 +388,17 @@ def own : Expr := 50 + sm 2 (c "hplen")
 def constraints : List Expr :=
   let A := c "act"; let odd := c "odd"; let gfr := c "gfr"
   let flags := ["act", "mF", "mU", "mD", "isL", "isE", "gold", "gnew", "gdn", "odd", "cont", "mN",
-    "mK", "mL", "j0", "z"] ++ ops
+    "mK", "mL", "j0", "z", "gsha", "oref", "xf", "nref", "nxf", "shf", "sxhf", "xhf"] ++ ops
   (flags.map fun s => bool (c s)) ++
+  -- versions (as `BR`); a continued key is always hashed (old and new) and never on `VER`
+  [c "gsha" * (1 - c "gold"), c "oref" * (1 - c "gold"), c "gsha" * c "oref", c "nref" * (1 - c "gnew"),
+   c "nref" * (c "hn" 0 - nidN), c "gsha" * c "xf", c "isL" * c "xf", c "isL" * c "nxf", gfin * c "nxf",
+   c "cont" * (c "gold" - c "gsha"), c "cont" * c "nref",
+   c "xhf" - c "oEX" * (c "z" * c "xf" + (1 - c "z") * c "sxhf")] ++
+  ((List.range 31).map fun b => c "nref" * c "hn" (b + 1)) ++
+  ((List.range VBITS).flatMap fun t =>
+    [(1 - c "gsha") * c "vm" t, (1 - c "gnew") * c "vmn" t, c "cont" * c "vm" t, c "cont" * c "vmn" t]) ++
+  ((List.range 4).flatMap fun t => [(1 - c "isL") * c "x" (32 + t), (1 - c "isL") * c "nx" (32 + t)]) ++
   [c "oLF" + c "oEF" + c "oLA" + c "oEA" - c "mF",
    c "oLR" + c "oEU" + c "oLX" + c "oEX" - c "mU",
    c "oLD" + c "oED" + c "oLZ" + c "oEZ" + c "oES" + c "oEB" - c "mD",
@@ -421,10 +490,17 @@ def interactions : List Interaction :=
   let w := c "w"; let d := c "d"
   let gwalk := c "mF" + c "mU" + c "mD"
   let gnu := c "oLR" + c "oEU" + c "oEB"
-  serBytes idO (c "gold") (fun t => c "x" t) (fun b => c "mem" b) ++
-  [rcv B_SHA_DIGEST (c "gold") ([idO, serLen] ++ (List.range 32).map fun b => c "ho" b)] ++
-  serBytes idN (c "gnew") (fun t => c "nx" t) (fun b => c "nmem" b) ++
-  [rcv B_SHA_DIGEST (c "gnew") ([idN, serLen] ++ (List.range 32).map fun b => c "hn" b)] ++
+  let gsha := c "gsha"
+  serBytes idO gsha (fun t => c "x" t) (fun b => c "mem" b) ++
+  [rcv B_SHA_DIGEST gsha ([idO, serLen] ++ (List.range 32).map fun b => c "ho" b)] ++
+  ((rec (c "oref") (pack2 fun b => c "ho" b) (c "xf") (fun t => c "x" t) M).map
+    fun m => rcv B_VER (c "gold" - gsha) m) ++
+  ((rec 0 (pack2 fun b => c "ho" b) (c "xf") (fun t => c "x" t) M).map
+    fun m => sndBits B_VER (bitsOf "vm") m) ++
+  serBytes idN gfin (fun t => c "nx" t) (fun b => c "nmem" b) ++
+  [rcv B_SHA_DIGEST gfin ([idN, serLen] ++ (List.range 32).map fun b => c "hn" b)] ++
+  ((rec (c "nref") (pack2 fun b => c "hn" b) (c "nxf") (fun t => c "nx" t) NM).map
+    fun m => sndBits B_VER (bitsOf "vmn") m) ++
   -- the key: `K[d .. d+klen)`: nibbles before `jm` against `kid`, all against `kid2` (`g2`), the
   -- others range-checked; a leaf's key ends there
   ((List.range KMAX).map fun j => rcv B_NIB (b j) [c "kid", d + K j, k j]) ++
@@ -440,18 +516,18 @@ def interactions : List Interaction :=
    rcv B_KLEN (c "mK") [c "kid", d + c "jm"],
    -- the continuation of a long key
    snd B_KC (c "cont") [c "rid", 1, d + 62 + c "odd", c "kid", 1 - c "gA", c "kid2", c "g2",
-     c "gold", c "gnew"],
+     gsha, gfin],
    rcv B_KCR (c "cont") [c "rid", 1, c "rl"],
-   rcv B_DOWN gwalk ([w, d] ++ pack2 (fun b => c "ho" b) ++ [c "kid", mode, c "dvlen"] ++
+   rcv B_DOWN gwalk ([w, d, c "oref"] ++ pack2 (fun b => c "ho" b) ++ [c "kid", mode, c "dvlen"] ++
      (List.range 16).map fun i => c "dvh" i),
-   rcv B_SIBQ (c "oLS") ([w, d] ++ pack2 fun b => c "ho" b),
+   rcv B_SIBQ (c "oLS") ([w, d, c "oref"] ++ pack2 fun b => c "ho" b),
    snd B_SIBA (c "oLS") ([w, d, c "kid", vlenOf fun t => c "x" t] ++ pack2 fun b => c "x" (4 + b)),
    rcv B_MATQ (c "oLM") ([w, d, c "kid", d, c "dvlen"] ++ (List.range 16).map fun i => c "dvh" i),
-   snd B_MATR (c "oLM") ([w, d, c "kid"] ++ pack2 (fun b => c "hn" b) ++ NM),
+   snd B_MATR (c "oLM") ([w, d, c "kid", c "nref"] ++ pack2 (fun b => c "hn" b) ++ NM),
    -- extension: descend
-   snd B_DOWN (c "gdn") ([w, d + c "klen"] ++ pack2 (fun b => c "x" b) ++ [c "kid", mode, c "dvlen"] ++
+   snd B_DOWN (c "gdn") ([w, d + c "klen", c "xf"] ++ pack2 (fun b => c "x" b) ++ [c "kid", mode, c "dvlen"] ++
      (List.range 16).map fun i => c "dvh" i),
-   rcv B_UP (c "gdn") ([w, d + c "klen", c "rkc"] ++
+   rcv B_UP (c "gdn") ([w, d + c "klen", c "rkc", (c "oEU" + c "oEB") * c "nxf" + c "oES" * c "xf"] ++
      ((pack2 (fun b => c "nx" b)).zip (pack2 fun b => c "x" b)).map
        (fun (p, q) => (c "oEU" + c "oEB") * p + c "oES" * q) ++
      ((List.range 4).map fun t => (c "oEU" + c "oEB") * c "unm" t) ++
@@ -463,25 +539,26 @@ def interactions : List Interaction :=
    snd B_SPQ gX ([w, d + c "jm", c "kid", c "kid2", c "oLX"] ++
      ((pack2 fun b => c "x" (4 + b)).zip ((List.range 16).map fun i => c "xh" i)).map
        (fun (p, q) => c "oLX" * p + q) ++
-     [c "oLX" * vlenOf (fun t => c "x" t)] ++ ((List.range 4).map fun t => c "xm" t) ++
+     [c "xhf", c "oLX" * vlenOf (fun t => c "x" t)] ++ ((List.range 4).map fun t => c "xm" t) ++
      [c "dvlen"] ++ (List.range 16).map fun i => c "dvh" i),
    snd B_EPQ (gX * (1 - c "j0")) [w, d, d + c "jm", c "kid"],
-   rcv B_SPR gX ([w, d] ++ ((List.range 16).map fun i => c "sh" i) ++ (List.range 4).map fun t => c "sm" t),
-   snd B_SXQ (c "oEX" * (1 - c "z")) ([w, d + c "jm" + 1, c "kid2", d + c "klen"] ++
+   rcv B_SPR gX ([w, d, c "shf"] ++ ((List.range 16).map fun i => c "sh" i) ++ (List.range 4).map fun t => c "sm" t),
+   snd B_SXQ (c "oEX" * (1 - c "z")) ([w, d + c "jm" + 1, c "kid2", d + c "klen", c "xf"] ++
      pack2 (fun b => c "x" b) ++ CM),
-   rcv B_SXR (c "oEX" * (1 - c "z")) ([w, d + c "jm" + 1, c "kid2"] ++
+   rcv B_SXR (c "oEX" * (1 - c "z")) ([w, d + c "jm" + 1, c "kid2", c "sxhf"] ++
      ((List.range 16).map fun i => c "sxh" i) ++ (List.range 4).map fun t => c "sxm" t),
    -- a new extension above a split branch (`oEP`), a re-keyed extension (`oEM`)
    rcv B_EPQ (c "oEP") [w, d, d + c "klen", c "kid"],
-   rcv B_SPR (c "oEP") ([w, d + c "klen"] ++ pack2 (fun b => c "nx" b) ++ (List.range 4).map fun t => c "unm" t),
-   snd B_SPR (c "oEP") ([w, d] ++ pack2 (fun b => c "hn" b) ++ NM),
-   rcv B_SXQ (c "oEM") ([w, d, c "kid", d + c "klen"] ++ pack2 (fun b => c "nx" b) ++
+   rcv B_SPR (c "oEP") ([w, d + c "klen", c "nxf"] ++ pack2 (fun b => c "nx" b) ++
      (List.range 4).map fun t => c "unm" t),
-   snd B_SXR (c "oEM") ([w, d, c "kid"] ++ pack2 (fun b => c "hn" b) ++ NM)] ++
+   snd B_SPR (c "oEP") ([w, d, c "nref"] ++ pack2 (fun b => c "hn" b) ++ NM),
+   rcv B_SXQ (c "oEM") ([w, d, c "kid", d + c "klen", c "nxf"] ++ pack2 (fun b => c "nx" b) ++
+     (List.range 4).map fun t => c "unm" t),
+   snd B_SXR (c "oEM") ([w, d, c "kid", c "nref"] ++ pack2 (fun b => c "hn" b) ++ NM)] ++
   ((List.range 8).map fun t => rcv B_RNG (c "oEX") [c "cmb" t]) ++
   -- result to the parent
   [snd B_UP gwalk ([w, d, c "oLR" + c "oEU" + sm RK_H gX + sm RK_LD (c "oED") + sm RK_NONE (c "oLD") +
-       sm RK_HE (c "oEB") + sm RK_SAME gS] ++
+       sm RK_HE (c "oEB") + sm RK_SAME gS, gnu * c "nref" + gS * c "oref" + gX * c "shf"] ++
      (((pack2 (fun b => c "hn" b)).zip (pack2 fun b => c "ho" b)).zip ((List.range 16).map fun i => c "sh" i)).map
        (fun ((p, q), s) => gnu * p + gS * q + gX * s) ++
      ((NM.zip ((List.range 4).map fun t => c "sm" t)).map fun (p, s) => gnu * p + gX * s) ++

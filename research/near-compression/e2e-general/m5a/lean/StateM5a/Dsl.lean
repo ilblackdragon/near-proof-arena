@@ -117,8 +117,18 @@ def B_KC : Nat := 22
 def B_KCR : Nat := 23
 /-- `(v)`: `v < 256` (the `RNG` table). -/
 def B_RNG : Nat := 24
+/-- Node versions `(tag, refFlag, ref16, record…)`: a node's record addressed by its *ref* — a
+SHA-256 digest (`refFlag = 0`, provided by a row that hashed the record) or a version id
+(`refFlag = 1`, the producing row's new-node id; never hashed).  Batched FINAL (M5a-2). -/
+def B_VER : Nat := 25
 
-def NUM_BUSES : Nat := 25
+def NUM_BUSES : Nat := 26
+
+/-- `VER` record tags. -/
+def VT_BR : Nat := 1
+def VT_SN : Nat := 2
+/-- Bits of a `VER` provider's multiplicity (readers of one version). -/
+def VBITS : Nat := 7
 
 /-! ## Result kinds on `UP` -/
 def RK_ANS : Nat := 0

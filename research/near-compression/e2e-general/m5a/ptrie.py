@@ -106,12 +106,21 @@ def serialize(t):
 OVERRIDE = {}
 
 
+#: Memo of `hash_of` (nodes are immutable tuples; the entry keeps the node alive, so ids stay unique).
+_HC = {}
+
+
 def hash_of(t):
     if t[0] == 'hash':
         return t[1]
     if id(t) in OVERRIDE:
         return OVERRIDE[id(t)]
-    return sha(serialize(t))
+    e = _HC.get(id(t))
+    if e is not None and e[0] is t:
+        return e[1]
+    h = sha(serialize(t))
+    _HC[id(t)] = (t, h)
+    return h
 
 
 def root_hash(t):

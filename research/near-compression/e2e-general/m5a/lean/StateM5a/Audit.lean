@@ -6,6 +6,7 @@ import StateM5a.Layout
 import StateM5a.Order
 import StateM5a.Merkle
 import StateM5a.KeyField
+import StateM5a.Store
 
 /-! Axiom audit of the M5a lemmas (`lake build StateM5a.Audit` prints them): every theorem must
 depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
@@ -63,3 +64,11 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.FieldRows.memChain_sound
 #print axioms StateM5a.FieldRows.onehot_of_sum
 #print axioms StateM5a.FieldRows.limb_eq
+-- batched FINAL (M5a-2): the version store
+#print axioms StateM5a.Store.exp_functional
+#print axioms StateM5a.Store.rv_refinedBy
+#print axioms StateM5a.Store.rv_collapse
+#print axioms StateM5a.Store.change_step
+#print axioms StateM5a.Store.upsert_step
+#print axioms StateM5a.Store.find_step
+#print axioms StateM5a.Store.batched_upserts

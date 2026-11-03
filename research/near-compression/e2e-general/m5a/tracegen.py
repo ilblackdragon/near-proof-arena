@@ -29,6 +29,12 @@ Row-level mutants (one row of a T2 row type tampered after generation, `TAMPERS`
   absdel    an absent delete at a leaf (`oLZ`) claiming a mismatch where the nibbles agree
   squash    an extension over a kept branch (`oEB`) with its memory usage + 1
   chain     a continuation row (`SNC`) holding another nibble (its hp byte adjusted)
+Batched-FINAL mutants (M5a-2: in-memory node versions on `VER`):
+  verslot   a row reading an in-memory version holds another off-path child (one slot byte)
+  vernid    a row reading an in-memory version claims another version's id (a stale / foreign read)
+  vmcount   a pre-state node's hashing row publishes it for one reader more than read it
+  finroot   the last change leaves the root in memory (a version id) instead of hashing it
+  nidforge  a version published under another row's version id
 """
 import hashlib
 import json
@@ -46,6 +52,9 @@ ID_KEY, ID_BR, ID_SN = 1 << 24, 2 << 24, 3 << 24
 W_FINAL = 1 << 20
 RK_ANS, RK_H, RK_HB, RK_HE, RK_LD, RK_NONE, RK_SAME = 0, 1, 2, 3, 4, 5, 6
 KMAX, HPMAX = 64, 33
+VBITS = 7
+# ops that read a node version and leave it in place (`del` returned `deleted = false`)
+SAME_OPS = {'BR.oDA', 'BR.oDS', 'SN.oLZ', 'SN.oEZ', 'SN.oES'}
 
 
 class Unsupported(Exception):
@@ -113,7 +122,16 @@ class Table:
 
 
 class Gen:
-    def __init__(self, st, names, mutant=None):
+    def __init__(self, st, names, mutant=None, plan=None):
+        # Batched FINAL: `plan` (from a first pass, `make_plan`) says, for every node version,
+        # whether it is published under a version id (`nref`: rewritten by a later change) or
+        # hashed (final), how many rows read it, and which row hashes each pre-state node.
+        # `plan = None` is the first pass: every old node hashed, every new node final.
+        self.plan = plan
+        self.ver = {}        # id(node) -> ('new', table, rid) for nodes the rows produced
+        self.keep = []       # keeps produced nodes alive (their ids are keys of `ver`)
+        self.reads = []      # (version key, table, rid, cont)
+        self.prod_cont = {}  # version key -> produced by a row with a continued key
         self.names = names
         self.D = names['D']
         self.mutant = mutant
@@ -164,6 +182,117 @@ class Gen:
         assert 0 <= v < 256, ('range', v)
         self.rng_count[v] = self.rng_count.get(v, 0) + 1
 
+    # ------------------------------------------------------------------ versions (batched FINAL)
+    def vkey(self, node):
+        k = self.ver.get(id(node))
+        return k if k is not None else ('pre', PT.hash_of(node))
+
+    @staticmethod
+    def nid(tbl, rid):
+        return (ID_BR if tbl == 'BR' else ID_SN) + 2 * rid + 1
+
+    def is_vid(self, k):
+        return self.plan is not None and k[0] == 'new' and self.plan['nref'].get(k, 0) == 1
+
+    def ref(self, node):
+        """A node's ref `(flag, 32 cells)`: its version id (flag 1, cell 0) or its digest."""
+        k = self.ver.get(id(node))
+        if k is not None and self.is_vid(k):
+            return 1, [self.nid(k[1], k[2])] + [0] * 31
+        return 0, list(PT.hash_of(node))
+
+    def set_ref(self, T, r, col, fcol, ref):
+        T.setv(r, col, ref[1])
+        T.set(r, fcol, ref[0])
+
+    @staticmethod
+    def set_bits(T, r, col, n):
+        assert 0 <= n < 1 << VBITS, ('version readers', n)
+        for t in range(VBITS):
+            T.set(r, col, (n >> t) & 1, t)
+
+    def old_ref(self, T, r, tbl, rid, node, cont):
+        """The row's old node: hashed here (`gsha`, published for `vm` other readers) or read from
+        `VER` by its ref.  Sets `gsha`, `oref`, `vm`, `ho`; returns the ref."""
+        k = self.vkey(node)
+        self.reads.append((k, tbl, rid, cont))
+        vm = 0
+        if self.plan is None or cont:
+            gsha = True
+            assert not self.is_vid(k), 'a continued key under a version id'
+        elif k[0] == 'pre':
+            pt, pr, cnt = self.plan['prov'][k]
+            gsha = (pt, pr) == (tbl, rid)
+            vm = cnt if gsha else 0
+        else:
+            gsha = False
+        T.set(r, 'gsha', int(gsha))
+        self.set_bits(T, r, 'vm', vm)
+        if gsha:
+            ser = PT.serialize(node)
+            ref = (0, list(sha(ser)))
+            self.sha_msg((ID_BR if tbl == 'BR' else ID_SN) + 2 * rid, ser)
+        else:
+            ref = self.ref(node)
+        self.set_ref(T, r, 'ho', 'oref', ref)
+        return ref
+
+    def new_ref(self, T, r, tbl, rid, node, cont):
+        """The row's new node: published under its version id (`nref`) or hashed (final); `vmn`
+        readers.  Registers the version; sets `nref`, `vmn`, `hn`; returns the ref."""
+        k = ('new', tbl, rid)
+        self.ver[id(node)] = k
+        self.keep.append(node)
+        self.prod_cont[k] = cont
+        vmn = 0 if self.plan is None else self.plan['vmn'].get(k, 0)
+        if self.is_vid(k):
+            ref = (1, [self.nid(tbl, rid)] + [0] * 31)
+        else:
+            # a final node's children must be final (digests)
+            kids = node[2] if node[0] == 'branch' else ([node[2]] if node[0] == 'ext' else [])
+            for ch in kids:
+                if ch is not None and self.ref(ch)[0] == 1:
+                    raise Unsupported('final node over an in-memory child (continued key)')
+            ser = PT.serialize(node)
+            ref = (0, list(sha(ser)))
+            self.sha_msg((ID_BR if tbl == 'BR' else ID_SN) + 2 * rid + 1, ser)
+        self.set_bits(T, r, 'vmn', vmn)
+        self.set_ref(T, r, 'hn', 'nref', ref)
+        return ref
+
+    @staticmethod
+    def own_ref(T, r):
+        return T.get(r, 'oref'), [T.get(r, 'ho', b) for b in range(32)]
+
+    def make_plan(self):
+        """From a first pass: version ids for nodes a later change rewrites, reader counts, and the
+        row that hashes each pre-state node (its first reader)."""
+        ops = {}
+        for tbl, opl in (('BR', ['oFD', 'oFA', 'oUD', 'oUN', 'oDH', 'oDL', 'oDN', 'oD1', 'oFV', 'oDA',
+                                 'oDS', 'oSL']),
+                         ('SN', ['oLF', 'oLR', 'oLD', 'oLS', 'oLM', 'oEF', 'oEU', 'oED', 'oLA', 'oEA',
+                                 'oLZ', 'oEZ', 'oES', 'oEB', 'oLX', 'oEX', 'oEP', 'oEM'])):
+            T = self.T[tbl]
+            for rid, row in enumerate(T.rows):
+                ops[(tbl, rid)] = tbl + '.' + next(o for o in opl if T.get(row, o) == 1)
+        by = {}
+        for k, tbl, rid, cont in self.reads:
+            by.setdefault(k, []).append((tbl, rid, cont, ops[(tbl, rid)]))
+        prov, nref, vmn = {}, {}, {}
+        for k, rs in by.items():
+            if k[0] == 'pre':
+                nc = [(t, r) for t, r, c, _ in rs if not c]
+                if nc:
+                    prov[k] = (nc[0][0], nc[0][1], len(nc) - 1)
+            elif self.prod_cont[k]:
+                assert all(c for _, _, c, _ in rs)
+                nref[k], vmn[k] = 0, 0
+            else:
+                assert not any(c for _, _, c, _ in rs)
+                nref[k] = int(any(o not in SAME_OPS for _, _, _, o in rs))
+                vmn[k] = len(rs)
+        return dict(prov=prov, nref=nref, vmn=vmn)
+
     # ------------------------------------------------------------------ node rows
     def br_row(self, node, d, ctx, op):
         """A branch row.  `node` is the old branch (None for a split's new branch `oSL`)."""
@@ -196,13 +325,12 @@ class Gen:
             for i in range(16):
                 if kids[i] is not None:
                     T.set(r, 'f', 1, i)
-                    hb = PT.hash_of(kids[i])
+                    fl, hb = self.ref(kids[i])
+                    T.set(r, 'isn', fl, i)
                     for b in range(32):
                         T.set(r, 'ch', hb[b], 32 * i + b)
             T.setv(r, 'mem', le(m, 8))
-            ser = PT.serialize(node)
-            T.setv(r, 'ho', list(sha(ser)))
-            self.sha_msg(ID_BR + 2 * rid, ser)
+            self.old_ref(T, r, 'BR', rid, node, False)
         if op is not None:
             self.br_gates(T, r, op)
         return T, r, rid, n
@@ -212,12 +340,12 @@ class Gen:
         T.set(r, 'gnew', int(op in ('oUD', 'oUN', 'oDH', 'oDL', 'oDN', 'oSL')))
 
     def br_new(self, T, r, rid, node, new_node, nh, nm, om, op, nm2=0):
-        """Fill the rewritten branch: flags, new child hash/mem, memory chain, digest."""
+        """Fill the rewritten branch: flags, new child ref/mem, memory chain, its ref."""
         _, v2, kids2, m2 = new_node
         for i in range(16):
             T.set(r, 'nf', 1 if kids2[i] is not None else 0, i)
         if nh is not None:
-            T.setv(r, 'nh', list(nh))
+            self.set_ref(T, r, 'nh', 'nhf', nh)
         T.setv(r, 'nm', mem_limbs(nm))
         T.setv(r, 'om', mem_limbs(om))
         T.setv(r, 'nmem', le(m2, 8))
@@ -229,10 +357,7 @@ class Gen:
         assert m2 == base + nm + nm2 - om, (m2, base, nm, nm2, om)
         self.carries(T, r, [mem_limbs(base)[k] + mem_limbs(nm)[k] + mem_limbs(nm2)[k] for k in range(4)],
                      mem_limbs(om), mem_limbs(m2), 'cy', (-1, 0, 1, 2))
-        ser = PT.serialize(new_node)
-        hn = sha(ser)
-        T.setv(r, 'hn', list(hn))
-        self.sha_msg(ID_BR + 2 * rid + 1, ser)
+        hn = self.new_ref(T, r, 'BR', rid, new_node, False)
         nkn = sum(1 for c in kids2 if c is not None)
         if op in ('oDH', 'oDL', 'oDN'):
             hasv = 1 if v2 is not None else 0
@@ -355,11 +480,9 @@ class Gen:
             if isL:
                 T.setv(r, 'x', le(node[2][0], 4) + list(node[2][1]))
             else:
-                T.setv(r, 'x', list(PT.hash_of(node[2])))
+                self.set_ref(T, r, 'x', 'xf', self.ref(node[2]))
             T.setv(r, 'mem', le(node[3], 8))
-            ser = PT.serialize(node)
-            T.setv(r, 'ho', list(sha(ser)))
-            self.sha_msg(ID_SN + 2 * rid, ser)
+            self.old_ref(T, r, 'SN', rid, node, bool(cont))
         return T, r, rid
 
     def snc_rows(self, rid, c, p, rest, kA, fA, kB, gB, gO, gN, hp):
@@ -396,13 +519,9 @@ class Gen:
         if new_node[0] == 'leaf':
             T.setv(r, 'nx', le(new_node[2][0], 4) + list(new_node[2][1]))
         else:
-            T.setv(r, 'nx', list(PT.hash_of(new_node[2])))
+            self.set_ref(T, r, 'nx', 'nxf', self.ref(new_node[2]))
         T.setv(r, 'nmem', le(new_node[3], 8))
-        ser = PT.serialize(new_node)
-        hn = sha(ser)
-        T.setv(r, 'hn', list(hn))
-        self.sha_msg(ID_SN + 2 * rid + 1, ser)
-        return hn
+        return self.new_ref(T, r, 'SN', rid, new_node, T.get(r, 'cont') == 1)
 
     def ext_fresh_mem(self, T, r, key, unm, out):
         """`nmem = unm + extOwnMem key` (fresh extension rows `oEB`/`oEP`/`oEM`)."""
@@ -415,14 +534,15 @@ class Gen:
     # ------------------------------------------------------------------ results (UP)
     @staticmethod
     def res(rk, h=None, nm=0, om=0, kid2=0, st2=0, alen=0, avh=None, fpres=0, node=None):
-        return dict(rk=rk, h=h or bytes(32), nm=nm, om=om, kid2=kid2, st2=st2, alen=alen,
+        """`h`: the result's ref `(flag, 32 cells)`."""
+        return dict(rk=rk, h=h or (0, [0] * 32), nm=nm, om=om, kid2=kid2, st2=st2, alen=alen,
                     avh=avh or bytes(32), fpres=fpres, node=node)
 
     def put_child_up_br(self, T, r, op, cr):
         T.set(r, 'rk', cr['rk'])
         T.setv(r, 'om', mem_limbs(cr['om']))
         if op in ('oUD', 'oDH'):
-            T.setv(r, 'nh', list(cr['h']))
+            self.set_ref(T, r, 'nh', 'nhf', cr['h'])
             T.setv(r, 'nm', mem_limbs(cr['nm']))
         if op == 'oDL':
             T.set(r, 'kid2', cr['kid2'])
@@ -496,18 +616,19 @@ class Gen:
             xs = k[jm + 1:]
             if not xs:
                 T.set(r, 'z', 1)
-                xchild = (PT.hash_of(t[2]), cm, None)
+                xchild = (self.ref(t[2]), cm, None)
             else:
                 T.set(r, 'iz', pow(len(xs), P - 2, P))
                 sub = ('ext', xs, t[2], PT.ext_own_mem(xs) + cm)
                 Tm, rm, ridm = self.sn_row(None, e + 1, dict(w=w), 'oEM', kid2, xs)
-                Tm.setv(rm, 'nx', list(PT.hash_of(t[2])))
                 self.ext_fresh_mem(Tm, rm, xs, cm, sub[3])
                 hs = self.sn_new(Tm, rm, ridm, sub)
-                T.setv(r, 'sxh', pack2(hs))
+                T.setv(r, 'sxh', pack2(hs[1]))
+                T.set(r, 'sxhf', hs[0])
                 T.setv(r, 'sxm', mem_limbs(sub[3]))
                 xchild = (hs, sub[3], sub)
-            T.setv(r, 'xh', pack2(xchild[0]))
+            T.setv(r, 'xh', pack2(xchild[0][1]))
+            T.set(r, 'xhf', xchild[0][0])
             T.setv(r, 'xm', mem_limbs(xchild[1]))
         # the new branch at e
         Tb, rb, ridb, nb = self.br_row(None, e, ctx, 'oSL')
@@ -518,7 +639,7 @@ class Gen:
         leaf, lh = self.materialize(w, e + 1, kid, ctx['vlen'], ctx['vh'])
         Tb.set(rb, 'kid2', kid); Tb.set(rb, 'st2', e + 1)
         Tb.set(rb, 'lvlen', ctx['vlen']); Tb.setv(rb, 'lvh', pack2(ctx['vh']))
-        Tb.setv(rb, 'nh', list(lh))
+        self.set_ref(Tb, rb, 'nh', 'nhf', lh)
         kids2 = [None] * 16
         kids2[y] = leaf
         if op == 'oLX':
@@ -526,12 +647,12 @@ class Gen:
             Tb.set(rb, 'xl', 1)
             Tb.set(rb, 'lvlen2', s[0]); Tb.setv(rb, 'lvh2', pack2(s[1]))
             xleaf, xh = self.materialize(w, e + 1, kid2, s[0], s[1])
-            Tb.setv(rb, 'nh2', list(xh))
+            self.set_ref(Tb, rb, 'nh2', 'nh2f', xh)
             Tb.setv(rb, 'nm2', mem_limbs(xleaf[3]))
             kids2[x] = xleaf
             xm = xleaf[3]
         else:
-            Tb.setv(rb, 'nh2', list(xchild[0]))
+            self.set_ref(Tb, rb, 'nh2', 'nh2f', xchild[0])
             Tb.setv(rb, 'nm2', mem_limbs(xchild[1]))
             kids2[x] = xchild[2] if xchild[2] is not None else t[2]
             xm = xchild[1]
@@ -541,12 +662,12 @@ class Gen:
         if jm > 0:
             ext = ('ext', K[d:e], br, PT.ext_own_mem(K[d:e]) + br[3])
             Te, re_, ride = self.sn_row(None, d, dict(w=w), 'oEP', kid, K[d:e])
-            Te.setv(re_, 'nx', list(hb))
             self.ext_fresh_mem(Te, re_, K[d:e], br[3], ext[3])
             th = self.sn_new(Te, re_, ride, ext)
             top = ext
-        assert th == PT.hash_of(spec), 'split result differs from the spec'
-        T.setv(r, 'sh', pack2(th))
+        assert PT.hash_of(top) == PT.hash_of(spec), 'split result differs from the spec'
+        T.setv(r, 'sh', pack2(th[1]))
+        T.set(r, 'shf', th[0])
         T.setv(r, 'sm', mem_limbs(top[3]))
         return self.res(RK_H, h=th, nm=top[3], om=t[3], node=top)
 
@@ -589,7 +710,6 @@ class Gen:
                     kids2 = list(kids)
                     kids2[n] = leaf
                     nn = ('branch', v, kids2, m + leaf[3])
-                    T.setv(r, 'nh', list(lh))
                     hn = self.br_new(T, r, rid, t, nn, lh, leaf[3], 0, 'oUN')
                 else:
                     T, r, rid, _ = self.br_row(t, d, ctx, 'oUD')
@@ -603,7 +723,7 @@ class Gen:
             # delete
             if c is None:
                 T, r, rid, _ = self.br_row(t, d, ctx, 'oDA')
-                return self.res(RK_SAME, h=bytes(T.get(r, 'ho', b) for b in range(32)), om=m, node=t)
+                return self.res(RK_SAME, h=self.own_ref(T, r), om=m, node=t)
             T, r, rid, _ = self.br_row(t, d, ctx, None)   # the op depends on the child's result
             cr = self.walk(c, d + 1, ctx)
             if cr['rk'] == RK_SAME:
@@ -612,7 +732,7 @@ class Gen:
                 self.census('BR.' + op)
                 self.br_gates(T, r, op)
                 self.put_child_up_br(T, r, op, cr)
-                return self.res(RK_SAME, h=bytes(T.get(r, 'ho', b) for b in range(32)), om=m, node=t)
+                return self.res(RK_SAME, h=self.own_ref(T, r), om=m, node=t)
             kids2 = list(kids)
             if cr['rk'] in (RK_HB, RK_HE):
                 op = 'oDH'
@@ -654,7 +774,6 @@ class Gen:
                 T.setv(r, 'lvh', pack2(sibn[2][1]))
                 return self.res(RK_LD, om=m, kid2=kid2, st2=d, alen=sibn[2][0], avh=sibn[2][1])
             if op == 'oDL':
-                T.setv(r, 'nh', list(nh))
                 T.setv(r, 'nm', mem_limbs(nm))
             nn = ('branch', v, kids2, m + nm - cr['om'])
             hn = self.br_new(T, r, rid, t, nn, nh, nm, cr['om'], op)
@@ -671,7 +790,7 @@ class Gen:
                 T, r, rid = self.sn_row(t, d, ctx, op, kid, k, jm=jm, y=y)
                 if mode == 0:
                     return self.res(RK_ANS)
-                return self.res(RK_SAME, h=bytes(T.get(r, 'ho', b) for b in range(32)), om=m, node=t)
+                return self.res(RK_SAME, h=self.own_ref(T, r), om=m, node=t)
             if mode == 0:
                 self.sn_row(t, d, ctx, 'oLF', kid, k)
                 return self.res(RK_ANS, alen=s[0], avh=s[1], fpres=1)
@@ -693,7 +812,7 @@ class Gen:
             T, r, rid = self.sn_row(t, d, ctx, op, kid, k, jm=jm, y=y)
             if mode == 0:
                 return self.res(RK_ANS)
-            return self.res(RK_SAME, h=bytes(T.get(r, 'ho', b) for b in range(32)), om=m, node=t)
+            return self.res(RK_SAME, h=self.own_ref(T, r), om=m, node=t)
         if mode == 0:
             T, r, rid = self.sn_row(t, d, ctx, 'oEF', kid, k)
             cr = self.walk(c, d + len(k), ctx)
@@ -720,12 +839,11 @@ class Gen:
             return self.res(RK_LD, om=m, kid2=cr['kid2'], st2=d, alen=cr['alen'], avh=cr['avh'])
         if rk == RK_SAME:
             self.put_child_up_sn(T, r, 'oES', cr)
-            return self.res(RK_SAME, h=bytes(T.get(r, 'ho', b) for b in range(32)), om=m, node=t)
+            return self.res(RK_SAME, h=self.own_ref(T, r), om=m, node=t)
         if rk == RK_HB:
             self.retag_sn(T, r, 'oES', 'oEB', k, d, None)
             self.put_child_up_sn(T, r, 'oEB', cr)
             nn = PT.extend_child(k, cr['node'], [])
-            T.setv(r, 'nx', list(cr['h']))
             self.ext_fresh_mem(T, r, k, cr['nm'], nn[3])
             hn = self.sn_new(T, r, rid, nn)
             return self.res(RK_HE, h=hn, nm=nn[3], om=m, node=nn)
@@ -773,7 +891,7 @@ class Gen:
         # ---- FINAL: change walks in key order
         chg = dict(self.changes)
         cur = st_pre
-        roots = [self.pre_root]
+        roots = [(0, list(self.pre_root))]
         final = {}
         for i, key in enumerate(self.keys):
             if key not in chg:
@@ -790,7 +908,8 @@ class Gen:
             roots.append(res['h'])
         spec_t, _ = PT.apply_changes(st_pre, [(k, None if v is None else (len(v), sha(v))) for k, v in self.changes])
         if self.mutant is None:
-            assert PT.root_hash(spec_t) == roots[-1] == self.post_root, 'post-state root'
+            assert roots[-1] == (0, list(self.post_root)), 'post-state root (a digest)'
+            assert PT.root_hash(spec_t) == self.post_root == PT.hash_of(cur), 'post-state root'
         self.roots = roots
         self.pre, self.final = pre, final
         self.build_ws()
@@ -864,8 +983,10 @@ class Gen:
                     if ph == 0 and i + 1 < n:
                         Tb.set(r, 'so', 1)
                     if ph == 1 and wr:
-                        Tb.setv(r, 'rin', pack2(self.roots[j]))
-                        Tb.setv(r, 'rout', pack2(self.roots[j + 1]))
+                        Tb.setv(r, 'rin', pack2(self.roots[j][1]))
+                        Tb.set(r, 'rif', self.roots[j][0])
+                        Tb.setv(r, 'rout', pack2(self.roots[j + 1][1]))
+                        Tb.set(r, 'rof', self.roots[j + 1][0])
                         Tb.set(r, 'rk', self.root_rk[j])
                         Tb.setv(r, 'rnm', mem_limbs(self.root_mem[j][0]))
                         Tb.setv(r, 'rom', mem_limbs(self.root_mem[j][1]))
@@ -1062,14 +1183,17 @@ class Gen:
         post = self.post_root
         if self.mutant == 'postroot':
             post = bytes([post[0] ^ 1]) + post[1:]
-        tape.append([14, True, [0] + pack2(self.pre_root)])
-        tape.append([14, False, [len(self.final)] + pack2(post)])
+        tape.append([14, True, [0, 0] + pack2(self.pre_root)])
+        tape.append([14, False, [len(self.final), 0] + pack2(post)])
         json.dump(tape, open(os.path.join(out, 'tape.json'), 'w'))
         stats = dict(heights=heights, sha_msgs=len(self.sha_msgs),
                      sha_blocks=sum((len(m['bytes']) // 2 + 9 + 63) // 64 for m in self.sha_msgs),
                      compressions=len(self.comps), keys=len(self.keybytes), ws_keys=len(self.keys),
                      changes=len(self.final), rows={k: len(T.rows) for k, T in self.T.items()},
-                     ops=self.op_census, pre_root=self.pre_root.hex(), post_root=self.roots[-1].hex())
+                     ops=self.op_census, pre_root=self.pre_root.hex(), post_root=bytes(self.roots[-1][1]).hex(),
+                     versions=dict(published=sum(self.plan['nref'].values()) if self.plan else 0,
+                                   hashed_old=sum(1 for m in self.sha_msgs if m['id'] >= ID_BR and m['id'] % 2 == 0),
+                                   hashed_new=sum(1 for m in self.sha_msgs if m['id'] >= ID_BR and m['id'] % 2 == 1)))
         json.dump(stats, open(os.path.join(out, 'stats.json'), 'w'), indent=1)
         return stats
 
@@ -1137,27 +1261,71 @@ def _t_chain(g):
     T.set(r, 'hp', T.get(r, 'hp', 0) + 16 * (k1 - k0), 0)
 
 
+def _ver_reader(g):
+    """A FINAL branch row that reads its old node from an in-memory version (`oref = 1`)."""
+    T = g.T['BR']
+    return T, next(r for r in T.rows if T.get(r, 'oref') == 1 and T.get(r, 'w') >= W_FINAL)
+
+
+def _t_verslot(g):
+    T, r = _ver_reader(g)
+    i = next(i for i in range(16) if T.get(r, 'f', i) == 1 and T.get(r, 'sel', i) == 0)
+    T.set(r, 'ch', T.get(r, 'ch', 32 * i) ^ 1, 32 * i)
+
+
+def _t_vernid(g):
+    T, r = _ver_reader(g)
+    nid = T.get(r, 'ho', 0)
+    other = next(T.get(q, 'hn', 0) for q in T.rows if T.get(q, 'nref') == 1 and T.get(q, 'hn', 0) != nid)
+    T.set(r, 'ho', other, 0)
+
+
+def _t_vmcount(g):
+    T = g.T['BR']
+    r = next(r for r in T.rows if T.get(r, 'gsha') == 1 and any(T.get(r, 'vm', t) for t in range(VBITS)))
+    n = sum(T.get(r, 'vm', t) << t for t in range(VBITS)) + 1
+    g.set_bits(T, r, 'vm', n)
+
+
+def _t_finroot(g):
+    T = g.T['BR']
+    last = max(T.get(r, 'w') for r in T.rows if T.get(r, 'w') >= W_FINAL)
+    rid, r = next((i, r) for i, r in enumerate(T.rows) if T.get(r, 'w') == last and T.get(r, 'd') == 0)
+    assert T.get(r, 'gnew') == 1 and T.get(r, 'nref') == 0
+    nid = Gen.nid('BR', rid)
+    T.set(r, 'nref', 1)
+    T.setv(r, 'hn', [nid] + [0] * 31)
+    g.sha_msgs = [m for m in g.sha_msgs if m['id'] != ID_BR + 2 * rid + 1]
+    W = g.T['WSB']
+    wr = [q for q in W.rows if W.get(q, 'ph') == 1 and W.get(q, 'wr') == 1][-1]
+    W.set(wr, 'rof', 1)
+    W.setv(wr, 'rout', pack2([nid] + [0] * 31))
+
+
+def _t_nidforge(g):
+    T = g.T['BR']
+    rs = [r for r in T.rows if T.get(r, 'nref') == 1]
+    T.set(rs[1], 'hn', T.get(rs[0], 'hn', 0), 0)
+
+
 TAMPERS = dict(absent=_t_absent, extabsent=_t_extabsent, branchval=_t_branchval, split=_t_split,
-               splitext=_t_splitext, absdel=_t_absdel, squash=_t_squash, chain=_t_chain)
+               splitext=_t_splitext, absdel=_t_absdel, squash=_t_squash, chain=_t_chain,
+               verslot=_t_verslot, vernid=_t_vernid, vmcount=_t_vmcount, finroot=_t_finroot,
+               nidforge=_t_nidforge)
 
 
-def main():
-    st = json.load(open(sys.argv[1]))
-    names = json.load(open(sys.argv[2]))
-    out = sys.argv[3]
-    mutant = None
-    if len(sys.argv) > 5 and sys.argv[4] == '--mutant':
-        mutant = sys.argv[5]
-    g = Gen(st, names, mutant)
+def make_gen(st, names, mutant, plan):
+    g = Gen(st, names, mutant, plan)
     if mutant == 'node':
         # A tampered pre-state node: the leaf of the first written key carries memory usage + 1
         # (still a well-formed node), while its parent keeps the true child hash.  Every row that
-        # visits the leaf holds and hashes the tampered content.
+        # visits the leaf holds the tampered content.
 
         def tamper(t, K, d):
             if t[0] == 'leaf':
                 bad = ('leaf', t[1], t[2], t[3] + 1)
                 PT.OVERRIDE[id(bad)] = PT.hash_of(t)
+                g.keep.append(bad)
                 return bad
             if t[0] == 'ext':
                 return ('ext', t[1], tamper(t[2], K, d + len(t[1])), t[3])
@@ -1177,10 +1345,26 @@ def main():
         return r
     g.walk = walk
     g.run()
+    return g
+
+
+def main():
+    st = json.load(open(sys.argv[1]))
+    names = json.load(open(sys.argv[2]))
+    out = sys.argv[3]
+    args = sys.argv[4:]
+    mutant = args[args.index('--mutant') + 1] if '--mutant' in args else None
+    # pass 1: every node hashed (the unbatched trace, still a valid one); pass 2: batched FINAL
+    g = make_gen(st, names, mutant, None)
+    if '--unbatched' not in args:
+        plan = g.make_plan()
+        PT.OVERRIDE.clear()
+        g = make_gen(st, names, mutant, plan)
     if mutant in TAMPERS:
         TAMPERS[mutant](g)
     stats = g.write(out)
-    print(json.dumps(dict((k, stats[k]) for k in ('rows', 'heights', 'sha_msgs', 'sha_blocks', 'compressions', 'ops'))))
+    print(json.dumps(dict((k, stats[k]) for k in ('rows', 'heights', 'sha_msgs', 'sha_blocks', 'compressions',
+                                                  'ops', 'versions'))))
 
 
 if __name__ == '__main__':
