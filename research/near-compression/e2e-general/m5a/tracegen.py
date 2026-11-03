@@ -184,9 +184,9 @@ class Gen:
         T.setv(r, 'ho', list(ho))
         self.sha_msg(ID_BR + 2 * rid, ser)
         n = self.nib(ctx['kid'], d)
+        T.set(r, 'sel', 1, n)
         if op is None:
             return T, r, rid, n
-        T.set(r, 'sel', 1, n)
         gdn = op in ('oFD', 'oUD', 'oDH', 'oDL', 'oDN', 'oD1')
         gnew = op in ('oUD', 'oUN', 'oDH', 'oDL', 'oDN')
         T.set(r, 'gdn', int(gdn))
