@@ -3,7 +3,7 @@ import StateM5a.Tape
 import StateM5a.DepthBound
 import StateM5a.KeyDecode
 import StateM5a.Steps
-import StateM5a.RowBrF
+import StateM5a.RowSnF
 import StateM5a.StepsT2
 import StateM5a.Walk
 import StateM5a.SerInj
@@ -445,3 +445,8 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.RowBrF.localOK_oFD
 #print axioms StateM5a.RowBrF.localOK_oFA
 #print axioms StateM5a.RowBrF.localOK_oFV
+#print axioms StateM5a.RowSn.sn_flags'
+#print axioms StateM5a.RowSnMsg.sn_uout
+#print axioms StateM5a.RowSnF.sn_key_prefix
+#print axioms StateM5a.RowSnF.localOK_oLF
+#print axioms StateM5a.RowSnF.localOK_oEF

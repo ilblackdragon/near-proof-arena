@@ -51,3 +51,6 @@ import StateM5a.RowDec
 import StateM5a.RowBr
 import StateM5a.RowBrMsg
 import StateM5a.RowBrF
+import StateM5a.RowSn
+import StateM5a.RowSnMsg
+import StateM5a.RowSnF
