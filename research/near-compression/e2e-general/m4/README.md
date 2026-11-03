@@ -89,7 +89,7 @@ Pre-check (every constraint on every row, every bus incl. the chip interface) 0.
 segment. These five proofs ran on the AIR before the last fix (`r16 gl`, §5); on the final AIR the
 whole benchmark re-pre-checks and chains (`logs/final-segcheck-bench.log`), the refill call's 4
 segments re-prove (`logs/final-segprove-refill.log`) and the benchmark's last segment re-proves
-(`recheck.sh`).
+(1,730,001 B, prove 943.8 s on 6 threads, verify 82 ms; `logs/final-segprove-bench-s4.log`, `recheck.sh`).
 
 Per segment (seg 1, 262,144 steps): instruction + lookup tables 16.02 M cells; boundary tables
 1.08 M cells (`MEMB` 286 k, `MPATH` 77 k, `DROP` 721 k (22,312 dead locals + 11,156 tombstones),
