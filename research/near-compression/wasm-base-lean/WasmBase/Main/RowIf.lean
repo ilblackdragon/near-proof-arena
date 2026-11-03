@@ -67,9 +67,11 @@ theorem if_filterC :
 theorem if_filterP : IfC.inters.filter (fun i => decide (i.bus = busStk ∧ i.send = true)) = [] := by
   decide
 
+variable {ti : Nat}
+
 /-- `IfC.act` is the selector, so its natural value is `f_if`'s.  Definitional: `act = v fIf`. -/
 theorem if_act_val {pub : List F} {tr : Trace} {r : Nat} :
-    (IfC.act.eval (tr.row pub 22 r)).toNat = rowNat tr 22 r IfC.fIf := rfl
+    (IfC.act.eval (tr.row pub ti r)).toNat = rowNat tr ti r IfC.fIf := rfl
 
 /-- `recordOf`'s opcode is always below `0x106`: the largest it can emit is `Ctrl.opHif = 0x105`.
 This is `recordOf_op_lt`'s case analysis with the tight bound the `IF` table needs. -/
@@ -123,7 +125,7 @@ theorem recordAtIf_opIf {cfg : NearCfg} {p : Prepared} {pf : PFunc} {L : Array (
 
 /-- The `IF` row produces nothing on the value channel. -/
 theorem if_rowProd {tr : Trace} {pub : List F} {r : Nat} :
-    rowProd IfC.table tr pub 22 r = [] := by
+    rowProd IfC.table tr pub ti r = [] := by
   rw [rowProd, rowMsgs_eq]
   show (List.filterMap _ (IfC.inters.filter (fun i => decide (i.bus = busStk ∧ i.send = true)))).map decMsg = _
   rw [if_filterP]; rfl
@@ -132,9 +134,9 @@ theorem if_rowProd {tr : Trace} {pub : List F} {r : Nat} :
 `IfC.kSb`/`IfC.kCid` (12/13).  Stated directly in terms of the row's cells, so consumers can
 `rw` it without carrying a `cc` abbreviation around. -/
 theorem if_rowIn {tr : Trace} {pub : List F} {r : Nat} :
-    rowIn IfC.table tr pub 22 r =
-      [tr.cell 22 r 0, tr.cell 22 r 1, tr.cell 22 r 2, ((0 : Nat) : F),
-        tr.cell 22 r IfC.kSb, tr.cell 22 r IfC.kCid] := by
+    rowIn IfC.table tr pub ti r =
+      [tr.cell ti r 0, tr.cell ti r 1, tr.cell ti r 2, ((0 : Nat) : F),
+        tr.cell ti r IfC.kSb, tr.cell ti r IfC.kCid] := by
   simp only [rowIn, IfC.table, IfC.inters, stateIn, List.cons_append, List.getD_cons_zero,
     List.map_cons, List.map_nil, v, Expr.eval_col, Expr.eval_ofNat', Trace.row, cPc, cTs, cS,
     IfC.kSb, IfC.kCid]
@@ -142,11 +144,11 @@ theorem if_rowIn {tr : Trace} {pub : List F} {r : Nat} :
 /-- The `IF` row's STATE output.  The successor pc is `nz·(pc+1) + (1−nz)·tgt` — the polarity that
 distinguishes `IF` from `CTRL`'s `fJif`.  `halted = 0` always (`if` never halts the trace). -/
 theorem if_rowOut {tr : Trace} {pub : List F} {r : Nat} :
-    rowOut IfC.table tr pub 22 r =
-      [IfC.nz.eval (tr.row pub 22 r) * (tr.cell 22 r 0 + 1) +
-          (1 - IfC.nz.eval (tr.row pub 22 r)) * tr.cell 22 r IfC.tgt,
-        tr.cell 22 r 1 + ((1 : Nat) : F), tr.cell 22 r 2 + tr.cell 22 r 4, ((0 : Nat) : F),
-        tr.cell 22 r IfC.kSb, tr.cell 22 r IfC.kCid] := by
+    rowOut IfC.table tr pub ti r =
+      [IfC.nz.eval (tr.row pub ti r) * (tr.cell ti r 0 + 1) +
+          (1 - IfC.nz.eval (tr.row pub ti r)) * tr.cell ti r IfC.tgt,
+        tr.cell ti r 1 + ((1 : Nat) : F), tr.cell ti r 2 + tr.cell ti r 4, ((0 : Nat) : F),
+        tr.cell ti r IfC.kSb, tr.cell ti r IfC.kCid] := by
   simp only [rowOut, IfC.table, IfC.inters, stateOut, List.cons_append, List.getD_cons_succ,
     List.getD_cons_zero, List.map_cons, List.map_nil, IfC.pcNext, IfC.pc1, v, Expr.eval_col,
     Expr.eval_add', Expr.eval_mul', Expr.eval_sub', Expr.eval_ofNat', Trace.row, cPc, cTs, cS, cFee,
@@ -157,12 +159,12 @@ condition — there is no gating count to case on, unlike `CTRL`'s `cnd`.  The s
 AIR's own field arithmetic (`(sb + h) − 1`, then `toNat`), exactly as `Ctrl.rowfacts`' `mC` does,
 so no `Nat`-subtraction side condition is needed. -/
 theorem if_rowCons {tr : Trace} {pub : List F} {r : Nat}
-    (hact : rowAct IfC.table tr pub 22 r) :
-    rowCons IfC.table tr pub 22 r =
-      [⟨0, (tr.cell 22 r IfC.kSb + tr.cell 22 r cH - ((1 : Nat) : F)).toNat, 0,
-        rowNat tr 22 r IfC.c, rowNat tr 22 r (IfC.c + 1), 0, 0, rowNat tr 22 r IfC.tc⟩] := by
+    (hact : rowAct IfC.table tr pub ti r) :
+    rowCons IfC.table tr pub ti r =
+      [⟨0, (tr.cell ti r IfC.kSb + tr.cell ti r cH - ((1 : Nat) : F)).toNat, 0,
+        rowNat tr ti r IfC.c, rowNat tr ti r (IfC.c + 1), 0, 0, rowNat tr ti r IfC.tc⟩] := by
   have hP' := P_val
-  have hcnt : rowNat tr 22 r IfC.fIf = 1 := hact
+  have hcnt : rowNat tr ti r IfC.fIf = 1 := hact
   rw [rowCons, rowMsgs_eq]
   show (List.filterMap _ (IfC.inters.filter (fun i => decide (i.bus = busStk ∧ i.send = false)))).map decMsg = _
   rw [if_filterC]
@@ -172,34 +174,31 @@ theorem if_rowCons {tr : Trace} {pub : List F} {r : Nat}
   simp only [List.map_cons, List.map_nil, List.map_append, List.append_assoc, List.cons_append,
     List.nil_append, v, Expr.eval_col, Expr.eval_sub', Expr.eval_add',
     Expr.eval_ofNat', cell_cast, Trace.row, cH, IfC.kSb, IfC.c, IfC.tc, decMsg,
-    List.getD_cons_zero, List.getD_cons_succ, Fp.toNat_cast_of_lt (rowNat_lt tr 22 r _), h0,
+    List.getD_cons_zero, List.getD_cons_succ, Fp.toNat_cast_of_lt (rowNat_lt tr ti r _), h0,
     List.cons.injEq, and_true, Msg.mk.injEq]
 
 /-- **The `IF` row's local constraint facts**, from `Holds` alone: the selector is a bit, and
 `nz = [c ≠ 0]`.  This is `Local.if_sound` with its 16-bit hypothesis discharged *conditionally*
 (the guard the row lemma actually has when the condition arrives on the CH bus), so no consumer has
 to invent a bound. -/
-theorem if_facts {nloc ncode : Nat} {pub : List F} {tr : Trace} {r : Nat}
-    (H : Holds (wasmBaseIfAir nloc ncode) pub tr) (hr : r < tr.height 22) :
-    (rowNat tr 22 r IfC.fIf = 0 ∨ rowNat tr 22 r IfC.fIf = 1) ∧
-    (rowNat tr 22 r IfC.c + rowNat tr 22 r (IfC.c + 1) < P →
-      IfC.nz.eval (tr.row pub 22 r) =
-        ((if rowNat tr 22 r IfC.c + rowNat tr 22 r (IfC.c + 1) = 0 then 0 else 1 : Nat) : F)) := by
-  have ht : 22 < (wasmBaseIfAir nloc ncode).tables.length := by simp [if_air_len]
-  have hcon : ∀ e ∈ IfC.constraints, e.eval (natRow (rowNat tr 22 r) (tr.row pub 22 r)) = 0 :=
-    table_constr H ht hr
-  have hP : ∀ i, rowNat tr 22 r i < P := rowNat_lt tr 22 r
+theorem if_facts {pub : List F} {tr : Trace} {r : Nat}
+    (hcon : ∀ e ∈ IfC.constraints, e.eval (natRow (rowNat tr ti r) (tr.row pub ti r)) = 0) :
+    (rowNat tr ti r IfC.fIf = 0 ∨ rowNat tr ti r IfC.fIf = 1) ∧
+    (rowNat tr ti r IfC.c + rowNat tr ti r (IfC.c + 1) < P →
+      IfC.nz.eval (tr.row pub ti r) =
+        ((if rowNat tr ti r IfC.c + rowNat tr ti r (IfC.c + 1) = 0 then 0 else 1 : Nat) : F)) := by
+  have hP : ∀ i, rowNat tr ti r i < P := rowNat_lt tr ti r
   simp only [IfC.constraints, List.mem_cons, List.mem_nil_iff, or_false, forall_eq_or_imp, forall_eq,
     Chips.bool, v, IfC.fIf, IfC.nz, Expr.eval_add', Expr.eval_sub', Expr.eval_mul', Expr.eval_ofNat',
     Expr.eval_col, natRow] at hcon
   obtain ⟨hbit, hnz⟩ := hcon
   refine ⟨bool_nat (hP _) hbit, fun hz => ?_⟩
-  have hn := nz_val (inv := rowNat tr 22 r IfC.inv) hz
+  have hn := nz_val (inv := rowNat tr ti r IfC.inv) hz
     (by simpa only [Lean.Grind.Semiring.natCast_add] using hnz)
   rw [row_eq_natRow]
   simp only [IfC.nz, v, Expr.eval_add', Expr.eval_mul', Expr.eval_col, natRow]
-  rw [show (((rowNat tr 22 r IfC.c : Nat) : F) + ((rowNat tr 22 r (IfC.c + 1) : Nat) : F))
-      = ((rowNat tr 22 r IfC.c + rowNat tr 22 r (IfC.c + 1) : Nat) : F) by
+  rw [show (((rowNat tr ti r IfC.c : Nat) : F) + ((rowNat tr ti r (IfC.c + 1) : Nat) : F))
+      = ((rowNat tr ti r IfC.c + rowNat tr ti r (IfC.c + 1) : Nat) : F) by
     rw [Lean.Grind.Semiring.natCast_add]]
   exact hn
 
@@ -209,21 +208,21 @@ STATE in/out messages are fixed expressions, so `halt0`, `tsOut`, `prodT` and `p
 bound; those two come from lookup answers (the FETCH answer and the R16 time check) and are stated
 as named hypotheses rather than assumed. -/
 theorem if_rowfacts_static {X : Ctx} {pub : List F} {tr : Trace} {r : Nat} {fee : Nat}
-    (hfeeMax : fee ≤ X.maxFee) (hgasEq : rowNat tr 22 r cFee = fee)
-    (hconsT : ∀ x ∈ rowCons IfC.table tr pub 22 r, ∃ n, n < 2 ^ 30 + 2 ^ 16 ∧
-      ((x.tp + 1 + n : Nat) : F) = lvl (rowIn IfC.table tr pub 22 r)) :
-    (rowIn IfC.table tr pub 22 r).getD 3 0 = 0 ∧
-    lvl (rowOut IfC.table tr pub 22 r) = lvl (rowIn IfC.table tr pub 22 r) + 1 ∧
-    (∃ fee, fee ≤ X.maxFee ∧ gasF (rowOut IfC.table tr pub 22 r) = gasF (rowIn IfC.table tr pub 22 r) + (fee : F)) ∧
-    (∀ x ∈ rowCons IfC.table tr pub 22 r, ∃ n, n < 2 ^ 30 + 2 ^ 16 ∧
-      ((x.tp + 1 + n : Nat) : F) = lvl (rowIn IfC.table tr pub 22 r)) ∧
-    (∀ x ∈ rowProd IfC.table tr pub 22 r, x.tp < P ∧ ((x.tp : Nat) : F) = lvl (rowIn IfC.table tr pub 22 r)) ∧
-    (rowProd IfC.table tr pub 22 r).Nodup := by
-  have hIn := if_rowIn (tr := tr) (pub := pub) (r := r)
-  have hOut := if_rowOut (tr := tr) (pub := pub) (r := r)
-  have hProd := if_rowProd (tr := tr) (pub := pub) (r := r)
+    (hfeeMax : fee ≤ X.maxFee) (hgasEq : rowNat tr ti r cFee = fee)
+    (hconsT : ∀ x ∈ rowCons IfC.table tr pub ti r, ∃ n, n < 2 ^ 30 + 2 ^ 16 ∧
+      ((x.tp + 1 + n : Nat) : F) = lvl (rowIn IfC.table tr pub ti r)) :
+    (rowIn IfC.table tr pub ti r).getD 3 0 = 0 ∧
+    lvl (rowOut IfC.table tr pub ti r) = lvl (rowIn IfC.table tr pub ti r) + 1 ∧
+    (∃ fee, fee ≤ X.maxFee ∧ gasF (rowOut IfC.table tr pub ti r) = gasF (rowIn IfC.table tr pub ti r) + (fee : F)) ∧
+    (∀ x ∈ rowCons IfC.table tr pub ti r, ∃ n, n < 2 ^ 30 + 2 ^ 16 ∧
+      ((x.tp + 1 + n : Nat) : F) = lvl (rowIn IfC.table tr pub ti r)) ∧
+    (∀ x ∈ rowProd IfC.table tr pub ti r, x.tp < P ∧ ((x.tp : Nat) : F) = lvl (rowIn IfC.table tr pub ti r)) ∧
+    (rowProd IfC.table tr pub ti r).Nodup := by
+  have hIn := if_rowIn (ti := ti) (tr := tr) (pub := pub) (r := r)
+  have hOut := if_rowOut (ti := ti) (tr := tr) (pub := pub) (r := r)
+  have hProd := if_rowProd (ti := ti) (tr := tr) (pub := pub) (r := r)
   -- `cFee = 4` definitionally; state the cell fact at the literal column `if_rowOut` produces.
-  have hcell : tr.cell 22 r 4 = ((fee : Nat) : F) := by
+  have hcell : tr.cell ti r 4 = ((fee : Nat) : F) := by
     rw [← hgasEq, cell_cast, cFee]
   refine ⟨by rw [hIn]; rfl, by rw [hIn, hOut]; rfl, ⟨fee, hfeeMax, ?_⟩, hconsT, ?_, ?_⟩
   · rw [hIn, hOut]
@@ -260,7 +259,7 @@ that the row's FETCH query was answered by `recordAtIf`'s record for this pc.
 `succ` is `verifyAtIf` at the row's pc, already unfolded through `ifStep`: the pushed label, the
 post-pop height `h - 1`, and both successor label lists.  Carrying it in this form keeps the spec
 proof free of `ifStep`-unfolding and makes the three-way case split read exactly like the checker. -/
-structure IfRowData (X : Ctx) (tr : Trace) (r : Nat) (fee : Nat) where
+structure IfRowData (ti : Nat) (X : Ctx) (tr : Trace) (r : Nat) (fee : Nat) where
   /-- checked-function index of the row's frame -/
   k : Nat
   /-- the row's local `pc` -/
@@ -271,16 +270,16 @@ structure IfRowData (X : Ctx) (tr : Trace) (r : Nat) (fee : Nat) where
   kLt : k < X.nf
   pcLt : pc < (X.pfOf k).code.size
   /-- the row's global pc is its STATE pc cell -/
-  gpc : X.offOf k + pc = rowNat tr 22 r 0
+  gpc : X.offOf k + pc = rowNat tr ti r 0
   ins : (X.pfOf k).code[pc]? = some (.if_ bt)
   endE : (X.pfOf k).endOf[pc]? = some e
   elseE : (X.pfOf k).elseOf[pc]? = some el
   feeEq : feeUnits X.cfg (X.pfOf k).gas[pc]? = some fee
   /-- the AIR's `tgt` cell is `elseOf + 1`, made global -/
-  tgt : rowNat tr 22 r IfC.tgt = el + 1 + X.offOf k
+  tgt : rowNat tr ti r IfC.tgt = el + 1 + X.offOf k
   /-- the AIR's `h` cell is the checker's height at `pc` -/
-  hEq : rowNat tr 22 r cH = (X.ckOf k).heights[pc]?.getD 0
-  hLt : rowNat tr 22 r cH < 2 ^ 16
+  hEq : rowNat tr ti r cH = (X.ckOf k).heights[pc]?.getD 0
+  hLt : rowNat tr ti r cH < 2 ^ 16
   /-- `verifyAtIf` at the row's pc, unfolded through `ifStep` -/
   succ : ∀ (ls : List Label) (h : Nat), (X.ckOf k).labels[pc]? = some ls →
     (X.ckOf k).heights[pc]? = some h →
@@ -296,17 +295,17 @@ The polarity is the AIR's, not the spec's: `IfC.pcNext = nz·(pc+1) + (1−nz)·
 `nz = [(c0 + c1) ≠ 0]`, so the row lemma cases on `mc.val` — which is `c0 + 2^16·c1`, hence zero
 exactly when the AIR's `c0 + c1` is — and then on `elseOf = endOf`, matching
 `step_if` / `step_if_else` / `step_if_noelse`. -/
-theorem if_rowSpec {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace} {r : Nat}
-    (H : Holds (wasmBaseIfAir nloc ncode) pub tr) (hr : r < tr.height 22)
-    (hact : rowAct IfC.table tr pub 22 r) {fee : Nat} (hfeeMax : fee ≤ X.maxFee)
-    (hgasEq : rowNat tr 22 r cFee = fee) (hd : IfRowData X tr r fee) :
-    RowSpec X (rowIn IfC.table tr pub 22 r) (rowOut IfC.table tr pub 22 r)
-      (rowCons IfC.table tr pub 22 r) (rowProd IfC.table tr pub 22 r) := by
+theorem if_rowSpec {X : Ctx} {pub : List F} {tr : Trace} {r : Nat}
+    (hcon : ∀ e ∈ IfC.constraints, e.eval (natRow (rowNat tr ti r) (tr.row pub ti r)) = 0)
+    (hact : rowAct IfC.table tr pub ti r) {fee : Nat} (hfeeMax : fee ≤ X.maxFee)
+    (hgasEq : rowNat tr ti r cFee = fee) (hd : IfRowData ti X tr r fee) :
+    RowSpec X (rowIn IfC.table tr pub ti r) (rowOut IfC.table tr pub ti r)
+      (rowCons IfC.table tr pub ti r) (rowProd IfC.table tr pub ti r) := by
   intro E s f tps tpl t pc S live S_seg segb R hin hlive ht1 hS hg64
   have hPv := P_val
-  have hP : ∀ i, rowNat tr 22 r i < P := rowNat_lt tr 22 r
-  let cc : Nat → F := fun i => ((rowNat tr 22 r i : Nat) : F)
-  have hIn' : rowIn IfC.table tr pub 22 r =
+  have hP : ∀ i, rowNat tr ti r i < P := rowNat_lt tr ti r
+  let cc : Nat → F := fun i => ((rowNat tr ti r i : Nat) : F)
+  have hIn' : rowIn IfC.table tr pub ti r =
       [cc 0, cc 1, cc 2, ((0 : Nat) : F), cc IfC.kSb, cc IfC.kCid] := by
     rw [if_rowIn]; simp only [cc, cell_cast]
   rw [hIn'] at hin
@@ -314,11 +313,11 @@ theorem if_rowSpec {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace} {r :
   have hpcl := R.pcLt
   have hoffb := X.off_bound R.kLt
   have htot := X.mf.total
-  have p0 : rowNat tr 22 r 0 = X.offOf E.k + pc := natEq i0 (hP _) (by omega)
-  have p1 : rowNat tr 22 r 1 = t := natEq i1 (hP _) (by omega)
-  have p2 : rowNat tr 22 r 2 = S := natEq i2 (hP _) (by omega)
-  have psb : rowNat tr 22 r IfC.kSb = E.sb := natEq i4 (hP _) (by have := R.sbLt; omega)
-  have pcid : rowNat tr 22 r IfC.kCid = E.cid := natEq i5 (hP _) (by have := R.cidLt; omega)
+  have p0 : rowNat tr ti r 0 = X.offOf E.k + pc := natEq i0 (hP _) (by omega)
+  have p1 : rowNat tr ti r 1 = t := natEq i1 (hP _) (by omega)
+  have p2 : rowNat tr ti r 2 = S := natEq i2 (hP _) (by omega)
+  have psb : rowNat tr ti r IfC.kSb = E.sb := natEq i4 (hP _) (by have := R.sbLt; omega)
+  have pcid : rowNat tr ti r IfC.kCid = E.cid := natEq i5 (hP _) (by have := R.cidLt; omega)
   -- identify the row's checker (function, pc) with the spec's frame
   obtain ⟨hk, hpc0, bt, e, el, hkLt, hpcLt, hgpc, hins, hend, hels, hfeeEq, htgt, hcHEq, hcHLt, hsucc⟩ := hd
   have hpcEq : X.offOf hk + hpc0 = X.offOf E.k + pc := by rw [hgpc, ← p0]
@@ -335,57 +334,57 @@ theorem if_rowSpec {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace} {r :
   have hge : 1 ≤ s.stack.size - E.sb := hge0
   have hsz : 0 < s.stack.size := by have := R.sbLe; omega
   have hsb1 : E.sb ≤ s.stack.size - 1 := by have := R.sbLe; omega
-  have h3 : rowNat tr 22 r cH = s.stack.size - E.sb := by rw [hcHEq, hH0, Option.getD_some]
+  have h3 : rowNat tr ti r cH = s.stack.size - E.sb := by rw [hcHEq, hH0, Option.getD_some]
   have hszP : s.stack.size < P := by have := R.sbLt; omega
   -- the consumed condition
-  let mC : Msg := ⟨0, (tr.cell 22 r IfC.kSb + tr.cell 22 r cH - ((1 : Nat) : F)).toNat, 0,
-    rowNat tr 22 r IfC.c, rowNat tr 22 r (IfC.c + 1), 0, 0, rowNat tr 22 r IfC.tc⟩
-  have hConsEq : rowCons IfC.table tr pub 22 r = [mC] := if_rowCons hact
-  have hProdEq : rowProd IfC.table tr pub 22 r = [] := if_rowProd
+  let mC : Msg := ⟨0, (tr.cell ti r IfC.kSb + tr.cell ti r cH - ((1 : Nat) : F)).toNat, 0,
+    rowNat tr ti r IfC.c, rowNat tr ti r (IfC.c + 1), 0, 0, rowNat tr ti r IfC.tc⟩
+  have hConsEq : rowCons IfC.table tr pub ti r = [mC] := if_rowCons hact
+  have hProdEq : rowProd IfC.table tr pub ti r = [] := if_rowProd
   rw [hConsEq] at hlive
   have hmC : live mC := hlive mC (by simp)
   rw [hConsEq, hProdEq]
   have sc : mC.space = 0 ∧ mC.slot = s.stack.size - 1 := by
     refine ⟨rfl, ?_⟩
-    show (tr.cell 22 r IfC.kSb + tr.cell 22 r cH - ((1 : Nat) : F)).toNat = s.stack.size - 1
+    show (tr.cell ti r IfC.kSb + tr.cell ti r cH - ((1 : Nat) : F)).toNat = s.stack.size - 1
     rw [cell_cast, cell_cast]
     exact slot_toNat psb h3 R.sbLe hge hszP
   obtain ⟨-, okc, -, -⟩ := R.stack_dec hmC sc.1 sc.2 (by omega)
-  have hlimbs : rowNat tr 22 r IfC.c + rowNat tr 22 r (IfC.c + 1) < P := by
+  have hlimbs : rowNat tr ti r IfC.c + rowNat tr ti r (IfC.c + 1) < P := by
     have hl : mC.l0 < 65536 ∧ mC.l1 < 65536 := ⟨okc.1, okc.2.1⟩
     simp only [mC] at hl
     omega
-  obtain ⟨-, hnzF⟩ := if_facts H hr
-  have hvalz : mC.val = 0 ↔ rowNat tr 22 r IfC.c + rowNat tr 22 r (IfC.c + 1) = 0 := by
+  obtain ⟨-, hnzF⟩ := if_facts hcon
+  have hvalz : mC.val = 0 ↔ rowNat tr ti r IfC.c + rowNat tr ti r (IfC.c + 1) = 0 := by
     simp only [mC, Msg.val, val4]
     omega
   -- the STATE output, once the successor pc is fixed
-  have hOut := if_rowOut (tr := tr) (pub := pub) (r := r)
-  have hcell4 : rowNat tr 22 r 4 = fee := by simpa only [cFee] using hgasEq
-  have e1 : tr.cell 22 r 1 + ((1 : Nat) : F) = ((t + 1 : Nat) : F) := by
+  have hOut := if_rowOut (ti := ti) (tr := tr) (pub := pub) (r := r)
+  have hcell4 : rowNat tr ti r 4 = fee := by simpa only [cFee] using hgasEq
+  have e1 : tr.cell ti r 1 + ((1 : Nat) : F) = ((t + 1 : Nat) : F) := by
     rw [cell_cast, p1, ← Lean.Grind.Semiring.natCast_add]
-  have e2 : tr.cell 22 r 2 + tr.cell 22 r 4 = ((S + fee : Nat) : F) := by
+  have e2 : tr.cell ti r 2 + tr.cell ti r 4 = ((S + fee : Nat) : F) := by
     rw [cell_cast, cell_cast, p2, hcell4, ← Lean.Grind.Semiring.natCast_add]
-  have e3 : tr.cell 22 r IfC.kSb = ((E.sb : Nat) : F) := by rw [cell_cast, psb]
-  have e4 : tr.cell 22 r IfC.kCid = ((E.cid : Nat) : F) := by rw [cell_cast, pcid]
-  have e5 : tr.cell 22 r 0 = ((X.offOf E.k + pc : Nat) : F) := by rw [cell_cast, p0]
-  have e6 : tr.cell 22 r IfC.tgt = ((el + 1 + X.offOf E.k : Nat) : F) := by rw [cell_cast, htgt]
+  have e3 : tr.cell ti r IfC.kSb = ((E.sb : Nat) : F) := by rw [cell_cast, psb]
+  have e4 : tr.cell ti r IfC.kCid = ((E.cid : Nat) : F) := by rw [cell_cast, pcid]
+  have e5 : tr.cell ti r 0 = ((X.offOf E.k + pc : Nat) : F) := by rw [cell_cast, p0]
+  have e6 : tr.cell ti r IfC.tgt = ((el + 1 + X.offOf E.k : Nat) : F) := by rw [cell_cast, htgt]
   -- `pcNext` is already a *global* pc (the AIR's `pc` cell is global, and `tgt` is `off + el + 1`)
   have mkOut : ∀ (pc' : Nat),
-      IfC.nz.eval (tr.row pub 22 r) * (tr.cell 22 r 0 + 1) +
-        (1 - IfC.nz.eval (tr.row pub 22 r)) * tr.cell 22 r IfC.tgt
+      IfC.nz.eval (tr.row pub ti r) * (tr.cell ti r 0 + 1) +
+        (1 - IfC.nz.eval (tr.row pub ti r)) * tr.cell ti r IfC.tgt
         = ((X.offOf E.k + pc' : Nat) : F) →
-      rowOut IfC.table tr pub 22 r = stMsg (X.offOf E.k + pc') (t + 1) (S + fee) 0 E.sb E.cid := by
+      rowOut IfC.table tr pub ti r = stMsg (X.offOf E.k + pc') (t + 1) (S + fee) 0 E.sb E.cid := by
     intro pc' h1
     rw [hOut, h1, e1, e2, e3, e4]
     simp only [stMsg]
   by_cases hz : mC.val = 0
   · -- condition zero: `nz = 0`, so the AIR takes `tgt = elseOf + 1`
-    have hc0 : rowNat tr 22 r IfC.c + rowNat tr 22 r (IfC.c + 1) = 0 := hvalz.mp hz
-    have hnz : IfC.nz.eval (tr.row pub 22 r) = 0 := by
+    have hc0 : rowNat tr ti r IfC.c + rowNat tr ti r (IfC.c + 1) = 0 := hvalz.mp hz
+    have hnz : IfC.nz.eval (tr.row pub ti r) = 0 := by
       rw [hnzF hlimbs, ite_eq_left hc0, cast_zero]
-    have hpcOut : IfC.nz.eval (tr.row pub 22 r) * (tr.cell 22 r 0 + 1) +
-        (1 - IfC.nz.eval (tr.row pub 22 r)) * tr.cell 22 r IfC.tgt
+    have hpcOut : IfC.nz.eval (tr.row pub ti r) * (tr.cell ti r 0 + 1) +
+        (1 - IfC.nz.eval (tr.row pub ti r)) * tr.cell ti r IfC.tgt
         = ((X.offOf E.k + (el + 1) : Nat) : F) := by
       rw [hnz, e5, e6]
       grind
@@ -418,11 +417,11 @@ theorem if_rowSpec {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace} {r :
       exact step_if_else X R hins hend hels hne hfeeEq hg hg64 mC hmC sc hsz hsb1 hz hfl0
         hnextE hLFE hHFE rfl
   · -- condition non-zero: `nz = 1`, so the AIR falls through to `pc + 1`
-    have hc0 : rowNat tr 22 r IfC.c + rowNat tr 22 r (IfC.c + 1) ≠ 0 := fun h => hz (hvalz.mpr h)
-    have hnz : IfC.nz.eval (tr.row pub 22 r) = 1 := by
+    have hc0 : rowNat tr ti r IfC.c + rowNat tr ti r (IfC.c + 1) ≠ 0 := fun h => hz (hvalz.mpr h)
+    have hnz : IfC.nz.eval (tr.row pub ti r) = 1 := by
       rw [hnzF hlimbs, ite_eq_right hc0, cast_one]
-    have hpcOut : IfC.nz.eval (tr.row pub 22 r) * (tr.cell 22 r 0 + 1) +
-        (1 - IfC.nz.eval (tr.row pub 22 r)) * tr.cell 22 r IfC.tgt
+    have hpcOut : IfC.nz.eval (tr.row pub ti r) * (tr.cell ti r 0 + 1) +
+        (1 - IfC.nz.eval (tr.row pub ti r)) * tr.cell ti r IfC.tgt
         = ((X.offOf E.k + (pc + 1) : Nat) : F) := by
       rw [hnz, e5, e6]
       grind
@@ -437,15 +436,15 @@ theorem if_rowSpec {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace} {r :
 
 /-- **The `IF` row's `RowFacts`**: the spec step above plus the six definitional/timestamp fields
 from `if_rowfacts_static`. -/
-theorem if_rowfacts {X : Ctx} {nloc ncode : Nat} {pub : List F} {tr : Trace}
-    (H : Holds (wasmBaseIfAir nloc ncode) pub tr) {r : Nat} (hr : r < tr.height 22)
-    (hact : rowAct IfC.table tr pub 22 r) {fee : Nat} (hfeeMax : fee ≤ X.maxFee)
-    (hgasEq : rowNat tr 22 r cFee = fee) (hd : IfRowData X tr r fee)
-    (hconsT : ∀ x ∈ rowCons IfC.table tr pub 22 r, ∃ n, n < 2 ^ 30 + 2 ^ 16 ∧
-      ((x.tp + 1 + n : Nat) : F) = lvl (rowIn IfC.table tr pub 22 r)) :
-    RowFacts X (rowIn IfC.table tr pub 22 r) (rowOut IfC.table tr pub 22 r)
-      (rowCons IfC.table tr pub 22 r) (rowProd IfC.table tr pub 22 r) := by
+theorem if_rowfacts {X : Ctx} {pub : List F} {tr : Trace}
+    {r : Nat} (hcon : ∀ e ∈ IfC.constraints, e.eval (natRow (rowNat tr ti r) (tr.row pub ti r)) = 0)
+    (hact : rowAct IfC.table tr pub ti r) {fee : Nat} (hfeeMax : fee ≤ X.maxFee)
+    (hgasEq : rowNat tr ti r cFee = fee) (hd : IfRowData ti X tr r fee)
+    (hconsT : ∀ x ∈ rowCons IfC.table tr pub ti r, ∃ n, n < 2 ^ 30 + 2 ^ 16 ∧
+      ((x.tp + 1 + n : Nat) : F) = lvl (rowIn IfC.table tr pub ti r)) :
+    RowFacts X (rowIn IfC.table tr pub ti r) (rowOut IfC.table tr pub ti r)
+      (rowCons IfC.table tr pub ti r) (rowProd IfC.table tr pub ti r) := by
   obtain ⟨h0, hts, hgas, hcons, hprodT, hprodNd⟩ := if_rowfacts_static hfeeMax hgasEq hconsT
-  exact ⟨if_rowSpec H hr hact hfeeMax hgasEq hd, h0, hts, hgas, hcons, hprodT, hprodNd⟩
+  exact ⟨if_rowSpec hcon hact hfeeMax hgasEq hd, h0, hts, hgas, hcons, hprodT, hprodNd⟩
 
 end WasmBase
