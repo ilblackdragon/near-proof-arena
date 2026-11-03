@@ -1,6 +1,7 @@
 import WasmBase.SegAirMP
 import WasmBase.Main.SegMpath
 import WasmBase.Main.BusCount
+import WasmBase.Main.SegHoldsX
 /-!
 # WasmBase.Main.SegMP — the multiproof MPATH of `wasmBaseSegAirMP` (E2E M4b)
 
@@ -12,7 +13,9 @@ table computes.
 
 ## Main statement
 
-**`mp_tree`**: on a satisfied `wasmBaseSegAirMP` trace with public depth `D ≤ 30`, given the node
+**`mp_tree`**: on a `wasmBaseSegAirMP` trace satisfying `HoldsX` (`Main/SegHoldsX.lean`: every
+constraint, every bus balanced except the native chip's bus 103 — `Holds` of a segment AIR is
+unsatisfiable, `seg_holds_false`, so nothing here is stated from `Holds`) with public depth `D ≤ 30`, given the node
 compression as a hypothesis function `node` on the 18-limb digests (`chipO`: every active row's old
 output `po = node oL oR`; `chipN`: its new output `pn = node nL nR` unless `ro`), there is a
 partial tree `T : PTree` with
@@ -97,7 +100,7 @@ theorem mpm_cx {pub : List F} {tr : Trace} (r i : Nat) : (Chips.v i).eval (tr.ro
 abbrev pD (pub : List F) : F := pub.getD pubDepth 0
 
 section rows
-variable {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : Holds (wasmBaseSegAirMP nloc ngl) pub tr)
+variable {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsX (wasmBaseSegAirMP nloc ngl) pub tr)
 include H
 
 theorem mpm_C {r : Nat} (hr : r < tr.height 20) :
@@ -440,11 +443,44 @@ theorem segMP_occ {nloc ngl : Nat} {pub : List F} {tr : Trace} {o : Occ}
   have hn := segMP_bus_other nloc ngl t ht h0 h19 h20 i hi
   exact ⟨fun hb => absurd hb hn.2.2, fun hb => absurd hb hn.1, fun hb => absurd hb hn.2.1⟩
 
-/-- With bit counts on both sides, `busNat` send `≥ 2` and receive `≤ 1` is impossible. -/
-theorem no_double {A : Air} {tr : Trace} {pub : List F} (H : Holds A pub tr) (b : Nat)
+/-- With bit counts on both sides of a bus other than the chip's, `busNat` send `≥ 2` and receive
+`≤ 1` is impossible. -/
+theorem no_double {A : Air} {tr : Trace} {pub : List F} (H : HoldsX A pub tr) (b : Nat) (hx : b ≠ extBus)
     (hbit : ∀ o ∈ occs A tr pub, o.1 = b → o.2.2.2 ≤ 1) (m : List F)
     (h2 : 2 ≤ busNat A tr pub b true m) (h1 : busNat A tr pub b false m ≤ 1) : False := by
-  have := perm_exact H b hbit m
+  have := perm_exactX H b hx hbit m
+  omega
+
+/-- `send_has_recv` for `HoldsX` (a bus other than the chip's). -/
+theorem send_has_recvX {A : Air} {tr : Trace} {pub : List F} (H : HoldsX A pub tr) (b : Nat) (hx : b ≠ extBus)
+    (hbit : ∀ o ∈ occs A tr pub, o.1 = b → o.2.1 = true → o.2.2.2 ≤ 1)
+    {o : Occ} (ho : o ∈ occs A tr pub) (hb : o.1 = b) (hs : o.2.1 = true) (hc : o.2.2.2 = 1) :
+    ∃ o' ∈ occs A tr pub, o'.1 = b ∧ o'.2.1 = false ∧ o'.2.2.1 = o.2.2.1 ∧ o'.2.2.2 ≠ 0 := by
+  refine Classical.byContradiction fun hn => ?_
+  have h0 : busNat A tr pub b false o.2.2.1 = 0 :=
+    busNat_zero fun o' ho' hb' hs' hm' =>
+      Classical.byContradiction fun hc' => hn ⟨o', ho', hb', hs', hm', hc'⟩
+  have hbal := H.balance b o.2.2.1 hx
+  rw [h0] at hbal
+  have hge := count_le_busNat ho hb hs rfl
+  have hlt := busNat_ltX H b true o.2.2.1 hbit
+  rw [Nat.mod_eq_of_lt hlt, Nat.zero_mod] at hbal
+  omega
+
+/-- `recv_has_send` for `HoldsX` (a bus other than the chip's). -/
+theorem recv_has_sendX {A : Air} {tr : Trace} {pub : List F} (H : HoldsX A pub tr) (b : Nat) (hx : b ≠ extBus)
+    (hbit : ∀ o ∈ occs A tr pub, o.1 = b → o.2.1 = false → o.2.2.2 ≤ 1)
+    {o : Occ} (ho : o ∈ occs A tr pub) (hb : o.1 = b) (hs : o.2.1 = false) (hc : o.2.2.2 = 1) :
+    ∃ o' ∈ occs A tr pub, o'.1 = b ∧ o'.2.1 = true ∧ o'.2.2.1 = o.2.2.1 ∧ o'.2.2.2 ≠ 0 := by
+  refine Classical.byContradiction fun hn => ?_
+  have h0 : busNat A tr pub b true o.2.2.1 = 0 :=
+    busNat_zero fun o' ho' hb' hs' hm' =>
+      Classical.byContradiction fun hc' => hn ⟨o', ho', hb', hs', hm', hc'⟩
+  have hbal := H.balance b o.2.2.1 hx
+  rw [h0] at hbal
+  have hge := count_le_busNat ho hb hs rfl
+  have hlt := busNat_ltX H b false o.2.2.1 hbit
+  rw [Nat.zero_mod, Nat.mod_eq_of_lt hlt] at hbal
   omega
 
 theorem mpm_in17 (tr : Trace) (pub : List F) (r : Nat) :
@@ -485,7 +521,7 @@ theorem toNat_ne_zero_bit {x : F} (h : x = 0 ∨ x = 1) (hn : x.toNat ≠ 0) : x
   · exact h
 
 section bus
-variable {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : Holds (wasmBaseSegAirMP nloc ngl) pub tr)
+variable {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsX (wasmBaseSegAirMP nloc ngl) pub tr)
 include H
 
 omit H in
@@ -541,7 +577,7 @@ theorem node_send_recv {r : Nat} (hr : r < tr.height 20) (ha : mc tr r 0 = 1) (h
     ∃ q, q < tr.height 20 ∧ ((mc tr q 6 = 1 ∧ recvNL tr q = sendN tr r) ∨ (mc tr q 8 = 1 ∧ recvNR tr q = sendN tr r)) := by
   have ho := mpm_occ (nloc := nloc) (ngl := ngl) hr (mpm_in17 tr pub r).2.2
   have hc : (mc tr r 0 - mc tr r 1).toNat = 1 := by rw [ha, ht]; decide
-  obtain ⟨o', ho', hb', hs', hm', hc'⟩ := send_has_recv H 17 (fun o ho hb _ => bits17 H o ho hb) ho rfl rfl hc
+  obtain ⟨o', ho', hb', hs', hm', hc'⟩ := send_has_recvX H 17 (by decide) (fun o ho hb _ => bits17 H o ho hb) ho rfl rfl hc
   obtain ⟨q, hq, h | h | h⟩ := (segMP_occ ho').1 hb'
   · subst h; simp only at hm' hc'
     exact ⟨q, hq, Or.inl ⟨toNat_ne_zero_bit (mpm_row H hq).2.2.2.2.1 hc', hm'⟩⟩
@@ -557,7 +593,7 @@ theorem node_recv_send {q : Nat} (hq : q < tr.height 20) :
       ∃ r, r < tr.height 20 ∧ mc tr r 0 = 1 ∧ mc tr r 1 = 0 ∧ sendN tr r = m := by
     intro m c hm hc
     subst hc
-    obtain ⟨o', ho', hb', hs', hm', hc'⟩ := recv_has_send H 17 (fun o ho hb _ => bits17 H o ho hb)
+    obtain ⟨o', ho', hb', hs', hm', hc'⟩ := recv_has_sendX H 17 (by decide) (fun o ho hb _ => bits17 H o ho hb)
       (mpm_occ (nloc := nloc) (ngl := ngl) hq hm) rfl rfl rfl
     obtain ⟨r, hr, h | h | h⟩ := (segMP_occ ho').1 hb' <;> subst h <;> simp only at hs' hm' hc'
     · exact absurd hs' (by decide)
@@ -574,16 +610,16 @@ theorem leaf_recv_send {q : Nat} (hq : q < tr.height 20) :
   refine ⟨fun h5 => ?_, fun h7 => ?_⟩
   · have hm := (mpm_in15 tr pub q).1
     rw [h5] at hm
-    exact recv_has_send H 15 (fun o ho hb _ => bits15 H o ho hb) (mpm_occ (nloc := nloc) (ngl := ngl) hq hm) rfl rfl rfl
+    exact recv_has_sendX H 15 (by decide) (fun o ho hb _ => bits15 H o ho hb) (mpm_occ (nloc := nloc) (ngl := ngl) hq hm) rfl rfl rfl
   · have hm := (mpm_in15 tr pub q).2
     rw [h7] at hm
-    exact recv_has_send H 15 (fun o ho hb _ => bits15 H o ho hb) (mpm_occ (nloc := nloc) (ngl := ngl) hq hm) rfl rfl rfl
+    exact recv_has_sendX H 15 (by decide) (fun o ho hb _ => bits15 H o ho hb) (mpm_occ (nloc := nloc) (ngl := ngl) hq hm) rfl rfl rfl
 
 /-- **Every leaf message (bus-15 send with count 1) is received by a node row at level 1.** -/
 theorem leaf_send_recv {o : Occ} (ho : o ∈ occs (wasmBaseSegAirMP nloc ngl) tr pub) (hb : o.1 = 15)
     (hs : o.2.1 = true) (hc : o.2.2.2 = 1) :
     ∃ q, q < tr.height 20 ∧ ((mc tr q 5 = 1 ∧ recvLL tr q = o.2.2.1) ∨ (mc tr q 7 = 1 ∧ recvLR tr q = o.2.2.1)) := by
-  obtain ⟨o', ho', hb', hs', hm', hc'⟩ := send_has_recv H 15 (fun o ho hb _ => bits15 H o ho hb) ho hb hs hc
+  obtain ⟨o', ho', hb', hs', hm', hc'⟩ := send_has_recvX H 15 (by decide) (fun o ho hb _ => bits15 H o ho hb) ho hb hs hc
   rcases (segMP_occ ho').2.1 hb' with ⟨h, -⟩ | ⟨q, hq, h | h⟩
   · rw [hs'] at h; exact absurd h (by decide)
   · subst h; exact ⟨q, hq, Or.inl ⟨toNat_ne_zero_bit (mpm_row H hq).2.2.2.1 hc', hm'⟩⟩
@@ -598,7 +634,7 @@ theorem rch_root {r : Nat} (hr : r < tr.height 20) (ht : mc tr r 1 = 1) :
     tr.cell 0 0 3 = 1 ∧ mdig tr r 103 = pubDig pub pubMemOut := by
   have hm := (mpm_in16 tr pub r).2
   rw [ht] at hm
-  obtain ⟨o', ho', hb', hs', hm', hc'⟩ := send_has_recv H 16 (fun o ho hb _ => bits16 H o ho hb)
+  obtain ⟨o', ho', hb', hs', hm', hc'⟩ := send_has_recvX H 16 (by decide) (fun o ho hb _ => bits16 H o ho hb)
     (mpm_occ (nloc := nloc) (ngl := ngl) hr hm) rfl rfl rfl
   rcases (segMP_occ ho').2.2 hb' with ⟨r', -, h | h⟩ | ⟨q, hq, h | h⟩
   · subst h; simp at hs'
@@ -618,7 +654,7 @@ theorem rch_in :
     (tr.cell 0 0 3 = 0 ∧ pubDig pub pubMemIn = pubDig pub pubMemOut) ∨
     (∃ q, q < tr.height 20 ∧ mc tr q 1 = 1 ∧ mdig tr q 85 = pubDig pub pubMemIn) := by
   have ho := mem_occs_of_rowOccsT (segMP_lt nloc ngl 0 (by decide)) (segb_h0 H) (by rw [segMP_t0']; exact segb_in16 tr pub)
-  obtain ⟨o', ho', hb', hs', hm', hc'⟩ := send_has_recv H 16 (fun o ho hb _ => bits16 H o ho hb) ho rfl rfl rfl
+  obtain ⟨o', ho', hb', hs', hm', hc'⟩ := send_has_recvX H 16 (by decide) (fun o ho hb _ => bits16 H o ho hb) ho rfl rfl rfl
   rcases (segMP_occ ho').2.2 hb' with ⟨r', -, h | h⟩ | ⟨q, hq, h | h⟩
   · subst h; simp at hs'
   · subst h
@@ -677,7 +713,7 @@ theorem root_unique {r r' : Nat} (hr : r < tr.height 20) (hr' : r' < tr.height 2
     simp only [segMP_t0', segb_rch, List.map_cons, List.map_nil, cntM_cons, cntM_nil, segb_first_eval, ite_true]
     simp only [Bool.true_eq_false, false_and, and_false, ite_false, t1]
     split <;> omega
-  exact no_double H 16 (bits16 H) _ two (by omega)
+  exact no_double H 16 (by decide) (bits16 H) _ two (by omega)
 
 end bus
 
@@ -704,7 +740,7 @@ def Pos (tr : Trace) (pub : List F) (r ℓ n : Nat) : Prop :=
     n < 2 ^ (Dn pub - ℓ)
 
 section pos
-variable {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : Holds (wasmBaseSegAirMP nloc ngl) pub tr)
+variable {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsX (wasmBaseSegAirMP nloc ngl) pub tr)
 include H
 
 theorem lvl_nat {r : Nat} (hr : r < tr.height 20) (ha : mc tr r 0 = 1) :
@@ -862,7 +898,7 @@ theorem rowCnt17_other (nloc ngl : Nat) (tr : Trace) (pub : List F) (M : List F)
   exact (segMP_bus_other nloc ngl t ht h0 h19 h20 i hi).2.2 hb
 
 section uniq
-variable {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : Holds (wasmBaseSegAirMP nloc ngl) pub tr)
+variable {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsX (wasmBaseSegAirMP nloc ngl) pub tr)
 include H
 
 /-- A row receiving `(ℓ, n)`'s message as a node child sits at `(ℓ + 1, n / 2)`, on side `n % 2`. -/
@@ -974,7 +1010,7 @@ theorem pos_unique (hD : Dn pub ≤ 30) : ∀ k r r' ℓ n, Dn pub - ℓ = k →
           exact absurd this (by decide)
         · simp only [eL, eR, ite_true, ite_false]; omega
       · simp only [eL, ite_false]; split <;> omega
-    exact no_double H 17 (bits17 H) _ two (by omega)
+    exact no_double H 17 (by decide) (bits17 H) _ two (by omega)
 
 end uniq
 
@@ -1094,7 +1130,7 @@ theorem mpTree_At (tr : Trace) (pub : List F) : ∀ ℓ n, (mpTree tr pub ℓ n)
         · simp [PTree.At]
 
 section tree
-variable {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : Holds (wasmBaseSegAirMP nloc ngl) pub tr)
+variable {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsX (wasmBaseSegAirMP nloc ngl) pub tr)
 include H
 
 theorem rowAt_eq (hD : Dn pub ≤ 30) {r ℓ n : Nat} (hp : Pos tr pub r ℓ n) : rowAt tr pub ℓ n = some r := by
@@ -1251,7 +1287,7 @@ theorem mpTree_eval (hD : Dn pub ≤ 30) (node : List F → List F → List F)
 end tree
 
 section main
-variable {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : Holds (wasmBaseSegAirMP nloc ngl) pub tr)
+variable {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsX (wasmBaseSegAirMP nloc ngl) pub tr)
 include H
 
 omit H in
@@ -1365,7 +1401,7 @@ theorem exists_root (hD : Dn pub ≤ 30) : ∀ k r ℓ n, Dn pub - ℓ = k → P
     obtain ⟨q, hq, -⟩ := parent_pos H hD hp (by omega)
     exact ih q (ℓ + 1) (n / 2) (by omega) hq
 
-/-- **The multiproof MPATH, bus level.**  On a satisfied `wasmBaseSegAirMP` trace with depth
+/-- **The multiproof MPATH, bus level.**  On a `wasmBaseSegAirMP` trace satisfying `HoldsX` with depth
 `D ≤ 30`, if every MPATH row's old output is the node compression `node` of its old children (and
 its new output of its new children unless `ro`), there is a partial tree `T` at the root position
 `(D, 0)` such that
