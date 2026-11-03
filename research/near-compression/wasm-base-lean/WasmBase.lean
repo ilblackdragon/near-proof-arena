@@ -128,10 +128,6 @@ import WasmBase.Main.SegSoundX
 import WasmBase.Main.SegIface
 import WasmBase.Main.SegCuti
 import WasmBase.Main.SegReentry
-||||||| parent of 417d1292f (wasm-base M4c CORE 1: seg_tombDead — TombDead discharged (CH count on space-4 slot c + per-row RelW via exec_rows_rel))
-import WasmBase.Check.HoldsCheck
-import WasmBase.Check.TraceDump
-import WasmBase.Check.PremCheck
 import WasmBase.Main.SegRowRel
 import WasmBase.Main.SegTomb
 import WasmBase.Main.SegDom
