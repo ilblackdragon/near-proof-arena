@@ -1,0 +1,2 @@
+calls 378 calls_ok 77 buildfail 6 segments 1309 {'pre_ok': 800, 'fail_bus214': 509}
+calls 378 calls_ok 372 buildfail 6 segments 1309 {'pre_ok': 1309}
