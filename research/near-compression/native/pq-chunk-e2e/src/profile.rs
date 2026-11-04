@@ -37,6 +37,12 @@ pub fn params(final_layer: bool, cert_file: &str, exclusions: &str) -> SystemPar
 /// 2^21-row stacked ceiling of `ns19lb6`, so the tree proofs stack at 2^22 at rate 1/32
 /// (`l_skip + n_stack + log_blowup` stays 27). Query counts and every per-round bound come from
 /// the same calibration (`WhirConfig::new_full` + first-order certificates) at the 268-bit target.
+/// [E2E-D D-8] `nsXXlbY` -> `(XX, Y)` (any geometry; `shaped_params_geom` checks the two-adic bound).
+pub fn parse_geom(s: &str) -> (usize, usize) {
+    let r = s.strip_prefix("ns").and_then(|x| x.split_once("lb")).and_then(|(a, b)| Some((a.parse().ok()?, b.parse().ok()?)));
+    r.unwrap_or_else(|| panic!("geometry {s}: expected nsXXlbY"))
+}
+
 pub fn tree_geom() -> (usize, usize) {
     match std::env::var("NEARPROOF_TREE_GEOM").as_deref() {
         Ok("ns20lb5") | Err(_) => (20, 5),
@@ -71,16 +77,66 @@ pub fn shaped_params(
     cert_file: &str,
     exclusions: &str,
 ) -> SystemParams {
+    // [E2E-D D-8] the base geometry bound is the two-adic one, 2 + n_stack + log_blowup <= 27 (at the
+    // pinned lb 7: n_stack <= 18; a large-class base at n_stack 22 runs at lb <= 3)
     assert!(
-        n_stack <= 18,
-        "chunk shape exceeds the supported BabyBear extended domain"
+        2 + n_stack + base_log_blowup() <= 27,
+        "chunk shape exceeds the supported BabyBear extended domain (n_stack {n_stack}, lb {})",
+        base_log_blowup()
     );
     // only the base calls this (`chunk_bridge::prove_base`)
     // [E2E-D D-5] NEARPROOF_ZK_BASE=2: the QROM option "base zk = 2" (ZK-ARGUMENT 6.5.6), off by
     // default; measured only, not adopted (owner decision)
     let zk_base = std::env::var("NEARPROOF_ZK_BASE").ok().and_then(|v| v.parse().ok()).unwrap_or(1u8);
     let zk = if !final_layer && zk_lever() { zk_base } else { 0 };
-    shaped_params_geom(zk, final_layer, n_stack, 7, w_stack, degree, cert_file, exclusions)
+    shaped_params_geom(zk, final_layer, n_stack, base_log_blowup(), w_stack, degree, cert_file, exclusions)
+}
+
+/// [E2E-D D-8] The base layer's log blowup: the pinned 7, or `NEARPROOF_BASE_LB` (a measurement
+/// lever for the leaf-cost law, off by default; the 268-bit per-round target, the proximity
+/// strategy and the grinding are unchanged, so the query counts follow from the rate).
+pub fn base_log_blowup() -> usize {
+    // a class may pin its base rate (`"log_blowup"` in the class file, for a class whose stacked
+    // height needs n_stack 22)
+    if let Some(lb) = std::env::var("NEARPROOF_BASE_CLASS")
+        .ok()
+        .and_then(|p| std::fs::read(p).ok())
+        .and_then(|b| serde_json::from_slice::<serde_json::Value>(&b).ok())
+        .and_then(|v| v.get("log_blowup").and_then(|x| x.as_u64()))
+    {
+        assert!(std::env::var("NEARPROOF_BASE_LB").is_err(), "NEARPROOF_BASE_LB and a class log_blowup");
+        return lb as usize;
+    }
+    match std::env::var("NEARPROOF_BASE_LB") {
+        Ok(v) => {
+            let lb: usize = v.parse().expect("NEARPROOF_BASE_LB");
+            assert!((1..=7).contains(&lb), "NEARPROOF_BASE_LB in 1..=7");
+            lb
+        }
+        Err(_) => 7,
+    }
+}
+
+/// [E2E-D D-8] `base-whir` only: the query-phase grinding bits of the parameter table
+/// (`NEARPROOF_BASE_WHIR_POW`, read only while `base_params_at` builds a table row; never set
+/// when proving: the pinned 32 bits apply).
+fn table_pow_bits() -> Option<usize> {
+    if !TABLE_MODE.load(std::sync::atomic::Ordering::Relaxed) {
+        return None;
+    }
+    std::env::var("NEARPROOF_BASE_WHIR_POW").ok().map(|v| v.parse().expect("NEARPROOF_BASE_WHIR_POW"))
+}
+
+static TABLE_MODE: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
+/// [E2E-D D-8] The base parameters at an explicit `(n_stack, log_blowup)` (any geometry within the
+/// two-adic domain; for the `base-whir` table, never used to prove).
+pub fn base_params_at(n_stack: usize, log_blowup: usize, w_stack: usize, degree: usize, cert_file: &str, exclusions: &str) -> SystemParams {
+    let zk = if zk_lever() { 1 } else { 0 };
+    TABLE_MODE.store(true, std::sync::atomic::Ordering::Relaxed);
+    let p = shaped_params_geom(zk, false, n_stack, log_blowup, w_stack, degree, cert_file, exclusions);
+    TABLE_MODE.store(false, std::sync::atomic::Ordering::Relaxed);
+    p
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -146,7 +202,7 @@ fn shaped_params_geom(
         WhirParams {
             k,
             log_final_poly_len: if final_layer { 7 } else { 6 } + extra,
-            query_phase_pow_bits: 32,
+            query_phase_pow_bits: table_pow_bits().unwrap_or(32),
             folding_pow_bits: 0,
             mu_pow_bits: 0,
             proximity: WhirProximityStrategy::ListDecoding { m: 64 },

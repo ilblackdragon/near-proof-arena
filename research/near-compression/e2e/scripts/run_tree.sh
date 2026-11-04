@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# E2E-D (D-5 .. D-7): one tree-wrap run on one chunk, then fresh-process verification and the
+# E2E-D (D-5 .. D-8): one tree-wrap run on one chunk, then fresh-process verification and the
 # soundness report of every vk involved. Fails (exit 1) on any error (review-D6 F3).
-# usage: run_tree.sh TAG ARITY DEPTH CHUNK_DIR CLAIM [SETUP.json]
+# usage: run_tree.sh TAG ARITY DEPTH CHUNK_DIR CLAIM [SETUP.json]   (ARITY - = the default, 4: D-8)
 #   env: CLASS_DIRS (one base dir per template class, class order), NEARPROOF_TREE_CONFIRM (more base
 #   dirs of those classes), OUT_ROOT, PROVER, NEARPROOF_TREE_TEMPLATE (base | chain), CPUSET.
 # Sequential, <= 8 threads by default.
 set -uo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
 ROOT=$(cd "$HERE/../../../.." && pwd)
-D=${NEARPROOF_PQ_DEPS:-/data/illia/nearproof-deps/pq-e2e-d7}
+D=${NEARPROOF_PQ_DEPS:-/data/illia/nearproof-deps/pq-e2e-d8}
 B=${PROVER:-$D/target/release/nearproof-chunk-e2e}
 K=$ROOT/research/near-compression/final-soundness
 AIR=$ROOT/examples/np-udr-stark-v2/source/near-air-v3.json

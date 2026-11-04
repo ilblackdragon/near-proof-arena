@@ -39,7 +39,7 @@ use openvm_stark_backend::StarkProtocolConfig;
 use p3_field::{PrimeCharacteristicRing, PrimeField32};
 
 const MAGIC: &[u8; 8] = b"NPQTW02\0";
-const SETUP_VERSION: u32 = 4;
+const SETUP_VERSION: u32 = 5;
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
 pub struct TemplateEntry {
@@ -55,6 +55,14 @@ pub struct TemplateEntry {
     pub anchor: (u32, Digest),
     /// the leaf's program root (an element of `P_2`'s template set)
     pub c_norm: Digest,
+    /// [E2E-D D-8] the class's pinned TAPE shape `(log, classical (bus, len) keys)`, which V_d
+    /// recomputes the TAPE under (`None`: the chunk's natural TAPE, D-5 .. D-7)
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tape_pad: Option<(usize, Vec<(u16, usize)>)>,
+}
+
+fn tape_pad_of(e: &TemplateEntry) -> Option<state::TapePad> {
+    e.tape_pad.clone().map(|(log, keys)| state::TapePad { log, keys })
 }
 
 /// A tree proof geometry: NvAir rows 2^log_rows, program 2^prog_log, SHA instances, pinned heights.
@@ -81,6 +89,10 @@ pub struct TreeShape {
     pub c_node_star: Option<Digest>,
     pub wrap_log_rows: usize,
     pub wrap_prog_log: usize,
+    /// [E2E-D D-8] the leaves' own proof geometry `(n_stack, log_blowup)` when it differs from the
+    /// tree layer's (`NEARPROOF_TREE_LEAF_PARAMS`); `None`: the tree geometry (D-5 .. D-7)
+    #[serde(default)]
+    pub leaf_params: Option<(usize, usize)>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -110,6 +122,25 @@ fn template_kind_base() -> bool {
         Ok("chain") => false,
         Ok(o) => panic!("unknown NEARPROOF_TREE_TEMPLATE {o}"),
     }
+}
+
+/// [E2E-D D-8] The default tree arity (D-7: arity 4 has the least CPU work and the shortest
+/// projected latency at 1 Pgas; `tree-prove ... default DEPTH ...` or `ARITY` = `-`).
+pub const DEFAULT_ARITY: usize = 4;
+
+/// [E2E-D D-8] The node-height margin for depth >= 2 (`h_N` = `P_2`'s shape pin x margin must hold
+/// `P_*` and `PAD_N`). D-7 measured `P_*` over `P_2` (NvAir tight / SHA total): arity 2 +4 %,
+/// arity 4 +12.3 % / +9.8 %, arity 8 +26.6 % / +20.8 % (children at node heights with more SHA
+/// instances); the margin is 1 % over a linear fit, never below the D-5..D-7 1.10:
+/// `max(1.10, 1.01 + 0.04 (arity - 1))` = 1.10 (2, 3), 1.13 (4), 1.29 (8). Above arity 8 the
+/// margin must be given (`NEARPROOF_TREE_NODE_MARGIN`), as for any override.
+pub fn node_margin(arity: usize) -> f64 {
+    if let Ok(v) = std::env::var("NEARPROOF_TREE_NODE_MARGIN") {
+        return v.parse().expect("NEARPROOF_TREE_NODE_MARGIN");
+    }
+    assert!(arity <= 8, "no measured P_* margin above arity 8: set NEARPROOF_TREE_NODE_MARGIN");
+    let m: f64 = 1.01 + 0.04 * (arity as f64 - 1.0);
+    (m.max(1.10) * 100.0).round() / 100.0
 }
 
 fn env_pair(name: &str, d: (usize, usize)) -> (usize, usize) {
@@ -171,7 +202,7 @@ fn d0a_claim(air: &str, public: &str, dir: &Path) -> (openvm_recursion_circuit::
     let (vk, p) = load_base(dir);
     let u = base_point(&vk, &p);
     let params = vk.inner.params.clone();
-    let c = state::chunk_bridge::expected_claim_at(air, public, params.clone(), &u);
+    let c = state::chunk_bridge::expected_claim_at_padded(air, public, params.clone(), &u, state::TapePad::of_dir(dir).as_ref());
     (c, u, params)
 }
 
@@ -215,7 +246,8 @@ fn template_of(dir: &Path, class: u32, base_tmpl: bool, chain_engine: &Sha384Cpu
     assert!(b.failures.is_empty(), "template leaf {}: {:?}", dir.display(), b.failures);
     let c_norm = program_commitment(parent.config(), &mats[0]);
     let (pin, _) = shape_pinned_heights(&mats, &b, 2, FINAL_PIN_EPS_BITS);
-    let entry = TemplateEntry { class, kind: if base_tmpl { "base" } else { "chain" }.into(), base_vk_sha256, base_heights, anchor, c_norm };
+    let tape_pad = state::TapePad::of_dir(dir).map(|t| (t.log, t.keys));
+    let entry = TemplateEntry { class, kind: if base_tmpl { "base" } else { "chain" }.into(), base_vk_sha256, base_heights, anchor, c_norm, tape_pad };
     Tmpl { vk, p, entry, pin, rows: b.instrs.len(), u }
 }
 
@@ -247,8 +279,29 @@ pub fn tree_prove(air: &str, public: &str, out: &Path, chunk: &Path, classes: &[
     let final_engine = Sha384CpuEngine::new_final(profile::params(true, certs, exclusions));
     let k = parent.config().params().k_whir();
     let fixed: Option<WrapSetup> = std::env::var("NEARPROOF_TREE_SETUP").ok().map(|p| serde_json::from_slice(&std::fs::read(p).unwrap()).unwrap());
+    // [E2E-D D-8] the leaves' proof geometry (a setup constant): leaves are proved once per segment
+    // and verified only by P_2, so they can run at a lower rate than the nodes (cheaper commitment,
+    // more queries for P_2 to verify): NEARPROOF_TREE_LEAF_PARAMS=nsXXlbY (same stacked height as
+    // the tree layer, so the SHA instance cap is unchanged); default: the tree geometry.
+    let leaf_params: Option<(usize, usize)> = match &fixed {
+        Some(f) => f.tree.leaf_params,
+        None => std::env::var("NEARPROOF_TREE_LEAF_PARAMS").ok().map(|v| profile::parse_geom(&v)),
+    };
+    let lparams = match leaf_params {
+        Some(g) => profile::params_geom(false, certs, exclusions, g),
+        None => parent.config().params().clone(),
+    };
+    assert_eq!((lparams.l_skip + lparams.n_stack, lparams.k_whir()), (cap_log, k), "leaf geometry: stacked height and fold must equal the tree layer's");
+    println!(
+        "TREE_LEAF_PARAMS n_stack={} log_blowup={} queries={:?}",
+        lparams.n_stack,
+        lparams.log_blowup,
+        lparams.whir.rounds.iter().map(|r| r.num_queries).collect::<Vec<_>>()
+    );
+    let leaf_engine = Sha384CpuEngine::new(lparams);
     let base_tmpl = template_kind_base();
-    let margin: f64 = std::env::var("NEARPROOF_TREE_NODE_MARGIN").ok().map_or(1.10, |v| v.parse().unwrap());
+    let margin: f64 = node_margin(arity);
+    println!("TREE_SHAPE arity={arity} depth={depth} node_margin={margin}");
     let mut seconds = serde_json::Map::new();
     let mut kinds: std::collections::BTreeMap<String, Vec<f64>> = Default::default();
     // ---- leaf geometry (a setup constant: the leaf programs depend on it)
@@ -256,43 +309,55 @@ pub fn tree_prove(air: &str, public: &str, out: &Path, chunk: &Path, classes: &[
         Some(f) => (f.tree.leaf.log_rows, f.tree.leaf.prog_log),
         None => env_pair("NEARPROOF_TREE_LEAF_GEOM", (19, 18)),
     };
-    let probe_l = circ(k, leaf_log, leaf_prog, 1, cap_log, None);
+    // [E2E-D D-8] leaf SHA instances (a setup constant; default 1; NEARPROOF_TREE_LEAF_SHA for leaves
+    // over low-rate bases, whose query paths need more than one 2^22-row instance)
+    let leaf_sha = match &fixed {
+        Some(f) => f.tree.leaf.sha_instances,
+        None => std::env::var("NEARPROOF_TREE_LEAF_SHA").ok().map_or(1, |v| v.parse().unwrap()),
+    };
+    let probe_l = circ(k, leaf_log, leaf_prog, leaf_sha, cap_log, None);
     // ---- templates: one leaf program per class; the chunk's own template must equal one of them
     let mut tmpls: Vec<Tmpl> = vec![];
     for (i, dir) in classes.iter().enumerate() {
         let t0 = std::time::Instant::now();
-        let tm = template_of(Path::new(dir), i as u32, base_tmpl, &chain_engine, &parent, &probe_l);
+        let tm = template_of(Path::new(dir), i as u32, base_tmpl, &chain_engine, &leaf_engine, &probe_l);
         println!("TREE_TEMPLATE class={i} kind={} rows={} pin={:?} base_vk={} s={:.1}", tm.entry.kind, tm.rows, tm.pin, &tm.entry.base_vk_sha256[..16], secs(t0));
         tmpls.push(tm);
     }
     // confirmations (review-D6 F5): every base proof given for a class (the class dir, the chunk,
-    // NEARPROOF_TREE_CONFIRM dirs) must yield that class's template; count distinct base points u
-    let mut confirm: Vec<Vec<Vec<Ef>>> = tmpls.iter().map(|t| vec![t.u.clone()]).collect();
+    // NEARPROOF_TREE_CONFIRM dirs) must yield that class's template; count base proofs that are
+    // distinct in both the base point u and the chunk (its claim digest ctx; review-D7 L2: two base
+    // proofs of one chunk are not two chunks)
+    let ctx_dir = |d: &Path, public: &str| -> Vec<F> { t::ctx_of_digest(d0a_claim(air, public, d).0.digest()) };
+    let mut confirm: Vec<Vec<(Vec<Ef>, Vec<F>)>> =
+        tmpls.iter().zip(classes).map(|(t, d)| vec![(t.u.clone(), ctx_dir(Path::new(d), &Path::new(d).join("public").to_string_lossy()))]).collect();
+    let add_confirm = |v: &mut Vec<(Vec<Ef>, Vec<F>)>, u: Vec<Ef>, x: Vec<F>| {
+        if v.iter().all(|(u0, x0)| *u0 != u && *x0 != x) {
+            v.push((u, x));
+        }
+    };
     let match_class = |tm: &Tmpl, tmpls: &[Tmpl]| -> Option<usize> {
-        tmpls.iter().position(|c| c.entry.c_norm == tm.entry.c_norm && c.entry.base_vk_sha256 == tm.entry.base_vk_sha256 && c.entry.base_heights == tm.entry.base_heights)
+        tmpls.iter().position(|c| c.entry.c_norm == tm.entry.c_norm && c.entry.base_vk_sha256 == tm.entry.base_vk_sha256 && c.entry.base_heights == tm.entry.base_heights && c.entry.tape_pad == tm.entry.tape_pad)
     };
     let extra: Vec<String> = std::env::var("NEARPROOF_TREE_CONFIRM").map(|v| v.split_whitespace().map(String::from).collect()).unwrap_or_default();
     for dir in &extra {
         // the class index is a program constant of the leaf: try each
         let hit = (0..tmpls.len()).find_map(|c| {
-            let tm = template_of(Path::new(dir), c as u32, base_tmpl, &chain_engine, &parent, &probe_l);
+            let tm = template_of(Path::new(dir), c as u32, base_tmpl, &chain_engine, &leaf_engine, &probe_l);
             (match_class(&tm, &tmpls) == Some(c)).then_some((c, tm.u))
         });
         let (c, u) = hit.unwrap_or_else(|| panic!("confirmation {dir}: its template is no class's"));
-        if !confirm[c].contains(&u) {
-            confirm[c].push(u);
-        }
+        let x = ctx_dir(Path::new(dir), &Path::new(dir).join("public").to_string_lossy());
+        add_confirm(&mut confirm[c], u, x);
         println!("TREE_TEMPLATE_CONFIRMED class={c} by={dir}");
     }
     let (class, target) = (0..tmpls.len())
         .find_map(|c| {
-            let tm = template_of(chunk, c as u32, base_tmpl, &chain_engine, &parent, &probe_l);
+            let tm = template_of(chunk, c as u32, base_tmpl, &chain_engine, &leaf_engine, &probe_l);
             (match_class(&tm, &tmpls) == Some(c)).then_some((c, tm))
         })
         .expect("the chunk's template leaf is no class's: its base is not at a class shape");
-    if !confirm[class].contains(&target.u) {
-        confirm[class].push(target.u.clone());
-    }
+    add_confirm(&mut confirm[class], target.u.clone(), ctx_dir(chunk, public));
     let class = class as u32;
     let templates: Vec<TemplateEntry> = tmpls.iter().map(|t| t.entry.clone()).collect();
     let confirmed: Vec<usize> = confirm.iter().map(Vec::len).collect();
@@ -303,7 +368,7 @@ pub fn tree_prove(air: &str, public: &str, out: &Path, chunk: &Path, classes: &[
     let (mats, b) = probe_l.generate_with(|b| {
         build_pad(b, &ctx, F::ONE, &done);
     });
-    let c_pad_leaf = program_commitment(parent.config(), &mats[0]);
+    let c_pad_leaf = program_commitment(leaf_engine.config(), &mats[0]);
     let (pad_pin, _) = shape_pinned_heights(&mats, &b, 2, FINAL_PIN_EPS_BITS);
     println!("TREE_PAD_LEAF rows={} pin={pad_pin:?}", b.instrs.len());
     let mut set: Vec<Digest> = templates.iter().map(|t| t.c_norm).collect();
@@ -328,7 +393,7 @@ pub fn tree_prove(air: &str, public: &str, out: &Path, chunk: &Path, classes: &[
     println!("TREE_LEAF_HEIGHTS {h_l:?}");
     drop(tmpls);
     // ---- leaves
-    let lc = circ(k, leaf_log, leaf_prog, 1, cap_log, Some(&h_l));
+    let lc = circ(k, leaf_log, leaf_prog, leaf_sha, cap_log, Some(&h_l));
     let mut items: Vec<Item> = vec![];
     let mut n_proofs = 0usize;
     // NEARPROOF_TREE_REUSE_LEAVES=DIR: take LEAF{i}.proof from an earlier run of the same chunk and
@@ -347,7 +412,7 @@ pub fn tree_prove(air: &str, public: &str, out: &Path, chunk: &Path, classes: &[
                 } else {
                     RangeStmt { ctx: ctx.clone(), a: F::from_usize(i), e: F::from_usize(i + 1), s_a: done.clone(), s_e: done.clone() }
                 };
-                if parent.verify(&v, &p).is_ok()
+                if leaf_engine.verify(&v, &p).is_ok()
                     && vd::proof_heights(&p).as_ref() == Some(&h_l)
                     && root_of(&p) == set[if i == 0 { class as usize } else { set.len() - 1 }]
                     && openvm_recursion_circuit::nv::agg::check_range_statement(&p.public_values[0], &stmt)
@@ -373,7 +438,7 @@ pub fn tree_prove(air: &str, public: &str, out: &Path, chunk: &Path, classes: &[
             });
         });
         assert!(b.failures.is_empty(), "leaf {i}: {:?}", b.failures);
-        let (v, p, _) = prove_mats(&lc, &parent, mats, &b);
+        let (v, p, _) = prove_mats(&lc, &leaf_engine, mats, &b);
         assert_eq!(vd::proof_heights(&p).unwrap(), h_l, "leaf {i}: heights differ from the leaf pin");
         assert_eq!(root_of(&p), set[if i == 0 { class as usize } else { set.len() - 1 }], "leaf {i}: program root not its template's");
         let stmt = s.unwrap();
@@ -388,6 +453,11 @@ pub fn tree_prove(air: &str, public: &str, out: &Path, chunk: &Path, classes: &[
         }
         n_proofs += 1;
         items.push(Item { vk: v, p, stmt });
+        // [E2E-D D-8] NEARPROOF_TREE_LEAF_ONLY=1: stop after the template leaf (leaf-cost measurement)
+        if i == 0 && std::env::var("NEARPROOF_TREE_LEAF_ONLY").is_ok_and(|v| v == "1") {
+            println!("TREE_LEAF_ONLY_DONE heights={h_l:?} sha_instances={leaf_sha}");
+            return;
+        }
     }
     // ---- node geometry: from the first P_2 (setup creation) or the fixed setup
     let node_refs = |items: &[Item]| -> Vec<(MultiStarkVerifyingKey<SC>, Proof<SC>)> { items.iter().map(|x| (x.vk.clone(), x.p.clone())).collect() };
@@ -584,7 +654,7 @@ pub fn tree_prove(air: &str, public: &str, out: &Path, chunk: &Path, classes: &[
     let tree = TreeShape {
         arity,
         depth,
-        leaf: Geom { log_rows: leaf_log, prog_log: leaf_prog, sha_instances: 1, heights: h_l.clone() },
+        leaf: Geom { log_rows: leaf_log, prog_log: leaf_prog, sha_instances: leaf_sha, heights: h_l.clone() },
         node: node_geom.clone(),
         templates,
         c_pad_leaf,
@@ -593,6 +663,7 @@ pub fn tree_prove(air: &str, public: &str, out: &Path, chunk: &Path, classes: &[
         c_node_star: c_star,
         wrap_log_rows: WRAP_LOG_ROWS,
         wrap_prog_log,
+        leaf_params,
     };
     let (_, base_u, _) = d0a_claim(air, public, chunk);
     let base_params: Vec<SystemParams> = classes.iter().map(|d| load_base(Path::new(d)).0.inner.params.clone()).collect();
@@ -627,6 +698,11 @@ pub fn tree_prove(air: &str, public: &str, out: &Path, chunk: &Path, classes: &[
     }
     std::fs::write(out.join("SETUP.json"), &setup_bytes).unwrap();
     std::fs::write(out.join("SETUP.sha256"), &pin).unwrap();
+    // [E2E-D D-8, review-D7 L3] ship the class base vks with the setup (CLASS{i}.BASE.vk.json), so
+    // `tree-audit` can check the setup against them
+    for (i, d) in classes.iter().enumerate() {
+        std::fs::copy(Path::new(d).join("BASE.vk.json"), out.join(format!("CLASS{i}.BASE.vk.json"))).unwrap();
+    }
     let proof_bytes = save_proof(&out.join("WRAP.proof"), &fp);
     let hint = std::fs::read(chunk.join("hint.bin")).unwrap();
     let mut packet = MAGIC.to_vec();
@@ -683,6 +759,62 @@ pub fn tree_prove(air: &str, public: &str, out: &Path, chunk: &Path, classes: &[
     println!("TREE_WRAP_VERIFIED {result}");
 }
 
+/// [E2E-D D-8, review-D7 L3] `tree-audit SETUP.json CERTS EXCLUSIONS VK_DIR [BASE_DIR...]`: check a
+/// tree setup against its shipped class base vks (VK_DIR/CLASS{i}.BASE.vk.json): each vk's sha256 is
+/// the entry's `base_vk_sha256`, `base_params[i]` is that vk's parameters, the entry's AIR count and
+/// (with a TAPE pad) the TAPE width match the vk; then, for each BASE_DIR (any base proof at a class
+/// shape), the leaf program is regenerated (`build_base_leaf` at the setup's leaf geometry and leaf
+/// parameters) and its root must be the class entry's `c_norm`: the setup's leaf roots are then a
+/// function of the class shapes and vks alone. Exit 1 on any mismatch.
+pub fn tree_audit(setup_path: &str, certs: &str, exclusions: &str, vk_dir: &Path, bases: &[String]) {
+    let setup: WrapSetup = serde_json::from_slice(&std::fs::read(setup_path).unwrap()).unwrap();
+    let mut bad = 0;
+    for (i, e) in setup.tree.templates.iter().enumerate() {
+        let vk = read_vk(&vk_dir.join(format!("CLASS{i}.BASE.vk.json")));
+        let h = vk_sha(&vk);
+        let mut p0 = setup.base_params[i].clone();
+        p0.whir.domain_odd_factor = vk.inner.params.whir.domain_odd_factor;
+        let params_ok = serde_json::to_value(&p0).unwrap() == serde_json::to_value(&vk.inner.params).unwrap();
+        let airs_ok = e.base_heights.len() == vk.inner.per_air.len();
+        let tape_ok = e.tape_pad.as_ref().is_none_or(|(_, keys)| {
+            let wmsg = keys.iter().map(|k| k.1).max().unwrap_or(1).max(1);
+            vk.inner.per_air.last().unwrap().params.width.cached_mains == vec![wmsg + 1 + keys.len().max(1)]
+        });
+        let ok = h == e.base_vk_sha256 && params_ok && airs_ok && tape_ok;
+        if !ok {
+            bad += 1;
+        }
+        println!("TREE_AUDIT_CLASS {i} vk_sha={} params={params_ok} airs={airs_ok} tape_width={tape_ok} -> {}", h == e.base_vk_sha256, if ok { "OK" } else { "MISMATCH" });
+    }
+    if !bases.is_empty() {
+        let tparams = profile::params_geom(false, certs, exclusions, profile::tree_geom());
+        let cap_log = tparams.l_skip + tparams.n_stack;
+        let k = tparams.k_whir();
+        let lparams = setup.tree.leaf_params.map_or(tparams.clone(), |g| profile::params_geom(false, certs, exclusions, g));
+        let leaf_engine = Sha384CpuEngine::new(lparams);
+        let chain_engine = Sha384CpuEngine::new(profile::params(false, certs, exclusions));
+        let lc = circ(k, setup.tree.leaf.log_rows, setup.tree.leaf.prog_log, setup.tree.leaf.sha_instances, cap_log, None);
+        for d in bases {
+            let hit = (0..setup.tree.templates.len()).find(|&c| {
+                let tm = template_of(Path::new(d), c as u32, true, &chain_engine, &leaf_engine, &lc);
+                tm.entry == setup.tree.templates[c]
+            });
+            match hit {
+                Some(c) => println!("TREE_AUDIT_LEAF_ROOT_OK class={c} base={d}"),
+                None => {
+                    bad += 1;
+                    println!("TREE_AUDIT_LEAF_ROOT_MISMATCH base={d}");
+                }
+            }
+        }
+    }
+    if bad > 0 {
+        println!("TREE_AUDIT_FAILED {bad}");
+        std::process::exit(1);
+    }
+    println!("TREE_AUDIT_OK classes={} bases={}", setup.tree.templates.len(), bases.len());
+}
+
 fn try_decode_proof(b: &[u8]) -> Result<Proof<SC>, String> {
     let mut c = Cursor::new(b);
     let p = Proof::decode(&mut c).map_err(|e| format!("proof codec: {e:?}"))?;
@@ -727,6 +859,7 @@ fn tree_verify_checked(air: &str, claim_path: &str, setup_path: &str, pin: &str,
     let mut body = 16 + n;
     let class = rd_u32(&packet, body)?;
     let base_params = setup.base_params.get(class as usize).ok_or("template class out of range")?.clone();
+    let tpad = tape_pad_of(setup.tree.templates.get(class as usize).ok_or("template class out of range")?);
     body += 4;
     let m = rd_u32(&packet, body)? as usize;
     if m != base_params.n_stack + 1 {
@@ -750,12 +883,13 @@ fn tree_verify_checked(air: &str, claim_path: &str, setup_path: &str, pin: &str,
     let hint = packet[16..16 + n].to_vec();
     // the claim preparation is library code that panics on a claim / hint it rejects
     let expected = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        let public = public_data(&air_pub, &claim, &hint);
+        let public = public_data(&air_pub, &claim, &hint).with_tape_pad(tpad);
         state::chunk_bridge::expected_claim_parsed(&air_pub.table_num_pub, &public, base_params, Some(&u))
     }))
     .map_err(|_| "claim / hint rejected by the public-statement preparation".to_string())?;
     let ctx = t::ctx_of_digest(expected.digest());
-    let fp = try_decode_proof(&packet[body..])?;
+    // [review-D7 I4] the codec is library code too: a panic on a malformed proof is a rejection
+    let fp = std::panic::catch_unwind(|| try_decode_proof(&packet[body..])).map_err(|_| "proof codec panicked".to_string())??;
     let engine = Sha384CpuEngine::new_final(setup.final_vk.inner.params.clone());
     fs_jobs_reset();
     let t_v = std::time::Instant::now();

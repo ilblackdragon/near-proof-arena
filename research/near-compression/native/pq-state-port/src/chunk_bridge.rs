@@ -25,7 +25,15 @@ pub fn prove_base(
     // (per AIR (log, tight) heights), so every chunk of the class has the same base vk, parameters
     // and committed heights, hence the same tree leaf program. Off by default (natural shape).
     let class = std::env::var("NEARPROOF_BASE_CLASS").ok().map(|p| BaseClass::read(&p));
+    let mut inst = inst;
     if let Some(c) = &class {
+        // [E2E-D D-8] the class's pinned TAPE shape (log, keys), when it has one
+        if let Some(tp) = c.tape_pad() {
+            let (ts, tm) = harness_padded("TAPE", &inst.tape, true, Some(&tp));
+            *inst.spec.last_mut().unwrap() = ts;
+            *inst.mats.last_mut().unwrap() = tm;
+            println!("BASE_CLASS_TAPE_PAD log={} keys={}", tp.log, tp.keys.len());
+        }
         c.pad(&inst);
     }
     report(&inst);
@@ -113,7 +121,7 @@ pub fn prove_base(
         println!("BASE_CLASS_HEIGHTS_OK name={} airs={}", c.name, got.len());
     }
     engine.verify(&vk, &proof).expect("base verify");
-    let expected = expected_claim(air, dump, vk.inner.params.clone());
+    let expected = expected_claim_padded(air, dump, vk.inner.params.clone(), class.as_ref().and_then(|c| c.tape_pad()).as_ref());
     assert_eq!(proof.public_values, expected.public_values);
     assert_eq!(
         proof
@@ -131,7 +139,23 @@ pub fn prove_base(
 /// Only verifier-generated public inputs/messages are read, never the proof or private traces.
 /// `statepublic` regenerates these files from claim.bin + hint.bin.
 pub fn expected_claim(air: &str, public: &str, params: SystemParams) -> StatementClaim {
-    public_statement(air, public, params, None, None)
+    public_statement(air, public, params, None, None, None)
+}
+
+/// [E2E-D D-8] [`expected_claim`] with the class's pinned TAPE shape (`None`: natural TAPE).
+pub fn expected_claim_padded(air: &str, public: &str, params: SystemParams, pad: Option<&TapePad>) -> StatementClaim {
+    public_statement(air, public, params, None, None, pad)
+}
+
+/// [E2E-D D-8] [`expected_claim_at`] with the class's pinned TAPE shape (`None`: natural TAPE).
+pub fn expected_claim_at_padded(
+    air: &str,
+    public: &str,
+    params: SystemParams,
+    u: &[openvm_recursion_circuit::sha384::config::EF],
+    pad: Option<&TapePad>,
+) -> StatementClaim {
+    public_statement(air, public, params, None, Some(u), pad)
 }
 
 /// [e2e tape-eval] The claim with the TAPE bound by evaluation: the stacked public TAPE table's
@@ -143,7 +167,7 @@ pub fn expected_claim_at(
     params: SystemParams,
     u: &[openvm_recursion_circuit::sha384::config::EF],
 ) -> StatementClaim {
-    public_statement(air, public, params, None, Some(u))
+    public_statement(air, public, params, None, Some(u), None)
 }
 
 /// Prismalinear evaluations at `u` of every column of the stacked (full-height) commitment of
@@ -214,13 +238,15 @@ pub fn stacked_openings_at(
 /// Rebuild the entire base VK from the declared AIR and verifier-produced public tape.
 /// This prevents a local checkpoint for a different relation entering a trusted setup run.
 pub fn check_base_key(air: &str, public: &str, vk: &MultiStarkVerifyingKey<Sha384Config>) {
-    public_statement(air, public, vk.inner.params.clone(), Some(vk), None);
+    public_statement(air, public, vk.inner.params.clone(), Some(vk), None, None);
 }
 
 /// Verifier-generated public inputs: the public values and the TAPE's net message counts.
 pub struct PublicData {
     pubs: Vec<F>,
     tape: BTreeMap<Key, u64>,
+    /// [E2E-D D-8] the pinned TAPE shape the claim is computed under (`None`: natural)
+    pad: Option<TapePad>,
 }
 
 impl PublicData {
@@ -246,7 +272,13 @@ impl PublicData {
                 .collect();
             add(&mut tape, (bus, msg), if send { 1 } else { P - 1 });
         }
-        PublicData { pubs, tape }
+        PublicData { pubs, tape, pad: None }
+    }
+
+    /// [E2E-D D-8] Compute the claim under a class's pinned TAPE shape (V_d: from the setup).
+    pub fn with_tape_pad(mut self, pad: Option<TapePad>) -> Self {
+        self.pad = pad;
+        self
     }
 
     /// Read `pubs.bin` + `pubmsgs.json` from a `statepublic` output directory.
@@ -308,13 +340,14 @@ fn public_statement(
     params: SystemParams,
     expected_vk: Option<&MultiStarkVerifyingKey<Sha384Config>>,
     tape_point: Option<&[openvm_recursion_circuit::sha384::config::EF]>,
+    pad: Option<&TapePad>,
 ) -> StatementClaim {
     let mut cl = ClassicalAir::parse(&std::fs::read_to_string(air).unwrap(), ORDER);
     assert_eq!(cl.tables.len(), ORDER.len());
     offset_buses(&mut cl);
-    let public = PublicData::read(public);
+    let public = PublicData::read(public).with_tape_pad(pad.cloned());
     if let Some(expected) = expected_vk {
-        let (ts, _) = harness("TAPE", &public.tape, true);
+        let (ts, _) = harness_padded("TAPE", &public.tape, true, public.pad.as_ref());
         let engine = Sha384RefEngine::new(params.clone());
         let tables: Vec<AirRef<Sha384Config>> = cl
             .tables
@@ -348,7 +381,7 @@ fn claim_of(
         matches!(levers.digest_bytes, 42 | 41) && levers.coset_leaf && levers.tstar,
         "chunk proof requires coset_leaf, tstar and a 42/41-byte digest"
     );
-    let (_, tm) = harness("TAPE", &public.tape, true);
+    let (_, tm) = harness_padded("TAPE", &public.tape, true, public.pad.as_ref());
     // `pv_of` of each classical table, then the TAPE's (empty) public values.
     let mut pvs: Vec<Vec<F>> = table_num_pub
         .iter()
@@ -387,11 +420,24 @@ pub struct BaseClass {
     /// table names, AIR order (TAPE last)
     pub names: Vec<String>,
     pub heights: Vec<(usize, usize)>,
+    /// [E2E-D D-8] the pinned TAPE keys (classical (bus, message length)); with them the TAPE is
+    /// built at the class's TAPE log and keys (`TapePad`) instead of the chunk's natural shape
+    pub tape_keys: Option<Vec<(u16, usize)>>,
 }
 
 impl BaseClass {
     pub fn to_json(&self) -> serde_json::Value {
-        serde_json::json!({ "name": self.name, "names": self.names, "heights": self.heights })
+        let mut v = serde_json::json!({ "name": self.name, "names": self.names, "heights": self.heights });
+        if let Some(k) = &self.tape_keys {
+            v["tape_keys"] = serde_json::json!(k);
+        }
+        v
+    }
+    /// [E2E-D D-8] The class's pinned TAPE shape (`None` without `tape_keys`).
+    pub fn tape_pad(&self) -> Option<TapePad> {
+        let keys = self.tape_keys.clone()?;
+        assert_eq!(self.names.last().map(String::as_str), Some("TAPE"), "TAPE last");
+        Some(TapePad { log: self.heights.last().unwrap().0, keys })
     }
     pub fn read(path: &str) -> Self {
         let v: serde_json::Value = serde_json::from_slice(&std::fs::read(path).unwrap()).unwrap();
@@ -402,7 +448,8 @@ impl BaseClass {
             .map(|h| (h[0].as_u64().unwrap() as usize, h[1].as_u64().unwrap() as usize))
             .collect();
         let names = v["names"].as_array().unwrap().iter().map(|n| n.as_str().unwrap().to_string()).collect();
-        BaseClass { name: v["name"].as_str().unwrap().to_string(), names, heights }
+        let tape_keys = v.get("tape_keys").map(|k| k.as_array().unwrap().iter().map(|x| (x[0].as_u64().unwrap() as u16, x[1].as_u64().unwrap() as usize)).collect());
+        BaseClass { name: v["name"].as_str().unwrap().to_string(), names, heights, tape_keys }
     }
     /// Does the chunk's natural shape fit this class (log heights, used rows, TAPE log equal)?
     pub fn admits(&self, shape: &[TableShape]) -> Result<(), String> {
@@ -458,6 +505,24 @@ pub fn base_shape(air: &str, dump: &str) -> Vec<TableShape> {
     inst_shape(&load(air, dump, Variant::D0a))
 }
 
+/// [E2E-D D-8] Is the dump (cut at the class logs: `statedump --class`) admitted by the class, as
+/// `prove_base` would admit it (the class's TAPE pad applied, logs equal, used rows within the
+/// tight heights)? With `check`, also the base prover's own precheck (every constraint, every bus
+/// balanced with the public messages; panics on a failure).
+pub fn class_admits(air: &str, dump: &str, class: &BaseClass, check: bool) -> Result<(), String> {
+    let mut inst = load(air, dump, Variant::D0a);
+    if let Some(tp) = class.tape_pad() {
+        let (ts, tm) = harness_padded("TAPE", &inst.tape, true, Some(&tp));
+        *inst.spec.last_mut().unwrap() = ts;
+        *inst.mats.last_mut().unwrap() = tm;
+    }
+    class.admits(&inst_shape(&inst))?;
+    if check {
+        precheck(&inst);
+    }
+    Ok(())
+}
+
 /// [E2E-D D-7] The smallest class admitting every given shape, with each tight height rounded up
 /// to a multiple of `2^(log - bucket_bits)` (headroom, so later chunks of similar size fit).
 pub fn class_of(name: &str, shapes: &[Vec<TableShape>], bucket_bits: usize) -> BaseClass {
@@ -474,5 +539,5 @@ pub fn class_of(name: &str, shapes: &[Vec<TableShape>], bucket_bits: usize) -> B
             (log, t.next_multiple_of(q).min(1 << log))
         })
         .collect();
-    BaseClass { name: name.to_string(), names: shapes[0].iter().map(|t| t.name.clone()).collect(), heights }
+    BaseClass { name: name.to_string(), names: shapes[0].iter().map(|t| t.name.clone()).collect(), heights, tape_keys: None }
 }

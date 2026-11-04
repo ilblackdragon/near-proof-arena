@@ -1517,7 +1517,7 @@
 +}
 --- a/openvm-sha384/crates/recursion/src/nv/tree_tests.rs
 +++ b/openvm-sha384/crates/recursion/src/nv/tree_tests.rs
-@@ -0,0 +1,528 @@
+@@ -0,0 +1,724 @@
 +//! [E2E-D D-5] Tests of the chunk-independent tree (nv/tree.rs) on Fibonacci fixture templates:
 +//! template proof (NV level 1 over a Fib segment) -> normaliser / PAD leaves -> one node ->
 +//! wrap (debug constraint check, final domain). Ignored (proves several NV levels); run with
@@ -2046,6 +2046,202 @@
 +    assert!(check_wrap_statement(&wb.public_values(), &ctx, 0));
 +    println!("TREE_D7_OK");
 +}
++
++/// [review-D7] Constraint-level (engine.debug) negatives for node-shape mix-ups and PAD-level
++/// skips, ignoring host failures (a host panic or a constraint/bus failure both count as a
++/// rejection; the printed tag says which). Fib fixture, PAD_L leaves around a base leaf.
++#[test]
++#[ignore]
++fn review_d7_mixup_debug() {
++    use p3_field::PrimeField32;
++    let lr = crate::sha384::e2e_tests::env_usize("TREE_LOG_ROWS", 19);
++    let segs = chunk_segments(&[7], 1, 32);
++    let app_engine = Sha384CpuEngine::new(child_params_small());
++    let (avk, ap) = segs[0].keygen_and_prove(&app_engine);
++    let pe = Sha384CpuEngine::new(parent());
++    let k = parent().k_whir();
++    let mk = |h: Option<&[(usize, Option<usize>)]>| {
++        let mut c = NvCircuit::new(k, lr, 1);
++        c.program_part = true;
++        c.prog_log = lr - 1;
++        if let Some(h) = h {
++            c.heights = Some(h.iter().map(|&(l, _)| 1usize << l).collect());
++            c.tight_floor = Some(h.iter().map(|&(l, t)| t.unwrap_or(1 << l)).collect());
++        }
++        c
++    };
++    let c0 = mk(None);
++    let ctx = ctx_of_digest(crate::sha384::config::statement_digest(&ap.public_values));
++    let done = vec![F::from_u32(PHASE_DONE), F::ZERO];
++    let init = vec![F::from_u32(PHASE_INIT), F::ZERO];
++    // host failures are reported separately from constraint failures
++    let dbg = |name: &str, expect_ok: bool, circ: &NvCircuit, body: &dyn Fn(&mut Builder)| {
++        let r = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| debug_body(circ, &pe, |_| {}, |b| body(b)).failures));
++        match (&r, expect_ok) {
++            (Ok(f), true) => println!("REVIEW_D7_POSITIVE_OK {name} host_failures={f:?}"),
++            (Err(e), false) => {
++                let msg = e.downcast_ref::<String>().cloned().or_else(|| e.downcast_ref::<&str>().map(|s| s.to_string())).unwrap_or_default();
++                println!("REVIEW_D7_REJECTED {name} :: {}", &msg[..msg.len().min(300)]);
++            }
++            (Ok(f), false) => println!("REVIEW_D7_ACCEPTED_FORGED {name} (host failures {f:?}) <<<<<<<<"),
++            (Err(_), true) => panic!("REVIEW_D7 positive control {name} rejected"),
++        }
++    };
++    let (m, b) = c0.generate_with(|b| {
++        build_base_leaf(b, &avk, &ap, F::ZERO, 0);
++    });
++    let (hl0, _) = shape_pinned_heights(&m, &b, 2, 40.0);
++    let (m, b) = c0.generate_with(|b| {
++        build_pad(b, &ctx, F::ONE, &done);
++    });
++    let (hl1, _) = shape_pinned_heights(&m, &b, 2, 40.0);
++    let hl: Vec<(usize, Option<usize>)> = hl0.iter().zip(&hl1).map(|(a, b)| (a.0.max(b.0), Some(a.1.unwrap().max(b.1.unwrap())))).collect();
++    let cl = mk(Some(&hl));
++    let prove = |c: &NvCircuit, body: &dyn Fn(&mut Builder) -> RangeStmt| {
++        let mut s = None;
++        let (m, b) = c.generate_with(|b| s = Some(body(b)));
++        let (v, p, _) = prove_mats(c, &pe, m, &b);
++        (v, p, s.unwrap())
++    };
++    let (v0, p0, s0) = prove(&cl, &|b| build_base_leaf(b, &avk, &ap, F::ZERO, 0));
++    let (v1, p1, s1) = prove(&cl, &|b| build_pad(b, &ctx, F::ONE, &done));
++    let set = vec![root_of(&p0), root_of(&p1)];
++    let kids: Vec<(&Vk, &Pf)> = vec![(&v0, &p0), (&v1, &p1)];
++    let pre = vec![s0.clone(), s1.clone()];
++    let (m, b) = c0.generate_with(|b| {
++        build_node2(b, &kids, &pre, &set);
++    });
++    let (hn0, _) = shape_pinned_heights(&m, &b, 2, 40.0);
++    let hn: Vec<(usize, Option<usize>)> = hn0
++        .iter()
++        .enumerate()
++        .map(|(a, &(l, t))| {
++            if a < 2 {
++                let t2 = (t.unwrap() + t.unwrap() / 4).next_multiple_of(4);
++                let l2 = l.max(t2.next_power_of_two().trailing_zeros() as usize);
++                (l2, Some(t2.min(1 << l2)))
++            } else {
++                (l, t)
++            }
++        })
++        .collect();
++    println!("REVIEW_D7_PINS leaf={hl:?} node={hn:?}");
++    let cn = mk(Some(&hn));
++    let (v2, p2, s2) = prove(&cn, &|b| build_node2(b, &kids, &pre, &set));
++    let c2 = root_of(&p2);
++    let padn = |a: u32, lvl: u32, s: &[F]| prove(&cn, &|b| build_pad_node(b, &ctx, F::from_u32(a), s, lvl));
++    let (vpa, ppa, spa) = padn(2, 2, &done);
++    let cpn = root_of(&ppa);
++    let k3: Vec<(&Vk, &Pf)> = vec![(&v2, &p2), (&vpa, &ppa)];
++    let pre3 = vec![s2.clone(), spa.clone()];
++    dbg("P_* L3 honest", true, &cn, &|b| {
++        build_node_star(b, &k3, &pre3, c2, cpn);
++    });
++    // ---- M1: P_2 over node-height children at level 2 (a P_2 used where P_* belongs)
++    dbg("M1 P_2 over [P_2@2, PAD_N@2] (node children under the leaf-node program)", false, &cn, &|b| {
++        build_node2(b, &k3, &pre3, &set);
++    });
++    // M1b: same, with the template set extended by C_2 and C_padN (isolates the forced-level check)
++    let mut set_ext = set.clone();
++    set_ext.push(c2);
++    set_ext.push(cpn);
++    dbg("M1b P_2 over level-2 children, set contains C_2/C_padN (forced level 1 only)", false, &cn, &|b| {
++        build_node2(b, &k3, &pre3, &set_ext);
++    });
++    // ---- M2: P_* over leaves (a leaf where a node belongs; child 0 at level 1 -> BIND to P_*)
++    dbg("M2 P_* over leaves [base leaf, PAD_L] (level-1 children)", false, &cn, &|b| {
++        build_node_star(b, &kids, &pre, c2, cpn);
++    });
++    // M2b: P_* over leaves with C_padL as the sibling alternative and the leaf root as 'C_2'
++    dbg("M2b P_* over leaves, anchor-set/alt set to the leaf roots", false, &cn, &|b| {
++        build_node_star(b, &kids, &pre, set[0], set[1]);
++    });
++    // ---- M3: P_* at level 4 with mixed-level children [P_*@3, P_2@2]
++    let (v3, p3, s3) = prove(&cn, &|b| build_node_star(b, &k3, &pre3, c2, cpn));
++    let s2b = RangeStmt { a: s3.e, e: s3.e + F::from_u32(2), ..s2.clone() };
++    let _ = s2b;
++    // ---- PAD level skips
++    // S1: PAD_N claiming level 3 next to a level-2 P_2 (a PAD one level up to skip a level)
++    let (vp3, pp3, sp3) = padn(2, 3, &done);
++    dbg("S1 P_* over [P_2@2, PAD_N@3] (sibling at another level)", false, &cn, &|b| {
++        build_node_star(b, &[(&v2, &p2), (&vp3, &pp3)], &[s2.clone(), sp3.clone()], c2, cpn);
++    });
++    // S2: PAD_N claiming level 2 next to a level-3 P_* under a level-4 P_* (sibling one level down)
++    let (vp2b, pp2b, sp2b) = padn(4, 2, &done);
++    dbg("S2 P_* over [P_*@3, PAD_N@2]", false, &cn, &|b| {
++        build_node_star(b, &[(&v3, &p3), (&vp2b, &pp2b)], &[s3.clone(), sp2b.clone()], c2, cpn);
++    });
++    // S3: PAD_N as child 0 at level 2 and P_2 (init) as sibling: PAD first, real subtree after
++    let (vp0, pp0, sp0) = padn(0, 2, &done);
++    let s2_shift = RangeStmt { a: F::ONE, e: F::from_u32(3), ..s2.clone() };
++    dbg("S3 P_* over [PAD_N@2 (a=0), P_2@2] (PAD before the real subtree)", false, &cn, &|b| {
++        build_node_star(b, &[(&vp0, &pp0), (&v2, &p2)], &[sp0.clone(), s2_shift.clone()], c2, cpn);
++    });
++    // S4: PAD_N with init phase (would let a PAD stand in for the template's init boundary)
++    dbg("S4 PAD_N with init phase", false, &cn, &|b| {
++        build_pad_node(b, &ctx, F::ZERO, &init, 2);
++    });
++    // S5: P_* L3 whose PAD_N sibling preimage skips indices (a = e_0 + 5)
++    let spa_skip = RangeStmt { a: s2.e + F::from_u32(5), e: s2.e + F::from_u32(6), ..spa.clone() };
++    dbg("S5 P_* over [P_2@2, PAD_N@2 with a = e_0 + 5]", false, &cn, &|b| {
++        build_node_star(b, &k3, &[s2.clone(), spa_skip.clone()], c2, cpn);
++    });
++    // S6: P_* level 3 with sibling P_2 replaced by PAD_N whose preimage claims P_2's statement
++    dbg("S6 P_* L3: PAD_N preimage = a P_2 statement (s_a = init)", false, &cn, &|b| {
++        build_node_star(b, &k3, &[s2.clone(), RangeStmt { a: s2.e, e: s2.e + F::ONE, s_a: init.clone(), s_e: done.clone(), ..spa.clone() }], c2, cpn);
++    });
++    // ---- wrap mix-ups (final domain, zk off as in tree_d7_shapes_debug)
++    let k4: Vec<(&Vk, &Pf)> = vec![(&v3, &p3), (&vp3, &pp3)];
++    let sp3_4 = RangeStmt { a: s3.e, e: s3.e + F::ONE, ..sp3.clone() };
++    let (vp3b, pp3b, sp3b) = padn(s3.e.as_canonical_u32(), 3, &done);
++    let _ = (k4, sp3_4);
++    let k4: Vec<(&Vk, &Pf)> = vec![(&v3, &p3), (&vp3b, &pp3b)];
++    let pre4 = vec![s3.clone(), sp3b.clone()];
++    dbg("P_* L4 honest", true, &cn, &|b| {
++        build_node_star(b, &k4, &pre4, c2, cpn);
++    });
++    dbg("M3 P_* over [P_*@3, P_2@2] (mixed levels)", false, &cn, &|b| {
++        build_node_star(b, &[(&v3, &p3), (&v2, &p2)], &[s3.clone(), RangeStmt { a: s3.e, e: s3.e + F::from_u32(2), ..s2.clone() }], c2, cpn);
++    });
++    let (v4, p4, _) = prove(&cn, &|b| build_node_star(b, &k4, &pre4, c2, cpn));
++    let root4 = RangeStmt::compose(&pre4).unwrap();
++    let root3 = RangeStmt::compose(&pre3).unwrap();
++    let root2 = s2.clone();
++    let mut fp = parent();
++    fp.whir.levers.zk = 0;
++    let fe = Sha384CpuEngine::new_final(fp);
++    let mut cw = NvCircuit::new(k, lr, 1);
++    cw.prog_log = lr - 2;
++    let wdbg = |name: &str, expect_ok: bool, body: &dyn Fn(&mut Builder)| {
++        let r = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| debug_body(&cw, &fe, |_| {}, |b| body(b)).failures));
++        match (&r, expect_ok) {
++            (Ok(f), true) => println!("REVIEW_D7_POSITIVE_OK {name} host_failures={f:?}"),
++            (Err(e), false) => {
++                let msg = e.downcast_ref::<String>().cloned().or_else(|| e.downcast_ref::<&str>().map(|s| s.to_string())).unwrap_or_default();
++                println!("REVIEW_D7_REJECTED {name} :: {}", &msg[..msg.len().min(300)]);
++            }
++            (Ok(f), false) => println!("REVIEW_D7_ACCEPTED_FORGED {name} (host failures {f:?}) <<<<<<<<"),
++            (Err(_), true) => panic!("REVIEW_D7 positive control {name} rejected"),
++        }
++    };
++    let cstar = root_of(&p3);
++    wdbg("wrap depth 3 honest (root P_*@4, C_*)", true, &|b| {
++        build_wrap(b, &v4, &p4, 4, cstar, &root4);
++    });
++    wdbg("W1 wrap depth 3 over P_*@3 (one level short)", false, &|b| {
++        build_wrap(b, &v3, &p3, 4, cstar, &root3);
++    });
++    wdbg("W2 wrap depth 1 setup (C_2, level 2) over P_*@3", false, &|b| {
++        build_wrap(b, &v3, &p3, 2, c2, &root3);
++    });
++    wdbg("W3 wrap depth 2 setup (C_*, level 3) over P_2@2", false, &|b| {
++        build_wrap(b, &v2, &p2, 3, cstar, &root2);
++    });
++    wdbg("W4 wrap anchored at C_padN, level 3, over PAD_N@3", false, &|b| {
++        build_wrap(b, &vp3b, &pp3b, 3, cstar, &sp3b);
++    });
++    println!("REVIEW_D7_MIXUP_DONE");
++}
 --- a/openvm-sha384/crates/recursion/src/nv/builder.rs
 +++ b/openvm-sha384/crates/recursion/src/nv/builder.rs
 @@ -7,6 +7,10 @@
@@ -2078,7 +2274,7 @@
      /// open flush job (job id, t_start, observed felts)
      tr_pending: Option<(u32, u32, u32)>,
      /// static transcript jobs allocated so far
-@@ -157,6 +160,45 @@
+@@ -157,6 +160,48 @@
      pow_wit: Vec<V>,
      /// squeeze / PoW-run blocks so far (their job ids)
      tr_blocks: u32,
@@ -2105,6 +2301,9 @@
 +    /// [E2E-D D-5, review-D4 F1] the rejection-sampling profile of the executed trace (set by
 +    /// `NvCircuit::generate_*`): which trace rows depend on the child's transcript draws.
 +    pub height_profile: Option<super::circuit::HeightProfile>,
++    /// [E2E-D D-8, review-D7 L1] the generating circuit's SHA instance capacity log
++    /// (`NvCircuit::sha_cap_log`, set by `NvCircuit::generate_*`), read by `shape_pinned_heights`
++    pub sha_cap_log: usize,
 +    /// [E2E-D D-5 tree] index of the child being verified in a multi-child program. The BIND check
 +    /// evaluates this program at the child's batch point through the reserved E-table, which
 +    /// holds ONE point: only child 0 is bound by BIND; every later child's program root must equal
@@ -2124,7 +2323,7 @@
  }
  
  impl Builder {
-@@ -188,12 +230,24 @@
+@@ -188,12 +233,25 @@
              statement: None,
              child_nv: false,
              anchor: None,
@@ -2142,6 +2341,7 @@
 +            anchor_set: None,
 +            force_anchor: false,
 +            height_profile: None,
++            sha_cap_log: super::circuit::SHA_INSTANCE_CAP_LOG,
 +            bind_child_index: 0,
 +            first_child_root: None,
 +            capture_statement: false,
@@ -2150,7 +2350,7 @@
          }
      }
  
-@@ -219,19 +273,23 @@
+@@ -219,19 +277,23 @@
          }
      }
  
@@ -2179,7 +2379,7 @@
          v
      }
      /// One base-field cell as unit `uidx` of leaf job `job`.
-@@ -407,10 +465,46 @@
+@@ -407,10 +469,46 @@
          self.push(Op::LoadF, 0, 0, 0, 0, EF::from(x), F::ZERO)
      }
      /// First transcript job of the chain: push the initial state as its state units 2..13.
@@ -2227,7 +2427,7 @@
      }
      /// T*: blocks B_j (j >= 2) of a PoW run created by the last sample: push the PoW witness as
      /// their units 16.. (the hash-chain row adds the counter).
-@@ -435,7 +529,8 @@
+@@ -435,7 +533,8 @@
      /// Close the open flush job: anchor (job, t_start, count).
      fn tr_close(&mut self) {
          if let Some((job, t, cnt)) = self.tr_pending.take() {
@@ -2237,7 +2437,7 @@
          }
      }
      /// Proof-of-work check (levers spec, tag 7): flush; job H(7, [state, witness]) with the
-@@ -465,9 +560,12 @@
+@@ -465,9 +564,12 @@
          if !ok {
              self.failures.push(format!("pow ({bits} bits)"));
          }
@@ -2252,7 +2452,7 @@
          // output word 0 as limbs (l0, l1, l2) from the hash chain
          let state = self.transcript.inner.state;
          let w0 = u64::from_be_bytes(state[..8].try_into().unwrap());
-@@ -606,7 +704,8 @@
+@@ -606,7 +708,8 @@
          } else {
              self.push(Op::UnitW, hi.addr, 2, job, 24, hi.val, F::ZERO)
          };
@@ -2395,7 +2595,7 @@
      /// G2 anchor rule (setup, deterministic) for the level verifying `child` at level
      /// `child_level` >= 1, whose program words are `child_words` and cached program root
      /// `child_root`:
-@@ -239,37 +279,45 @@
+@@ -239,38 +279,47 @@
  
      /// Run an arbitrary program body (the verifier, or a test forgery) and generate every trace.
      pub fn generate_program(&self, body: impl FnOnce(&mut Builder)) -> (Vec<RowMajorMatrix<F>>, Builder) {
@@ -2447,9 +2647,11 @@
 +        let mut mats = vec![nv, sha.compress, sha.table, byte_table2(&counts)];
 +        mats.extend(sha.compress_extra);
          b.height_profile = Some(profile);
++        b.sha_cap_log = self.sha_cap_log;
          if let Some(h) = &self.heights {
              use p3_matrix::Matrix;
-@@ -448,6 +496,18 @@
+             for (i, m) in mats.iter().enumerate() {
+@@ -448,6 +497,18 @@
      Builder,
      Vec<(usize, usize)>,
  ) {
@@ -2468,7 +2670,7 @@
      use openvm_cpu_backend::CpuBackend;
      use openvm_stark_backend::{
          prover::{AirProvingContext, DeviceDataTransporter, MatrixDimensions, ProvingContext},
-@@ -455,11 +515,10 @@
+@@ -455,11 +516,10 @@
      };
      let airs = circ.airs::<Sha384Config>();
      let (pk, vk) = engine.keygen(&airs);
@@ -2481,7 +2683,7 @@
      let d_pk = engine.device().transport_pk_to_device(&pk);
      if let Some(fl) = &circ.tight_floor {
          let f: Vec<(usize, usize, usize)> = ctxs
-@@ -486,7 +545,7 @@
+@@ -486,7 +546,7 @@
          }
      }
      engine.verify(&vk, &proof).unwrap();
@@ -2490,7 +2692,7 @@
  }
  
  /// [E2E-D D-5, review-D4 F1] Which rows of an NV level's traces depend on the rejection sampling
-@@ -687,10 +746,38 @@
+@@ -687,10 +747,38 @@
      }
  }
  
@@ -2529,7 +2731,7 @@
  /// Also returns `(J_max, NvAir slack rows, SHA slack rows, NvAir base rows, SHA base rows)`.
  pub fn shape_pinned_heights(
      mats: &[RowMajorMatrix<F>],
-@@ -703,30 +790,59 @@
+@@ -703,30 +791,60 @@
      let jm = HeightProfile::j_max(hp.k_samples, eps_bits);
      let (nv_slack, comps_slack) = hp.delta_max(jm);
      let sha_rows = crate::sha384::compress4_air::ROWS;
@@ -2582,8 +2784,9 @@
 +            let log = (m.height().trailing_zeros() as usize).max(t.next_power_of_two().trailing_zeros() as usize);
 +            out[1] = (log, Some(t.min(1 << log)));
 +        } else {
-+            // instance capacity (the tree layer's stacked ceiling, `NvCircuit::sha_cap_log`)
-+            let cap = 1usize << SHA_INSTANCE_CAP_LOG;
++            // instance capacity: the generating circuit's `NvCircuit::sha_cap_log` (the layer's
++            // stacked ceiling; review-D7 L1: not the ns20lb5 constant)
++            let cap = 1usize << b.sha_cap_log;
 +            let mut rem = pin_total;
 +            for (j, &a) in sha_idx.iter().enumerate() {
 +                let t = if j + 1 < k { rem.min(cap) } else { rem };
@@ -2880,7 +3083,23 @@
      let mvk = &vk.inner;
      let params = &mvk.params;
      let l_skip = params.l_skip;
-@@ -870,16 +873,31 @@
+@@ -439,6 +442,15 @@
+         // verifier rejects the same proof in `verify_proof_shape`
+         // (`ProofShapeVDataError::LogHeightExceedsTableCap`); this stops program generation, so
+         // no level is ever proved for a child whose table outgrew its soundness bound.
++        // [E2E-D D-8, review-D7 L1] every child trace fits the child's stacked ceiling
++        // `l_skip + n_stack`, which is also its SHA instance capacity (`NvCircuit::sha_cap_log`):
++        // the compression-id ranges `[i << cap, (i + 1) << cap)` of a multi-instance child are
++        // disjoint only if no instance is taller. Heights are program constants: static check.
++        if td.log_height > l_skip + params.n_stack {
++            let msg = format!("AIR {a}: log_height {} exceeds the child's stacked ceiling {}", td.log_height, l_skip + params.n_stack);
++            b.failures.push(msg.clone());
++            panic!("{msg}");
++        }
+         if let Some(max_log) = avk.params.max_log_trace_height.filter(|&m| td.log_height > m) {
+             let msg = format!("AIR {a}: log_height {} exceeds its maxLog {max_log}", td.log_height);
+             b.failures.push(msg.clone());
+@@ -870,16 +882,31 @@
          .iter()
          .map(|cs| cs.iter().map(|(c, _)| c.val).collect())
          .collect();
@@ -2917,7 +3136,7 @@
          let cv = coeffs(clm1.val)[0];
          let inv = b.load_f(if cv == F::ZERO { F::ZERO } else { cv.inverse() });
          let flag = b.mul(clm1, inv);
-@@ -889,6 +907,9 @@
+@@ -889,6 +916,9 @@
          // G2: the child's program columns: its cached program part (NV levels) or, for a child
          // without one, its common main P0..P3
          let tc = tid.iter().position(|&a| a == 0).expect("child ALU");
@@ -2927,7 +3146,7 @@
          let child_prog_part = !mvk.per_air[0].params.width.cached_mains.is_empty();
          let prog_open: Vec<V> = if child_prog_part {
              let has_prep = mvk.per_air[0].preprocessed_data.is_some() as usize;
-@@ -898,10 +919,48 @@
+@@ -898,10 +928,48 @@
          };
          // anchor-level child (flag = 0): its program commitment is the constant C_M, the
          // commitment of the level-M program at these parameters (setup); (root - C_M) (1 - flag) = 0
@@ -2978,7 +3197,7 @@
                      let nf = b.one_minus(flag);
                      let cm = b.const_digest(c_m);
                      for (x, y) in [(root.lo, cm.lo), (root.hi, cm.hi)] {
-@@ -918,13 +977,65 @@
+@@ -918,13 +986,65 @@
          } else if flag.val == EF::ZERO {
              b.failures.push("anchor-level child without a program commitment cannot be bound".into());
          }
@@ -3047,7 +3266,7 @@
          // statement passthrough (G1): the child's statement digest (its public values 1..19)
          // is re-exposed unchanged
          let pv = &pv_cells[0];
-@@ -974,7 +1085,11 @@
+@@ -974,7 +1094,11 @@
              for root in &cached_cells {
                  dc = b.node(&dc, root);
              }
@@ -3060,7 +3279,7 @@
          }
      }
      eprintln!("NV_PHASE before_dag {}", b.instrs.len());
-@@ -1358,10 +1473,15 @@
+@@ -1358,10 +1482,15 @@
          let yv: Vec<EF> = ys.iter().map(|v| v.val).collect();
          let dt = b.dig(job, super::circuit::tape_eval_digest(&uv, &yv));
          let dc = b.node(&dc0, &dt);

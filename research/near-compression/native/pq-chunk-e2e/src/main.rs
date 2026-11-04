@@ -249,7 +249,13 @@ fn init() {
 fn base(air: &str, dump: &str, out: &Path, certs: &str, exclusions: &str) {
     std::fs::create_dir_all(out).unwrap();
     let (vk, p) = state::chunk_bridge::prove_base(air, dump, certs, exclusions);
-    let claim = state::chunk_bridge::expected_claim(air, dump, vk.inner.params.clone());
+    // [E2E-D D-8] a class with pinned TAPE keys: the claim is under the class's TAPE shape, and the
+    // base dir records it (TAPE_PAD.json) for the tree driver (template entry, ctx)
+    let pad = std::env::var("NEARPROOF_BASE_CLASS").ok().and_then(|c| state::chunk_bridge::BaseClass::read(&c).tape_pad());
+    if let Some(tp) = &pad {
+        std::fs::write(out.join("TAPE_PAD.json"), serde_json::to_vec(&tp.to_json()).unwrap()).unwrap();
+    }
+    let claim = state::chunk_bridge::expected_claim_padded(air, dump, vk.inner.params.clone(), pad.as_ref());
     assert_eq!(p.public_values, claim.public_values);
     assert_eq!(
         p.trace_vdata
@@ -1005,6 +1011,23 @@ fn main() {
                 println!("BASE_SHAPE {d} {:?}", sh.iter().map(|t| (t.name.as_str(), t.log, t.tight)).collect::<Vec<_>>());
             }
         }
+        Some("class-admits") if a.len() >= 5 => {
+            // [E2E-D D-8] class-admits CLASS.json AIR DUMP...: CLASS_ADMITS_OK / _FAIL per dump
+            // (TAPE pad, logs, tight heights, then the base prover's precheck); exit 1 if any fails
+            let c = state::chunk_bridge::BaseClass::read(&a[2]);
+            let mut bad = 0;
+            for d in &a[4..] {
+                let r = std::panic::catch_unwind(|| state::chunk_bridge::class_admits(&a[3], d, &c, true));
+                match r {
+                    Ok(Ok(())) => println!("CLASS_ADMITS_OK class={} dump={d}", c.name),
+                    Ok(Err(e)) => { bad += 1; println!("CLASS_ADMITS_FAIL class={} dump={d} {e}", c.name) }
+                    Err(_) => { bad += 1; println!("CLASS_ADMITS_FAIL class={} dump={d} precheck panicked", c.name) }
+                }
+            }
+            if bad > 0 {
+                std::process::exit(1);
+            }
+        }
         Some("base-class") if a.len() >= 7 => {
             let shapes: Vec<_> = a[6..].iter().map(|d| state::chunk_bridge::base_shape(&a[5], d)).collect();
             let c = state::chunk_bridge::class_of(&a[2], &shapes, a[3].parse().unwrap());
@@ -1060,6 +1083,44 @@ fn main() {
                 );
             }
         }
+        Some("base-whir") if a.len() >= 6 => {
+            // [E2E-D D-8] base-whir BASE.vk.json CERTS EXCLUSIONS NS:LB[:W_STACK]...: the base WHIR
+            // schedule (queries, fold, Merkle depth per round) and the soundness of the same AIR set
+            // at another base geometry (the pinned 268-bit target, proximity and grinding), for the
+            // leaf-cost law. No proof; nothing pinned changes.
+            let vk0 = read_vk(Path::new(&a[2]));
+            for g in &a[5..] {
+                // `seg:NS[:W_STACK]`: the seg-v1 segment parameters (pq-state-port `seg_v1_params`, the
+                // lane A / lane B segment provers' shape: lb 1, list decoding m = 16, 24 PoW bits)
+                let seg = g.starts_with("seg:");
+                let x: Vec<usize> = g.trim_start_matches("seg:").split(':').map(|s| s.parse().unwrap()).collect();
+                let mut vk = vk0.clone();
+                vk.inner.params = if seg {
+                    let w = x.get(1).copied().unwrap_or(vk0.inner.params.w_stack);
+                    state::seg_v1_params(x[0], w, vk0.inner.params.max_constraint_degree)
+                } else {
+                    let w = x.get(2).copied().unwrap_or(vk0.inner.params.w_stack);
+                    profile::base_params_at(x[0], x[1], w, vk0.inner.params.max_constraint_degree, &a[3], &a[4])
+                };
+                let w = vk.inner.params.w_stack;
+                let p = &vk.inner.params;
+                let c = openvm_stark_backend::soundness::SoundnessCalculator::calculate_from_vk(&vk);
+                let log_h = p.l_skip + p.n_stack;
+                let ks: Vec<usize> = (0..p.whir.rounds.len()).map(|r| p.whir.k_round(r)).collect();
+                let depth: Vec<usize> = ks.iter().map(|k| log_h + p.log_blowup - k).collect();
+                println!(
+                    "BASE_WHIR ns={} lb={} w_stack={w} queries={:?} k={:?} merkle_depth={:?} query_x_depth={} whir_bits={:.1} total_bits={:.1}",
+                    p.n_stack,
+                    p.log_blowup,
+                    p.whir.rounds.iter().map(|r| r.num_queries).collect::<Vec<_>>(),
+                    ks,
+                    depth,
+                    p.whir.rounds.iter().zip(&depth).map(|(r, d)| r.num_queries * d).sum::<usize>(),
+                    c.whir_bits,
+                    c.total_bits
+                );
+            }
+        }
         Some("verify-bench") if a.len() == 7 => {
             verify_bench(&a[2], &a[3], &a[4], &a[5], a[6].parse().unwrap())
         }
@@ -1068,7 +1129,7 @@ fn main() {
             println!("PROOF_SECTIONS {}", proof_sections(&p));
         }
         Some("zk-diff") if a.len() == 4 => zk_diff(Path::new(&a[2]), Path::new(&a[3])),
-        // [E2E-D D-5] tree-prove AIR PUBLIC OUT CHUNK_DIR CERTS EXCLUSIONS ARITY DEPTH CLASS_DIR...
+        // [E2E-D D-5] tree-prove AIR PUBLIC OUT CHUNK_DIR CERTS EXCLUSIONS ARITY DEPTH CLASS_DIR... (D-8: ARITY - = 4)
         #[cfg(feature = "tree")]
         Some("tree-prove") if a.len() >= 11 => tree::tree_prove(
             &a[2],
@@ -1078,9 +1139,15 @@ fn main() {
             &a[10..],
             &a[6],
             &a[7],
-            a[8].parse().unwrap(),
+            // [E2E-D D-8] ARITY `-` / `default`: tree::DEFAULT_ARITY (4)
+            match a[8].as_str() {
+                "-" | "default" => tree::DEFAULT_ARITY,
+                s => s.parse().unwrap(),
+            },
             a[9].parse().unwrap(),
         ),
+        #[cfg(feature = "tree")]
+        Some("tree-audit") if a.len() >= 6 => tree::tree_audit(&a[2], &a[3], &a[4], Path::new(&a[5]), &a[6..]),
         #[cfg(feature = "tree")]
         Some("tree-verify") if a.len() == 7 => tree::tree_verify(&a[2], &a[3], &a[4], &a[5], &a[6]),
         #[cfg(feature = "tree")]

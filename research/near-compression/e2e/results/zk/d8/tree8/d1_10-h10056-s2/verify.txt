@@ -1,0 +1,6 @@
+VERIFY_PROFILE_MS total=49.29 wrap_verify=28.56 FS_JOBS flush=473 commit=5 squeeze=805 pow=4
+INDEPENDENT_TREE_VERIFY_OK bundle_bytes=330394 class=1
+VERIFY_PROFILE_MS total=48.77 wrap_verify=28.44 FS_JOBS flush=473 commit=5 squeeze=805 pow=4
+INDEPENDENT_TREE_VERIFY_OK bundle_bytes=330394 class=1
+VERIFY_PROFILE_MS total=48.99 wrap_verify=28.86 FS_JOBS flush=473 commit=5 squeeze=805 pow=4
+INDEPENDENT_TREE_VERIFY_OK bundle_bytes=330394 class=1

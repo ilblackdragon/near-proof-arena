@@ -1,0 +1,27 @@
+chunks 1311
+sha_t     w= 544 pad=zero    maxLog=22 compact logs {9: 1, 10: 109, 11: 688, 12: 512, 13: 1} max rows 4114
+sha_r     w= 544 pad=zero    maxLog=22 compact logs {9: 396, 10: 640, 11: 228, 12: 3, 13: 7, 14: 7, 16: 3, 17: 26, 18: 1} max rows 134365
+node      w= 188 pad=nonzero maxLog=22 compact logs {8: 49, 9: 42, 10: 349, 11: 784, 12: 87} max rows 3039
+head      w=  73 pad=nonzero maxLog=13 compact logs {6: 1220, 7: 90, 8: 1} max rows 160
+val       w=  17 pad=nonzero maxLog=22 compact logs {9: 36, 10: 575, 11: 668, 12: 32} max rows 3250
+walk      w=  56 pad=nonzero maxLog=22 compact logs {4: 56, 5: 21, 6: 141, 7: 417, 8: 311, 9: 280, 10: 38, 11: 2, 12: 4, 13: 8, 14: 3, 16: 20, 17: 10} max rows 100694
+uniq      w=  53 pad=nonzero maxLog=22 compact logs {7: 54, 9: 241, 10: 898, 11: 118} max rows 1696
+ups       w= 202 pad=nonzero maxLog=22 compact logs {10: 716, 11: 550, 12: 45} max rows 3620
+chacha    w= 272 pad=zero    maxLog=22 compact logs {2: 1301, 7: 10} max rows 86
+rng       w= 158 pad=nonzero maxLog=22 compact logs {2: 1308, 3: 3} max rows 5
+shuf      w=  77 pad=nonzero maxLog=22 compact logs {2: 1311} max rows 3
+codec     w=  91 pad=zero    maxLog=22 compact logs {9: 325, 10: 920, 11: 59, 12: 7} max rows 2799
+scandist  w= 119 pad=zero    maxLog=22 compact logs {5: 316, 6: 850, 7: 126, 8: 19} max rows 202
+proc      w=  64 pad=nonzero maxLog=22 compact logs {5: 1220, 6: 85, 7: 6} max rows 85
+mem       w=  18 pad=zero    maxLog=22 compact logs {5: 325, 6: 920, 7: 59, 8: 7} max rows 148
+cmp       w=  33 pad=nonzero maxLog=22 compact logs {6: 322, 7: 915, 8: 72, 9: 2} max rows 266
+rcpt      w= 263 pad=zero    maxLog=22 compact logs {4: 4, 5: 9, 6: 274, 7: 66, 8: 109, 9: 293, 10: 370, 11: 137, 12: 4, 13: 3, 14: 9, 15: 3, 17: 20, 18: 10} max rows 205779
+acct      w=  16 pad=nonzero maxLog=19 compact logs {2: 356, 4: 338, 6: 483, 7: 134} max rows 96
+akey      w=   7 pad=zero    maxLog=16 compact logs {2: 622, 4: 319, 5: 295, 6: 75} max rows 54
+bnd       w=   6 pad=zero    maxLog=13 compact logs {7: 1311} max rows 65
+srcp      w=  63 pad=nonzero maxLog=22 compact logs {8: 6, 9: 208, 10: 589, 11: 490, 12: 16, 13: 2} max rows 4725
+size      w=  57 pad=nonzero maxLog= 4 compact logs {2: 1311} max rows 3
+qv        w=  52 pad=zero    maxLog=22 compact logs {2: 153, 3: 10, 7: 154, 8: 381, 9: 613} max rows 418
+mrk       w=  60 pad=nonzero maxLog=19 compact logs {2: 648, 7: 225, 8: 270, 9: 118, 10: 5, 11: 1, 12: 8, 13: 6, 15: 2, 16: 27, 17: 1} max rows 68487
+sort      w=  49 pad=nonzero maxLog=19 compact logs {2: 356, 7: 787, 8: 101, 9: 22, 10: 1, 11: 7, 12: 7, 14: 2, 15: 27, 16: 1} max rows 34304
+TAPE (log, width): {(10, 42): 390, (10, 43): 136, (11, 42): 292, (11, 43): 490, (12, 43): 3}

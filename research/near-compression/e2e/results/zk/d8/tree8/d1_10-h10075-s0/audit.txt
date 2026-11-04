@@ -1,0 +1,7 @@
+TREE_AUDIT_CLASS 0 vk_sha=true params=true airs=true tape_width=true -> OK
+TREE_AUDIT_CLASS 1 vk_sha=true params=true airs=true tape_width=true -> OK
+TREE_AUDIT_CLASS 2 vk_sha=true params=true airs=true tape_width=true -> OK
+TREE_AUDIT_LEAF_ROOT_OK class=0 base=/data/illia/nearproof-deps/pq-e2e-d8/b8/d1_09-h10150-s3
+TREE_AUDIT_LEAF_ROOT_OK class=1 base=/data/illia/nearproof-deps/pq-e2e-d8/b8/d1_05-h10085-s2
+TREE_AUDIT_LEAF_ROOT_OK class=2 base=/data/illia/nearproof-deps/pq-e2e-d8/b8/d1_09-h10012-s0
+TREE_AUDIT_OK classes=3 bases=3

@@ -1,0 +1,17 @@
+TREE_D7_POSITIVE_OK base leaf (honest) host_failures=[]
+TREE_D7_POSITIVE_OK base leaf: forged body, untampered (control) host_failures=[]
+TREE_D7_DEBUG_REJECTED base leaf: exposed ctx limb != captured digest
+TREE_D7_DEBUG_REJECTED base leaf: captured digest replaced by another statement's
+TREE_D7_LEAF_PIN [(19, Some(18816)), (17, Some(67840)), (7, Some(128)), (16, Some(65536))]
+TREE_D7_NODE_PIN [(19, Some(320256)), (21, Some(1457600)), (7, Some(128)), (16, Some(65536))]
+TREE_D7_POSITIVE_OK P_2 (honest, leaves at their own heights) host_failures=[]
+TREE_D7_DEBUG_REJECTED P_2: a leaf of another class (program not in the set)
+TREE_D7_POSITIVE_OK P_* level 3 (honest: P_2 + PAD_N at level 2) host_failures=[]
+TREE_D7_DEBUG_REJECTED P_* level 3: PAD_N not in the level-2 anchor set
+TREE_D7_POSITIVE_OK P_* level 4 (honest: BIND child 0, PAD_N sibling) host_failures=[]
+TREE_D7_DEBUG_REJECTED P_* level 4: PAD alternative is another root
+TREE_D7_DEBUG_REJECTED P_* level 4: PAD_N as child 0 (BIND)
+TREE_D7_OK
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 110 filtered out; finished in 3822.95s
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 1:03:43
+	Maximum resident set size (kbytes): 15193936

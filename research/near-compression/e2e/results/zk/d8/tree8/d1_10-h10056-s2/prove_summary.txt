@@ -1,0 +1,24 @@
+TREE_PARAMS n_stack=20 log_blowup=5 queries=[54, 41, 31, 25] sha_cap_log=22
+TREE_LEAF_PARAMS n_stack=20 log_blowup=2 queries=[81, 60, 40, 30]
+TREE_SHAPE arity=4 depth=1 node_margin=1.13
+TREE_TEMPLATE class=0 kind=base rows=205562 pin=[(20, Some(385128)), (21, Some(1176064)), (7, Some(128)), (16, Some(65536))] base_vk=2578084917fac89f s=5.6
+TREE_TEMPLATE class=1 kind=base rows=206800 pin=[(20, Some(387972)), (21, Some(1187712)), (7, Some(128)), (16, Some(65536))] base_vk=25d8732f157de4bb s=5.7
+TREE_TEMPLATE class=2 kind=base rows=465618 pin=[(20, Some(812648)), (21, Some(1750912)), (7, Some(128)), (16, Some(65536))] base_vk=e1cf72d1c5a489ef s=5.9
+TREE_TEMPLATE_CONFIRMED class=0 by=/data/illia/nearproof-deps/pq-e2e-d8/b8/d1_09-h10150-s3
+TREE_TEMPLATE_CONFIRMED class=1 by=/data/illia/nearproof-deps/pq-e2e-d8/b8/d1_05-h10085-s2
+TREE_TEMPLATE_CONFIRMED class=2 by=/data/illia/nearproof-deps/pq-e2e-d8/b8/d1_09-h10012-s0
+TREE_CHUNK_CLASS class=1 confirmations_per_class=[2, 2, 2]
+TREE_PAD_LEAF rows=1598 pin=[(20, Some(2416)), (8, Some(256)), (7, Some(128)), (16, Some(65536))]
+TREE_LEAF_HEIGHTS [(20, Some(812648)), (21, Some(1750912)), (7, Some(128)), (16, Some(65536))]
+TREE_LEAF 0 rows=206800 bytes=466731 seconds=159.8
+TREE_LEAF 1 rows=1598 bytes=467781 seconds=191.4
+TREE_LEAF 2 rows=1598 bytes=468243 seconds=166.3
+TREE_LEAF 3 rows=1598 bytes=470301 seconds=224.3
+TREE_NODE_GEOM Geom { log_rows: 21, prog_log: 20, sha_instances: 2, heights: [(21, Some(1634316)), (22, Some(4194304)), (7, Some(128)), (16, Some(65536)), (21, Some(1540736))] }
+TREE_PAD_NODE rows=2622
+TREE_NODE L2_0 kind=P2 rows=835632 shape_pin=[(21, Some(1634316)), (22, Some(4194304)), (7, Some(128)), (16, Some(65536)), (21, Some(1540736))] info=[2282, 22763, 253824, 1611552, 5481216]
+TREE_NODE_PROVED L2_0 bytes=482361 seconds=854.3
+WRAP_NEGATIVE_CONTROLS_OK wrong_ctx wrong_class changed_program changed_heights changed_level
+TREE_FIXED_SETUP_IDENTICAL
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 36:55.13
+	Maximum resident set size (kbytes): 27409376

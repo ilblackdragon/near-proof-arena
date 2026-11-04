@@ -1,0 +1,15 @@
+COVER_FAIL d1_00-h10144-s0 S statedump: 
+COVER_FAIL d1_00-h10144-s1 S statedump: 
+COVER_FAIL d1_01-h10037-s2 S statedump: rng: re-cut at log 3 fails classical constraints [(154, 1), (154, 2), (154, 3), (154, 4), (154, 5), (154, 6), (196, 1), (196, 2), (196, 3), (196, 4)]
+COVER_FAIL d1_01-h10132-s4 S statedump: 
+COVER_FAIL d1_01-h10127-s4 S statedump: 
+COVER_FAIL d1_01-h10037-s2 S statedump: rng: re-cut at log 3 fails classical constraints [(154, 1), (154, 2), (154, 3), (154, 4), (154, 5), (154, 6), (196, 1), (196, 2), (196, 3), (196, 4)]
+COVER_FAIL d1_02-h10009-s0 S statedump: 
+COVER_FAIL d1_02-h10007-s5 S statedump: 
+COVER_FAIL d1_02-h10008-s5 S statedump: 
+COVER_FAIL d1_02-h10004-s3 S statedump: 
+COVER_FAIL d1_02-h10005-s5 S statedump: 
+COVER_FAIL d1_02-h10005-s2 S statedump: 
+COVER_FAIL d1_02-h10008-s0 S statedump: 
+COVER_FAIL d1_02-h10005-s1 S statedump: 
+COVER_FAIL d1_02-h10006-s5 S statedump: 

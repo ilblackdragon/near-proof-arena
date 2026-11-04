@@ -1,0 +1,209 @@
+{
+ "control": {
+  "accepted": true,
+  "expected_accept": true,
+  "panicked": false,
+  "pass": true,
+  "last": [
+   "INDEPENDENT_TREE_VERIFY_OK bundle_bytes=329667 class=1"
+  ]
+ },
+ "other_claim": {
+  "accepted": false,
+  "expected_accept": false,
+  "panicked": false,
+  "pass": true,
+  "last": [
+   "TREE_VERIFY_REJECT claim / hint rejected by the public-statement preparation"
+  ]
+ },
+ "flip_hint": {
+  "accepted": false,
+  "expected_accept": false,
+  "panicked": false,
+  "pass": true,
+  "last": [
+   "TREE_VERIFY_REJECT claim / hint rejected by the public-statement preparation"
+  ]
+ },
+ "class_0": {
+  "accepted": false,
+  "expected_accept": false,
+  "panicked": false,
+  "pass": true,
+  "last": [
+   "TREE_VERIFY_REJECT wrap verifier: statement digest differs from the claim"
+  ]
+ },
+ "class_2": {
+  "accepted": false,
+  "expected_accept": false,
+  "panicked": false,
+  "pass": true,
+  "last": [
+   "TREE_VERIFY_REJECT stacking point length"
+  ]
+ },
+ "class_out_of_range": {
+  "accepted": false,
+  "expected_accept": false,
+  "panicked": false,
+  "pass": true,
+  "last": [
+   "TREE_VERIFY_REJECT template class out of range"
+  ]
+ },
+ "flip_u": {
+  "accepted": false,
+  "expected_accept": false,
+  "panicked": false,
+  "pass": true,
+  "last": [
+   "TREE_VERIFY_REJECT wrap verifier: statement digest differs from the claim"
+  ]
+ },
+ "flip_proof_0": {
+  "accepted": false,
+  "expected_accept": false,
+  "panicked": false,
+  "pass": true,
+  "last": [
+   "TREE_VERIFY_REJECT wrap verifier: final proof: BatchConstraintError(SumClaimMismatch { sum_claim: BinomialExtensionField { value: [107917015, 1381141266, 513882766, 374990594, 592101859, 699203545, 1318765286, 635159657, 274015522, 2000217208, 660987168, 1735808664], _phantom: PhantomData<p3_monty_31::monty_31::MontyField31<p3_baby_bear::baby_bear::BabyBearParameters>> }, sum_univ_domain_s_0: BinomialExtensionField { value: [1630083940, 356901223, 656062913, 1701033395, 487443548, 853082530, 1200481470, 1230772016, 1187213180, 1540489981, 1733740097, 750113519], _phantom: PhantomData<p3_monty_31::monty_31::MontyField31<p3_baby_bear::baby_bear::BabyBearParameters>> } })"
+  ]
+ },
+ "flip_proof_1": {
+  "accepted": false,
+  "expected_accept": false,
+  "panicked": false,
+  "pass": true,
+  "last": [
+   "TREE_VERIFY_REJECT wrap verifier: final proof: BatchConstraintError(SumClaimMismatch { sum_claim: BinomialExtensionField { value: [1420433688, 1675906025, 1633933002, 115719568, 1141839501, 904763314, 101053248, 1005109656, 1660672480, 1926657514, 1059777942, 1263567876], _phantom: PhantomData<p3_monty_31::monty_31::MontyField31<p3_baby_bear::baby_bear::BabyBearParameters>> }, sum_univ_domain_s_0: BinomialExtensionField { value: [1630083940, 356901223, 656062913, 1701033395, 487443548, 853082530, 1200481470, 1230772016, 1187213180, 1540489981, 1733740097, 750113519], _phantom: PhantomData<p3_monty_31::monty_31::MontyField31<p3_baby_bear::baby_bear::BabyBearParameters>> } })"
+  ]
+ },
+ "flip_proof_2": {
+  "accepted": false,
+  "expected_accept": false,
+  "panicked": false,
+  "pass": true,
+  "last": [
+   "TREE_VERIFY_REJECT wrap verifier: final proof: WhirError(MerkleVerify)"
+  ]
+ },
+ "flip_proof_3": {
+  "accepted": false,
+  "expected_accept": false,
+  "panicked": false,
+  "pass": true,
+  "last": [
+   "TREE_VERIFY_REJECT wrap verifier: final proof: WhirError(QueryPhasePoWInvalid)"
+  ]
+ },
+ "truncated": {
+  "accepted": false,
+  "expected_accept": false,
+  "panicked": false,
+  "pass": true,
+  "last": [
+   "TREE_VERIFY_REJECT proof codec: Error { kind: UnexpectedEof, message: \"failed to fill whole buffer\" }"
+  ]
+ },
+ "hint_len_huge": {
+  "accepted": false,
+  "expected_accept": false,
+  "panicked": false,
+  "pass": true,
+  "last": [
+   "TREE_VERIFY_REJECT truncated hint"
+  ]
+ },
+ "u_noncanonical": {
+  "accepted": false,
+  "expected_accept": false,
+  "panicked": false,
+  "pass": true,
+  "last": [
+   "TREE_VERIFY_REJECT noncanonical stacking point coefficient"
+  ]
+ },
+ "u_len_wrong": {
+  "accepted": false,
+  "expected_accept": false,
+  "panicked": false,
+  "pass": true,
+  "last": [
+   "TREE_VERIFY_REJECT stacking point length"
+  ]
+ },
+ "proof_garbage": {
+  "accepted": false,
+  "expected_accept": false,
+  "panicked": false,
+  "pass": true,
+  "last": [
+   "TREE_VERIFY_REJECT proof codec: Custom { kind: Other, error: \"CODEC_VERSION mismatch, expected: 3, actual: 0\" }"
+  ]
+ },
+ "cut_in_header": {
+  "accepted": false,
+  "expected_accept": false,
+  "panicked": false,
+  "pass": true,
+  "last": [
+   "TREE_VERIFY_REJECT truncated hint"
+  ]
+ },
+ "magic": {
+  "accepted": false,
+  "expected_accept": false,
+  "panicked": false,
+  "pass": true,
+  "last": [
+   "TREE_VERIFY_REJECT bundle framing"
+  ]
+ },
+ "wrong_pin": {
+  "accepted": false,
+  "expected_accept": false,
+  "panicked": false,
+  "pass": true,
+  "last": [
+   "TREE_VERIFY_REJECT untrusted setup: hash differs from operator's pin"
+  ]
+ },
+ "setup_level_repinned": {
+  "accepted": false,
+  "expected_accept": false,
+  "panicked": false,
+  "pass": true,
+  "last": [
+   "TREE_VERIFY_REJECT wrap verifier: wrap setup level"
+  ]
+ },
+ "setup_program_repinned": {
+  "accepted": false,
+  "expected_accept": false,
+  "panicked": false,
+  "pass": true,
+  "last": [
+   "TREE_VERIFY_REJECT wrap verifier: final program openings differ from the pinned program"
+  ]
+ },
+ "setup_heights_repinned": {
+  "accepted": false,
+  "expected_accept": false,
+  "panicked": false,
+  "pass": true,
+  "last": [
+   "TREE_VERIFY_REJECT wrap verifier: AIR 1: height (21, Some(1284352)) differs from the pinned (21, Some(1284356))"
+  ]
+ },
+ "other_packet_this_claim": {
+  "accepted": false,
+  "expected_accept": false,
+  "panicked": false,
+  "pass": true,
+  "last": [
+   "TREE_VERIFY_REJECT claim / hint rejected by the public-statement preparation"
+  ]
+ }
+}

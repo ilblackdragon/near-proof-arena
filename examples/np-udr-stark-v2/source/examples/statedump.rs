@@ -23,6 +23,23 @@
 //! same padding progression, so all chunks of a class have identical table heights. Re-checked
 //! like every re-cut.
 //!
+//! **Growing past the classical render** (D-8).  A table whose render is full (no padding row, e.g.
+//! `walk` with exactly `2^log` steps, `acct` with one record) has no padding progression: `pad_pattern`
+//! then finds a spurious progression inside the real rows, and continuing it breaks the last-row
+//! flags.  Every such render (`walk_aligned`, `acct_aligned`) pads with zero rows, so the grown table
+//! is taken as the render's rows followed by zero rows (`grow_zero`) — exactly what the same
+//! renderer produces at the larger height — and re-checked.  Two renders (`uniq`, `sort`) carry a
+//! cyclic byte window (`(q + 2H − 1 − j) % H`, wrapping around the height), recomputed at the new
+//! height (`grow_window`).  The order tried is: the padding progression, then `grow_zero` (with
+//! the window recomputed for `uniq` / `sort`, the row counter for `shuf`, the carried counter
+//! columns for `rng`), then `grow_keep_last`; the first that passes every
+//! classical constraint is used (`--class` only; the compact re-cut never grows).
+//!
+//! **Census** (`--heights-only`, D-8): render, take the padding pattern, write `heights.json` (with
+//! `last_nonzero`: one past the last non-zero row of the render, `pad_zero`: the render has a zero
+//! padding row, and the width) and `pubmsgs.json`; no constraint re-check and no traces.  A census
+//! is a size estimate only: chunks are admitted to a class by a full `--class` dump.
+//!
 //! Output (`out_dir`): `<table>.bin` (u32 LE `log_h`, `width`, then the row-major canonical
 //! cells), `pubs.bin` (the public vector, u32 LE), `pubmsgs.json` (`[[bus, send, [felts]], …]`),
 //! `prepared.bin` (the prepared public tape `cb'`), `claim.bin`, `hint.bin`, `heights.json`
@@ -92,6 +109,101 @@ fn recut(tc: &TraceCols, u: usize, delta: &[F], log2: usize) -> TraceCols {
     })
 }
 
+/// [E2E-D D-8] Grow `tc` to `log2` rows: every row of the render unchanged, then zero rows (what a
+/// zero-padded render produces at the larger height). Re-checked by the caller.
+fn grow_zero(tc: &TraceCols, log2: usize) -> TraceCols {
+    let h = tc.height();
+    TraceCols::from_rows(log2, tc.width(), |r, buf| {
+        for (c, x) in buf.iter_mut().enumerate() {
+            *x = if r < h { tc.get(r, c).as_canonical_u32() } else { 0 };
+        }
+    })
+}
+
+/// [E2E-D D-8] The two renders with a cyclic byte window (`uniq_aligned`, `sort_aligned`: columns
+/// `w0 + j`, `j < 32`, hold the byte column at row `(q + 2H − 1 − j) % H`, Lean's `UniqGen` /
+/// `SortGen`): `(byte column, w0)`. Their window wraps around the table height, so growing them
+/// needs the window recomputed at the new height.
+fn window_of(name: &str) -> Option<(usize, usize)> {
+    match name {
+        "uniq" => Some((10, 21)),
+        "sort" => Some((6, 17)),
+        _ => None,
+    }
+}
+
+/// [E2E-D D-8] [`grow_zero`] for a cyclic-window render: the render's rows, then zero rows, with
+/// the window columns recomputed at the new height `H' = 2^log2` from the (grown) byte column, as
+/// the renderer computes them at `H'`. Re-checked by the caller.
+fn grow_window(tc: &TraceCols, log2: usize, byte_col: usize, w0: usize) -> TraceCols {
+    let h = tc.height();
+    let n = 1usize << log2;
+    let bb = |r: usize| if r < h { tc.get(r, byte_col).as_canonical_u32() } else { 0 };
+    TraceCols::from_rows(log2, tc.width(), |q, buf| {
+        for (c, x) in buf.iter_mut().enumerate() {
+            *x = if (w0..w0 + 32).contains(&c) {
+                let j = c - w0;
+                bb((q + 2 * n).saturating_sub(1).saturating_sub(j) % n)
+            } else if q < h {
+                tc.get(q, c).as_canonical_u32()
+            } else {
+                0
+            };
+        }
+    })
+}
+
+/// [E2E-D D-8] The render whose padding row is a row counter (`shuf_aligned`: `rowCell .pad r c =
+/// if c = colRc then r else 0`, `colRc` = 1): its counter column.
+fn counter_of(name: &str) -> Option<usize> {
+    match name {
+        "shuf" => Some(1),
+        _ => None,
+    }
+}
+
+/// [E2E-D D-8] Grow a row-counter-padded render: the render's rows, then its padding row at the
+/// new heights (column `cc` = the row index, every other cell 0). Re-checked by the caller.
+fn grow_counter(tc: &TraceCols, log2: usize, cc: usize) -> TraceCols {
+    let h = tc.height();
+    TraceCols::from_rows(log2, tc.width(), |q, buf| {
+        for (c, x) in buf.iter_mut().enumerate() {
+            *x = if q < h { tc.get(q, c).as_canonical_u32() } else if c == cc { q as u32 } else { 0 };
+        }
+    })
+}
+
+/// [E2E-D D-8] The render whose padding row is zero in its base columns and carries its counter
+/// columns (`rng_aligned`: columns `>= 137` = the running active-row count `w` and the bits of
+/// `W0 − w`, constant after the last active row): the first carried column.
+fn carry_of(name: &str) -> Option<usize> {
+    match name {
+        "rng" => Some(137),
+        _ => None,
+    }
+}
+
+/// [E2E-D D-8] Grow a carry-padded render: the render's rows, then rows that are zero below column
+/// `c0` and repeat the render's last row from `c0` on (what `rng_aligned` produces at the larger
+/// height: no active row is added, so the count and its complement stay). Re-checked by the caller.
+fn grow_carry(tc: &TraceCols, log2: usize, c0: usize) -> TraceCols {
+    let h = tc.height();
+    TraceCols::from_rows(log2, tc.width(), |q, buf| {
+        for (c, x) in buf.iter_mut().enumerate() {
+            *x = if q < h { tc.get(q, c).as_canonical_u32() } else if c >= c0 { tc.get(h - 1, c).as_canonical_u32() } else { 0 };
+        }
+    })
+}
+
+/// One past the last row of `tc` with a non-zero cell (0 for an all-zero table).
+fn last_nonzero(tc: &TraceCols) -> usize {
+    let w = tc.width();
+    (0..tc.height())
+        .rev()
+        .find(|&r| (0..w).any(|c| tc.get(r, c).as_canonical_u32() != 0))
+        .map_or(0, |r| r + 1)
+}
+
 /// [E2E-D D-7] Grow `tc` to `log2` rows: rows `< u` unchanged, rows `u..H-1` copies of the first
 /// padding row `u`, and the render's last row kept last (for renders whose last padding row is
 /// distinguished). Re-checked by the caller.
@@ -119,6 +231,8 @@ fn main() {
     let od = std::path::PathBuf::from(&a[4]);
     std::fs::create_dir_all(&od).unwrap();
     let compact = !a[5..].iter().any(|x| x == "--no-compact");
+    // [E2E-D D-8] census: heights only (no re-check, no traces)
+    let census = a[5..].iter().any(|x| x == "--heights-only");
     // [E2E-D D-7] --class=<class.json>: per-table target log heights
     let class_logs: Option<std::collections::HashMap<String, usize>> = a[5..].iter().find_map(|x| x.strip_prefix("--class=")).map(|p| {
         let v: serde_json::Value = serde_json::from_slice(&std::fs::read(p).unwrap()).unwrap();
@@ -153,9 +267,28 @@ fn main() {
             let w = tb.width;
             TraceCols::from_rows(tb.log, w, |r, buf| buf.copy_from_slice(&tb.cells[r * w..(r + 1) * w]))
         };
-        let bad = npudr::check::failing_constraints_cols(&air.tables[t], &tc0, &pubs, 10);
-        assert!(bad.is_empty(), "{name}: classical constraint failure {bad:?}");
+        if !census {
+            let bad = npudr::check::failing_constraints_cols(&air.tables[t], &tc0, &pubs, 10);
+            assert!(bad.is_empty(), "{name}: classical constraint failure {bad:?}");
+        }
         let (u, delta) = pad_pattern(&tc0);
+        // [E2E-D D-8] any two last rows form a "progression": a non-constant progression is taken as
+        // the padding only when it spans >= 3 rows (else the last row alone is padding, its
+        // continuation unknown: a 2-row `shuf` with one real row read as all padding corrupted it)
+        let prog_ok = delta.iter().all(|x| x.as_canonical_u32() == 0) || tc0.height() - u >= 3;
+        let u = if prog_ok { u } else { tc0.height() - 1 };
+        if census {
+            let mut pr = vec![F::new(0); tc0.width()];
+            tc0.row_into(tc0.height() - 1, &mut pr);
+            let pad_zero = u < tc0.height() && pr.iter().all(|x| x.as_canonical_u32() == 0);
+            heights.insert(
+                name.to_string(),
+                serde_json::json!({"classical_log": tc0.log_h, "used_rows": u, "log": clog2(u + 1).max(2),
+                    "max_log": air.tables[t].max_log, "last_nonzero": last_nonzero(&tc0),
+                    "pad_zero": pad_zero, "width": tc0.width()}),
+            );
+            continue;
+        }
         let log0 = tc0.log_h;
         let mut log2 = clog2(u + 1).max(2);
         if let Some(cl) = &class_logs {
@@ -168,11 +301,54 @@ fn main() {
             let bad = npudr::check::failing_constraints_cols(&air.tables[t], &tc1, &pubs, 10);
             // [E2E-D D-7] growing past the classical render: if the progression fails, try the
             // other padding shape the renders use (constant padding row, distinguished last row)
-            let (tc1, bad) = if !bad.is_empty() && class_logs.is_some() && log2 > tc0.log_h {
-                let tc2 = grow_keep_last(&tc0, u, log2);
-                let bad2 = npudr::check::failing_constraints_cols(&air.tables[t], &tc2, &pubs, 10);
-                if bad2.is_empty() { eprintln!("statedump: {name}: grown with a constant padding row and the render's last row"); }
-                (tc2, bad2)
+            let bad = if prog_ok { bad } else { vec![(usize::MAX, usize::MAX)] };
+            let (tc1, bad) = if !bad.is_empty() && log2 > tc0.log_h {
+                // [E2E-D D-8] the render's rows, then zero rows (zero-padded renders: a full `walk`
+                // or `acct`)
+                let tz = grow_zero(&tc0, log2);
+                let badz = npudr::check::failing_constraints_cols(&air.tables[t], &tz, &pubs, 10);
+                let (tz, badz) = match window_of(name) {
+                    Some((bc, w0)) if !badz.is_empty() => {
+                        let tw = grow_window(&tc0, log2, bc, w0);
+                        let badw = npudr::check::failing_constraints_cols(&air.tables[t], &tw, &pubs, 10);
+                        (tw, badw)
+                    }
+                    _ => (tz, badz),
+                };
+                let (tz, badz) = match carry_of(name) {
+                    Some(c0) if !badz.is_empty() => {
+                        let tw = grow_carry(&tc0, log2, c0);
+                        let badw = npudr::check::failing_constraints_cols(&air.tables[t], &tw, &pubs, 10);
+                        (tw, badw)
+                    }
+                    _ => (tz, badz),
+                };
+                let (tz, badz) = match counter_of(name) {
+                    Some(cc) if !badz.is_empty() => {
+                        let tw = grow_counter(&tc0, log2, cc);
+                        let badw = npudr::check::failing_constraints_cols(&air.tables[t], &tw, &pubs, 10);
+                        (tw, badw)
+                    }
+                    _ => (tz, badz),
+                };
+                if badz.is_empty() {
+                    let how = if window_of(name).is_some() {
+                        " (cyclic window recomputed if needed)"
+                    } else if counter_of(name).is_some() {
+                        " (or its row-counter padding)"
+                    } else if carry_of(name).is_some() {
+                        " (or its carried counter columns)"
+                    } else {
+                        ""
+                    };
+                    eprintln!("statedump: {name}: grown with zero rows after the render{how}");
+                    (tz, badz)
+                } else {
+                    let tc2 = grow_keep_last(&tc0, u, log2);
+                    let bad2 = npudr::check::failing_constraints_cols(&air.tables[t], &tc2, &pubs, 10);
+                    if bad2.is_empty() { eprintln!("statedump: {name}: grown with a constant padding row and the render's last row"); }
+                    (tc2, bad2)
+                }
             } else {
                 (tc1, bad)
             };
@@ -213,6 +389,17 @@ fn main() {
             "statedump: table {t:2} {name:9} classical log {:2} used rows {u:8} -> log {:2} width {w:3}: classical constraints ok",
             log0, tc.log_h
         );
+    }
+    if census {
+        std::fs::write(od.join("heights.json"), serde_json::Value::Object(heights).to_string()).unwrap();
+        let msgs = npudr::verifier::pub_msgs(&air, &tape);
+        let js: Vec<serde_json::Value> = msgs
+            .iter()
+            .map(|(b, s, m)| serde_json::json!([b, s, m.iter().map(|x| x.as_canonical_u32()).collect::<Vec<_>>()]))
+            .collect();
+        std::fs::write(od.join("pubmsgs.json"), serde_json::to_string(&js).unwrap()).unwrap();
+        eprintln!("statedump: census {mode} tape {} B, {} public messages", tape.len(), msgs.len());
+        return;
     }
     let mut pb = Vec::with_capacity(4 * pubs.len());
     for x in &pubs {

@@ -1,0 +1,11 @@
+BASE_CLASS_TAPE_PAD log=12 keys=7
+CELLS 11803616; all 25 classical tables + TAPE; tape keys 1376
+PRECHECK OK: every constraint on every row; every bus balances (29569 distinct messages)
+BASE_CLASS_HEIGHTS_OK name=M airs=26
+BASE_PROOF total=522480 gkr=21128 relations=258952 stacking=2564 whir=236884
+BASE_VERIFIED bytes=522480
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 4:52.74
+	Maximum resident set size (kbytes): 9224244
+a9ffa51324c63c1e98167fc0dc93ad271ffb80de35fc413dfd7d06986278a57c  BASE.proof
+25d8732f157de4bb4f4dc746bca47fff3e3bbcf3ad5806ce9925248c92ccd46b  BASE.vk.json
+a71ff0141ad2b29e4ae10e6f782f09c1579220b0f783fef6cc92a8b28248c948  TAPE_PAD.json
