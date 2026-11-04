@@ -80,10 +80,15 @@ program-specific part is proved above. The wrap is not built yet (plan §1.5: "a
 building it for D0a"), so `WrapExec` is stated against the plan §3.4 design.
 
 One prototype limit is recorded in `agg.rs`'s header: "program binding of NV children is not
-emitted by this node". The code sets `b.bind_child = true` for node children, so the header comment
-looks stale. If binding were absent, `NodeInner` would fail: a child proof under a different
-program would pass. `NodeInner` must therefore be read as including program binding (`BIND`) of
-node children.
+emitted by this node". M11d thought that comment was stale. **M11e correction:** it was accurate.
+The old overlay's `verifier.rs` reads
+`if b.bind || b.bind_child { /* comments */ } else if false { … }`, so `bind_child = true` emitted
+nothing. Lane D found and fixed the same defect (main `59fc5ddb9`, `e2e-tree.patch`).
+
+`NodeInner` includes program binding of node children. For the old program it was therefore
+**false**, and `NodeExec` could not hold. The theorems here never assumed binding outside that
+premise, so they stand. The statement-level transcription is unchanged in the new overlay. The
+new binding, leaves and wrap are transcribed in `E2ETree.lean`.
 -/
 
 namespace ZkFormal.PQ.E2ENode

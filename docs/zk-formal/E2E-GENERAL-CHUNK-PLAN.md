@@ -430,6 +430,29 @@ outgoing, proposals, instant/locals queues, deployed/attempted code, `wasmGas`) 
 `InitOK` (`B_0` abstracts to `init (assemble ci secB secC) w`, obligation 4) and `FinalOK`
 (`B_N` abstracts to an accepting configuration, `headerOk` against the public `chunk_inner`).
 
+**M11e (lane E, 2026-11-03/04) [K + D].** Standard axioms only, no `sorry`, checker sha256
+`644495ff…a9ae3` unchanged, `make pin-check` ok, full v3 build 447 jobs. Log:
+[`docs/logs/e2e-lean-m11e-2026-11-03.md`](../logs/e2e-lean-m11e-2026-11-03.md).
+
+* **The one-database QROM argument for the tree does not go through** (budget doc §9). Inner
+  proofs are checked in-circuit with the concrete SHA-384, so they are not H-transcripts. Theorem
+  O rules out a query-only bound. No published QROM PCD theorem exists: CGSY24 is classical, and
+  CDHZ proves single-step extraction.
+* **What can be claimed.** The wrap alone reaches 2^−130.2 (CDHZ Thm 11.3), plus a named
+  InnerSound assumption per inner level.
+* **Per-proof union at depth 6.** It needs ε_rbr ≤ 2^−274.19 (+4/+6/+5 queries and a second OOD
+  sample, ≈ +6.3 KB) at constants 1, or 2^−282.73 at CDHZ constants (not reachable by
+  parameters). This is an owner decision; nothing was changed.
+* **Lane D's D-5 tree transcribed** (`zk-formal/ZkFormal/PQ/E2ETree.lean`): `node_bind`
+  (child program binding: anchor set or shared root + BIND), `one_template` (normaliser + PADs ⇒
+  exactly one template, `init → done`) and `wrapT_composition` (`D_wrap`).
+  * The old overlay's binding was dead code (`else if false`). M11d's `NodeInner` therefore
+    failed for the old node, but the M11d theorems stand.
+* **`honestQ`/`honestK` are now computable** (`recordK`, `Tape.lean`).
+* **Not done.**
+  * No NvAir exporter run and no Lean NvAir model: the draft exporter in `nv-export/` targets
+    the historical overlay. No `NodeExec` sub-obligation is proved.
+
 ---
 
 ## 4. Milestones to a first general-chunk E2E proof
@@ -495,9 +518,21 @@ status.
 * the honest call tape `honestK`, with `estepO_honest` (completeness) and `rsteps_honest`;
 * the `BadEvents` soundness budget document.
 
-Open for lane E:
-1. A constructive recorder for `honestQ` (the honest tape is now a Lean function, by classical
-   choice; lane A's `wasmbase-tape` computes it).
+**M11e (lane E, 2026-11-03/04):** see §3.5. Done:
+* the one-database QROM verdict, with per-round targets (budget doc §9);
+* the D-5 tree transcription (`E2ETree.lean`);
+* the computable `honestQ`;
+* the binding-defect correction for M11d.
+
+Next for lane E (M11f), in order:
+1. NvAir exporter on the e2e-tree stack, then a Lean model for `NodeTape` and `NodeAsserts`
+   (log §2 has the work plan with sizes). The bus balance must close inside the modelled
+   tables, or go through a chip contract.
+2. Lane B's `StViewE`: `encE_inj`, `keysOf` carried in `StV`, `idxOf`/`depth`, `FitsReach`.
+3. Re-check the budget's wrap parameters against lane D's D-5 wrap.
+
+M11d's open list, updated:
+1. ~~A constructive recorder for `honestQ`~~ (M11e: `recordK`).
 2. `NodeExec`/`WrapExec`: the NvAir executes the node/wrap program (generic NV sub-obligations
    1–4; they need a Lean NvAir model or an exporter for the NV crate). The QROM bound behind
    `ExtractWG`/`ExtractW` is not expressible in this library; its budget is written out in
