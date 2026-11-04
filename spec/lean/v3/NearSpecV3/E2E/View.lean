@@ -12,15 +12,17 @@ implement.
 
 ## The components (`Parts`)
 
-Every `RConf` splits into a clear tag and five components (`split`), and the split is injective
-(`split_inj`, proved through the inverse `unsplit`). Each component is the argument of one digest
+Every `RConf` splits into a clear tag and five components (`split κ`, where `κ : Intake → List
+Bytes` is the view's key function `ViewImpl.keys`: the chunk's key list, carried in the state
+component, M11f), and the split is injective for every `κ` (`split_inj`, proved through the
+inverse `unsplit`, which drops the key list). Each component is the argument of one digest
 field of `BndRec`:
 
 | component | value | `BndRec` field | implemented by |
 |---|---|---|---|
 | tag | the configuration's kind (`init`, `eng`, `fin`, `gfin`, `done`, `doneG`, `call`) | `phase` (clear) | here |
 | `CtxV` | claim/witness bytes (`init`), the intake record `I`, the genesis record `G`, or the header `H` | `ctxRoot` | B (`INTAKE`) |
-| `StV` | the engine position with its receipt state minus the output lists, and the recorder state; or the main output at `fin` | `stRoot` | B (working set, trie, queues: `m5a/lean/StateM5a` `Ws`, `Store`) |
+| `StV` | the engine position with its receipt state minus the output lists, the recorder state and the chunk's key list (`EngSt`, M11f); or the main output at `fin` | `stRoot` | B (working set, trie, queues: `m5a/lean/StateM5a` `Ws`, `Store`) |
 | `OutV` | the output lists (outcomes, outgoing receipts, proposals), or the final `Outputs` | `outcomeAcc`, `outRcptAcc`, `proposalsAcc`, `bwAcc` | B (M5d accumulators) |
 | `VmV` | the answered VM queries `K` | `vmAcc` | A/E (call tape) |
 | `WmV` | the current query and call-machine configuration (`inCall`) | `wasm` (`WasmBnd`), `inCall` | A (`memRoot`, frames, registers, …) |
@@ -83,11 +85,20 @@ inductive CtxV where
   | gen (G : GFin)
   | header (H : ChunkInner)
 
-/-- The state component (`stRoot`): position and receipt state without the output lists, and the
-recorder state; or the main transition's output. -/
+/-- The engine part of a state component besides the position (M11f): the recorder state and the
+**chunk's key list** — the working set's keys in the circuit's leaf order (lane B's `keysOf`). The
+key list is not a function of the engine configuration (keys the chunk reads or inserts later are
+neither in the overlay nor revealed by the partial trie), so it is carried here, constant along a
+run, filled from the intake by the view's key function `ViewImpl.keys` (`stOfK`). -/
+structure EngSt where
+  st : Recording
+  keys : List Bytes
+
+/-- The state component (`stRoot`): position and receipt state without the output lists, the
+recorder state and the chunk's key list (`EngSt`); or the main transition's output. -/
 inductive StV where
   | none
-  | eng (pos : EPos) (st : Recording)
+  | eng (pos : EPos) (st : EngSt)
   | fin (out : MainOutD2)
 
 /-- The output component (accumulators). -/
@@ -105,39 +116,53 @@ abbrev WmV := Option (VmQ × CallConf)
 /-- All components. -/
 abbrev Parts := Nat × CtxV × StV × OutV × VmV × WmV
 
-def stOf (c : EConf) : StV := .eng (eposMap rsStrip c.pos) c.st
+/-- The state component of an engine configuration, carrying the key list `K`. -/
+def stOfK (K : List Bytes) (c : EConf) : StV := .eng (eposMap rsStrip c.pos) ⟨c.st, K⟩
 
-/-- **The split of a configuration into its components.** -/
-def split : RConf → Parts
+/-- The state component with an **empty** key list. Kept for source compatibility only (lane B's
+`StateViewParams.FitsReach` names it); the view uses `stOfK (V.keys I)`. -/
+def stOf (c : EConf) : StV := stOfK [] c
+
+/-- **The working set's keys of a state component** (lane B's `StViewE.keysOf`): the key list
+carried in `StV.eng`; `[]` elsewhere (no overlay there). -/
+def keysOf : StV → List Bytes
+  | .eng _ s => s.keys
+  | _ => []
+
+theorem keysOf_stOfK (K : List Bytes) (c : EConf) : keysOf (stOfK K c) = K := rfl
+
+/-- **The split of a configuration into its components**, given the key function `κ` (the chunk's
+key list as a function of the intake record). -/
+def split (κ : Intake → List Bytes) : RConf → Parts
   | .base (.init cb wb) => (0, .raw cb wb, .none, .none, [], none)
-  | .base (.eng I c) => (1, .intake I, stOf c, .eng (eposAcc c.pos), [], none)
+  | .base (.eng I c) => (1, .intake I, stOfK (κ I) c, .eng (eposAcc c.pos), [], none)
   | .base (.fin I out) => (2, .intake I, .fin out, .none, [], none)
   | .base (.gfin G) => (3, .gen G, .none, .none, [], none)
   | .base (.done H o) => (4, .header H, .none, .done o, [], none)
   | .base .doneG => (5, .none, .none, .none, [], none)
-  | .call I c K q cc => (6, .intake I, stOf c, .eng (eposAcc c.pos), K, some (q, cc))
+  | .call I c K q cc => (6, .intake I, stOfK (κ I) c, .eng (eposAcc c.pos), K, some (q, cc))
 
-/-- Its inverse. -/
+/-- Its inverse (the key list is dropped: it is a function of the intake). -/
 def unsplit : Parts → Option RConf
   | (0, .raw cb wb, _, _, _, _) => some (.base (.init cb wb))
-  | (1, .intake I, .eng p st, .eng a, _, _) => some (.base (.eng I ⟨eposMap (rsFill a) p, st⟩))
+  | (1, .intake I, .eng p st, .eng a, _, _) => some (.base (.eng I ⟨eposMap (rsFill a) p, st.st⟩))
   | (2, .intake I, .fin out, _, _, _) => some (.base (.fin I out))
   | (3, .gen G, _, _, _, _) => some (.base (.gfin G))
   | (4, .header H, _, .done o, _, _) => some (.base (.done H o))
   | (5, _, _, _, _, _) => some (.base .doneG)
   | (6, .intake I, .eng p st, .eng a, K, some (q, cc)) =>
-    some (.call I ⟨eposMap (rsFill a) p, st⟩ K q cc)
+    some (.call I ⟨eposMap (rsFill a) p, st.st⟩ K q cc)
   | _ => none
 
-theorem unsplit_split (x : RConf) : unsplit (split x) = some x := by
+theorem unsplit_split (κ : Intake → List Bytes) (x : RConf) : unsplit (split κ x) = some x := by
   cases x with
-  | base c => cases c <;> simp only [split, unsplit, stOf, eposFill_strip]
-  | call I c K q cc => simp only [split, unsplit, stOf, eposFill_strip]
+  | base c => cases c <;> simp only [split, unsplit, stOfK, eposFill_strip]
+  | call I c K q cc => simp only [split, unsplit, stOfK, eposFill_strip]
 
-/-- **The components determine the configuration.** -/
-theorem split_inj {x y : RConf} (h : split x = split y) : x = y := by
-  have := unsplit_split x
-  rw [h, unsplit_split y] at this
+/-- **The components determine the configuration** (for any key function). -/
+theorem split_inj {κ : Intake → List Bytes} {x y : RConf} (h : split κ x = split κ y) : x = y := by
+  have := unsplit_split κ x
+  rw [h, unsplit_split κ y] at this
   exact (Option.some.inj this).symm
 
 /-! ## What the lanes implement -/
@@ -157,8 +182,10 @@ structure ClearF where
   rBurnt : Nat
   rUsed : Nat
 
-/-- **A commitment view**: one commitment per component, plus the clear fields. -/
+/-- **A commitment view**: the chunk's key list as a function of the intake (`keys`, carried in
+the state component), one commitment per component, plus the clear fields. -/
 structure ViewImpl where
+  keys : Intake → List Bytes
   clear : RConf → ClearF
   ctxD : CtxV → Bytes
   stD : StV → Bytes
@@ -168,7 +195,7 @@ structure ViewImpl where
 
 /-- The boundary record of a configuration under a view. -/
 def ViewImpl.bnd (V : ViewImpl) (x : RConf) : BndRec :=
-  let p := split x
+  let p := split V.keys x
   let cl := V.clear x
   let o := V.outD p.2.2.2.1
   { claimDigest := cl.claimDigest, phase := p.1, blockIdx := cl.blockIdx,
@@ -199,24 +226,24 @@ theorem viewImpl_binding (V : ViewImpl) (hwf : ∀ x, (V.bnd x).WF) (h : BndColl
   rcases bndCollision_split V.bnd hwf h with hs | ⟨x, y, hne, heq⟩
   · exact .inl hs
   right
-  have e1 : (split x).1 = (split y).1 := congrArg BndRec.phase heq
-  have e2 : V.ctxD (split x).2.1 = V.ctxD (split y).2.1 := congrArg BndRec.ctxRoot heq
-  have e3 : V.stD (split x).2.2.1 = V.stD (split y).2.2.1 := congrArg BndRec.stRoot heq
-  have e4 : V.outD (split x).2.2.2.1 = V.outD (split y).2.2.2.1 := by
+  have e1 : (split V.keys x).1 = (split V.keys y).1 := congrArg BndRec.phase heq
+  have e2 : V.ctxD (split V.keys x).2.1 = V.ctxD (split V.keys y).2.1 := congrArg BndRec.ctxRoot heq
+  have e3 : V.stD (split V.keys x).2.2.1 = V.stD (split V.keys y).2.2.1 := congrArg BndRec.stRoot heq
+  have e4 : V.outD (split V.keys x).2.2.2.1 = V.outD (split V.keys y).2.2.2.1 := by
     have a := congrArg BndRec.outcomeAcc heq
     have b := congrArg BndRec.outRcptAcc heq
     have c := congrArg BndRec.proposalsAcc heq
     have d := congrArg BndRec.bwAcc heq
     simp only [ViewImpl.bnd] at a b c d
     exact Prod.ext a (Prod.ext b (Prod.ext c d))
-  have e5 : V.vmD (split x).2.2.2.2.1 = V.vmD (split y).2.2.2.2.1 := congrArg BndRec.vmAcc heq
-  have e6 : V.wasmD (split x).2.2.2.2.2 = V.wasmD (split y).2.2.2.2.2 := congrArg BndRec.wasm heq
+  have e5 : V.vmD (split V.keys x).2.2.2.2.1 = V.vmD (split V.keys y).2.2.2.2.1 := congrArg BndRec.vmAcc heq
+  have e6 : V.wasmD (split V.keys x).2.2.2.2.2 = V.wasmD (split V.keys y).2.2.2.2.2 := congrArg BndRec.wasm heq
   rcases eq_or_coll _ _ _ e2 with h2 | h2
   · rcases eq_or_coll _ _ _ e3 with h3 | h3
     · rcases eq_or_coll _ _ _ e4 with h4 | h4
       · rcases eq_or_coll _ _ _ e5 with h5 | h5
         · rcases eq_or_coll _ _ _ e6 with h6 | h6
-          · exact absurd (split_inj (Prod.ext e1 (Prod.ext h2 (Prod.ext h3 (Prod.ext h4
+          · exact absurd (split_inj (κ := V.keys) (Prod.ext e1 (Prod.ext h2 (Prod.ext h3 (Prod.ext h4
               (Prod.ext h5 h6)))))) hne
           · exact .inr (.inr (.inr (.inr h6)))
         · exact .inr (.inr (.inr (.inl h5)))
