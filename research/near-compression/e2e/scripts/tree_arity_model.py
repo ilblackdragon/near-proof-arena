@@ -26,7 +26,9 @@ MEAS = {
     'node2_prove_s': 514.3, 'node2_rss_gb': 20.4,  # 8 threads, pinned tree heights below
     'tree_pin_nv': 739_540, 'tree_pin_sha': 2_794_560,
     'nv_w': 76, 'sha_w': 83, 'sha_rows_per_comp': 128,
-    'max_log_height': 22,  # l_skip + n_stack at ns20lb5 (l_skip + n_stack + log_blowup <= 27)
+    'max_log_height': 22,
+    # D-6 proved 3-ary node (tree-arity, natural heights; NvAir 1,010,688, SHA 3,482,496 used rows)
+    'node3_cells': 1_010_688 * 76 + 3_482_496 * 83, 'node3_prove_s': 547.0, 'node3_rss_gb': 21.3,  # l_skip + n_stack at ns20lb5 (l_skip + n_stack + log_blowup <= 27)
 }
 
 
@@ -79,13 +81,22 @@ def cpu_view(pr):
     for a in (2, 3, 4, 8):
         nv = per_nv * a + fix_nv
         sha = per_sha * a + fix_sha
-        pin_nv, pin_sha = nv * 1.11, sha * 1.24  # the D-5 pin margins over the 2-ary shape base
+        pin_nv, pin_sha = nv * 1.01, sha * 1.03  # shape pin / used rows, measured (2-, 3-ary probe)
         inst = math.ceil(pin_sha / cap)
         cells = pin_nv * MEAS['nv_w'] + pin_sha * MEAS['sha_w']
         rows[a] = cells
+        aff = ''
+        if 'node3_cells' in MEAS:
+            # affine fit through the measured 2-ary (pinned heights) and 3-ary (natural) proofs
+            bt = (MEAS['node3_prove_s'] - MEAS['node2_prove_s']) / (MEAS['node3_cells'] - cells2)
+            bm = (MEAS['node3_rss_gb'] - MEAS['node2_rss_gb']) / (MEAS['node3_cells'] - cells2)
+            aff = (f'; affine through the 2- and 3-ary proofs: ~{MEAS["node2_prove_s"] + bt * (cells - cells2):,.0f} s, '
+                   f'~{MEAS["node2_rss_gb"] + bm * (cells - cells2):.0f} GB')
         print(f'  arity {a}: NvAir {nv / 1e6:.2f} M rows (log {math.ceil(math.log2(pin_nv))}), SHA {sha / 1e6:.2f} M rows '
               f'-> {inst} SHA AIR instance(s) at 2^{MEAS["max_log_height"]}; {cells / 1e6:,.0f} M cells, '
-              f'~{cells * s_per_cell:,.0f} s, ~{cells * gb_per_cell:.0f} GB (linear in cells)')
+              f'~{cells * s_per_cell:,.0f} s, ~{cells * gb_per_cell:.0f} GB (linear in cells){aff}')
+    print('  NB: a node\'s NvAir height must equal its children\'s (BIND evaluates its program at the child ALU '
+          'domain), so an arity whose NvAir exceeds 2^20 needs every tree proof at that NvAir height')
     # a template leaf at its own pinned heights (D-5 normaliser shape pin, chunk 1): what a leaf
     # costs when leaves do not share the node's heights
     leaf_cells = 285_876 * MEAS['nv_w'] + 1_090_560 * MEAS['sha_w']

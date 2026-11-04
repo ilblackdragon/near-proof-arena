@@ -701,11 +701,40 @@ mutants rejected) is met. The gas equality holds outside the proof (the tape) un
 `lake build WasmBase` breakage reported on 2026-10-31 was fixed on main (`6a1739cd7`), and the build
 is green with the new files.
 
-### 5.0 Lane D (ZK wrap for M9): status, 2026-11-03 (milestone D-5)
+### 5.0 Lane D (ZK wrap for M9): status, 2026-11-04 (milestone D-6)
 
-See `research/near-compression/e2e/README.md` §0 (§0a for D-4, §0b for D-3, §0c for D-2) and
-`research/near-compression/e2e/ZK-ARGUMENT.md`. The log is
-`docs/logs/e2e-zk-lane-d-2026-11-03.md`.
+See `research/near-compression/e2e/README.md` §0 (§0a for D-5, §0b for D-4, §0c for D-3, §0d for
+D-2) and `research/near-compression/e2e/ZK-ARGUMENT.md` (§10.1 for the tree wrap). The logs are
+`docs/logs/e2e-zk-lane-d-2026-11-04.md` (D-6) and `docs/logs/e2e-zk-lane-d-2026-11-03.md`.
+
+**Done (D-6):**
+* **The tree-wrap packets are ZK in the classical ROM** (`zero_knowledge_established = true`,
+  ZK-ARGUMENT §10.1): the argument was re-read for the wrap program (statement
+  `(claim, hint, class, setup)`, same AIRs and public columns as the D0a FINAL, 60 + 37 stacked
+  columns, every §6.4 term carries over, aborts `A·2^-192`). The flag is gated on wrap `zk = 6`,
+  base `zk ≥ 1` and shape-floored template chains.
+* **All three D0a classes have shape-floored chains** (chunks 2 and 3 re-proved; D0a packets
+  326,077 / 326,468 / 325,825 B), so every setup and template constant is a function of the class
+  shape. **One tree setup for all three chunks** (arity 2, depth 1; `SETUP.json` 4,531,396 B,
+  chunks 2 and 3 reproduce chunk 1's byte for byte); a **fresh chain's template set equals it**.
+  Packets 327,911 / 327,630 / 327,365 B, verify 42–46 ms one core, 18/18 negatives each.
+* **Depth 2 on real chunks** (4 leaves incl. 3 PAD, 2 + 1 nodes): chunks 2 and 3, one setup,
+  byte-identical; packets 329,268 / 327,029 B; every node runs `C_node`.
+* **Arity:** per-child node cost measured (334K NvAir, 1.16M SHA rows, 172K program rows); a
+  3-ary node proved (421 KB, 547 s, 21.3 GB); 8-ary does not fit: 3 SHA instances, and a node's
+  NvAir height must equal its children's (BIND), so every tree proof would move to NvAir 2^22.
+  Comparison for 1 Pgas in README §0 (`scripts/tree_arity_model.py`).
+* **Lanes A/B leaves planned** (§5.0.1.4) and the wrapper prototyped on the D0a base
+  (`build_base_leaf`: a standalone non-NV STARK with cached tables verified directly by the leaf;
+  packet 327,449 B; the chain L1..L4 leaves the tree path).
+* **Review-D5 folded in** (D5-1 constraint-level tests adopted + depth-2 / mixed-level negatives,
+  D5-2, D5-5).
+
+**Open (D-6):** QROM `u` (owner); two node shapes + PAD at any level (needed before 8-ary pays
+off); an 8-ary node (3 SHA instances, NvAir 2^22, ≈ 30–70 GB); lanes A/B blockers 4, 5, 8, 9
+(§5.0.1.4); verifier-path panics → errors before library use; an independent review of D-6.
+
+#### D-5 status (superseded by D-6 above)
 
 **Done (D-5):**
 * **An aggregation tree feeds the ZK wrap, end to end** (`tree-prove` / `tree-verify`, deps tree
@@ -1017,22 +1046,97 @@ Size: the D0a wrap over L4 is 325.2–325.8 KB [main]. The production agg roots,
 (agg log §4 item 2). It should be close to D0a's if the root's geometry equals L4's (both are
 NV children, the same verifier program shape).
 
-##### 3. Blockers and open questions, in order (status after D-5)
+##### 3. Blockers and open questions, in order (status after D-6)
 
 | # | item | owner | D-5 status |
 |---|---|---|---|
 | 1 | **Rebase the agg overlay** (`agg.rs`, `build_agg`, `RangeStmt`, per-child BIND, `restart_transcript`) onto the current stack: `e2e-verify` + `zk-pcs` + `zk-piop` + tape-eval + D-4 | D (M8) | **done** (`patches/e2e-tree.patch`, `E2E_TREE=1`). **Defect found and fixed:** the pinned overlay had emptied the binding branch (`if b.bind \|\| b.bind_child {} else if false {…}`), so no NV child was program-bound (`patches/README-agg-patch.md`). BIND serves one child (one E-table point): now child 0 by BIND, later children by `root_i = root_0`, anchor-level children by the anchor constant or set. Two pre-existing test compile errors (`WhirLevers::zk`) fixed; `agg_tests` 6/6 non-ignored pass |
-| 2 | **A chunk-independent root shape:** fixed arity, `d_min`, pinned node heights, the `P*` fixpoint across levels and siblings, the root level not exposed | D (M8) | **done for the D0a template** (`nv/tree.rs`, driver `tree-prove`/`tree-verify`). Every tree proof shares one vk and one pinned `(log, tight)` height vector; the node program is one program `P_node` from level 2 on (no fixpoint iteration: leaves and nodes have the same vk and heights); the wrap forces the root level `1 + d` and anchors at `C_node`, and exposes `[LEVEL_WRAP, D_wrap]`. Measured: two chunks of different shape classes give a **byte-identical wrap setup**. The 232,318 vs 232,702 row difference is explained by unpinned child heights: with pinned heights `C_node` is the same over different leaves (and across chunks). Arity 2, depth 1 run on D0a; depth 2 on the Fib fixture |
+| 2 | **A chunk-independent root shape:** fixed arity, `d_min`, pinned node heights, the `P*` fixpoint across levels and siblings, the root level not exposed | D (M8) | **done for the D0a template** (`nv/tree.rs`, driver `tree-prove`/`tree-verify`). Every tree proof shares one vk and one pinned `(log, tight)` height vector; the node program is one program `P_node` from level 2 on (no fixpoint iteration: leaves and nodes have the same vk and heights); the wrap forces the root level `1 + d` and anchors at `C_node`, and exposes `[LEVEL_WRAP, D_wrap]`. Measured: two chunks of different shape classes give a **byte-identical wrap setup**. The 232,318 vs 232,702 row difference is explained by unpinned child heights: with pinned heights `C_node` is the same over different leaves (and across chunks). Arity 2, depth 1 run on D0a; depth 2 on the Fib fixture; D-6: **depth 2 on real D0a chunks** (chunks 2 and 3, one byte-identical setup; every node at levels 2 and 3 runs `C_node`); the setup is now byte-identical over all three chunks at depth 1 and its template set is reproduced by a fresh chain |
 | 3 | **Template heterogeneity:** per-template normaliser with `{C_t}` set binding (option A) | D (M8) | **done (option A)**: `build_norm` (child level forced to the template's anchor level M, child program root = `C_M`), `Builder::anchor_set` (one-hot witness selector, `Σ s_t (root − C_t) = 0` gated by the level flag). Template set = the normaliser of each of the 3 D0a shape classes + PAD |
-| 4 | **Fixed shape per template** (pinned per-AIR log and tight heights, prover pads) | A, B, C | open for lanes A/B/C. For D0a each shape class is its own template (its L4 vk and heights are class constants) |
-| 5 | **Canonical boundary statement** `(claimDigest, h(B_in), h(B_out))` | A, B; E | open. The D-5 tree uses a placeholder boundary `[phase, class]` (init = 1, done = 2; `class` = the template class, set by the template leaf and folded into `D_wrap`) |
-| 6 | **Padding policy for N:** PAD template + `A^d` padding, or published depth classes | owner; then B, D | **PAD built** (`build_pad`: identity on a done boundary, no child) and used to pad to `A^d`. The policy itself remains an owner decision; the measured PAD leaf costs a full leaf proof (672 s), because it is padded to the uniform heights |
+| 4 | **Fixed shape per template** (pinned per-AIR log and tight heights, prover pads) | A, B, C | open for lanes A/B/C. For D0a each shape class is its own template (its L4 vk and heights are class constants); D-6: plan in §5.0.1.4 (pinned parameters per template, height classes, cut-on-overflow, save proof + vk, same backend) |
+| 5 | **Canonical boundary statement** `(claimDigest, h(B_in), h(B_out))` | A, B; E | open. The D-5 tree uses a placeholder boundary `[phase, class]` (init = 1, done = 2; `class` = the template class, set by the template leaf and folded into `D_wrap`); D-6: plan in §5.0.1.4 (`s = [phase, h(B)]`; M5a split at RCH cuts into INTAKE / STATE / FINAL leaves) |
+| 6 | **Padding policy for N:** PAD template + `A^d` padding, or published depth classes | owner; then B, D | **PAD built** (`build_pad`: identity on a done boundary, no child) and used to pad to `A^d`. The policy itself remains an owner decision; the measured PAD leaf costs a full leaf proof (672 s), because it is padded to the uniform heights; D-6: costed: with uniform heights PAD leaves cost a node each (an 8-ary tree pads 64 leaves at node size); PAD at any level (one per missing subtree) + leaf heights ≠ node heights is the fix (not built) |
 | 7 | **Init and FinalOut placement** | B (M5d), E | wrap asserts `a = 0`, `B_0.phase = init`, `B_N.phase = done`; FinalOut is carried by the template (the D0a leaf goes init → done itself), i.e. recommendation 1(b)(ii) |
-| 8 | **In-circuit cached-root binding**, no `u` in the wrap statement | A, D | open for the D0a template: its ctx is the chain's `StatementClaim` digest, which covers `(u, TAPE*(u))`, so `u` is still in the packet and V_d recomputes ctx from (claim, hint, u). A template with a canonical `claimDigest` removes it |
+| 8 | **In-circuit cached-root binding**, no `u` in the wrap statement | A, D | open for the D0a template: its ctx is the chain's `StatementClaim` digest, which covers `(u, TAPE*(u))`, so `u` is still in the packet and V_d recomputes ctx from (claim, hint, u). A template with a canonical `claimDigest` removes it; D-6: the wrapper's in-circuit cached-root binding prototyped on the D0a base (`build_base_leaf`: TAPE bound in-circuit by tape-eval, statement digest computed in the leaf); for lane A it is CODE/FUNC = `B.codeRoot`/`funcRoot` (§5.0.1.4) |
 | 9 | **M6/M5b** | A, B | open (lanes A/B) |
-| 10 | **Wrap ZK obligations carried over** | D | H: the wrap heights are pinned from the shape alone (review-D4 F1 fix (b), ZK-ARGUMENT §7.1) and the setup is chunk-independent, so the D-4 "setup reveals the shape class" caveat is gone for the tree wrap. Q unchanged (owner) |
-| 11 | **Soundness budget** | E, D | wrap 268.2 bits per round (`ns19lb6`, queries [46, 41, 31, 25]); tree layer 268.2 bits (`ns20lb5`, queries [54, 41, 31, 25]); `R` counted (≤ 2^11) |
+| 10 | **Wrap ZK obligations carried over** | D | H: the wrap heights are pinned from the shape alone (review-D4 F1 fix (b), ZK-ARGUMENT §7.1) and the setup is chunk-independent, so the D-4 "setup reveals the shape class" caveat is gone for the tree wrap. Q unchanged (owner); D-6: **ZK re-read for the wrap program, flag set** (ZK-ARGUMENT §10.1), classical ROM |
+| 11 | **Soundness budget** | E, D | wrap 268.2 bits per round (`ns19lb6`, queries [46, 41, 31, 25]); tree layer 268.2 bits (`ns20lb5`, queries [54, 41, 31, 25]); `R` counted (≤ 2^11); D-6: the tree layer's 268.2 bits come from WHIR round 1; round 0 is the Johnson fallback at 271.9 (review-D5 Info) |
 | 12 | **Lean:** `aggWrapV` `a = 0` and wrap tag; PAD-leaf soundness in `SegSound` | E | open (lane E); the D-5 wrap tag is `TAG_STATEMENT` with leading cell `WRAP_MARKER` |
+
+##### 4. Lane A/B templates as tree leaves (D-6 plan; blockers 4, 5, 8, 9)
+
+Read from the lanes' code and logs (lane D did not edit them). Paths are lane A's
+`native/wasm-base` and `e2e-general/m4`, lane B's `e2e-general/m5a`.
+
+**What the templates are today.**
+
+| | Wasm segment (`wasmBaseSegAirMP`, lane A) | state (M5a / M5b, lane B) |
+|---|---|---|
+| prover | `native/wasm-base` `segprove` (`src/segcmd.rs`), BabyBear Ext12, SHA-384, the same backend family (its own copy of `stark-backend-unified`; zk additions off) | `e2e-general/m5a/prover`, own backend copy (no `max_log_trace_height`: its vks do not hash like the verifier backend's) |
+| parameters | l_skip 2, **log_blowup 1**, k 4, final poly 2^7, list decoding m = 16, query PoW 24, zk 0, no tight heights; **n_stack / w_stack chosen per call** (`params_for`: 14 / 18 / 22) | same seg-v1 shape, LogUp 2^6 / 2^30; n_stack / w_stack per run; the AIR is parametrised by the working-set depth D |
+| AIRs | 34 (32 JSON tables + the SHA-512 chip pair); cached CODE (17), FUNC (21) | 12 Lean tables + TAPE (cached) + HTAPE (cached, M5b) + chip pair |
+| public values | 105: base boundary fields, in/out (pc, t, S, sb, cid, S_seg, segb), ctxDigest in/out (18 limbs each), memRoot in/out, tree depth, block count | 17: prev_state_root (16 × 16-bit) and wsLen |
+| checked natively today | CODE / FUNC roots recomputed from the contract code (`statement_ok`) | TAPE root (write log + root-chain ends) and HTAPE root, recomputed from public data |
+| segment cut | exactly the public in/out fields | none: INTAKE, the working-set segments and FINAL are one proof; RCH crosses internal cuts on a bus |
+| heights | vary per segment and contract (also CODE / FUNC) | vary with D, keys, writes |
+| proofs on disk | none saved (`segprove` keeps no proof / vk) | none in the verifier's backend |
+
+**The leaf wrapper (`build_seg_leaf`, per template class `t`).** One NV program per template
+class (and per height class, below), a member of the level-1 template set `{C_t}`:
+1. `b.agg = true`; no anchor, no BIND (the child is not an NV proof; `build_norm`'s binding would
+   fail on it). `build_verifier(vk_t, π)` with the template vk and every per-table log height as
+   program constants: the leaf's program root `C_t` pins the template vk (its `pre_hash` is
+   observed as a constant) and the heights.
+2. Witness `B_in`, `B_out` (plan §3.2 records), hash both in-circuit (lane E's codec digest, about
+   10 SHA-512 compressions); `s_in = [phase, h(B_in)]`, `s_out = [phase, h(B_out)]` (the D-5
+   placeholder `class` cell goes: the template set already hides the class).
+3. Wasm: equate the `B.wasm` fields with the in/out public values; equate `B_in.codeRoot`,
+   `B_in.funcRoot` with the proof's cached CODE / FUNC roots in-circuit (packed lo/hi comparison,
+   as the wrap compares the root digest) and carry them into `B_out`; copy every non-Wasm field;
+   phase `inCall` (and `halted` → the phase transition). State: split M5a at its RCH cuts into
+   INTAKE (witness the public statement `S`, check `SHA-384(S) = ctx`, `B_in.phase = init ⇒ B_in =
+   Init(ctx)`), STATE (`B.stRoot`: `RCH(k) → RCH(k+1)`) and FINAL (post root and header outputs =
+   FinalOut(S), recommendation 1(b)(ii)) leaves; TAPE's chain ends become public values the leaf
+   maps into `B`; HTAPE goes once Wasm and state rows share a trace (or becomes a cached-root
+   equality carried in `B`).
+4. `ctx = claimDigest` (one value for the chunk), `a` = segment index; expose
+   `H9(ctx, a, a + 1, s_in, s_out)` at level 1.
+
+Nothing of the template reaches V_d: no boundary field, cached root, `u`, `t`, `S`, state roots,
+`wsLen` or counts. V_d checks `[LEVEL_WRAP, D_wrap(ctx)]` with `ctx` from the public statement
+alone, so the packet loses `hint ‖ class ‖ u` (blocker 8).
+
+**What lanes A/B must provide (blocker 4).**
+* Pin one parameter set per template (n_stack, w_stack, log_blowup) and build the proofs under the
+  verifier's backend (identical vk hashing).
+* A small menu of height classes per template, each its own leaf program in `{C_t}` (the
+  one-hot anchor-set check hides which class a segment used): lane A cuts a segment as soon as any
+  table would exceed its class cap and pads every table to the caps; CODE / FUNC caps become
+  contract-size classes, and the padded height is part of the `codeRoot` definition (PREP's
+  `codeRoot` must be the same commitment: l_skip, n_stack, log_blowup, padding). M5a: D-classes or
+  a sparse working-set tree.
+* Save proof + vk per segment.
+* Lane A to confirm: HOSTT is described as cached but exported uncommitted (no constraints); the
+  M3 type-mask lookup may depend on it alone.
+
+**Cost.** The verifier cost scales with the child's queries. A segment at log_blowup 1 has
+925 queries (536 / 256 / 83 / 50, `T2c0`) against the D0a base's 129: about 2.5× the D0a L1's
+WHIR rows and 2.5–3.5× its SHA work, above the arity-2 tree pin. Two levers: raise the segment's
+log_blowup (≤ 3 at n_stack 22, ≤ 7 at n_stack 18), or one compression level at the segment's
+own geometry before the tree leaf.
+
+**Prototype (D-6, built): the base-template leaf** (`nv/tree.rs::build_base_leaf`, driver
+`NEARPROOF_TREE_TEMPLATE=base`). No Wasm segment proof exists in a usable form (none saved,
+parameters per call), so the wrapper mechanics are prototyped on the one standalone non-NV
+template proof with cached tables on disk: the D0a base proof. The leaf verifies the class's
+base proof directly (vk and heights as program constants, no anchor), computes the template's
+statement digest in-circuit exactly as an L1 level does (G1 over the public values, the
+cached TAPE tables bound by tape-eval at `u`; `Builder::capture_statement`), binds 18 ctx limb
+cells to it, and exposes `H9(ctx, 0, 1, [init, class], [done, class])`. Since `ctx` is the same
+digest the chain carries, V_d is unchanged; and the chain L1..L4 disappears from the tree path.
+Measured on chunk 1 (arity 2, depth 1, `results/zk/d6/tree-base-a2d1/`): leaf program 230,072 rows
+(D0a L1: 230,754), tree pin (20, 1,048,576) / (22, 2,998,576), packet 327,449 B, verify 40.9–41.6
+ms on one core, 17/17 negatives, prove 2,175 s (no chain: ≈ 25 min less per chunk).
 
 ### 5.1 M5a (state lane B): status, 2026-11-03
 

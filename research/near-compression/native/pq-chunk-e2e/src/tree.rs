@@ -114,11 +114,12 @@ fn d0a_claim(air: &str, public: &str, dir: &Path) -> (openvm_recursion_circuit::
 /// an `a`-ary node over the leaf proofs of a finished `tree-prove` run (`RUN_DIR/LEAF*.proof`,
 /// `TREE.vk.json`; the run's chunk is the class whose `L4` the run's leaf 0 normalised: the first
 /// class dir whose ctx matches). For each `a` in ARITIES: generate (never prove) the node's trace at
-/// natural heights in a circuit large enough for it (`NvAir` 2^23, program 2^22) over the leaves
+/// natural heights at the tree's `NvAir` 2^20 / program 2^19 (a node's ALU height must equal its
+/// children's, BIND) over the leaves
 /// `i mod n` (when `a > n` the children repeat, so the range statements do not chain: the program
 /// and its trace shape are measured, not a valid node), and print program rows, used rows per AIR,
 /// SHA-384 compressions and the shape pin. PROVE_ARITY `p` (0 = none, `p <= n`): also prove the
-/// valid `p`-ary node over leaves `0..p` at natural heights (`NvAir` 2^21, program 2^20, the tree
+/// valid `p`-ary node over leaves `0..p` at natural heights (`NvAir` 2^20, program 2^19, the tree
 /// layer's parameters) and report its size, time and native verification. Nothing of the run is
 /// changed.
 pub fn tree_arity(certs: &str, exclusions: &str, run: &Path, arities: &str, prove_arity: usize, classes: &[String]) {
@@ -165,6 +166,11 @@ pub fn tree_arity(certs: &str, exclusions: &str, run: &Path, arities: &str, prov
         })
         .expect("leaf 0 is no class's template leaf");
     let done = vec![F::from_u32(t::PHASE_DONE), F::from_usize(class)];
+    // the PAD program closes the template set (as in tree-prove)
+    let (mats, _) = probe.generate_with(|b| {
+        build_pad(b, &ctx, F::ONE, &done);
+    });
+    set.push(program_commitment(parent.config(), &mats[0]));
     let stmts: Vec<RangeStmt> = (0..n)
         .map(|i| {
             if i == 0 {
@@ -178,33 +184,43 @@ pub fn tree_arity(certs: &str, exclusions: &str, run: &Path, arities: &str, prov
         assert!(openvm_recursion_circuit::nv::agg::check_range_statement(&p.public_values[0], &stmts[i]), "leaf {i} statement");
     }
     println!("TREE_ARITY_LEAVES n={n} class={class} heights={:?}", vd::proof_heights(&leaves[0].1));
+    // [E2E-D D-6] a node's NvAir height must equal its children's: the in-circuit BIND check
+    // evaluates the node's own program at the child's ALU domain (`bind_child_program`: "child ALU
+    // height must equal ours"), and it is emitted for every child (gated in-circuit by the level
+    // flag). So the probe runs at the tree's LOG_ROWS / PROG_LOG; an arity whose NvAir trace
+    // exceeds 2^LOG_ROWS is reported as not fitting.
     for a in arities.split(',').map(|x| x.trim().parse::<usize>().unwrap()) {
         let t0 = std::time::Instant::now();
-        let mut c = NvCircuit::new(k, 23, 1);
-        c.program_part = true;
-        c.prog_log = 22;
-        let refs: Vec<(&MultiStarkVerifyingKey<SC>, &Proof<SC>)> = (0..a).map(|i| (&leaves[i % n].0, &leaves[i % n].1)).collect();
-        let pre: Vec<RangeStmt> = (0..a).map(|i| stmts[i % n].clone()).collect();
-        let (mats, b) = c.generate_with(|b| {
-            build_node(b, &refs, &pre, &set);
-        });
-        let used = openvm_recursion_circuit::nv::circuit::natural_tight_heights(&mats, 2);
-        let (pin, info) = shape_pinned_heights(&mats, &b, 2, FINAL_PIN_EPS_BITS);
-        println!(
-            "TREE_ARITY_PROBE arity={a} distinct_children={} program_rows={} used_rows={used:?} sha_compressions={} shape_pin={pin:?} info={info:?} failures={} gen_s={:.1}",
-            a.min(n),
-            b.instrs.len(),
-            used[1] / openvm_recursion_circuit::sha384::compress4_air::ROWS,
-            b.failures.len(),
-            t0.elapsed().as_secs_f64()
-        );
+        let r = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            let mut c = NvCircuit::new(k, LOG_ROWS, 1);
+            c.program_part = true;
+            c.prog_log = PROG_LOG;
+            let refs: Vec<(&MultiStarkVerifyingKey<SC>, &Proof<SC>)> = (0..a).map(|i| (&leaves[i % n].0, &leaves[i % n].1)).collect();
+            let pre: Vec<RangeStmt> = (0..a).map(|i| stmts[i % n].clone()).collect();
+            let (mats, b) = c.generate_with(|b| {
+                build_node(b, &refs, &pre, &set);
+            });
+            let used = openvm_recursion_circuit::nv::circuit::natural_tight_heights(&mats, 2);
+            let (pin, info) = shape_pinned_heights(&mats, &b, 2, FINAL_PIN_EPS_BITS);
+            println!(
+                "TREE_ARITY_PROBE arity={a} distinct_children={} program_rows={} used_rows={used:?} sha_compressions={} shape_pin={pin:?} info={info:?} failures={} gen_s={:.1}",
+                a.min(n),
+                b.instrs.len(),
+                used[1] / openvm_recursion_circuit::sha384::compress4_air::ROWS,
+                b.failures.len(),
+                t0.elapsed().as_secs_f64()
+            );
+        }));
+        if r.is_err() {
+            println!("TREE_ARITY_PROBE_DOES_NOT_FIT arity={a} (NvAir 2^{LOG_ROWS}, program 2^{PROG_LOG}: the children's ALU height) gen_s={:.1}", t0.elapsed().as_secs_f64());
+        }
     }
     if prove_arity >= 2 {
         assert!(prove_arity <= n, "a valid node needs distinct consecutive leaves");
         let t0 = std::time::Instant::now();
-        let mut c = NvCircuit::new(k, 21, 1);
+        let mut c = NvCircuit::new(k, LOG_ROWS, 1);
         c.program_part = true;
-        c.prog_log = 20;
+        c.prog_log = PROG_LOG;
         let refs: Vec<(&MultiStarkVerifyingKey<SC>, &Proof<SC>)> = leaves[..prove_arity].iter().map(|(a, b)| (a, b)).collect();
         let mut s = None;
         let (mats, b) = c.generate_with(|b| {

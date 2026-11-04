@@ -1,0 +1,84 @@
+== step 1: tree-a2d1 on d1_00-h10006-s3 d1_00-h10007-s0 d2_05-h10042-s3 (one setup)
+LOAD_BEFORE d1_00-h10006-s3 4.76 7.26 8.12
+TREE d1_00-h10006-s3 rc=0 	Maximum resident set size (kbytes): 20188008 
+TREE_WRAP_VERIFIED {"arity":2,"bundle_bytes":327911,"depth":1,"hint_bytes":16,"leaves":2,"node_program_rows":348254,"scope":"D0a template, chunk-independent tree + wrap (D-6)","seconds":{"leaf0":551.690775062,"leaf1":511.450204376,"node2_0":509.370601436,"wrap":513.880314726},"security_established":false,"setup_bytes":4531396,"setup_sha256":"3aad2b8cdc4855ad5a044446b21f2ecd859b011ab05846a080787221
+VERIFY_PROFILE_MS total=65.36 wrap_verify=35.10 FS_JOBS flush=473 commit=5 squeeze=818 pow=4
+INDEPENDENT_TREE_VERIFY_OK bundle_bytes=327911 class=0
+VERIFY_PROFILE_MS total=64.61 wrap_verify=34.86 FS_JOBS flush=473 commit=5 squeeze=818 pow=4
+INDEPENDENT_TREE_VERIFY_OK bundle_bytes=327911 class=0
+VERIFY_PROFILE_MS total=65.08 wrap_verify=35.13 FS_JOBS flush=473 commit=5 squeeze=818 pow=4
+INDEPENDENT_TREE_VERIFY_OK bundle_bytes=327911 class=0
+LOAD_AFTER d1_00-h10006-s3 8.55 8.99 9.38
+LOAD_BEFORE d1_00-h10007-s0 8.55 8.99 9.38
+TREE d1_00-h10007-s0 rc=0 TREE_FIXED_SETUP_IDENTICAL 	Maximum resident set size (kbytes): 21021316 
+TREE_WRAP_VERIFIED {"arity":2,"bundle_bytes":327630,"depth":1,"hint_bytes":155,"leaves":2,"node_program_rows":348254,"scope":"D0a template, chunk-independent tree + wrap (D-6)","seconds":{"leaf0":548.335143403,"leaf1":532.872746452,"node2_0":518.236858277,"wrap":511.624259888},"security_established":false,"setup_bytes":4531396,"setup_sha256":"3aad2b8cdc4855ad5a044446b21f2ecd859b011ab05846a08078722
+VERIFY_PROFILE_MS total=64.60 wrap_verify=35.81 FS_JOBS flush=473 commit=5 squeeze=816 pow=4
+INDEPENDENT_TREE_VERIFY_OK bundle_bytes=327630 class=1
+VERIFY_PROFILE_MS total=63.94 wrap_verify=35.70 FS_JOBS flush=473 commit=5 squeeze=816 pow=4
+INDEPENDENT_TREE_VERIFY_OK bundle_bytes=327630 class=1
+VERIFY_PROFILE_MS total=63.82 wrap_verify=35.66 FS_JOBS flush=473 commit=5 squeeze=816 pow=4
+INDEPENDENT_TREE_VERIFY_OK bundle_bytes=327630 class=1
+LOAD_AFTER d1_00-h10007-s0 9.43 8.53 8.57
+LOAD_BEFORE d2_05-h10042-s3 9.43 8.53 8.57
+TREE d2_05-h10042-s3 rc=0 TREE_FIXED_SETUP_IDENTICAL 	Maximum resident set size (kbytes): 21133988 
+TREE_WRAP_VERIFIED {"arity":2,"bundle_bytes":327365,"depth":1,"hint_bytes":16,"leaves":2,"node_program_rows":348254,"scope":"D0a template, chunk-independent tree + wrap (D-6)","seconds":{"leaf0":563.32455111,"leaf1":520.122033217,"node2_0":498.547274615,"wrap":461.760569581},"security_established":false,"setup_bytes":4531396,"setup_sha256":"3aad2b8cdc4855ad5a044446b21f2ecd859b011ab05846a080787221f
+VERIFY_PROFILE_MS total=44.70 wrap_verify=26.33 FS_JOBS flush=473 commit=5 squeeze=816 pow=4
+INDEPENDENT_TREE_VERIFY_OK bundle_bytes=327365 class=2
+VERIFY_PROFILE_MS total=44.11 wrap_verify=26.14 FS_JOBS flush=473 commit=5 squeeze=816 pow=4
+INDEPENDENT_TREE_VERIFY_OK bundle_bytes=327365 class=2
+VERIFY_PROFILE_MS total=43.85 wrap_verify=26.09 FS_JOBS flush=473 commit=5 squeeze=816 pow=4
+INDEPENDENT_TREE_VERIFY_OK bundle_bytes=327365 class=2
+LOAD_AFTER d2_05-h10042-s3 7.22 7.09 7.47
+TREE_DONE
+SETUP_IDENTICAL d1_00-h10006-s3 d1_00-h10007-s0
+SETUP_IDENTICAL d1_00-h10006-s3 d2_05-h10042-s3
+TREE_NEGATIVES 18/18 pass []
+TREE_NEGATIVES 18/18 pass []
+TREE_NEGATIVES 18/18 pass []
+== step 2: template set from a fresh chain of d1_00-h10006-s3 against the step-1 setup
+FRESH_TEMPLATES rc=0 TREE_TEMPLATES_MATCH_FIXED_SETUP [("d1_00-h10006-s3", 4), ("d1_00-h10007-s0", 4), ("d2_05-h10042-s3", 4)]
+FRESH_L4 (the fresh chain's L4 differs)
+== step 3: tree-a2d2 on d1_00-h10007-s0 d2_05-h10042-s3 (one setup)
+LOAD_BEFORE d1_00-h10007-s0 5.75 6.50 7.19
+TREE d1_00-h10007-s0 rc=0 	Maximum resident set size (kbytes): 21465744 
+TREE_WRAP_VERIFIED {"arity":2,"bundle_bytes":329268,"depth":2,"hint_bytes":155,"leaves":4,"node_program_rows":348254,"scope":"D0a template, chunk-independent tree + wrap (D-6)","seconds":{"leaf0":509.197850191,"leaf1":502.507424421,"leaf2":491.989296054,"leaf3":475.132559064,"node2_0":500.031787126,"node2_1":466.968572166,"node3_0":557.994079865,"wrap":467.182862667},"security_established":false,"
+VERIFY_PROFILE_MS total=44.80 wrap_verify=26.92 FS_JOBS flush=473 commit=5 squeeze=835 pow=4
+INDEPENDENT_TREE_VERIFY_OK bundle_bytes=329268 class=1
+VERIFY_PROFILE_MS total=43.75 wrap_verify=26.89 FS_JOBS flush=473 commit=5 squeeze=835 pow=4
+INDEPENDENT_TREE_VERIFY_OK bundle_bytes=329268 class=1
+VERIFY_PROFILE_MS total=44.37 wrap_verify=26.96 FS_JOBS flush=473 commit=5 squeeze=835 pow=4
+INDEPENDENT_TREE_VERIFY_OK bundle_bytes=329268 class=1
+LOAD_AFTER d1_00-h10007-s0 6.35 7.03 7.17
+LOAD_BEFORE d2_05-h10042-s3 6.35 7.03 7.17
+TREE d2_05-h10042-s3 rc=0 TREE_FIXED_SETUP_IDENTICAL 	Maximum resident set size (kbytes): 22656196 
+TREE_WRAP_VERIFIED {"arity":2,"bundle_bytes":327029,"depth":2,"hint_bytes":16,"leaves":4,"node_program_rows":348254,"scope":"D0a template, chunk-independent tree + wrap (D-6)","seconds":{"leaf0":536.816004828,"leaf1":527.953170815,"leaf2":540.068928429,"leaf3":527.437249669,"node2_0":499.890149505,"node2_1":475.554289517,"node3_0":487.509878921,"wrap":471.48920664},"security_established":false,"se
+VERIFY_PROFILE_MS total=44.71 wrap_verify=26.25 FS_JOBS flush=473 commit=5 squeeze=813 pow=4
+INDEPENDENT_TREE_VERIFY_OK bundle_bytes=327029 class=2
+VERIFY_PROFILE_MS total=44.27 wrap_verify=26.29 FS_JOBS flush=473 commit=5 squeeze=813 pow=4
+INDEPENDENT_TREE_VERIFY_OK bundle_bytes=327029 class=2
+VERIFY_PROFILE_MS total=43.99 wrap_verify=26.11 FS_JOBS flush=473 commit=5 squeeze=813 pow=4
+INDEPENDENT_TREE_VERIFY_OK bundle_bytes=327029 class=2
+LOAD_AFTER d2_05-h10042-s3 7.61 7.38 7.18
+TREE_DONE
+SETUP_IDENTICAL d1_00-h10007-s0 d2_05-h10042-s3
+TREE_NEGATIVES 18/18 pass []
+TREE_NEGATIVES 18/18 pass []
+== step 4: arity probe over the depth-2 leaves of d1_00-h10007-s0
+ARITY rc=101
+TREE_ARITY_LEAVES n=4 class=1 heights=Some([(20, Some(745884)), (22, Some(2794888)), (7, Some(128)), (16, Some(65536))])
+thread 'main' (951260) panicked at /data/illia/nearproof-deps/pq-e2e-d6/openvm-sha384/crates/recursion/src/nv/verifier.rs:1479:5:
+	Maximum resident set size (kbytes): 6070788
+== step 5: base-template tree (the leaf verifies the class base proof directly: lane A/B leaf prototype), arity 2, depth 1
+LOAD_BEFORE d1_00-h10006-s3 6.08 6.72 6.95
+TREE d1_00-h10006-s3 rc=0 	Maximum resident set size (kbytes): 22319460 
+TREE_WRAP_VERIFIED {"arity":2,"bundle_bytes":327449,"depth":1,"hint_bytes":16,"leaves":2,"node_program_rows":337554,"scope":"D0a template, chunk-independent tree + wrap (D-6)","seconds":{"leaf0":521.355679633,"leaf1":512.469487076,"node2_0":505.083509519,"wrap":485.667774707},"security_established":false,"setup_bytes":4420993,"setup_sha256":"ee510184a869d3d31a23ce23e301a2f74677363044bc9e3fac4750c6
+VERIFY_PROFILE_MS total=42.24 wrap_verify=25.29 FS_JOBS flush=473 commit=5 squeeze=804 pow=4
+INDEPENDENT_TREE_VERIFY_OK bundle_bytes=327449 class=0
+VERIFY_PROFILE_MS total=41.34 wrap_verify=24.86 FS_JOBS flush=473 commit=5 squeeze=804 pow=4
+INDEPENDENT_TREE_VERIFY_OK bundle_bytes=327449 class=0
+VERIFY_PROFILE_MS total=41.74 wrap_verify=25.19 FS_JOBS flush=473 commit=5 squeeze=804 pow=4
+INDEPENDENT_TREE_VERIFY_OK bundle_bytes=327449 class=0
+LOAD_AFTER d1_00-h10006-s3 6.89 6.52 6.62
+TREE_DONE
+FileNotFoundError: [Errno 2] No such file or directory: '/data/illia/nearproof-deps/pq-e2e-d6/tree-base-a2d1/d1_00-h10007-s0/WRAP.bundle'
+D6_DONE

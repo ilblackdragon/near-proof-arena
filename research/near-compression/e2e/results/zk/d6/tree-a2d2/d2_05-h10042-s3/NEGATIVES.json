@@ -1,0 +1,146 @@
+{
+ "control": {
+  "accepted": true,
+  "expected_accept": true,
+  "pass": true,
+  "last": [
+   "INDEPENDENT_TREE_VERIFY_OK bundle_bytes=327029 class=2"
+  ]
+ },
+ "other_claim": {
+  "accepted": false,
+  "expected_accept": false,
+  "pass": true,
+  "last": [
+   "claim/hint rejected: \"claim/hint preparation: invalid: InvalidGasUsed\""
+  ]
+ },
+ "flip_hint": {
+  "accepted": false,
+  "expected_accept": false,
+  "pass": true,
+  "last": [
+   "claim/hint rejected: \"claim/hint preparation: invalid: InvalidGasUsed\""
+  ]
+ },
+ "class_0": {
+  "accepted": false,
+  "expected_accept": false,
+  "pass": true,
+  "last": [
+   "wrap verifier: \"statement digest differs from the claim\""
+  ]
+ },
+ "class_1": {
+  "accepted": false,
+  "expected_accept": false,
+  "pass": true,
+  "last": [
+   "wrap verifier: \"statement digest differs from the claim\""
+  ]
+ },
+ "class_out_of_range": {
+  "accepted": false,
+  "expected_accept": false,
+  "pass": true,
+  "last": [
+   "template class out of range"
+  ]
+ },
+ "flip_u": {
+  "accepted": false,
+  "expected_accept": false,
+  "pass": true,
+  "last": [
+   "wrap verifier: \"statement digest differs from the claim\""
+  ]
+ },
+ "flip_proof_0": {
+  "accepted": false,
+  "expected_accept": false,
+  "pass": true,
+  "last": [
+   "wrap verifier: \"final proof: BatchConstraintError(SumClaimMismatch { sum_claim: BinomialExtensionField { value: [732916075, 1307387074, 678240550, 1207203201, 1488730565, 585540938, 85356909, 568458436, 1581371436, 812315642, 1757402702, 1903031528], _phantom: PhantomData<p3_monty_31::monty_31::MontyField31<p3_baby_bear::baby_bear::BabyBearParameters>> }, sum_univ_domain_s_0: BinomialExtensionField { value: [1028901117, 1402725096, 17764305, 351230508, 360866298, 1571906313, 291245868, 1740347068, 1610735314, 414092650, 1436947804, 1661398150], _phantom: PhantomData<p3_monty_31::monty_31::MontyField31<p3_baby_bear::baby_bear::BabyBearParameters>> } })\""
+  ]
+ },
+ "flip_proof_1": {
+  "accepted": false,
+  "expected_accept": false,
+  "pass": true,
+  "last": [
+   "wrap verifier: \"final proof: BatchConstraintError(SumClaimMismatch { sum_claim: BinomialExtensionField { value: [530994067, 858112132, 626997788, 1425680656, 1639434695, 541437904, 1390013523, 1487814977, 1858114653, 1608060506, 1385060862, 87023066], _phantom: PhantomData<p3_monty_31::monty_31::MontyField31<p3_baby_bear::baby_bear::BabyBearParameters>> }, sum_univ_domain_s_0: BinomialExtensionField { value: [1028901117, 1402725096, 17764305, 351230508, 360866298, 1571906313, 291245868, 1740347068, 1610735314, 414092650, 1436947804, 1661398150], _phantom: PhantomData<p3_monty_31::monty_31::MontyField31<p3_baby_bear::baby_bear::BabyBearParameters>> } })\""
+  ]
+ },
+ "flip_proof_2": {
+  "accepted": false,
+  "expected_accept": false,
+  "pass": true,
+  "last": [
+   "wrap verifier: \"final proof: WhirError(MerkleVerify)\""
+  ]
+ },
+ "flip_proof_3": {
+  "accepted": false,
+  "expected_accept": false,
+  "pass": true,
+  "last": [
+   "wrap verifier: \"final proof: WhirError(QueryPhasePoWInvalid)\""
+  ]
+ },
+ "truncated": {
+  "accepted": false,
+  "expected_accept": false,
+  "pass": true,
+  "last": [
+   "proof codec: Error { kind: UnexpectedEof, message: \"failed to fill whole buffer\" }"
+  ]
+ },
+ "magic": {
+  "accepted": false,
+  "expected_accept": false,
+  "pass": true,
+  "last": [
+   "bundle framing"
+  ]
+ },
+ "wrong_pin": {
+  "accepted": false,
+  "expected_accept": false,
+  "pass": true,
+  "last": [
+   "assertion `left == right` failed: untrusted setup: hash differs from operator's pin"
+  ]
+ },
+ "setup_level_repinned": {
+  "accepted": false,
+  "expected_accept": false,
+  "pass": true,
+  "last": [
+   "wrap verifier: \"wrap setup level\""
+  ]
+ },
+ "setup_program_repinned": {
+  "accepted": false,
+  "expected_accept": false,
+  "pass": true,
+  "last": [
+   "wrap verifier: \"final program openings differ from the pinned program\""
+  ]
+ },
+ "setup_heights_repinned": {
+  "accepted": false,
+  "expected_accept": false,
+  "pass": true,
+  "last": [
+   "wrap verifier: \"AIR 1: height (21, Some(1195648)) differs from the pinned (21, Some(1195652))\""
+  ]
+ },
+ "other_packet_this_claim": {
+  "accepted": false,
+  "expected_accept": false,
+  "pass": true,
+  "last": [
+   "claim/hint rejected: \"claim/hint preparation: invalid: InvalidGasUsed\""
+  ]
+ }
+}

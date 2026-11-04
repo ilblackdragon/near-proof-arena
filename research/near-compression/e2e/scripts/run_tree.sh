@@ -9,7 +9,7 @@
 set -uo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
 ROOT=$(cd "$HERE/../../../.." && pwd)
-D=${NEARPROOF_PQ_DEPS:-/data/illia/nearproof-deps/pq-e2e-d5}
+D=${NEARPROOF_PQ_DEPS:-/data/illia/nearproof-deps/pq-e2e-d6}
 B=${PROVER:-$D/target/release/nearproof-chunk-e2e}
 # the template class dirs (each: L4.proof + L4.vk.json + chain.log, BASE.*, public, hint.bin). D-6:
 # CLASS_ROOT=pq-e2e-d6/classes (chains with shape floors); default: the D-4 chains of D-5

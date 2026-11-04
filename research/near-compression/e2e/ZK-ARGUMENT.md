@@ -1,6 +1,17 @@
 # Zero-knowledge argument for the chunk proof: construction, simulator, hiding error, cost
 
-Status (2026-11-03, lane E2E-D, milestone D-5). D-5 changes, on top of D-4:
+Status (2026-11-04, lane E2E-D, milestone D-6). D-6 changes, on top of D-5:
+* **The argument is re-read for the tree-wrap program (§10.1)** and holds for it, with the
+  statement `(claim, hint, class, setup)` and `A · 2^-192` shape-pin abort terms. The tree-wrap
+  RESULT.json now sets `zero_knowledge_established = true` (classical programmable ROM), and only
+  when every template class's chain ran with shape floors.
+* **Every D0a class now has a shape-floored chain** (chunks 2 and 3 re-proved; chunk 1's is D-5's
+  chain A), so every template constant `C_L4` and every D0a setup is a function of the class's
+  shape (§7.1). The three chunks give one byte-identical tree setup, and a fresh chain's template
+  set equals it (§10.1 (c), §8.2).
+* QROM (§6.5) is unchanged: the base point `u` is open (owner decision).
+
+Status at D-5 (2026-11-03). D-5 changes, on top of D-4:
 * **Review-D4 F1 accepted and fixed.** The D-4 pinned FINAL heights were the trace's natural
   heights, which depend on the rejection sampling of the hidden L_n transcript, so a D-4 setup
   is a function of the witness and the oracle (§7). From D-5 the heights are pinned from the
@@ -9,9 +20,9 @@ Status (2026-11-03, lane E2E-D, milestone D-5). D-5 changes, on top of D-4:
 * **F3** (§3.4: the leaves are not independent; the bound is `q^128 · p^-(256·c_b)`), **F4**
   (§6.5.1: the setup must be oracle-independent) and **F5** (`R` counted, §6.5.3: `R ≤ 2^11`)
   are folded in.
-* **The tree wrap** (README §0, plan §5.0.1) reuses this construction over an aggregation root,
-  with a chunk-independent setup (§8.1). The argument is not re-read for the wrap program, so
-  its RESULT.json keeps `zero_knowledge_established = false`.
+* **The tree wrap** (README §0a, plan §5.0.1) reuses this construction over an aggregation root,
+  with a chunk-independent setup (§8.1). (D-5: not re-read for the wrap program, flag `false`;
+  D-6: re-read in §10.1, flag `true`.)
 
 Status at D-4 (2026-11-03, milestone D-4; scope corrected by F1 above).
 * **Obligation H is closed (§7).** The FINAL trace heights are pinned in the setup. V_d checks
@@ -1094,6 +1105,22 @@ shape, (20, 337,448) / (21, 1,195,648) / (7, 128) / (16, 65,536); identical for 
 (the setup is byte-identical). Packets 328,331 / 327,407 B, verify 45.0–45.8 ms on one core,
 268.2 bits per round. Chunk 3's wrap trace (squeeze blocks 797 vs chunk 1's 812) fit the pins made from chunk 1.
 
+### 8.2 Measured in D-6: shape-floored classes, one tree setup, depth 2
+
+* **Classes** (`scripts/run_shape_classes.sh`, `results/zk/d6/classes/`): chunks 2 and 3 re-proved
+  from their D-4 bases with shape floors at every level (chunk 1: D-5 chain A). Programs 145,438 /
+  145,500 / 146,114 rows; FINAL pins (NvAir / SHA) 291,996 / 1,090,432, 292,088 / 1,090,432,
+  293,008 / 1,090,432; D0a packets 326,077 / 326,468 / 325,825 B, each verified in fresh processes.
+* **Tree, arity 2, depth 1** (`scripts/run_d6.sh` step 1, `results/zk/d6/tree-a2d1/`): the
+  template set from these classes; chunk 1 creates the setup, chunks 2 and 3 reproduce it byte for
+  byte. Wrap pin (20, 340,496) / (21, 1,195,648) / (7, 128) / (16, 65,536); 60 data columns (layout
+  of the D-5 wrap shape: 60 at `zk = 0`, 97 with the 37 `zk = 6` mask columns). Packets 327,911 /
+  327,630 / 327,365 B; 18/18 negatives each.
+* **Fresh chain** (step 2): the template set built from chunk 1's chain B (D-5: fresh base `u`,
+  every level re-proved) equals the setup's.
+* **Depth 2** (step 3, `results/zk/d6/tree-a2d2/`): the same tree pin and wrap pin; the level-3
+  node has the same program root `C_node` as the level-2 nodes. See README §0.
+
 ## 9. Tests
 
 D-4 additions:
@@ -1123,7 +1150,17 @@ D-4 additions:
   * the review fuzzer's worst shape terminates.
 * **Hiding tests on FINAL packets** (method in D-2 §8.2): the witness-guessing distinguisher, the
   two-witness test, and `zk-diff` of two `zk = 6` proofs of the same L4. Results are in §8 and
-  README §0.
+  README §0b–§0d.
+
+D-6 additions (`results/zk/d6/tests/`):
+* **Constraint-level tree negatives** (review-D5 D5-1). `tree_tests::review_d5_forged_node_debug`
+  (the reviewer's test, adopted): the traces of each forged node body are debug-checked directly,
+  ignoring the host failure list; the honest node passes, 5 forged bodies are rejected.
+  `tree_fib_end_to_end` with `TREE_DEPTH2=1` adds 6 depth-2 cases, each rejected by the debug
+  constraint check (`constraints had nonzero value on air NvAir`): mixed-level children in both
+  orders, children swapped, a changed child preimage, the wrap claiming root level 2, and a
+  level-2 node given as the depth-2 root; the honest level-3 node passes.
+* `agg_tests` / `tree_tests` non-ignored: 6/6 pass.
 
 ## 10. Status and obligations
 
@@ -1137,6 +1174,8 @@ D-4 additions:
 | review of the D-3 changes (`zk = 6`), review-zk6 | **done** (2026-11-03): no soundness break, no new ZK leak. N1 (joint-list size, §5) is corrected in the text. N2 (mask-count assert), N3 (layout step bound) and N4 (`verify_with_points`, no thread-locals) are fixed in code. The reviewer's fuzzer is adopted (`tests/zk_layout_fuzz.rs`). N5 = H |
 | **Q: QROM** | **partly closed (D-4, §6.5)**: the FINAL part is 2^-121.0 (O2H, AHU19 Thm 3; GHHM21 Thm 1). The base point `u` is **not** closed at the measured base widths (`c_b` = 2–4). Closure options, both owner decisions: base `zk = 2` (2^-103.0) or a base salt (about 2^-120). Neither reaches 128 bits. Not independently reviewed |
 | **review-D4** (independent review of D-4) | **done** (2026-11-03): the pinned-height check is exact, first and fail-closed; padding is sound; AHU19 / GHHM21 are used correctly. F1 (heights depend on rejection sampling) fixed by §7.1; F2 (fixed-setup completeness) §8.1; F3 §3.4; F4 §6.5.1; F5 §6.5.3 |
+| **the tree wrap (D-6)** | **re-read (§10.1)**: the argument carries over to `P_wrap`; statement `(claim, hint, class, setup)`; the setup is shape-only (shape-floored classes; three chunks and a fresh chain reproduce it); ε_ZK ≤ 2^-184.4 + A·2^-192. Flag set for the tree-wrap packets. Not independently reviewed |
+| review-D5 (independent review of D-5) | **done** (2026-11-04): no Critical/High. D5-1 (constraint-level forged-node test adopted, depth-2 / mixed-level constraint negatives added), D5-2 (program root index after a preprocessed commitment), D5-5 (fixed tables pinned at their height) folded in; D5-3 = the shape-floored classes |
 | single EF stacking mask (−4.4 KB) | **rejected (D-4, §6.6)**: the lemma is false for every number of chains (last-round dimension count) |
 | machine-checked statement | none. Lemmas V, D1 (at the specialization), D2 and W are finite linear algebra |
 
@@ -1150,3 +1189,110 @@ D-4 additions:
 
 It is set in `RESULT.json` only for FINAL `zk = 6` with pinned heights and base `zk ≥ 1`. It is
 **not** a QROM or post-quantum claim; see §6.5. `security_established` stays `false`.
+
+### 10.1 The tree wrap (D-6): the argument re-read for the wrap program
+
+The D-5 tree wrap (`nv/tree.rs::build_wrap`, driver `tree-prove`) is a FINAL-domain `zk = 6`
+proof of one NV program, `P_wrap`, that verifies the root node of the aggregation tree. This
+section re-reads §1–§7 for it and states what changes. Result: the claim of §6.4 / §7.1 carries
+over, with the statement `(claim, hint, class, setup)` and one `2^-192` shape-pin abort term per
+chain level, tree proof and the wrap ((e)); `zero_knowledge_established = true` is set for the tree-wrap packets in the classical
+programmable ROM (scope below). The QROM status (§6.5) is unchanged: the base point `u` is open.
+
+**Packet and statement.** The packet is `NPQTW02 ‖ hint ‖ class ‖ u ‖ π_wrap`. V_d
+(`tree::tree_verify`) recomputes `ctx` from `(claim, hint, u)` under the base parameters of
+template class `class` (listed in the setup) and checks `pvs = [LEVEL_WRAP, D_wrap(ctx, class)]`
+(`vd::verify_wrap` = `verify_final_with` + the wrap statement). The statement is therefore
+`(claim, hint, class, setup)`. `class` is the chunk's D0a shape class; it is the only shape
+information the packet carries (the setup is the same for every chunk, (c) below). `u` is the
+class's base stacking point, simulatable by §3.4 (each class's base has `zk = 1`, checked).
+
+What is re-checked, item by item:
+
+(a) **AIR set, public columns, public values (§1, §2).** The wrap vk has the same four AIRs
+(NvAir, SHA compression, table, byte) as the D0a FINAL. NvAir carries the aggregation overlay's
+`ChainStart` bus (one more permutation interaction; no new column, measured: widths 76 / 83 / 9 /
+5 in both vks), so its symbolic constraints differ from the D0a FINAL's NvAir (323,019 vs 322,903
+bytes serialized) while the SHA, table and byte AIRs are byte-identical. `zk_public_cols` is the
+program columns `P0..P3` (cols 6–9) in both, and they are the pinned `P_wrap`. The 19 public
+values are `[64, D_wrap]`, a function of the statement. No other field is public: §2's inventory
+applies unchanged.
+
+(b) **Layout and the hiding lemmas (§3, §4, §6).** The wrap runs with the FINAL parameters
+(`ns19lb6`, `n = 19`, `N = 2^21`, `R = 256`, queries [46, 41, 31, 25], `s ≤ 92` opened symbols per
+column). Its pinned heights give **60 data columns** (D0a shape-pinned FINAL: 54) plus the 37
+`zk = 6` mask columns, 97 stacked columns (`zk-layout` on the wrap shape). The lemmas use the
+AIR set only through: the number of data columns (H6: each contributes ≥ 2·30.9 bits per
+unopened leaf, here ≥ 3,708 bits against the 3,276 of §6.3), `s + 2 ≤ R` (unchanged), the `M_s`
+coefficient bound (asserted by the prover, checked by the verifier, and met: the wrap proves and
+verifies), the sumcheck degrees and round counts (same AIRs, same `max_constraint_degree`, same
+`n`), and the number of GKR layers (the log of the interaction count; the wrap's heights are
+within 1.15× of the D0a FINAL's, so at most one more layer, inside the `2^10` bad points that H5
+charges). So every term of §6.4 holds as stated: **ε_ZK ≤ 2^-184.4** for the wrap proof given
+the setup.
+
+(c) **The setup is a function of shapes only (§6.5.1 F4, §7, §7.1).** The wrap setup
+(`tree::WrapSetup`) holds: the base parameters per class (from each class's base vk: shape); the
+FINAL vk (parameters and AIR set: fixed); `P_wrap` and its pinned heights; and, for audit, the
+tree shape (arity, depth, the tree's pinned heights `h`, the template entries `(name, (4, C_L4),
+c_norm)`, `c_pad`, `c_node`). Each is a function of the template classes' shapes, the arity and the
+depth:
+* `C_L4` (a class's converged chain program root) depends on the class's chain floors. With
+  `NEARPROOF_CHAIN_SHAPE_FLOORS` every level's floor is its shape pin (§7.1, F2), so `C_L4` is a
+  function of the class's shape. **D-6 re-proved the two other classes' chains with shape floors**
+  (D-5 had only chunk 1's), so every template entry is now shape-only; the driver sets the ZK flag
+  only if every class dir's chain ran with shape floors (`templates_shape_floored`).
+* `c_norm`, `c_pad`, `c_node` are program commitments (deterministic, `zk = 0` at the tree layer)
+  of straight-line programs whose only inputs are a child vk, the child's committed heights
+  (pinned: the class's L4 floors for `c_norm`, `h` for `c_node`) and constants.
+* `h` is the maximum of the leaf shape pins, grown to hold the node and raised, if needed, to the
+  node's shape pin (+2 %): shape-only by §7.1. The table and byte AIRs are pinned at their full
+  height, which `shape_pinned_heights` now asserts (review-D5 D5-5), so no value-dependent tail
+  enters a pin there. The NvAir and SHA pins are `used − rejection rows + slack` (§7.1); `used` is
+  the last non-zero row, which relies on no real trailing row of those traces being all-zero
+  (expected, not proved here) — checked only indirectly (the pins are reproduced across
+  chunks and chains), an open item for a structural assert.
+* `P_wrap` is a function of the root's vk, `h`, the root level `1 + d` and `C_node`; its heights
+  are its shape pin (§7.1).
+* Measured (D-6, below): the three chunks (three classes) give a byte-identical setup, and the
+  chunk-1 tree built from a **fresh** chain (other base `u`, other transcripts at every level)
+  reproduces it too, so the setup does not depend on any chain transcript.
+
+(d) **FINAL domain (§1).** Only the wrap is proved under `new_layer(true)`. The tree proofs
+(leaves, nodes) use the tree layer's non-final engine, and the normaliser verifies a chain-domain
+`L4`. No tree proof verifies a FINAL-domain proof in-circuit, so programming `H` at the wrap's
+points is consistent with every in-circuit evaluation. The wrap's witness (the root node, and
+through it every leaf, node, chain level and the base) is unmasked and never published, exactly as
+`L_n` for the D0a FINAL; the NV generator's unmasked-child assert holds for the root.
+
+(e) **Aborts.** The prover aborts (a panic, no packet) when a trace exceeds its pin: each of the
+chunk's chain levels `L1..L4` against its shape floor, each leaf against `h` (a template leaf;
+PAD leaves are deterministic), each node against `h`, and the wrap against its shape pin. Each
+event has probability ≤ 2^-192 over the oracle for every witness (§7.1; `h` and the floors are ≥
+the shape pins). So the real packet distribution is within `A · 2^-192` of the no-abort one, with
+`A = 4 + (#leaves + #nodes) + 1` (arity 2, depth 1: `A = 8`; depth 2: `A = 12`), and
+
+**ε_ZK(tree wrap) ≤ 2^-184.4 + A · 2^-192** (2^-184.4 to one decimal),
+
+statistical, classical programmable ROM, for the statement `(claim, hint, class, setup)` and a
+setup made by `tree-prove` from shape-floored classes. RESULT.json states it in
+`zero_knowledge_scope`, with `A`.
+
+(f) **What is not covered.** QROM: the wrap's FINAL part has `R` = 1,279 / 1,294 FS jobs (D-5),
+so §6.5.5's T4 holds at 2^-121.5, but `u` is open exactly as for the D0a FINAL (§6.5.6). The
+class is public (it is in the statement). A template with a canonical `claimDigest` (plan
+§5.0.1 blocker 8) would remove `u`, the hint and the class from the packet; that is lanes A/B.
+`security_established` stays `false`.
+
+(g) **Base-template prototype** (`build_base_leaf`, README §0). Its leaves verify each class's
+base proof directly, so the template set is a function of the class base vks and base heights
+(the class shape) with no chain in between: (c) holds without shape floors, the abort count is
+`A = #leaves + #nodes + 1` (no chain levels), and (a), (b), (d), (e) are unchanged (the wrap
+program differs only through the root's heights: pin (20, 332,928) / (21, 1,202,944)). The driver
+sets the flag for it on the same conditions; it is a prototype, run on one chunk, and not
+separately reviewed.
+
+(h) **Measured** (D-6, README §0, §8.2): the depth-1 setup is byte-identical over the three
+chunks; a fresh chain of chunk 1 gives the same template set; the depth-2 setup is byte-identical
+over chunks 2 and 3; every tree-wrap RESULT.json has `zero_knowledge_established = true` with
+`templates_shape_floored = [true, true, true]`.

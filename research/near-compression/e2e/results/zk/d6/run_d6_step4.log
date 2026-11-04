@@ -1,0 +1,12 @@
+== step 4: arity probe over the depth-2 leaves of d1_00-h10007-s0
+ARITY rc=0
+TREE_ARITY_LEAVES n=4 class=1 heights=Some([(20, Some(745884)), (22, Some(2794888)), (7, Some(128)), (16, Some(65536))])
+TREE_ARITY_PROBE arity=2 distinct_children=2 program_rows=348254 used_rows=[676320, 2322688, 128, 65536] sha_compressions=18146 shape_pin=[(20, Some(682932)), (22, Some(2388480)), (7, Some(128)), (16, Some(65536))] info=[1295, 11606, 128768, 671325, 2259712] failures=0 gen_s=0.6
+TREE_ARITY_PROBE arity=3 distinct_children=3 program_rows=519934 used_rows=[1010688, 3482496, 128, 65536] sha_compressions=27207 shape_pin=[(20, Some(1020524)), (22, Some(3581056)), (7, Some(128)), (16, Some(65536))] info=[1789, 17212, 191616, 1003309, 3389440] failures=0 gen_s=0.7
+thread 'main' (1095724) panicked at /data/illia/nearproof-deps/pq-e2e-d6/openvm-sha384/crates/recursion/src/nv/builder.rs:334:9:
+TREE_ARITY_PROBE_DOES_NOT_FIT arity=4 (NvAir 2^20, program 2^19: the children's ALU height) gen_s=0.0
+thread 'main' (1095724) panicked at /data/illia/nearproof-deps/pq-e2e-d6/openvm-sha384/crates/recursion/src/nv/builder.rs:334:9:
+TREE_ARITY_PROBE_DOES_NOT_FIT arity=8 (NvAir 2^20, program 2^19: the children's ALU height) gen_s=0.0
+TREE_ARITY_PROVED arity=3 program_rows=519934 heights=Some([(20, Some(1010688)), (22, Some(3482496)), (7, Some(128)), (16, Some(65536))]) shapes=[(1048576, 76), (4194304, 83), (128, 9), (65536, 5)] bytes=421407 gen_s=0.6 total_s=547.0 verified=native
+	Maximum resident set size (kbytes): 21281816
+D6_DONE

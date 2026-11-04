@@ -1,0 +1,69 @@
+{
+  "arity": 2,
+  "bundle_bytes": 327029,
+  "depth": 2,
+  "hint_bytes": 16,
+  "leaves": 4,
+  "node_program_rows": 348254,
+  "scope": "D0a template, chunk-independent tree + wrap (D-6)",
+  "seconds": {
+    "leaf0": 536.816004828,
+    "leaf1": 527.953170815,
+    "leaf2": 540.068928429,
+    "leaf3": 527.437249669,
+    "node2_0": 499.890149505,
+    "node2_1": 475.554289517,
+    "node3_0": 487.509878921,
+    "wrap": 471.48920664
+  },
+  "security_established": false,
+  "setup_bytes": 4531396,
+  "setup_sha256": "aee590cdf16b306583322651c63ef79936e9a4ada85c921de2d85743bbbe0bc2",
+  "template_kind": "chain (the class chain L4, build_norm)",
+  "templates_shape_floored": [
+    true,
+    true,
+    true
+  ],
+  "total_seconds": 4217.683272398,
+  "tree_heights": [
+    [
+      20,
+      745884
+    ],
+    [
+      22,
+      2794888
+    ],
+    [
+      7,
+      128
+    ],
+    [
+      16,
+      65536
+    ]
+  ],
+  "wrap_heights": [
+    [
+      20,
+      340496
+    ],
+    [
+      21,
+      1195648
+    ],
+    [
+      7,
+      128
+    ],
+    [
+      16,
+      65536
+    ]
+  ],
+  "wrap_program_rows": 173368,
+  "wrap_proof_bytes": 326077,
+  "zero_knowledge_established": true,
+  "zero_knowledge_scope": "statistical zero knowledge of the tree-wrap packet for the statement (claim, hint, class, setup), classical programmable ROM: eps_ZK <= 2^-184.4 + 12 x 2^-192 (shape-pin aborts), ZK-ARGUMENT.md 6.4, 7.1, 10.1; the setup is one for all chunks (a function of the template classes' shapes, the arity and the depth); the packet reveals the template class (the chunk's D0a shape class); QROM: ZK-ARGUMENT.md 6.5 (the base point u is open)"
+}

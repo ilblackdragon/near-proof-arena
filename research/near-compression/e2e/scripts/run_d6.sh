@@ -66,7 +66,9 @@ for s in $STEPS; do case $s in
 5)
   echo "== step 5: base-template tree (the leaf verifies the class base proof directly: lane A/B leaf prototype), arity 2, depth 1"
   NEARPROOF_TREE_TEMPLATE=base CLASS_ROOT=$CL OUT_ROOT=$D TAG=tree-base-a2d1 CHUNKS="${BASE_CHUNKS:-$C1}" NEARPROOF_PQ_DEPS=$D "$HERE/run_tree.sh" 2 1
-  for c in ${BASE_CHUNKS:-$C1}; do negs tree-base-a2d1 "$c" "$C2"; done
+  for c in ${BASE_CHUNKS:-$C1}; do  # no other-chunk packet in this run: no 4th argument
+    python3 "$HERE/tree_negatives.py" "$D/tree-base-a2d1/$c" "${CLAIM[$c]}" "${CLAIM[$C2]}" > "$D/tree-base-a2d1/$c/negatives.txt" 2>&1; tail -1 "$D/tree-base-a2d1/$c/negatives.txt"
+  done
   ;;
 esac; done
 echo D6_DONE
