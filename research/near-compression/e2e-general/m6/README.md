@@ -100,6 +100,17 @@ Obligations, by owner:
   `SegSoundSigma(MP).lean`, `SegChainSigma.lean` (`seg_sound_σ`, `seg_sound_cσ`, `seg_chain_σ`).
   The thread `sideR` is the host side plus the register file.
 
+## 5b. Next milestone after M6: Wasm segments as aggregation-tree leaves [S]
+
+Requested by the integrator for lane D's aggregation tree (main `0f59988a6`, plan §5.0.1.4).
+All costs below are estimates from the M4c/M6 measurements, not new runs.
+
+| requirement | today | work | cost estimate |
+|---|---|---|---|
+| (1) Parameters and table heights fixed per template, not per call | Heights are chosen per segment: instruction/lookup tables, the SHA-512 chip (2^13 for a 2-step segment up to 2^17 for 2^18 steps), HOSTB/REG-C, MEMB/MPATH by blocks touched | A few templates, e.g. 2^14/2^16/2^18 steps, each with fixed heights from the per-template maximum; dead rows padded with `act = 0` | Cells grow up to the template maximum. For the 2^18 template, ≈28 M cells at today's worst case (`wasmBaseSegAirMP`, 680 compressions). Small segments pay the padding of the smallest template that fits. Proof size is unchanged (same stacked shape). |
+| (2) CODE/FUNC (and tape) roots inside the statement/circuit | The verifier checks the CODE/FUNC matrices outside the circuit against the canonical matrix (`CodeIs`/`FuncIs`) | Commit the code and function tables once per contract: a SHA-384 Merkle root over records, as `codeRoot`/`funcRoot` in `WasmBnd`. Per segment, open only the records it FETCHes, with the same batched multiproof as MPATH. Tape root: HOSTR/HOSTB answers bound to the state side's σ (§3, M6.4). | Per segment, ≈ touched records/8 leaf compressions plus multiproof nodes. Hashing the whole code table per segment would be about `codeSize·64 B / 128 B` compressions, which is too much for large contracts. The per-contract root proof is one-off. |
+| (3) Proof + vk saved to disk in the stack's format | Proofs are verified in-process | Serialisation through the stack's existing format | Engineering only |
+
 ## 6. Proposed `WasmBnd` diff for lane E (gasLeft, register-id order) [S]
 
 The integrator routes this to lane E; lane A does not edit `spec/`. Target file:
