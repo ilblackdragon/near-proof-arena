@@ -1062,6 +1062,11 @@ fn main() {
         ),
         #[cfg(feature = "tree")]
         Some("tree-verify") if a.len() == 7 => tree::tree_verify(&a[2], &a[3], &a[4], &a[5], &a[6]),
+        // [E2E-D D-6] tree-arity CERTS EXCLUSIONS RUN_DIR ARITIES PROVE_ARITY CLASS_DIR...
+        #[cfg(feature = "tree")]
+        Some("tree-arity") if a.len() >= 8 => {
+            tree::tree_arity(&a[2], &a[3], Path::new(&a[4]), &a[5], a[6].parse().unwrap(), &a[7..])
+        }
         #[cfg(feature = "tree")]
         Some("fs-count") if a.len() == 5 => tree::fs_count(&a[2], &a[3], a[4] == "1"),
         Some("zk-selftest") => zk_selftest::run(&a[2..]),

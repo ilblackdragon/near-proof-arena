@@ -1,0 +1,15 @@
+L1_SHAPE_FLOOR Some([413692, 1169920, 128, 65536])
+L1_VERIFIED rows=224860 shapes=[(1048576, 76), (2097152, 83), (128, 9), (65536, 5)] bytes=364209 seconds=436.57
+L2_ANCHOR M=1 bind=false floor=Some([297644, 1113972, 128, 65536])
+L2_VERIFIED rows=145884 shapes=[(1048576, 76), (2097152, 83), (128, 9), (65536, 5)] bytes=360741 seconds=351.93
+L3_ANCHOR M=2 bind=false floor=Some([297644, 1113972, 128, 65536])
+L3_VERIFIED rows=146114 shapes=[(1048576, 76), (2097152, 83), (128, 9), (65536, 5)] bytes=359943 seconds=375.45
+L4_ANCHOR M=2 bind=true floor=Some([297644, 1113972, 128, 65536])
+L4_VERIFIED rows=146114 shapes=[(1048576, 76), (2097152, 83), (128, 9), (65536, 5)] bytes=358935 seconds=393.15
+FINAL_SHAPE_PIN [(20, Some(293008)), (21, Some(1090432)), (7, Some(128)), (16, Some(65536))] jmax_nvslack_shaslack_nvbase_shabase=[765, 5940, 65408, 287068, 1025024] profile=Some(HeightProfile { k_samples: 5790, n_runs: 447, j_actual: 363, jobs_actual: 722, jobs_min: 482, samp_actual: 3170, samp_min: 2896, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 2434, comps_delta_actual: 240 })
+FINAL_PINNED_HEIGHTS [(20, Some(293008)), (21, Some(1090432)), (7, Some(128)), (16, Some(65536))]
+FINAL_PHASE start
+FINAL_PHASE proved_and_verified seconds=528.373914
+FINAL_VERIFIED {"bundle_bytes":325825,"hint_bytes":16,"levels":5,"proof_bytes":324877,"scope":"D0a","security_established":false,"setup_sha256":"5e817b296d9a340c08d00a161deb9f079c68fe160e4b488a1c36f56d38e72293","tape_eval":true,"trusted_setup_bytes":3905924,"under_300000":false,"zero_knowledge_established":true,"zero_knowledge_scope":"statistical zero knowledge of the FINAL packet for the statement (claim, hint, setup), classical programmable ROM (eps_ZK <= 2^-184.4 + 2^-192 abort, ZK-ARGUMENT.md 6.4, 7.1: heights pinned from the shape); QROM: ZK-ARGUMENT.md 6.5; the per-chunk setup is derived
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 35:47.30
+	Maximum resident set size (kbytes): 16122304

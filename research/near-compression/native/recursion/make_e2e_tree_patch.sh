@@ -10,12 +10,15 @@
 # test fixes (WhirLevers zk). The aggregation overlay changes NvAir (the ChainStart bus) and the NV
 # program (a ChainStart row), so chains proved without it (D0a L1..L4) cannot be BIND-extended
 # with it: D0a FINAL replays use the e2e-heights tree (pq-e2e-d5f).
+# D-6 (2026-11-04, DEPS = pq-e2e-d6): + build_base_leaf / Builder::capture_statement (the base-template
+# leaf, lane A/B leaf prototype), review-D5 D5-2 (program part index after a preprocessed commit),
+# D5-5 (fixed-height tables pinned at their height), D5-1 constraint-level tree negatives.
 # Applied by setup_e2e_verify_deps.sh after e2e-heights.patch when E2E_TREE=1.
 # usage: make_e2e_tree_patch.sh [BASE] [DEPS] [OUTDIR]
 set -euo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
 BASE=${1:-/data/illia/nearproof-deps/pq-e2e-d5f}
-DEPS=${2:-/data/illia/nearproof-deps/pq-e2e-d5}
+DEPS=${2:-/data/illia/nearproof-deps/pq-e2e-d6}
 OUTDIR=${3:-$HERE/patches}
 SB=stark-backend-unified/crates
 R=openvm-sha384/crates/recursion/src

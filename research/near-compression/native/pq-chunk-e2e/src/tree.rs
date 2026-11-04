@@ -22,7 +22,7 @@ use openvm_recursion_circuit::{
     nv::{
         agg::RangeStmt,
         circuit::{program_commitment, prove_mats},
-        tree::{self as t, build_norm, build_node, build_pad, build_wrap},
+        tree::{self as t, build_base_leaf, build_norm, build_node, build_pad, build_wrap},
     },
     sha384::config::{Digest, F, fs_jobs, fs_jobs_reset},
 };
@@ -79,6 +79,14 @@ fn root_of(p: &Proof<SC>) -> Digest {
     p.trace_vdata[0].as_ref().unwrap().cached_commitments[0]
 }
 
+fn template_kind_base() -> bool {
+    match std::env::var("NEARPROOF_TREE_TEMPLATE").as_deref() {
+        Ok("base") => true,
+        Ok("chain") | Err(_) => false,
+        Ok(o) => panic!("unknown NEARPROOF_TREE_TEMPLATE {o}"),
+    }
+}
+
 fn leaf_circ(k: usize, h: &[vd::PinnedHeight]) -> NvCircuit {
     let mut c = NvCircuit::new(k, LOG_ROWS, 1);
     c.program_part = true;
@@ -100,6 +108,121 @@ fn d0a_claim(air: &str, public: &str, dir: &Path) -> (openvm_recursion_circuit::
     let params = vk.inner.params.clone();
     let c = state::chunk_bridge::expected_claim_at(air, public, params.clone(), &u);
     (c, u, params)
+}
+
+/// [E2E-D D-6] `tree-arity CERTS EXCLUSIONS RUN_DIR ARITIES PROVE_ARITY CLASS_DIR...`: the cost of
+/// an `a`-ary node over the leaf proofs of a finished `tree-prove` run (`RUN_DIR/LEAF*.proof`,
+/// `TREE.vk.json`; the run's chunk is the class whose `L4` the run's leaf 0 normalised: the first
+/// class dir whose ctx matches). For each `a` in ARITIES: generate (never prove) the node's trace at
+/// natural heights in a circuit large enough for it (`NvAir` 2^23, program 2^22) over the leaves
+/// `i mod n` (when `a > n` the children repeat, so the range statements do not chain: the program
+/// and its trace shape are measured, not a valid node), and print program rows, used rows per AIR,
+/// SHA-384 compressions and the shape pin. PROVE_ARITY `p` (0 = none, `p <= n`): also prove the
+/// valid `p`-ary node over leaves `0..p` at natural heights (`NvAir` 2^21, program 2^20, the tree
+/// layer's parameters) and report its size, time and native verification. Nothing of the run is
+/// changed.
+pub fn tree_arity(certs: &str, exclusions: &str, run: &Path, arities: &str, prove_arity: usize, classes: &[String]) {
+    let tparams = profile::params_geom(false, certs, exclusions, profile::tree_geom());
+    let parent = Sha384CpuEngine::new(tparams);
+    let chain_engine = Sha384CpuEngine::new(profile::params(false, certs, exclusions));
+    let k = parent.config().params().k_whir();
+    let probe = {
+        let mut c = NvCircuit::new(k, LOG_ROWS, 1);
+        c.program_part = true;
+        c.prog_log = PROG_LOG;
+        c
+    };
+    // the template set exactly as tree-prove builds it
+    let mut set = vec![];
+    let mut tmpl = vec![];
+    for (i, dir) in classes.iter().enumerate() {
+        let d = Path::new(dir);
+        let vk = read_vk(&d.join("L4.vk.json"));
+        let p = read_proof(&d.join("L4.proof"));
+        chain_engine.verify(&vk, &p).expect("template L4 proof");
+        let anchor = (p.public_values[0][0].as_canonical_u32(), root_of(&p));
+        let (mats, _) = probe.generate_with(|b| {
+            build_norm(b, &vk, &p, anchor, F::ZERO, i as u32);
+        });
+        set.push(program_commitment(parent.config(), &mats[0]));
+        tmpl.push(p.public_values[0][1..19].to_vec());
+    }
+    let tvk = read_vk(&run.join("TREE.vk.json"));
+    let mut leaves = vec![];
+    while run.join(format!("LEAF{}.proof", leaves.len())).exists() {
+        let p = read_proof(&run.join(format!("LEAF{}.proof", leaves.len())));
+        parent.verify(&tvk, &p).expect("leaf proof");
+        leaves.push((tvk.clone(), p));
+    }
+    let n = leaves.len();
+    assert!(n >= 2, "need the run's leaves");
+    // leaf 0 = the template leaf of class c over ctx; leaves 1.. = PAD
+    let (class, ctx) = (0..classes.len())
+        .find_map(|c| {
+            let ctx = tmpl[c].clone();
+            let s = RangeStmt { ctx: ctx.clone(), a: F::ZERO, e: F::ONE, s_a: vec![F::from_u32(t::PHASE_INIT), F::from_usize(c)], s_e: vec![F::from_u32(t::PHASE_DONE), F::from_usize(c)] };
+            openvm_recursion_circuit::nv::agg::check_range_statement(&leaves[0].1.public_values[0], &s).then_some((c, ctx))
+        })
+        .expect("leaf 0 is no class's template leaf");
+    let done = vec![F::from_u32(t::PHASE_DONE), F::from_usize(class)];
+    let stmts: Vec<RangeStmt> = (0..n)
+        .map(|i| {
+            if i == 0 {
+                RangeStmt { ctx: ctx.clone(), a: F::ZERO, e: F::ONE, s_a: vec![F::from_u32(t::PHASE_INIT), F::from_usize(class)], s_e: done.clone() }
+            } else {
+                RangeStmt { ctx: ctx.clone(), a: F::from_usize(i), e: F::from_usize(i + 1), s_a: done.clone(), s_e: done.clone() }
+            }
+        })
+        .collect();
+    for (i, (_, p)) in leaves.iter().enumerate() {
+        assert!(openvm_recursion_circuit::nv::agg::check_range_statement(&p.public_values[0], &stmts[i]), "leaf {i} statement");
+    }
+    println!("TREE_ARITY_LEAVES n={n} class={class} heights={:?}", vd::proof_heights(&leaves[0].1));
+    for a in arities.split(',').map(|x| x.trim().parse::<usize>().unwrap()) {
+        let t0 = std::time::Instant::now();
+        let mut c = NvCircuit::new(k, 23, 1);
+        c.program_part = true;
+        c.prog_log = 22;
+        let refs: Vec<(&MultiStarkVerifyingKey<SC>, &Proof<SC>)> = (0..a).map(|i| (&leaves[i % n].0, &leaves[i % n].1)).collect();
+        let pre: Vec<RangeStmt> = (0..a).map(|i| stmts[i % n].clone()).collect();
+        let (mats, b) = c.generate_with(|b| {
+            build_node(b, &refs, &pre, &set);
+        });
+        let used = openvm_recursion_circuit::nv::circuit::natural_tight_heights(&mats, 2);
+        let (pin, info) = shape_pinned_heights(&mats, &b, 2, FINAL_PIN_EPS_BITS);
+        println!(
+            "TREE_ARITY_PROBE arity={a} distinct_children={} program_rows={} used_rows={used:?} sha_compressions={} shape_pin={pin:?} info={info:?} failures={} gen_s={:.1}",
+            a.min(n),
+            b.instrs.len(),
+            used[1] / openvm_recursion_circuit::sha384::compress4_air::ROWS,
+            b.failures.len(),
+            t0.elapsed().as_secs_f64()
+        );
+    }
+    if prove_arity >= 2 {
+        assert!(prove_arity <= n, "a valid node needs distinct consecutive leaves");
+        let t0 = std::time::Instant::now();
+        let mut c = NvCircuit::new(k, 21, 1);
+        c.program_part = true;
+        c.prog_log = 20;
+        let refs: Vec<(&MultiStarkVerifyingKey<SC>, &Proof<SC>)> = leaves[..prove_arity].iter().map(|(a, b)| (a, b)).collect();
+        let mut s = None;
+        let (mats, b) = c.generate_with(|b| {
+            s = Some(build_node(b, &refs, &stmts[..prove_arity], &set));
+        });
+        assert!(b.failures.is_empty(), "node: {:?}", b.failures);
+        let gen_s = t0.elapsed().as_secs_f64();
+        let (v, p, shapes) = prove_mats(&c, &parent, mats, &b);
+        assert!(openvm_recursion_circuit::nv::agg::check_range_statement(&p.public_values[0], s.as_ref().unwrap()));
+        let bytes = save_proof(&run.join(format!("ARITY{prove_arity}_NODE.proof")), &p);
+        println!(
+            "TREE_ARITY_PROVED arity={prove_arity} program_rows={} heights={:?} shapes={shapes:?} bytes={bytes} gen_s={gen_s:.1} total_s={:.1} verified=native",
+            b.instrs.len(),
+            vd::proof_heights(&p),
+            t0.elapsed().as_secs_f64()
+        );
+        drop(v);
+    }
 }
 
 pub fn tree_prove(air: &str, public: &str, out: &Path, chunk: &Path, classes: &[String], certs: &str, exclusions: &str, arity: usize, depth: usize) {
@@ -129,32 +252,50 @@ pub fn tree_prove(air: &str, public: &str, out: &Path, chunk: &Path, classes: &[
     };
     let mut templates = vec![];
     let mut leaf_pins: Vec<Vec<vd::PinnedHeight>> = vec![];
-    let mut target: Option<(MultiStarkVerifyingKey<SC>, Proof<SC>, (u32, Digest))> = None;
+    let mut target: Option<(MultiStarkVerifyingKey<SC>, Proof<SC>, (u32, Digest), u32)> = None;
+    // [E2E-D D-6] NEARPROOF_TREE_TEMPLATE=base: the template is the class's standalone base proof
+    // itself, verified by the leaf (`build_base_leaf`: the lane A/B leaf prototype), not a chain
+    // level; the anchor is then (0, 0) (no program binding: the child has no NV program)
+    let base_tmpl = template_kind_base();
     for dir in classes {
         let d = Path::new(dir);
-        let vk = read_vk(&d.join("L4.vk.json"));
-        let p = read_proof(&d.join("L4.proof"));
-        chain_engine.verify(&vk, &p).expect("template L4 proof");
-        let level = p.public_values[0][0].as_canonical_u32();
-        let anchor = (level, root_of(&p));
+        let ci = templates.len() as u32;
+        let (vk, p, anchor) = if base_tmpl {
+            let (vk, p) = load_base(d);
+            (vk, p, (0u32, Digest::default()))
+        } else {
+            let vk = read_vk(&d.join("L4.vk.json"));
+            let p = read_proof(&d.join("L4.proof"));
+            chain_engine.verify(&vk, &p).expect("template L4 proof");
+            let anchor = (p.public_values[0][0].as_canonical_u32(), root_of(&p));
+            (vk, p, anchor)
+        };
+        let level = anchor.0;
         let t0 = std::time::Instant::now();
         let (mats, b) = probe.generate_with(|b| {
-            build_norm(b, &vk, &p, anchor, F::ZERO, templates.len() as u32);
+            if base_tmpl {
+                build_base_leaf(b, &vk, &p, F::ZERO, ci);
+            } else {
+                build_norm(b, &vk, &p, anchor, F::ZERO, ci);
+            }
         });
-        assert!(b.failures.is_empty(), "normaliser {dir}: {:?}", b.failures);
+        assert!(b.failures.is_empty(), "template leaf {dir}: {:?}", b.failures);
         let c_norm = program_commitment(parent.config(), &mats[0]);
         let (pin, info) = shape_pinned_heights(&mats, &b, 2, FINAL_PIN_EPS_BITS);
         let name = d.file_name().unwrap().to_string_lossy().to_string();
-        println!("TREE_TEMPLATE {name} level={level} rows={} pin={pin:?} info={info:?} s={:.1}", b.instrs.len(), t0.elapsed().as_secs_f64());
+        println!("TREE_TEMPLATE {name} kind={} level={level} rows={} pin={pin:?} info={info:?} s={:.1}", if base_tmpl { "base" } else { "chain" }, b.instrs.len(), t0.elapsed().as_secs_f64());
         leaf_pins.push(pin);
         templates.push(TemplateEntry { name, anchor, c_norm });
         if d.canonicalize().unwrap() == chunk.canonicalize().unwrap() {
-            target = Some((vk, p, anchor));
+            target = Some((vk, p, anchor, ci));
         }
     }
-    let (tvk, tp, tanchor) = target.expect("the chunk must be one of the template classes");
-    let ctx: Vec<F> = tp.public_values[0][1..19].to_vec();
-    let class = templates.iter().position(|t| t.anchor == tanchor).unwrap() as u32;
+    let (tvk, tp, tanchor, class) = target.expect("the chunk must be one of the template classes");
+    let ctx: Vec<F> = if base_tmpl {
+        t::ctx_of_digest(d0a_claim(air, public, chunk).0.digest())
+    } else {
+        tp.public_values[0][1..19].to_vec()
+    };
     let done = vec![F::from_u32(t::PHASE_DONE), F::from_u32(class)];
     let (mats, b) = probe.generate_with(|b| {
         build_pad(b, &ctx, F::ONE, &done);
@@ -172,6 +313,13 @@ pub fn tree_prove(air: &str, public: &str, out: &Path, chunk: &Path, classes: &[
             assert_eq!(f.tree.templates, templates, "template set differs from the fixed setup's");
             assert_eq!(f.tree.c_pad, c_pad, "PAD program differs from the fixed setup's");
             assert_eq!((f.tree.arity, f.tree.depth), (arity, depth), "tree shape differs from the fixed setup's");
+            // [E2E-D D-6] NEARPROOF_TREE_TEMPLATES_ONLY=1: stop once the template set (every
+            // class's anchor (M, C_M) and normaliser root) and PAD equal the fixed setup's; the
+            // rest of the setup is a function of these, the arity and the depth
+            if std::env::var("NEARPROOF_TREE_TEMPLATES_ONLY").is_ok_and(|v| v == "1") {
+                println!("TREE_TEMPLATES_MATCH_FIXED_SETUP {:?}", templates.iter().map(|t| (&t.name, t.anchor.0)).collect::<Vec<_>>());
+                return;
+            }
             f.tree.heights.clone()
         }
         None => {
@@ -205,7 +353,11 @@ pub fn tree_prove(air: &str, public: &str, out: &Path, chunk: &Path, classes: &[
         let (mats, b, stmt) = if i == 0 {
             let mut s = None;
             let (m, b) = lc.generate_with(|b| {
-                s = Some(build_norm(b, &tvk, &tp, tanchor, F::ZERO, class));
+                s = Some(if base_tmpl {
+                    build_base_leaf(b, &tvk, &tp, F::ZERO, class)
+                } else {
+                    build_norm(b, &tvk, &tp, tanchor, F::ZERO, class)
+                });
             });
             (m, b, s.unwrap())
         } else {
@@ -217,7 +369,7 @@ pub fn tree_prove(air: &str, public: &str, out: &Path, chunk: &Path, classes: &[
         };
         let (v, p, _) = prove_mats(&lc, &parent, mats, &b);
         assert_eq!(vd::proof_heights(&p).unwrap(), h, "leaf {i}: heights differ from the tree pin");
-        assert_eq!(root_of(&p), set[if i == 0 { templates.iter().position(|t| t.anchor == tanchor).unwrap() } else { set.len() - 1 }], "leaf {i}: program root not its template's");
+        assert_eq!(root_of(&p), set[if i == 0 { class as usize } else { set.len() - 1 }], "leaf {i}: program root not its template's");
         assert!(openvm_recursion_circuit::nv::agg::check_range_statement(&p.public_values[0], &stmt));
         let bytes = save_proof(&out.join(format!("LEAF{i}.proof")), &p);
         let s = t0.elapsed().as_secs_f64();
@@ -393,12 +545,36 @@ pub fn tree_prove(air: &str, public: &str, out: &Path, chunk: &Path, classes: &[
     }
     fp.encode(&mut packet).unwrap();
     std::fs::write(out.join("WRAP.bundle"), &packet).unwrap();
-    let zk_ok = setup.final_vk.inner.params.whir.levers.zk == 6 && setup.base_params.iter().all(|p| p.whir.levers.zk >= 1);
+    let zk_masked = setup.final_vk.inner.params.whir.levers.zk == 6 && setup.base_params.iter().all(|p| p.whir.levers.zk >= 1);
+    // [E2E-D D-6] the template set must be a function of the classes' shapes: every class's chain
+    // ran with shape floors at every level (review-D4 F2; ZK-ARGUMENT 7.1, 10.1). Provenance is the
+    // chain log of the run that made the class's L4 (`L1_SHAPE_FLOOR`, printed only with
+    // NEARPROOF_CHAIN_SHAPE_FLOORS on).
+    let shape_floored: Vec<bool> = classes
+        .iter()
+        .map(|d| base_tmpl || std::fs::read_to_string(Path::new(d).join("chain.log")).is_ok_and(|s| s.contains("L1_SHAPE_FLOOR")))
+        .collect();
+    let zk_ok = zk_masked && shape_floored.iter().all(|&x| x);
+    // shape-pin aborts the prover can hit for this packet, each <= 2^-192 (ZK-ARGUMENT 10.1): the
+    // chunk's chain levels L1..L_M (shape floors), every tree proof, the wrap
+    let tree_proofs: usize = (0..=depth).map(|l| arity.pow(l as u32)).sum();
+    let abort_terms = tanchor.0 as usize + tree_proofs + 1;
+    let zk_scope = if zk_ok {
+        format!(
+            "statistical zero knowledge of the tree-wrap packet for the statement (claim, hint, class, setup), classical programmable ROM: eps_ZK <= 2^-184.4 + {abort_terms} x 2^-192 (shape-pin aborts), ZK-ARGUMENT.md 6.4, 7.1, 10.1; the setup is one for all chunks (a function of the template classes' shapes, the arity and the depth); the packet reveals the template class (the chunk's D0a shape class); QROM: ZK-ARGUMENT.md 6.5 (the base point u is open)"
+        )
+    } else if zk_masked {
+        format!("none: a template class was not proved with shape floors {shape_floored:?}")
+    } else {
+        "none: wrap not zk-masked".into()
+    };
     let result = serde_json::json!({
-        "scope": "D0a template, chunk-independent tree + wrap (D-5)",
+        "scope": "D0a template, chunk-independent tree + wrap (D-6)",
         "security_established": false,
-        "zero_knowledge_established": false,
-        "zero_knowledge_note": if zk_ok { "wrap zk = 6 with shape-pinned heights and a chunk-independent setup; the ZK claim is not extended to the tree run (ZK-ARGUMENT 10)" } else { "wrap not zk-masked" },
+        "zero_knowledge_established": zk_ok,
+        "zero_knowledge_scope": zk_scope,
+        "templates_shape_floored": shape_floored,
+        "template_kind": if base_tmpl { "base (the class base proof, build_base_leaf)" } else { "chain (the class chain L4, build_norm)" },
         "arity": arity, "depth": depth, "leaves": n,
         "wrap_proof_bytes": proof_bytes, "hint_bytes": hint.len(), "bundle_bytes": packet.len(),
         "setup_bytes": setup_bytes.len(), "setup_sha256": pin,

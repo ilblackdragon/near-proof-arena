@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# E2E-D milestone D-5 (2026-11-03): chunk-independent aggregation tree + ZK wrap on D0a chunks.
+# E2E-D milestone D-5 (2026-11-03; D-6: CLASS_ROOT, TAG, OUT_ROOT): chunk-independent aggregation tree + ZK wrap on D0a chunks.
 # Leaves: the chunk's D0a template leaf (normaliser of its converged chain proof L4) + PAD leaves
 # up to ARITY^DEPTH; DEPTH levels of ARITY-ary nodes; the wrap (final domain, zk = 6, heights
 # pinned from the shape). The template set holds all three D0a shape classes + PAD, so the wrap
@@ -11,7 +11,9 @@ HERE=$(cd "$(dirname "$0")" && pwd)
 ROOT=$(cd "$HERE/../../../.." && pwd)
 D=${NEARPROOF_PQ_DEPS:-/data/illia/nearproof-deps/pq-e2e-d5}
 B=${PROVER:-$D/target/release/nearproof-chunk-e2e}
-E=/data/illia/nearproof-deps/pq-e2e-d/e2e
+# the template class dirs (each: L4.proof + L4.vk.json + chain.log, BASE.*, public, hint.bin). D-6:
+# CLASS_ROOT=pq-e2e-d6/classes (chains with shape floors); default: the D-4 chains of D-5
+E=${CLASS_ROOT:-/data/illia/nearproof-deps/pq-e2e-d/e2e}
 C=/data/illia/nearproof-deps/corpora
 K=$ROOT/research/near-compression/final-soundness
 AIR=$ROOT/examples/np-udr-stark-v2/source/near-air-v3.json
@@ -29,7 +31,7 @@ export NEARPROOF_CHAIN_GEOM=ns19lb6 NEARPROOF_TAPE_EVAL=1 NEARPROOF_ZK=1 NEARPRO
 export NEARPROOF_TREE_GEOM=${NEARPROOF_TREE_GEOM:-ns20lb5}
 SETUP_ENV=()
 for c in ${CHUNKS:-d1_00-h10006-s3 d2_05-h10042-s3}; do
-  R=$D/$TAG/$c
+  R=${OUT_ROOT:-$D}/$TAG/$c
   rm -rf "$R"; mkdir -p "$R"
   echo "LOAD_BEFORE $c $(cut -d' ' -f1-3 /proc/loadavg)"
   # shellcheck disable=SC2086
