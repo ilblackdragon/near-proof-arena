@@ -1,0 +1,24 @@
+TREE_PARAMS n_stack=20 log_blowup=5 queries=[54, 41, 31, 25] sha_cap_log=22
+TREE_TEMPLATE class=0 kind=base rows=198652 pin=[(19, Some(373456)), (21, Some(1159040)), (7, Some(128)), (16, Some(65536))] base_vk=7277dec39c16dac0 s=37.3
+TREE_TEMPLATE class=1 kind=base rows=185080 pin=[(19, Some(342016)), (20, Some(987648)), (7, Some(128)), (16, Some(65536))] base_vk=dfbad8e3378b5167 s=38.1
+TREE_TEMPLATE_CONFIRMED class=0 by=/data/illia/nearproof-deps/pq-e2e-d7/bclass/d1_00-h10013-s1
+TREE_TEMPLATE_CONFIRMED class=1 by=/data/illia/nearproof-deps/pq-e2e-d7/bclass/d1_00-h10027-s0
+TREE_CHUNK_CLASS class=1 confirmations_per_class=[2, 2]
+TREE_PAD_LEAF rows=1086 pin=[(19, Some(1648)), (8, Some(256)), (7, Some(128)), (16, Some(65536))]
+TREE_LEAF_HEIGHTS [(19, Some(373456)), (21, Some(1159040)), (7, Some(128)), (16, Some(65536))]
+TREE_LEAF 0 rows=185080 bytes=366009 seconds=343.5
+TREE_LEAF 1 rows=1086 bytes=364959 seconds=361.4
+TREE_NODE_GEOM Geom { log_rows: 20, prog_log: 19, sha_instances: 1, heights: [(20, Some(715952)), (22, Some(2513424)), (7, Some(128)), (16, Some(65536))] }
+TREE_PAD_NODE rows=1598
+TREE_NODE L2_0 kind=P2 rows=331638 shape_pin=[(20, Some(650864)), (22, Some(2284928)), (7, Some(128)), (16, Some(65536))] info=[1234, 10909, 120960, 639955, 2163968]
+TREE_NODE_PROVED L2_0 bytes=399393 seconds=555.2
+TREE_PAD_NODE_PROVED L2_1 bytes=399687 seconds=490.8
+TREE_NODE L3_0 kind=Pstar rows=345906 shape_pin=[(20, Some(678500)), (22, Some(2373888)), (7, Some(128)), (16, Some(65536))] info=[1295, 11606, 128768, 666891, 2245120]
+TREE_NODE_PROVED L3_0 bytes=398511 seconds=513.0
+TREE_PAD_NODE_PROVED L3_1 bytes=398343 seconds=508.9
+TREE_NODE L4_0 kind=Pstar rows=345906 shape_pin=[(20, Some(678500)), (22, Some(2373888)), (7, Some(128)), (16, Some(65536))] info=[1295, 11606, 128768, 666891, 2245120]
+TREE_NODE_PROVED L4_0 bytes=398763 seconds=511.7
+WRAP_NEGATIVE_CONTROLS_OK wrong_ctx wrong_class changed_program changed_heights changed_level
+TREE_FIXED_SETUP_IDENTICAL
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 1:08:15
+	Maximum resident set size (kbytes): 20567680

@@ -1,0 +1,23 @@
+TREE_PARAMS n_stack=20 log_blowup=5 queries=[54, 41, 31, 25] sha_cap_log=22
+TREE_TEMPLATE class=0 kind=base rows=198652 pin=[(19, Some(373456)), (21, Some(1159040)), (7, Some(128)), (16, Some(65536))] base_vk=7277dec39c16dac0 s=36.8
+TREE_TEMPLATE class=1 kind=base rows=185080 pin=[(19, Some(342016)), (20, Some(987648)), (7, Some(128)), (16, Some(65536))] base_vk=dfbad8e3378b5167 s=35.7
+TREE_TEMPLATE_CONFIRMED class=0 by=/data/illia/nearproof-deps/pq-e2e-d7/bclass/d1_00-h10013-s1
+TREE_TEMPLATE_CONFIRMED class=1 by=/data/illia/nearproof-deps/pq-e2e-d7/bclass/d1_00-h10027-s0
+TREE_CHUNK_CLASS class=0 confirmations_per_class=[2, 2]
+TREE_PAD_LEAF rows=1086 pin=[(19, Some(1648)), (8, Some(256)), (7, Some(128)), (16, Some(65536))]
+TREE_LEAF_HEIGHTS [(19, Some(373456)), (21, Some(1159040)), (7, Some(128)), (16, Some(65536))]
+TREE_LEAF 0 reused=/data/illia/nearproof-deps/pq-e2e-d7/tree-a3d1/d1_00-h10006-s3/LEAF0.proof
+TREE_LEAF 1 reused=/data/illia/nearproof-deps/pq-e2e-d7/tree-a3d1/d1_00-h10006-s3/LEAF1.proof
+TREE_LEAF 2 reused=/data/illia/nearproof-deps/pq-e2e-d7/tree-a3d1/d1_00-h10006-s3/LEAF2.proof
+TREE_LEAF 3 rows=1086 bytes=365799 seconds=371.7
+TREE_NODE2_SIZES rows=663936 nv_used=1290004 sha_used=4442888 -> geom=(21,20,2)
+TREE_NODE2_PROBE geom=(21,20,2) rows=661888 pin=[(21, Some(1299216)), (22, Some(4194304)), (7, Some(128)), (16, Some(65536)), (19, Some(371968))] info=[2154, 21401, 238592, 1277812, 4327680]
+TREE_NODE_GEOM Geom { log_rows: 21, prog_log: 20, sha_instances: 2, heights: [(21, Some(1299216)), (22, Some(4194304)), (7, Some(128)), (16, Some(65536)), (19, Some(371968))] }
+TREE_PAD_NODE rows=2622
+TREE_NODE L2_0 kind=P2 rows=661888 shape_pin=[(21, Some(1299216)), (22, Some(4194304)), (7, Some(128)), (16, Some(65536)), (19, Some(371968))] info=[2154, 21401, 238592, 1277812, 4327680]
+TREE_NODE_PROVED L2_0 bytes=454821 seconds=699.2
+TREE_STAR_PROBE arity=4 rows=748096 shape_pin=[(21, Some(1459060)), (22, Some(4194304)), (7, Some(128)), (16, Some(65536)), (20, Some(817792))] info=[2379, 24168, 269696, 1434892, 4742400] fits_node_pin=false gen_s=1.0
+WRAP_SHAPE_PIN [(20, Some(364716)), (21, Some(1255424)), (7, Some(128)), (16, Some(65536))] info=[801, 6318, 69632, 358396, 1185792]
+WRAP_NEGATIVE_CONTROLS_OK wrong_ctx wrong_class changed_program changed_heights changed_level
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 30:54.56
+	Maximum resident set size (kbytes): 26628100

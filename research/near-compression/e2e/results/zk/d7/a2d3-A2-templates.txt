@@ -1,0 +1,4 @@
+TREE_TEMPLATE class=0 kind=base rows=198652 pin=[(19, Some(373456)), (21, Some(1159040)), (7, Some(128)), (16, Some(65536))] base_vk=7277dec39c16dac0 s=35.2
+TREE_TEMPLATE class=1 kind=base rows=185080 pin=[(19, Some(342016)), (20, Some(987648)), (7, Some(128)), (16, Some(65536))] base_vk=dfbad8e3378b5167 s=35.7
+TREE_CHUNK_CLASS class=0 confirmations_per_class=[2, 2]
+TREE_TEMPLATES_MATCH_FIXED_SETUP classes=2

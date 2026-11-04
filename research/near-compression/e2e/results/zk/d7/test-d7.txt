@@ -1,0 +1,28 @@
+TREE_D7_POSITIVE_OK base leaf (honest) host_failures=[]
+TREE_D7_POSITIVE_OK base leaf: forged body, untampered (control) host_failures=[]
+thread '<unnamed>' (1288340) panicked at /data/illia/nearproof-deps/pq-e2e-d7/stark-backend-unified/crates/stark-backend/src/air_builders/debug/mod.rs:75:9:
+TREE_D7_DEBUG_REJECTED base leaf: exposed ctx limb != captured digest
+thread '<unnamed>' (1288340) panicked at /data/illia/nearproof-deps/pq-e2e-d7/stark-backend-unified/crates/stark-backend/src/air_builders/debug/mod.rs:75:9:
+TREE_D7_DEBUG_REJECTED base leaf: captured digest replaced by another statement's
+TREE_D7_LEAF_PIN [(19, Some(18816)), (17, Some(67840)), (7, Some(128)), (16, Some(65536))]
+TREE_D7_NODE_PIN [(19, Some(320256)), (21, Some(1457600)), (7, Some(128)), (16, Some(65536))]
+TREE_D7_POSITIVE_OK P_2 (honest, leaves at their own heights) host_failures=[]
+thread '<unnamed>' (1288341) panicked at /data/illia/nearproof-deps/pq-e2e-d7/stark-backend-unified/crates/stark-backend/src/air_builders/debug/mod.rs:75:9:
+thread '<unnamed>' (1288341) panicked at /data/illia/nearproof-deps/pq-e2e-d7/stark-backend-unified/crates/stark-backend/src/air_builders/debug/mod.rs:75:9:
+TREE_D7_DEBUG_REJECTED P_2: a leaf of another class (program not in the set)
+TREE_D7_POSITIVE_OK P_* level 3 (honest: P_2 + PAD_N at level 2) host_failures=[]
+thread '<unnamed>' (1288340) panicked at /data/illia/nearproof-deps/pq-e2e-d7/stark-backend-unified/crates/stark-backend/src/air_builders/debug/mod.rs:75:9:
+TREE_D7_DEBUG_REJECTED P_* level 3: PAD_N not in the level-2 anchor set
+TREE_D7_POSITIVE_OK P_* level 4 (honest: BIND child 0, PAD_N sibling) host_failures=[]
+thread '<unnamed>' (1288341) panicked at /data/illia/nearproof-deps/pq-e2e-d7/stark-backend-unified/crates/stark-backend/src/air_builders/debug/mod.rs:75:9:
+thread '<unnamed>' (1288341) panicked at /data/illia/nearproof-deps/pq-e2e-d7/stark-backend-unified/crates/stark-backend/src/air_builders/debug/mod.rs:75:9:
+TREE_D7_DEBUG_REJECTED P_* level 4: PAD alternative is another root
+thread '<unnamed>' (1288341) panicked at /data/illia/nearproof-deps/pq-e2e-d7/stark-backend-unified/crates/stark-backend/src/air_builders/debug/mod.rs:75:9:
+thread '<unnamed>' (1288341) panicked at /data/illia/nearproof-deps/pq-e2e-d7/stark-backend-unified/crates/stark-backend/src/air_builders/debug/mod.rs:75:9:
+thread '<unnamed>' (1288341) panicked at /data/illia/nearproof-deps/pq-e2e-d7/stark-backend-unified/crates/stark-backend/src/air_builders/debug/mod.rs:75:9:
+thread '<unnamed>' (1288341) panicked at /data/illia/nearproof-deps/pq-e2e-d7/stark-backend-unified/crates/stark-backend/src/air_builders/debug/mod.rs:75:9:
+TREE_D7_DEBUG_REJECTED P_* level 4: PAD_N as child 0 (BIND)
+TREE_D7_OK
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 109 filtered out; finished in 3592.15s
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 59:52.19
+	Maximum resident set size (kbytes): 15243504
