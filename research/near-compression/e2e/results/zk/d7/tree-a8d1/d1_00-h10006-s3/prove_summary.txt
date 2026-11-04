@@ -1,0 +1,27 @@
+TREE_PARAMS n_stack=20 log_blowup=5 queries=[54, 41, 31, 25] sha_cap_log=22
+TREE_TEMPLATE class=0 kind=base rows=198652 pin=[(19, Some(373456)), (21, Some(1159040)), (7, Some(128)), (16, Some(65536))] base_vk=7277dec39c16dac0 s=35.7
+TREE_TEMPLATE class=1 kind=base rows=185080 pin=[(19, Some(342016)), (20, Some(987648)), (7, Some(128)), (16, Some(65536))] base_vk=dfbad8e3378b5167 s=36.2
+TREE_TEMPLATE_CONFIRMED class=0 by=/data/illia/nearproof-deps/pq-e2e-d7/bclass/d1_00-h10013-s1
+TREE_TEMPLATE_CONFIRMED class=1 by=/data/illia/nearproof-deps/pq-e2e-d7/bclass/d1_00-h10027-s0
+TREE_CHUNK_CLASS class=0 confirmations_per_class=[2, 2]
+TREE_PAD_LEAF rows=1086 pin=[(19, Some(1648)), (8, Some(256)), (7, Some(128)), (16, Some(65536))]
+TREE_LEAF_HEIGHTS [(19, Some(373456)), (21, Some(1159040)), (7, Some(128)), (16, Some(65536))]
+TREE_LEAF 0 reused=/data/illia/nearproof-deps/pq-e2e-d7/tree-a4d1/d1_00-h10006-s3/LEAF0.proof
+TREE_LEAF 1 reused=/data/illia/nearproof-deps/pq-e2e-d7/tree-a4d1/d1_00-h10006-s3/LEAF1.proof
+TREE_LEAF 2 reused=/data/illia/nearproof-deps/pq-e2e-d7/tree-a4d1/d1_00-h10006-s3/LEAF2.proof
+TREE_LEAF 3 reused=/data/illia/nearproof-deps/pq-e2e-d7/tree-a4d1/d1_00-h10006-s3/LEAF3.proof
+TREE_LEAF 4 rows=1086 bytes=366345 seconds=364.1
+TREE_LEAF 5 rows=1086 bytes=366681 seconds=387.8
+TREE_LEAF 6 rows=1086 bytes=365967 seconds=347.8
+TREE_LEAF 7 rows=1086 bytes=365211 seconds=350.7
+TREE_NODE2_SIZES rows=1322388 nv_used=2572348 sha_used=8892804 -> geom=(22,21,3)
+TREE_NODE2_PROBE geom=(22,21,3) rows=1322388 pin=[(22, Some(2595756)), (22, Some(4194304)), (7, Some(128)), (16, Some(65536)), (22, Some(4194304)), (20, Some(739072))] info=[3882, 42229, 472576, 2553526, 8655104]
+TREE_NODE_GEOM Geom { log_rows: 22, prog_log: 21, sha_instances: 3, heights: [(22, Some(2595756)), (22, Some(4194304)), (7, Some(128)), (16, Some(65536)), (22, Some(4194304)), (20, Some(739072))] }
+TREE_PAD_NODE rows=4670
+TREE_NODE L2_0 kind=P2 rows=1322388 shape_pin=[(22, Some(2595756)), (22, Some(4194304)), (7, Some(128)), (16, Some(65536)), (22, Some(4194304)), (20, Some(739072))] info=[3882, 42229, 472576, 2553526, 8655104]
+TREE_NODE_PROVED L2_0 bytes=570813 seconds=1082.3
+TREE_STAR_PROBE arity=8 rows=1698204 shape_pin=[(22, Some(3286200)), (22, Some(4194304)), (7, Some(128)), (16, Some(65536)), (22, Some(4194304)), (22, Some(2637312))] info=[4529, 50573, 566528, 3235626, 10459392] fits_node_pin=false gen_s=2.1
+WRAP_SHAPE_PIN [(20, Some(411140)), (21, Some(1381376)), (7, Some(128)), (16, Some(65536))] info=[835, 6684, 73728, 404453, 1307648]
+WRAP_NEGATIVE_CONTROLS_OK wrong_ctx wrong_class changed_program changed_heights changed_level
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 55:45.01
+	Maximum resident set size (kbytes): 39574952

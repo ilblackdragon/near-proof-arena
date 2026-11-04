@@ -1,0 +1,7 @@
+PRECHECK OK: every constraint on every row; every bus balances (9582 distinct messages)
+BASE_CLASS_HEIGHTS_OK name=A airs=26
+BASE_VERIFIED bytes=513502
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 5:21.39
+	Maximum resident set size (kbytes): 9126960
+07886a0d9d6453ef04c46af75f7bbdd429ca6cefecee9635f1ec5a2daf93c0ff  BASE.proof
+7277dec39c16dac028af97ead010a190a4354a05dfe96d8231157dcdf3acf7db  BASE.vk.json

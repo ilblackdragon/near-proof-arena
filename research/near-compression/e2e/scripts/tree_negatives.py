@@ -39,7 +39,10 @@ def verify(name, claim_path, bundle, setup_bytes=setup, setup_pin=pin, expect_ok
                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=600, env=env)
     (out / f'{name}.log').write_bytes(r.stdout)
     ok = r.returncode == 0 and b'INDEPENDENT_TREE_VERIFY_OK' in r.stdout
-    results[name] = {'accepted': ok, 'expected_accept': expect_ok, 'pass': ok == expect_ok,
+    # [D-7, review-D5] a rejection must be an error (TREE_VERIFY_REJECT, exit 1), never a panic
+    panicked = b'panicked at' in r.stdout
+    results[name] = {'accepted': ok, 'expected_accept': expect_ok, 'panicked': panicked,
+                     'pass': ok == expect_ok and not panicked,
                      'last': reason(r.stdout.decode(errors='replace'))}
     print(('PASS ' if ok == expect_ok else 'FAIL ') + name, results[name]['last'])
 
@@ -56,7 +59,7 @@ n = int.from_bytes(packet[8:16], 'little')
 cls = int.from_bytes(packet[16 + n:20 + n], 'little')
 body = 16 + n + 8 + 48 * int.from_bytes(packet[20 + n:24 + n], 'little')
 verify('flip_hint', claim, flip(packet, 16))
-for c in range(3):
+for c in range(len(json.loads(setup)['tree']['templates'])):
     if c != cls:
         # the other template classes (another base parameter set for ctx; D_wrap binds the class)
         verify(f'class_{c}', claim, packet[:16 + n] + c.to_bytes(4, 'little') + packet[20 + n:])
@@ -65,6 +68,12 @@ verify('flip_u', claim, flip(packet, 16 + n + 8))
 for k, off in enumerate([body + 10, body + 2000, len(packet) // 2, len(packet) - 40]):
     verify(f'flip_proof_{k}', claim, flip(packet, off))
 verify('truncated', claim, packet[:-1])
+# [D-7, review-D5] malformed framing: errors, not panics
+verify('hint_len_huge', claim, packet[:8] + (2**63).to_bytes(8, 'little') + packet[16:])
+verify('u_noncanonical', claim, packet[:16 + n + 8] + (0xffffffff).to_bytes(4, 'little') + packet[16 + n + 12:])
+verify('u_len_wrong', claim, packet[:20 + n] + (3).to_bytes(4, 'little') + packet[24 + n:])
+verify('proof_garbage', claim, packet[:body] + bytes(64))
+verify('cut_in_header', claim, packet[:18])
 verify('magic', claim, b'NPQTW01\0' + packet[8:])
 verify('wrong_pin', claim, packet, setup_pin='0' * 64)
 s = json.loads(setup)

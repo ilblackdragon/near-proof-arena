@@ -1,0 +1,25 @@
+== (1) CPU, this host, 8 threads: measured per-proof seconds ==
+  arity 2: node geometry (NvAir 2^20, program 2^19, 1 SHA instance(s)); node 265 M cells, leaf 126 M cells; template leaf 371 s, PAD_L 380 s, P_2 536 s, P_* 523 s, PAD_N 501 s, wrap 525 s; peak 20.6 GB; packet 328,349 B
+  arity 3: node geometry (NvAir 2^20, program 2^19, 1 SHA instance(s)); node 415 M cells, leaf 126 M cells; template leaf 371 s, PAD_L 374 s, P_2 557 s, P_* 640 s (P_*, PAD_N, P_2 at h_N = P_2 pin x 1.15 (no P_* probe): P_2 seconds x 1.15), PAD_N 640 s, wrap 498 s; peak 21.9 GB; packet 328,069 B
+  arity 4: node geometry (NvAir 2^21, program 2^20, 2 SHA instance(s)); node 542 M cells, leaf 126 M cells; template leaf 371 s, PAD_L 372 s, P_2 699 s, P_* 786 s (P_*, PAD_N, P_2 at h_N = max(P_2 pin, P_* probe pin) x 1.02: P_2 seconds x 1.12), PAD_N 786 s, wrap 488 s; peak 26.6 GB; packet 327,871 B
+  arity 8: node geometry (NvAir 2^22, program 2^21, 3 SHA instance(s)); node 1,197 M cells, leaf 126 M cells; template leaf 371 s, PAD_L 363 s, P_2 1082 s, P_* 1344 s (P_*, PAD_N, P_2 at h_N = max(P_2 pin, P_* probe pin) x 1.02: P_2 seconds x 1.24), PAD_N 1344 s, wrap 504 s; peak 39.6 GB; packet 331,885 B
+  node proof seconds ~ 298 s + 0.81 s per M committed cells (least squares over the P_2 proofs): a large fixed part, so per child a wider node is cheaper on CPU than its cells suggest
+  tree over N leaves (two node shapes, PAD at any level): CPU work (h, 8 threads) / critical path (min)
+    N=    8  a=2: d 3, 7 nodes + 0 PAD, 2.0 h / 41 min;  a=3: d 2, 4 nodes + 1 PAD, 1.8 h / 36 min;  a=4: d 2, 3 nodes + 2 PAD, 2.1 h / 40 min;  a=8: d 1, 1 nodes + 0 PAD, 1.3 h / 37 min
+    N=   64  a=2: d 6, 63 nodes + 0 PAD, 16.0 h / 67 min;  a=3: d 4, 34 nodes + 5 PAD, 13.5 h / 57 min;  a=4: d 3, 21 nodes + 0 PAD, 11.3 h / 54 min;  a=8: d 2, 9 nodes + 0 PAD, 10.1 h / 59 min
+    N=   94  a=2: d 7, 95 nodes + 2 PAD, 24.1 h / 76 min;  a=3: d 5, 50 nodes + 7 PAD, 19.8 h / 68 min;  a=4: d 4, 33 nodes + 6 PAD, 18.1 h / 67 min;  a=8: d 3, 15 nodes + 12 PAD, 19.4 h / 82 min
+    N=  512  a=2: d 9, 511 nodes + 0 PAD, 128.0 h / 94 min;  a=3: d 6, 258 nodes + 5 PAD, 99.6 h / 78 min;  a=4: d 5, 171 nodes + 2 PAD, 90.6 h / 80 min;  a=8: d 3, 73 nodes + 0 PAD, 80.1 h / 82 min
+    N= 1024  a=2: d 10, 1023 nodes + 0 PAD, 256.0 h / 102 min;  a=3: d 7, 515 nodes + 7 PAD, 198.3 h / 89 min;  a=4: d 5, 341 nodes + 0 PAD, 180.0 h / 80 min;  a=8: d 4, 147 nodes + 6 PAD, 162.7 h / 104 min
+
+== (2) PROJECTION (model only, not measured): 8 H200, arch b, adversarial workload, streaming ==
+  a base leaf over a 2^22-row segment (lb 1) verifies ~30,297 compressions vs 8,785 for the D0a base: leaf cells scaled by 3.45
+  100 Tgas: 25 segments of 2^22 rows, execution 0.12 s, base proof 0.22 s each (model); model's own tree (fan-in 8, lb 4): latency 9.02 s
+    arity 2: depth 5; per proof GPU-s: leaf 0.815, P_2 0.498, P_* 0.486, PAD_N 0.465, wrap 0.348; total 40.7 GPU-s; latency after execution 6.82 s
+    arity 3: depth 3; per proof GPU-s: leaf 0.815, P_2 0.777, P_* 0.777, PAD_N 0.777, wrap 0.355; total 36.9 GPU-s; latency after execution 6.72 s
+    arity 4: depth 3; per proof GPU-s: leaf 0.815, P_2 1.032, P_* 1.032, PAD_N 1.032, wrap 0.369; total 40.4 GPU-s; latency after execution 7.50 s
+    arity 8: depth 2; per proof GPU-s: leaf 0.815, P_2 2.312, P_* 2.312, PAD_N 2.312, wrap 0.408; total 48.8 GPU-s; latency after execution 9.07 s
+  1,000 Tgas: 94 segments of 2^22 rows, execution 1.20 s, base proof 0.47 s each (model); model's own tree (fan-in 8, lb 4): latency 20.45 s
+    arity 2: depth 7; per proof GPU-s: leaf 0.815, P_2 0.498, P_* 0.486, PAD_N 0.465, wrap 0.348; total 168.4 GPU-s; latency after execution 21.45 s
+    arity 3: depth 5; per proof GPU-s: leaf 0.815, P_2 0.777, P_* 0.777, PAD_N 0.777, wrap 0.355; total 164.0 GPU-s; latency after execution 21.53 s
+    arity 4: depth 4; per proof GPU-s: leaf 0.815, P_2 1.032, P_* 1.032, PAD_N 1.032, wrap 0.369; total 159.4 GPU-s; latency after execution 20.80 s
+    arity 8: depth 3; per proof GPU-s: leaf 0.815, P_2 2.312, P_* 2.312, PAD_N 2.312, wrap 0.408; total 179.1 GPU-s; latency after execution 23.90 s
