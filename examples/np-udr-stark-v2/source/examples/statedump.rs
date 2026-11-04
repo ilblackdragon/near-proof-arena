@@ -17,6 +17,12 @@
 //! honest `HoldsP` trace by check, not by assumption.  The floor of 4 rows is NV's minimum height.
 //! `--no-compact` keeps the classical heights.
 //!
+//! **Shape classes** (`--class=<class.json>`, lane E2E-D D-7): re-cut every table at the class's
+//! log height instead (`{"names": [...], "heights": [[log, tight], ...]}`, the PQ driver's
+//! `base-class` output; a table whose compact log exceeds the class's is an error), continuing the
+//! same padding progression, so all chunks of a class have identical table heights. Re-checked
+//! like every re-cut.
+//!
 //! Output (`out_dir`): `<table>.bin` (u32 LE `log_h`, `width`, then the row-major canonical
 //! cells), `pubs.bin` (the public vector, u32 LE), `pubmsgs.json` (`[[bus, send, [felts]], …]`),
 //! `prepared.bin` (the prepared public tape `cb'`), `claim.bin`, `hint.bin`, `heights.json`
@@ -86,6 +92,20 @@ fn recut(tc: &TraceCols, u: usize, delta: &[F], log2: usize) -> TraceCols {
     })
 }
 
+/// [E2E-D D-7] Grow `tc` to `log2` rows: rows `< u` unchanged, rows `u..H-1` copies of the first
+/// padding row `u`, and the render's last row kept last (for renders whose last padding row is
+/// distinguished). Re-checked by the caller.
+fn grow_keep_last(tc: &TraceCols, u: usize, log2: usize) -> TraceCols {
+    let h = tc.height();
+    let n = 1usize << log2;
+    TraceCols::from_rows(log2, tc.width(), |r, buf| {
+        let src = if r < u { r } else if r == n - 1 { h - 1 } else { u.min(h - 1) };
+        for (c, x) in buf.iter_mut().enumerate() {
+            *x = tc.get(src, c).as_canonical_u32();
+        }
+    })
+}
+
 fn main() {
     let a: Vec<String> = std::env::args().collect();
     if a.len() < 5 {
@@ -99,6 +119,13 @@ fn main() {
     let od = std::path::PathBuf::from(&a[4]);
     std::fs::create_dir_all(&od).unwrap();
     let compact = !a[5..].iter().any(|x| x == "--no-compact");
+    // [E2E-D D-7] --class=<class.json>: per-table target log heights
+    let class_logs: Option<std::collections::HashMap<String, usize>> = a[5..].iter().find_map(|x| x.strip_prefix("--class=")).map(|p| {
+        let v: serde_json::Value = serde_json::from_slice(&std::fs::read(p).unwrap()).unwrap();
+        let names = v["names"].as_array().expect("class names");
+        let hs = v["heights"].as_array().expect("class heights");
+        names.iter().zip(hs).map(|(n, h)| (n.as_str().unwrap().to_string(), h[0].as_u64().unwrap() as usize)).collect()
+    });
     let wanted: Vec<&str> = a[5..].iter().filter(|x| !x.starts_with("--")).map(|s| s.as_str()).collect();
     let (order, tape, hint, entries, new_tabs): (&[&str], Vec<u8>, Vec<u8>, _, Vec<npudr::v3::Tab>) = match mode {
         "d0a" => {
@@ -130,12 +157,38 @@ fn main() {
         assert!(bad.is_empty(), "{name}: classical constraint failure {bad:?}");
         let (u, delta) = pad_pattern(&tc0);
         let log0 = tc0.log_h;
-        let log2 = clog2(u + 1).max(2);
-        let tc = if compact && log2 != tc0.log_h {
+        let mut log2 = clog2(u + 1).max(2);
+        if let Some(cl) = &class_logs {
+            let c = *cl.get(name).unwrap_or_else(|| panic!("{name}: not in the class"));
+            assert!(log2 <= c, "{name}: compact log {log2} exceeds the class log {c}");
+            log2 = c;
+        }
+        let tc = if (compact || class_logs.is_some()) && log2 != tc0.log_h {
             let tc1 = recut(&tc0, u, &delta, log2);
             let bad = npudr::check::failing_constraints_cols(&air.tables[t], &tc1, &pubs, 10);
-            assert!(bad.is_empty(), "{name}: re-cut at log {log2} fails classical constraints {bad:?}");
-            tc1
+            // [E2E-D D-7] growing past the classical render: if the progression fails, try the
+            // other padding shape the renders use (constant padding row, distinguished last row)
+            let (tc1, bad) = if !bad.is_empty() && class_logs.is_some() && log2 > tc0.log_h {
+                let tc2 = grow_keep_last(&tc0, u, log2);
+                let bad2 = npudr::check::failing_constraints_cols(&air.tables[t], &tc2, &pubs, 10);
+                if bad2.is_empty() { eprintln!("statedump: {name}: grown with a constant padding row and the render's last row"); }
+                (tc2, bad2)
+            } else {
+                (tc1, bad)
+            };
+            if !bad.is_empty() && std::env::var("STATEDUMP_CLASS_PROBE").is_ok() {
+                // [E2E-D D-7] probe mode: report and keep the compact cut
+                for r in u.saturating_sub(2)..tc0.height() {
+                    let row: Vec<u32> = (0..tc0.width()).map(|c| tc0.get(r, c).as_canonical_u32()).collect();
+                    eprintln!("CLASS_ROW {name} {r} {:?}", row);
+                }
+                eprintln!("CLASS_RECUT_FAIL {name} classical_log {} used {u} class_log {log2} {:?}", tc0.log_h, &bad[..bad.len().min(3)]);
+                let l = clog2(u + 1).max(2);
+                if l != tc0.log_h { recut(&tc0, u, &delta, l) } else { tc0.clone() }
+            } else {
+                assert!(bad.is_empty(), "{name}: re-cut at log {log2} fails classical constraints {bad:?}");
+                tc1
+            }
         } else {
             tc0
         };

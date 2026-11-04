@@ -1203,7 +1203,7 @@
 +}
 --- a/openvm-sha384/crates/recursion/src/nv/tree.rs
 +++ b/openvm-sha384/crates/recursion/src/nv/tree.rs
-@@ -0,0 +1,249 @@
+@@ -0,0 +1,311 @@
 +//! [E2E-D D-5] Chunk-independent aggregation tree and the ZK wrap (plan §5.0.1).
 +//!
 +//! Every proof in the tree is an NV proof over the same AIR set, parameters and pinned trace
@@ -1378,6 +1378,68 @@
 +    RangeStmt { ctx: ctx.to_vec(), a, e: a + F::ONE, s_a: s.to_vec(), s_e: s.to_vec() }
 +}
 +
++/// [E2E-D D-7] Level of the first node shape `P_2` (children = leaves) and the anchor level of
++/// `P_*` (children at level 2 are `P_2` nodes or node-height PADs).
++pub const LEVEL_NODE2: u32 = 2;
++
++/// [E2E-D D-7] PAD at any level >= 2 (`PAD_N`, proved at the node heights): the identity on a
++/// done boundary like `build_pad`, but its level is a witness, so one program `C_padN` serves every
++/// level. A PAD's statement `(ctx, a, a + 1, s, s)` with `s.phase = done` is true at any level, so
++/// the level needs no binding; the nodes accept `C_padN` at level 2 through `P_*`'s anchor set and
++/// at levels >= 3 as a later sibling (`Builder::sibling_alt`; never as child 0, which is BIND-bound
++/// to `P_*`).
++pub fn build_pad_node(b: &mut Builder, ctx: &[F], a: F, s: &[F], level: u32) -> RangeStmt {
++    assert_eq!((ctx.len(), s.len()), (N_CTX, N_STATE));
++    assert!(level >= LEVEL_NODE2);
++    b.agg = true;
++    let ctx_c: Vec<V> = ctx.iter().map(|&x| b.load_f(x)).collect();
++    let av = b.load_f(a);
++    let one = b.c(F::ONE);
++    let e = b.add(av, one);
++    let sc: Vec<V> = s.iter().map(|&x| b.load_f(x)).collect();
++    let done = b.c(F::from_u32(PHASE_DONE));
++    b.assert_eq(sc[0], done, "PAD_N: boundary phase = done");
++    let cells = StmtCells { ctx: ctx_c, a: av, e, s_a: sc.clone(), s_e: sc };
++    let dc = hash_range(b, &cells);
++    let l = b.load_f(F::from_u32(level));
++    b.pv_level(l);
++    b.pv_digest(&dc);
++    RangeStmt { ctx: ctx.to_vec(), a, e: a + F::ONE, s_a: s.to_vec(), s_e: s.to_vec() }
++}
++
++/// [E2E-D D-7] First node shape `P_2` (level 2): `arity` children, all leaves at the leaf heights,
++/// each forced to level 1 and bound by the template set `{C_t} ∪ {C_padL}` (no BIND, so the
++/// leaves need not have the node's heights).
++pub fn build_node2(
++    b: &mut Builder,
++    children: &[(&MultiStarkVerifyingKey<Sha384Config>, &Proof<Sha384Config>)],
++    preimages: &[RangeStmt],
++    template_set: &[Digest],
++) -> RangeStmt {
++    b.anchor_set = Some((LEVEL_LEAF, template_set.to_vec()));
++    b.force_anchor = true;
++    let s = super::agg::build_agg(b, children, super::agg::ChildKind::Node { n_ctx: N_CTX, n_state: N_STATE }, preimages);
++    b.force_anchor = false;
++    s
++}
++
++/// [E2E-D D-7] Second node shape `P_*` (levels >= 3), children at the node heights: a child at
++/// level 2 is bound by the anchor set `{C_2, C_padN}`; at level >= 3 child 0 by BIND (program =
++/// this one) and every later child by `root_i = root_0` or `root_i = C_padN`.
++pub fn build_node_star(
++    b: &mut Builder,
++    children: &[(&MultiStarkVerifyingKey<Sha384Config>, &Proof<Sha384Config>)],
++    preimages: &[RangeStmt],
++    c_node2: Digest,
++    c_pad_node: Digest,
++) -> RangeStmt {
++    b.anchor_set = Some((LEVEL_NODE2, vec![c_node2, c_pad_node]));
++    b.sibling_alt = Some(c_pad_node);
++    let s = super::agg::build_agg(b, children, super::agg::ChildKind::Node { n_ctx: N_CTX, n_state: N_STATE }, preimages);
++    b.sibling_alt = None;
++    s
++}
++
 +/// Node: `agg::build_agg` over NV children of the tree, with the level-1 template set.
 +pub fn build_node(
 +    b: &mut Builder,
@@ -1455,7 +1517,7 @@
 +}
 --- a/openvm-sha384/crates/recursion/src/nv/tree_tests.rs
 +++ b/openvm-sha384/crates/recursion/src/nv/tree_tests.rs
-@@ -0,0 +1,346 @@
+@@ -0,0 +1,528 @@
 +//! [E2E-D D-5] Tests of the chunk-independent tree (nv/tree.rs) on Fibonacci fixture templates:
 +//! template proof (NV level 1 over a Fib segment) -> normaliser / PAD leaves -> one node ->
 +//! wrap (debug constraint check, final domain). Ignored (proves several NV levels); run with
@@ -1802,6 +1864,188 @@
 +    dbg("PAD with init phase", false, &|b| { build_pad(b, &stmt_n.ctx, F::ONE, &[F::from_u32(PHASE_INIT), F::ZERO]); });
 +    println!("REVIEW_D5_OK");
 +}
++
++/// [E2E-D D-7, review-D6 F4 + the two node shapes] Constraint-level (engine.debug) tests on the Fib
++/// fixture with the base-template leaf (`build_base_leaf` over the app segment proof, the stand-in
++/// for a class base proof):
++/// * base leaf: honest; a forged ctx limb (the exposed ctx is not the captured digest); a forged
++///   captured digest (another statement's digest cells); a leaf of another class (another program)
++///   rejected by `P_2`'s template set;
++/// * `P_2` over leaves at the leaf heights (forced level 1, no BIND), `PAD_N` (witness level) at the
++///   node heights, `P_*` at level 3 (anchor set {C_2, C_padN}) and level 4 (BIND child 0, sibling
++///   PAD_N through `sibling_alt`); forged: wrong PAD_N root at level 3 and level 4, PAD_N as child 0.
++#[test]
++#[ignore]
++fn tree_d7_shapes_debug() {
++    use super::agg::{hash_range, pack, StmtCells};
++    let lr = crate::sha384::e2e_tests::env_usize("TREE_LOG_ROWS", 19);
++    let segs = chunk_segments(&[7], 1, 32);
++    let app_engine = Sha384CpuEngine::new(child_params_small());
++    let (avk, ap) = segs[0].keygen_and_prove(&app_engine);
++    let pe = Sha384CpuEngine::new(parent());
++    let k = parent().k_whir();
++    let mk = |h: Option<&[(usize, Option<usize>)]>| {
++        let mut c = NvCircuit::new(k, lr, 1);
++        c.program_part = true;
++        c.prog_log = lr - 1;
++        if let Some(h) = h {
++            c.heights = Some(h.iter().map(|&(l, _)| 1usize << l).collect());
++            c.tight_floor = Some(h.iter().map(|&(l, t)| t.unwrap_or(1 << l)).collect());
++        }
++        c
++    };
++    let c0 = mk(None);
++    let ctx = ctx_of_digest(crate::sha384::config::statement_digest(&ap.public_values));
++    let done = vec![F::from_u32(PHASE_DONE), F::ZERO];
++    let dbg = |name: &str, expect_ok: bool, circ: &NvCircuit, body: &dyn Fn(&mut Builder)| {
++        let r = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| debug_body(circ, &pe, |_| {}, |b| body(b)).failures));
++        match (&r, expect_ok) {
++            (Ok(f), true) => println!("TREE_D7_POSITIVE_OK {name} host_failures={f:?}"),
++            (Err(_), false) => println!("TREE_D7_DEBUG_REJECTED {name}"),
++            (Ok(f), false) => panic!("TREE_D7 constraint check ACCEPTED forged {name} (host failures {f:?})"),
++            (Err(_), true) => panic!("TREE_D7 positive control {name} rejected"),
++        }
++    };
++    // ---- base leaf, constraint level
++    dbg("base leaf (honest)", true, &c0, &|b| {
++        build_base_leaf(b, &avk, &ap, F::ZERO, 0);
++    });
++    // a re-implementation of build_base_leaf with two tamper switches (honest when both are off)
++    let forged_leaf = |b: &mut Builder, tamper_ctx: bool, tamper_digest: bool| {
++        b.agg = true;
++        b.capture_statement = true;
++        let _ = super::verifier::build_verifier(b, &avk, &ap);
++        b.capture_statement = false;
++        let mut dc = b.captured_statement.take().unwrap();
++        if tamper_digest {
++            // the digest cells of another statement (a fresh tag-9 job of other content)
++            let cs: Vec<_> = ctx.iter().map(|&x| b.load_f(x)).collect();
++            let other = StmtCells { ctx: cs, a: b.c(F::ZERO), e: b.c(F::ONE), s_a: vec![b.c(F::ONE), b.c(F::ZERO)], s_e: vec![b.c(F::ONE), b.c(F::ZERO)] };
++            dc = hash_range(b, &other);
++        }
++        let mut limbs = ctx_of_digest(dc.digest);
++        if tamper_ctx {
++            limbs[0] += F::ONE;
++        }
++        if tamper_digest {
++            limbs = ctx.clone();
++        }
++        let cells: Vec<_> = limbs.iter().map(|&x| b.load_f(x)).collect();
++        let mut basis = vec![];
++        let lo = pack(b, &mut basis, &cells[..12]);
++        let hi = pack(b, &mut basis, &cells[12..]);
++        b.assert_eq(dc.lo, lo, "lo");
++        b.assert_eq(dc.hi, hi, "hi");
++        let av = b.c(F::ZERO);
++        let e = b.c(F::ONE);
++        let s = StmtCells { ctx: cells, a: av, e, s_a: vec![b.c(F::from_u32(PHASE_INIT)), b.c(F::ZERO)], s_e: vec![b.c(F::from_u32(PHASE_DONE)), b.c(F::ZERO)] };
++        let d = hash_range(b, &s);
++        let l = b.c(F::ONE);
++        b.pv_level(l);
++        b.pv_digest(&d);
++    };
++    dbg("base leaf: forged body, untampered (control)", true, &c0, &|b| forged_leaf(b, false, false));
++    dbg("base leaf: exposed ctx limb != captured digest", false, &c0, &|b| forged_leaf(b, true, false));
++    dbg("base leaf: captured digest replaced by another statement's", false, &c0, &|b| forged_leaf(b, false, true));
++    // ---- leaves at the leaf heights
++    let (m, b) = c0.generate_with(|b| {
++        build_base_leaf(b, &avk, &ap, F::ZERO, 0);
++    });
++    let (hl0, _) = shape_pinned_heights(&m, &b, 2, 40.0);
++    let (m, b) = c0.generate_with(|b| {
++        build_pad(b, &ctx, F::ONE, &done);
++    });
++    let (hl1, _) = shape_pinned_heights(&m, &b, 2, 40.0);
++    let hl: Vec<(usize, Option<usize>)> = hl0.iter().zip(&hl1).map(|(a, b)| (a.0.max(b.0), Some(a.1.unwrap().max(b.1.unwrap())))).collect();
++    let cl = mk(Some(&hl));
++    let prove = |c: &NvCircuit, body: &dyn Fn(&mut Builder) -> RangeStmt| {
++        let mut s = None;
++        let (m, b) = c.generate_with(|b| s = Some(body(b)));
++        let (v, p, _) = prove_mats(c, &pe, m, &b);
++        (v, p, s.unwrap())
++    };
++    let (v0, p0, s0) = prove(&cl, &|b| build_base_leaf(b, &avk, &ap, F::ZERO, 0));
++    let (v1, p1, s1) = prove(&cl, &|b| build_pad(b, &ctx, F::ONE, &done));
++    let (vx, px, sx) = prove(&cl, &|b| build_base_leaf(b, &avk, &ap, F::ZERO, 1));
++    let set = vec![root_of(&p0), root_of(&p1)];
++    println!("TREE_D7_LEAF_PIN {hl:?}");
++    // ---- P_2 natural, then the node pin (+25 %)
++    let kids: Vec<(&Vk, &Pf)> = vec![(&v0, &p0), (&v1, &p1)];
++    let pre = vec![s0.clone(), s1.clone()];
++    let (m, b) = c0.generate_with(|b| {
++        build_node2(b, &kids, &pre, &set);
++    });
++    let (hn0, _) = shape_pinned_heights(&m, &b, 2, 40.0);
++    let hn: Vec<(usize, Option<usize>)> = hn0
++        .iter()
++        .enumerate()
++        .map(|(a, &(l, t))| {
++            if a < 2 {
++                let t2 = (t.unwrap() + t.unwrap() / 4).next_multiple_of(4);
++                let l2 = l.max(t2.next_power_of_two().trailing_zeros() as usize);
++                (l2, Some(t2.min(1 << l2)))
++            } else {
++                (l, t)
++            }
++        })
++        .collect();
++    println!("TREE_D7_NODE_PIN {hn:?}");
++    let cn = mk(Some(&hn));
++    dbg("P_2 (honest, leaves at their own heights)", true, &cn, &|b| {
++        build_node2(b, &kids, &pre, &set);
++    });
++    let kx: Vec<(&Vk, &Pf)> = vec![(&vx, &px), (&v1, &p1)];
++    dbg("P_2: a leaf of another class (program not in the set)", false, &cn, &|b| {
++        build_node2(b, &kx, &[sx.clone(), s1.clone()], &set);
++    });
++    let (v2, p2, s2) = prove(&cn, &|b| build_node2(b, &kids, &pre, &set));
++    let c2 = root_of(&p2);
++    let padn = |a: u32, lvl: u32| prove(&cn, &|b| build_pad_node(b, &ctx, F::from_u32(a), &done, lvl));
++    let (vpa, ppa, spa) = padn(2, 2);
++    let cpn = root_of(&ppa);
++    let k3: Vec<(&Vk, &Pf)> = vec![(&v2, &p2), (&vpa, &ppa)];
++    let pre3 = vec![s2.clone(), spa.clone()];
++    dbg("P_* level 3 (honest: P_2 + PAD_N at level 2)", true, &cn, &|b| {
++        build_node_star(b, &k3, &pre3, c2, cpn);
++    });
++    let mut wrong = cpn;
++    wrong[0] ^= 1;
++    dbg("P_* level 3: PAD_N not in the level-2 anchor set", false, &cn, &|b| {
++        build_node_star(b, &k3, &pre3, c2, wrong);
++    });
++    let (v3, p3, s3) = prove(&cn, &|b| build_node_star(b, &k3, &pre3, c2, cpn));
++    assert_eq!(p3.public_values[0][0], F::from_u32(3));
++    let (vpb, ppb, spb) = padn(3, 3);
++    assert_eq!(root_of(&ppb), cpn, "PAD_N: one program at every level");
++    let k4: Vec<(&Vk, &Pf)> = vec![(&v3, &p3), (&vpb, &ppb)];
++    let pre4 = vec![s3.clone(), spb.clone()];
++    dbg("P_* level 4 (honest: BIND child 0, PAD_N sibling)", true, &cn, &|b| {
++        build_node_star(b, &k4, &pre4, c2, cpn);
++    });
++    dbg("P_* level 4: PAD alternative is another root", false, &cn, &|b| {
++        build_node_star(b, &k4, &pre4, c2, wrong);
++    });
++    let k4s: Vec<(&Vk, &Pf)> = vec![(&vpb, &ppb), (&v3, &p3)];
++    let pre4s = vec![RangeStmt { a: F::ZERO, e: F::ONE, ..spb.clone() }, RangeStmt { a: F::ONE, e: F::from_u32(4), ..s3.clone() }];
++    dbg("P_* level 4: PAD_N as child 0 (BIND)", false, &cn, &|b| {
++        build_node_star(b, &k4s, &pre4s, c2, cpn);
++    });
++    // the wrap over the level-4 root (anchor C_*)
++    let root = RangeStmt::compose(&pre4).unwrap();
++    let (v4, p4, _) = prove(&cn, &|b| build_node_star(b, &k4, &pre4, c2, cpn));
++    assert_eq!(root_of(&p4), root_of(&p3), "P_* is one program at levels 3 and 4");
++    let mut fp = parent();
++    fp.whir.levers.zk = 0;
++    let fe = Sha384CpuEngine::new_final(fp);
++    let mut cw = NvCircuit::new(k, lr, 1);
++    cw.prog_log = lr - 2;
++    let wb = debug_body(&cw, &fe, |_| {}, |b| {
++        build_wrap(b, &v4, &p4, 4, root_of(&p3), &root);
++    });
++    assert!(wb.failures.is_empty(), "{:?}", wb.failures);
++    assert!(check_wrap_statement(&wb.public_values(), &ctx, 0));
++    println!("TREE_D7_OK");
++}
 --- a/openvm-sha384/crates/recursion/src/nv/builder.rs
 +++ b/openvm-sha384/crates/recursion/src/nv/builder.rs
 @@ -7,6 +7,10 @@
@@ -1834,7 +2078,7 @@
      /// open flush job (job id, t_start, observed felts)
      tr_pending: Option<(u32, u32, u32)>,
      /// static transcript jobs allocated so far
-@@ -157,6 +160,41 @@
+@@ -157,6 +160,45 @@
      pow_wit: Vec<V>,
      /// squeeze / PoW-run blocks so far (their job ids)
      tr_blocks: u32,
@@ -1873,10 +2117,14 @@
 +    /// `captured_statement` instead of exposing it (the base-template leaf, `tree::build_base_leaf`)
 +    pub capture_statement: bool,
 +    pub captured_statement: Option<DigestCells>,
++    /// [E2E-D D-7 tree] PAD at any level: a later sibling (index >= 1) of a BIND-bound child 0
++    /// may instead carry this program root (the node-height PAD program `C_padN`): one boolean
++    /// witness `p_i` per sibling, `flag (1 - p_i)(root_i - root_0) = 0` and `p_i (root_i - C) = 0`.
++    pub sibling_alt: Option<Digest>,
  }
  
  impl Builder {
-@@ -188,12 +226,23 @@
+@@ -188,12 +230,24 @@
              statement: None,
              child_nv: false,
              anchor: None,
@@ -1898,10 +2146,11 @@
 +            first_child_root: None,
 +            capture_statement: false,
 +            captured_statement: None,
++            sibling_alt: None,
          }
      }
  
-@@ -219,19 +268,23 @@
+@@ -219,19 +273,23 @@
          }
      }
  
@@ -1930,7 +2179,7 @@
          v
      }
      /// One base-field cell as unit `uidx` of leaf job `job`.
-@@ -407,10 +460,46 @@
+@@ -407,10 +465,46 @@
          self.push(Op::LoadF, 0, 0, 0, 0, EF::from(x), F::ZERO)
      }
      /// First transcript job of the chain: push the initial state as its state units 2..13.
@@ -1978,7 +2227,7 @@
      }
      /// T*: blocks B_j (j >= 2) of a PoW run created by the last sample: push the PoW witness as
      /// their units 16.. (the hash-chain row adds the counter).
-@@ -435,7 +524,8 @@
+@@ -435,7 +529,8 @@
      /// Close the open flush job: anchor (job, t_start, count).
      fn tr_close(&mut self) {
          if let Some((job, t, cnt)) = self.tr_pending.take() {
@@ -1988,7 +2237,7 @@
          }
      }
      /// Proof-of-work check (levers spec, tag 7): flush; job H(7, [state, witness]) with the
-@@ -465,9 +555,12 @@
+@@ -465,9 +560,12 @@
          if !ok {
              self.failures.push(format!("pow ({bits} bits)"));
          }
@@ -2003,7 +2252,7 @@
          // output word 0 as limbs (l0, l1, l2) from the hash chain
          let state = self.transcript.inner.state;
          let w0 = u64::from_be_bytes(state[..8].try_into().unwrap());
-@@ -606,7 +699,8 @@
+@@ -606,7 +704,8 @@
          } else {
              self.push(Op::UnitW, hi.addr, 2, job, 24, hi.val, F::ZERO)
          };
@@ -2024,7 +2273,30 @@
      verifier::build_verifier,
  };
  use crate::sha384::{
-@@ -40,13 +40,14 @@
+@@ -28,6 +28,22 @@
+     pub alu: UBuses,
+     pub h: HashBuses,
+     pub tr: TrBuses,
++    /// [E2E-D D-7] lookback buses of compression AIR instances 1.. (instance 0 uses `h.lb`);
++    /// allocated after every pre-existing bus, so a one-instance circuit is unchanged
++    pub lb_extra: [BusIndex; MAX_SHA_INSTANCES - 1],
++}
++
++/// [E2E-D D-7] most compression AIR instances an NV circuit may have (`cid_offset = i * 2^cap_log`
++/// stays below the BabyBear modulus for `cap_log <= 27`)
++pub const MAX_SHA_INSTANCES: usize = 4;
++/// [E2E-D D-7] rows of a full compression instance (log2): the tree layer's stacked ceiling
++/// `l_skip + n_stack` of `ns20lb5`; the default of `NvCircuit::sha_cap_log`
++pub const SHA_INSTANCE_CAP_LOG: usize = 22;
++
++/// [E2E-D D-7] AIR index of compression instance `i`: instance 0 keeps index 1, instances 1.. are
++/// appended after the byte AIR (index 3), so a one-instance circuit's AIR order is unchanged.
++pub fn sha_air_index(i: usize) -> usize {
++    if i == 0 { 1 } else { 3 + i }
+ }
+ 
+ impl NvBuses {
+@@ -40,13 +56,14 @@
          let slot = next();
          let job = next();
          let digest = next();
@@ -2040,18 +2312,68 @@
          };
          let h = HashBuses {
              ctl: next(),
-@@ -63,7 +64,10 @@
+@@ -63,8 +80,12 @@
              sample: next(),
              word: next(),
              chain: next(),
 +            // [agg] allocated LAST so every pre-existing bus keeps its index
 +            chain_start: next(),
          };
+-        Self { alu, h, tr }
 +        alu.chain_start = tr.chain_start;
-         Self { alu, h, tr }
++        let lb_extra = core::array::from_fn(|_| next());
++        Self { alu, h, tr, lb_extra }
      }
  }
-@@ -184,7 +188,7 @@
+ 
+@@ -84,6 +105,9 @@
+     /// program length 2^prog_log (env NV_PROG_LOG, default log_rows - 2)
+     pub prog_log: usize,
+     pub sha_instances: usize,
++    /// [E2E-D D-7] log2 rows of a full compression instance (every instance but the last is full;
++    /// instance i's `cid_offset` is `i << sha_cap_log`). Only read with `sha_instances > 1`.
++    pub sha_cap_log: usize,
+     /// bind the child's ALU program to ours (child must be NV with the same program)
+     pub bind: bool,
+     /// fixed trace heights (AIR order of `airs`); None = natural (next power of two)
+@@ -124,6 +148,7 @@
+                 .and_then(|v| v.parse().ok())
+                 .unwrap_or(log_rows - 2),
+             sha_instances,
++            sha_cap_log: SHA_INSTANCE_CAP_LOG,
+             bind: false,
+             heights: None,
+             child_nv: false,
+@@ -142,8 +167,8 @@
+     pub fn airs<SC: StarkProtocolConfig<F = F>>(&self) -> Vec<AirRef<SC>> {
+         let b = self.buses;
+         let lay = self.layout();
+-        assert_eq!(self.sha_instances, 1, "NV v1 uses one compression AIR");
+-        vec![
++        assert!((1..=MAX_SHA_INSTANCES).contains(&self.sha_instances), "1..={MAX_SHA_INSTANCES} compression AIR instances");
++        let mut v = vec![
+             Arc::new(NvAir { buses: b.alu, h: b.h, t: b.tr, program_part: self.program_part }) as AirRef<SC>,
+             Arc::new(Sha512Air4 {
+                 lay,
+@@ -155,7 +180,16 @@
+                 buses: b.h.sha(),
+             }),
+             Arc::new(ByteAir { buses: b.h }),
+-        ]
++        ];
++        // [E2E-D D-7] instances 1..: own lookback bus (keys are instance-local rows), shared control /
++        // K table and interface bus; compression ids offset by i * 2^sha_cap_log (disjoint ranges,
++        // contiguous with the GLUE numbering because every instance but the last is full)
++        for i in 1..self.sha_instances {
++            let mut buses = b.h.sha();
++            buses.lb = b.lb_extra[i - 1];
++            v.push(Arc::new(Sha512Air4 { lay, buses, cid_offset: (i << self.sha_cap_log) as u32 }) as AirRef<SC>);
++        }
++        v
+     }
+ 
+     pub fn reserved(&self) -> usize {
+@@ -184,7 +218,7 @@
              bind &= !self.test_no_bind;
          }
          let child_nv = self.child_nv;
@@ -2060,7 +2382,7 @@
              b.bind = bind;
              b.child_nv = child_nv;
              build_verifier(b, vk, proof);
-@@ -210,6 +214,12 @@
+@@ -210,6 +244,12 @@
          b.instrs.iter().map(|i| i.words()).collect()
      }
  
@@ -2073,7 +2395,7 @@
      /// G2 anchor rule (setup, deterministic) for the level verifying `child` at level
      /// `child_level` >= 1, whose program words are `child_words` and cached program root
      /// `child_root`:
-@@ -239,18 +249,25 @@
+@@ -239,37 +279,45 @@
  
      /// Run an arbitrary program body (the verifier, or a test forgery) and generate every trace.
      pub fn generate_program(&self, body: impl FnOnce(&mut Builder)) -> (Vec<RowMajorMatrix<F>>, Builder) {
@@ -2100,18 +2422,34 @@
          let hh = |i: usize| self.heights.as_ref().map_or(1, |h| h[i]);
          let mut work = Work2 {
              jobs: leaf_jobs,
-@@ -262,7 +279,9 @@
-             self.layout(),
-             self.heights.as_ref().map(|_| hh(1)),
-         );
+             nodes: vec![],
+         };
+         work.jobs.extend(tr_jobs.iter().map(|j| j.job()));
+-        let sha = generate2(
+-            &work,
+-            self.layout(),
+-            self.heights.as_ref().map(|_| hh(1)),
+-        );
 -        let profile = HeightProfile::of(&log, &[], &tr_jobs);
++        let sha = super::hash::generate2_multi(&work, self.layout(), self.sha_instances, self.sha_cap_log, |i| {
++            self.heights.as_ref().map(|_| hh(sha_air_index(i)))
++        });
 +        eprintln!("NV_GEN replay ms={}", t_gen.elapsed().as_millis());
 +        let profile = HeightProfile::of(&log, &b.transcript.starts, &tr_jobs);
 +        eprintln!("NV_GEN profile ms={} {profile:?}", t_gen.elapsed().as_millis());
          let tr = tr2_traces(&tr_jobs);
          let mut counts = sha.byte_counts.clone();
          for (c, t) in counts.iter_mut().zip(&tr.byte_counts) {
-@@ -448,6 +467,18 @@
+             *c += t;
+         }
+         let nv = nv_trace(&b.instrs, &b.vals, &b.wits, &b.wits_x, &sha.glue_rows, &tr.hash, &tr.samp, self.log_rows, &mut counts);
+-        let mats = vec![nv, sha.compress, sha.table, byte_table2(&counts)];
++        let mut mats = vec![nv, sha.compress, sha.table, byte_table2(&counts)];
++        mats.extend(sha.compress_extra);
+         b.height_profile = Some(profile);
+         if let Some(h) = &self.heights {
+             use p3_matrix::Matrix;
+@@ -448,6 +496,18 @@
      Builder,
      Vec<(usize, usize)>,
  ) {
@@ -2130,7 +2468,7 @@
      use openvm_cpu_backend::CpuBackend;
      use openvm_stark_backend::{
          prover::{AirProvingContext, DeviceDataTransporter, MatrixDimensions, ProvingContext},
-@@ -455,11 +486,10 @@
+@@ -455,11 +515,10 @@
      };
      let airs = circ.airs::<Sha384Config>();
      let (pk, vk) = engine.keygen(&airs);
@@ -2143,7 +2481,7 @@
      let d_pk = engine.device().transport_pk_to_device(&pk);
      if let Some(fl) = &circ.tight_floor {
          let f: Vec<(usize, usize, usize)> = ctxs
-@@ -486,7 +516,7 @@
+@@ -486,7 +545,7 @@
          }
      }
      engine.verify(&vk, &proof).unwrap();
@@ -2152,21 +2490,127 @@
  }
  
  /// [E2E-D D-5, review-D4 F1] Which rows of an NV level's traces depend on the rejection sampling
-@@ -724,7 +754,13 @@
-                 let log = (m.height().trailing_zeros() as usize).max(t.next_power_of_two().trailing_zeros() as usize);
-                 (log, Some(t.min(1 << log)))
+@@ -687,10 +746,38 @@
+     }
+ }
+ 
++/// [E2E-D D-7, review-D5] The last used row of the NvAir and SHA traces, checked structurally:
++/// every NvAir row below it carries exactly one role flag (ALU, BIND, GLUE, hash, sample row; the
++/// generator sets one on every row it emits), and every compression row below it is real
++/// (`k1 != 0` exactly on real rows) and the count is a whole number of compressions. So the pin is
++/// never shortened by an all-zero real row. Returns the used rows.
++pub fn used_rows_checked(a: usize, m: &RowMajorMatrix<F>) -> usize {
++    use p3_matrix::Matrix;
++    let w = m.width();
++    let used = (0..m.height()).rev().find(|&r| m.values[r * w..(r + 1) * w].iter().any(|v| *v != F::ZERO)).map_or(0, |r| r + 1);
++    if a == 0 {
++        for r in 0..used {
++            let flags: u32 = m.values[r * w..r * w + 5].iter().map(|v| v.as_canonical_u32()).sum();
++            assert_eq!(flags, 1, "NvAir row {r} below the last used row {used} is not a real row (role flags {flags})");
++        }
++    } else {
++        let k1 = crate::sha384::compress4_air::C_K1;
++        assert_eq!(used % crate::sha384::compress4_air::ROWS, 0, "AIR {a}: used rows {used} not a whole number of compressions");
++        for r in 0..used {
++            assert!(m.values[r * w + k1] != F::ZERO, "AIR {a}: compression row {r} below the last used row {used} is not real");
++        }
++    }
++    used
++}
++
+ /// [E2E-D D-5, review-D4 F1] Pinned `(log, tight)` heights of a level's traces from its shape
+ /// alone: per AIR, the used rows minus the rows the actual rejections contributed, plus the
+ /// rejection slack `delta_max(J_max(eps_bits))` (NvAir: AIR 0; SHA compression: AIR 1, at
+ /// `compress4_air::ROWS` rows per compression). The table and byte AIRs have fixed heights.
++/// [E2E-D D-7] With several compression instances (AIRs 1, 4, 5, ..; `sha_air_index`) the SHA
++/// slack applies to their total, distributed in fill order (instance i takes up to its full
++/// height before i + 1 is used; trailing ones may stay empty). Used rows are checked
++/// structurally (`used_rows_checked`).
+ /// Also returns `(J_max, NvAir slack rows, SHA slack rows, NvAir base rows, SHA base rows)`.
+ pub fn shape_pinned_heights(
+     mats: &[RowMajorMatrix<F>],
+@@ -703,30 +790,59 @@
+     let jm = HeightProfile::j_max(hp.k_samples, eps_bits);
+     let (nv_slack, comps_slack) = hp.delta_max(jm);
+     let sha_rows = crate::sha384::compress4_air::ROWS;
+-    let used = |m: &RowMajorMatrix<F>| -> usize {
+-        let w = m.width();
+-        (0..m.height()).rev().find(|&r| m.values[r * w..(r + 1) * w].iter().any(|v| *v != F::ZERO)).map_or(0, |r| r + 1)
+-    };
+-    let mut out = vec![];
++    assert!(mats.len() >= 4, "NvAir, SHA, table, byte AIRs");
++    let sha_idx: Vec<usize> = (0..mats.len() - 3).map(sha_air_index).collect();
++    let mut out = vec![(0, None); mats.len()];
+     let mut base = [0usize; 2];
+-    for (a, m) in mats.iter().enumerate() {
+-        let (log, tight) = match a {
+-            0 | 1 => {
+-                let (delta_act, slack) = if a == 0 {
+-                    (hp.nv_delta_actual, nv_slack)
+-                } else {
+-                    (hp.comps_delta_actual * sha_rows, comps_slack * sha_rows)
+-                };
+-                let u = used(m);
+-                assert!(u >= delta_act, "AIR {a}: used rows below the rejection rows");
+-                base[a] = u - delta_act;
+-                let t = (base[a] + slack).max(1).next_multiple_of(1 << l_skip);
+-                let log = (m.height().trailing_zeros() as usize).max(t.next_power_of_two().trailing_zeros() as usize);
+-                (log, Some(t.min(1 << log)))
++    // NvAir
++    {
++        let m = &mats[0];
++        let u = used_rows_checked(0, m);
++        assert!(u >= hp.nv_delta_actual, "AIR 0: used rows below the rejection rows");
++        base[0] = u - hp.nv_delta_actual;
++        let t = (base[0] + nv_slack).max(1).next_multiple_of(1 << l_skip);
++        let log = (m.height().trailing_zeros() as usize).max(t.next_power_of_two().trailing_zeros() as usize);
++        out[0] = (log, Some(t.min(1 << log)));
++    }
++    // compression instances
++    {
++        let delta_act = hp.comps_delta_actual * sha_rows;
++        let slack = comps_slack * sha_rows;
++        let used: Vec<usize> = sha_idx.iter().map(|&a| used_rows_checked(a, &mats[a])).collect();
++        let total: usize = used.iter().sum();
++        assert!(total >= delta_act, "SHA: used rows below the rejection rows");
++        base[1] = total - delta_act;
++        let pin_total = base[1] + slack;
++        let k = sha_idx.len();
++        if k == 1 {
++            let m = &mats[1];
++            let t = pin_total.max(1).next_multiple_of(1 << l_skip);
++            let log = (m.height().trailing_zeros() as usize).max(t.next_power_of_two().trailing_zeros() as usize);
++            out[1] = (log, Some(t.min(1 << log)));
++        } else {
++            // instance capacity (the tree layer's stacked ceiling, `NvCircuit::sha_cap_log`)
++            let cap = 1usize << SHA_INSTANCE_CAP_LOG;
++            let mut rem = pin_total;
++            for (j, &a) in sha_idx.iter().enumerate() {
++                let t = if j + 1 < k { rem.min(cap) } else { rem };
++                assert!(t <= cap, "SHA pin {pin_total} needs more than {k} instances");
++                rem -= t;
++                let t = t.max(1).next_multiple_of(1 << l_skip);
++                let log = (mats[a].height().trailing_zeros() as usize).max(t.next_power_of_two().trailing_zeros() as usize);
++                out[a] = (log, Some(t.min(1 << log)));
              }
 -            _ => (m.height().trailing_zeros() as usize, Some(used(m).max(1).next_multiple_of(1 << l_skip))),
-+            _ => {
-+                // [E2E-D D-6, review-D5 D5-5] the table and byte AIRs are fixed full-height tables:
-+                // their "last non-zero row" pin must be their height, never a value-dependent tail
-+                let u = used(m);
-+                assert_eq!(u, m.height(), "AIR {a}: a fixed-height table's last non-zero row is not its height");
-+                (m.height().trailing_zeros() as usize, Some(u.max(1).next_multiple_of(1 << l_skip)))
-+            }
-         };
-         out.push((log, tight));
+-        };
+-        out.push((log, tight));
++        }
++    }
++    for (a, m) in mats.iter().enumerate() {
++        if a == 0 || sha_idx.contains(&a) {
++            continue;
++        }
++        // [E2E-D D-6, review-D5 D5-5] the table and byte AIRs are fixed full-height tables:
++        // their "last non-zero row" pin must be their height, never a value-dependent tail
++        let w = m.width();
++        let u = (0..m.height()).rev().find(|&r| m.values[r * w..(r + 1) * w].iter().any(|v| *v != F::ZERO)).map_or(0, |r| r + 1);
++        assert_eq!(u, m.height(), "AIR {a}: a fixed-height table's last non-zero row is not its height");
++        out[a] = (m.height().trailing_zeros() as usize, Some(u.max(1).next_multiple_of(1 << l_skip)));
      }
+     (out, [jm, nv_slack, comps_slack * sha_rows, base[0], base[1]])
+ }
 --- a/openvm-sha384/crates/recursion/src/nv/glue.rs
 +++ b/openvm-sha384/crates/recursion/src/nv/glue.rs
 @@ -518,9 +518,12 @@
@@ -2534,7 +2978,7 @@
                      let nf = b.one_minus(flag);
                      let cm = b.const_digest(c_m);
                      for (x, y) in [(root.lo, cm.lo), (root.hi, cm.hi)] {
-@@ -918,13 +977,41 @@
+@@ -918,13 +977,65 @@
          } else if flag.val == EF::ZERO {
              b.failures.push("anchor-level child without a program commitment cannot be bound".into());
          }
@@ -2555,12 +2999,36 @@
 +            assert!(child_prog_part, "a later sibling must carry a program commitment");
 +            let r0 = b.first_child_root.expect("child 0 program root");
 +            let root = extra_commits[0][prog_idx];
++            // [E2E-D D-7 tree] PAD at any level: p_i = 1 selects the alternative root C (the
++            // node-height PAD program); p_i = 0 keeps the D-5 rule. Without `sibling_alt` the
++            // program is the D-5/D-6 one unchanged.
++            let gate = match b.sibling_alt {
++                Some(c_alt) => {
++                    let is_alt = root.digest == c_alt;
++                    let p = b.load_f(if is_alt { F::ONE } else { F::ZERO });
++                    let np = b.one_minus(p);
++                    let pb = b.mul(p, np);
++                    b.zero(pb, "sibling PAD selector boolean");
++                    let cm = b.const_digest(c_alt);
++                    for (x, y) in [(root.lo, cm.lo), (root.hi, cm.hi)] {
++                        let d = b.sub(x, y);
++                        let t = b.mul(d, p);
++                        b.zero(t, "sibling PAD program root = C_padN");
++                    }
++                    Some(np)
++                }
++                None => None,
++            };
++            let fg = match gate {
++                Some(np) => b.mul(flag, np),
++                None => flag,
++            };
 +            for (x, y) in [(root.lo, r0.lo), (root.hi, r0.hi)] {
 +                let d = b.sub(x, y);
-+                let t = b.mul(d, flag);
++                let t = b.mul(d, fg);
 +                b.zero(t, "sibling program root = child 0's");
 +            }
-+            if flag.val != EF::ZERO && root.digest != r0.digest {
++            if fg.val != EF::ZERO && root.digest != r0.digest {
 +                b.failures.push(format!("child {}: program root differs from child 0's", b.bind_child_index));
 +            }
 +        }
@@ -2579,7 +3047,7 @@
          // statement passthrough (G1): the child's statement digest (its public values 1..19)
          // is re-exposed unchanged
          let pv = &pv_cells[0];
-@@ -974,7 +1061,11 @@
+@@ -974,7 +1085,11 @@
              for root in &cached_cells {
                  dc = b.node(&dc, root);
              }
@@ -2592,7 +3060,7 @@
          }
      }
      eprintln!("NV_PHASE before_dag {}", b.instrs.len());
-@@ -1358,10 +1449,15 @@
+@@ -1358,10 +1473,15 @@
          let yv: Vec<EF> = ys.iter().map(|v| v.val).collect();
          let dt = b.dig(job, super::circuit::tape_eval_digest(&uv, &yv));
          let dc = b.node(&dc0, &dt);
@@ -2701,3 +3169,76 @@
  
  /// Hash-level levers (process-global; read once from the environment).
  #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+--- a/openvm-sha384/crates/recursion/src/nv/hash.rs
++++ b/openvm-sha384/crates/recursion/src/nv/hash.rs
+@@ -301,6 +301,8 @@
+     pub byte_counts: Vec<u32>,
+     pub job_digests: Vec<[u64; 6]>,
+     pub n_compressions: usize,
++    /// [E2E-D D-7] compression AIR instances 1.. (instance 0 is `compress`); empty with one instance
++    pub compress_extra: Vec<RowMajorMatrix<F>>,
+ }
+ 
+ fn to_f(v: Vec<u32>, width: usize) -> RowMajorMatrix<F> {
+@@ -328,6 +330,61 @@
+         byte_counts,
+         job_digests: job_blocks.iter().map(|b| b.1).collect(),
+         n_compressions: comps.len(),
++        compress_extra: vec![],
++    }
++}
++
++/// [E2E-D D-7] `generate2` over `instances` compression AIR instances. Compression `x` (global
++/// order: node compressions, then the job blocks) goes to instance `x / cap`, local index
++/// `x mod cap`, with `cap = 2^cap_log / ROWS`; instance `i`'s AIR adds `cid_offset = i * 2^cap_log`,
++/// so the compression id `cid = x * ROWS` the GLUE role uses is the same global numbering as with
++/// one instance. Instances fill in order (an instance is used only once the previous ones are full;
++/// trailing instances may be empty, all-zero rows). Soundness does not depend on the fill: the
++/// instances' id ranges `[i 2^cap_log, (i + 1) 2^cap_log)` are disjoint. `min_h(i)` is the
++/// fixed height of instance `i` (pinned setups). The control / K table counts every instance.
++pub fn generate2_multi(work: &Work2, lay: Layout, instances: usize, cap_log: usize, min_h: impl Fn(usize) -> Option<usize>) -> Traces2 {
++    assert!(instances >= 1);
++    if instances == 1 {
++        return generate2(work, lay, min_h(0));
++    }
++    let job_blocks: Vec<(Vec<Comp>, [u64; 6])> = work.jobs.par_iter().map(|j| sha384_blocks(&j.message())).collect();
++    let mut comps = work.nodes.clone();
++    comps.extend(job_blocks.iter().flat_map(|b| b.0.iter().copied()));
++    let cap = (1usize << cap_log) / ROWS;
++    assert!(comps.len() <= instances * cap, "{} compressions exceed {instances} instances of {cap}", comps.len());
++    let mut table: Option<Vec<u32>> = None;
++    let mut mains = vec![];
++    for i in 0..instances {
++        let part = &comps[(i * cap).min(comps.len())..((i + 1) * cap).min(comps.len())];
++        let h = main_height(part.len()).max(min_h(i).unwrap_or(1));
++        assert!(h <= 1 << cap_log, "compression instance {i}: height {h} above 2^{cap_log}");
++        let m = gen_main(part, h);
++        let t = gen_table(&m, h);
++        match table.as_mut() {
++            None => table = Some(t),
++            Some(acc) => {
++                // the fixed columns are identical; add the multiplicities
++                for r in 0..ROWS {
++                    for c in [crate::sha384::compress4_air::T_MC, crate::sha384::compress4_air::T_MK] {
++                        acc[r * crate::sha384::compress4_air::T_WIDTH + c] += t[r * crate::sha384::compress4_air::T_WIDTH + c];
++                    }
++                }
++            }
++        }
++        mains.push(to_f(m, lay.width));
++    }
++    assert_eq!(mains.len(), instances);
++    let mut byte_counts = vec![0u32; BYTE_TABLE];
++    let glue_rows = super::glue::glue_rows(&work.jobs, &job_blocks, work.nodes.len(), &mut byte_counts);
++    let compress = mains.remove(0);
++    Traces2 {
++        compress,
++        table: to_f(table.unwrap(), crate::sha384::compress4_air::T_WIDTH),
++        glue_rows,
++        byte_counts,
++        job_digests: job_blocks.iter().map(|b| b.1).collect(),
++        n_compressions: comps.len(),
++        compress_extra: mains,
+     }
+ }
+ 

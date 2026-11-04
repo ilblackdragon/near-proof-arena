@@ -21,6 +21,13 @@ pub fn prove_base(
         "chunk proof requires coset_leaf, tstar and a 42/41-byte digest"
     );
     let inst = load(air, dump, Variant::D0a);
+    // [E2E-D D-7, review-D6 F1] NEARPROOF_BASE_CLASS=class.json: prove at a pinned shape class
+    // (per AIR (log, tight) heights), so every chunk of the class has the same base vk, parameters
+    // and committed heights, hence the same tree leaf program. Off by default (natural shape).
+    let class = std::env::var("NEARPROOF_BASE_CLASS").ok().map(|p| BaseClass::read(&p));
+    if let Some(c) = &class {
+        c.pad(&inst);
+    }
     report(&inst);
     // NEGATIVE TESTS ONLY: prove a witness the AIR rejects, so the verifier (not the prover's own
     // check) is what refuses it. Never set for a real run.
@@ -41,6 +48,20 @@ pub fn prove_base(
     let engine = Sha384CpuEngine::new(params);
     let tables = airs(&inst);
     let (pk, vk) = engine.keygen(&tables);
+    if let Some(c) = &class {
+        // the floor is matched to the committed common mains by (width, log height), in AIR order
+        let f: Vec<(usize, usize, usize)> = inst
+            .mats
+            .iter()
+            .zip(&inst.spec)
+            .zip(&c.heights)
+            .map(|((m, t), &(log, tight))| {
+                let w = if t.cached { 1 } else { m.width };
+                (w, log, tight)
+            })
+            .collect();
+        openvm_stark_backend::prover::stacked_pcs::set_tight_floor(Some(f));
+    }
     let proof = engine
         .prove(
             &engine.device().transport_pk_to_device(&pk),
@@ -78,6 +99,19 @@ pub fn prove_base(
             ),
         )
         .expect("base prove");
+    if let Some(c) = &class {
+        assert!(!openvm_stark_backend::prover::stacked_pcs::tight_floor_pending(), "base class floor not consumed");
+        let got: Vec<(usize, usize)> = proof
+            .trace_vdata
+            .iter()
+            .map(|v| {
+                let v = v.as_ref().expect("every base AIR has a trace");
+                (v.log_height, v.tight_height.unwrap_or(1 << v.log_height))
+            })
+            .collect();
+        assert_eq!(got, c.heights, "base proof heights differ from the class pin");
+        println!("BASE_CLASS_HEIGHTS_OK name={} airs={}", c.name, got.len());
+    }
     engine.verify(&vk, &proof).expect("base verify");
     let expected = expected_claim(air, dump, vk.inner.params.clone());
     assert_eq!(proof.public_values, expected.public_values);
@@ -337,4 +371,108 @@ fn claim_of(
         cached_roots: vec![root],
         tape_point: None,
     }
+}
+
+/// [E2E-D D-7, review-D6 F1] A pinned base shape class: per AIR (AIR order, TAPE last) the log
+/// height and the committed (tight) height. A chunk belongs to the class when every table's natural
+/// log height fits the class's and its used rows the class's tight height; its dump is then cut at
+/// the class log heights by the generator (`statedump --class`: the table's own padding progression,
+/// re-checked there and by `precheck`), and committed at the class tight heights (`stacked_pcs::set_tight_floor`). The base
+/// parameters (`params_for`) depend only on the padded heights and widths, so every member gets
+/// the same vk and the same committed shape. The cached TAPE table is not padded (V_d recomputes its
+/// evaluation from the claim): its log height must equal the class's.
+#[derive(Clone, Debug, PartialEq)]
+pub struct BaseClass {
+    pub name: String,
+    /// table names, AIR order (TAPE last)
+    pub names: Vec<String>,
+    pub heights: Vec<(usize, usize)>,
+}
+
+impl BaseClass {
+    pub fn to_json(&self) -> serde_json::Value {
+        serde_json::json!({ "name": self.name, "names": self.names, "heights": self.heights })
+    }
+    pub fn read(path: &str) -> Self {
+        let v: serde_json::Value = serde_json::from_slice(&std::fs::read(path).unwrap()).unwrap();
+        let heights = v["heights"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|h| (h[0].as_u64().unwrap() as usize, h[1].as_u64().unwrap() as usize))
+            .collect();
+        let names = v["names"].as_array().unwrap().iter().map(|n| n.as_str().unwrap().to_string()).collect();
+        BaseClass { name: v["name"].as_str().unwrap().to_string(), names, heights }
+    }
+    /// Does the chunk's natural shape fit this class (log heights, used rows, TAPE log equal)?
+    pub fn admits(&self, shape: &[TableShape]) -> Result<(), String> {
+        if shape.len() != self.heights.len() {
+            return Err("AIR count".into());
+        }
+        for (t, &(log, tight)) in shape.iter().zip(&self.heights) {
+            // the dump is cut at the class log heights (statedump --class): logs equal exactly
+            if t.log != log {
+                return Err(format!("{}: log {} != class {log} (dump with statedump --class)", t.name, t.log));
+            }
+            if t.tight > tight {
+                return Err(format!("{}: ({}, {}) exceeds the class ({log}, {tight})", t.name, t.log, t.tight));
+            }
+        }
+        Ok(())
+    }
+    fn pad(&self, inst: &Inst) {
+        let shape = inst_shape(inst);
+        if let Err(e) = self.admits(&shape) {
+            panic!("chunk not in base class {}: {e}", self.name);
+        }
+    }
+}
+
+/// One base AIR's natural shape: log height, used rows rounded to 2^l_skip (the tight height).
+#[derive(Clone, Debug)]
+pub struct TableShape {
+    pub name: String,
+    pub width: usize,
+    pub log: usize,
+    pub tight: usize,
+    pub cached: bool,
+}
+
+fn inst_shape(inst: &Inst) -> Vec<TableShape> {
+    inst.spec
+        .iter()
+        .zip(&inst.mats)
+        .map(|(t, m)| {
+            let w = m.width.max(1);
+            let h = m.values.len() / w;
+            let used = (0..h).rev().find(|&r| m.values[r * w..(r + 1) * w].iter().any(|v| *v != F::ZERO)).map_or(0, |r| r + 1);
+            // a cached table commits its common main (one zero column) tight: 2^l_skip rows
+            let tight = if t.cached { 4 } else { used.max(1).next_multiple_of(4) };
+            TableShape { name: t.name.clone(), width: m.width, log: h.trailing_zeros() as usize, tight, cached: t.cached }
+        })
+        .collect()
+}
+
+/// The natural base shape of a dump (no proof).
+pub fn base_shape(air: &str, dump: &str) -> Vec<TableShape> {
+    inst_shape(&load(air, dump, Variant::D0a))
+}
+
+/// [E2E-D D-7] The smallest class admitting every given shape, with each tight height rounded up
+/// to a multiple of `2^(log - bucket_bits)` (headroom, so later chunks of similar size fit).
+pub fn class_of(name: &str, shapes: &[Vec<TableShape>], bucket_bits: usize) -> BaseClass {
+    let n = shapes[0].len();
+    let heights = (0..n)
+        .map(|i| {
+            let log = shapes.iter().map(|s| s[i].log).max().unwrap();
+            if shapes[0][i].cached {
+                assert!(shapes.iter().all(|s| s[i].log == log), "{}: cached table logs differ", shapes[0][i].name);
+                return (log, 4);
+            }
+            let t = shapes.iter().map(|s| s[i].tight).max().unwrap();
+            let q = (1usize << log.saturating_sub(bucket_bits)).max(4);
+            (log, t.next_multiple_of(q).min(1 << log))
+        })
+        .collect();
+    BaseClass { name: name.to_string(), names: shapes[0].iter().map(|t| t.name.clone()).collect(), heights }
 }

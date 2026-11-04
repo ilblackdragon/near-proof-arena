@@ -983,6 +983,13 @@ fn zk_diff(a: &Path, b: &Path) {
     }
     println!("ZK_DIFF_SUMMARY groups={} identical_or_partly={leaking}", stats.len());
 }
+/// [E2E-D D-7, review-D6 F3] The final (wrap) vk of a D0a `Setup` or a tree `WrapSetup`.
+fn setup_final_vk(path: &str) -> MultiStarkVerifyingKey<SC> {
+    let v: serde_json::Value = serde_json::from_slice(&std::fs::read(path).unwrap()).expect("setup json");
+    let mut vk: MultiStarkVerifyingKey<SC> = serde_json::from_value(v["final_vk"].clone()).expect("setup final_vk");
+    vk.inner.params.whir.domain_odd_factor = v["domain_odd_factor"].as_u64().expect("domain_odd_factor") as usize;
+    vk
+}
 fn main() {
     init();
     let a: Vec<String> = std::env::args().collect();
@@ -990,6 +997,20 @@ fn main() {
         Some("check-stream-parity") if a.len() == 2 => perf_check::run(),
         Some("base") if a.len() == 7 => base(&a[2], &a[3], Path::new(&a[4]), &a[5], &a[6]),
         Some("probe") if a.len() == 3 => probe(Path::new(&a[2])),
+        // [E2E-D D-7, review-D6 F1] base-shape AIR DUMP...: natural per-AIR shapes;
+        // base-class NAME BUCKET_BITS OUT AIR DUMP...: the smallest bucketed class admitting them
+        Some("base-shape") if a.len() >= 4 => {
+            for d in &a[3..] {
+                let sh = state::chunk_bridge::base_shape(&a[2], d);
+                println!("BASE_SHAPE {d} {:?}", sh.iter().map(|t| (t.name.as_str(), t.log, t.tight)).collect::<Vec<_>>());
+            }
+        }
+        Some("base-class") if a.len() >= 7 => {
+            let shapes: Vec<_> = a[6..].iter().map(|d| state::chunk_bridge::base_shape(&a[5], d)).collect();
+            let c = state::chunk_bridge::class_of(&a[2], &shapes, a[3].parse().unwrap());
+            std::fs::write(&a[4], serde_json::to_vec(&c.to_json()).unwrap()).unwrap();
+            println!("BASE_CLASS {} members={} heights={:?}", c.name, shapes.len(), c.heights);
+        }
         Some("validate-base") if a.len() == 5 => {
             let (vk, _) = load_base(Path::new(&a[4]));
             state::chunk_bridge::check_base_key(&a[2], &a[3], &vk);
@@ -1019,9 +1040,9 @@ fn main() {
             // Per-component soundness bits of each named vk (BASE/L*.vk.json or SETUP.json).
             for path in &a[2..] {
                 let vk = if path.ends_with("SETUP.json") {
-                    let mut s: Setup = serde_json::from_slice(&std::fs::read(path).unwrap()).unwrap();
-                    s.final_vk.inner.params.whir.domain_odd_factor = s.domain_odd_factor;
-                    s.final_vk
+                    // [E2E-D D-7, review-D6 F3] a D0a Setup or a tree WrapSetup: both carry
+                    // `final_vk` and `domain_odd_factor` (read generically, never as the wrong type)
+                    setup_final_vk(path)
                 } else {
                     read_vk(Path::new(path))
                 };
@@ -1062,11 +1083,6 @@ fn main() {
         ),
         #[cfg(feature = "tree")]
         Some("tree-verify") if a.len() == 7 => tree::tree_verify(&a[2], &a[3], &a[4], &a[5], &a[6]),
-        // [E2E-D D-6] tree-arity CERTS EXCLUSIONS RUN_DIR ARITIES PROVE_ARITY CLASS_DIR...
-        #[cfg(feature = "tree")]
-        Some("tree-arity") if a.len() >= 8 => {
-            tree::tree_arity(&a[2], &a[3], Path::new(&a[4]), &a[5], a[6].parse().unwrap(), &a[7..])
-        }
         #[cfg(feature = "tree")]
         Some("fs-count") if a.len() == 5 => tree::fs_count(&a[2], &a[3], a[4] == "1"),
         Some("zk-selftest") => zk_selftest::run(&a[2..]),
@@ -1086,9 +1102,9 @@ fn main() {
         }
         Some("zk-layout") if a.len() == 4 => {
             // [E2E-D] stacked layout of a FINAL proof's shape under every zk packing mode
-            let setup: Setup = serde_json::from_slice(&std::fs::read(&a[2]).unwrap()).unwrap();
+            let fvk = setup_final_vk(&a[2]);
             let p = read_proof(Path::new(&a[3]));
-            let mvk = &setup.final_vk.inner;
+            let mvk = &fvk.inner;
             let mut per: Vec<_> = mvk
                 .per_air
                 .iter()
