@@ -1,0 +1,65 @@
+{
+  "arity": 2,
+  "bundle_bytes": 327911,
+  "depth": 1,
+  "hint_bytes": 16,
+  "leaves": 2,
+  "node_program_rows": 348254,
+  "scope": "D0a template, chunk-independent tree + wrap (D-6)",
+  "seconds": {
+    "leaf0": 551.690775062,
+    "leaf1": 511.450204376,
+    "node2_0": 509.370601436,
+    "wrap": 513.880314726
+  },
+  "security_established": false,
+  "setup_bytes": 4531396,
+  "setup_sha256": "3aad2b8cdc4855ad5a044446b21f2ecd859b011ab05846a080787221fd15e470",
+  "template_kind": "chain (the class chain L4, build_norm)",
+  "templates_shape_floored": [
+    true,
+    true,
+    true
+  ],
+  "total_seconds": 2237.232278661,
+  "tree_heights": [
+    [
+      20,
+      745884
+    ],
+    [
+      22,
+      2794888
+    ],
+    [
+      7,
+      128
+    ],
+    [
+      16,
+      65536
+    ]
+  ],
+  "wrap_heights": [
+    [
+      20,
+      340496
+    ],
+    [
+      21,
+      1195648
+    ],
+    [
+      7,
+      128
+    ],
+    [
+      16,
+      65536
+    ]
+  ],
+  "wrap_program_rows": 173368,
+  "wrap_proof_bytes": 326959,
+  "zero_knowledge_established": true,
+  "zero_knowledge_scope": "statistical zero knowledge of the tree-wrap packet for the statement (claim, hint, class, setup), classical programmable ROM: eps_ZK <= 2^-184.4 + 8 x 2^-192 (shape-pin aborts), ZK-ARGUMENT.md 6.4, 7.1, 10.1; the setup is one for all chunks (a function of the template classes' shapes, the arity and the depth); the packet reveals the template class (the chunk's D0a shape class); QROM: ZK-ARGUMENT.md 6.5 (the base point u is open)"
+}

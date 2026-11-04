@@ -1,0 +1,4 @@
+
+thread 'main' (1086489) panicked at /data/illia/nearproof/.claude/worktrees/agent-a9b437a5a1ca1b1e5/research/near-compression/native/pq-chunk-e2e/src/main.rs:1022:94:
+called `Result::unwrap()` on an `Err` value: Error("invalid type: map, expected usize", line: 1, column: 131)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace

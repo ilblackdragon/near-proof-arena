@@ -1,12 +1,113 @@
-# E2E: real D0a chunks → final PQ proof → fresh-process verification (2026-10-31, ZK updates 2026-11-03: D-1 … D-5)
+# E2E: real D0a chunks → final PQ proof → fresh-process verification (2026-10-31, ZK updates 2026-11-03/04: D-1 … D-6)
 
 Status: **research run, owner's relaxed targets of 2026-10-31.** `security_established=false` in
-every RESULT.json. `zero_knowledge_established=true` only in the D-4 `zk = 6` packets with
-pinned heights (`results/zk/zk6h*`), scoped to the classical ROM (§0a; D-5 §0 corrects its setup scope); false in every earlier
-RESULT.json. No GPU was used; GPU latencies are
-model projections only (`../prover-budget/model.py`). No Lean spec or checker change.
+every RESULT.json. `zero_knowledge_established=true`, always scoped to the classical programmable
+ROM, in: the D-6 tree-wrap packets (`results/zk/d6/tree-*`, §0; ZK-ARGUMENT §10.1); the D0a FINAL
+packets of shape-floored chains (`results/zk/shape/`, `results/zk/d6/classes/`); and the D-4
+`zk = 6` packets (`results/zk/zk6h*`, §0b; §0a corrects their setup scope). False in every earlier
+RESULT.json. No GPU was used; GPU latencies are model projections only
+(`../prover-budget/model.py`). No Lean spec or checker change.
 
-## 0. Update 2026-11-03, milestone D-5 (lane E2E-D): chunk-independent tree + ZK wrap, review-D4 fixes
+## 0. Update 2026-11-04, milestone D-6 (lane E2E-D): tree-wrap ZK established (classical ROM), depth 2 on D0a, arity study, leaf-template prototype, review-D5 folded
+
+**The tree-wrap packets are zero-knowledge in the classical ROM, with one setup for all three
+D0a chunks.** Deps tree `pq-e2e-d6` (= `pq-e2e-d5f` + the regenerated `patches/e2e-tree.patch`;
+d4h + `e2e-heights.patch` + `e2e-tree.patch` reproduces every touched file byte for byte), driver
+`pq-chunk-e2e/src/tree.rs`, runs `scripts/run_shape_classes.sh` and `scripts/run_d6.sh`, results
+`results/zk/d6/`.
+
+| target (D-6) | result | met? |
+|---|---|---|
+| re-prove the other two D0a classes with shape floors | `scripts/run_shape_classes.sh`: chunk 2 and chunk 3 chains from their D-4 bases with `NEARPROOF_CHAIN_SHAPE_FLOORS` (chunk 1's is D-5's chain A). Converged programs 145,438 / 145,500 / 146,114 rows; FINAL pins (NvAir / SHA) 291,996 / 1,090,432, 292,088 / 1,090,432, 293,008 / 1,090,432. D0a FINAL packets 326,077 / 326,468 / 325,825 B, verified 3× each in fresh processes (40.8–41.6 ms one core), `zero_knowledge_established = true` (§0a scope) — so every D0a class now has a shape-only setup (`results/zk/d6/classes/`) | **yes** |
+| rebuild the template set; tree wrap on all 3 chunks with one setup | template set = the normalisers of the three shape-floored `L4`s + PAD. Arity 2, depth 1: chunk 1 creates the setup (`SETUP.json` 4,531,396 B, sha256 `3aad2b8c…`), **chunks 2 and 3 reproduce it byte for byte** (`TREE_FIXED_SETUP_IDENTICAL`, `cmp`; the tree vk too). Packets **327,911 / 327,630 / 327,365 B**; 18/18 fresh-process negatives on each chunk; prove 2,237 / 2,271 / 2,201 s at 8 threads (each proof 462–563 s), peak RSS 20.2–21.1 GB | **yes** |
+| the setup does not depend on chain transcripts | the template set rebuilt from a **fresh** chain of chunk 1 (D-5 chain B: other base `u`, other transcripts at every level, another `L4`) equals the setup's (`TREE_TEMPLATES_MATCH_FIXED_SETUP`; `NEARPROOF_TREE_TEMPLATES_ONLY`). The rest of the setup is a function of the template set, the arity and the depth, as the three-chunk byte identity shows | **yes** |
+| re-read the ZK argument for the wrap program; set the flag | ZK-ARGUMENT §10.1: statement `(claim, hint, class, setup)`; same AIR set and public columns as the D0a FINAL (NvAir gains the `ChainStart` bus, no column); 60 data + 37 mask stacked columns (D0a FINAL: 54 + 37); every §6.4 term holds; the setup is shape-only (above); the FINAL domain is used only by the wrap; aborts `A·2^-192` with `A` = chain levels + tree proofs + 1 (8 at depth 1, 12 at depth 2). **`zero_knowledge_established = true`** in the tree RESULT.json, set only when the wrap is `zk = 6`, every class base is `zk ≥ 1` and every template class's chain ran with shape floors (`templates_shape_floored`). Classical programmable ROM only; QROM unchanged (`u` open, owner decision) | **yes** |
+| depth 2 on real D0a chunks | arity 2, depth 2: 4 leaves (the template leaf + 3 PAD), two level-2 nodes and one level-3 node, then the wrap at root level 3; on chunks 2 and 3 with one setup (`SETUP.json` 4,531,396 B, `aee590cd…`; **chunk 3 reproduces chunk 2's byte for byte**). Every node, at levels 2 and 3, runs one program `C_node` (asserted); same tree pin and wrap pin as depth 1. Packets **329,268 / 327,029 B**, 18/18 negatives each, prove 4,118 / 4,218 s (8 proofs, 467–558 s each), peak 21.5 / 22.7 GB. Constraint-level depth-2 negatives on the Fib fixture (review-D5 row) | **yes** |
+| arity 8 | **not proved; measured and modelled** (`tree-arity`, `scripts/tree_arity_model.py`, `results/zk/d6/arity/`). Trace generation over the real depth-2 leaves: a node costs **334,368 NvAir rows, 1,159,808 SHA rows (9,061 compressions) and 171,680 program rows per child**, plus a fixed ≈ 7.6K / 3K / 4.9K (arity 2 and 3 exact; the 2-ary probe equals the run's node). **A 3-ary node fits the current geometry and was proved**: 421,407 B, 547 s at 10 threads, 21.3 GB (2-ary: 404 KB, 509 s, 20.2 GB). Arity 4 and 8 do not fit: besides the SHA AIR's 2^22-row ceiling (8-ary: 9.3M rows → 3 SHA instances), **a node's NvAir height must equal its children's** (BIND evaluates the node's program on the child's ALU domain; `bind_child_program` asserts it), so an 8-ary node (2.7M NvAir rows) needs NvAir 2^22 and program 2^21 in every tree proof, leaves included. Estimates for an 8-ary node: ≈ 1.0G cells, 0.8–1.8 ks and 29–71 GB on CPU (affine vs linear fits): beyond this host's 40 GB cap at the upper end | measured (3-ary), modelled (8-ary) |
+| lane A/B leaf templates (blockers 4, 5, 8, 9) | plan §5.0.1.4 (templates, wrapper per template, what lanes A/B must provide); prototype **built: the base-template leaf** (`build_base_leaf`, `NEARPROOF_TREE_TEMPLATE=base`): the leaf verifies the class's standalone base STARK directly (vk and heights as program constants, no anchor or BIND), computes its statement digest in-circuit with the cached TAPE tables bound by tape-eval, and exposes the canonical range statement; V_d unchanged. Run on chunk 1: packet 327,449 B, verify 40.9–41.6 ms, 17/17 negatives, prove 2,175 s, **and the chain L1..L4 (≈ 25 min per chunk) leaves the tree path**. A real Wasm-segment leaf is not feasible yet: no segment proof / vk is saved and lane A picks parameters per call | plan **yes**; prototype on the D0a base (stand-in) |
+| review-D5 (independent, from main `59fc5ddb9`): no Critical/High | D5-1: the reviewer's constraint-level forged-node test adopted (`tree_tests::review_d5_forged_node_debug`: honest passes, 5 forged bodies rejected), plus 6 depth-2 / mixed-level constraint-level negatives in `tree_fib_end_to_end` (all rejected by the debug constraint check: mixed-level children in both orders, swapped children, a changed preimage, the wrap claiming root level 2, a level-2 node as the root); D5-2: the program root is `extra_commits[0][has_prep]`; D5-5: fixed-height tables must be used to their height when pinned; D5-3 = item 1. Info items: below | **yes** |
+
+**Measured (arity 2, `results/zk/d6/`).**
+
+| run | packet B | wrap proof B | verify, 1 core | prove (8 threads) | notes |
+|---|---:|---:|---|---|---|
+| depth 1, chunk 1 (creates the setup) | 327,911 | 326,959 | 42.2–44.5 ms (wrap check 25.8–26.2) | 2,237 s (leaf 552, PAD 511, node 509, wrap 514) | node program 348,254 rows, wrap 173,368 |
+| depth 1, chunk 2 (fixed setup) | 327,630 | 326,539 | 42.4–44.4 ms | 2,271 s | setup identical |
+| depth 1, chunk 3 (fixed setup) | 327,365 | 326,413 | 43.2–45.5 ms | 2,201 s | setup identical |
+| depth 2, chunk 2 (creates its setup) | 329,268 | 328,177 | 42.2–42.5 ms | 4,118 s (8 proofs) | level-3 node = `C_node` |
+| depth 2, chunk 3 (fixed setup) | 327,029 | 326,077 | 43.5–47.5 ms | 4,218 s | setup identical |
+| base template, depth 1, chunk 1 | 327,449 | 326,497 | 40.9–41.6 ms | 2,175 s (leaf 521, PAD 512, node 505, wrap 486) | no chain; tree pin (20, 1,048,576) / (22, 2,998,576) |
+| 3-ary node (not wrapped) | — | 421,407 (node) | — | 547 s (10 threads) | natural heights 1,010,688 / 3,482,496 |
+
+The tree pin is (20, 745,884) / (22, 2,794,888) / (7, 128) / (16, 65,536) (D-5: 739,540 /
+2,794,560; the shape-floored `L4`s are larger, so are their normalisers: 144,138–144,814 rows
+against 141,354–143,168); the wrap pin (20, 340,496) / (21, 1,195,648), the same at depth 1 and 2.
+Tree layer and wrap 268.2 bits per round (`TREE.vk.json`: queries [54, 41, 31, 25]; the binding
+round is WHIR round 1 — round 0 uses the Johnson-regime fallback at 271.9, review-D5 Info).
+
+Verify times: one core, fresh process, 5 runs each, idle host (`scripts/bench_tree_verify.sh`,
+`results/zk/d6/verify-1core.txt`); the in-run timings of chunks 1 and 2 (64–65 ms) were taken
+while the 2-thread Fib tests ran next to them.
+
+**Scope of the ZK claim (ZK-ARGUMENT §10.1).** Statistical ZK of the tree-wrap packet
+`NPQTW02 ‖ hint ‖ class ‖ u ‖ π_wrap` for the statement `(claim, hint, class, setup)`, classical
+programmable ROM, ε_ZK ≤ 2^-184.4 + A·2^-192, for a setup made by `tree-prove` from shape-floored
+classes. The setup is the same for every chunk; the packet reveals the template class (the D0a
+shape class) and carries `u`. Not QROM: `u` is open exactly as for the D0a FINAL (owner decision,
+unchanged; nothing implemented). Not independently reviewed. `security_established = false`.
+The base-template prototype run also sets the flag (its templates are base proofs, so no chain
+floors are needed; `A = 4`); it is a prototype and not separately reviewed.
+
+**Arity 2 vs 8 for 1 Pgas (`results/zk/d6/arity/model.txt`).**
+* *In-circuit work:* every child costs the same ≈ 9,061 compressions, so a tree does work
+  proportional to its edges: 8-ary does 8/14 of the 2-ary verification work for 8 leaves.
+* *CPU, this stack:* with the built design (every tree proof at the node's heights, PAD leaves at
+  level 1) an 8-ary tree is **worse**: its leaves are padded to an 8-ary node's size (N = 64:
+  ≈ 36 h vs 16 h of 8-thread work). With leaves at their own heights and PAD allowed at any level
+  (two programs `P_2` / `P_*`; not built) 8-ary is ≈ 30 % cheaper (N = 64: 8.0 h vs 11.4 h), but its
+  critical path is longer (2 large nodes vs 6 small ones: ≈ 63 vs 48 min) and it needs NvAir
+  2^22 + 3 SHA instances and up to ≈ 70 GB per node.
+* *GPU model (`prover-budget/model.py`, arch b, adversarial 1 Pgas, 8 H200, re-anchored on the
+  measured per-child cost and cells per compression):* at the tree layer's rate (lb 5) fan-in 2 / 4
+  / 8 give 100 / 91 / 89 GPU-s of aggregation and 17.4 / 16.3 / 16.3 s latency (47 segments of 2^23
+  rows); latency is throughput-bound, and the model's own best design (lb_node 2, fan-in 8) reaches
+  11.7 s. Fan-in 8 saves ≈ 11 % of aggregation work but no latency at this rate. **Recommendation:**
+  keep arity 2 (or 3, which fits the current geometry) until leaves have their own heights and PAD
+  works at every level; then 8-ary is the work-optimal choice on GPUs (where 71 GB fits in 141 GB),
+  together with a second and third SHA AIR instance (the compression AIR already has `cid_offset`;
+  the generator, the lookback-bus key, the table multiplicities, the AIR order in `shape_pinned_heights`
+  / V_d and the node pin need it).
+
+**Lane A/B templates as leaves (plan §5.0.1.4).** Read from lane A's `native/wasm-base` +
+`e2e-general/m4` and lane B's `e2e-general/m5a` (not edited). Neither template can be a leaf today:
+* parameters and per-table heights are chosen per call / run (blocker 4);
+* part of each statement is checked natively: CODE / FUNC roots (Wasm), TAPE / HTAPE roots (state);
+  these must become in-circuit equalities with `B.codeRoot` etc. (blocker 8);
+* M5a is one monolithic proof with no boundary outputs; it must be split at its RCH cuts into
+  INTAKE / STATE / FINAL leaves (blocker 5);
+* no proof or vk is saved, and M5a's backend copy hashes vks differently.
+The wrapper per template is defined there: `b.agg`, no anchor, `build_verifier(vk_t)` with the vk
+and heights as program constants, witness `B_in` / `B_out` hashed in-circuit, field equalities
+with the public values and cached roots, `H9(ctx, a, a + 1, [phase, h(B_in)], [phase, h(B_out)])`.
+A Wasm segment at log_blowup 1 has 925 queries (≈ 2.5–3.5× the D0a base's verifier work), above
+the arity-2 tree pin: raise the segment's blowup or add one compression level. The prototype above
+exercises the wrapper mechanics on the one standalone template with cached tables that exists
+(the D0a base).
+
+**Review-D5 (independent, from main `59fc5ddb9`).** No Critical/High. Folded in: D5-1 (the
+reviewer's constraint-level forged-node test adopted; 6 depth-2 / mixed-level constraint-level
+negatives added, all rejected by `engine.debug`), D5-2 (`extra_commits[0][has_prep]`), D5-5
+(fixed tables asserted at full height when pinned); D5-3 is item 1. Info: the tree layer's
+268.2 bits come from WHIR round 1 (round 0 is the Johnson fallback at 271.9). Open: verifier-path
+`expect` / `assert` on malformed input (driver `tree_verify` framing, `build_verifier` shape
+asserts) should return errors before library use; a structural assert for the NvAir / SHA
+last-used row.
+
+**Not done / open.** QROM `u` (owner); an 8-ary node proof (geometry + memory, above); two node
+shapes and PAD at any level (design above); lanes A/B templates (their blockers 4, 5, 8, 9); an
+independent review of D-6 (§10.1, the base-template leaf).
+
+## 0a. Update 2026-11-03, milestone D-5 (lane E2E-D): chunk-independent tree + ZK wrap, review-D4 fixes
 
 **An aggregation tree now feeds the ZK wrap, and the wrap setup is the same for every chunk.**
 `nearproof-chunk-e2e tree-prove` (driver `pq-chunk-e2e/src/tree.rs`; circuits `nv/tree.rs`,
@@ -99,7 +200,7 @@ rebuilding the tree's template set from them (the tree run used the D-4 chains);
 shape-pinned FINAL packets of `results/zk/zk6s/` on shape-floor chains (only chunk 1 has one,
 `results/zk/shape/`).
 
-## 0a. Update 2026-11-03, milestone D-4 (lane E2E-D): obligation H closed, ZK established (classical ROM), QROM part, review-zk6 fixes
+## 0b. Update 2026-11-03, milestone D-4 (lane E2E-D): obligation H closed, ZK established (classical ROM), QROM part, review-zk6 fixes
 
 **Obligation H is built.** The owner adopted it on 2026-11-03.
 * The FINAL trace heights `(log, tight)` per AIR are now setup content: `Setup::final_heights`
@@ -152,9 +253,9 @@ Tests:
 * `zk_layout` (4) and `zk_layout_fuzz` (2) pass (`results/zk/layout-tests-d4.txt`).
 * `make pin-check` passes.
 
-## 0b. Update 2026-11-03, milestone D-3 (lane E2E-D): Lemmas D and E closed (`zk = 6`), review fixes
+## 0c. Update 2026-11-03, milestone D-3 (lane E2E-D): Lemmas D and E closed (`zk = 6`), review fixes
 
-The FINAL layer now runs `NEARPROOF_ZK_FINAL=6`. That is `zk = 5` (§0c) with two changes:
+The FINAL layer now runs `NEARPROOF_ZK_FINAL=6`. That is `zk = 5` (§0d) with two changes:
 * **No stacked opening is sent.** WHIR batches the stacked columns with `μ^j + ν·c_j`, where
   `c_j` are the stacking reduction's final coefficients. The prover sends one value
   `B = Σ μ^j q̂_j(u)` after `μ`, and `ν` is sampled after `B`.
@@ -162,7 +263,7 @@ The FINAL layer now runs `NEARPROOF_ZK_FINAL=6`. That is `zk = 5` (§0c) with tw
   there are 37 mask columns in place of 15.
 
 With these, every lemma of the simulator argument is proved (`ZK-ARGUMENT.md` §6). The
-independent review's findings were fixed in the same patch (§0b.3).
+independent review's findings were fixed in the same patch (§0c.3).
 
 FINAL was re-proved from each chunk's L4 checkpoint (`scripts/run_zk6.sh`), and every packet
 was verified in fresh processes. Raw logs are in `results/zk/zk6/`, `zk6b/` and `zk6r274/`.
@@ -178,7 +279,7 @@ was verified in fresh processes. Raw logs are in `results/zk/zk6/`, `zk6b/` and 
 | verify < 200 ms, one core | 41–67 ms in fresh processes, host load 14–30; the FINAL check is 25–36 ms | **yes** |
 | negatives, hiding tests | 21/21 per chunk. Witness-guessing distinguisher: 0/287 for both the right and the wrong witness. `zk-diff` of two proofs of the same L4: no witness-dependent field is equal | **yes** |
 
-### 0b.1 Results (`zk = 6`)
+### 0c.1 Results (`zk = 6`)
 
 | | d1/00-h10006-s3 | d1/00-h10007-s0 | d2/05-h10042-s3 |
 |---|---:|---:|---:|
@@ -196,14 +297,14 @@ Bytes against `zk = 5`:
 The provable mask costs about 6 KB. A single extension-field mask column with three τ chains
 would save about 4.4 KB, but its rank lemma has no hand proof yet.
 
-### 0b.2 268 and 274 bits per round (chunk 1)
+### 0c.2 268 and 274 bits per round (chunk 1)
 
 | FINAL target | queries | min bits | packet B | verify |
 |---|---|---:|---:|---:|
 | 268 (pinned) | [46, 41, 31, 25] | 268.2 | 325,751 (second proof of the same L4: 325,289) | 41–52 ms |
 | 274 | [47, 43, 31, 25] | 274.0 | **330,485** (+4.7 KB) | 53 ms |
 
-### 0b.3 Independent review of the `zk = 5` verifier (2026-11-03): fixes
+### 0c.3 Independent review of the `zk = 5` verifier (2026-11-03): fixes
 
 The review found no soundness break, and it agreed that Lemmas D and E were the open ZK steps.
 Its findings, and what was done:
@@ -224,9 +325,9 @@ Regression tests:
   configuration), plus a maximum-tight-height tamper per AIR
   (`results/zk/zk-selftest-d3.txt`).
 
-## 0c. Update 2026-11-03, milestone D-2 (lane E2E-D): full zero-knowledge masking of the FINAL proof
+## 0d. Update 2026-11-03, milestone D-2 (lane E2E-D): full zero-knowledge masking of the FINAL proof
 
-The FINAL layer now runs `NEARPROOF_ZK_FINAL=5`. That is the PCS-level hiding of §0d plus PIOP
+The FINAL layer now runs `NEARPROOF_ZK_FINAL=5`. That is the PCS-level hiding of §0e plus PIOP
 masking: masked GKR, masked batch sumcheck with column masks, and masked stacking reduction
 (`ZK-ARGUMENT.md` §4, `native/recursion/patches/zk-piop.patch`). It also uses the
 slice-splitting packing, which is now fixed. For each of the 3 D0a chunks, the FINAL layer was
@@ -238,7 +339,7 @@ processes. `zero_knowledge_established=false` (reason below).
 |---|---|---|
 | mask the core proof steps of FINAL | built, see the list below | **yes** |
 | one simulator plus a concrete hiding error | `ZK-ARGUMENT.md` §6: ε_ZK ≤ 2^-185 + ε_D + ε_E, where ε_D and ε_E are two composition lemmas (base-field cells absorbing extension-field functionals) that are argued but not proved | **written; not established** |
-| two-witness test, witness-guessing distinguisher | `zk = 2` packet: the right witness matches 287/287 openings; full-ZK packet: 0/287 for both witnesses (§0c.3) | **passes** |
+| two-witness test, witness-guessing distinguisher | `zk = 2` packet: the right witness matches 287/287 openings; full-ZK packet: 0/287 for both witnesses (§0d.3) | **passes** |
 | split packing (`zk = 3`) | fixed. FINAL layout is 68 stacked columns (`zk = 4` would be 98; non-ZK 53 + 15 mask columns), with 1,537 slices | **yes** |
 | proof ≤ ~400 KB with ZK | **319,695 / 320,464 / 319,779 B** | **yes** |
 | verify < 200 ms, one core | **40–50 ms** fresh process, 5 runs per chunk, host load 13–19; the FINAL check itself is 24–26 ms | **yes** |
@@ -253,12 +354,12 @@ What is masked:
   them.
 * **Masked stacking reduction.** Sparse mask claims plus a committed-column Libra mask.
 
-### 0c.1 Results (full ZK, `zk = 5`)
+### 0d.1 Results (full ZK, `zk = 5`)
 
 | | d1/00-h10006-s3 | d1/00-h10007-s0 | d2/05-h10042-s3 |
 |---|---:|---:|---:|
 | **packet B (full ZK)** | **319,695** | **320,464** | **319,779** |
-| packet B, PCS-ZK only (`zk = 2`, §0d) | 325,613 | 324,534 | 326,243 |
+| packet B, PCS-ZK only (`zk = 2`, §0e) | 325,613 | 324,534 | 326,243 |
 | packet B, non-ZK (10-31) | 306,839 | 307,314 | 307,427 |
 | FINAL sections: gkr / relations / stacking / whir | 42,828 / 24,436 / 5,440 / 243,960 | 42,828 / 24,436 / 5,440 / 244,590 | 42,828 / 24,436 / 5,440 / 244,044 |
 | FINAL prove, including 2 self-verifications, s (10 threads, load 13–19) | 637 | 528 | 763 |
@@ -275,9 +376,9 @@ Where the bytes went, relative to `zk = 2`:
 
 Relative to non-ZK, full ZK costs +12.4 to +13.2 KB. Raw logs: `results/zk/zk5/`, with sha256
 manifests of each packet, proof and setup. Verify now runs public-input preparation in process
-(see §0c.4).
+(see §0d.4).
 
-### 0c.2 Sizes at 268 and 274 bits per round (FINAL layer)
+### 0d.2 Sizes at 268 and 274 bits per round (FINAL layer)
 
 Chunk 1, full ZK, same L4 (`results/zk/zk5`, `zk5b`, `zk5r274`, `zk5-extra.log`):
 
@@ -290,7 +391,7 @@ Only the FINAL layer was re-targeted; the inner levels and the base stay at 268.
 268-bit proofs differ by 0.9 KB because Merkle multiproof deduplication depends on the query
 positions.
 
-### 0c.3 Hiding tests
+### 0d.3 Hiding tests
 
 * **Same witness, fresh randomness.** `results/zk/zk-diff-zk5-same-witness.txt` compares two
   full-ZK FINAL proofs of the same L4. Every value field differs, except the shape, the public
@@ -310,15 +411,15 @@ positions.
 
   With masking, the right witness is no more consistent with the proof than the wrong one. This
   is the test the 11-02 log called "only meaningful after PIOP masking", and it now passes. It is
-  a necessary condition, not a proof of ZK (§0c table).
+  a necessary condition, not a proof of ZK (§0d table).
 
-### 0c.4 Verify in process (sub-agent)
+### 0d.4 Verify in process (sub-agent)
 
 `statepublic` is now a library call, and the TAPE evaluation is folded.
 `results/zk/verify-inprocess.txt` has 32–34 ms on the `zk = 2` packets. The FINAL protocol check
 is 16–18 ms with `zk = 2` and 24–26 ms with `zk = 5`.
 
-## 0d. Update 2026-11-03 (lane E2E-D, D-1): PCS-level ZK lever on
+## 0e. Update 2026-11-03 (lane E2E-D, D-1): PCS-level ZK lever on
 
 Owner targets (2026-11-03): 128-bit PQ, SHA-384, proven bounds; ZK with only the chunk-header
 outputs plus trusted facts public; proof **~400 KB accepted with ZK**; verify < 200 ms.
@@ -331,7 +432,7 @@ outputs plus trusted facts public; proof **~400 KB accepted with ZK**; verify < 
 | verify < 200 ms | 129–283 ms single core on a host at load 20–22 (5 fresh processes per chunk); the FINAL protocol check is 20–48 ms of it, the rest is `statepublic` (45–118 ms) and claim/TAPE preparation, both unchanged by ZK. 10-31 idle-host figure for the same pipeline: 104–112 ms | **yes on an idle host; no under the current contention for 2 of 3 chunks** (the ZK lever adds ≈ 1–5 ms) |
 | 128-bit PQ, proven bounds | unchanged: min 268.2 RBR bits (FINAL WHIR query); the ZK lever adds no round, challenge or claim (`results/zk/soundness-final-zk2.txt`) | parameters yes; `security_established=false` |
 
-### 0d.1 Results table (ZK lever on)
+### 0e.1 Results table (ZK lever on)
 
 | | d1/00-h10006-s3 | d1/00-h10007-s0 | d2/05-h10042-s3 |
 |---|---:|---:|---:|
@@ -353,7 +454,7 @@ outputs plus trusted facts public; proof **~400 KB accepted with ZK**; verify < 
 during the runs), so CPU times are as measured. Every level natively re-verified before the next.
 Per-run numbers `results/zk/<run>.json`, sha256 manifests `results/zk/<run>.manifest.json`.
 
-### 0d.2 ZK size levers measured
+### 0e.2 ZK size levers measured
 
 | lever | FINAL packet | Δ vs non-ZK (306,839 B, same chunk) | source |
 |---|---:|---:|---|
@@ -368,7 +469,7 @@ Grinding on mask spot checks and fewer HVZK masks were the 10-31 candidates for 
 HVZK-WHIR overhead; they are moot: the batching construction has no mask oracles and no extra
 queries, so its cost is the width of the opened rows, not a security-level-dependent query count.
 
-### 0d.3 Per-round soundness of the ZK wrap (FINAL, pinned), and the 274-bit variant
+### 0e.3 Per-round soundness of the ZK wrap (FINAL, pinned), and the 274-bit variant
 
 `results/zk/soundness-final-zk2.txt` (pinned FINAL, `zk = 2`): LogUp 321.9, GKR sumcheck 369.3,
 GKR batching 370.9, zerocheck 355.0, constraint batching 350.8, stacked reduction 351.5, WHIR
@@ -382,7 +483,7 @@ is not instantiated): queries [47, 43, 31, 25], min **274.0** bits, FINAL packet
 325,613 B at 268 (same chunk, same L4): **+3.9 KB, not material** (`results/zk/replay-zk2-rbr274.txt`).
 Only the FINAL layer was re-targeted here; the inner levels and the base stay at 268.
 
-### 0d.4 Hiding checks run
+### 0e.4 Hiding checks run
 
 * `zk-diff` of two FINAL proofs from the same L4 (same witness, fresh randomness):
   `results/zk/zk-diff-replay-same-witness.txt`. Root, every WHIR field, stacked openings differ; the
@@ -569,7 +670,7 @@ In order of how soon they bite:
    (D-4: a zk-masked setup now also pins the FINAL trace heights. The shape class it reveals is
    the scope of the ZK claim, `ZK-ARGUMENT.md` §7. The general-chunk interface and its blockers
    are in plan §5.0.1.)
-4. **Zero knowledge** (`ZK-ARGUMENT.md`): *superseded by §0 / §0a.* The FINAL layer runs `zk = 6`,
+4. **Zero knowledge** (`ZK-ARGUMENT.md`): *superseded by §0 / §0a / §0b.* The FINAL layer runs `zk = 6`,
    about 325 KB per packet. ZK is established in the classical ROM for (claim, hint, setup) as of
    D-4. The 10-31 text, which said Z1–Z6 were unimplemented and HVZK-WHIR cost 100–300 KB, is
    history.

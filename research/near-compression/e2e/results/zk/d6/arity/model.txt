@@ -1,0 +1,43 @@
+  proved arity-3 node: 421,407 B, trace gen 1 s, total 547 s
+== (1) CPU, measured tree layer (ns20lb5, 268.2 bits/round), 8 threads ==
+  probe fit (used rows = per child x a + fixed): NvAir 334,368 x a + 7,584; SHA 1,159,808 x a + 3,072 (9,061 compressions per child); program 171,680 x a + 4,894
+    arity 2: program 348,254 rows, NvAir 676,320, SHA 2,322,688 (18,146 compressions)
+    arity 3: program 519,934 rows, NvAir 1,010,688, SHA 3,482,496 (27,207 compressions)
+  max AIR height 2^22 = 4,194,304 rows; 2-ary node: 288 M committed cells, 514 s, 20.4 GB
+  arity 2: NvAir 0.68 M rows (log 20), SHA 2.32 M rows -> 1 SHA AIR instance(s) at 2^22; 250 M cells, ~447 s, ~18 GB (linear in cells); affine through the 2- and 3-ary proofs: ~498 s, ~20 GB
+  arity 3: NvAir 1.01 M rows (log 20), SHA 3.48 M rows -> 1 SHA AIR instance(s) at 2^22; 375 M cells, ~670 s, ~27 GB (linear in cells); affine through the 2- and 3-ary proofs: ~551 s, ~21 GB
+  arity 4: NvAir 1.35 M rows (log 21), SHA 4.64 M rows -> 2 SHA AIR instance(s) at 2^22; 500 M cells, ~893 s, ~35 GB (linear in cells); affine through the 2- and 3-ary proofs: ~603 s, ~23 GB
+  arity 8: NvAir 2.68 M rows (log 22), SHA 9.28 M rows -> 3 SHA AIR instance(s) at 2^22; 999 M cells, ~1,784 s, ~71 GB (linear in cells); affine through the 2- and 3-ary proofs: ~814 s, ~29 GB
+  NB: a node's NvAir height must equal its children's (BIND evaluates its program at the child ALU domain), so an arity whose NvAir exceeds 2^20 needs every tree proof at that NvAir height
+  template leaf at its own pin: 112 M cells, ~200 s
+  tree over N leaves, CPU work (8 threads) and critical path (node proofs in sequence):
+    U  = built (D-5/D-6): every tree proof has the node heights; pad to arity^depth with level-1 PAD
+    S  = two shapes (leaf heights != node heights; level-2 program P_2 != P_*, anchor (2, C_2)); not built
+    SL = S + PAD at any level (one PAD proof per missing subtree; PAD_l at level-l heights); not built
+    N=   8 a=2: depth 3; U 8 leaves (0 PAD) + 7 nodes = 1.9 h; S 1.3 h; SL 7 nodes + 0 PAD = 1.3 h; critical path 26 min
+    N=   8 a=8: depth 1; U 8 leaves (0 PAD) + 1 nodes = 4.5 h; S 0.9 h; SL 1 nodes + 0 PAD = 0.9 h; critical path 33 min
+    N=  47 a=2: depth 6; U 64 leaves (17 PAD) + 63 nodes = 15.8 h; S 11.4 h; SL 48 nodes + 2 PAD = 8.8 h; critical path 48 min
+    N=  47 a=8: depth 2; U 64 leaves (17 PAD) + 9 nodes = 36.2 h; S 8.0 h; SL 7 nodes + 3 PAD = 7.1 h; critical path 63 min
+    N=  64 a=2: depth 6; U 64 leaves (0 PAD) + 63 nodes = 15.8 h; S 11.4 h; SL 63 nodes + 0 PAD = 11.4 h; critical path 48 min
+    N=  64 a=8: depth 2; U 64 leaves (0 PAD) + 9 nodes = 36.2 h; S 8.0 h; SL 9 nodes + 0 PAD = 8.0 h; critical path 63 min
+    N=  94 a=2: depth 7; U 128 leaves (34 PAD) + 127 nodes = 31.7 h; S 22.9 h; SL 95 nodes + 2 PAD = 17.3 h; critical path 55 min
+    N=  94 a=8: depth 3; U 512 leaves (418 PAD) + 73 nodes = 289.9 h; S 64.7 h; SL 15 nodes + 12 PAD = 17.7 h; critical path 93 min
+    N= 512 a=2: depth 9; U 512 leaves (0 PAD) + 511 nodes = 127.0 h; S 91.9 h; SL 511 nodes + 0 PAD = 91.9 h; critical path 70 min
+    N= 512 a=8: depth 3; U 512 leaves (0 PAD) + 73 nodes = 289.9 h; S 64.7 h; SL 73 nodes + 0 PAD = 64.7 h; critical path 93 min
+
+== (2) GPU model (prover-budget/model.py, arch b, adversarial 1 Pgas, 8 H200) ==
+  re-anchored: model per-child comps at lb 5 5,947 -> measured 9,061; cells per compression 29,049 -> 13,429
+  model anchors  seg 2^22 fan-in 2: 94 segments, depth 7, node comps [60595, 12775, 11454, 11454, 11454, 11454, 11454], agg 210.13 GPU-s, nodes 3.77/0.78/0.71/0.71/0.59/0.31/0.17 s, crit 7.72 s, latency 31.15 s
+  model anchors  seg 2^22 fan-in 4: 94 segments, depth 4, node comps [121190, 26432, 24670, 11894], agg 195.47 GPU-s, nodes 7.62/1.64/0.65/0.18 s, crit 10.75 s, latency 29.32 s
+  model anchors  seg 2^22 fan-in 8: 94 segments, depth 3, node comps [242380, 54626, 12775], agg 192.28 GPU-s, nodes 15.43/1.44/0.19 s, crit 17.73 s, latency 28.93 s
+  model anchors  seg 2^23 fan-in 2: 47 segments, depth 6, node comps [63229, 12775, 11454, 11454, 11454, 11454], agg 110.84 GPU-s, nodes 3.93/0.78/0.71/0.59/0.31/0.17 s, crit 7.64 s, latency 18.76 s
+  model anchors  seg 2^23 fan-in 4: 47 segments, depth 3, node comps [126459, 26432, 18502], agg 100.98 GPU-s, nodes 7.95/1.37/0.26 s, crit 10.73 s, latency 17.62 s
+  model anchors  seg 2^23 fan-in 8: 47 segments, depth 2, node comps [252918, 40970], agg 98.90 GPU-s, nodes 16.10/0.55 s, crit 17.80 s, latency 17.80 s
+  model anchors  best design: {'seg_log_rows': 23, 'lb_base': 1, 'lb_node': 2, 'fan_in': 8, 'pre_wrap': 0}, latency 10.56 s
+  lane-D anchors seg 2^22 fan-in 2: 94 segments, depth 7, node comps [92321, 18793, 17451, 17451, 17451, 17451, 17451], agg 189.77 GPU-s, nodes 3.41/0.70/0.65/0.65/0.55/0.29/0.16 s, crit 7.06 s, latency 28.54 s
+  lane-D anchors seg 2^22 fan-in 4: 94 segments, depth 4, node comps [184642, 38929, 36244, 18122], agg 175.62 GPU-s, nodes 6.86/1.44/0.58/0.16 s, crit 9.68 s, latency 26.78 s
+  lane-D anchors seg 2^22 fan-in 8: 94 segments, depth 3, node comps [369283, 80542, 18793], agg 172.31 GPU-s, nodes 13.84/1.26/0.17 s, crit 15.91 s, latency 26.37 s
+  lane-D anchors seg 2^23 fan-in 2: 47 segments, depth 6, node comps [96335, 18793, 17451, 17451, 17451, 17451], agg 100.10 GPU-s, nodes 3.55/0.70/0.65/0.55/0.29/0.16 s, crit 7.02 s, latency 17.36 s
+  lane-D anchors seg 2^23 fan-in 4: 47 segments, depth 3, node comps [192670, 38929, 27183], agg 90.71 GPU-s, nodes 7.16/1.20/0.23 s, crit 9.71 s, latency 16.25 s
+  lane-D anchors seg 2^23 fan-in 8: 47 segments, depth 2, node comps [385339, 60407], agg 88.69 GPU-s, nodes 14.44/0.49 s, crit 16.06 s, latency 16.28 s
+  lane-D anchors best design: {'seg_log_rows': 23, 'lb_base': 1, 'lb_node': 2, 'fan_in': 8, 'pre_wrap': 0}, latency 11.66 s

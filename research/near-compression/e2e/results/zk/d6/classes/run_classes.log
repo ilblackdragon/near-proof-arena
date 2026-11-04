@@ -1,0 +1,17 @@
+LOAD_BEFORE d1_00-h10007-s0 0.87 4.14 6.73
+CHAIN d1_00-h10007-s0 rc=0 L1_SHAPE_FLOOR Some([423856, 1158912, 128, 65536]) FINAL_SHAPE_PIN [(20, Some(292088)), (21, Some(1090432)), (7, Some(128)), (16, Some(65536))] jmax_nvslack_shaslack_nvbas 	Maximum resident set size (kbytes): 16417692 
+VERIFY_PROFILE_MS total=41.56 setup_read_pin=2.46 setup_parse=5.22 air_pin_bundle_read=1.12 air_parse=4.82 statepublic=0.26 expected_claim_tape=1.58 proof_decode=0.22 final_verify=25.87
+INDEPENDENT_VERIFY_OK bundle_bytes=326468 under_300000=false
+VERIFY_PROFILE_MS total=40.98 setup_read_pin=2.27 setup_parse=5.12 air_pin_bundle_read=1.07 air_parse=4.82 statepublic=0.26 expected_claim_tape=1.50 proof_decode=0.22 final_verify=25.72
+INDEPENDENT_VERIFY_OK bundle_bytes=326468 under_300000=false
+VERIFY_PROFILE_MS total=40.79 setup_read_pin=2.20 setup_parse=5.10 air_pin_bundle_read=1.04 air_parse=4.85 statepublic=0.25 expected_claim_tape=1.48 proof_decode=0.22 final_verify=25.65
+INDEPENDENT_VERIFY_OK bundle_bytes=326468 under_300000=false
+LOAD_BEFORE d2_05-h10042-s3 9.62 8.78 9.08
+CHAIN d2_05-h10042-s3 rc=0 L1_SHAPE_FLOOR Some([413692, 1169920, 128, 65536]) FINAL_SHAPE_PIN [(20, Some(293008)), (21, Some(1090432)), (7, Some(128)), (16, Some(65536))] jmax_nvslack_shaslack_nvbas 	Maximum resident set size (kbytes): 16122304 
+VERIFY_PROFILE_MS total=41.59 setup_read_pin=2.46 setup_parse=5.26 air_pin_bundle_read=1.14 air_parse=4.86 statepublic=0.65 expected_claim_tape=2.35 proof_decode=0.21 final_verify=24.65
+INDEPENDENT_VERIFY_OK bundle_bytes=325825 under_300000=false
+VERIFY_PROFILE_MS total=41.14 setup_read_pin=2.31 setup_parse=5.15 air_pin_bundle_read=1.07 air_parse=4.87 statepublic=0.65 expected_claim_tape=2.24 proof_decode=0.21 final_verify=24.65
+INDEPENDENT_VERIFY_OK bundle_bytes=325825 under_300000=false
+VERIFY_PROFILE_MS total=40.95 setup_read_pin=2.23 setup_parse=5.13 air_pin_bundle_read=1.04 air_parse=4.92 statepublic=0.65 expected_claim_tape=2.30 proof_decode=0.20 final_verify=24.47
+INDEPENDENT_VERIFY_OK bundle_bytes=325825 under_300000=false
+CLASSES_DONE

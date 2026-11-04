@@ -1,0 +1,15 @@
+test nv::agg_tests::agg_chain_depth3 ... ignored
+test nv::agg_tests::agg_chain_depth_n ... ignored
+test nv::agg_tests::agg_g_l1_linked ... ok
+test nv::agg_tests::agg_node_debug ... ignored
+test nv::agg_tests::agg_node_program_binding ... ignored
+test nv::agg_tests::agg_program_honest ... ok
+test nv::agg_tests::agg_program_tamper ... ok
+test nv::agg_tests::agg_s13_flat ... ignored
+test nv::agg_tests::agg_segment_chain_native ... ok
+test nv::agg_tests::agg_shape ... ok
+test nv::tree_tests::review_d5_forged_node_debug ... ignored
+test nv::tree_tests::tree_fib_end_to_end ... ignored
+test nv::agg_tests::agg_circuit_debug has been running for over 60 seconds
+test nv::agg_tests::agg_circuit_debug ... ok
+test result: ok. 6 passed; 0 failed; 8 ignored; 0 measured; 95 filtered out; finished in 107.13s

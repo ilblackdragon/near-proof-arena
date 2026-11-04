@@ -1,0 +1,8 @@
+REVIEW_D5_POSITIVE_OK honest node host_failures=[]
+REVIEW_D5_DEBUG_REJECTED set without PAD
+REVIEW_D5_DEBUG_REJECTED set without template
+REVIEW_D5_DEBUG_REJECTED PAD before template
+REVIEW_D5_DEBUG_REJECTED PAD preimage with changed class
+REVIEW_D5_DEBUG_REJECTED PAD with init phase
+REVIEW_D5_OK
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 108 filtered out; finished in 1618.10s

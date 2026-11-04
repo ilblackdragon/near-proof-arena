@@ -1,0 +1,27 @@
+TREE_PARAMS n_stack=20 log_blowup=5 queries=[54, 41, 31, 25]
+NV_GEN profile ms=204 HeightProfile { k_samples: 3057, n_runs: 229, j_actual: 215, jobs_actual: 390, jobs_min: 254, samp_actual: 1683, samp_min: 1530, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 1377, comps_delta_actual: 136 }
+TREE_TEMPLATE d1_00-h10006-s3 kind=base level=0 rows=230072 pin=[(20, Some(420584)), (21, Some(1159040)), (7, Some(128)), (16, Some(65536))] info=[491, 3175, 34560, 417408, 1124480] s=36.9
+NV_GEN profile ms=195 HeightProfile { k_samples: 3057, n_runs: 229, j_actual: 199, jobs_actual: 389, jobs_min: 254, samp_actual: 1678, samp_min: 1530, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 1363, comps_delta_actual: 135 }
+TREE_TEMPLATE d1_00-h10007-s0 kind=base level=0 rows=231576 pin=[(20, Some(422848)), (21, Some(1159168)), (7, Some(128)), (16, Some(65536))] info=[491, 3175, 34560, 419672, 1124608] s=37.9
+NV_GEN profile ms=202 HeightProfile { k_samples: 3309, n_runs: 249, j_actual: 200, jobs_actual: 410, jobs_min: 275, samp_actual: 1801, samp_min: 1656, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 1360, comps_delta_actual: 135 }
+TREE_TEMPLATE d2_05-h10042-s3 kind=base level=0 rows=224178 pin=[(20, Some(412684)), (21, Some(1170176)), (7, Some(128)), (16, Some(65536))] info=[518, 3438, 37504, 409246, 1132672] s=37.2
+NV_GEN profile ms=0 HeightProfile { k_samples: 0, n_runs: 0, j_actual: 0, jobs_actual: 0, jobs_min: 0, samp_actual: 0, samp_min: 0, nv_rows_per_job: 0, comps_per_job: 0, nv_delta_actual: 0, comps_delta_actual: 0 }
+TREE_PAD rows=1598 pin=[(20, Some(2416)), (8, Some(256)), (7, Some(128)), (16, Some(65536))]
+TREE_HEIGHTS [(20, Some(1048576)), (22, Some(2998576)), (7, Some(128)), (16, Some(65536))]
+NV_GEN profile ms=273 HeightProfile { k_samples: 3057, n_runs: 229, j_actual: 215, jobs_actual: 390, jobs_min: 254, samp_actual: 1683, samp_min: 1530, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 1377, comps_delta_actual: 136 }
+TREE_LEAF 0 rows=230072 bytes=412947 seconds=521.4
+NV_GEN profile ms=152 HeightProfile { k_samples: 0, n_runs: 0, j_actual: 0, jobs_actual: 0, jobs_min: 0, samp_actual: 0, samp_min: 0, nv_rows_per_job: 0, comps_per_job: 0, nv_delta_actual: 0, comps_delta_actual: 0 }
+TREE_LEAF 1 rows=1598 bytes=412149 seconds=512.5
+NV_GEN profile ms=419 HeightProfile { k_samples: 11654, n_runs: 898, j_actual: 780, jobs_actual: 1472, jobs_min: 968, samp_actual: 6398, samp_min: 5830, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 5104, comps_delta_actual: 504 }
+TREE_NODE_PROBE rows=337554 shape_pin=[(20, Some(667796)), (22, Some(2403072)), (7, Some(128)), (16, Some(65536))] info=[1295, 11606, 128768, 656187, 2274304]
+NV_GEN profile ms=413 HeightProfile { k_samples: 11654, n_runs: 898, j_actual: 780, jobs_actual: 1472, jobs_min: 968, samp_actual: 6398, samp_min: 5830, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 5104, comps_delta_actual: 504 }
+TREE_NODE L2_0 rows=337554 shape_pin=[(20, Some(667796)), (22, Some(2403072)), (7, Some(128)), (16, Some(65536))] info=[1295, 11606, 128768, 656187, 2274304]
+TREE_NODE_PROVED L2_0 bytes=413577 seconds=505.1
+NV_GEN profile ms=208 HeightProfile { k_samples: 5827, n_runs: 449, j_actual: 384, jobs_actual: 726, jobs_min: 484, samp_actual: 3190, samp_min: 2915, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 2453, comps_delta_actual: 242 }
+WRAP_SHAPE_PIN [(20, Some(332928)), (21, Some(1202944)), (7, Some(128)), (16, Some(65536))] info=[768, 5963, 65664, 326963, 1137280] profile=Some(HeightProfile { k_samples: 5827, n_runs: 449, j_actual: 384, jobs_actual: 726, jobs_min: 484, samp_actual: 3190, samp_min: 2915, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 2453, comps_delta_actual: 242 })
+NV_GEN profile ms=203 HeightProfile { k_samples: 5827, n_runs: 449, j_actual: 384, jobs_actual: 726, jobs_min: 484, samp_actual: 3190, samp_min: 2915, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 2453, comps_delta_actual: 242 }
+WRAP_NEGATIVE_CONTROLS_OK wrong_ctx wrong_class changed_program changed_heights changed_level
+TREE_WRAP_VERIFIED {"arity":2,"bundle_bytes":327449,"depth":1,"hint_bytes":16,"leaves":2,"node_program_rows":337554,"scope":"D0a template, chunk-independent tree + wrap (D-6)","seconds":{"leaf0":521.355679633,"leaf1":512.469487076,"node2_0":505.083509519,"wrap":485.667774707},"security_established":false,"setup_bytes":4420993,"setup_sha256":"ee510184a869d3d31a23ce23e301a2f74677363044bc9e3fac4750c67854b9e1","template_kind":"base (the class base proof, build_base_leaf)","templates_shape_floored":[true,true,true],"total_seconds":2174.945192088,"tree_heights":[[20,1048576],[22,2998576],[7,128],[16,65536]],"wrap_heights":[[20,332928],[21,1202944],[7,128],[16,65536]],"wrap_program_rows":168018,"wrap_proof_bytes":326497,"zero_knowledge_established":true,"zero_knowledge_scope":"statistical zero knowledge of the tree-wrap packet for the statement (claim, hint, class, setup), classical programmable ROM: eps_ZK <= 2^-184.4 + 4 x 2^-192 (shape-pin aborts), ZK-ARGUMENT.md 6.4, 7.1, 10.1; the setup is one for all chunks (a function of the template classes' shapes, the arity and the depth); the packet reveals the template class (the chunk's D0a shape class); QROM: ZK-ARGUMENT.md 6.5 (the base point u is open)"}
+	User time (seconds): 12928.14
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 36:15.15
+	Maximum resident set size (kbytes): 22319460

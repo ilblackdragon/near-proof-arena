@@ -1,0 +1,8 @@
+TREE_PARAMS n_stack=20 log_blowup=5 queries=[54, 41, 31, 25]
+TREE_TEMPLATE d1_00-h10006-s3 kind=chain level=4 rows=144138 pin=[(20, Some(290060)), (21, Some(1090688)), (7, Some(128)), (16, Some(65536))] info=[765, 5940, 65408, 284120, 1025280] s=36.5
+TREE_TEMPLATE d1_00-h10007-s0 kind=chain level=4 rows=144200 pin=[(20, Some(290156)), (21, Some(1090688)), (7, Some(128)), (16, Some(65536))] info=[765, 5940, 65408, 284213, 1025280] s=36.4
+TREE_TEMPLATE d2_05-h10042-s3 kind=chain level=4 rows=144814 pin=[(20, Some(291076)), (21, Some(1090688)), (7, Some(128)), (16, Some(65536))] info=[765, 5940, 65408, 285134, 1025280] s=36.1
+TREE_PAD rows=1598 pin=[(20, Some(2416)), (8, Some(256)), (7, Some(128)), (16, Some(65536))]
+TREE_TEMPLATES_MATCH_FIXED_SETUP [("d1_00-h10006-s3", 4), ("d1_00-h10007-s0", 4), ("d2_05-h10042-s3", 4)]
+ee121c0ad7c85631b3bb49dcbbd646406f90e01ee1335d501d11b82cc4ea1001  /data/illia/nearproof-deps/pq-e2e-d6/classes/d1_00-h10006-s3/L4.proof
+000d2f1b20511f5c7f8cee337f6267f9fb8b543ef59df60a967ebc89c6b55441  /data/illia/nearproof-deps/pq-e2e-d6/classesB/d1_00-h10006-s3/L4.proof
