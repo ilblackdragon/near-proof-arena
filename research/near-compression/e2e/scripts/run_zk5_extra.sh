@@ -3,7 +3,7 @@
 #   zk5b  a second full-ZK FINAL proof of the same L4 (same witness, fresh randomness) -> zk-diff
 #   zk5r274  full-ZK FINAL at a 274-bit per-round target (E2E-SOUNDNESS-BUDGET.md)
 #   guess    witness-guessing distinguisher / two-witness test on the zk = 2 and zk = 5 packets
-set -uo pipefail
+set -euo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
 D=${NEARPROOF_PQ_DEPS:-/data/illia/nearproof-deps/pq-e2e-d}
 B=${PROVER:-$D/target/release/nearproof-chunk-e2e}

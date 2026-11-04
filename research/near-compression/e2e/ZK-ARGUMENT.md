@@ -1470,8 +1470,12 @@ chunk's messages are zero rows (count 0). Soundness: the TAPE's bus contribution
 `Σ_rows Σ_k count·sel_k·msg`, unchanged by zero selectors and zero counts, and V_d computes the
 padded TAPE itself (the prover cannot choose it); a packet proved under another pad has another
 `ctx` and fails V_d. ZK: the TAPE is a function of the public claim (it was never hidden); the
-pad is a setup constant of the class. What the packet reveals about the TAPE is the class's
-pinned log, not the chunk's own (review-D7 L5: in D-7 the natural TAPE log was a class key).
+pad is a setup constant of the class. *[Corrected in D-9, review-D8 I1.]* The pin therefore adds
+no hiding: V_d recomputes the TAPE from the public claim, so its natural shape is public either
+way. What the pin buys is one base vk per class (D-7 needed one class per TAPE shape). *[D-9,
+review-D8 M2.]* The pad is bound to the class's base vk: `tree-prove` and `tree-audit` rebuild the
+vk from the declared AIR plus the pad and compare it byte for byte (§10.4). A setup whose pad
+names other keys than the vk's TAPE interactions is rejected; D-8 checked only the TAPE width.
 
 **Generator growth (`statedump --class`).** Since D-8 any table can be cut at any class log ≥ its
 compact log: the padding progression (now only when it is well founded: a non-constant
@@ -1485,12 +1489,20 @@ chunk), so a class dump is an honest `HoldsP` trace by check.
 **The class set and the anonymity set (review-D7 L5).** Classes are chosen over a census of all
 1,311 D0a-compatible honest chunks of the d1/d2/d3 corpora (`classes_d8.py`, nested, 25 %
 headroom): S (83.4 % of the census), M (13.1 %), L (3.4 %, the tail, `n_stack` 22 at base rate
-lb 2). A packet reveals its class; within the census the smallest anonymity set is L's 45 chunks
-(D-7: classes of 2 and 5, which nearly identified the chunk). ZK statement unchanged otherwise.
+lb 2). A packet reveals its class. *[Corrected in D-9, review-D8 L3 / I1.]* "45 chunks" is a
+**corpus statistic**: L has 45 members in this census. It is not a guaranteed anonymity set for
+future chunks. What the class reveals is a size threshold: some table of the chunk exceeded the
+next smaller class's pinned rows (S → M → L). A prover who wants more privacy may prove at a
+larger class than its smallest admitting one. Any class that admits the chunk yields an honest
+proof, so the class is the prover's choice and not a function of the chunk. D-7 classes had 2
+and 5 members and nearly identified the chunk. ZK statement unchanged otherwise.
 
 **Leaves at their own rate (`NEARPROOF_TREE_LEAF_PARAMS`, D-8 default `ns20lb2`).** Leaf proofs
-(template leaves and `PAD_L`) are verified only by `P_2`, which reads the child's parameters
-from its vk; the leaf geometry is a setup constant (`TreeShape.leaf_params`, setup version 5).
+(template leaves and `PAD_L`) are verified only by `P_2`. *[Corrected in D-9, review-D8 I1.]*
+The leaf parameters are compile-time constants of `P_2`'s program: its in-circuit verifier is
+generated for the leaf vk, at the leaf parameters. They are bound through `P_2`'s program root
+`C_2`, which the wrap pins; the program does not read them from the child at run time. The leaf
+geometry is a setup constant (`TreeShape.leaf_params`, setup version 5).
 The leaf vk meets the 268-bit per-round target at `ns20lb2` (queries [81, 60, 40, 30]; each run's
 `soundness.txt`). Leaves are never published: no change to the wrap's ZK argument; `A` counts
 proofs, not their rate.
@@ -1515,4 +1527,7 @@ accept a `done` input boundary) is recorded for lanes A/B in plan §5.0.1 (4).
 
 **Scope.** Statistical ZK of the tree-wrap packet for `(claim, hint, class, setup)`, classical
 programmable ROM, `ε_ZK ≤ 2^-184.4 + A·2^-192`, for chunks whose base is at one of the setup's
-classes. QROM: `u` open (owner). `security_established = false`. Not independently reviewed (D-8).
+classes. QROM: the base-point `u` question is open, pending an owner decision; it is not
+accepted. `security_established = false`. Independently reviewed (D-8 review, main `af76221b7`):
+no Critical/High findings. Its Medium findings M1 (class vk not rebuilt) and M2 (pad not tied to
+the vk) are fixed in D-9 (§10.4).

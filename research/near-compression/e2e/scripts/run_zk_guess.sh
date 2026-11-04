@@ -5,7 +5,7 @@
 #   P's batch point (NEARPROOF_ZK_GUESS, `zk_guess` in pq-chunk-e2e/src/main.rs).
 #   Two-witness test: P against its own chunk's witness and against another chunk's witness.
 # usage: run_zk_guess.sh PACKET_DIR... (each with FINAL.proof, SETUP.json)
-set -uo pipefail
+set -euo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
 ROOT=$(cd "$HERE/../../../.." && pwd)
 D=${NEARPROOF_PQ_DEPS:-/data/illia/nearproof-deps/pq-e2e-d}

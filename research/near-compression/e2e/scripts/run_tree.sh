@@ -5,10 +5,10 @@
 #   env: CLASS_DIRS (one base dir per template class, class order), NEARPROOF_TREE_CONFIRM (more base
 #   dirs of those classes), OUT_ROOT, PROVER, NEARPROOF_TREE_TEMPLATE (base | chain), CPUSET.
 # Sequential, <= 8 threads by default.
-set -uo pipefail
+set -euo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
 ROOT=$(cd "$HERE/../../../.." && pwd)
-D=${NEARPROOF_PQ_DEPS:-/data/illia/nearproof-deps/pq-e2e-d8}
+D=${NEARPROOF_PQ_DEPS:-/data/illia/nearproof-deps/pq-e2e-d9}
 B=${PROVER:-$D/target/release/nearproof-chunk-e2e}
 K=$ROOT/research/near-compression/final-soundness
 AIR=$ROOT/examples/np-udr-stark-v2/source/near-air-v3.json

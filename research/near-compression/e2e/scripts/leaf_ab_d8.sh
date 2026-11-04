@@ -4,7 +4,7 @@
 # re-proved), same threads, so leaf seconds / cells / pins compare directly. Fails on any error.
 # usage: leaf_ab_d8.sh OUT BASE_DIR LEAF_PARAMS...   (LEAF_PARAMS: "tree" = the tree geometry, or nsXXlbY)
 #   env: CPUSET (default 16-17), RAYON_NUM_THREADS (default 2), LEAF_SHA (leaf SHA instances)
-set -uo pipefail
+set -euo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
 ROOT=$(cd "$HERE/../../../.." && pwd)
 D=${NEARPROOF_PQ_DEPS:-/data/illia/nearproof-deps/pq-e2e-d8}
