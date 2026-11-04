@@ -453,6 +453,33 @@ outgoing, proposals, instant/locals queues, deployed/attempted code, `wasmGas`) 
   * No NvAir exporter run and no Lean NvAir model: the draft exporter in `nv-export/` targets
     the historical overlay. No `NodeExec` sub-obligation is proved.
 
+**M11f (lane E, 2026-11-04) [K + D].** Standard axioms only, no `sorry`, checker sha256
+`644495ff…a9ae3` unchanged, `make pin-check` ok, full v3 build green; lanes A (`WasmBase`, 695
+jobs) and B (`StateM5a`, 379 jobs) build green against the changed `View`. Log:
+[`docs/logs/e2e-lean-m11f-2026-11-04.md`](../logs/e2e-lean-m11f-2026-11-04.md).
+
+* **The chunk's key list is in `StV`.** `StV.eng p ⟨st, keys⟩` (`EngSt`); `ViewImpl.keys :
+  Intake → List Bytes` fills it (`split κ`, `stOfK`); `keysOf`. `split_inj` holds for every `κ`.
+  `stOf` (empty key list) is kept only for lane B's `FitsReach`, which must move to `stOfK`.
+* **Lane B's `StViewE` is supplied** (`e2e-general/join/StViewE.lean`): `encStV` (prefix-free
+  serialiser of all of `StV`, `StEnc.lean`; `encStV_inj` on every `StV`), `keysOf`, `idxOf = 0`
+  (timestamps restart per segment; lane B to confirm), `depth = 24`. `stD_binding_E` and
+  `viewImpl_hst_E` have no open field. `FitsReachK` reduces to the engine invariant `EngOvlInv`
+  (open).
+* **NvAir exported and `NodeTape` proved from it** (`NvAirExport.lean`, `NvTape.lean`): the
+  exporter ran on the e2e-tree stack (4,518 nodes, 548 constraints, 49 interactions); `y_row`,
+  one-hot selectors, `mem_slots`, the LogUp `hit`, `pvd_cells`, `nodeTape_of_pvd`. Premise left:
+  `PvdAt` (program binding + op decode). Vacuity guard: the bus closure of NvAir is exactly
+  {NvAir, Sha512Air4, TableAir4, ByteAir} (`nv_closure`); bus 3 is NvAir's alone.
+* **Finding: `ZkFormal.Air.Interaction` cannot express NvAir's merged field-valued counts**
+  (`−ka·mult + kb`), so `HoldsLogUp Pin.air` over a `ZkFormal.Air` transcription is not the
+  circuit's predicate; `NodeExec` should be restated over the field-count semantics
+  (`NvConstr` + per-bus `MemBalance`-style balances).
+* **Budget refreshed for D-8** (§10 of the budget doc): wrap pinned at 268.2 (masked protocol);
+  1 Pgas at arity 4 is N = 222 charged proofs, 132.5 bits (constants 1) / 129.5 (CMS19) under the
+  per-proof union; depth 6 at arity 4 fails 128. Claim stated per level. Finding: `seg-v1` at 32
+  grinding bits is 266.9 bits (< 268).
+
 ---
 
 ## 4. Milestones to a first general-chunk E2E proof
@@ -524,12 +551,19 @@ status.
 * the computable `honestQ`;
 * the binding-defect correction for M11d.
 
-Next for lane E (M11f), in order:
-1. NvAir exporter on the e2e-tree stack, then a Lean model for `NodeTape` and `NodeAsserts`
-   (log §2 has the work plan with sizes). The bus balance must close inside the modelled
-   tables, or go through a chip contract.
-2. Lane B's `StViewE`: `encE_inj`, `keysOf` carried in `StV`, `idxOf`/`depth`, `FitsReach`.
-3. Re-check the budget's wrap parameters against lane D's D-5 wrap.
+**M11f (lane E, 2026-11-04):** see §3.5. Done:
+* the chunk key list carried in `StV` (`EngSt`, `ViewImpl.keys`) and lane B's `StViewE`
+  supplied (`encStV_inj`, `keysOf`, `idxOf`, `depth`); `FitsReachK` reduced to `EngOvlInv`;
+* the NvAir exporter run on the e2e-tree stack and `NodeTape` proved from the export (memory
+  consistency + `PvD`), with the bus-closure vacuity guard;
+* the soundness budget refreshed for D-8, with the claim stated per level.
+
+Next for lane E (M11g), in order:
+1. Restate `NodeExec` over the field-count LogUp semantics (`NvTape`'s), then `NodeAsserts`
+   (`Sub`/`Zero` over the same memory argument) and the `PvdAt` premise (program binding through
+   BIND/`Acc`, op decode through the byte bus with ByteAir in the model).
+2. `EngOvlInv` (the state view's reachability side), with lane B.
+3. Lane B: move `FitsReach` to `stOfK`; confirm `idxOf = 0` (index rebased at a cut).
 
 M11d's open list, updated:
 1. ~~A constructive recorder for `honestQ`~~ (M11e: `recordK`).

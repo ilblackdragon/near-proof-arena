@@ -56,3 +56,42 @@ for target in (268.0, 274.19, 282.73):
         d = [x - y for x, y in zip(q, q0[s])]
         print(f"   target {target:6.2f}  {s:5s}  q = {q}  delta = {d} (+{sum(d)})")
     print(f"   target {target:6.2f}  z-only alternative: z = {Z + max(0, math.ceil(target - 268.0))}")
+
+
+# ---- M11f (2026-11-04): lane D's D-8 tree (arity 4) at its recorded per-vk rbr errors ----------
+# Per-vk calculator bits (research/near-compression/e2e/results/zk/d8/tree8/*/soundness.txt,
+# base-whir.txt): wrap ns19lb6 [46,41,31,25] 268.2 (zk = 6; ZK-ARGUMENT sec. 5: masked moves keep
+# the minimum, new nu move 295.6); node P_2/P_* ns20lb5 [54,41,31,25] 268.2; leaf ns20lb2
+# [81,60,40,30] 268.5; D0a base class S/M ns18lb7 [44,35,27,23] 269.6, class L ns22lb2 268.5;
+# lanes A/B segments seg-v1 [536,256,83,50,36] 268.2 at 24 grinding bits.
+# PAD leaves/nodes prove fixed true statements: a forged PAD proof proves nothing false, so they
+# are not charged.  Segments are proofs (checked in-circuit by their leaves) and are charged.
+EPS = {'seg': -268.2, 'leaf': -268.5, 'node': -268.2, 'wrap': -268.2}
+print("\n== M11f: D-8 tree, arity 4 (per-vk eps; segments + leaves + nodes + wrap) ==")
+print(f"   wrap alone (one proof, family QROM): CDHZ 2^{B.cdhz(EPS['wrap'], T):.2f}, "
+      f"CMS19 2^{B.cms19(EPS['wrap'], T):.2f}, constants 1 2^{l(2 * T + EPS['wrap'], 3 * T - 336):.2f}, "
+      f"ROM 2^{l(T + EPS['wrap'], 2 * T - 337):.2f}")
+
+
+def nodes(s, a=4):
+    n, lv = 0, 0
+    while s > 1:
+        s = -(-s // a)
+        n += s
+        lv += 1
+    return n, lv
+
+
+for name, s in [('measured D-8 run (1 base, 1 real leaf + 3 PAD, 1 node)', 1),
+                ('100 Tgas (25 segments, model)', 25), ('1 Pgas (94 segments, model)', 94),
+                ('arity 4, depth 6 ceiling (4^6 segments)', 4 ** 6)]:
+    nn, depth = nodes(s) if s > 1 else (1, 1)
+    cnt = {'seg': s, 'leaf': s, 'node': nn, 'wrap': 1}
+    tot = sum(cnt.values())
+    c1 = l(*[math.log2(cnt[k]) + 2 * T + EPS[k] for k in cnt], 3 * T - 336)
+    cm = l(*[math.log2(cnt[k]) + B.cms19(EPS[k], T) for k in cnt])
+    rom = l(*[math.log2(cnt[k]) + T + EPS[k] for k in cnt], 2 * T - 337)
+    need = -(256 + math.log2(tot))
+    print(f"   {name}: depth {depth}, N = {tot} (seg {s}, leaf {s}, node {nn}, wrap 1) = 2^{math.log2(tot):.2f}")
+    print(f"      per-proof union: constants 1 2^{c1:.2f} ({-c1:.1f} bits); CMS19 whole bound per proof "
+          f"2^{cm:.2f} ({-cm:.1f} bits); ROM 2^{rom:.2f}; eps needed at constants 1: 2^{need:.2f}")

@@ -30,3 +30,14 @@ WHIR queries per round needed (z = 32 kept); delta vs the bound.out schedules:
    target 282.73  inner  q = [48, 44, 33, 26]  delta = [3, 3, 2, 2] (+10)
    target 282.73  base   q = [51, 47, 34, 27]  delta = [3, 3, 2, 2] (+10)
    target 282.73  z-only alternative: z = 47
+
+== M11f: D-8 tree, arity 4 (per-vk eps; segments + leaves + nodes + wrap) ==
+   wrap alone (one proof, family QROM): CDHZ 2^-130.29, CMS19 2^-137.25, constants 1 2^-140.10, ROM 2^-204.15
+   measured D-8 run (1 base, 1 real leaf + 3 PAD, 1 node): depth 1, N = 4 (seg 1, leaf 1, node 1, wrap 1) = 2^2.00
+      per-proof union: constants 1 2^-138.24 (138.2 bits); CMS19 whole bound per proof 2^-135.30 (135.3 bits); ROM 2^-202.26; eps needed at constants 1: 2^-258.00
+   100 Tgas (25 segments, model): depth 3, N = 61 (seg 25, leaf 25, node 10, wrap 1) = 2^5.93
+      per-proof union: constants 1 2^-134.38 (134.4 bits); CMS19 whole bound per proof 2^-131.41 (131.4 bits); ROM 2^-198.38; eps needed at constants 1: 2^-261.93
+   1 Pgas (94 segments, model): depth 4, N = 222 (seg 94, leaf 94, node 33, wrap 1) = 2^7.79
+      per-proof union: constants 1 2^-132.52 (132.5 bits); CMS19 whole bound per proof 2^-129.55 (129.5 bits); ROM 2^-196.52; eps needed at constants 1: 2^-263.79
+   arity 4, depth 6 ceiling (4^6 segments): depth 6, N = 9558 (seg 4096, leaf 4096, node 1365, wrap 1) = 2^13.22
+      per-proof union: constants 1 2^-127.10 (127.1 bits); CMS19 whole bound per proof 2^-124.12 (124.1 bits); ROM 2^-191.10; eps needed at constants 1: 2^-269.22

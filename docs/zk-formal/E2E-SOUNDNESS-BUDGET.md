@@ -25,6 +25,22 @@ All logarithms are base 2. "b bits" means an error of 2^−b.
 
 ## 0. Bottom line
 
+> **M11f update (2026-11-04): refreshed for lane D's D-8 tree; the per-level claim is stated in
+> §10.**
+>
+> * **The wrap is now pinned**: `ns19lb6`, queries [46, 41, 31, 25], `zk = 6`, 268.2 bits per
+>   round on the masked protocol (lane D, D-5..D-8). §0's old item 1 ("the ZK wrap has no pinned
+>   parameters") and §1.2's "not pinned" row are superseded.
+> * **Tree**: arity 4 (default), leaves `ns20lb2` (268.5), nodes `P_2`/`P_*` `ns20lb5` (268.2).
+>   1 Pgas (94 segments, model) is depth 4 and **N = 222** charged proofs; per-proof union:
+>   **132.5 bits** (constants 1), **129.5 bits** (CMS19 constants), ROM 196.5. A depth-6 arity-4
+>   tree (N = 9,558) is 127.1 / 124.1 bits: below 128.
+> * **What is claimed, per level** (§10.2): the wrap's NV relation under the family QROM
+>   (CDHZ 2^−130.3, conditional on S-19/S-28/O-2 and CDHZ's hypotheses for the masked protocol);
+>   every inner level only under a named computational assumption InnerSound(ℓ) on the
+>   concrete-SHA-384 argument; segment soundness and NV-faithfulness are deterministic premises.
+>   No tree-wide QROM theorem (§9.1 A).
+>
 > **M11e update (2026-11-03): the one-database argument does not go through for the tree. §9
 > has the details.**
 >
@@ -639,6 +655,96 @@ own O-2 tables, so their deltas must be recomputed from those tables once they a
   construction. Today that is research (NF-4, endpoint (b)).
 
 ---
+
+## 10. M11f: the D-8 tree, per level
+
+Date: 2026-11-04. Lane E. Parameters as recorded by lane D's D-8 runs; nothing pinned is changed.
+Arithmetic: `research/near-compression/final-soundness/calc/e2e_tree_targets.py` (new M11f block),
+output `e2e_tree_targets.out`.
+
+### 10.1 Parameters (D-8, `research/near-compression/e2e/results/zk/d8/`)
+
+| level | proof system | vk geometry | WHIR queries per round | calculator bits (min per round) | source |
+|---|---|---|---|---|---|
+| wrap (root, ZK) | HVZK-WHIR, `zk = 6`, native verifier queries H | `ns19lb6` | [46, 41, 31, 25] | **268.2** (masked moves: μ 283.6, new ν 295.6, ZK-ARGUMENT §5) | `tree8/*/soundness.txt` (`SETUP.json` line) |
+| node `P_2` (over leaves) / `P_*` (above), PAD_N | NV in-circuit verifier, arity 4, node margin 1.13 | `ns20lb5` | [54, 41, 31, 25] | **268.2** | `tree8/*/soundness.txt` (`NODE.vk.json`) |
+| leaf (template leaf / segment leaf, PAD_L) | NV in-circuit verifier of one base/segment proof | `ns20lb2` | [81, 60, 40, 30] | **268.5** | `tree8/*/soundness.txt` (`LEAF.vk.json`) |
+| D0a base, classes S / M | base prover | `n_stack` 18, lb 7 | [44, 35, 27, 23] | 269.6 | `tree8/*/soundness.txt` (`BASE.vk.json`) |
+| D0a base, class L | base prover | `n_stack` 22, lb 2 | [81, 60, 40, 30] | 268.5 | same |
+| lanes A/B segments (`seg-v1`, today) | segment prover, 24 grinding bits | `n_stack` 22, lb 1 | [536, 256, 83, 50, 36] | 268.2 | `base-whir.txt` |
+| lanes A/B segments (recommended base configuration) | 24 grinding bits | `n_stack` 22, lb 1 | [100, 71, 43, 32] | ≥ 268 | `base-whir.txt`, README §0 |
+
+**One finding.** `base-whir.txt` records `seg-v1` at `PQD1_POW = 32` at **266.9 bits**, below the
+268-bit target (queries [518, 247, 80, 48, 34]). At 24, 26, 28 and 30 bits it is 268.2 / 268.3 / 268.0 / 268.2. A segment vk must be
+re-checked at whatever grinding it is pinned with; `seg-v1` must not be run at 32 bits.
+
+### 10.2 The claim, level by level
+
+Write `Stmt_ℓ` for what an accepting proof at level ℓ is taken to establish, and `ε_ℓ` for the
+error charged to it. The final statement `E2EStmt s` follows from the conjunction of the levels
+by the deterministic theorems (`e2e_sound_of_agg`, `E2EAgg.lean`; node composition and binding,
+`E2ETree.node_bind`, `wrapT_composition`; segment chaining, `Statement.lean`).
+
+1. **Wrap (level W).** *Claim:* if the native verifier accepts the packet against the pinned
+   setup, then except with probability ε_W the wrap statement `(claim, hint, class, setup)` is in
+   the wrap program's NV relation, i.e. there is a root-node proof the wrap program accepts with
+   `D_wrap = H8(WRAP_MARKER, 18, ctx, B_0.class)`. *Model:* the family QROM over SHA-384, Q = 2^64.
+   *Value:* CDHZ Thm 11.3 + 6.10 + 8.3 at ε_rbr = 2^−268.2: **ε_W = 2^−130.29** (CMS19 constants
+   2^−137.25; constants 1 2^−140.10; ROM 2^−204.15). *Conditions:* S-19 (the family bound), S-28
+   (DKT26 → WHIR), the O-2 certificates regenerated for `ns19lb6`, CDHZ's hypotheses checked for
+   the masked protocol (its moves are those of ZK-ARGUMENT §5), the uniform sampler with the
+   exhaustion event of §9.1 (C).
+2. **Nodes (levels 1..d).** *Claim:* if the wrap's root-node proof (and recursively every node
+   proof) is accepted by the in-circuit verifier, then its children's statements hold, except
+   with probability ε_node per node. *Model:* **none from a theorem**: the node's proof is checked
+   with the concrete SHA-384 inside the parent's trace (§9.1 A). *Value:* the named assumption
+   **InnerSound(node, τ = 2^128)**; the heuristic sets ε_node to the single-proof QROM figure of
+   the `ns20lb5` argument (CMS19 2^−137.25 at 268.2 bits). Deterministic premises: NvFaithful for
+   `P_2`/`P_*` (the program executes V_d with child-program binding: `E2ETree.node_bind`; open:
+   `NodeExecT`, sub-obligations 1–4 of `NvFaithful`), the PAD_N statement is fixed.
+3. **Leaves.** *Claim:* an accepted leaf proof implies its base/segment proof is accepted by the
+   base verifier on the leaf's statement, except with ε_leaf. *Value:* InnerSound(leaf, τ) for
+   `ns20lb2` (heuristic CMS19 2^−137.6 at 268.5). Deterministic premises: `NormExec` (normaliser
+   leaf executes), `one_template` (a chainable leaf sequence is one template then PADs), and the
+   vacuity guard: the leaf's `segAir` includes every table the base verifier balances against.
+4. **Segments / base.** *Claim:* an accepted segment proof implies a satisfying trace of the
+   segment AIR, except with ε_seg; from that trace, `SegSound` gives the spec step between the
+   boundary records (lanes A/B: `WasmView`, `StateView` with lane E's `stViewE`). *Value:*
+   InnerSound(segment, τ) (heuristic CMS19 at 268.2–269.6). Deterministic premises: `SegSound`,
+   `WitnessExtraction`, boundary binding (`viewImpl_binding_bad`: a collision of the 42-B digest
+   or of a component commitment, each reduced to named SHA-2 collision events), and the state
+   view's reachability side `FitsReachK` (open: the engine invariant `EngOvlInv`, M11f).
+5. **Hash events, once.** `hashColl` (incl. `rangeColl`, boundary digests, state commitments):
+   Q³/2^336 = 2^−144 (QROM), counted once for the whole tree.
+
+**Total, per-proof union** (each proof charged its own ε; PAD proofs prove fixed true statements
+and are not charged) [C]:
+
+| deployment (arity 4) | depth | N = seg + leaf + node + wrap | constants 1 | CMS19 constants | ROM |
+|---|---:|---|---:|---:|---:|
+| measured D-8 run (1 base, 1 real leaf + 3 PAD, 1 node, wrap) | 1 | 4 | 138.2 | 135.3 | 202.3 |
+| 100 Tgas (25 segments, model) | 3 | 25 + 25 + 10 + 1 = 61 | 134.4 | 131.4 | 198.4 |
+| **1 Pgas (94 segments, model)** | 4 | 94 + 94 + 33 + 1 = **222** | **132.5** | **129.5** | 196.5 |
+| depth-6 ceiling (4,096 segments) | 6 | 9,558 | 127.1 ✗ | 124.1 ✗ | 191.1 |
+
+* CMS19 constants allow N ≤ 2^9.25 ≈ 600 charged proofs at 268.2 bits; 1 Pgas uses 222 (1.5 bits
+  of margin). At constants 1 the bound is N ≤ 2^12.1.
+* CDHZ's published constants charged per proof fail for any N ≥ 7 (§9.3); at N = 222 the
+  ε-term-per-proof, floor-once accounting needs ε_rbr ≤ 2^−272.3, which today's schedules do not
+  meet.
+* Arity 4 increases the node count over fan-in 8 (33 vs 15 nodes at 94 segments) but N is
+  dominated by segments + leaves (2 per segment); the earlier §5.2 "160-proof design" counted
+  137 leaves and no segment proofs, so it is not comparable.
+
+### 10.3 What changed from §9 and what is still open
+
+* §0 item 1 (wrap unpinned): **closed** — pinned at 268.2 on the masked protocol.
+* The per-proof union is now charged per vk with the recorded ε (§10.1), and segments are
+  counted as proofs.
+* Open, unchanged: S-19 / S-28 / O-2 regeneration for `ns19lb6`, `ns20lb5`, `ns20lb2`; the
+  owner's QROM decision on the base point `u` (lane D); InnerSound(ℓ) is an assumption, not a
+  theorem; the 128-bit QROM claim for depth ≥ 6 needs a per-round target ≥ 2^−269.2 (constants 1)
+  or a depth cap.
 
 ## 8. References
 
