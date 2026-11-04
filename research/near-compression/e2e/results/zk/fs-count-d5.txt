@@ -1,0 +1,12 @@
+## d1_00-h10006-s3
+FS_COUNT file=/data/illia/nearproof-deps/pq-e2e-d4h/zk6h/d1_00-h10006-s3/FINAL.bundle final=true total=1291 flush=473 commit=5 squeeze_or_pow_run=809 pow=4 u_len=20
+FS_COUNT file=/data/illia/nearproof-deps/pq-e2e-d/e2e/d1_00-h10006-s3/BASE.proof final=false total=626 flush=226 commit=6 squeeze_or_pow_run=390 pow=4 u_len=19
+FS_COUNT file=/data/illia/nearproof-deps/pq-e2e-d/e2e/d1_00-h10006-s3/L4.proof final=false total=1186 flush=445 commit=6 squeeze_or_pow_run=731 pow=4 u_len=20
+## d1_00-h10007-s0
+FS_COUNT file=/data/illia/nearproof-deps/pq-e2e-d4h/zk6h/d1_00-h10007-s0/FINAL.bundle final=true total=1298 flush=473 commit=5 squeeze_or_pow_run=816 pow=4 u_len=20
+FS_COUNT file=/data/illia/nearproof-deps/pq-e2e-d/e2e/d1_00-h10007-s0/BASE.proof final=false total=625 flush=226 commit=6 squeeze_or_pow_run=389 pow=4 u_len=19
+FS_COUNT file=/data/illia/nearproof-deps/pq-e2e-d/e2e/d1_00-h10007-s0/L4.proof final=false total=1181 flush=445 commit=6 squeeze_or_pow_run=726 pow=4 u_len=20
+## d2_05-h10042-s3
+FS_COUNT file=/data/illia/nearproof-deps/pq-e2e-d4h/zk6h/d2_05-h10042-s3/FINAL.bundle final=true total=1284 flush=473 commit=5 squeeze_or_pow_run=802 pow=4 u_len=20
+FS_COUNT file=/data/illia/nearproof-deps/pq-e2e-d/e2e/d2_05-h10042-s3/BASE.proof final=false total=666 flush=246 commit=6 squeeze_or_pow_run=410 pow=4 u_len=19
+FS_COUNT file=/data/illia/nearproof-deps/pq-e2e-d/e2e/d2_05-h10042-s3/L4.proof final=false total=1177 flush=445 commit=6 squeeze_or_pow_run=722 pow=4 u_len=20

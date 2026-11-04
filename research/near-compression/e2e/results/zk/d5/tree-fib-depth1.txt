@@ -1,0 +1,28 @@
+NV_GEN profile ms=19 HeightProfile { k_samples: 472, n_runs: 31, j_actual: 30, jobs_actual: 49, jobs_min: 38, samp_actual: 260, samp_min: 236, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 123, comps_delta_actual: 11 }
+TREE_T level=1 root=[6126525041693493600, 1239092168057035723, 11257146111362435914, 17505075669162136490, 6568135872989097194, 3809206612243046272]
+NV_GEN profile ms=157 HeightProfile { k_samples: 4536, n_runs: 350, j_actual: 283, jobs_actual: 566, jobs_min: 382, samp_actual: 2474, samp_min: 2270, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 1860, comps_delta_actual: 184 }
+NV_GEN profile ms=0 HeightProfile { k_samples: 0, n_runs: 0, j_actual: 0, jobs_actual: 0, jobs_min: 0, samp_actual: 0, samp_min: 0, nv_rows_per_job: 0, comps_per_job: 0, nv_delta_actual: 0, comps_delta_actual: 0 }
+TREE_LEAF_PIN norm=[(19, Some(120076)), (20, Some(532352)), (7, Some(128)), (16, Some(65536))] pad=[(19, Some(1640)), (8, Some(256)), (7, Some(128)), (16, Some(65536))]
+NV_GEN profile ms=232 HeightProfile { k_samples: 4536, n_runs: 350, j_actual: 283, jobs_actual: 566, jobs_min: 382, samp_actual: 2474, samp_min: 2270, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 1860, comps_delta_actual: 184 }
+NV_GEN profile ms=252 HeightProfile { k_samples: 0, n_runs: 0, j_actual: 0, jobs_actual: 0, jobs_min: 0, samp_actual: 0, samp_min: 0, nv_rows_per_job: 0, comps_per_job: 0, nv_delta_actual: 0, comps_delta_actual: 0 }
+NV_GEN profile ms=330 HeightProfile { k_samples: 11040, n_runs: 858, j_actual: 674, jobs_actual: 1369, jobs_min: 928, samp_actual: 6013, samp_min: 5524, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 4458, comps_delta_actual: 441 }
+TREE_NODE natural_pin=[(19, Some(285936)), (21, Some(1276672)), (7, Some(128)), (16, Some(65536))] slack=[954, 10715, 120064, 275218, 1156608] uniform_pin=[(19, Some(307696)), (21, Some(1364152)), (7, Some(128)), (16, Some(65536))] rows=130408
+NV_GEN profile ms=168 HeightProfile { k_samples: 5520, n_runs: 429, j_actual: 365, jobs_actual: 694, jobs_min: 464, samp_actual: 3025, samp_min: 2762, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 2333, comps_delta_actual: 230 }
+TREE_WRAP ok rows=65080
+NV_GEN profile ms=180 HeightProfile { k_samples: 5520, n_runs: 429, j_actual: 365, jobs_actual: 694, jobs_min: 464, samp_actual: 3025, samp_min: 2762, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 2333, comps_delta_actual: 230 }
+thread '<unnamed>' (3389789) panicked at /data/illia/nearproof-deps/pq-e2e-d5/stark-backend-unified/crates/stark-backend/src/air_builders/debug/mod.rs:75:9:
+TREE_NEGATIVE_REJECTED wrong C_node
+NV_GEN profile ms=166 HeightProfile { k_samples: 5520, n_runs: 429, j_actual: 365, jobs_actual: 694, jobs_min: 464, samp_actual: 3025, samp_min: 2762, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 2333, comps_delta_actual: 230 }
+thread '<unnamed>' (3389789) panicked at /data/illia/nearproof-deps/pq-e2e-d5/stark-backend-unified/crates/stark-backend/src/air_builders/debug/mod.rs:75:9:
+TREE_NEGATIVE_REJECTED wrong root level
+NV_GEN profile ms=156 HeightProfile { k_samples: 5520, n_runs: 429, j_actual: 365, jobs_actual: 694, jobs_min: 464, samp_actual: 3025, samp_min: 2762, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 2333, comps_delta_actual: 230 }
+thread '<unnamed>' (3389789) panicked at /data/illia/nearproof-deps/pq-e2e-d5/stark-backend-unified/crates/stark-backend/src/air_builders/debug/mod.rs:75:9:
+TREE_NEGATIVE_REJECTED a != 0
+NV_GEN profile ms=309 HeightProfile { k_samples: 11040, n_runs: 858, j_actual: 674, jobs_actual: 1369, jobs_min: 928, samp_actual: 6013, samp_min: 5524, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 4458, comps_delta_actual: 441 }
+thread 'nv::tree_tests::tree_fib_end_to_end' (3389788) panicked at crates/recursion/src/nv/tree_tests.rs:162:9:
+TREE_NEGATIVE_REJECTED child program outside the template set
+NV_GEN profile ms=153 HeightProfile { k_samples: 0, n_runs: 0, j_actual: 0, jobs_actual: 0, jobs_min: 0, samp_actual: 0, samp_min: 0, nv_rows_per_job: 0, comps_per_job: 0, nv_delta_actual: 0, comps_delta_actual: 0 }
+thread 'nv::tree_tests::tree_fib_end_to_end' (3389788) panicked at crates/recursion/src/nv/tree_tests.rs:171:9:
+TREE_NEGATIVE_REJECTED PAD on a non-done boundary
+TREE_FIB_OK
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 107 filtered out; finished in 2885.53s

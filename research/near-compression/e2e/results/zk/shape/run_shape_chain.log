@@ -1,0 +1,8 @@
+CHAIN_A rc=0 L1_SHAPE_FLOOR Some([421592, 1158784, 128, 65536]) L2_ANCHOR M=1 bind=false floor=Some([297140, 1113972, 128, 65536]) L3_ANCHOR M=2 bind=false floor=Some([297140, 1113972, 128, 65536]) L4_ANCHOR M=2 bind=true floor=Some([297140, 1113972, 128, 65536]) FINAL_SHAPE_PIN [(20, Some(291996)), (21, Some(1090432)), (7, Some(128)), (16, Some(65536))] jmax_nvslack_shas 
+CHAIN_B rc=0 L1_SHAPE_FLOOR Some([421592, 1158784, 128, 65536]) L2_ANCHOR M=1 bind=false floor=Some([297140, 1113972, 128, 65536]) L3_ANCHOR M=2 bind=false floor=Some([297140, 1113972, 128, 65536]) L4_ANCHOR M=2 bind=true floor=Some([297140, 1113972, 128, 65536]) FINAL_PINNED_HEIGHTS [(20, Some(291996)), (21, Some(1090432)), (7, Some(128)), (16, Some(65536))] 
+FRESH_CHAIN_SETUP_IDENTICAL
+VERIFY_PROFILE_MS total=41.08 setup_read_pin=2.40 setup_parse=5.17 air_pin_bundle_read=1.14 air_parse=4.77 statepublic=0.24 expected_claim_tape=1.59 proof_decode=0.22 final_verify=25.55
+INDEPENDENT_VERIFY_OK bundle_bytes=326077 under_300000=false
+VERIFY_PROFILE_MS total=40.78 setup_read_pin=2.30 setup_parse=5.14 air_pin_bundle_read=1.08 air_parse=4.78 statepublic=0.23 expected_claim_tape=1.49 proof_decode=0.21 final_verify=25.56
+INDEPENDENT_VERIFY_OK bundle_bytes=325279 under_300000=false
+FRESH_U (B's base point differs from A's)

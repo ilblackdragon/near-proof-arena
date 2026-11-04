@@ -1,0 +1,26 @@
+TREE_T level=1 root=[6126525041693493600, 1239092168057035723, 11257146111362435914, 17505075669162136490, 6568135872989097194, 3809206612243046272]
+TREE_LEAF_PIN norm=[(19, Some(120076)), (20, Some(532352)), (7, Some(128)), (16, Some(65536))] pad=[(19, Some(1648)), (8, Some(256)), (7, Some(128)), (16, Some(65536))]
+TREE_NODE natural_pin=[(19, Some(285952)), (21, Some(1276672)), (7, Some(128)), (16, Some(65536))] slack=[954, 10715, 120064, 275236, 1156608] uniform_pin=[(19, Some(307696)), (21, Some(1364152)), (7, Some(128)), (16, Some(65536))] rows=130420
+TREE_WRAP ok rows=65084
+thread '<unnamed>' (99290) panicked at /data/illia/nearproof-deps/pq-e2e-d5/stark-backend-unified/crates/stark-backend/src/air_builders/debug/mod.rs:75:9:
+assertion `left == right` failed: constraints had nonzero value on air NvAir,row 16369
+TREE_NEGATIVE_REJECTED wrong C_node
+thread '<unnamed>' (99294) panicked at /data/illia/nearproof-deps/pq-e2e-d5/stark-backend-unified/crates/stark-backend/src/air_builders/debug/mod.rs:75:9:
+assertion `left == right` failed: constraints had nonzero value on air NvAir,row 16296
+TREE_NEGATIVE_REJECTED wrong root level
+thread '<unnamed>' (99292) panicked at /data/illia/nearproof-deps/pq-e2e-d5/stark-backend-unified/crates/stark-backend/src/air_builders/debug/mod.rs:75:9:
+assertion `left == right` failed: constraints had nonzero value on air NvAir,row 65048
+TREE_NEGATIVE_REJECTED a != 0
+thread 'nv::tree_tests::tree_fib_end_to_end' (99286) panicked at crates/recursion/src/nv/tree_tests.rs:162:9:
+["anchor child program commitment not in the anchor set", "anchor set selector sums to one"]
+TREE_NEGATIVE_REJECTED child program outside the template set
+thread 'nv::tree_tests::tree_fib_end_to_end' (99286) panicked at crates/recursion/src/nv/tree_tests.rs:171:9:
+["PAD: boundary phase = done"]
+TREE_NEGATIVE_REJECTED PAD on a non-done boundary
+TREE_NODE3 natural_pin=[(19, Some(285952)), (21, Some(1276672)), (7, Some(128)), (16, Some(65536))] rows=130420
+TREE_DEPTH2_OK wrap rows=65084
+thread 'nv::tree_tests::tree_fib_end_to_end' (99286) panicked at crates/recursion/src/nv/tree_tests.rs:219:13:
+["children at the same level"]
+TREE_NEGATIVE_REJECTED mixed-level children
+TREE_FIB_OK
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 107 filtered out; finished in 1902.28s

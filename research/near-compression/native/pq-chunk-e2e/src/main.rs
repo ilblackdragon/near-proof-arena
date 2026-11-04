@@ -2,13 +2,15 @@
 //! Research protocol: cryptographic security and zero-knowledge masking are not established here.
 mod perf_check;
 mod profile;
+#[cfg(feature = "tree")]
+mod tree;
 mod zk_selftest;
 #[path = "../../pq-state-port/src/main.rs"]
 #[allow(dead_code)]
 mod state;
 use openvm_recursion_circuit::{
     nv::{
-        circuit::{NvCircuit, check_statement_claim, natural_tight_heights, prove_level},
+        circuit::{NvCircuit, check_statement_claim, natural_tight_heights, prove_level, shape_pinned_heights},
         vd::{self, VdSetup},
     },
     sha384::config::{Sha384Config as SC, Sha384CpuEngine},
@@ -24,6 +26,8 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest as _, Sha256};
 use std::{io::Cursor, path::Path};
 
+/// [E2E-D D-5] abort probability bound of the shape-pinned FINAL / wrap heights (review-D4 F1)
+const FINAL_PIN_EPS_BITS: f64 = 192.0;
 #[derive(Serialize, Deserialize)]
 struct Setup {
     version: u32,
@@ -383,12 +387,36 @@ fn chain(
         circ.child_nv = level >= 2;
         circ.bind = level >= 2;
         let mut by_bind = false;
+        // [E2E-D D-5, review-D4 F1/F2] NEARPROOF_CHAIN_SHAPE_FLOORS (default 1): the tight floors
+        // of every chain level, L1 included, come from the level's shape pin (used rows minus the
+        // rows the child transcript's rejection sampling added, plus the 2^-192 slack) instead of
+        // its natural heights. A level's program depends on its child's committed heights, so
+        // with natural floors the converged program (and the setup) depended on the rejection
+        // sampling of the whole chain: a fresh chain of the same chunk had another program
+        // (measured: 142,654 vs 143,330 rows). `=0` reproduces the D-4 floors.
+        let shape_floors = std::env::var("NEARPROOF_CHAIN_SHAPE_FLOORS").map(|v| v != "0").unwrap_or(true);
+        if level == 1 && shape_floors {
+            let (mats, b) = circ.generate(&vk, &p);
+            let (pin, _) = shape_pinned_heights(&mats, &b, 2, FINAL_PIN_EPS_BITS);
+            circ.tight_floor = Some(
+                pin.iter()
+                    .zip(&mats)
+                    .map(|(&(_, t), m)| t.unwrap_or(m.height()).min(m.height()))
+                    .collect(),
+            );
+            println!("L1_SHAPE_FLOOR {:?}", circ.tight_floor);
+        }
         if level >= 2 {
             let a = circ.select_anchor(&vk, &p, level - 1, &words, root.unwrap());
             by_bind = a.0 != level - 1;
             circ.anchor = Some(a);
-            let (mats, _) = circ.generate(&vk, &p);
-            let nat = natural_tight_heights(&mats, 2);
+            let (mats, b) = circ.generate(&vk, &p);
+            let nat = if shape_floors {
+                let (pin, _) = shape_pinned_heights(&mats, &b, 2, FINAL_PIN_EPS_BITS);
+                pin.iter().zip(&mats).map(|(&(_, t), m)| t.unwrap_or(m.height()).min(m.height())).collect::<Vec<_>>()
+            } else {
+                natural_tight_heights(&mats, 2)
+            };
             if !floor
                 .as_ref()
                 .is_some_and(|f| nat.iter().zip(f).all(|(n, f)| n <= f))
@@ -457,13 +485,19 @@ fn chain(
                 s.final_heights.expect("NEARPROOF_FINAL_HEIGHTS: that setup pins no heights")
             }
             Err(_) => {
-                let (mats, _) = fc.generate(&vk, &p);
-                let tight = fparams.whir.levers.tight_heights;
-                natural_tight_heights(&mats, fparams.l_skip)
-                    .iter()
-                    .zip(&mats)
-                    .map(|(&t, m)| (m.height().trailing_zeros() as usize, tight.then_some(t)))
-                    .collect()
+                // [E2E-D D-5, review-D4 F1] heights from the shape alone: the used rows minus
+                // the rows the child transcript's rejection sampling added, plus the slack for
+                // at most J_max rejections (Pr[more] <= 2^-FINAL_PIN_EPS_BITS, a prover abort)
+                let (mats, b) = fc.generate(&vk, &p);
+                assert!(fparams.whir.levers.tight_heights, "shape pin needs tight heights");
+                let (mut h, info) = shape_pinned_heights(&mats, &b, fparams.l_skip, FINAL_PIN_EPS_BITS);
+                println!("FINAL_SHAPE_PIN {h:?} jmax_nvslack_shaslack_nvbase_shabase={info:?} profile={:?}", b.height_profile);
+                // [E2E-D D-5, review-D4 F2] NEARPROOF_FINAL_LOG_BUMP=k: pin the SHA compression
+                // AIR's log height k above (exercises the log-height padding path; the NvAir log
+                // height is the program domain, fixed by BIND)
+                let bump: usize = std::env::var("NEARPROOF_FINAL_LOG_BUMP").ok().map_or(0, |v| v.parse().unwrap());
+                h[1].0 += bump;
+                h
             }
         })
     };
@@ -553,7 +587,11 @@ fn chain(
         && setup.final_heights.is_some()
         && setup.base_params.whir.levers.zk >= 1;
     let zk_scope = if zk_ok {
-        "statistical zero knowledge of the FINAL packet for the statement (claim, hint, setup), classical programmable ROM (eps_ZK <= 2^-184.4, ZK-ARGUMENT.md 6.4); QROM: ZK-ARGUMENT.md 6.5; the per-chunk setup itself is derived from the chunk's shape (7)"
+        if std::env::var_os("NEARPROOF_FINAL_HEIGHTS").is_some() {
+            "statistical zero knowledge of the FINAL packet for the statement (claim, hint, setup), classical programmable ROM (eps_ZK <= 2^-184.4, ZK-ARGUMENT.md 6.4), relative to the given setup (its heights must be shape-pinned, 7.1); QROM: ZK-ARGUMENT.md 6.5; the per-chunk setup is derived from the chunk's shape (7)"
+        } else {
+            "statistical zero knowledge of the FINAL packet for the statement (claim, hint, setup), classical programmable ROM (eps_ZK <= 2^-184.4 + 2^-192 abort, ZK-ARGUMENT.md 6.4, 7.1: heights pinned from the shape); QROM: ZK-ARGUMENT.md 6.5; the per-chunk setup is derived from the chunk's shape (7)"
+        }
     } else {
         "none"
     };
@@ -1009,6 +1047,23 @@ fn main() {
             println!("PROOF_SECTIONS {}", proof_sections(&p));
         }
         Some("zk-diff") if a.len() == 4 => zk_diff(Path::new(&a[2]), Path::new(&a[3])),
+        // [E2E-D D-5] tree-prove AIR PUBLIC OUT CHUNK_DIR CERTS EXCLUSIONS ARITY DEPTH CLASS_DIR...
+        #[cfg(feature = "tree")]
+        Some("tree-prove") if a.len() >= 11 => tree::tree_prove(
+            &a[2],
+            &a[3],
+            Path::new(&a[4]),
+            Path::new(&a[5]),
+            &a[10..],
+            &a[6],
+            &a[7],
+            a[8].parse().unwrap(),
+            a[9].parse().unwrap(),
+        ),
+        #[cfg(feature = "tree")]
+        Some("tree-verify") if a.len() == 7 => tree::tree_verify(&a[2], &a[3], &a[4], &a[5], &a[6]),
+        #[cfg(feature = "tree")]
+        Some("fs-count") if a.len() == 5 => tree::fs_count(&a[2], &a[3], a[4] == "1"),
         Some("zk-selftest") => zk_selftest::run(&a[2..]),
         Some("tamper-height") if a.len() == 7 => {
             // [E2E-D obligation H] negative-test input: the packet with AIR a[4]'s declared tight

@@ -1,0 +1,16 @@
+TAPE_EVAL_OK u_len=19 openings=1
+L1_SHAPE_FLOOR Some([421592, 1158784, 128, 65536])
+L1_VERIFIED rows=230754 shapes=[(1048576, 76), (2097152, 83), (128, 9), (65536, 5)] bytes=363159 seconds=387.06
+L2_ANCHOR M=1 bind=false floor=Some([297140, 1113972, 128, 65536])
+L2_VERIFIED rows=145552 shapes=[(1048576, 76), (2097152, 83), (128, 9), (65536, 5)] bytes=358767 seconds=371.10
+L3_ANCHOR M=2 bind=false floor=Some([297140, 1113972, 128, 65536])
+L3_VERIFIED rows=145438 shapes=[(1048576, 76), (2097152, 83), (128, 9), (65536, 5)] bytes=359229 seconds=367.97
+L4_ANCHOR M=2 bind=true floor=Some([297140, 1113972, 128, 65536])
+L4_VERIFIED rows=145438 shapes=[(1048576, 76), (2097152, 83), (128, 9), (65536, 5)] bytes=358767 seconds=372.45
+FINAL_SHAPE_PIN [(20, Some(291996)), (21, Some(1090432)), (7, Some(128)), (16, Some(65536))] jmax_nvslack_shaslack_nvbase_shabase=[765, 5940, 65408, 286054, 1025024] profile=Some(HeightProfile { k_samples: 5790, n_runs: 447, j_actual: 367, jobs_actual: 725, jobs_min: 482, samp_actual: 3167, samp_min: 2896, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 2458, comps_delta_actual: 243 })
+FINAL_PINNED_HEIGHTS [(20, Some(291996)), (21, Some(1090432)), (7, Some(128)), (16, Some(65536))]
+FINAL_PHASE proved_and_verified seconds=488.907491
+NEGATIVE_CONTROLS_OK changed_heights unpinned_heights
+NEGATIVE_CONTROLS_OK changed_tape_root changed_program
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 34:06.84
+	Maximum resident set size (kbytes): 15719300

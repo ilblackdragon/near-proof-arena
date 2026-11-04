@@ -29,7 +29,25 @@ pub fn zk_lever() -> bool {
 }
 
 pub fn params(final_layer: bool, cert_file: &str, exclusions: &str) -> SystemParams {
-    let (n_stack, log_blowup) = chain_geom();
+    params_geom(final_layer, cert_file, exclusions, chain_geom())
+}
+
+/// [E2E-D D-5] The tree layer's geometry (`NEARPROOF_TREE_GEOM`, default `ns20lb5`): an arity-2
+/// node verifies two children whose SHA work alone is about 2 x 1.06M rows, just above the
+/// 2^21-row stacked ceiling of `ns19lb6`, so the tree proofs stack at 2^22 at rate 1/32
+/// (`l_skip + n_stack + log_blowup` stays 27). Query counts and every per-round bound come from
+/// the same calibration (`WhirConfig::new_full` + first-order certificates) at the 268-bit target.
+pub fn tree_geom() -> (usize, usize) {
+    match std::env::var("NEARPROOF_TREE_GEOM").as_deref() {
+        Ok("ns20lb5") | Err(_) => (20, 5),
+        Ok("ns19lb6") => (19, 6),
+        Ok(other) => panic!("unknown NEARPROOF_TREE_GEOM {other}"),
+    }
+}
+
+/// [`params`] at an explicit `(n_stack, log_blowup)`.
+pub fn params_geom(final_layer: bool, cert_file: &str, exclusions: &str, geom: (usize, usize)) -> SystemParams {
+    let (n_stack, log_blowup) = geom;
     // NEARPROOF_ZK_FINAL overrides the FINAL mode (3 = 2 + slice splitting in the packing)
     let zk_final = std::env::var("NEARPROOF_ZK_FINAL").ok().and_then(|v| v.parse().ok()).unwrap_or(2u8);
     let zk = if final_layer && zk_lever() { zk_final } else { 0 };
@@ -58,7 +76,10 @@ pub fn shaped_params(
         "chunk shape exceeds the supported BabyBear extended domain"
     );
     // only the base calls this (`chunk_bridge::prove_base`)
-    let zk = if !final_layer && zk_lever() { 1 } else { 0 };
+    // [E2E-D D-5] NEARPROOF_ZK_BASE=2: the QROM option "base zk = 2" (ZK-ARGUMENT 6.5.6), off by
+    // default; measured only, not adopted (owner decision)
+    let zk_base = std::env::var("NEARPROOF_ZK_BASE").ok().and_then(|v| v.parse().ok()).unwrap_or(1u8);
+    let zk = if !final_layer && zk_lever() { zk_base } else { 0 };
     shaped_params_geom(zk, final_layer, n_stack, 7, w_stack, degree, cert_file, exclusions)
 }
 

@@ -1,0 +1,21 @@
+LOAD_BEFORE d1_00-h10006-s3 13.72 15.51 15.96
+TREE d1_00-h10006-s3 rc=0 	Maximum resident set size (kbytes): 20411572 
+TREE_WRAP_VERIFIED {"arity":2,"bundle_bytes":328331,"depth":1,"hint_bytes":16,"leaves":2,"node_program_rows":344192,"scope":"D0a template, chunk-independent tree + wrap (D-5)","seconds":{"leaf0":538.085215895,"leaf1":512.526753432,"node2_0":514.300274284,"wrap":532.040021513},"security_established":false,"setup_bytes":4487284,"setup_sha256":"59a580bb4dd816c420dfbe80573088b20bb8f7b764e4ba60c9bf6c4f
+VERIFY_PROFILE_MS total=45.02 wrap_verify=27.63 FS_JOBS flush=473 commit=5 squeeze=812 pow=4
+INDEPENDENT_TREE_VERIFY_OK bundle_bytes=328331 class=0
+VERIFY_PROFILE_MS total=45.80 wrap_verify=28.16 FS_JOBS flush=473 commit=5 squeeze=812 pow=4
+INDEPENDENT_TREE_VERIFY_OK bundle_bytes=328331 class=0
+VERIFY_PROFILE_MS total=45.48 wrap_verify=28.30 FS_JOBS flush=473 commit=5 squeeze=812 pow=4
+INDEPENDENT_TREE_VERIFY_OK bundle_bytes=328331 class=0
+LOAD_AFTER d1_00-h10006-s3 10.82 10.12 10.45
+LOAD_BEFORE d2_05-h10042-s3 10.82 10.12 10.45
+TREE d2_05-h10042-s3 rc=0 TREE_FIXED_SETUP_IDENTICAL 	Maximum resident set size (kbytes): 20123080 
+TREE_WRAP_VERIFIED {"arity":2,"bundle_bytes":327407,"depth":1,"hint_bytes":16,"leaves":2,"node_program_rows":344192,"scope":"D0a template, chunk-independent tree + wrap (D-5)","seconds":{"leaf0":657.771359091,"leaf1":614.093491036,"node2_0":563.851620832,"wrap":608.185831989},"security_established":false,"setup_bytes":4487284,"setup_sha256":"59a580bb4dd816c420dfbe80573088b20bb8f7b764e4ba60c9bf6c4f
+VERIFY_PROFILE_MS total=45.59 wrap_verify=27.24 FS_JOBS flush=473 commit=5 squeeze=797 pow=4
+INDEPENDENT_TREE_VERIFY_OK bundle_bytes=327407 class=2
+VERIFY_PROFILE_MS total=45.16 wrap_verify=27.18 FS_JOBS flush=473 commit=5 squeeze=797 pow=4
+INDEPENDENT_TREE_VERIFY_OK bundle_bytes=327407 class=2
+VERIFY_PROFILE_MS total=44.98 wrap_verify=27.06 FS_JOBS flush=473 commit=5 squeeze=797 pow=4
+INDEPENDENT_TREE_VERIFY_OK bundle_bytes=327407 class=2
+LOAD_AFTER d2_05-h10042-s3 10.67 13.91 14.37
+TREE_DONE

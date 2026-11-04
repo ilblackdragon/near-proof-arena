@@ -1,0 +1,2 @@
+VERIFY_PROFILE_MS total=45.69 setup_read_pin=2.58 setup_parse=9.50 air_pin_bundle_read=1.42 air_parse=4.82 statepublic=0.28 expected_claim_tape=1.72 proof_decode=0.23 final_verify=25.11
+INDEPENDENT_VERIFY_OK bundle_bytes=326384 under_300000=false

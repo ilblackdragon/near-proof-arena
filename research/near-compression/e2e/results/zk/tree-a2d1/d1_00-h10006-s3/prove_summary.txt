@@ -1,0 +1,27 @@
+TREE_PARAMS n_stack=20 log_blowup=5 queries=[54, 41, 31, 25]
+NV_GEN profile ms=194 HeightProfile { k_samples: 5790, n_runs: 447, j_actual: 417, jobs_actual: 731, jobs_min: 482, samp_actual: 3190, samp_min: 2896, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 2535, comps_delta_actual: 249 }
+TREE_TEMPLATE d1_00-h10006-s3 level=4 rows=141354 pin=[(20, Some(285876)), (21, Some(1090560)), (7, Some(128)), (16, Some(65536))] info=[765, 5940, 65408, 279936, 1025152] s=60.8
+NV_GEN profile ms=446 HeightProfile { k_samples: 5790, n_runs: 447, j_actual: 386, jobs_actual: 726, jobs_min: 482, samp_actual: 3171, samp_min: 2896, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 2471, comps_delta_actual: 244 }
+TREE_TEMPLATE d1_00-h10007-s0 level=4 rows=141832 pin=[(20, Some(286596)), (21, Some(1090560)), (7, Some(128)), (16, Some(65536))] info=[765, 5940, 65408, 280653, 1025152] s=65.2
+NV_GEN profile ms=281 HeightProfile { k_samples: 5790, n_runs: 447, j_actual: 386, jobs_actual: 722, jobs_min: 482, samp_actual: 3175, samp_min: 2896, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 2439, comps_delta_actual: 240 }
+TREE_TEMPLATE d2_05-h10042-s3 level=4 rows=143168 pin=[(20, Some(288600)), (21, Some(1090560)), (7, Some(128)), (16, Some(65536))] info=[765, 5940, 65408, 282657, 1025152] s=54.2
+NV_GEN profile ms=0 HeightProfile { k_samples: 0, n_runs: 0, j_actual: 0, jobs_actual: 0, jobs_min: 0, samp_actual: 0, samp_min: 0, nv_rows_per_job: 0, comps_per_job: 0, nv_delta_actual: 0, comps_delta_actual: 0 }
+TREE_PAD rows=1598 pin=[(20, Some(2416)), (8, Some(256)), (7, Some(128)), (16, Some(65536))]
+TREE_HEIGHTS [(20, Some(739540)), (22, Some(2794560)), (7, Some(128)), (16, Some(65536))]
+NV_GEN profile ms=318 HeightProfile { k_samples: 5790, n_runs: 447, j_actual: 417, jobs_actual: 731, jobs_min: 482, samp_actual: 3190, samp_min: 2896, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 2535, comps_delta_actual: 249 }
+TREE_LEAF 0 rows=141354 bytes=404109 seconds=538.1
+NV_GEN profile ms=166 HeightProfile { k_samples: 0, n_runs: 0, j_actual: 0, jobs_actual: 0, jobs_min: 0, samp_actual: 0, samp_min: 0, nv_rows_per_job: 0, comps_per_job: 0, nv_delta_actual: 0, comps_delta_actual: 0 }
+TREE_LEAF 1 rows=1598 bytes=405915 seconds=512.5
+NV_GEN profile ms=405 HeightProfile { k_samples: 11654, n_runs: 898, j_actual: 778, jobs_actual: 1470, jobs_min: 968, samp_actual: 6402, samp_min: 5830, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 5090, comps_delta_actual: 502 }
+TREE_NODE_PROBE rows=344192 shape_pin=[(20, Some(676840)), (22, Some(2388480)), (7, Some(128)), (16, Some(65536))] info=[1295, 11606, 128768, 665232, 2259712]
+NV_GEN profile ms=397 HeightProfile { k_samples: 11654, n_runs: 898, j_actual: 778, jobs_actual: 1470, jobs_min: 968, samp_actual: 6402, samp_min: 5830, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 5090, comps_delta_actual: 502 }
+TREE_NODE L2_0 rows=344192 shape_pin=[(20, Some(676840)), (22, Some(2388480)), (7, Some(128)), (16, Some(65536))] info=[1295, 11606, 128768, 665232, 2259712]
+TREE_NODE_PROVED L2_0 bytes=404949 seconds=514.3
+NV_GEN profile ms=201 HeightProfile { k_samples: 5827, n_runs: 449, j_actual: 356, jobs_actual: 715, jobs_min: 484, samp_actual: 3171, samp_min: 2915, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 2335, comps_delta_actual: 231 }
+WRAP_SHAPE_PIN [(20, Some(337448)), (21, Some(1195648)), (7, Some(128)), (16, Some(65536))] info=[768, 5963, 65664, 331484, 1129984] profile=Some(HeightProfile { k_samples: 5827, n_runs: 449, j_actual: 356, jobs_actual: 715, jobs_min: 484, samp_actual: 3171, samp_min: 2915, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 2335, comps_delta_actual: 231 })
+NV_GEN profile ms=193 HeightProfile { k_samples: 5827, n_runs: 449, j_actual: 356, jobs_actual: 715, jobs_min: 484, samp_actual: 3171, samp_min: 2915, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 2335, comps_delta_actual: 231 }
+WRAP_NEGATIVE_CONTROLS_OK wrong_ctx wrong_class changed_program changed_heights changed_level
+TREE_WRAP_VERIFIED {"arity":2,"bundle_bytes":328331,"depth":1,"hint_bytes":16,"leaves":2,"node_program_rows":344192,"scope":"D0a template, chunk-independent tree + wrap (D-5)","seconds":{"leaf0":538.085215895,"leaf1":512.526753432,"node2_0":514.300274284,"wrap":532.040021513},"security_established":false,"setup_bytes":4487284,"setup_sha256":"59a580bb4dd816c420dfbe80573088b20bb8f7b764e4ba60c9bf6c4f2810c75e","total_seconds":2335.655409242,"tree_heights":[[20,739540],[22,2794560],[7,128],[16,65536]],"wrap_heights":[[20,337448],[21,1195648],[7,128],[16,65536]],"wrap_program_rows":171336,"wrap_proof_bytes":327379,"zero_knowledge_established":false,"zero_knowledge_note":"wrap zk = 6 with shape-pinned heights and a chunk-independent setup; the ZK claim is not extended to the tree run (ZK-ARGUMENT 10)"}
+	User time (seconds): 12329.17
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 38:55.93
+	Maximum resident set size (kbytes): 20411572
