@@ -1,0 +1,30 @@
+TREE_LEAF_PARAMS n_stack=20 log_blowup=2 queries=[81, 60, 40, 30]
+NV_PHASE before_dag 40016
+NV_PHASE after_dag 107145
+NV_PHASE after_stacking 152218
+NV_QCOST round=0 queries=81 rows=34372 per_query=424 nbits=24 k=2 merkle_nodes=4537
+NV_QCOST round=1 queries=60 rows=21546 per_query=359 nbits=22 k=4 merkle_nodes=6097
+NV_QCOST round=2 queries=40 rows=14360 per_query=359 nbits=22 k=4 merkle_nodes=7137
+NV_QCOST round=3 queries=30 rows=10770 per_query=359 nbits=22 k=4 merkle_nodes=7917
+NV_PHASE end 465272
+TREE_TEMPLATE class=0 kind=base rows=465618 pin=[(20, Some(812648)), (21, Some(1750912)), (7, Some(128)), (16, Some(65536))] base_vk=e1cf72d1c5a489ef s=5.3
+NV_PHASE before_dag 40016
+NV_PHASE after_dag 107145
+NV_PHASE after_stacking 152218
+NV_QCOST round=0 queries=81 rows=34372 per_query=424 nbits=24 k=2 merkle_nodes=4537
+NV_QCOST round=1 queries=60 rows=21546 per_query=359 nbits=22 k=4 merkle_nodes=6097
+NV_QCOST round=2 queries=40 rows=14360 per_query=359 nbits=22 k=4 merkle_nodes=7137
+NV_QCOST round=3 queries=30 rows=10770 per_query=359 nbits=22 k=4 merkle_nodes=7917
+NV_PHASE end 465272
+NV_PHASE before_dag 40016
+NV_PHASE after_dag 107145
+NV_PHASE after_stacking 152218
+NV_QCOST round=0 queries=81 rows=34372 per_query=424 nbits=24 k=2 merkle_nodes=4537
+NV_QCOST round=1 queries=60 rows=21546 per_query=359 nbits=22 k=4 merkle_nodes=6097
+NV_QCOST round=2 queries=40 rows=14360 per_query=359 nbits=22 k=4 merkle_nodes=7137
+NV_QCOST round=3 queries=30 rows=10770 per_query=359 nbits=22 k=4 merkle_nodes=7917
+NV_PHASE end 465272
+TREE_LEAF 0 rows=465618 bytes=469923 seconds=141.3
+TREE_LEAF_ONLY_DONE heights=[(20, Some(812648)), (21, Some(1750912)), (7, Some(128)), (16, Some(65536))] sha_instances=1
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 2:37.14
+	Maximum resident set size (kbytes): 13476912

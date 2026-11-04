@@ -105,7 +105,7 @@ fn set_levers() {
 /// seg-v1 shape (DESIGN-BASE §3) with the message-length parameter raised to 2^6 (classical
 /// messages reach 34 fields + the bus, M7) and the interaction budget raised to 2^30 (the D0a
 /// worst case is 2^29.55, M8; 2^30 < p so mod-p LogUp stays exact).
-fn seg_v1_params(n_stack: usize, w_stack: usize, max_degree: usize) -> SystemParams {
+pub fn seg_v1_params(n_stack: usize, w_stack: usize, max_degree: usize) -> SystemParams {
     let (l_skip, log_blowup, k, k1, lf) = (2, 1, 4, 1, 7);
     let log_h = l_skip + n_stack;
     assert_eq!((log_h - k1 - lf) % k, 0, "n_stack must be 10, 14, 18 or 22");
@@ -238,16 +238,62 @@ fn check_constraints(t: &TableSpec, m: &RowMajorMatrix<F>, pubs: &[F]) -> Result
 
 /// A harness table: one row per (key, net count); columns msg[0..W), cnt, sel[k].
 fn harness(name: &str, map: &BTreeMap<Key, u64>, cached: bool) -> (TableSpec, RowMajorMatrix<F>) {
-    let keys: Vec<(u16, usize)> = map
+    harness_padded(name, map, cached, None)
+}
+
+/// [E2E-D D-8] A pinned TAPE shape for a base shape class: the log height and the (bus, message
+/// length) key set of the public-message table (classical bus ids, as `pubmsgs.json`). The TAPE is
+/// cached and recomputed by V_d from the claim, so prover and V_d must build it identically: both
+/// take the pad from the class (prover: `NEARPROOF_BASE_CLASS`; V_d: the setup's template entry).
+/// A key of the pad that the chunk does not use is an all-zero selector column (multiplicity 0 on
+/// every row), and the rows above the chunk's messages are zero rows (count 0): neither carries a
+/// bus message, so the TAPE's bus contribution is unchanged.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct TapePad {
+    pub log: usize,
+    /// classical (bus, message length) keys, sorted; `BUS_OFFSET` is added here
+    pub keys: Vec<(u16, usize)>,
+}
+
+impl TapePad {
+    /// `{"log": L, "keys": [[bus, len], ...]}`
+    pub fn to_json(&self) -> serde_json::Value {
+        serde_json::json!({ "log": self.log, "keys": self.keys })
+    }
+    pub fn from_json(v: &serde_json::Value) -> Self {
+        let keys = v["keys"].as_array().expect("tape pad keys").iter().map(|k| (k[0].as_u64().unwrap() as u16, k[1].as_u64().unwrap() as usize)).collect();
+        TapePad { log: v["log"].as_u64().expect("tape pad log") as usize, keys }
+    }
+    /// The pad a base proof directory carries (`TAPE_PAD.json`, written for a class with
+    /// `tape_keys`), or `None` (natural TAPE).
+    pub fn of_dir(dir: &std::path::Path) -> Option<Self> {
+        std::fs::read(dir.join("TAPE_PAD.json")).ok().map(|b| Self::from_json(&serde_json::from_slice(&b).unwrap()))
+    }
+}
+
+/// [`harness`] at a pinned TAPE shape: keys = the pad's (the chunk's keys must be among them),
+/// height = 2^pad.log (the chunk's rows must fit). Panics when the chunk does not fit the pad.
+fn harness_padded(name: &str, map: &BTreeMap<Key, u64>, cached: bool, pad: Option<&TapePad>) -> (TableSpec, RowMajorMatrix<F>) {
+    let mut keys: Vec<(u16, usize)> = map
         .keys()
         .map(|(b, m)| (*b, m.len()))
         .collect::<BTreeSet<_>>()
         .into_iter()
         .collect();
     let wmsg = keys.iter().map(|k| k.1).max().unwrap_or(1).max(1);
+    if let Some(p) = pad {
+        let pk: Vec<(u16, usize)> = p.keys.iter().map(|&(b, l)| (b.checked_add(BUS_OFFSET).unwrap(), l)).collect::<BTreeSet<_>>().into_iter().collect();
+        assert!(keys.iter().all(|k| pk.contains(k)), "{name}: a public-message key {keys:?} is not in the pinned TAPE keys {pk:?}");
+        keys = pk;
+    }
+    let wmsg = keys.iter().map(|k| k.1).max().unwrap_or(wmsg).max(1);
     let width = wmsg + 1 + keys.len().max(1);
     let rows = map.iter().filter(|(_, c)| **c != 0).count();
-    let h = rows.next_power_of_two().max(4);
+    let mut h = rows.next_power_of_two().max(4);
+    if let Some(p) = pad {
+        assert!(h <= 1 << p.log, "{name}: {rows} public-message rows exceed the pinned TAPE log {}", p.log);
+        h = 1 << p.log;
+    }
     let mut v = vec![F::ZERO; h * width];
     for (r, ((b, m), c)) in map.iter().filter(|(_, c)| **c != 0).enumerate() {
         let row = &mut v[r * width..(r + 1) * width];

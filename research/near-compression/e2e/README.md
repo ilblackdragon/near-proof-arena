@@ -1,8 +1,9 @@
-# E2E: real D0a chunks → final PQ proof → fresh-process verification (2026-10-31, ZK updates 2026-11-03/04: D-1 … D-7)
+# E2E: real D0a chunks → final PQ proof → fresh-process verification (2026-10-31, ZK updates 2026-11-03/04: D-1 … D-8)
 
 Status: **research run, owner's relaxed targets of 2026-10-31.** `security_established=false` in
 every RESULT.json. `zero_knowledge_established=true`, always scoped to the classical programmable
-ROM, in: the D-7 tree-wrap packets (`results/zk/d7/tree-*`, §0; ZK-ARGUMENT §10.2: chunks whose
+ROM, in: the D-8 tree-wrap packets (`results/zk/d8/tree8/*`, §0; ZK-ARGUMENT §10.3: chunks whose
+base is at one of the setup's classes S / M / L); the D-7 tree-wrap packets (`results/zk/d7/tree-*`, §0; ZK-ARGUMENT §10.2: chunks whose
 base is at one of the setup's pinned base shape classes); the D-6 tree-wrap packets
 (`results/zk/d6/tree-*`, §0a; ZK-ARGUMENT §10.1; each chunk its own class, review-D6 F1); the D0a FINAL
 packets of shape-floored chains (`results/zk/shape/`, `results/zk/d6/classes/`); and the D-4
@@ -10,7 +11,87 @@ packets of shape-floored chains (`results/zk/shape/`, `results/zk/d6/classes/`);
 RESULT.json. No GPU was used; GPU latencies are model projections only
 (`../prover-budget/model.py`). No Lean spec or checker change.
 
-## 0. Update 2026-11-04 (later), milestone D-7 (lane E2E-D): two node shapes + PAD at any level, base-template leaves over pinned base shape classes, arity 2/3/4/8, review-D6 folded
+## 0. Update 2026-11-04 (late), milestone D-8 (lane E2E-D): production base-class set over the corpus, arity 4 by default, cheaper leaves, review-D7 folded
+
+**A census of every D0a-compatible chunk of the d1/d2/d3 corpora (1,311) is covered by three
+chosen base shape classes — S (83 %), M (13 %), L (3 %, the tail) — two chunks of each are proved
+and tree-wrapped against one setup, the tree is 4-ary by default, and leaves are proved at their
+own (lower) rate.** Deps tree `pq-e2e-d8` (= d7 + the D-8 circuit change; `d4h + e2e-heights.patch
++ e2e-tree.patch` reproduces it byte for byte), driver `pq-chunk-e2e/src/{tree,main,profile}.rs`,
+classes + TAPE pad `pq-state-port/src/{main,chunk_bridge}.rs`, generator `statedump.rs`, runs
+`scripts/run_d8.sh` (+ `census_d8.sh`, `classes_d8.py`, `cover_d8.sh`, `leaf_ab_d8.sh`,
+`audit_d8.sh`, `tests_d8.sh`, `tree_d8_model.py`), results `results/zk/d8/`. ZK-ARGUMENT §10.3.
+Classical programmable ROM only, `security_established = false`.
+
+| target (D-8) | result | met? |
+|---|---|---|
+| 1. production class set: pinned shapes with headroom over the corpus; every scanned chunk fits a class | **Census** (`census_d8.sh`, `statedump --heights-only`): all **1,311** D0a-compatible honest chunks of the d1 (1,282), d2 (22) and d3 (7) corpora (meta `in_d0`, `expected_rel_d0`; every render succeeded). **Classes chosen**, not found (`classes_d8.py`): nested, the per-coordinate maximum over chunk-size quantiles 0.5 / 0.95 / 1.0 grown by 25 % rows: **S** (1,094 chunks, 83.4 %; base `n_stack` 18 lb 7, 5.25 M committed / 6.45 M cells), **M** (172, 13.1 %; `n_stack` 18 lb 7, 9.20 M / 11.80 M), **L** (45, 3.4 %, the tail; `n_stack` 22 at **lb 2**, 201 M / 238 M). **100 % assigned**; coverage checked chunk by chunk (`cover_d8.sh`: re-cut at the class, every classical constraint re-checked, then the base prover's precheck — every constraint, every bus): **1,311 / 1,311 covered** (`COVER_DONE ok=1311 fail=0`) | **yes** |
+| 1. fix the generator: `walk` / `acct` cannot grow past the render | `statedump --class` grows any table: the padding progression only when well founded (a non-constant progression must span ≥ 3 rows: a 2-row `shuf` with one real row was read as all padding and corrupted), else the render's rows then zero rows (`walk`, `acct`, `head`), with the cyclic byte window recomputed at the new height (`uniq`, `sort`: `(q + 2H − 1 − j) % H`), the row-counter padding (`shuf`) or the carried counter columns (`rng`); each cut re-checked. Over the coverage run, tables grown past their render: `shuf` in 1,307 chunks, `acct` 338, `sort` 270, `uniq` 108, `walk` 20, `rng` 7, `val` 6, `head` 5 (`results/zk/d8/classes/cover_growth.txt`) | **yes** |
+| 1. TAPE no longer splits classes (found in D-8) | the cached public-message table had 5 (log, width) shapes over the corpus, and D-7 required an exact match; **`TapePad`**: the class pins the TAPE log and the corpus's 7 (bus, length) keys; prover (`prove_base`) and V_d (`tree-verify`, from the setup's template entry) build it with the same `harness_padded` (unused keys = zero selector columns, extra rows = zero counts: the bus contribution is unchanged). Base dirs carry `TAPE_PAD.json`; setup version 5 | **yes** |
+| 1. per-class padding overhead | class committed cells / the chunk's natural committed cells: S median 2.27× (p90 3.77×, max 6.47×), M 2.57× (3.17×, 3.60×), L 2.61× (21.98×, 33.67×: the tail spans 5 M to 148 M natural cells). Base proof cost on this CPU (10 threads): S 4:23–4:40 (9.0 GB), M 4:47–4:53 (9.2 GB), L 5:13–6:03 (24.4 GB); base proof bytes 518 / 522 / 711–715 KB | measured |
+| 1. ≥ 2 chunks per class proved against one setup | two members per class (its largest and its median by natural cells): S {h10075-s0, h10150-s3}, M {h10056-s2, h10085-s2}, L {h10040-s3 (148 M natural cells, the corpus maximum), h10012-s0}; 6 bases at the class shapes (`BASE_CLASS_HEIGHTS_OK`, `BASE_CLASS_TAPE_PAD`). **One tree setup for all three classes** (arity 4, depth 1, created by S's first member): the other five chunks **reproduce it byte for byte** (`TREE_FIXED_SETUP_IDENTICAL`, `SETUP.json` 4,894,389 B, sha256 `b8345666…`); confirmations [2, 2, 2] (distinct `u` and distinct chunks); ZK flag set, `A = 6`; 23/23 fresh-process negatives on h10075-s0 (S) and h10085-s2 (M). `tree-audit` passes against the shipped class vks and regenerates every class's leaf root from the *second* member of each class; a swapped class vk is rejected | **yes** |
+| 2. arity 4 the default; `P_*` margin per arity | `tree-prove … - DEPTH` / `run_tree.sh TAG -` = arity 4 (`tree::DEFAULT_ARITY`); `node_margin(arity) = max(1.10, 1.01 + 0.04 (arity − 1))`: 1.10 / 1.10 / **1.13** / 1.29 at arity 2 / 3 / 4 / 8 (D-7 measured `P_*` / `P_2` = 1.04 / – / 1.12 / 1.27), `NEARPROOF_TREE_NODE_MARGIN` overrides; above 8 it must be given | **yes** |
+| 3. cheapen the leaf step | **Re-measured** what a segment leaf costs: its in-circuit hashing is ≈ Σ queries × Merkle depth of the *segment's* WHIR schedule (`base-whir`, the stack's own calibration at 268 bits, `results/zk/d8/base-whir.txt`): a 2^22-row lb-1 segment under the lanes' seg-v1 parameters needs [536, 256, 83, 50, 36] queries (21,789 units), under the stack's base configuration (first-order certificates, list decoding m = 64) [100, 71, 43, 32] at the same 24 grinding bits (5,366) — D-7's model law assumed 610 per round. A leaf over an `n_stack`-22 base is **measured** (class L: NvAir 812,648 / SHA 1,750,912 rows, 210 M cells, 141 s on 8 threads at lb 2). **Implemented lever: leaves at their own rate** (`NEARPROOF_TREE_LEAF_PARAMS`, D-8 default `ns20lb2`, a setup constant): the same leaf at equal threads 967 s / 13.2 GB (lb 5) → **588 s / 8.0 GB (lb 2), −39 %**; `P_2` verifies more queries per leaf (pin +26 % NvAir / +25 % SHA, 779–854 s vs D-7's 699 s). **Recommended to lanes A/B:** segments at the base configuration (−75 % in-circuit hashing per leaf) | **yes** (lever implemented + measured) |
+| 3. re-project 100 Tgas / 1 Pgas (model) | `tree_d8_model.py` → `results/zk/d8/model.txt` (below): 1 Pgas **21.2 s → 14.2 s**, 100 Tgas **7.8 s → 5.6 s** after execution (D-7 basis → segments at the base configuration + leaves at lb 2); leaves fall from 48 % to 15 % of the GPU work | **projection** |
+| 4. delete `pq-e2e-d6` | deleted after materialising d7's `classes` link into d7 (the D-6 review is complete); d7's `target*` moved into d8, then `pq-e2e-d7` deleted too once D-8 had its results (its runs are in `results/zk/d7/`, and the D-7 review is complete); /data 92 % | **yes** |
+| review-D7 L1–L5, I3, I4, forged test | L1: the shape pin uses the circuit's `sha_cap_log` (stored in the builder), `build_verifier` checks statically that every child trace is at most the child's stacked ceiling (= its SHA instance capacity); L2: confirmations count chunks (distinct `u` *and* `ctx`); L3: class vks shipped with the setup + `tree-audit`; L4: ZK-ARGUMENT §10.2 PAD_N text; L5: classes of ≥ 45 chunks, TAPE log pinned per class; I4: the proof codec inside `catch_unwind`; I3 recorded for lanes A/B (plan §5.0.1 (4)); `review_d7_mixup_debug` adopted (15 forged bodies rejected, 3 honest pass; 4,496 s on 2 threads), `tree_d7_shapes_debug` and the 6 non-ignored agg/tree tests pass on the D-8 circuit | **yes** |
+
+**Measured: arity 4, depth 1, one setup over classes S, M, L (`results/zk/d8/tree8/`, 8 threads).**
+Leaf geometry NvAir 2^20 / program 2^19 (class L's leaf sets it: one leaf geometry per setup),
+leaves at `ns20lb2`, `h_L` (20, 812,648) / (21, 1,750,912); `P_2` geometry 2^21 / 2^20 / 2 SHA
+instances, pin (21, 1,634,316) / 4,194,304 + 1,540,736 (identical for all six chunks); wrap pin
+(20, 369,340) / (21, 1,284,352).
+
+| chunk (class) | packet B | verify, 1 core | prove | per proof (s) | peak |
+|---|---:|---|---|---|---|
+| d1_10-h10075-s0 (S; creates the setup) | 329,189 | 67.2–68.0 ms (wrap 33.7–33.9) | 2,270 s | leaves 186 / 226 / 176 / 250, P_2 804, wrap 521 | 27.9 GB |
+| d1_09-h10150-s3 (S; fixed setup, reproduced) | 329,373 | 60.9–62.9 ms (wrap 30.8–32.2) | 2,139 s | leaves 147 / 184 / 158 / 166, P_2 850, wrap 527 | 28.0 GB |
+| d1_10-h10056-s2 (M; fixed setup, reproduced) | 330,394 | 48.8–49.3 ms (wrap 28.4–28.9) | 2,215 s | leaves 160 / 191 / 166 / 224, P_2 854, wrap 506 | 27.4 GB |
+| d1_05-h10085-s2 (M; fixed setup, reproduced) | 329,667 | 71.3–71.6 ms (wrap 36.0–36.2) | 2,199 s | leaves 164 / 205 / 243 / 175, P_2 779, wrap 521 | 28.5 GB |
+| d1_01-h10040-s3 (L; fixed setup, reproduced) | 329,998 | 81.7–83.7 ms (wrap 33.1–34.1) | 2,173 s | leaves 159 / 174 / 231 / 168, P_2 795, wrap 524 | 28.5 GB |
+| d1_09-h10012-s0 (L; fixed setup, reproduced) | 328,809 | 86.0–86.3 ms (wrap 33.9–34.3) | 2,245 s | leaves 209 / 166 / 211 / 185, P_2 782, wrap 575 | 29.1 GB |
+
+All six: `zero_knowledge_established = true`, `A = 6`, soundness (`soundness.txt`): wrap 268.2,
+leaf vk 268.5 (`ns20lb2`, [81, 60, 40, 30]), node vk 268.2, class S / M bases 269.6, class L base
+268.5 (`n_stack` 22, lb 2, [81, 60, 40, 30]). Verify time is 49–86 ms (D-7: 39–41 ms): the wrap
+check is 28–36 ms; the rest is the claim preparation, larger for the larger chunks and the
+pinned TAPE (log 12).
+
+**Leaf cost (`results/zk/d8/leaf/`).**
+
+| leaf | NvAir / SHA pin | rows | proof | time | peak |
+|---|---|---:|---:|---|---|
+| D-7 class-A base (`n_stack` 18 lb 7), leaf at `ns20lb5` (D-7 default), 2 threads | (19, 373,456) / (21, 1,159,040) | 198,652 | 366 KB | 967 s | 13.2 GB |
+| same, leaf at **`ns20lb2`** (D-8 default), 2 threads | same | 198,652 | 443 KB | **588 s** | **8.0 GB** |
+| class-L base (`n_stack` 22 lb 2: a segment-geometry base), `ns20lb2`, 8 threads | (20, 812,648) / (21, 1,750,912) | 465,618 | 470 KB | 141 s | 13.5 GB |
+| class S / M leaves in the tree (at the L heights), 8 threads | (20, 812,648) / (21, 1,750,912) | 205,562 / 206,800 | 469 KB | 147–250 s | — |
+
+**PROJECTION, 8 H200, streaming (model only; `tree_d8_model.py`, `model.txt`).** As D-7's model
+(arch b, adversarial, 2^22-row segments, base proofs from `prover-budget/model.py`, list schedule),
+with the segment leaf from the **measured** class-L leaf (SHA part scaled by the segment's
+Σ queries × depth, query-round NvAir rows by Σ queries) and `P_2` from the measured D-8 node.
+
+| variant | leaf GPU-s | 100 Tgas: GPU-s, latency | 1 Pgas: GPU-s, latency | leaves' share (1 Pgas) |
+|---|---:|---|---|---:|
+| D-7 projection (leaf = D0a leaf × 3.45, leaf lb 5) | 0.815 | 41.3, 7.78 s | 161.2, 21.22 s | 48 % |
+| segments at seg-v1 (lanes today), leaf lb 5 | 1.572 | 60.2, 10.80 s | 232.3, 30.27 s | 64 % |
+| segments at seg-v1, leaf lb 2 | 0.611 | 37.4, 7.35 s | 146.3, 19.53 s | 39 % |
+| segments at the base configuration, leaf lb 5 | 0.435 | 31.7, 6.25 s | 125.5, 16.66 s | 33 % |
+| **segments at the base configuration, leaf lb 2 (D-8)** | **0.169** | **26.3, 5.58 s** | **104.8, 14.23 s** | **15 %** |
+
+So D-7's "the leaf costs more than the segment" holds for the lanes' current segment parameters
+(worse than D-7 modelled: 1.57 vs 0.82 GPU-s) and is undone by two levers: the leaf's own rate
+(implemented here) and the segment's WHIR parameters (lanes A/B: adopt the base configuration at
+their 24 grinding bits). After both, base segments (0.47 GPU-s each) and the nodes dominate; the
+model does not charge grinding (2^24 per round at either configuration).
+
+**Not done / open.** QROM `u` (owner); one leaf geometry per setup — class L's leaf sets every
+leaf's heights in the shared setup (S/M leaves are proved at 2.1× their own NvAir pin);
+production should group templates by leaf size (a setup per family, or L chunks split into
+S-size segments); lanes A/B templates (blockers 4, 5, 8, 9) and their segment parameters; an
+independent review of D-8 (TAPE pad, generator growth, leaf parameters, review-D7 fixes).
+
+## 0a. Update 2026-11-04 (later), milestone D-7 (lane E2E-D): two node shapes + PAD at any level, base-template leaves over pinned base shape classes, arity 2/3/4/8, review-D6 folded
 
 **The tree under the wrap now has leaves at their own heights, two node programs (`P_2` over
 leaves, `P_*` above), PAD at any level and up to four SHA compression instances per node. The
@@ -107,7 +188,7 @@ the corpus; walk/acct-style tables can be re-cut only up to their classical rend
 every chunk pair shares a class); lanes A/B templates (blockers 4, 5, 8, 9); an independent review
 of D-7 (§10.2, the two node shapes, `sibling_alt`, the multi-instance SHA AIRs, base classes).
 
-## 0a. Update 2026-11-04, milestone D-6 (lane E2E-D): tree-wrap ZK established (classical ROM), depth 2 on D0a, arity study, leaf-template prototype, review-D5 folded
+## 0b. Update 2026-11-04, milestone D-6 (lane E2E-D): tree-wrap ZK established (classical ROM), depth 2 on D0a, arity study, leaf-template prototype, review-D5 folded
 
 **The tree-wrap packets are zero-knowledge in the classical ROM, with one setup for all three
 D0a chunks.** Deps tree `pq-e2e-d6` (= `pq-e2e-d5f` + the regenerated `patches/e2e-tree.patch`;
@@ -206,7 +287,7 @@ last-used row.
 shapes and PAD at any level (design above); lanes A/B templates (their blockers 4, 5, 8, 9); an
 independent review of D-6 (§10.1, the base-template leaf).
 
-## 0b. Update 2026-11-03, milestone D-5 (lane E2E-D): chunk-independent tree + ZK wrap, review-D4 fixes
+## 0c. Update 2026-11-03, milestone D-5 (lane E2E-D): chunk-independent tree + ZK wrap, review-D4 fixes
 
 **An aggregation tree now feeds the ZK wrap, and the wrap setup is the same for every chunk.**
 `nearproof-chunk-e2e tree-prove` (driver `pq-chunk-e2e/src/tree.rs`; circuits `nv/tree.rs`,
@@ -299,7 +380,7 @@ rebuilding the tree's template set from them (the tree run used the D-4 chains);
 shape-pinned FINAL packets of `results/zk/zk6s/` on shape-floor chains (only chunk 1 has one,
 `results/zk/shape/`).
 
-## 0c. Update 2026-11-03, milestone D-4 (lane E2E-D): obligation H closed, ZK established (classical ROM), QROM part, review-zk6 fixes
+## 0d. Update 2026-11-03, milestone D-4 (lane E2E-D): obligation H closed, ZK established (classical ROM), QROM part, review-zk6 fixes
 
 **Obligation H is built.** The owner adopted it on 2026-11-03.
 * The FINAL trace heights `(log, tight)` per AIR are now setup content: `Setup::final_heights`
@@ -352,7 +433,7 @@ Tests:
 * `zk_layout` (4) and `zk_layout_fuzz` (2) pass (`results/zk/layout-tests-d4.txt`).
 * `make pin-check` passes.
 
-## 0d. Update 2026-11-03, milestone D-3 (lane E2E-D): Lemmas D and E closed (`zk = 6`), review fixes
+## 0e. Update 2026-11-03, milestone D-3 (lane E2E-D): Lemmas D and E closed (`zk = 6`), review fixes
 
 The FINAL layer now runs `NEARPROOF_ZK_FINAL=6`. That is `zk = 5` (§0e) with two changes:
 * **No stacked opening is sent.** WHIR batches the stacked columns with `μ^j + ν·c_j`, where
@@ -424,7 +505,7 @@ Regression tests:
   configuration), plus a maximum-tight-height tamper per AIR
   (`results/zk/zk-selftest-d3.txt`).
 
-## 0e. Update 2026-11-03, milestone D-2 (lane E2E-D): full zero-knowledge masking of the FINAL proof
+## 0f. Update 2026-11-03, milestone D-2 (lane E2E-D): full zero-knowledge masking of the FINAL proof
 
 The FINAL layer now runs `NEARPROOF_ZK_FINAL=5`. That is the PCS-level hiding of §0f plus PIOP
 masking: masked GKR, masked batch sumcheck with column masks, and masked stacking reduction
@@ -518,7 +599,7 @@ positions.
 `results/zk/verify-inprocess.txt` has 32–34 ms on the `zk = 2` packets. The FINAL protocol check
 is 16–18 ms with `zk = 2` and 24–26 ms with `zk = 5`.
 
-## 0f. Update 2026-11-03 (lane E2E-D, D-1): PCS-level ZK lever on
+## 0g. Update 2026-11-03 (lane E2E-D, D-1): PCS-level ZK lever on
 
 Owner targets (2026-11-03): 128-bit PQ, SHA-384, proven bounds; ZK with only the chunk-header
 outputs plus trusted facts public; proof **~400 KB accepted with ZK**; verify < 200 ms.
@@ -817,6 +898,17 @@ research/near-compression/e2e/scripts/run_fresh_chain.sh OUT FIXED_SETUP.json
 research/near-compression/e2e/scripts/run_shape_chain.sh OUT_A OUT_B FRESH_BASE_DIR
 # 8xH200 projection
 python3 research/near-compression/e2e/scripts/project.py > research/near-compression/e2e/results/projection.json
+# D-8 (deps pq-e2e-d8 = d4h + e2e-heights.patch + e2e-tree.patch; regen_tree_patch_d8.sh checks it;
+# statedump: cargo build --release --example statedump, CARGO_TARGET_DIR=$D/target-sd; driver: build_driver.sh)
+S=research/near-compression/e2e/scripts
+$S/census_d8.sh /data/illia/nearproof-deps/pq-e2e-d8/census 8 8-15   # heights census, 1,311 chunks
+$S/run_d8.sh 1                       # classes S / M / L (classes_d8.py, cuts 0.5,0.95, headroom 25 %)
+$S/cover_d8.sh $D/classes8 $D/cover 9 8-15,24   # every chunk re-cut at its class + precheck
+$S/run_d8.sh 3; $S/run_d8.sh 4       # 6 bases at the class shapes; arity-4 trees, one setup, negatives
+$S/audit_d8.sh $D/tree8/d1_10-h10075-s0 $D/b8/d1_09-h10150-s3 $D/b8/d1_05-h10085-s2 $D/b8/d1_09-h10012-s0
+$S/leaf_ab_d8.sh OUT BASE_DIR ns20lb2 tree   # leaf rate A/B; $S/tests_d8.sh OUT (constraint-level tests)
+python3 $S/tree_d8_model.py $D/tree8/d1_10-h10075-s0 $D/leafL/leaf-ns20lb2/prove.log   # projection
+$S/collect_d8.sh
 ```
 
 Evidence: `results/<run>.json` (numbers), `results/<run>.manifest.json` (sha256 of packet, setup,

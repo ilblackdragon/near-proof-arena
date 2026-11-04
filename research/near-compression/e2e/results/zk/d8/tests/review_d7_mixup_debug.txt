@@ -1,0 +1,23 @@
+REVIEW_D7_PINS leaf=[(19, Some(18816)), (17, Some(67840)), (7, Some(128)), (16, Some(65536))] node=[(19, Some(320256)), (21, Some(1457600)), (7, Some(128)), (16, Some(65536))]
+REVIEW_D7_POSITIVE_OK P_* L3 honest host_failures=[]
+REVIEW_D7_REJECTED M1 P_2 over [P_2@2, PAD_N@2] (node children under the leaf-node program) :: assertion `left == right` failed: constraints had nonzero value on air NvAir,row 16552
+REVIEW_D7_REJECTED M1b P_2 over level-2 children, set contains C_2/C_padN (forced level 1 only) :: assertion `left == right` failed: constraints had nonzero value on air NvAir,row 16552
+REVIEW_D7_REJECTED M2 P_* over leaves [base leaf, PAD_L] (level-1 children) :: assertion `left == right` failed: constraints had nonzero value on air NvAir,row 17082
+REVIEW_D7_REJECTED M2b P_* over leaves, anchor-set/alt set to the leaf roots :: assertion `left == right` failed: constraints had nonzero value on air NvAir,row 17082
+REVIEW_D7_REJECTED S1 P_* over [P_2@2, PAD_N@3] (sibling at another level) :: assertion `left == right` failed: constraints had nonzero value on air NvAir,row 130442
+REVIEW_D7_REJECTED S2 P_* over [P_*@3, PAD_N@2] :: assertion `left == right` failed: constraints had nonzero value on air NvAir,row 130436
+REVIEW_D7_REJECTED S3 P_* over [PAD_N@2 (a=0), P_2@2] (PAD before the real subtree) :: assertion `left == right` failed: constraints had nonzero value on air NvAir,row 130396
+REVIEW_D7_REJECTED S4 PAD_N with init phase :: assertion `left == right` failed: constraints had nonzero value on air NvAir,row 1051
+REVIEW_D7_REJECTED S5 P_* over [P_2@2, PAD_N@2 with a = e_0 + 5] :: assertion `left == right` failed: constraints had nonzero value on air NvAir,row 130396
+REVIEW_D7_REJECTED S6 P_* L3: PAD_N preimage = a P_2 statement (s_a = init) :: assertion `left == right` failed: constraints had nonzero value on air NvAir,row 130396
+REVIEW_D7_POSITIVE_OK P_* L4 honest host_failures=[]
+REVIEW_D7_REJECTED M3 P_* over [P_*@3, P_2@2] (mixed levels) :: assertion `left == right` failed: constraints had nonzero value on air NvAir,row 130396
+REVIEW_D7_POSITIVE_OK wrap depth 3 honest (root P_*@4, C_*) host_failures=[]
+REVIEW_D7_REJECTED W1 wrap depth 3 over P_*@3 (one level short) :: assertion `left == right` failed: constraints had nonzero value on air NvAir,row 16296
+REVIEW_D7_REJECTED W2 wrap depth 1 setup (C_2, level 2) over P_*@3 :: assertion `left == right` failed: constraints had nonzero value on air NvAir,row 16296
+REVIEW_D7_REJECTED W3 wrap depth 2 setup (C_*, level 3) over P_2@2 :: assertion `left == right` failed: constraints had nonzero value on air NvAir,row 16296
+REVIEW_D7_REJECTED W4 wrap anchored at C_padN, level 3, over PAD_N@3 :: assertion `left == right` failed: constraints had nonzero value on air NvAir,row 16369
+REVIEW_D7_MIXUP_DONE
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 110 filtered out; finished in 4496.09s
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 1:14:56
+	Maximum resident set size (kbytes): 14828028

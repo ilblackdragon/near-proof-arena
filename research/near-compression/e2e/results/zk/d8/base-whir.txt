@@ -1,0 +1,27 @@
+BASE_WHIR ns=22 lb=1 w_stack=8 queries=[536, 256, 83, 50, 36] k=[1, 4, 4, 4, 4] merkle_depth=[24, 21, 21, 21, 21] query_x_depth=21789 whir_bits=268.2 total_bits=268.2
+BASE_WHIR ns=18 lb=1 w_stack=8 queries=[536, 256, 83, 50] k=[1, 4, 4, 4] merkle_depth=[20, 17, 17, 17] query_x_depth=17333 whir_bits=268.2 total_bits=268.2
+BASE_WHIR ns=22 lb=1 w_stack=8 queries=[97, 69, 41, 31] k=[2, 4, 4, 4] merkle_depth=[23, 21, 21, 21] query_x_depth=5192 whir_bits=268.2 total_bits=268.2
+BASE_WHIR ns=22 lb=2 w_stack=8 queries=[81, 60, 40, 30] k=[2, 4, 4, 4] merkle_depth=[24, 22, 22, 22] query_x_depth=4804 whir_bits=268.5 total_bits=268.5
+BASE_WHIR ns=22 lb=3 w_stack=8 queries=[69, 54, 35, 27] k=[2, 4, 4, 4] merkle_depth=[25, 23, 23, 23] query_x_depth=4393 whir_bits=269.5 total_bits=269.5
+BASE_WHIR ns=20 lb=1 w_stack=8 queries=[97, 69, 44, 32] k=[2, 4, 4, 4] merkle_depth=[21, 19, 19, 19] query_x_depth=4792 whir_bits=268.9 total_bits=268.9
+BASE_WHIR ns=20 lb=2 w_stack=8 queries=[81, 60, 40, 30] k=[2, 4, 4, 4] merkle_depth=[22, 20, 20, 20] query_x_depth=4382 whir_bits=268.5 total_bits=268.5
+BASE_WHIR ns=20 lb=5 w_stack=8 queries=[54, 41, 31, 25] k=[2, 4, 4, 4] merkle_depth=[25, 23, 23, 23] query_x_depth=3581 whir_bits=268.2 total_bits=268.2
+BASE_WHIR ns=18 lb=7 w_stack=8 queries=[44, 35, 27, 23] k=[2, 4, 4, 4] merkle_depth=[25, 23, 23, 23] query_x_depth=3055 whir_bits=269.6 total_bits=269.6
+BASE_WHIR ns=18 lb=5 w_stack=8 queries=[54, 41, 31, 25] k=[2, 4, 4, 4] merkle_depth=[23, 21, 21, 21] query_x_depth=3279 whir_bits=268.2 total_bits=268.2
+BASE_WHIR ns=18 lb=3 w_stack=8 queries=[69, 54, 37, 28] k=[2, 4, 4, 4] merkle_depth=[21, 19, 19, 19] query_x_depth=3710 whir_bits=268.4 total_bits=268.4
+BASE_WHIR ns=18 lb=2 w_stack=8 queries=[81, 60, 40, 30] k=[2, 4, 4, 4] merkle_depth=[20, 18, 18, 18] query_x_depth=3960 whir_bits=268.5 total_bits=268.5
+BASE_WHIR ns=18 lb=1 w_stack=8 queries=[97, 69, 44, 32] k=[2, 4, 4, 4] merkle_depth=[19, 17, 17, 17] query_x_depth=4308 whir_bits=268.9 total_bits=268.9
+BASE_WHIR ns=14 lb=7 w_stack=8 queries=[44, 37, 28] k=[2, 4, 4] merkle_depth=[21, 19, 19] query_x_depth=2159 whir_bits=268.4 total_bits=268.4
+seg-v1 PQD1_POW=24 BASE_WHIR ns=22 lb=1 w_stack=8 queries=[536, 256, 83, 50, 36] k=[1, 4, 4, 4, 4] merkle_depth=[24, 21, 21, 21, 21] query_x_depth=21789 whir_bits=268.2 total_bits=268.2
+seg-v1 PQD1_POW=26 BASE_WHIR ns=22 lb=1 w_stack=8 queries=[532, 254, 82, 49, 35] k=[1, 4, 4, 4, 4] merkle_depth=[24, 21, 21, 21, 21] query_x_depth=21588 whir_bits=268.3 total_bits=268.3
+seg-v1 PQD1_POW=28 BASE_WHIR ns=22 lb=1 w_stack=8 queries=[527, 252, 82, 49, 35] k=[1, 4, 4, 4, 4] merkle_depth=[24, 21, 21, 21, 21] query_x_depth=21426 whir_bits=268.0 total_bits=268.0
+seg-v1 PQD1_POW=30 BASE_WHIR ns=22 lb=1 w_stack=8 queries=[523, 250, 81, 49, 35] k=[1, 4, 4, 4, 4] merkle_depth=[24, 21, 21, 21, 21] query_x_depth=21267 whir_bits=268.2 total_bits=268.2
+seg-v1 PQD1_POW=32 BASE_WHIR ns=22 lb=1 w_stack=8 queries=[518, 247, 80, 48, 34] k=[1, 4, 4, 4, 4] merkle_depth=[24, 21, 21, 21, 21] query_x_depth=21021 whir_bits=266.9 total_bits=266.9
+base-config NEARPROOF_BASE_WHIR_POW=20 BASE_WHIR ns=22 lb=1 w_stack=8 queries=[102, 73, 44, 32] k=[2, 4, 4, 4] merkle_depth=[23, 21, 21, 21] query_x_depth=5475 whir_bits=269.1 total_bits=269.1
+base-config NEARPROOF_BASE_WHIR_POW=20 BASE_WHIR ns=22 lb=2 w_stack=8 queries=[85, 63, 42, 32] k=[2, 4, 4, 4] merkle_depth=[24, 22, 22, 22] query_x_depth=5054 whir_bits=268.4 total_bits=268.4
+base-config NEARPROOF_BASE_WHIR_POW=24 BASE_WHIR ns=22 lb=1 w_stack=8 queries=[100, 71, 43, 32] k=[2, 4, 4, 4] merkle_depth=[23, 21, 21, 21] query_x_depth=5366 whir_bits=268.2 total_bits=268.2
+base-config NEARPROOF_BASE_WHIR_POW=24 BASE_WHIR ns=22 lb=2 w_stack=8 queries=[83, 62, 42, 31] k=[2, 4, 4, 4] merkle_depth=[24, 22, 22, 22] query_x_depth=4962 whir_bits=268.2 total_bits=268.2
+base-config NEARPROOF_BASE_WHIR_POW=28 BASE_WHIR ns=22 lb=1 w_stack=8 queries=[99, 70, 42, 31] k=[2, 4, 4, 4] merkle_depth=[23, 21, 21, 21] query_x_depth=5280 whir_bits=268.9 total_bits=268.9
+base-config NEARPROOF_BASE_WHIR_POW=28 BASE_WHIR ns=22 lb=2 w_stack=8 queries=[82, 61, 41, 31] k=[2, 4, 4, 4] merkle_depth=[24, 22, 22, 22] query_x_depth=4894 whir_bits=268.4 total_bits=268.4
+base-config NEARPROOF_BASE_WHIR_POW=32 BASE_WHIR ns=22 lb=1 w_stack=8 queries=[97, 69, 41, 31] k=[2, 4, 4, 4] merkle_depth=[23, 21, 21, 21] query_x_depth=5192 whir_bits=268.2 total_bits=268.2
+base-config NEARPROOF_BASE_WHIR_POW=32 BASE_WHIR ns=22 lb=2 w_stack=8 queries=[81, 60, 40, 30] k=[2, 4, 4, 4] merkle_depth=[24, 22, 22, 22] query_x_depth=4804 whir_bits=268.5 total_bits=268.5

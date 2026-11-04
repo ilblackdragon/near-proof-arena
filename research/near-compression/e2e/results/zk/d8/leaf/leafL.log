@@ -1,0 +1,2 @@
+LEAF_AB ns20lb2 TREE_LEAF_PARAMS n_stack=20 log_blowup=2 queries=[81, 60, 40, 30] TREE_TEMPLATE class=0 kind=base rows=465618 pin=[(20, Some(812648)), (21, Some(1750912)), (7, Some(128)), (16, Some(65536))] base_vk=e1cf72d1c5a489ef s=5.3 TREE_LEAF 0 rows=465618 bytes=469923 seconds=141.3 TREE_LEAF_ONLY_DONE heights=[(20, Some(812648)), (21, Some(1750912)), (7, Some(128)), (16, Some(65536))] sha_instances=1 	Maximum resident set size (kbytes): 13476912 
+LEAF_AB_DONE

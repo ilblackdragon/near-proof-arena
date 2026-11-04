@@ -1,0 +1,23 @@
+== leaf sizes per class (measured template pins, committed cells: NvAir+program / SHA / tables) ==
+  class 0: program rows 205,562; pin [(20, 385128), (21, 1176064), (7, 128), (16, 65536)]; cells 31.4 M + 97.6 M + 0.3 M = 129.3 M
+  class 1: program rows 206,800; pin [(20, 387972), (21, 1187712), (7, 128), (16, 65536)]; cells 31.6 M + 98.6 M + 0.3 M = 130.5 M
+  class 2: program rows 465,618; pin [(20, 812648), (21, 1750912), (7, 128), (16, 65536)]; cells 63.9 M + 145.3 M + 0.3 M = 209.5 M
+  segment leaf, base lb 1 (stack base config): 232 M cells (class-2 leaf: SHA x 1.12, query NvAir rows x 1.17)
+  segment leaf, base lb 2 (= class L): 210 M cells (class-2 leaf: SHA x 1.00, query NvAir rows x 1.00)
+  segment leaf, seg-v1 lb 1 (lanes A/B today): 838 M cells (class-2 leaf: SHA x 4.54, query NvAir rows x 4.55)
+  D-7 projection used 435 M (the D0a leaf x 3.45 from the model's 610-query law)
+  P_2 (arity 4, measured node geometry 21/20/2): 605 M cells; P_*/PAD_N at x1.13: 683 M
+
+== PROJECTION (model only, not measured): 8 H200, arch b, adversarial workload, streaming ==
+  100 Tgas: 25 segments, execution 0.12 s, base proof 0.222 GPU-s each (model)
+    D-7 projection (x3.45 leaf, leaf lb 5): leaf 0.815, P_2 1.032, P_* 1.166, wrap 0.377 GPU-s; total 41.3 GPU-s (segments + leaves 63%; leaves 49%); latency after execution 7.78 s
+    segments at seg-v1 (lanes today), leaf lb 5: leaf 1.572, P_2 1.032, P_* 1.166, wrap 0.377 GPU-s; total 60.2 GPU-s (segments + leaves 75%; leaves 65%); latency after execution 10.80 s
+    segments at seg-v1, leaf lb 2: leaf 0.611, P_2 1.151, P_* 1.301, wrap 0.377 GPU-s; total 37.4 GPU-s (segments + leaves 56%; leaves 41%); latency after execution 7.35 s
+    segments at the base config, leaf lb 5: leaf 0.435, P_2 1.032, P_* 1.166, wrap 0.377 GPU-s; total 31.7 GPU-s (segments + leaves 52%; leaves 34%); latency after execution 6.25 s
+    segments at the base config, leaf lb 2 (D-8 recommendation): leaf 0.169, P_2 1.151, P_* 1.301, wrap 0.377 GPU-s; total 26.3 GPU-s (segments + leaves 37%; leaves 16%); latency after execution 5.58 s
+  1,000 Tgas: 94 segments, execution 1.20 s, base proof 0.466 GPU-s each (model)
+    D-7 projection (x3.45 leaf, leaf lb 5): leaf 0.815, P_2 1.032, P_* 1.166, wrap 0.377 GPU-s; total 161.2 GPU-s (segments + leaves 75%; leaves 48%); latency after execution 21.22 s
+    segments at seg-v1 (lanes today), leaf lb 5: leaf 1.572, P_2 1.032, P_* 1.166, wrap 0.377 GPU-s; total 232.3 GPU-s (segments + leaves 82%; leaves 64%); latency after execution 30.27 s
+    segments at seg-v1, leaf lb 2: leaf 0.611, P_2 1.151, P_* 1.301, wrap 0.377 GPU-s; total 146.3 GPU-s (segments + leaves 69%; leaves 39%); latency after execution 19.53 s
+    segments at the base config, leaf lb 5: leaf 0.435, P_2 1.032, P_* 1.166, wrap 0.377 GPU-s; total 125.5 GPU-s (segments + leaves 67%; leaves 33%); latency after execution 16.66 s
+    segments at the base config, leaf lb 2 (D-8 recommendation): leaf 0.169, P_2 1.151, P_* 1.301, wrap 0.377 GPU-s; total 104.8 GPU-s (segments + leaves 57%; leaves 15%); latency after execution 14.23 s

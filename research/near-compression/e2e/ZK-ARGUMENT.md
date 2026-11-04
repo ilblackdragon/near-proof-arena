@@ -1348,14 +1348,22 @@ shapes with headroom, chosen from the corpus) is lane A/B/E work (plan §5.0.1 b
 **F2, F7 (setup content).** The setup (`WrapSetup` version 4) no longer contains chunk names;
 each template entry is `(class, kind, base_vk_sha256, base_heights, anchor, c_norm)`: the class
 index, the sha256 of the class's base vk (saved form), its pinned base heights and the leaf
-program root. So the setup can be audited from shapes: an auditor recomputes `c_norm` from the
-base vk with that hash and the listed heights, and checks `base_params[class]` against that vk.
+program root. *(Corrected after review-D7 L3: "auditable from shapes" overstated it — the setup
+carries hashes, not the vks, and the leaf generator needs a base proof. D-8 ships the class base
+vks with the setup (`CLASS{i}.BASE.vk.json`) and adds `tree-audit SETUP.json CERTS EXCL VK_DIR
+[BASE_DIR...]`: it checks each vk's sha256 against `base_vk_sha256`, `base_params[i]` against
+that vk's parameters, the AIR count and the pinned TAPE width; given any base proof at a class
+shape it regenerates the leaf program and checks its root is the entry's `c_norm`. A shape-only
+leaf generator (no base proof) is not built: the leaf program embeds the base proof's heights,
+which a class pins, but `build_verifier` reads them from a proof.)*
 
 **F5 (base-mode flag).** D-6 set `templates_shape_floored = true` for base templates by
 construction. D-7 replaces it by a check: in base mode the driver sets
 `zero_knowledge_established` only if every class's leaf program was reproduced by at least two
 independent base proofs at the class shape (distinct base points `u`;
 `template_confirmations` in RESULT.json). Measured: [2, 2] (each class: two different chunks).
+*(D-8, review-D7 L2: the count now requires distinct `u` **and** distinct chunks — the claim digest
+`ctx` — so two base proofs of one chunk count once.)*
 A leaf program that depended on anything but the class shape (e.g. the base transcript) would
 differ between two such proofs.
 
@@ -1394,9 +1402,17 @@ witness-only — no transcript-dependent rows — so it has no shape-pin abort).
   node heights `h_N`. `P_*` binds a level-2 child by `{C_2, C_padN}` and a deeper child 0 by BIND,
   later children by `root_i = root_0` or `root_i = C_padN` (`Builder::sibling_alt`: one boolean
   witness `p_i`, `flag·(1 − p_i)·(root_i − root_0) = 0`, `p_i·(root_i − C_padN) = 0`).
-* `PAD_N`'s level is a witness: its statement `(ctx, a, a + 1, s, s)` with `s.phase = done` is
-  true at any level, so the level needs no binding. It can never be child 0 at level ≥ 3 (BIND
-  forces child 0's program to be `P_*`), and an honest tree never puts it first.
+* `PAD_N`'s level is a free witness (there is no in-circuit `level ≥ 2` constraint): its
+  statement `(ctx, a, a + 1, s, s)` with `s.phase = done` is true at any level, so the level needs
+  no binding. *(Corrected after review-D7 L4: the earlier text said `PAD_N` "can never be child 0
+  at level ≥ 3"; that holds only above level 3, where BIND forces child 0's program to be `P_*`. As
+  a level-2 child of a level-3 `P_*`, child 0 is bound by the set `{C_2, C_padN}`, so `PAD_N` can be
+  child 0 there.)* The invariant that makes this harmless: **only the template leaf exposes
+  `s_a = [init, t]`** (`PAD_L` and `PAD_N` expose `s_a = s_e = [done, t]`), every node composes its
+  children's ranges (child 0's `a`, `s_a` become the node's), and **the wrap requires
+  `s_a = [init, t]` and `a = 0`** at the root. A tree whose segment 0 is any PAD proof therefore
+  exposes `s_a = done` at the root and is rejected by the wrap; PAD proofs can only fill segments
+  after a real one, where they change nothing (`s = done` in, `s = done` out).
 * The wrap anchors at `C_2` (depth 1) or `C_*`; the setup records `c_node2`, `c_node_star`,
   `c_pad_leaf`, `c_pad_node`, both geometries and pins: all program commitments or shape pins,
   so (c) holds as before. `h_N` is `P_2`'s shape pin grown by a margin (10 % at depth ≥ 2) and
@@ -1404,7 +1420,12 @@ witness-only — no transcript-dependent rows — so it has no shape-pin abort).
   prover abort).
 * The node geometry may hold several SHA compression AIR instances (`NvCircuit::sha_instances`;
   AIR order NvAir, SHA_0, table, byte, SHA_1, …; instance `i`: own lookback bus, compression ids
-  offset by `i·2^22`, shared table and interface bus). Their id ranges are disjoint, so a message
+  offset by `i·2^cap` with `cap = NvCircuit::sha_cap_log` = the layer's `l_skip + n_stack` (22 in
+  the tree), shared table and interface bus). Their id ranges are disjoint (D-8, review-D7 L1:
+  disjointness needs every instance at most `2^cap` rows; `build_verifier` now checks statically
+  that every child trace is at most the child's stacked ceiling `l_skip + n_stack`, which is the
+  child's instance capacity, and the shape pin uses the circuit's own `sha_cap_log`, not the
+  ns20lb5 constant), so a message
   of one instance can never be matched by another; the shape pin spreads the SHA slack over the
   instances in fill order. The wrap itself keeps one instance (unchanged AIR set and columns:
   (a), (b) of §10.1 hold); only the tree proofs change shape, and they are never published.
@@ -1432,3 +1453,66 @@ ceiling and within 1.25× / 1.41× of the D0a FINAL's shape-pinned NvAir height 
 `(claim, hint, class, setup)`, classical programmable ROM, `ε_ZK ≤ 2^-184.4 + A·2^-192`, for
 chunks whose base was proved at one of the setup's pinned base shape classes. QROM: `u` open
 (owner). Not independently reviewed (D-7). `security_established = false`.
+
+### 10.3 D-8: a production class set, a pinned TAPE shape, low-rate leaves, arity 4 (and review-D7)
+
+D-8 again changes what is under the wrap, not the wrap. What the §10.1 / §10.2 argument needs:
+
+**Pinned TAPE shape (`TapePad`).** D-7 classes could not pad the cached TAPE (the public-message
+table V_d recomputes from the claim), so a class had to match the chunk's TAPE log and key set
+exactly; over the corpus the TAPE has 5 (log, width) shapes ((10, 42), (10, 43), (11, 42),
+(11, 43), (12, 43)), which would have multiplied every class by up to 5. D-8 pins the TAPE per
+class: log height = the class's TAPE log, keys = the corpus's 7 (bus, message length) keys
+(`tape_keys`). Prover (`prove_base` under `NEARPROOF_BASE_CLASS`) and V_d (`tree-verify`, from
+the setup's template entry `tape_pad`) build the TAPE with the same `harness_padded`: the chunk's
+messages first, a key the chunk does not use is an all-zero selector column, rows above the
+chunk's messages are zero rows (count 0). Soundness: the TAPE's bus contribution is
+`Σ_rows Σ_k count·sel_k·msg`, unchanged by zero selectors and zero counts, and V_d computes the
+padded TAPE itself (the prover cannot choose it); a packet proved under another pad has another
+`ctx` and fails V_d. ZK: the TAPE is a function of the public claim (it was never hidden); the
+pad is a setup constant of the class. What the packet reveals about the TAPE is the class's
+pinned log, not the chunk's own (review-D7 L5: in D-7 the natural TAPE log was a class key).
+
+**Generator growth (`statedump --class`).** Since D-8 any table can be cut at any class log ≥ its
+compact log: the padding progression (now only when it is well founded: a non-constant
+progression must span ≥ 3 rows), else the render's rows then zero rows (`walk`, `acct`, `head`:
+what the zero-padded renders produce at a larger height), with the cyclic byte window recomputed
+at the new height (`uniq`, `sort`: `(q + 2H − 1 − j) % H`), or the row-counter padding (`shuf`).
+Generator choice only: every cut is re-checked against every classical constraint, and the base
+prover's precheck re-checks every constraint and bus (the coverage run does both for every
+chunk), so a class dump is an honest `HoldsP` trace by check.
+
+**The class set and the anonymity set (review-D7 L5).** Classes are chosen over a census of all
+1,311 D0a-compatible honest chunks of the d1/d2/d3 corpora (`classes_d8.py`, nested, 25 %
+headroom): S (83.4 % of the census), M (13.1 %), L (3.4 %, the tail, `n_stack` 22 at base rate
+lb 2). A packet reveals its class; within the census the smallest anonymity set is L's 45 chunks
+(D-7: classes of 2 and 5, which nearly identified the chunk). ZK statement unchanged otherwise.
+
+**Leaves at their own rate (`NEARPROOF_TREE_LEAF_PARAMS`, D-8 default `ns20lb2`).** Leaf proofs
+(template leaves and `PAD_L`) are verified only by `P_2`, which reads the child's parameters
+from its vk; the leaf geometry is a setup constant (`TreeShape.leaf_params`, setup version 5).
+The leaf vk meets the 268-bit per-round target at `ns20lb2` (queries [81, 60, 40, 30]; each run's
+`soundness.txt`). Leaves are never published: no change to the wrap's ZK argument; `A` counts
+proofs, not their rate.
+
+**Arity 4 (default) and its margin.** `h_N = P_2 pin × node_margin(arity)` = 1.13 at arity 4
+(1.10 at 2–3, 1.29 at 8), checked against every `P_*` before it is proved (a setup-creation
+abort). Depth 1 at arity 4: 4 leaves + `P_2` = 5 tree proofs, `A = 6`.
+
+**Measured (D-8, README §0).** Arity 4, depth 1, one setup over S, M, L (`SETUP.json` 4,894,389 B,
+version 5): six chunks, two per class, every one but the first reproducing the setup byte for byte;
+packets 328,809–330,394 B; verify 49–86 ms on one core; 23/23 fresh-process negatives on an S and
+an M packet (incl. claiming another class: rejected by the statement digest); flag set with
+`A = 6`; `template_confirmations` [2, 2, 2] counted by distinct chunk. The wrap's own AIR set,
+columns and data-column count are unchanged; its pin (20, 369,340) / (21, 1,284,352) is 1.26× the
+D0a FINAL's shape-pinned NvAir height (291,996), below 2×, so §10.1 (b)'s GKR-layer charge holds.
+
+**Review-D7 items.** L1 (instance capacity) §10.2 text and `build_verifier`; L2 (confirmations
+by chunk) §10.2 F5; L3 (setup audit) §10.2 F2/F7; L4 (PAD_N level) §10.2; L5 above; I4
+(`try_decode_proof` inside `catch_unwind`); the reviewer's constraint-level forged test
+(`review_d7_mixup_debug`: 15 forged bodies) is in the repo tests. I3 (segment templates must not
+accept a `done` input boundary) is recorded for lanes A/B in plan §5.0.1 (4).
+
+**Scope.** Statistical ZK of the tree-wrap packet for `(claim, hint, class, setup)`, classical
+programmable ROM, `ε_ZK ≤ 2^-184.4 + A·2^-192`, for chunks whose base is at one of the setup's
+classes. QROM: `u` open (owner). `security_established = false`. Not independently reviewed (D-8).

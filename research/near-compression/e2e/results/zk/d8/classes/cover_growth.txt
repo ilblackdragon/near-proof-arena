@@ -1,0 +1,10 @@
+    338  statedump: acct: grown with zero rows after the render
+      5  statedump: head: grown with zero rows after the render
+      1  statedump: rng: grown with a constant padding row and the render's last row
+      6  statedump: rng: grown with zero rows after the render (or its carried counter columns)
+    278  statedump: shuf: grown with zero rows after the render
+   1029  statedump: shuf: grown with zero rows after the render (or its row-counter padding)
+    270  statedump: sort: grown with zero rows after the render (cyclic window recomputed if needed)
+    108  statedump: uniq: grown with zero rows after the render (cyclic window recomputed if needed)
+      6  statedump: val: grown with a constant padding row and the render's last row
+     20  statedump: walk: grown with zero rows after the render
