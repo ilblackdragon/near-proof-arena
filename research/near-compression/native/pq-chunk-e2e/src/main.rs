@@ -387,12 +387,36 @@ fn chain(
         circ.child_nv = level >= 2;
         circ.bind = level >= 2;
         let mut by_bind = false;
+        // [E2E-D D-5, review-D4 F1/F2] NEARPROOF_CHAIN_SHAPE_FLOORS (default 1): the tight floors
+        // of every chain level, L1 included, come from the level's shape pin (used rows minus the
+        // rows the child transcript's rejection sampling added, plus the 2^-192 slack) instead of
+        // its natural heights. A level's program depends on its child's committed heights, so
+        // with natural floors the converged program (and the setup) depended on the rejection
+        // sampling of the whole chain: a fresh chain of the same chunk had another program
+        // (measured: 142,654 vs 143,330 rows). `=0` reproduces the D-4 floors.
+        let shape_floors = std::env::var("NEARPROOF_CHAIN_SHAPE_FLOORS").map(|v| v != "0").unwrap_or(true);
+        if level == 1 && shape_floors {
+            let (mats, b) = circ.generate(&vk, &p);
+            let (pin, _) = shape_pinned_heights(&mats, &b, 2, FINAL_PIN_EPS_BITS);
+            circ.tight_floor = Some(
+                pin.iter()
+                    .zip(&mats)
+                    .map(|(&(_, t), m)| t.unwrap_or(m.height()).min(m.height()))
+                    .collect(),
+            );
+            println!("L1_SHAPE_FLOOR {:?}", circ.tight_floor);
+        }
         if level >= 2 {
             let a = circ.select_anchor(&vk, &p, level - 1, &words, root.unwrap());
             by_bind = a.0 != level - 1;
             circ.anchor = Some(a);
-            let (mats, _) = circ.generate(&vk, &p);
-            let nat = natural_tight_heights(&mats, 2);
+            let (mats, b) = circ.generate(&vk, &p);
+            let nat = if shape_floors {
+                let (pin, _) = shape_pinned_heights(&mats, &b, 2, FINAL_PIN_EPS_BITS);
+                pin.iter().zip(&mats).map(|(&(_, t), m)| t.unwrap_or(m.height()).min(m.height())).collect::<Vec<_>>()
+            } else {
+                natural_tight_heights(&mats, 2)
+            };
             if !floor
                 .as_ref()
                 .is_some_and(|f| nat.iter().zip(f).all(|(n, f)| n <= f))

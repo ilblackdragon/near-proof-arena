@@ -1,0 +1,37 @@
+TREE_PARAMS n_stack=20 log_blowup=5 queries=[54, 41, 31, 25]
+NV_PHASE before_dag 29979
+--
+TREE_TEMPLATE d1_00-h10006-s3 level=4 rows=141352 pin=[(20, Some(285876)), (21, Some(1090560)), (7, Some(128)), (16, Some(65536))] info=[765, 5940, 65408, 279933, 1025152] s=60.7
+NV_PHASE before_dag 29979
+--
+TREE_TEMPLATE d1_00-h10007-s0 level=4 rows=141830 pin=[(20, Some(286592)), (21, Some(1090560)), (7, Some(128)), (16, Some(65536))] info=[765, 5940, 65408, 280650, 1025152] s=39.7
+NV_PHASE before_dag 29979
+--
+TREE_TEMPLATE d2_05-h10042-s3 level=4 rows=143166 pin=[(20, Some(288596)), (21, Some(1090560)), (7, Some(128)), (16, Some(65536))] info=[765, 5940, 65408, 282654, 1025152] s=39.2
+NV_GEN finish ms=0
+--
+TREE_PAD rows=1594 pin=[(20, Some(2408)), (8, Some(256)), (7, Some(128)), (16, Some(65536))]
+TREE_HEIGHTS [(20, Some(739528)), (22, Some(2794560)), (7, Some(128)), (16, Some(65536))]
+NV_PHASE before_dag 29979
+--
+TREE_LEAF 0 rows=143166 bytes=402345 seconds=598.6
+NV_GEN finish ms=0
+--
+TREE_LEAF 1 rows=1594 bytes=406713 seconds=1978.3
+NV_PHASE before_dag 32737
+--
+TREE_NODE_PROBE rows=343032 shape_pin=[(20, Some(675100)), (22, Some(2388480)), (7, Some(128)), (16, Some(65536))] info=[1295, 11606, 128768, 663492, 2259712]
+NV_PHASE before_dag 32737
+--
+TREE_NODE L2_0 rows=343032 shape_pin=[(20, Some(675100)), (22, Some(2388480)), (7, Some(128)), (16, Some(65536))] info=[1295, 11606, 128768, 663492, 2259712]
+TREE_NODE_PROVED L2_0 bytes=405285 seconds=700.4
+NV_PHASE before_dag 29532
+--
+WRAP_NEGATIVE_CONTROLS_OK wrong_ctx changed_program changed_heights changed_level
+
+thread 'main' (3570620) panicked at /data/illia/nearproof/.claude/worktrees/agent-a40dc1effc5d7f22d/research/near-compression/native/pq-chunk-e2e/src/tree.rs:366:9:
+assertion `left == right` failed: the fixed setup must be reproduced byte for byte
+  left: [123, 34, 118, 101, 114, 115, 105, 111, 110, 34, 58, 51, 44, 34, 100, 111, 109, 97, 105, 110, 95, 111, 100, 100, 95, 102, 97, 99, 116, 111, 114, 34, 58, 49, 53, 44, 34, 97, 105, 114, 95, 115, 104, 97, 50, 53, 54, 34, 58, 34, 102, 97, 53, 57, 57, 98, 51, 98, 48, 99, 50, 100, 99, 55, 56, 54, 99, 50, 57, 53, 57, 53, 57, 99, 101, 57, 50, 99, 102, 98, 98, 101, 55, 51, 100, 55, 52, 99, 52, 52, 4
+--
+	Maximum resident set size (kbytes): 19841728
+	Average resident set size (kbytes): 0

@@ -1,0 +1,38 @@
+TREE_PARAMS n_stack=20 log_blowup=5 queries=[54, 41, 31, 25]
+NV_PHASE before_dag 29979
+--
+TREE_TEMPLATE d1_00-h10006-s3 level=4 rows=141352 pin=[(20, Some(285876)), (21, Some(1090560)), (7, Some(128)), (16, Some(65536))] info=[765, 5940, 65408, 279933, 1025152] s=49.8
+NV_PHASE before_dag 29979
+--
+TREE_TEMPLATE d1_00-h10007-s0 level=4 rows=141830 pin=[(20, Some(286592)), (21, Some(1090560)), (7, Some(128)), (16, Some(65536))] info=[765, 5940, 65408, 280650, 1025152] s=45.8
+NV_PHASE before_dag 29979
+--
+TREE_TEMPLATE d2_05-h10042-s3 level=4 rows=143166 pin=[(20, Some(288596)), (21, Some(1090560)), (7, Some(128)), (16, Some(65536))] info=[765, 5940, 65408, 282654, 1025152] s=48.2
+NV_GEN finish ms=0
+--
+TREE_PAD rows=1594 pin=[(20, Some(2408)), (8, Some(256)), (7, Some(128)), (16, Some(65536))]
+TREE_HEIGHTS [(20, Some(739528)), (22, Some(2794560)), (7, Some(128)), (16, Some(65536))]
+NV_PHASE before_dag 29979
+--
+TREE_LEAF 0 rows=141352 bytes=403857 seconds=610.8
+NV_GEN finish ms=0
+--
+TREE_LEAF 1 rows=1594 bytes=404193 seconds=672.4
+NV_PHASE before_dag 32737
+--
+TREE_NODE_PROBE rows=343032 shape_pin=[(20, Some(675100)), (22, Some(2388480)), (7, Some(128)), (16, Some(65536))] info=[1295, 11606, 128768, 663492, 2259712]
+NV_PHASE before_dag 32737
+--
+TREE_NODE L2_0 rows=343032 shape_pin=[(20, Some(675100)), (22, Some(2388480)), (7, Some(128)), (16, Some(65536))] info=[1295, 11606, 128768, 663492, 2259712]
+TREE_NODE_PROVED L2_0 bytes=404403 seconds=701.9
+NV_PHASE before_dag 29532
+--
+WRAP_SHAPE_PIN [(20, Some(336580)), (21, Some(1195648)), (7, Some(128)), (16, Some(65536))] info=[768, 5963, 65664, 330617, 1129984] profile=Some(HeightProfile { k_samples: 5827, n_runs: 449, j_actual: 392, jobs_actual: 735, jobs_min: 484, samp_actual: 3202, samp_min: 2915, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 2546, comps_delta_actual: 251 })
+NV_PHASE before_dag 29532
+--
+WRAP_NEGATIVE_CONTROLS_OK wrong_ctx changed_program changed_heights changed_level
+TREE_WRAP_VERIFIED {"arity":2,"bundle_bytes":327361,"depth":1,"hint_bytes":16,"leaves":2,"node_program_rows":343032,"scope":"D0a template, chunk-independent tree + wrap (D-5)","seconds":{"leaf0":610.752327164,"leaf1":672.424812835,"node2_0":701.924200144,"wrap":599.926122546},"security_established":false,"setup_bytes":4473180,"setup_sha256":"e6a4e0f820654699f9846083fc38cb95e8e2c954367cdc8c3737f03da38c164c","total_seconds":2779.283676037,"tree_heights":[[20,739528],[22,2794560],[7,128],[16,65536]],"wrap_heights":[[20,336580],[21,1195648],[7,128],[16,65536]],"wrap_program_rows":170758,"wrap_proo
+	Command being timed: "/data/illia/nearproof-deps/pq-e2e-d5/target/release/nearproof-chunk-e2e tree-prove /data/illia/nearproof/.claude/worktrees/agent-a40dc1effc5d7f22d/examples/np-udr-stark-v2/source/near-air-v3.json /data/illia/nearproof-deps/pq-e2e-d/e2e/d1_00-h10006-s3/public /data/illia/nearproof-deps/pq-e2e-d5/tree-a2d1/d1_00-h10006-s3 /data/illia/nearproof-deps/pq-e2e-d/e2e/d1_00-h10006-s3 /data/illia/nearproof/.claude/worktrees/agent-a40dc1effc5d7f22d/research/near-compression/final-soundness/calc/dkt_certs_o2.json /data/illia/nearproof/.claude/worktrees/agent-a40dc1effc5d7f22d/resear
+--
+	Maximum resident set size (kbytes): 20292372
+	Average resident set size (kbytes): 0

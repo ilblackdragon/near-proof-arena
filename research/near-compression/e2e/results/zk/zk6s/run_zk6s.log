@@ -1,0 +1,50 @@
+LOAD_BEFORE d1_00-h10006-s3 9.19 13.48 14.23
+REPLAY d1_00-h10006-s3 rc=0 FINAL_REPLAY wall_s=519.795148615
+VERIFY_PROFILE_MS total=40.57 setup_read_pin=2.37 setup_parse=5.46 air_pin_bundle_read=1.17 air_parse=4.97 statepublic=0.23 expected_claim_tape=1.73 proof_decode=0.22 final_verify=24.41
+INDEPENDENT_VERIFY_OK bundle_bytes=326203 under_300000=false
+VERIFY_PROFILE_MS total=39.72 setup_read_pin=2.38 setup_parse=5.41 air_pin_bundle_read=1.08 air_parse=4.87 statepublic=0.22 expected_claim_tape=1.50 proof_decode=0.25 final_verify=24.01
+VERIFY_PROFILE_MS total=40.03 setup_read_pin=2.30 setup_parse=5.45 air_pin_bundle_read=1.11 air_parse=4.90 statepublic=0.23 expected_claim_tape=1.55 proof_decode=0.22 final_verify=24.27
+VERIFY_PROFILE_MS total=40.20 setup_read_pin=2.26 setup_parse=5.42 air_pin_bundle_read=1.05 air_parse=4.83 statepublic=0.22 expected_claim_tape=1.55 proof_decode=0.22 final_verify=24.65
+VERIFY_PROFILE_MS total=39.66 setup_read_pin=2.21 setup_parse=5.37 air_pin_bundle_read=1.05 air_parse=4.89 statepublic=0.21 expected_claim_tape=1.48 proof_decode=0.22 final_verify=24.22
+VERIFY_PROFILE_MS total=39.50 setup_read_pin=2.19 setup_parse=5.39 air_pin_bundle_read=1.03 air_parse=4.86 statepublic=0.22 expected_claim_tape=1.48 proof_decode=0.22 final_verify=24.10
+LOAD_AFTER d1_00-h10006-s3 10.01 10.63 12.33
+LOAD_BEFORE d1_00-h10007-s0 10.01 10.63 12.33
+REPLAY d1_00-h10007-s0 rc=0 FINAL_REPLAY wall_s=588.724969559
+VERIFY_PROFILE_MS total=45.69 setup_read_pin=2.58 setup_parse=9.50 air_pin_bundle_read=1.42 air_parse=4.82 statepublic=0.28 expected_claim_tape=1.72 proof_decode=0.23 final_verify=25.11
+INDEPENDENT_VERIFY_OK bundle_bytes=326384 under_300000=false
+VERIFY_PROFILE_MS total=41.21 setup_read_pin=2.48 setup_parse=5.53 air_pin_bundle_read=1.21 air_parse=4.85 statepublic=0.27 expected_claim_tape=1.64 proof_decode=0.22 final_verify=24.99
+VERIFY_PROFILE_MS total=41.04 setup_read_pin=2.46 setup_parse=5.48 air_pin_bundle_read=1.20 air_parse=4.77 statepublic=0.29 expected_claim_tape=1.68 proof_decode=0.27 final_verify=24.87
+VERIFY_PROFILE_MS total=41.30 setup_read_pin=2.55 setup_parse=5.61 air_pin_bundle_read=1.24 air_parse=4.83 statepublic=0.29 expected_claim_tape=1.70 proof_decode=0.24 final_verify=24.84
+VERIFY_PROFILE_MS total=42.05 setup_read_pin=2.53 setup_parse=5.58 air_pin_bundle_read=1.23 air_parse=4.87 statepublic=0.28 expected_claim_tape=1.69 proof_decode=0.23 final_verify=25.64
+VERIFY_PROFILE_MS total=41.33 setup_read_pin=2.54 setup_parse=5.61 air_pin_bundle_read=1.23 air_parse=4.78 statepublic=0.29 expected_claim_tape=1.72 proof_decode=0.24 final_verify=24.92
+LOAD_AFTER d1_00-h10007-s0 10.72 10.16 11.09
+LOAD_BEFORE d2_05-h10042-s3 10.72 10.16 11.09
+REPLAY d2_05-h10042-s3 rc=0 FINAL_REPLAY wall_s=614.712956219
+VERIFY_PROFILE_MS total=42.20 setup_read_pin=2.43 setup_parse=5.42 air_pin_bundle_read=1.17 air_parse=4.76 statepublic=0.67 expected_claim_tape=2.44 proof_decode=0.21 final_verify=25.09
+INDEPENDENT_VERIFY_OK bundle_bytes=325951 under_300000=false
+VERIFY_PROFILE_MS total=41.87 setup_read_pin=2.33 setup_parse=5.32 air_pin_bundle_read=1.09 air_parse=4.80 statepublic=0.68 expected_claim_tape=2.30 proof_decode=0.21 final_verify=25.14
+VERIFY_PROFILE_MS total=41.62 setup_read_pin=2.38 setup_parse=5.39 air_pin_bundle_read=1.10 air_parse=4.76 statepublic=0.66 expected_claim_tape=2.17 proof_decode=0.21 final_verify=24.97
+VERIFY_PROFILE_MS total=41.54 setup_read_pin=2.29 setup_parse=5.32 air_pin_bundle_read=1.10 air_parse=4.72 statepublic=0.66 expected_claim_tape=2.25 proof_decode=0.21 final_verify=24.99
+VERIFY_PROFILE_MS total=41.67 setup_read_pin=2.25 setup_parse=5.33 air_pin_bundle_read=1.07 air_parse=4.76 statepublic=0.64 expected_claim_tape=2.19 proof_decode=0.21 final_verify=25.22
+VERIFY_PROFILE_MS total=41.83 setup_read_pin=2.14 setup_parse=5.33 air_pin_bundle_read=1.11 air_parse=4.74 statepublic=0.69 expected_claim_tape=2.36 proof_decode=0.21 final_verify=25.25
+LOAD_AFTER d2_05-h10042-s3 9.35 10.27 10.69
+ZK4_DONE
+LOAD_BEFORE d1_00-h10006-s3 9.35 10.27 10.69
+REPLAY d1_00-h10006-s3 rc=101 
+grep: /data/illia/nearproof-deps/pq-e2e-d5f/zk6sb/d1_00-h10006-s3/verify.log: No such file or directory
+cat: /data/illia/nearproof-deps/pq-e2e-d5f/zk6sb/d1_00-h10006-s3/SETUP.sha256: No such file or directory
+cat: /data/illia/nearproof-deps/pq-e2e-d5f/zk6sb/d1_00-h10006-s3/SETUP.sha256: No such file or directory
+cat: /data/illia/nearproof-deps/pq-e2e-d5f/zk6sb/d1_00-h10006-s3/SETUP.sha256: No such file or directory
+cat: /data/illia/nearproof-deps/pq-e2e-d5f/zk6sb/d1_00-h10006-s3/SETUP.sha256: No such file or directory
+cat: /data/illia/nearproof-deps/pq-e2e-d5f/zk6sb/d1_00-h10006-s3/SETUP.sha256: No such file or directory
+LOAD_AFTER d1_00-h10006-s3 7.01 9.44 10.38
+ZK4_DONE
+NEG1 rc=1
+## zk6s/d1_00-h10006-s3 FINAL_SHAPE_PIN [(20, Some(287812)), (21, Some(1090304)), (7, Some(128)), (16, Some(65536))] jmax_nvslack_shaslack_nvbase_shabase=[765, 5940, 65408, 281870, 1024896] profile=Some(HeightProfile { k_samples: 5790, n_runs: 447, j_actual: 417, jobs_actual: 731, jobs_min: 482, samp_actual: 3190, samp_min
+FS_COUNT file=/data/illia/nearproof-deps/pq-e2e-d5f/zk6s/d1_00-h10006-s3/FINAL.bundle final=true total=1288 flush=473 commit=5 squeeze_or_pow_run=806 pow=4 u_len=20
+## zk6s/d1_00-h10007-s0 FINAL_SHAPE_PIN [(20, Some(288528)), (21, Some(1090304)), (7, Some(128)), (16, Some(65536))] jmax_nvslack_shaslack_nvbase_shabase=[765, 5940, 65408, 282587, 1024896] profile=Some(HeightProfile { k_samples: 5790, n_runs: 447, j_actual: 386, jobs_actual: 726, jobs_min: 482, samp_actual: 3171, samp_min
+FS_COUNT file=/data/illia/nearproof-deps/pq-e2e-d5f/zk6s/d1_00-h10007-s0/FINAL.bundle final=true total=1282 flush=473 commit=5 squeeze_or_pow_run=800 pow=4 u_len=20
+## zk6s/d2_05-h10042-s3 FINAL_SHAPE_PIN [(20, Some(290532)), (21, Some(1090304)), (7, Some(128)), (16, Some(65536))] jmax_nvslack_shaslack_nvbase_shabase=[765, 5940, 65408, 284591, 1024896] profile=Some(HeightProfile { k_samples: 5790, n_runs: 447, j_actual: 386, jobs_actual: 722, jobs_min: 482, samp_actual: 3175, samp_min
+FS_COUNT file=/data/illia/nearproof-deps/pq-e2e-d5f/zk6s/d2_05-h10042-s3/FINAL.bundle final=true total=1292 flush=473 commit=5 squeeze_or_pow_run=810 pow=4 u_len=20
+## zk6sb/d1_00-h10006-s3 FINAL_SHAPE_PIN [(20, Some(287812)), (21, Some(1090304)), (7, Some(128)), (16, Some(65536))] jmax_nvslack_shaslack_nvbase_shabase=[765, 5940, 65408, 281870, 1024896] profile=Some(HeightProfile { k_samples: 5790, n_runs: 447, j_actual: 417, jobs_actual: 731, jobs_min: 482, samp_actual: 3190, samp_min
+ZK6S_DONE

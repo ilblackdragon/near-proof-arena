@@ -1,0 +1,59 @@
+{
+  "arity": 2,
+  "bundle_bytes": 328331,
+  "depth": 1,
+  "hint_bytes": 16,
+  "leaves": 2,
+  "node_program_rows": 344192,
+  "scope": "D0a template, chunk-independent tree + wrap (D-5)",
+  "seconds": {
+    "leaf0": 538.085215895,
+    "leaf1": 512.526753432,
+    "node2_0": 514.300274284,
+    "wrap": 532.040021513
+  },
+  "security_established": false,
+  "setup_bytes": 4487284,
+  "setup_sha256": "59a580bb4dd816c420dfbe80573088b20bb8f7b764e4ba60c9bf6c4f2810c75e",
+  "total_seconds": 2335.655409242,
+  "tree_heights": [
+    [
+      20,
+      739540
+    ],
+    [
+      22,
+      2794560
+    ],
+    [
+      7,
+      128
+    ],
+    [
+      16,
+      65536
+    ]
+  ],
+  "wrap_heights": [
+    [
+      20,
+      337448
+    ],
+    [
+      21,
+      1195648
+    ],
+    [
+      7,
+      128
+    ],
+    [
+      16,
+      65536
+    ]
+  ],
+  "wrap_program_rows": 171336,
+  "wrap_proof_bytes": 327379,
+  "zero_knowledge_established": false,
+  "zero_knowledge_note": "wrap zk = 6 with shape-pinned heights and a chunk-independent setup; the ZK claim is not extended to the tree run (ZK-ARGUMENT 10)"
+}

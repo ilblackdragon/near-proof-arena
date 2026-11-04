@@ -20,6 +20,15 @@ env = dict(os.environ, RAYON_NUM_THREADS='1')
 results = {}
 
 
+def reason(out):
+    """The rejection message (the line after the panic header), or the last line."""
+    lines = out.strip().splitlines()
+    for i, l in enumerate(lines):
+        if 'panicked at' in l and i + 1 < len(lines):
+            return [lines[i + 1]]
+    return lines[-1:]
+
+
 def verify(name, claim_path, bundle, setup_bytes=setup, setup_pin=pin, expect_ok=False):
     with tempfile.TemporaryDirectory(prefix='tree-neg-', dir='/data/illia/nearproof-deps') as d:
         b = pathlib.Path(d) / 'WRAP.bundle'
@@ -31,7 +40,7 @@ def verify(name, claim_path, bundle, setup_bytes=setup, setup_pin=pin, expect_ok
     (out / f'{name}.log').write_bytes(r.stdout)
     ok = r.returncode == 0 and b'INDEPENDENT_TREE_VERIFY_OK' in r.stdout
     results[name] = {'accepted': ok, 'expected_accept': expect_ok, 'pass': ok == expect_ok,
-                     'last': r.stdout.decode(errors='replace').strip().splitlines()[-1:]}
+                     'last': reason(r.stdout.decode(errors='replace'))}
     print(('PASS ' if ok == expect_ok else 'FAIL ') + name, results[name]['last'])
 
 

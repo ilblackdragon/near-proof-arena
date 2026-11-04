@@ -1,0 +1,11 @@
+PRECHECK OK: every constraint on every row; every bus balances (9582 distinct messages)
+
+thread 'main' (280150) panicked at /data/illia/nearproof/.claude/worktrees/agent-a40dc1effc5d7f22d/research/near-compression/native/pq-chunk-e2e/src/../../pq-state-port/src/chunk_bridge.rs:81:32:
+base verify: ProofShapeError(InvalidStackingProofShape(TotalStackedWidthOutOfBounds { w_stack: 8, actual: 15 }))
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+--
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 7:46.81
+	Average shared text size (kbytes): 0
+--
+	Maximum resident set size (kbytes): 9158388
+	Average resident set size (kbytes): 0

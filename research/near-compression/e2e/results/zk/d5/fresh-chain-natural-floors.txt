@@ -1,0 +1,20 @@
+BASE rc=0
+CHAIN rc=0 L1_VERIFIED rows=230754 shapes=[(1048576, 76), (2097152, 83), (128, 9), (65536,  L2_VERIFIED rows=143832 shapes=[(1048576, 76), (2097152, 83), (128, 9), (65536,  L3_VERIFIED rows=143330 shapes=[(1048576, 76), (2097152, 83), (128, 9), (65536,  L4_VERIFIED rows=143330 shapes=[(1048576, 76), (2097152, 83), (128, 9), (65536,  FINAL_PINNED_HEIGHTS [(20, Some(287812)), (21, Some(1090304)), (7, Some(128)), ( 
+/data/illia/nearproof-deps/pq-e2e-d5f/zk6s/d1_00-h10006-s3/SETUP.json /data/illia/nearproof-deps/pq-e2e-d5f/fresh/d1_00-h10006-s3/SETUP.json differ: byte 750142, line 1
+thread 'main' (528628) panicked at /data/illia/nearproof/.claude/worktrees/agent-a40dc1effc5d7f22d/research/near-compression/native/pq-chunk-e2e/src/main.rs:669:6:
+FRESH_U (base point differs from the original chain)
+L1_VERIFIED rows=230754 shapes=[(1048576, 76), (2097152, 83), (128, 9), (65536, 5)] bytes=363015 seconds=473.38
+L2_ANCHOR M=1 bind=false floor=Some([290496, 1071592, 128, 65536])
+L2_VERIFIED rows=143832 shapes=[(1048576, 76), (2097152, 83), (128, 9), (65536, 5)] bytes=355665 seconds=495.54
+L3_ANCHOR M=2 bind=false floor=Some([290496, 1071592, 128, 65536])
+L3_VERIFIED rows=143330 shapes=[(1048576, 76), (2097152, 83), (128, 9), (65536, 5)] bytes=357135 seconds=475.27
+L4_ANCHOR M=2 bind=true floor=Some([290496, 1071592, 128, 65536])
+L4_VERIFIED rows=143330 shapes=[(1048576, 76), (2097152, 83), (128, 9), (65536, 5)] bytes=357387 seconds=446.20
+FINAL_PINNED_HEIGHTS [(20, Some(287812)), (21, Some(1090304)), (7, Some(128)), (16, Some(65536))]
+FINAL_PHASE proved_and_verified seconds=532.991163
+FINAL_VERIFIED {"bundle_bytes":325741,"hint_bytes":16,"levels":5,"proof_bytes":324793,"scope":"D0a","security_established":false,"setup_sha256":"ead3af81ce7b3b844906e5bbfbc8e14238492f28206986fa7021523
+## original chain (pq-e2e-d/e2e/d1_00-h10006-s3) floors:
+L2_ANCHOR M=1 bind=false floor=Some([291844, 1072112, 128, 65536])
+L3_ANCHOR M=2 bind=false floor=Some([291844, 1072112, 128, 65536])
+L4_ANCHOR M=2 bind=true floor=Some([291844, 1072112, 128, 65536])
+program differs: len 142654 143330 first diff at 1025 [142652, 318767104, 0, 0] [143328, 318767104, 0, 0]

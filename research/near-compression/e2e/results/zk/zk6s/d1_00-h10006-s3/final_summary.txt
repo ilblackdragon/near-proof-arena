@@ -1,0 +1,6 @@
+FINAL_SHAPE_PIN [(20, Some(287812)), (21, Some(1090304)), (7, Some(128)), (16, Some(65536))] jmax_nvslack_shaslack_nvbase_shabase=[765, 5940, 65408, 281870, 1024896] profile=Some(HeightProfile { k_samples: 5790, n_runs: 447, j_actual: 417, jobs_actual: 731, jobs_min: 482, samp_actual: 3190, samp_min: 2896, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 2535, comps_delta_actual: 249 })
+FINAL_PINNED_HEIGHTS [(20, Some(287812)), (21, Some(1090304)), (7, Some(128)), (16, Some(65536))]
+FINAL_PHASE proved_and_verified seconds=456.435618
+NEGATIVE_CONTROLS_OK changed_heights unpinned_heights
+NEGATIVE_CONTROLS_OK changed_tape_root changed_program
+FINAL_REPLAY wall_s=519.795148615

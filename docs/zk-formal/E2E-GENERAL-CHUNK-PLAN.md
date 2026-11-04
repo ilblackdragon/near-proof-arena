@@ -701,11 +701,51 @@ mutants rejected) is met. The gas equality holds outside the proof (the tape) un
 `lake build WasmBase` breakage reported on 2026-10-31 was fixed on main (`6a1739cd7`), and the build
 is green with the new files.
 
-### 5.0 Lane D (ZK wrap for M9): status, 2026-11-03 (milestone D-4)
+### 5.0 Lane D (ZK wrap for M9): status, 2026-11-03 (milestone D-5)
 
-See `research/near-compression/e2e/README.md` §0 (§0a for D-3, §0b for D-2) and
+See `research/near-compression/e2e/README.md` §0 (§0a for D-4, §0b for D-3, §0c for D-2) and
 `research/near-compression/e2e/ZK-ARGUMENT.md`. The log is
 `docs/logs/e2e-zk-lane-d-2026-11-03.md`.
+
+**Done (D-5):**
+* **An aggregation tree feeds the ZK wrap, end to end** (`tree-prove` / `tree-verify`, deps tree
+  `pq-e2e-d5` = D-4 stack + `native/recursion/patches/e2e-tree.patch`). Run: arity 2, depth 1;
+  leaves = the D0a template leaf (normaliser of the chunk's `L4`) + one PAD leaf; one node; the
+  wrap (`zk = 6`, final domain). Packets 328,331 / 327,407 B (chunk 1 / chunk 3), verify
+  45.0–45.8 ms on one core, 18/18 fresh-process negatives.
+* **One wrap setup for every chunk.** All tree proofs share one vk and one pinned height vector;
+  the node program `P_node` is the same at every level and over every leaf mix; the template set
+  holds the 3 D0a shape classes + PAD. The template class is a boundary field folded into
+  `D_wrap`, because V_d recomputes the D0a `ctx` under per-class base parameters (found when the
+  first run's setups differed by `w_stack`). Chunk 3, proved against chunk 1's setup, reproduces it
+  byte for byte (`SETUP.json` 4,487,284 B; the tree vk too). The D-4 "setup reveals the shape class" caveat is gone
+  for the wrap.
+* **Blocker 1 done, with a defect found:** the pinned aggregation overlay had emptied the program
+  binding branch (no NV child was bound). Fixed; BIND serves one child, so the others are bound
+  by `root_i = root_0`.
+* **Blockers 2, 3 done for the D0a template; PAD built (6); wrap Init/done/`a = 0` (7).** Status
+  per blocker in the table of §5.0.1.3.
+* **Review-D4 (independent review of D-4) folded in.** F1: the D-4 pinned heights depended on
+  rejection sampling of the hidden L_n transcript; heights are now pinned from the shape alone
+  (`shape_pinned_heights`, abort ≤ 2^-192), for the D0a FINAL and the wrap. F2: fresh chain: FINAL fit the shape pin, but the setup's program differed (inner L-level floors depended on rejection sampling); fixed with shape floors at every level. Measured: chains A and B converge to the same floors (L1 421,592 / 1,158,784; L2+ 297,140 / 1,113,972), the same 145,438-row program and the same FINAL pin (291,996 / 1,090,432), although B's base point `u` differs; **B's `SETUP.json` is byte-identical to A's** (`FRESH_CHAIN_SETUP_IDENTICAL`), and both packets (326,077 / 325,279 B) verify against A's pinned setup in fresh processes (`results/zk/shape/`).. F3 (§3.4
+  bound), F4 (§6.5.1 setup independence) corrected in ZK-ARGUMENT. F5: `R` counted: 1,284–1,298
+  (FINAL), so `R ≤ 2^11`. Tight floor: consumed per proof, loud on mismatch.
+* **Tree-layer parameters:** `ns20lb5` (an arity-2 node's SHA work, 2.39M rows, exceeds the 2^21
+  ceiling of `ns19lb6`), queries [54, 41, 31, 25], 268.2 bits per round; wrap 268.2.
+
+**Open (D-5):**
+* **Owner decision on `u` in the QROM** (unchanged): base `zk = 2` is not drop-in (measured: `w_stack` must grow from 8 to ≥ 15, so the base vk, L1 and every setup change); the salt is not built. `R` is counted, so the FINAL part is 2^-121.5
+* Arity 8 (≈ 4× the arity-2 node's SHA rows: beyond one SHA AIR at the BabyBear domain) and
+  depth ≥ 2 on D0a (depth 2 runs on the Fib fixture: a second level-2 node over other leaves and the level-3 node both have program root `C_node`).
+* Lanes A/B templates: blockers 4, 5, 8, 9 (canonical boundary statement, fixed template
+  shapes, in-circuit cached roots, M6/M5b).
+* Re-prove the three D0a classes with shape floors (only chunk 1 has one, `results/zk/shape/`)
+  and rebuild the tree's template set from them: this run's `C_L4` come from the D-4 chains, whose
+  programs depend on their transcripts (review-D4 F2, found in D-5).
+* `zero_knowledge_established` for the tree wrap (kept `false`: the FINAL argument carries over
+  but has not been re-read for the wrap program).
+
+#### D-4 status (superseded by D-5 above)
 
 **Done (D-4):**
 * **Obligation H is closed** (the owner decision was adopted).
@@ -748,7 +788,7 @@ See `research/near-compression/e2e/README.md` §0 (§0a for D-3, §0b for D-2) a
 * An independent review of D-4: §6.5 QROM composition, `check_pinned_heights`, the padding
   path.
 
-#### D-3 status (superseded by D-4 above)
+#### D-3 status (superseded by D-4)
 
 **Done (D-3):**
 * **`zk = 6` built** (FINAL, `NEARPROOF_ZK_FINAL=6`).
@@ -819,7 +859,15 @@ The log is `docs/logs/e2e-zk-lane-d-2026-11-03.md`.
   about 5 KB.
 * An independent review of the masked verifier is still needed.
 
-#### 5.0.1 M9 wrap interface (lane D draft, 2026-11-03)
+#### 5.0.1 M9 wrap interface (lane D draft, 2026-11-03; built for the D0a template in D-5)
+
+**D-5 update.** Items 1(a)–(d) below are built for the D0a template (`nv/tree.rs`, driver
+`tree-prove` / `tree-verify`), with these differences from the draft: arity 2 and depth 1 in the
+run (both setup parameters); the boundary state is the placeholder `[phase, class]`; `D_wrap` is
+`SHA-384(tag 8, [WRAP_MARKER, n_ctx, ctx.., B_0.class])` (tag 8 with a leading marker, like tape-eval,
+instead of a new tag); for the D0a template `ctx` is the chain's statement digest, so the packet
+still carries `hint ‖ u` and V_d recomputes `ctx` from them (blocker 8); the tree layer runs
+`ns20lb5`. The status of each blocker is in the table of §3 below.
 
 This section defines what the M9 wrap consumes from M8 (the heterogeneous 8-ary aggregation)
 and what it requires of the lanes below it. Tags used:
@@ -969,22 +1017,22 @@ Size: the D0a wrap over L4 is 325.2–325.8 KB [main]. The production agg roots,
 (agg log §4 item 2). It should be close to D0a's if the root's geometry equals L4's (both are
 NV children, the same verifier program shape).
 
-##### 3. Blockers and open questions, in order
+##### 3. Blockers and open questions, in order (status after D-5)
 
-| # | item | owner |
-|---|---|---|
-| 1 | **Rebase the agg overlay** (`agg.rs`, `build_agg`, `RangeStmt`, per-child BIND, `restart_transcript`) onto the current stack: `e2e-verify` + `zk-pcs` + `zk-piop` + tape-eval + D-4. Today it exists only as `openvm-recursion-agg.patch` on `f08bf28`. The d4h tree has no `nv/agg.rs` and no `TAG_RANGE` | D (M8) |
-| 2 | **A chunk-independent root shape:** fixed arity 8, `d_min`, pinned node heights, the `P*` fixpoint across levels and siblings (find the cause of the 232,318 vs 232,702 row difference), and the root level not exposed. Without this, `setup` is per chunk (D0a README §7.3) | D (M8) |
-| 3 | **Template heterogeneity:** the per-template normaliser with `{C_t}` set binding (option A), or a design change that moves the program commitment into the statement | D (M8) |
-| 4 | **Fixed shape per template** (pinned per-AIR log and tight heights, prover pads) | A (WASM), B (INTAKE/STATE/FINAL), C (CRYPTO), with A+B for PREP |
-| 5 | **Canonical boundary statement:** every template exposes, or its normaliser derives, `(claimDigest, h(B_in), h(B_out))` with `h = bdigest ∘ BndRec.codec` (lane E M11b). This replaces lane A's 108 raw fields and M5a's `(RCH, TCH, change index)`. Hashing inside the AIR is cheap, because the SHA-512 chip is in every template | A, B; E for the codec |
-| 6 | **Padding policy for N:** PAD template plus `8^d` padding, or published depth classes. This is an owner decision, because it changes the ZK statement or the prover cost (up to 8× leaves at a class boundary) | owner; then B (PAD template), D |
-| 7 | **Init and FinalOut placement:** recommendation 1(b)(ii), with `headerOk` in the FINAL template and Init in INTAKE. There is also an ambiguity in plan §3.4: "`B_0 = Init(claimDigest)` … `stRoot` = the working-set root INTAKE committed" is circular if INTAKE is the first segment. Proposed fix: `B_0` is the pre-INTAKE configuration (`init`, with the witness commitment free) | B (M5d), E (`InitOK`/`FinalOK` wording) |
-| 8 | **In-circuit cached-root binding:** CODE/FUNC (lane A `check_code_root`, today native) and any tape-eval cached table bound to `B` fields inside the normaliser or node; no cached root or `u` in the wrap statement | A, D |
-| 9 | **M6/M5b:** HOSTO tape and M5a public `WRITE` tape replaced by in-circuit producers. Not a ZK leak inside the tree, but needed for soundness without native checks | A, B |
-| 10 | **Wrap ZK obligations carried over:** H is closed for D0a in D-4 (`final_heights` in the setup, V_d equality check first, prover pads); Q (QROM hiding, ZK-ARGUMENT §6.5); the review of the D-3 verifier changes. With #2, H becomes "the root shape is a setup constant" | D |
-| 11 | **Soundness budget:** the wrap is pinned at 268 bits per round. The QROM union fails at depth 6 (121.8 bits). If padding fixes `d`, pick `d ≤ 3`; 137 leaves at 1 Pgas gives depth 3 | E, D |
-| 12 | **Lean:** `aggWrapV` has no `a = 0` check and no wrap tag. Align it with 1(b), and add PAD-leaf soundness to `SegSound` (identity at `done`) | E |
+| # | item | owner | D-5 status |
+|---|---|---|---|
+| 1 | **Rebase the agg overlay** (`agg.rs`, `build_agg`, `RangeStmt`, per-child BIND, `restart_transcript`) onto the current stack: `e2e-verify` + `zk-pcs` + `zk-piop` + tape-eval + D-4 | D (M8) | **done** (`patches/e2e-tree.patch`, `E2E_TREE=1`). **Defect found and fixed:** the pinned overlay had emptied the binding branch (`if b.bind \|\| b.bind_child {} else if false {…}`), so no NV child was program-bound (`patches/README-agg-patch.md`). BIND serves one child (one E-table point): now child 0 by BIND, later children by `root_i = root_0`, anchor-level children by the anchor constant or set. Two pre-existing test compile errors (`WhirLevers::zk`) fixed; `agg_tests` 6/6 non-ignored pass |
+| 2 | **A chunk-independent root shape:** fixed arity, `d_min`, pinned node heights, the `P*` fixpoint across levels and siblings, the root level not exposed | D (M8) | **done for the D0a template** (`nv/tree.rs`, driver `tree-prove`/`tree-verify`). Every tree proof shares one vk and one pinned `(log, tight)` height vector; the node program is one program `P_node` from level 2 on (no fixpoint iteration: leaves and nodes have the same vk and heights); the wrap forces the root level `1 + d` and anchors at `C_node`, and exposes `[LEVEL_WRAP, D_wrap]`. Measured: two chunks of different shape classes give a **byte-identical wrap setup**. The 232,318 vs 232,702 row difference is explained by unpinned child heights: with pinned heights `C_node` is the same over different leaves (and across chunks). Arity 2, depth 1 run on D0a; depth 2 on the Fib fixture |
+| 3 | **Template heterogeneity:** per-template normaliser with `{C_t}` set binding (option A) | D (M8) | **done (option A)**: `build_norm` (child level forced to the template's anchor level M, child program root = `C_M`), `Builder::anchor_set` (one-hot witness selector, `Σ s_t (root − C_t) = 0` gated by the level flag). Template set = the normaliser of each of the 3 D0a shape classes + PAD |
+| 4 | **Fixed shape per template** (pinned per-AIR log and tight heights, prover pads) | A, B, C | open for lanes A/B/C. For D0a each shape class is its own template (its L4 vk and heights are class constants) |
+| 5 | **Canonical boundary statement** `(claimDigest, h(B_in), h(B_out))` | A, B; E | open. The D-5 tree uses a placeholder boundary `[phase, class]` (init = 1, done = 2; `class` = the template class, set by the template leaf and folded into `D_wrap`) |
+| 6 | **Padding policy for N:** PAD template + `A^d` padding, or published depth classes | owner; then B, D | **PAD built** (`build_pad`: identity on a done boundary, no child) and used to pad to `A^d`. The policy itself remains an owner decision; the measured PAD leaf costs a full leaf proof (672 s), because it is padded to the uniform heights |
+| 7 | **Init and FinalOut placement** | B (M5d), E | wrap asserts `a = 0`, `B_0.phase = init`, `B_N.phase = done`; FinalOut is carried by the template (the D0a leaf goes init → done itself), i.e. recommendation 1(b)(ii) |
+| 8 | **In-circuit cached-root binding**, no `u` in the wrap statement | A, D | open for the D0a template: its ctx is the chain's `StatementClaim` digest, which covers `(u, TAPE*(u))`, so `u` is still in the packet and V_d recomputes ctx from (claim, hint, u). A template with a canonical `claimDigest` removes it |
+| 9 | **M6/M5b** | A, B | open (lanes A/B) |
+| 10 | **Wrap ZK obligations carried over** | D | H: the wrap heights are pinned from the shape alone (review-D4 F1 fix (b), ZK-ARGUMENT §7.1) and the setup is chunk-independent, so the D-4 "setup reveals the shape class" caveat is gone for the tree wrap. Q unchanged (owner) |
+| 11 | **Soundness budget** | E, D | wrap 268.2 bits per round (`ns19lb6`, queries [46, 41, 31, 25]); tree layer 268.2 bits (`ns20lb5`, queries [54, 41, 31, 25]); `R` counted (≤ 2^11) |
+| 12 | **Lean:** `aggWrapV` `a = 0` and wrap tag; PAD-leaf soundness in `SegSound` | E | open (lane E); the D-5 wrap tag is `TAG_STATEMENT` with leading cell `WRAP_MARKER` |
 
 ### 5.1 M5a (state lane B): status, 2026-11-03
 

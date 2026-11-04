@@ -1,0 +1,5 @@
+
+thread 'main' (4177469) panicked at /data/illia/nearproof/.claude/worktrees/agent-a40dc1effc5d7f22d/research/near-compression/native/pq-chunk-e2e/src/main.rs:997:94:
+called `Result::unwrap()` on an `Err` value: Error("invalid type: map, expected usize", line: 1, column: 131)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+SOUNDNESS_BITS file=/data/illia/nearproof-deps/pq-e2e-d5/tree-a2d1/d2_05-h10042-s3/TREE.vk.json n_stack=20 log_blowup=5 queries=[54, 41, 31, 25] logup=322.4 gkr_sumcheck=369.3 gkr_batching=370.9 zerocheck=355.5 constraint_batching=351.3 stacked_reduction=352.0 whir=268.2 total=268.2 whir_query=268.2 whir_proximity=283.1 whir_sumcheck=353.8 whir_fold=283.1 whir_ood=329.0 whir_gamma=348.7 whir_shift=268.2 whir_mu=285.1 whir_nu=inf

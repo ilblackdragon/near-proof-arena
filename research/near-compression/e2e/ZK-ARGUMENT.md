@@ -1,6 +1,19 @@
 # Zero-knowledge argument for the chunk proof: construction, simulator, hiding error, cost
 
-Status (2026-11-03, lane E2E-D, milestone D-4).
+Status (2026-11-03, lane E2E-D, milestone D-5). D-5 changes, on top of D-4:
+* **Review-D4 F1 accepted and fixed.** The D-4 pinned FINAL heights were the trace's natural
+  heights, which depend on the rejection sampling of the hidden L_n transcript, so a D-4 setup
+  is a function of the witness and the oracle (§7). From D-5 the heights are pinned from the
+  shape alone, with an abort probability ≤ 2^-192 (§7.1). The classical bound stays
+  ε_ZK ≤ 2^-184.4 (+2^-192) for setups made that way.
+* **F3** (§3.4: the leaves are not independent; the bound is `q^128 · p^-(256·c_b)`), **F4**
+  (§6.5.1: the setup must be oracle-independent) and **F5** (`R` counted, §6.5.3: `R ≤ 2^11`)
+  are folded in.
+* **The tree wrap** (README §0, plan §5.0.1) reuses this construction over an aggregation root,
+  with a chunk-independent setup (§8.1). The argument is not re-read for the wrap program, so
+  its RESULT.json keeps `zero_knowledge_established = false`.
+
+Status at D-4 (2026-11-03, milestone D-4; scope corrected by F1 above).
 * **Obligation H is closed (§7).** The FINAL trace heights are pinned in the setup. V_d checks
   them first, and the prover pads to them.
 * The statement is now **(claim, hint, setup)**, and every lemma of the simulator argument (§6)
@@ -79,7 +92,7 @@ replay path rejects masked proofs explicitly.
 | per-AIR LogUp terms | — | not sent |
 | `gkr_proof` root, layer claims and rounds | GKR | masked root sumcheck, level masks (Lemma B), Libra masks (Lemma A) |
 | `logup_pow_witness`, PoW witnesses | grinding results | functions of the (simulated) transcript |
-| `trace_vdata` (log and tight heights), public values | shape, level, statement digest | heights: **setup content**, V_d checks equality (§7, D-4); public values: functions of the claim and the setup |
+| `trace_vdata` (log and tight heights), public values | shape, level, statement digest | heights: **setup content**, V_d checks equality (§7, D-4). **D-5 correction (review-D4 F1):** the D-4 pin was the FINAL trace's *natural* heights, which depend on the rejection sampling of the hidden L_n transcript, so a D-4 setup is a function of the witness and the oracle; from D-5 the pin is the shape-only bound of §7.1 (abort ≤ 2^-192). Public values: functions of the claim and the setup |
 | packet `u` | base stacking point | base `zk = 1` (§3.4) |
 
 ## 3. PCS layer
@@ -173,9 +186,12 @@ digest itself.
   needs, for every node, either a guessed child digest (`≤ q·N_b·2^-336` in total, with
   `N_b ≤ 2^30` messages) or the true child messages. Ultimately it needs a hit on all `m_b`
   (`≥ 2^18`) leaves.
-* Each query hits a new leaf with probability `≤ m_b·2^-k_b`. So the number of hits is
-  dominated by `Bin(q, m_b 2^-k_b)`, and all `m_b` are hit with probability
-  `≤ (e·q·2^-k_b)^{m_b} ≤ 2^{-58·2^18}`.
+* The leaves are **not** independent: they are RS symbols of a few reserved rows, so any 128
+  leaves determine the reserved cells (the `256·c_b` reserved field elements, 2 points × `c_b`
+  columns × 128 rows' worth of codeword positions), and with them every other leaf. A union over
+  the choice of which 128 queries hit gives `Pr[all m_b leaves hit] ≤ q^128 · p^-(256·c_b)`
+  (≈ 2^{64·128 − 30.9·256·c_b} ≤ 2^-7,600 at `c_b = 2`). *(Corrected in D-5 after review-D4 F3:
+  D-4 wrote a binomial bound `(e·q·2^-k_b)^{m_b}` that assumed independent leaves.)*
 * Total: **`≤ q·N_b·2^-336 ≈ 2^-242`.** This is the "base `u`" term of §6.4.
 
 In the QROM this all-leaves argument is not available with the lemmas used. §6.5 shows that O2H
@@ -567,7 +583,9 @@ were measured). It is not independently reviewed.
 papers (§6.5.2).
 * **FINAL part:** the FINAL transcript, its commitments and its masks are statistically hidden
   in the QROM with **ε ≤ 2^-121.0** at `q = 2^64`.
-  * The dominant term is T4: O2H over the FS hash chain, with `R ≤ 2^12` jobs (an estimate).
+  * The dominant term is T4: O2H over the FS hash chain. `R` was estimated at `≤ 2^12` in D-4;
+    **D-5 counted it** (§6.5.3): 1,284 / 1,298 / 1,291 jobs on the three FINAL packets, so
+    `R ≤ 2^11` and T4 = 2^-121.5.
   * The adaptive-reprogramming term at the first FS point is T3, 2^-136.0. It is tight up to a
     constant: GHHM §6 gives an attack of that size.
 * **Base point `u`: not closed.** O2H charges a query to *any* hidden base Merkle message. One
@@ -586,7 +604,7 @@ papers (§6.5.2).
 Scope (§6.5.1):
 * a two-stage adversary;
 * a statement and witness fixed in advance;
-* `R ≤ 2^12` is an estimate, not a count.
+* `R` is counted (D-5, §6.5.3), not estimated.
 
 Even when closed, the bound does **not** reach 128 bits (§6.5.6).
 
@@ -607,6 +625,10 @@ Even when closed, the bound does **not** reach 128 bits (§6.5.6).
 
   The statement `(claim, hint, setup)` and the witness are fixed in advance (non-adaptive
   ZK). No oracle-dependent auxiliary input is allowed beyond what `A_0` computes.
+  **The setup must not depend on the oracle (review-D4 F4).** A D-4 setup does: its pinned
+  heights are the natural FINAL heights, set by the rejection sampling of the L_n transcript
+  (§7.1). From D-5 the heights are a function of the program alone (plus a constant slack), so
+  the setup is oracle-independent and this model applies.
 * **Simulator.** It is §6.1 without the abort.
   * It samples a fresh 48-B state `y_i` for **every** FINAL transcript job from the
     main-commitment `commit` job on: each flush, commit and squeeze (`sha_transcript.rs`).
@@ -684,11 +706,24 @@ Even when closed, the bound does **not** reach 128 bits (§6.5.6).
   | WHIR (4 rounds: folds, OOD, query squeezes, PoW) | — | ≈ 60 |
   | Libra / zk extras | — | ≈ 10 |
 
-  That gives `E[R] ≈ 1.1·10^3`, so we take **`R ≤ 2^12`**. Rejection makes `R` random. Only
-  `E[R]` enters `P_guess` (a union over positions). This is an estimate. Pin it by counting the
-  jobs of `replay_transcript` on the three FINAL packets. The classical H1 used `2^10`, which is
-  probably slightly low. At `2^12` the ROM term is `2^-260`, which changes nothing. Base, up to
-  the `u` squeeze: `R_b ≤ 2^12`.
+  That gave the D-4 estimate `E[R] ≈ 1.1·10^3`, taken as `R ≤ 2^12`.
+
+  **Counted in D-5** (`nearproof-chunk-e2e fs-count`: every SHA-384 evaluation a `ShaTranscript`
+  makes during the native verification, counter `sha384::config::FS_JOBS`;
+  `results/zk/fs-count-d5.txt`):
+
+  | proof | total | flush | commit | squeeze / PoW-run block | PoW |
+  |---|---|---|---|---|---|
+  | FINAL chunk 1 (`zk6h`) | 1,291 | 473 | 5 | 809 | 4 |
+  | FINAL chunk 2 | 1,298 | 473 | 5 | 816 | 4 |
+  | FINAL chunk 3 | 1,284 | 473 | 5 | 802 | 4 |
+  | BASE chunk 1 / 2 / 3 (whole transcript, so ≥ `R_b`) | 626 / 625 / 666 | 226 / 226 / 246 | 6 | 390 / 389 / 410 | 4 |
+
+  `R` from the main commit on is the total minus the vk pre-hash commit: 1,283–1,297. Only the
+  squeeze blocks vary (rejection sampling, about 1/16 of the words): 482 jobs are fixed by the
+  shape and the squeeze blocks are about 800 ± 30. So **`R ≤ 2^11`** with a wide margin, and
+  `R_b ≤ 2^10`. The classical H1 used `2^10`, which is slightly low; at `2^11` the ROM term is
+  `2^-261`, which changes nothing. The QROM T4 term becomes `2^-121.5` (§6.5.4 at `R = 2^11`).
 * **Min-entropies.**
   * **Unopened FINAL leaf: `k_leaf = 3,276` bits**, marginally and conditioned on `π`. Lemma V
     with `s + 2 ≤ R` gives 106 data symbols. Conditioning on `π` also needs Lemma W's
@@ -915,13 +950,57 @@ class, and ZK holds relative to it. A setup that is the same for every chunk of 
 fixed shape, with padding. That belongs to the general-chunk wrap (plan §5.0.1, blocker 2), not
 to this argument.
 
-**Are the heights a function of the program alone?** Probably yes:
-* the NV program is straight-line (there is no branch opcode in `nv/isa.rs`);
-* the SHA jobs are one per program hash instruction (`Builder::jobs`).
+**Are the heights a function of the program alone? No (review-D4 F1, corrected in D-5).** D-4
+said "probably yes" because the program is straight-line and the leaf / Merkle SHA jobs are one
+per program hash instruction. That is true of the program, but not of the in-circuit transcript:
+it replays every squeeze and PoW-run block the child (L_n) transcript drew
+(`transcript2::replay2_multi`; `Builder::tr_pow_blocks` says the blocks are "proof-shaped"), and
+`sample()` rejects a word `≥ 2p` with probability `ρ = 1 − 2p/2^32 ≈ 1/16`. The number of blocks,
+of hash-chain and GLUE rows, of sample-role rows and of SHA compressions therefore depends on the
+L_n transcript, i.e. on the witness and the oracle. **So a D-4 setup, which pinned the FINAL
+trace's natural heights, is itself a function of the witness and the oracle.** The D-4 claim is
+corrected accordingly: it holds for the statement (claim, hint, setup) only where the setup is
+treated as given, and that setup leaks the rejection counts of the setup-generating chunk's L_n
+transcript (a few bits) and, through the program, of its inner chain levels (end of §7.1), and it
+is not oracle-independent (§6.5.1). For a chunk proved against a
+*fixed* setup made from another chunk, the heights are setup constants and the D-4 argument
+holds, up to the completeness question below.
 
-This is not needed for the claim, however. With the heights in the setup, a different witness
-for the same setup either fits the pinned heights or cannot be proved. That is a completeness
-question, not a ZK question.
+### 7.1 Shape-only pinned heights (D-5, fix (b) of review-D4 F1)
+
+`circuit::HeightProfile` (deps tree `pq-e2e-d5`, `patches/e2e-tree.patch`) splits a level's used
+rows into a shape part and a rejection part:
+* it walks the transcript log with every draw accepted to get, per sample run, the minimal number
+  of squeeze / PoW-run blocks and sample rows;
+* it reads the actual counts from the replay;
+* the difference, times the per-block cost (one hash-chain row + the block's GLUE rows in NvAir;
+  its compressions × `ROWS` in the SHA AIR), is the rejection part.
+
+`shape_pinned_heights` pins, per AIR, `used − rejection part + Δ_max(J_max)`, rounded up to
+`2^l_skip`, where `J_max` is the smallest `t − 1` with the Chernoff bound
+`Pr[Bin(K + t − 1, ρ) ≥ t] ≤ 2^-192` (`K` = draws in the replayed transcript, fixed by the
+program) and `Δ_max` charges `⌈J_max/12⌉ + min(J_max, runs)` extra blocks and
+`⌈J_max/2⌉ + (extra blocks) + min(J_max, runs)` extra sample rows. Table and byte AIRs have fixed
+heights. The pin is a function of the program alone. A witness whose trace exceeds it is a prover
+abort, probability `≤ 2^-192` over the oracle; conditioned on no abort, the D-4 simulator applies
+unchanged, so the abort adds `2^-192` to ε_ZK (classical: ε_ZK ≤ 2^-184.4 + 2^-192, still
+2^-184.4 to one decimal).
+The driver uses it for the D0a FINAL (`chain`, unless `NEARPROOF_FINAL_HEIGHTS` names an existing
+setup) and for the tree wrap; the measured slack and the cross-chunk check are in §8.1.
+
+**The setup's program has the same problem, one level down.** Each chain level's program depends
+on its child's committed heights. Until D-5 those were L1's natural heights and, from L2 on,
+floors of `n + n/64` over natural heights, all of which move with rejection sampling. So the
+pinned FINAL program (and the tree's template constant `C_L4`) was also a function of the chain's
+transcripts. A fresh chain of chunk 1 measured it: 143,330 program rows instead of 142,654 (§8.1).
+`NEARPROOF_CHAIN_SHAPE_FLOORS` (default on) floors every level, L1 included, at its shape pin, so
+the program and therefore the whole setup are functions of the chunk's shape alone.
+
+**Completeness under a fixed setup (review-D4 F2).** With natural-height pins, a fresh chain for
+the same chunk exceeds the pin about half the time; D-4's fixed-setup test reused the L4
+checkpoint and so could not see it, and the log-height padding path never ran. D-5 runs a FINAL
+with the shape pin, which is strictly above the natural heights by construction, and with the SHA
+AIR's log height bumped by one (`NEARPROOF_FINAL_LOG_BUMP=1`), §8.1.
 
 `zero_knowledge_established = true` is now set in `RESULT.json` exactly when all of the
 following hold, with the scope above stated in `zero_knowledge_scope`:
@@ -990,6 +1069,31 @@ Without ZK the cost would have been −3.2 KB (§3.2). The extension-field stack
 D1) cost +8.1 KB. A cheaper variant would use one extension-field mask column with three τ
 chains (−4.4 KB). Its rank lemma has no hand proof yet (§10).
 
+### 8.1 Measured in D-5: shape-pinned heights and the tree wrap
+
+**Shape-pinned D0a FINAL** (`scripts/run_zk6s.sh`, tree `pq-e2e-d5f`, from the D-4 L4
+checkpoints; `results/zk/zk6s*`):
+
+| chunk | pinned NvAir / SHA tight (D-5 shape) | D-4 natural | shape base NvAir / SHA | packet B (D-4) | FS jobs |
+|---|---|---|---|---|---|
+| 1 `d1_00-h10006-s3` | 287,812 / 1,090,304 | 284,408 / 1,056,768 | 281,870 / 1,024,896 | 326,203 (325,709) | 1,288 |
+| 2 `d1_00-h10007-s0` | 288,528 / 1,090,304 | 285,060 / 1,056,128 | 282,587 / 1,024,896 | 326,384 (323,958) | 1,282 |
+| 3 `d2_05-h10042-s3` | 290,532 / 1,090,304 | 287,032 / 1,055,616 | 284,591 / 1,024,896 | 325,951 (325,247) | 1,292 |
+
+FINAL prove 520 / 589 / 615 s (10 threads); verify 39.5–45.7 ms on one core; 268.2 bits per round;
+negatives 26/26 on chunk 1 (the D-4 set, re-run on the shape-pinned packet).
+
+* The pin is above the natural heights by the rejection slack: `J_max = 765` (2^-192, `K =
+  5,790` draws over 447 runs) gives 5,940 NvAir rows and 511 compressions (65,408 SHA rows); the
+  actual chunk-1 trace had 417 rejections (249 extra blocks). The shape-only base rows (NvAir /
+  SHA) are a function of the program: the SHA base is 1,024,896 rows for all three chunks, whose D-4 natural SHA heights differed (1,056,768 / 1,056,128 / 1,055,616) only through rejections; the NvAir bases differ by the program length, as the programs do; in the tree, the node's shape base was identical for chunk 1 and chunk 3 (665,232 / 2,259,712).
+* **F2.** Chunk 1's base was re-proved (fresh `u`), the chain re-run, and FINAL proved against the shape-pinned D-5 setup (`scripts/run_fresh_chain.sh`). The FINAL trace fit the pinned heights, but the new `SETUP.json` differed: the converged program had 143,330 rows instead of 142,654. Cause: the chain's inner tight floors (L2+, `n + n/64` of the natural heights) and L1's natural heights also depend on rejection sampling, and every level's program depends on its child's committed heights. So a D0a setup (its program, and the template constant `C_L4` of the tree) was a function of the chain's transcripts, not of the chunk's shape. Fixed: `NEARPROOF_CHAIN_SHAPE_FLOORS` (default on) floors every level, L1 included, at its shape pin (`scripts/run_shape_chain.sh`: chain A from the original base creates the setup; chain B from the fresh base proves against it). Measured: chains A and B converge to the same floors (L1 421,592 / 1,158,784; L2+ 297,140 / 1,113,972), the same 145,438-row program and the same FINAL pin (291,996 / 1,090,432), although B's base point `u` differs; **B's `SETUP.json` is byte-identical to A's** (`FRESH_CHAIN_SETUP_IDENTICAL`), and both packets (326,077 / 325,279 B) verify against A's pinned setup in fresh processes (`results/zk/shape/`). The log-height padding path cannot run on the D0a FINAL: NvAir's log height is the program domain, the SHA AIR is at the `ns19lb6` ceiling (2^21; `NEARPROOF_FINAL_LOG_BUMP=1` fails `LayoutHeightExceeded`), and the table and byte AIRs have fixed heights. It does run in the tree: PAD leaves are padded from SHA log 8 to 22 and NvAir tight 2,408 to 739,540, and they verify natively and in the node.
+
+**Tree wrap** (`scripts/run_tree.sh 2 1`, `results/zk/tree-a2d1`): wrap heights pinned from the
+shape, (20, 337,448) / (21, 1,195,648) / (7, 128) / (16, 65,536); identical for chunk 1 and chunk 3
+(the setup is byte-identical). Packets 328,331 / 327,407 B, verify 45.0–45.8 ms on one core,
+268.2 bits per round. Chunk 3's wrap trace (squeeze blocks 797 vs chunk 1's 812) fit the pins made from chunk 1.
+
 ## 9. Tests
 
 D-4 additions:
@@ -1032,12 +1136,15 @@ D-4 additions:
 | **H: heights as public input** | **closed (D-4, owner decision adopted)**: `Setup::final_heights`, `vd::check_pinned_heights` first in V_d, the prover pads (§7). The statement is `(claim, hint, setup)` |
 | review of the D-3 changes (`zk = 6`), review-zk6 | **done** (2026-11-03): no soundness break, no new ZK leak. N1 (joint-list size, §5) is corrected in the text. N2 (mask-count assert), N3 (layout step bound) and N4 (`verify_with_points`, no thread-locals) are fixed in code. The reviewer's fuzzer is adopted (`tests/zk_layout_fuzz.rs`). N5 = H |
 | **Q: QROM** | **partly closed (D-4, §6.5)**: the FINAL part is 2^-121.0 (O2H, AHU19 Thm 3; GHHM21 Thm 1). The base point `u` is **not** closed at the measured base widths (`c_b` = 2–4). Closure options, both owner decisions: base `zk = 2` (2^-103.0) or a base salt (about 2^-120). Neither reaches 128 bits. Not independently reviewed |
+| **review-D4** (independent review of D-4) | **done** (2026-11-03): the pinned-height check is exact, first and fail-closed; padding is sound; AHU19 / GHHM21 are used correctly. F1 (heights depend on rejection sampling) fixed by §7.1; F2 (fixed-setup completeness) §8.1; F3 §3.4; F4 §6.5.1; F5 §6.5.3 |
 | single EF stacking mask (−4.4 KB) | **rejected (D-4, §6.6)**: the lemma is false for every number of chains (last-round dimension count) |
 | machine-checked statement | none. Lemmas V, D1 (at the specialization), D2 and W are finite linear algebra |
 
 **`zero_knowledge_established = true` (D-4)**, scoped exactly as follows:
 * statistical ZK of the FINAL packet;
-* for `(claim, hint, setup)`, with the per-chunk setup's shape caveat of §7;
+* for `(claim, hint, setup)`, with the per-chunk setup's shape caveat of §7, and (review-D4 F1,
+  D-5) only for setups whose heights are pinned from the shape (§7.1): a D-4 setup pins natural
+  heights, which depend on the witness and the oracle;
 * in the classical programmable ROM;
 * ε_ZK ≤ 2^-184.4.
 
