@@ -1184,7 +1184,15 @@ NV children, the same verifier program shape).
   `B_in.phase ≠ done` (or the leaf must check it), as the D0a template leaf does by construction.
 * **One leaf geometry per setup.** A setup has one leaf geometry (P_2's program embeds its
   children's heights): the largest template sets every leaf's heights. Group templates of similar
-  leaf size per setup (D-8: class L's leaf is 1.6× class S's).
+  leaf size per setup (D-8: class L's leaf is 1.6× class S's). *[D-9: resolved inside one setup.]*
+  A setup now has **leaf geometry families**, each with its own `P_2^f`, all at one node
+  geometry; the wrap anchors the set `{C_2^f}`. A lane A/B template joins the family of its leaf
+  size: a new family adds a `P_2` program to the setup, not a new setup.
+* **I5 (review-D8): seg-v1 at 32 grinding bits is below the target.** `base-whir`'s seg-v1 row
+  at `PQD1_POW=32` is 266.9 bits (< 268; `results/zk/d8/base-whir.txt`). The lanes' seg-v1
+  schedule is calibrated at its own 24 bits (268.2). Raising the grinding without recomputing the
+  query counts loses bits. Lanes A/B: recompute the queries at whatever grinding is pinned (or
+  adopt the base configuration, which is calibrated per call).
 
 Read from the lanes' code and logs (lane D did not edit them). Paths are lane A's
 `native/wasm-base` and `e2e-general/m4`, lane B's `e2e-general/m5a`.

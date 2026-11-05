@@ -11,13 +11,15 @@
 #     at its class, base-proved, then tree-proved against the production setup (fixed: must
 #     reproduce it), verified 3x in fresh processes; wall time per stage in sample/TIMES.tsv
 # Sequential; bases at 10 threads, trees at 8; <= 40 GB. Exits 1 on the first failure.
-# usage: run_d9.sh [STEPS]   (default: 1 2 3)
+# usage: run_d9.sh [STEPS]   (default: 1 2 3; 2base: only step 2's bases; env BASE_CPUS / BASE_THREADS
+#   for the base proofs, default 8-15,24-25 / 10)
 set -euo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
 ROOT=$(cd "$HERE/../../../.." && pwd)
 D=${NEARPROOF_PQ_DEPS:-/data/illia/nearproof-deps/pq-e2e-d9}
 export NEARPROOF_PQ_DEPS=$D PROVER=${PROVER:-$D/target/release/nearproof-chunk-e2e}
-SD=$D/target-sd/release/examples/statedump
+# statedump (target-sd vanished twice on this host, not by these scripts: D-9 builds it in sdbuild)
+SD=${SD:-$D/sdbuild/release/examples/statedump}
 SP=/data/illia/nearproof-deps/pq-e2e-d/e2e/d1_00-h10006-s3/tools/statepublic
 AIR=$ROOT/examples/np-udr-stark-v2/source/near-air-v3.json
 K=$ROOT/research/near-compression/final-soundness
@@ -32,14 +34,14 @@ base() {
   [ -f "$R/BASE.proof" ] && { echo "BASE $n class=$k (exists)"; return 0; }
   mkdir -p "$BB/dumps" "$BB/public"; rm -rf "$BB/dumps/$n" "$R"; mkdir -p "$R"
   local t0; t0=$(date +%s)
-  RAYON_NUM_THREADS=10 taskset -c 8-15,24-25 "$SD" d0a "$AIR" "$src" "$BB/dumps/$n" --class="$CL/$k.json" > "$BB/dumps/$n.log" 2>&1 || die "statedump $n: $(tail -2 "$BB/dumps/$n.log")"
+  RAYON_NUM_THREADS=${BASE_THREADS:-10} taskset -c "${BASE_CPUS:-8-15,24-25}" "$SD" d0a "$AIR" "$src" "$BB/dumps/$n" --class="$CL/$k.json" > "$BB/dumps/$n.log" 2>&1 || die "statedump $n: $(tail -2 "$BB/dumps/$n.log")"
   [ -d "$BB/public/$n" ] || "$SP" "$AIR" "$src/claim.bin" "$BB/dumps/$n/hint.bin" "$BB/public/$n" > "$BB/public/$n.log" 2>&1 || die "statepublic $n"
   cmp -s "$BB/public/$n/pubs.bin" "$BB/dumps/$n/pubs.bin" || die "public mismatch $n"
   local t1; t1=$(date +%s)
   ln -sfn "$BB/public/$n" "$R/public"
   cp "$src/claim.bin" "$R/claim.bin"
-  RAYON_NUM_THREADS=10 HEAVY_MEM=40G NEARPROOF_ZK=1 NEARPROOF_TAPE_EVAL=1 NEARPROOF_CHAIN_GEOM=ns19lb6 NEARPROOF_BASE_CLASS="$CL/$k.json" \
-    taskset -c 8-15,24-25 /data/illia/nearproof-deps/bin/heavy /usr/bin/time -v \
+  RAYON_NUM_THREADS=${BASE_THREADS:-10} HEAVY_MEM=40G NEARPROOF_ZK=1 NEARPROOF_TAPE_EVAL=1 NEARPROOF_CHAIN_GEOM=ns19lb6 NEARPROOF_BASE_CLASS="$CL/$k.json" \
+    taskset -c "${BASE_CPUS:-8-15,24-25}" /data/illia/nearproof-deps/bin/heavy /usr/bin/time -v \
     "$PROVER" base "$AIR" "$BB/dumps/$n" "$R" "$K/calc/dkt_certs_o2.json" "$K/lean/DKTCertsO2_big.keys" > "$R/base.log" 2>&1 || die "base $n rc=$? $(grep -h -A2 panicked "$R/base.log" | head -3 | tr '\n' ' ')"
   grep -q BASE_CLASS_HEIGHTS_OK "$R/base.log" || die "base $n: no BASE_CLASS_HEIGHTS_OK"
   local t2; t2=$(date +%s)
@@ -74,21 +76,31 @@ for s in ${1:-1 2 3}; do case $s in
   # shellcheck disable=SC2086
   SETUP=$PSETUP "$HERE/audit_d9.sh" "$D/tree9/$(basename "$L1")" $CONFIRM_PROD || die "audit L1"
   ;;
-2)
+2|2base)
   export NEARPROOF_RBR_ALL=274
   for n in "$S1" "${C2[S]}"; do
     nm=$(basename "$n"); src=$(members | awk -v n="$nm" '$2 == n {print $3}')
     base S "$nm" "$src" "$D/b274"
   done
+  [ "$s" = 2base ] && { unset NEARPROOF_RBR_ALL; continue; }
   export CLASS_DIRS="$D/b274/$(basename "$S1")" NEARPROOF_TREE_CONFIRM="$D/b274/$(basename "${C2[S]}")"
   OUT_ROOT=$D "$HERE/run_tree.sh" t274 - 1 "$D/b274/$(basename "$S1")" "$D/b274/$(basename "$S1")/claim.bin" || die "tree 274"
   unset NEARPROOF_RBR_ALL
+  ;;
+3base)
+  # the sample's base proofs only (SAMPLE_CLASSES: e.g. "S M", default all), so they can run on
+  # spare CPUs while a tree runs (L bases peak at 24 GB: not next to a tree)
+  mkdir -p "$D/sample"
+  [ -f "$D/sample/PICK.txt" ] || python3 "$HERE/pick_sample_d9.py" "$CL/assign.json" "$D/census" > "$D/sample/PICK.txt"
+  while read -r k n src; do
+    case " ${SAMPLE_CLASSES:-S M L} " in *" $k "*) base "$k" "$n" "$src" "$D/bs" < /dev/null ;; esac
+  done < "$D/sample/PICK.txt"
   ;;
 3)
   [ -f "$PSETUP" ] || die "no production setup $PSETUP (step 1)"
   export CLASS_DIRS=$CLASS_DIRS_PROD NEARPROOF_TREE_CONFIRM=$CONFIRM_PROD
   mkdir -p "$D/sample"
-  python3 "$HERE/pick_sample_d9.py" "$CL/assign.json" "$D/census" > "$D/sample/PICK.txt"
+  [ -f "$D/sample/PICK.txt" ] || python3 "$HERE/pick_sample_d9.py" "$CL/assign.json" "$D/census" > "$D/sample/PICK.txt"
   cat "$D/sample/PICK.txt"
   while read -r k n src; do base "$k" "$n" "$src" "$D/bs" < /dev/null; done < "$D/sample/PICK.txt"
   while read -r k n src; do
