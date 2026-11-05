@@ -87,6 +87,12 @@ for s in ${1:-1 2 3}; do case $s in
   OUT_ROOT=$D "$HERE/run_tree.sh" t274 - 1 "$D/b274/$(basename "$S1")" "$D/b274/$(basename "$S1")/claim.bin" || die "tree 274"
   unset NEARPROOF_RBR_ALL
   ;;
+2control)
+  # the 268-bit control for step 2's base time: S1's base at the pinned target, same threads as
+  # the 274 bases (BASE_CPUS / BASE_THREADS)
+  nm=$(basename "$S1"); src=$(members | awk -v n="$nm" '$2 == n {print $3}')
+  base S "$nm" "$src" "$D/b268c"
+  ;;
 3base)
   # the sample's base proofs only (SAMPLE_CLASSES: e.g. "S M", default all), so they can run on
   # spare CPUs while a tree runs (L bases peak at 24 GB: not next to a tree)
