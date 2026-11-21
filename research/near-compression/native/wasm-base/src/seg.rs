@@ -567,6 +567,27 @@ pub fn build(seg: &AirSpec, m2: &AirSpec, g: &Gen, prep: &Prep, k: usize, tree: 
                 r[i1] = fe(g >> 1);
             }
         }
+        // A-T1 item 5 (`wasmBaseSegAirMPJ`, the joined variant): HOSTB's storage selector `stg`
+        // (hid ∈ {58, 60}) with its inverse witness `sw`, and HOSTO's witness `w` showing an answered
+        // call is no storage call.  `z = (hid − 58)(hid − 60)`; `sw = w = z⁻¹` when `z ≠ 0`.
+        let zinv = |hid: F| -> (F, F) {
+            let z = (hid - F::from_u32(58)) * (hid - F::from_u32(60));
+            if z == F::ZERO { (F::ONE, F::ZERO) } else { (F::ZERO, p3_field::Field::inverse(&z)) }
+        };
+        if name == "HOSTB" && spec.cols.iter().any(|c| c == "stg") {
+            let (ih, is, iw) = (tb.col("hid"), tb.col("stg"), tb.col("sw"));
+            for r in tb.rows.iter_mut() {
+                let (st, w) = zinv(r[ih]);
+                r[is] = st;
+                r[iw] = w;
+            }
+        }
+        if name == "HOSTO" && spec.cols.iter().any(|c| c == "w") {
+            let (ih, iw) = (tb.col("q1"), tb.col("w"));
+            for r in tb.rows.iter_mut() {
+                r[iw] = zinv(r[ih]).1;
+            }
+        }
         let (extra, pad): (usize, Vec<(&str, u64)>) = match name {
             "IF" => (1, vec![]),
             "HOSTB" => (1, vec![("f", 1)]),
