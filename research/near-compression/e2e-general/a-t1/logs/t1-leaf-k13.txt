@@ -1,9 +1,9 @@
 TEMPLATE_SEGMENTS 2 cells 2141676 tallest 65536 n_stack 18 w_stack 8
 PARAMS n_stack 18 w_stack 8 log_blowup 1 pow 24 degree 9 (stack base configuration)
 KEYGEN 0.01s; SOUNDNESS total=268.2 logup=324.4 proximity=295.1 query=268.2
-  LEAF 0: 553355 B, prove 54.1s, verify 41 ms, statement ok, peak_rss_kib 8053812
-  LEAF 1: 551717 B, prove 53.6s, verify 40 ms, statement ok, peak_rss_kib 8065220
-SEGLEAF OK 2 segments at one template vk (sha256 ec86b301e7967730a0b6cbc6ea7da687d49b7aef8f0435c0df1ecb03d3337fc5), boundaries chain; saved to leaf
-  DISK 0: 553355 B verified in 28 ms, public values = saved, chains
-  DISK 1: 551717 B verified in 27 ms, public values = saved, chains
+  LEAF 0: 553859 B, prove 51.3s, verify 44 ms, statement ok, peak_rss_kib 8054548
+  LEAF 1: 551549 B, prove 52.8s, verify 38 ms, statement ok, peak_rss_kib 8076016
+SEGLEAF OK 2 segments at one template vk (sha256 b1eed0caeb1a3a01fcb9f6cdff7cba42243f504563962d923b9a34169a8aad7d), boundaries chain; saved to leaf
+  DISK 0: 553859 B verified in 29 ms, public values = saved, chains
+  DISK 1: 551549 B verified in 28 ms, public values = saved, chains
 SEGLEAFVERIFY OK 2 segments from disk under one vk

@@ -583,13 +583,20 @@ pub fn build(seg: &AirSpec, m2: &AirSpec, g: &Gen, prep: &Prep, k: usize, tree: 
             }
         }
         if name == "HOSTO" && spec.cols.iter().any(|c| c == "w") {
-            let (ih, iw) = (tb.col("q1"), tb.col("w"));
+            // in the joined trace the oracle does not answer storage calls (lane B's rows do)
+            let (ih, iw, im) = (tb.col("q1"), tb.col("w"), tb.col("mult"));
             for r in tb.rows.iter_mut() {
-                r[iw] = zinv(r[ih]).1;
+                let (st, w) = zinv(r[ih]);
+                r[iw] = w;
+                if st == F::ONE {
+                    r[im] = F::ZERO;
+                }
             }
         }
         let (extra, pad): (usize, Vec<(&str, u64)>) = match name {
             "IF" => (1, vec![]),
+            // A-T1 item 5: a J-AIR pad row (`hid = 0`) needs `sw = (58·60)⁻¹ = 1110188880`
+            "HOSTB" if spec.cols.iter().any(|c| c == "sw") => (1, vec![("f", 1), ("sw", 1110188880)]),
             "HOSTB" => (1, vec![("f", 1)]),
             "REG" => (1, vec![("f", 1), ("kind", 1)]),
             _ => (0, vec![]),

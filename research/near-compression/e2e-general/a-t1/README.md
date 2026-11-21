@@ -236,24 +236,56 @@ RECORDS for the MVP subset d3tiny uses, with the cached CODE/FUNC roots equal to
 (the R1 check, measured); (3) VALIDATE/INSTRUMENT; (4) the Lean statement and its proof;
 (5) d3rich. **Not started in this session**: items 1–3 and the T1 blocker took priority.
 
-## 5. Item 5: HOST rows in lane B's bus shape — scope [S]
+## 5. Item 5: the Wasm side of the M6 join with lane B [K][M]
 
-Lane B (m5a README §M5b) consumes `SREQ [ts, pr, seg, klen, kptr, vlen, vptr]` and
-`HB [ts, pos, byte]`, with `pos` the **absolute** linear-memory address. Lane A's bus 210 today
-carries `[ts, wire, dir, pos, byte]`, with `pos` relative to the group's `ptr`. The changes needed:
-* HOSTB's state-side half (the `busHostB` interactions HOSTB keeps for `reg = 0`): send
-  `HB [ts, ptr + pos, byte]` (`HostB.memAddr`, already a column expression) for request bytes. This
-  also makes the **address** visible to the producer. Today the HOSTB `ptr` columns are not tied to
-  the HOST row's pointer argument anywhere in the AIR, so read and write coverage (`HostAnsCov`,
-  `ProducerObl.resp`) rest on the producer. With absolute addresses on the bus, lane B's STB rows
-  check `base = kptr` (they already do on T1's tape: `HB (ts, base + j, b)`).
-* HOST rows for `storage_write`/`storage_remove`: send `SREQ` with `pr` from `hid` (58 → 1,
-  `storage_remove` → 0), `seg` from a public value, and the four argument words from the HOST
-  argument limbs.
-* The `HOSTO` stand-in and HOSTB's self-cancelling halves are dropped in the joined template. They
-  stay in the standalone Wasm template.
-To do: the Lean AIR (a new `Seg.HostBJ` variant, so the standalone template is unchanged), the
-tracer, and a joined pre-check on T1 with lane B's STB/STW tables.
+Sub-lane JOIN: Lean; the lead: tracer and checks. The build is green (738 jobs).
+
+**Part 1, standalone AIR (`Seg.HostBK.msgM`).**
+* The four `reg = 0` bus-210 interactions carry `[ts, wire, dir, ptr + pos, byte]`. The 4th field
+  is the linear-memory address, as lane B's `HB(ts, kptr + j, b)` needs: `storage_write` reads two
+  buffers in one call.
+* The `reg = 1` interaction (REG's register fill) keeps `pos`.
+* No downstream proof broke; the statements are generic in the message.
+* T1 re-proved at this AIR: 2 template leaves, 553,859 / 551,549 B, 268.2 bits, one new vk
+  (`logs/t1-leaf-k13.txt`). Saved-leaf tampers: 11/11 rejected.
+* The u128 KAT: 8/8 segments pre-check.
+
+**Part 2, the joined variant `wasmBaseSegAirMPJ`** (`SegAirJ.lean`, `wasmbase-tool airSegMPJ`).
+It differs from the MP AIR only in two tables (`segMPJ_same`):
+* **HOSTO → `HostOJ`:** + `w`; `mult·(1 − w·(q1−58)(q1−60)) = 0`. The in-trace oracle cannot
+  answer `storage_write`/`storage_remove` (`hostOJ_no_storage`).
+* **HOSTB → `HostBJ`:** + `stg`, `sw`; `stg = 1 ↔ hid ∈ {58, 60}` (`hostBJ_stg_iff`). HOSTB's own
+  receive of request bytes is gated by `1 − stg`, so storage request bytes go to lane B's STB rows.
+* Non-vacuity: `decide` on honest `input` and `storage_write` rows; two mutants rejected
+  (`JoinCheck`).
+* Lane B's obligation `StorageJoinObl` (`Main/HostJoin.lean`):
+  * `ans`: `ProducerObl` restricted to the storage calls. HOSTQ/HOSTR (`st`, word = the evicted
+    flag, `g_after`), the arm, the registers and the host side.
+  * `hb`: the request bytes' addresses are exactly the key and value buffers.
+  * `regFill`: the evicted value's register bytes.
+  * `producerObl_join`: lane B's part + lane A's oracle part ⇒ `ProducerObl` ⇒ `HostIf`.
+* Tracer (J mode): fills `w`/`stg`/`sw`, pads HOSTB with `sw = (58·60)⁻¹`, and gives HOSTO
+  `mult = 0` for storage calls.
+* **Measured** (`run_j.sh`):
+  * `u128kat` (no storage call): 8/8 segments pre-check on the J AIR (`logs/j-u128-segcheck.txt`).
+  * T1: pre-check fails with exactly **8 unbalanced messages**: `storage_write`'s HOSTQ (bus 208)
+    and HOSTR (209), and its 6 HB request bytes (210: 1 key byte at address 0, 5 value bytes at
+    16..20). These are exactly what lane B's rows supply in the joined trace
+    (`logs/j-t1-segcheck.txt`).
+  * With the oracle still answering, the J AIR rejects the trace (`HOSTO … constraint 0`).
+
+**Open / for lane B:**
+* (1) **Wire id.** `storage_write`'s value group goes out on bus 210 under wire
+  `58 + 256 = 314` (FIX214 group bits). Lane B's `StbH` constrains `hid ∈ {58, 60}`. Proposal:
+  `StbH` accepts wire 314 for the value buffer. The absolute address already separates key and
+  value; lane A keeps the group bits, since its group lemmas rely on one wire per group.
+* (2) `storage_read` (57) and `storage_has_key` (59) are still oracle-answered; lane B has no rows
+  for them yet.
+* (3) The evicted value's register fill is still HOSTB's `reg = 1` send to REG (`regFill` is lane
+  B's obligation, not a bus balance with lane B).
+* (4) The HOSTR answer for 58/60 (evicted flag, `g_after`) is now free only for lane B's rows to
+  produce, so lane B must bind it.
+* (5) The joined pre-check needs lane B's STB/STW tables in the same trace (one AIR JSON).
 
 ## 6. Lane E's `SegSoundWasm` (sub-lane CONN) [K]
 

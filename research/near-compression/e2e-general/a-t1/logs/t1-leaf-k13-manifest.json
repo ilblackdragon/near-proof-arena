@@ -5,25 +5,25 @@
   "segments": [
     {
       "halted": 0,
-      "proof_bytes": 553355,
-      "proof_sha256": "5c6fc6e3528c57e7f1fd1de633e49fd60ff3a346823ab4c5c71c06dc7641174c",
-      "prove_s": 54.095257271,
-      "pubs_sha256": "205a084f157bb17ced1a0f5079bc5b35fc45bd7279befeba2ae58cec7423b3ca",
+      "proof_bytes": 553859,
+      "proof_sha256": "8a1c9c4a3d95443e2f517cbd27877d16e6f1977fca61e8c4b2fc3ecfe2da0091",
+      "prove_s": 51.251094786,
+      "pubs_sha256": "00ce3feca8bd2d2fb0ff85d74343d423afb8e5b66fdcbb68603ecfc6b8dece38",
       "segment": 0,
       "t_in": 0,
       "t_out": 13,
-      "verify_ms": 40.975455000000004
+      "verify_ms": 43.908654999999996
     },
     {
       "halted": 1,
-      "proof_bytes": 551717,
-      "proof_sha256": "b86047a6c8c8fb3e7847eb57ca1bfc481aae31a4d9ed194b0b34768d2949e2c0",
-      "prove_s": 53.62814366,
-      "pubs_sha256": "d5512f3e37e285e56a98fe83f2471ac0171483e4b60e8221aa87059d21d30352",
+      "proof_bytes": 551549,
+      "proof_sha256": "5bbc0c6c51a41f4f29c7793abca2bce3b22546a8117012e1d1de7e66436aaa34",
+      "prove_s": 52.757150443,
+      "pubs_sha256": "c356727412ee08e793548bb0edbf98bb7cf0c0a4dd34ff05b79a0d5dbd1c011a",
       "segment": 1,
       "t_in": 13,
       "t_out": 26,
-      "verify_ms": 40.398767
+      "verify_ms": 37.669459
     }
   ],
   "soundness_bits": 268.2098245308336,
@@ -71,5 +71,5 @@
     "pow": 24,
     "w_stack": 8
   },
-  "vk_sha256": "ec86b301e7967730a0b6cbc6ea7da687d49b7aef8f0435c0df1ecb03d3337fc5"
+  "vk_sha256": "b1eed0caeb1a3a01fcb9f6cdff7cba42243f504563962d923b9a34169a8aad7d"
 }
