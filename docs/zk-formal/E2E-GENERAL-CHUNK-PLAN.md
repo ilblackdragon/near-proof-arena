@@ -732,6 +732,33 @@ Instances (what each lane states):
   HOST buses (lane B item 3), with `wIn`/`wOut` the working-set root inside `B.wasm`'s host state.
 * Lane E owes the three glue lemmas (not done in M11i).
 
+##### Lane A's A-T1 points (decisions, M11i)
+
+1. **Relative obligation adopted.** A field-copying leaf cannot open its input digest by itself
+   (`TmplWasm.lean` §4); lane A's `segSoundWasmRel_of` / `e2e_sound_t1_wasmRel` (T1 form) are
+   accepted as the T1-level statement (they stay in lane A's file: adding the same name to
+   `Templates.lean` would clash with lane A's `open NearSpecV3.E2E.T1`). M8 form, in
+   `TreeM8.lean`: `TmplSoundRel8` (every opening of `b` steps to an opening of `b'`, with the
+   context link), `tmplSoundRel8_of` (absolute ⇒ relative mod collision), `NotInitIn` (a non-INIT
+   leaf rejects a phase-0 input — lane A's leaf already asserts phase 6; lanes F/B/G add the
+   check), and **`e2e_sound_m8_rel`**: absolute `SegSoundInit8` (INIT computes its whole input
+   record from the bytes, so it opens `B_0`), relative `state`/`rt`/`wasm`/`final`, PAD ⇒ the E2E
+   statement. Lanes F, B, G may prove the relative form for their copying leaves too.
+2. **Whole-call completeness fixed.** `cm_decomp`'s `wasm` elements are whole calls; the M8 honest
+   side now refines them (`refine_chain`, `csteps_fine`) into single call-machine steps from
+   non-final configurations (`MWasm1`), so completeness is needed only there
+   (`TmplCompleteFine`, **`honest_tree_fine`**). Lane A's leaf may merge consecutive steps
+   (`CSteps.trans`, `WasmSegComplete`).
+3. **The `.pre → .ent` seam** is the single step `cstep q .pre = preConf q`, an `MWasm1` instance:
+   PREP proves exactly it as a `wasm`-kind leaf (kind map `kindOf` in `E2ETree8`); no new kind.
+4. **`gasLeft` added** to `WasmBnd` (`Boundary.lean`, lane A's m6 README §6.1 diff verbatim:
+   after `fuel`, `u64` in the codec), with **default `0`** so lane A's record literals
+   (`airBnd`, `fbBnd`) build unchanged; lane A then sets it per §6.2 (`s.gas.g` on the AIR branch)
+   and drops `gas.g` from `blank`. Every v3 `E2E` module downstream of `Boundary` and the zk-formal
+   E2E/Nv chain are rebuilt. **On merge with lane A's A-T1:** `TmplWasm.wb_ext` (`cases a; cases
+   b; simp_all` over 13 field equalities) needs a 14th hypothesis `a.gasLeft = b.gasLeft` (its
+   callers have both records from `airBnd`, where it is `rfl` with the default).
+
 ---
 
 ## 4. Milestones to a first general-chunk E2E proof
