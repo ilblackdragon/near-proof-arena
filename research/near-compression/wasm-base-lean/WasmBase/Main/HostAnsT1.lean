@@ -2,6 +2,30 @@ import WasmBase.Main.HostAns2
 import WasmBase.Main.HostIfTape
 import WasmBase.Main.HostTwoRunArms
 
+/-!
+# WasmBase.Main.HostAnsT1 — the answer function of T1's host set and the spec half of `ProducerObl` (A-T1)
+
+T1 (`d3/02-h10196-s3`, `d3tiny.run("again")`) calls `input`, `register_len`, `read_register`,
+`storage_write`, `log_utf8`, `value_return` (`t1Hosts`).
+
+* **`ansT1` / `updT1`** (`ansT1U : HostAnsU`, `ansT1F : HostIf.HostAnsF` with `sideT1`) — `ansKnown`'s
+  three answers plus `HostAns2`'s three, with their host-side updates;
+* **`ansT1_arm`** — every T1 host's arm is `runOfU s0 (ansT1 …) (updT1 …)` from the post-pop state;
+* **`ansT1_congr`** — the answer reads only the host fields (`HostFieldsEq`: gas, registers,
+  register usage, context, logs, total log length, mock trie, real store, storage usage);
+* **`ansT1_mem`** — the answer reads memory only on the arm's read set `rdsT1` (`TwoRun.Rd`
+  descriptions: the `memOrRegH` ranges, the `utf8H` range or NUL window);
+* **`SpecU` / `specU_T1`** — lane B's `ProducerObl.spec` restated with the host-side update (the
+  original clause, `run = runOf (pop s) (A.ans …)`, is **unsatisfiable** for `value_return`,
+  `log_utf8`, `storage_write`: `runOf` keeps `ret`, `logs`, `totalLogLen`, `trie`, `real`,
+  `storageUsage`) and the operand premise `len ≤ size`; discharged for every HOST row calling a T1
+  host, given the row's `np` is the arity and its request bytes cover `rdsT1` (named premises);
+* **`ansT1_side`** — the arm's post-state host side is `sideT1` (success and every error);
+* **non-vacuity** — `t1_log_utf8`, `t1_value_return` evaluate T1's calls and hit the prep tape's
+  `gAfter` exactly; `t1_storage_write_mock` the mock backend (result 1, register 1 := `self`,
+  `t ↦ again`; gas = tape `gAfter` + 11 trie nodes + 4 evicted bytes, the trie-backed extras).
+-/
+
 namespace WasmBase
 namespace HostAns
 
@@ -135,6 +159,17 @@ theorem ansT1_arm {name : String} (hm : name ∈ t1Hosts) {s s0 : St} {args : Ve
 
 /-! ## 3. The answers read only the host side (field congruence) -/
 
+/-- The host fields T1's answers read, except the gas record. -/
+structure HostFieldsEqG (σ σ' : St) : Prop where
+  registers : σ.registers = σ'.registers
+  regUsage : σ.regUsage = σ'.regUsage
+  ctx : σ.ctx = σ'.ctx
+  logs : σ.logs = σ'.logs
+  totalLogLen : σ.totalLogLen = σ'.totalLogLen
+  trie : σ.trie = σ'.trie
+  real : σ.real = σ'.real
+  storageUsage : σ.storageUsage = σ'.storageUsage
+
 /-- The host fields T1's answers read. -/
 structure HostFieldsEq (σ σ' : St) : Prop where
   gas : σ.gas = σ'.gas
@@ -147,6 +182,9 @@ structure HostFieldsEq (σ σ' : St) : Prop where
   real : σ.real = σ'.real
   storageUsage : σ.storageUsage = σ'.storageUsage
 
+theorem HostFieldsEq.toG {σ σ' : St} (h : HostFieldsEq σ σ') : HostFieldsEqG σ σ' :=
+  ⟨h.registers, h.regUsage, h.ctx, h.logs, h.totalLogLen, h.trie, h.real, h.storageUsage⟩
+
 theorem hostFieldsEq_stack (σ : St) (x : Array Val) : HostFieldsEq { σ with stack := x } σ :=
   ⟨rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl⟩
 
@@ -156,27 +194,27 @@ theorem hostFieldsEq_of_hostR {σ σ' : St} (h : TwoRun.hostR σ = TwoRun.hostR 
     e St.storageUsage⟩
 
 section Congr
-variable {σ σ' : St} (h : HostFieldsEq σ σ')
+variable {σ σ' : St} (h : HostFieldsEqG σ σ')
 include h
 
 theorem regSetAns_congrH (g : Gas) (id : Nat) (d : ByteArray) : regSetAns σ g id d = regSetAns σ' g id d :=
   regSetAns_congr g id d h.registers h.regUsage
 
-theorem ansRegisterLen_congr (id : Nat) : ansRegisterLen σ id = ansRegisterLen σ' id := by
-  unfold ansRegisterLen regLen; simp only [h.gas, h.registers, h.regUsage]
+theorem ansRegisterLen_congr (hg : σ.gas = σ'.gas) (id : Nat) : ansRegisterLen σ id = ansRegisterLen σ' id := by
+  unfold ansRegisterLen regLen; simp only [hg, h.registers, h.regUsage]
 
 theorem ansInputG_congr (p1 p2 : Gas × Option String) (id : Nat) : ansInputG σ p1 p2 id = ansInputG σ' p1 p2 id := by
   unfold ansInputG; simp only [regSetAns_congrH h, h.registers, h.regUsage, h.ctx]
 
-theorem ansInput_congr (id : Nat) : ansInput σ id = ansInput σ' id := by
-  unfold ansInput; simp only [ansInputG_congr h, h.gas]
+theorem ansInput_congr (hg : σ.gas = σ'.gas) (id : Nat) : ansInput σ id = ansInput σ' id := by
+  unfold ansInput; simp only [ansInputG_congr h, hg]
 
 theorem ansReadRegisterG_congr (id ptr memSz : Nat) (dr : Option ByteArray) (p1 pr1 pr2 pw1 pw2 : Gas × Option String) :
     ansReadRegisterG σ id ptr memSz dr p1 pr1 pr2 pw1 pw2 = ansReadRegisterG σ' id ptr memSz dr p1 pr1 pr2 pw1 pw2 := by
   unfold ansReadRegisterG errA; simp only [h.registers, h.regUsage]
 
-theorem ansReadRegister_congr (id ptr memSz : Nat) : ansReadRegister σ id ptr memSz = ansReadRegister σ' id ptr memSz := by
-  unfold ansReadRegister; simp only [ansReadRegisterG_congr h, h.registers, h.gas]
+theorem ansReadRegister_congr (hg : σ.gas = σ'.gas) (id ptr memSz : Nat) : ansReadRegister σ id ptr memSz = ansReadRegister σ' id ptr memSz := by
+  unfold ansReadRegister; simp only [ansReadRegisterG_congr h, h.registers, hg]
 
 theorem resAns_congr {α} (r : EStateM.Result String Gas α) (f : α → List Nat) : resAns σ r f = resAns σ' r f := by
   unfold resAns; simp only [h.registers, h.regUsage]
@@ -184,13 +222,13 @@ theorem resAns_congr {α} (r : EStateM.Result String Gas α) (f : α → List Na
 theorem vrG_congr (mem : Nat → UInt8) (memSz ptr len : Nat) : vrG σ mem memSz ptr len = vrG σ' mem memSz ptr len := by
   unfold vrG vrBurn; simp only [h.registers, h.ctx]
 
-theorem ansValueReturn_congr (len ptr : Nat) (mem : Nat → UInt8) (memSz : Nat) :
+theorem ansValueReturn_congr (hg : σ.gas = σ'.gas) (len ptr : Nat) (mem : Nat → UInt8) (memSz : Nat) :
     ansValueReturn σ len ptr mem memSz = ansValueReturn σ' len ptr mem memSz := by
-  unfold ansValueReturn; simp only [vrG_congr h, resAns_congr h, h.gas]
+  unfold ansValueReturn; simp only [vrG_congr h, resAns_congr h, hg]
 
-theorem updValueReturn_congr (len ptr : Nat) (mem : Nat → UInt8) (memSz : Nat) :
+theorem updValueReturn_congr (hg : σ.gas = σ'.gas) (len ptr : Nat) (mem : Nat → UInt8) (memSz : Nat) :
     updValueReturn σ len ptr mem memSz = updValueReturn σ' len ptr mem memSz := by
-  unfold updValueReturn; simp only [vrG_congr h, h.gas]
+  unfold updValueReturn; simp only [vrG_congr h, hg]
 
 theorem lgG_congr (mem : Nat → UInt8) (memSz len ptr : Nat) : lgG σ mem memSz len ptr = lgG σ' mem memSz len ptr := by
   unfold lgG; simp only [h.logs, h.totalLogLen]
@@ -201,13 +239,13 @@ theorem lgAnsOf_congr (r : EStateM.Result String Gas String) : lgAnsOf σ r = lg
 theorem lgUpdOf_congr (r : EStateM.Result String Gas String) : lgUpdOf σ r = lgUpdOf σ' r := by
   unfold lgUpdOf; simp only [h.totalLogLen]
 
-theorem ansLogUtf8_congr (len ptr : Nat) (mem : Nat → UInt8) (memSz : Nat) :
+theorem ansLogUtf8_congr (hg : σ.gas = σ'.gas) (len ptr : Nat) (mem : Nat → UInt8) (memSz : Nat) :
     ansLogUtf8 σ len ptr mem memSz = ansLogUtf8 σ' len ptr mem memSz := by
-  unfold ansLogUtf8; simp only [lgG_congr h, lgAnsOf_congr h, h.gas]
+  unfold ansLogUtf8; simp only [lgG_congr h, lgAnsOf_congr h, hg]
 
-theorem updLogUtf8_congr (len ptr : Nat) (mem : Nat → UInt8) (memSz : Nat) :
+theorem updLogUtf8_congr (hg : σ.gas = σ'.gas) (len ptr : Nat) (mem : Nat → UInt8) (memSz : Nat) :
     updLogUtf8 σ len ptr mem memSz = updLogUtf8 σ' len ptr mem memSz := by
-  unfold updLogUtf8; simp only [lgG_congr h, lgUpdOf_congr h, h.gas]
+  unfold updLogUtf8; simp only [lgG_congr h, lgUpdOf_congr h, hg]
 
 theorem swG_congr (mem : Nat → UInt8) (memSz klen kptr vlen vptr : Nat) :
     swG σ mem memSz klen kptr vlen vptr = swG σ' mem memSz klen kptr vlen vptr := by
@@ -241,25 +279,28 @@ theorem swUpdOf_congr (reg : Nat) (r : EStateM.Result String Gas (ByteArray × B
   | error e g => rfl
   | ok kv g => unfold swUpdOf; simp only [swBackR_congr h]
 
-theorem ansStorageWrite_congr (klen kptr vlen vptr reg : Nat) (mem : Nat → UInt8) (memSz : Nat) :
+theorem ansStorageWrite_congr (hg : σ.gas = σ'.gas) (klen kptr vlen vptr reg : Nat) (mem : Nat → UInt8) (memSz : Nat) :
     ansStorageWrite σ klen kptr vlen vptr reg mem memSz = ansStorageWrite σ' klen kptr vlen vptr reg mem memSz := by
-  unfold ansStorageWrite; simp only [swG_congr h, swAnsOf_congr h, h.gas]
+  unfold ansStorageWrite; simp only [swG_congr h, swAnsOf_congr h, hg]
 
-theorem updStorageWrite_congr (klen kptr vlen vptr reg : Nat) (mem : Nat → UInt8) (memSz : Nat) :
+theorem updStorageWrite_congr (hg : σ.gas = σ'.gas) (klen kptr vlen vptr reg : Nat) (mem : Nat → UInt8) (memSz : Nat) :
     updStorageWrite σ klen kptr vlen vptr reg mem memSz = updStorageWrite σ' klen kptr vlen vptr reg mem memSz := by
-  unfold updStorageWrite; simp only [swG_congr h, swUpdOf_congr h, h.gas]
+  unfold updStorageWrite; simp only [swG_congr h, swUpdOf_congr h, hg]
+
+end Congr
 
 /-- **`ansT1` / `updT1` read only the host fields** of the state. -/
-theorem ansT1_congr (name : String) (args : List Nat) (mem : Nat → UInt8) (memSz : Nat) :
+theorem ansT1_congr {σ σ' : St} (h : HostFieldsEq σ σ') (name : String) (args : List Nat) (mem : Nat → UInt8) (memSz : Nat) :
     ansT1 name σ args mem memSz = ansT1 name σ' args mem memSz ∧
       updT1 name σ args mem memSz = updT1 name σ' args mem memSz := by
   unfold ansT1 updT1
-  rw [ansRegisterLen_congr h, ansInput_congr h, ansReadRegister_congr h, ansStorageWrite_congr h, ansLogUtf8_congr h,
-    ansValueReturn_congr h, updStorageWrite_congr h, updLogUtf8_congr h, updValueReturn_congr h, h.gas, h.registers,
-    h.regUsage]
+  rw [ansRegisterLen_congr h.toG h.gas, ansInput_congr h.toG h.gas, ansReadRegister_congr h.toG h.gas,
+    ansStorageWrite_congr h.toG h.gas, ansLogUtf8_congr h.toG h.gas, ansValueReturn_congr h.toG h.gas,
+    updStorageWrite_congr h.toG h.gas, updLogUtf8_congr h.toG h.gas, updValueReturn_congr h.toG h.gas, h.gas,
+    h.registers, h.regUsage]
   exact ⟨rfl, rfl⟩
 
-end Congr
+
 
 
 /-! ## 4. The answers read memory only on the arm's read set -/
