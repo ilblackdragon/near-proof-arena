@@ -399,6 +399,10 @@ class Gen:
         self.look(self.r8, x); self.look(self.r8, x + 256 - RSD)
         if self.mut('fin_ro'):
             F.rows[0][F.ix('ro', 0)] ^= 1
+        if self.mut('s384_pad'):
+            # the bit-length byte of the first SHA-384 message's last block
+            S3 = self.T['S384']
+            S3.rows[0][S3.ix('b', 127)] ^= 1
         self.fill_rng()
         pubs = limbs3(cd[:42]) + limbs3(fd[:42]) + [n, L]
         stmt = list(pubs)
@@ -467,9 +471,6 @@ class Gen:
         spare = {'STMT', 'BODY', 'SEG', 'RS', 'PART', 'SHD', 'OUTL', 'MRK'}
         for nm, T in self.T.items():
             h = 256 if nm == 'RNG' else T.height(spare=nm in spare)
-            if nm == 'S384' and self.mut('s384_pad'):
-                r = T.rows[0]
-                r[T.ix('b', 127)] ^= 1
             T.dump(os.path.join(out, nm + '.bin'), h)
             heights[nm] = (len(T.rows), h)
         json.dump(self.sha_msgs, open(os.path.join(out, 'sha_msgs.json'), 'w'))

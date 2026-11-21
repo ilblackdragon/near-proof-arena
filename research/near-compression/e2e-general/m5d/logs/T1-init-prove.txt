@@ -1,0 +1,15 @@
+TABLE S384   width  449 height 2^7  cells     57472 constraints   812 interactions   321 deg 4
+TABLE RNG    width   69 height 2^8  cells     17664 constraints    71 interactions     3 deg 2
+TABLE CLM    width   11 height 2^14 cells    180224 constraints    27 interactions     3 deg 6
+TABLE INI    width  111 height 2^2  cells       444 constraints    59 interactions    25 deg 2
+TABLE SHA512 width   83 height 2^14 cells   1359872 (native v4)
+TABLE SHA512T width    9 height 2^7  cells      1152 (native v4)
+CELLS 1616828; compressions 124
+PRECHECK OK: every constraint on every row; every bus balances (18501 distinct messages)
+TIME load+precheck 0.04s
+PARAMS n_stack 18 w_stack 8 degree 9
+TIME keygen 0.00s
+SOUNDNESS total=268.2 logup=329.3 proximity=316.2 query=268.2
+PROOF total=795347 gkr=28328 relations=78164 stacking=2176 whir=686436
+TIME prove 69.31s verify 0.0505s threads 8 peak_rss_kib 832620 proof_bytes 795347
+VERIFY OK (native SWIRL verifier); statement check (public values): OK

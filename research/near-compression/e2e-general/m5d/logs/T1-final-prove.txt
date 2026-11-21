@@ -1,0 +1,8 @@
+PRECHECK OK: every constraint on every row; every bus balances (10979 distinct messages)
+TIME load+precheck 0.67s
+PARAMS n_stack 18 w_stack 8 degree 9
+TIME keygen 0.01s
+SOUNDNESS total=268.2 logup=329.3 proximity=316.2 query=268.2
+PROOF total=989626 gkr=25544 relations=274548 stacking=2224 whir=686482
+TIME prove 34.98s verify 0.1024s threads 8 peak_rss_kib 929932 proof_bytes 989626
+VERIFY OK (native SWIRL verifier); statement check (public values): OK
