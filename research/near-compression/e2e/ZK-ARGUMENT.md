@@ -1622,3 +1622,74 @@ yet derived from the AIR's public buses. The oversize policy is stated in plan �
 programmable ROM, `ε_ZK ≤ 2^-184.4 + A·2^-192`, for chunks whose base is at one of the setup's
 classes. QROM: the base point `u` is open and pending an owner decision. `security_established =
 false`. D-9 is not independently reviewed.
+
+### 10.5 M8: the heterogeneous tree (generic template leaf; prototype)
+
+M8 adds one leaf program kind, the **generic template leaf** (`nv/htree.rs::build_tmpl_leaf`),
+and widens the tree's boundary state. Nodes (`P_2`, `P_*`, `PAD_N`) and the wrap are the D-7 / D-9
+programs, unchanged except that they are generated for the wider state. No AIR, column or
+parameter of any tree layer changes.
+
+**The leaf statement.** A template `t` is a layout `TemplateSpec`: the two coarse phases
+`(phase_in, phase_out)`, the cells of the input and output boundary records (each cell a public value
+of the child, a limb of one of its cached commitments, a statement cell, a pass-through witness or a
+constant), the `ctx` source (`CtxMode`), equality groups of public-value vectors and pinned
+constants. The leaf exposes `H9(ctx, a, a + 1, s_in, s_out)` with `s = [phase, h(B)]`,
+`h(B) = H8(BND_MARKER, 18, n_rec, ctx, rec)` (18 limbs; `[phase, 0^18]` for an INIT input and a DONE
+output). `N_STATE` is 19 instead of the D0a tree's 2.
+
+**Soundness of the leaf (what it adds to `NvFaithful`).**
+* *The child.* The leaf runs `build_verifier` on the template proof with the template vk and the
+  child's per-AIR heights as program constants (as the D-6 base leaf does). Its program root `C_t`
+  is one of `P_2`'s template set, so `C_t` pins the template vk and heights.
+* *Complete binding.* `TemplateSpec::check` refuses program generation unless **every** public value
+  of every child AIR is a record cell, in an equality group whose first member is fully bound, or
+  pinned; and every cached commitment is a record cell with all 18 limbs, or pinned. The limbs are
+  bound to the commitment's two digest cells by the packed comparison the wrap uses for the root
+  digest. A free public value or cached root would let a prover choose the statement the child
+  proved (lane A's CODE / FUNC roots, lane B's TAPE / HTAPE roots are exactly this case; plan
+  §5.0.1 (2)).
+* *The boundary digests.* `h(B_in)`, `h(B_out)` are in-circuit SHA-384 jobs over cells that are
+  those bindings; the limb cells are bound to the job digests. `ctx` is inside every `h(B)`.
+* *Phases (review-D7 I3).* The legal pairs are INIT→MID, MID→MID, MID→DONE, INIT→DONE. No template
+  takes a DONE input, and only PAD (`DONE → DONE`) follows a DONE output. Node continuity compares
+  the whole state, so an accepted tree's template sequence is INIT-kind · MID-kind* · FINAL-kind ·
+  PAD*: the wrap's `s_a.phase = INIT` forces an INIT template at the left edge, its
+  `s_e.phase = DONE` a FINAL template (then PADs) at the right edge, and a segment after the end is
+  rejected by continuity. These are tree-internal phases (`s[0]`), distinct from lane E's
+  `BndRec.phase` tag, which is inside `h(B)`.
+* *Heterogeneous chaining.* `P_2` is one program over any mix of template leaves at the one leaf
+  geometry (its anchor set is one-hot over `{C_t} ∪ {C_padL}`); measured: the honest Fib tree and a
+  different template mix give the same `C_2` (`htree_fib_end_to_end`).
+* *Map to lane E's T1 system* (`Templates.lean`): a template leaf discharges its `TmplSound` premise
+  for the boundary digests when its child AIR's `Holds` gives the meaning on the record it binds; the
+  wrap's `WrapInitSound` is the INIT template's binding of its output record to
+  `init (assemble S secB secC) w` (lane G), and `WrapFinalSound` is the FINAL template's
+  `FinalOutPub S` (lane G). The wrap itself checks only the phases, `a = 0` and `ctx`.
+* *`ctx` = `claimDigest`.* The wrap exposes `D_wrap(ctx, 0)` (the D-5 tag-8 wrap message with
+  class cell 0, which every INIT input's digest limb 0 is), and V_d computes
+  `ctx = limbs(bdigest(S))`, the 42-byte SHA-384 of the canonical statement bytes of plan §3.4.1.
+  Inside the tree, `ctx` is a witness bound by node equality and by every `h(B)`; the INIT template
+  must bind it to `S` (`CtxMode::Src`: the public values in which lane G's INIT AIR exposes
+  `bdigest(S)`). The prototype's stub INIT / FINAL (no child) take `ctx` as a witness: **in the
+  prototype nothing in-circuit binds `ctx` to `S`, and the stubs' records are unbound witnesses**,
+  so the prototype's soundness for `S` rests entirely on lane G's templates replacing the stubs.
+  (`CtxMode::HashStmt`, `ctx = H8(STMT, S cells)`, is used only by the Fib test.) The NV circuit has
+  no plain (unframed) SHA-384 job, so a statement-only leaf cannot compute `bdigest(S)` itself.
+
+**Constraint-level negatives** (`htree_fib_end_to_end`, `engine.debug`, host failures ignored):
+a pinned public value differing; PAD on a MID boundary; at `P_2`: a template set without a child's
+program (template swap), a boundary mismatch (a segment from another start), two templates
+reordered, PAD in the middle, PAD instead of FINAL, a leaf of another chunk's `ctx`, a forged child
+preimage; at the wrap: a root that never reaches DONE. Generation-level refusals
+(`htree_spec_checks`): a DONE input (I3), records on an INIT input / DONE output, out-of-range
+sources, child sources without a child, a free public value, another template's layout.
+
+**ZK.** The packet is `S ‖ wrap proof`; nothing of a template, a boundary, the segment count or the
+template mix leaves the tree. The wrap program depends on the root's shape, `C_*` / `{C_2}` and
+`N_STATE`, not on the mix. Two prototype gaps keep `zero_knowledge_established = false` for M8:
+* the setup is per run: the template set lists this run's template leaf programs, whose child heights
+  are the segments' natural heights. With pinned template shapes (lanes A/B, plan §5.0.1 (4)) the
+  set becomes a setup constant, as for D0a classes;
+* `A` grows with the tree (here 8 leaves + 2 `P_2` + 2 `PAD_N` + `P_*` = 13 proofs, `A = 14`).
+`security_established = false`; M8 is not independently reviewed.

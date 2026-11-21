@@ -19,6 +19,8 @@ taskset -c "$C" "$T" nv::htree_tests::htree_spec_checks > "$O/htree_spec_checks.
 echo "TEST_OK htree_spec_checks $(grep -h 'test result' "$O/htree_spec_checks.log")"
 for t in ${TESTS:-htree_tests::htree_fib_end_to_end tree_tests::tree_d9_wrap_set_debug}; do
   n=${t##*::}
+  # the heterogeneous P_2 over four leaves has a 2^22-row SHA AIR: the test parent stacks at 2^22
+  case $t in htree*) export PARENT_N_STACK=20 ;; *) export PARENT_N_STACK=19 ;; esac
   /usr/bin/time -v taskset -c "$C" "$T" --ignored --exact "nv::$t" --nocapture > "$O/$n.log" 2>&1 || { echo "TEST_FAILED $t"; exit 1; }
   echo "TEST_OK $t $(grep -h 'test result' "$O/$n.log")"
 done
