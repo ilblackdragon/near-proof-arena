@@ -10,6 +10,7 @@ import FinalM5d.MrkWalk
 import FinalM5d.ShaWhole
 import FinalM5d.S384Rec
 import FinalM5d.S384Chip
+import FinalM5d.S384Out
 import FinalM5d.Cls.All
 
 /-! Axiom audit of the M5d headline results: each must depend on `propext`, `Classical.choice`,
@@ -54,3 +55,5 @@ import FinalM5d.Cls.All
 #print axioms FinalM5d.S384Chip.s384_chain
 #print axioms FinalM5d.S384Chip.iv_words
 #print axioms FinalM5d.Cls.f1_eq
+#print axioms FinalM5d.S384Out.split_lookup
+#print axioms FinalM5d.S384Out.s384_out_byte

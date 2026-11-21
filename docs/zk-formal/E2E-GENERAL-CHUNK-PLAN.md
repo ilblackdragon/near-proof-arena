@@ -1915,11 +1915,30 @@ checker's own `tailNew` output passes `headerOk` against the decoded public head
 `RsCoeff.coeff_linear` (kernel: the class matrix's GF(2) bit matrices are `gfMul`'s), `T1Check` (non-vacuity:
 T1's row values satisfy `RowOK`, the window is T1's `chunk_inner`, `headerOk` holds).
 
-**Open, in order:** (1) `Computed` from `Holds` of the whole AIR (the `MRK` walk ⇒ `merkleRoot`,
-the RS rows ⇒ `parityPart` (`lean-wip/RsRow.lean`: the row-level parity-bit lemma, over the heartbeat budget), `BODY`/`SEG` ⇒ `encodeRcpts`, `SHD` ⇒ `outgoingRoot`,
-`S384` ⇒ SHA-384 under `Sha512IfContract`), `HbBytes`; (2) the join with lane B's FINAL / M5c
-(§3.4 note (3)); (3) more classes: transactions (same `SEG` path), proposals, bandwidth requests,
-split, other `(d, t)`, padding to pinned class heights (the SHA-256 and chip generators need a
-minimum-height option); (4) `B_out`'s `ctxD(.header H)` / `outD(.done o)` digests in the template;
-(5) INTAKE's `ℓ_B` check (lane B).
+**G-2 (lane G, 2026-11-21)** — log `docs/logs/e2e-laneG-g2-2026-11-21.md`, README §G-2.
+* **[K] from `Holds` of the deployed AIR** (`finalAirS` = `finalAir` + lane B's `IF384` chip stub;
+  `precheck_holds_final`: precheck-accepted traces give `Holds finalAirS` with the chip's sends):
+  `hb_bytes` (`HbBytes` is no longer a premise; `final_template_sound_holds`), `rs_parity_byte_holds`
+  (an `RS` row's parity bytes are the spec's `parityPart` bytes; `RsRow` now in the library, 0.8 s),
+  `sha_msg` (SHA-256 message identification from lane L5's closed contract), `walkRoot_eq` (the `MRK`
+  walk is nearcore `merklize`, record level), `s384_comp` / `s384_chain` (an `S384` message's rows
+  fold the chip compression from IV384, under lane B's `Sha512IfContract`), `sha384_of_blocks`.
+  Std axioms only.
+* **[K] item 3, the leaf joins** (`Split.lean`; lane E's M11i split was not on main):
+  `finK_bind` (the checker's `finK` splits at `t`, any driver), `fin_split` (honest runs factor),
+  lane B's `FinalBPart` + lane G's `FinalGPart` (joined by the `FinIn` bus) ⇒ **`SegSoundFinal`**;
+  `InitGPart` + lane B's `InitBPart` (joined by the `CLM` bytes) ⇒ **`SegSoundInit`**.
+* **Item 2:** G2_PROVER_NUMBERS
+* **Item 4 [M], class census** (7,477 `d3` cases): F1 3.7 %, transactions 81 %, `(d, t)` ∈ {(1,3),
+  (2,8), (5,16), (33,100)} on 4/5/6 shards, proposals 3.3 %, bandwidth requests 0.65 %, split 0.
+  `gen_class.py` generates the FINAL AIR per `(NS, d, t)` (`Cls.f1_eq`: the generated F1 is
+  `finalAir`); proved and verified on one case each of (4, 2, 8) 977,328 B, (5, 33, 100)
+  1,110,996 B, (4, 1, 3) G2_C413 (natural heights, seg-v1).
+
+**Open, in order:** (1) `Computed` — the functional-sender facts per SHA-256 consumer (then
+`sha_msg`), the `MRK` rows ⇒ `walkLevel` (functional `NODE` bus), `BODY`/`SEG` ⇒ `encodeRcpts`,
+`S384` padding + digest bytes (then `s384_chain` + `sha384_of_blocks` give SHA-384); (2) lane B's
+`FinalBPart` / `InitBPart` (INTAKE's `ℓ_B` check); (3) transactions (81 % of cases), then proposals,
+bandwidth requests; templates per generated class; (4) lane D: `h(B_out)` assembly in the FINAL
+leaf from the exposed component digests.
 

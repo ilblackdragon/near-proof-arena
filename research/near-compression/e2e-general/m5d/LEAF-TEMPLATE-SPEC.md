@@ -93,7 +93,17 @@ the 13 `headerOk` comparisons against the header (`Lean: final_template_sound`).
 **Leaf (lane D):** check `pv[0..14) = ctx`; tie `pv[14..28)` to the input boundary (below); expose
 `s_out = [done, h(B_out)]`. The wrap's `B_N.phase = done` then implies FinalOut (rec. 1(b)(ii)).
 
-**Joining the input [S], two options:**
+**Joining the input — G-2 [K] for the logic, [S] for the tables:** option (a) below, stated and
+proved in `lean/FinalM5d/Split.lean`: lane B's part `FinalBPart` (input digest opens to
+`fin I out`, `I.d2 = none`, `FinReach I out t` — `finK` reaches `t`, `finK_bind` — and the `FinIn`
+bus carries `fi` with `FinInOK fi I out t`) and lane G's part `FinalGPart` (output digest opens to
+`done I.H o` with `tailNew … t = .ok o` and `headerOk I.H o`) give lane E's `SegSoundFinal`
+(`segSoundFinal_join`). The `FinIn` bus carries the §4 table's bytes `(j, FinIn[j])`, `j < FI_LEN`,
+`FI_LEN = 246 + 8·NS` (G-2: the layout is per shard-count class); today the M5d template hashes
+them to `finInDigest` (public values 14..28), which the joint leaf replaces by the bus.
+Same for INIT: `InitGPart` + lane B's `InitBPart` (joined by the `CLM` bytes) ⇒ `SegSoundInit`.
+
+Earlier options:
 * (a) *one segment*: lane B's FINAL rows (post-state root) + M5c's implicit transitions + M5d's
   tables in one trace, `FinIn` carried on a bus instead of `finInDigest` (no digest, no new
   configuration). **Recommended.**

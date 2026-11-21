@@ -21,4 +21,5 @@ import FinalM5d.MrkWalk
 import FinalM5d.ShaWhole
 import FinalM5d.S384Rec
 import FinalM5d.S384Chip
+import FinalM5d.S384Out
 import FinalM5d.Audit
