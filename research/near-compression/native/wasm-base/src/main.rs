@@ -89,6 +89,74 @@ pub fn seg_v1_params(n_stack: usize, w_stack: usize, max_degree: usize) -> Syste
     }
 }
 
+/// A-T1: the stack's **base configuration** for a pinned segment template (lane D,
+/// `pq-chunk-e2e/src/profile.rs::shaped_params_geom`, non-final layer): first-order DKT certificates,
+/// list decoding m = 64, k_first 2, the stack's WHIR levers, log final poly 6 (+1 per stacked bit
+/// above 2^20), domain odd factor 15, at the 268-bit per-round target.  The query grinding is the
+/// segment's 24 bits (lane D D-8: with 24 bits the base configuration needs [100, 71, 43, 32]
+/// queries at ns 22 lb 1; never seg-v1's ListDecoding m = 16 with 32 grinding bits).  `certs` is
+/// `final-soundness/calc/dkt_certs_o2.json`, `exclusions` `final-soundness/lean/DKTCertsO2_big.keys`
+/// (the stack's pair, `pq-chunk-e2e/run.sh`).
+pub fn seg_base_params(n_stack: usize, w_stack: usize, log_blowup: usize, pow: usize, max_degree: usize,
+    certs_path: &str, excl_path: &str) -> SystemParams {
+    let parse = |s: &str| -> Option<(u64, u64, u64)> {
+        let a: Vec<_> = s.trim().split(',').collect();
+        if a.len() != 4 || a[3] != "1" {
+            return None;
+        }
+        Some((a[0].parse().ok()?, a[1].parse().ok()?, a[2].parse().ok()?))
+    };
+    let v: serde_json::Value = serde_json::from_slice(&std::fs::read(certs_path).expect("certs file")).unwrap();
+    let mut certs: openvm_stark_backend::CertSet = v.as_object().unwrap().keys().filter_map(|k| parse(k)).collect();
+    for l in std::fs::read_to_string(excl_path).expect("exclusions file").lines() {
+        if let Some(c) = parse(l) {
+            certs.remove(&c);
+        }
+    }
+    assert!(!certs.is_empty(), "no kernel-backed certificates");
+    let (l_skip, k) = (2, 4);
+    assert!(l_skip + n_stack + log_blowup <= 27, "beyond the BabyBear two-adic domain");
+    let extra = (l_skip + n_stack).saturating_sub(20);
+    let levers = WhirLevers {
+        k_first: 2,
+        multiproof: true,
+        keep_domain: true,
+        gruen_gkr: true,
+        gkr_derive_claims: true,
+        next_mask: true,
+        gruen_zerocheck: true,
+        wide_query_pow: true,
+        tight_heights: true,
+        whir_y: true,
+        ..Default::default()
+    };
+    let whir = WhirConfig::new_full(
+        log_blowup,
+        l_skip + n_stack,
+        WhirParams {
+            k,
+            log_final_poly_len: 6 + extra,
+            query_phase_pow_bits: pow,
+            folding_pow_bits: 0,
+            mu_pow_bits: 0,
+            proximity: WhirProximityStrategy::ListDecoding { m: 64 },
+        },
+        268,
+        levers,
+        15,
+    )
+    .with_first_order(log_blowup, l_skip + n_stack, 268, 50, 64, Some(&certs), 2);
+    SystemParams {
+        l_skip,
+        n_stack,
+        w_stack,
+        log_blowup,
+        whir,
+        logup: LogUpSecurityParameters { max_interaction_count: 1 << 30, log_max_message_length: 7, pow_bits: 0 },
+        max_constraint_degree: max_degree,
+    }
+}
+
 fn load(air_path: &str) -> AirSpec {
     AirSpec::parse(&std::fs::read_to_string(air_path).unwrap())
 }
@@ -1572,6 +1640,9 @@ fn main() {
         Some("segcheck") => segcmd::cmd_segcheck(&a[2..]),
         Some("segprove") => segcmd::cmd_segprove(&a[2..]),
         Some("segtamper") => segcmd::cmd_segtamper(&a[2..]),
+        Some("segtemplate") => segcmd::cmd_segtemplate(&a[2..]),
+        Some("segleaf") => segcmd::cmd_segleaf(&a[2..]),
+        Some("segleafverify") => segcmd::cmd_segleafverify(&a[2..]),
         Some("segdump") => segcmd::cmd_segdump(&a[2..]),
         Some("dump") => cmd_dump(&a[2], &a[3], &a[4]),
         _ => eprintln!("usage: see source header"),

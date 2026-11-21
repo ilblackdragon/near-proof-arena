@@ -69,6 +69,7 @@ import WasmBase.M2Check
 import WasmBase.M2Air
 import WasmBase.SegAir
 import WasmBase.SegAirMP
+import WasmBase.SegAirJ
 import WasmBase.SegAirG
 import WasmBase.Census
 import WasmBase.Main.M2Link
@@ -155,6 +156,7 @@ import WasmBase.Main.SegMembS
 import WasmBase.Main.SegMemMembS
 import WasmBase.Main.SegMemRootMP
 import WasmBase.Main.SegChainMemMP
+import WasmBase.Main.SegKeyBase
 import WasmBase.Main.SegKey
 import WasmBase.Main.SegSoundK
 import WasmBase.Main.HostSpace
@@ -184,6 +186,9 @@ import WasmBase.Main.HostTwoRunStep
 import WasmBase.Main.HostSigmaBridge
 import WasmBase.Main.HostIf
 import WasmBase.Main.HostAns
+import WasmBase.Main.HostAns2
+import WasmBase.Main.HostAnsT1
+import WasmBase.Main.HostAnsGas
 import WasmBase.Main.HostIfTape
 import WasmBase.Main.HostCover
 import WasmBase.Main.HostIfCover
@@ -199,3 +204,7 @@ import WasmBase.Main.SegSoundSigmaP
 import WasmBase.Main.HostIfCover2
 import WasmBase.Main.HostCodeFetch
 import WasmBase.Main.HostRowsTimesAir
+import WasmBase.Main.HostWriteCov
+import WasmBase.Main.HostWriteCovCheck
+import WasmBase.Main.HostJoin
+import WasmBase.Main.TmplWasm

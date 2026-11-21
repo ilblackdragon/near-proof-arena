@@ -1,0 +1,17 @@
+TABLE SHA    width   544 height 2^9  rows-used    263 cells    278528 constraints  1028 interactions    17 deg 4
+TABLE RNG    width    21 height 2^8  rows-used    256 cells      5376 constraints    23 interactions     1 deg 2
+TABLE SCHT   width  3255 height 2^2  rows-used      1 cells     13020 constraints  3255 interactions   155 deg 4
+TABLE MSG    width    54 height 2^10 rows-used   1024 cells     55296 constraints    79 interactions    15 deg 4
+TABLE DG     width    39 height 2^3  rows-used      8 cells       312 constraints   102 interactions    34 deg 2
+TABLE RX     width  1368 height 2^2  rows-used      1 cells      5472 constraints  2543 interactions  1505 deg 4
+TABLE TAPE   width    37 height 2^6  rows-used     34 cells      2368 constraints     0 interactions     3 deg 0
+TABLE XTAPE  width    17 height 2^9  rows-used    501 cells      8704 constraints     0 interactions     9 deg 0
+CELLS committed 369076 (non-zero rows x width 218454)
+PRECHECK OK: every constraint on every row; every bus balances (1890 distinct messages)
+TIME load+precheck 0.14s
+PARAMS n_stack 14 w_stack 10 degree 4
+TIME keygen 0.02s
+SOUNDNESS total=268.2 logup=329.3 proximity=326.2 query=268.2
+PROOF total=1158991 gkr=20408 relations=355100 stacking=2088 whir=780168
+TIME prove 5.74s verify 0.1049s threads 8 peak_rss_kib 107348 proof_bytes 1158991
+VERIFY OK (native SWIRL verifier); statement check (TAPE/XTAPE roots + public values): OK

@@ -318,3 +318,33 @@ them onto the lane branch and rebased it onto main `7358a938d`:
   * `make pin-check` rc 0; nothing under `spec/` changed.
   * Heavy jobs ran in `systemd-run --user --scope` (Lean ≤ 24 G, provers ≤ 24 G under one `flock`).
   * The sub-lane worktrees and temp dirs were deleted afterwards.
+
+## Seventh session: milestone A-T1 (2026-11-21)
+
+Details: `research/near-compression/e2e-general/a-t1/README.md`. The lead did the tracer, prover,
+leaves, checks and scopes. Sub-lanes ran in worktrees; the lead cherry-picked them:
+
+| sub-lane | item | result |
+|---|---|---|
+| WCOV | 1 | HostBK write pair (Lean AIR); proofs repaired; `HostWritesCovT` derived (`seg_sound_hostIf_airW`); non-vacuity; failed-grow fee analysis |
+| ANS | 2 | answer functions for `storage_write`, `log_utf8`, `value_return`; `ansT1`, `specU_T1`, `ansT1_next`; T1 `decide` checks; `ProducerObl.spec` → `SpecU` finding |
+| CONN | lane E | `TmplWasm.lean`: `segSoundWasmRel_of`, `segSoundWasm_of`, `e2e_sound_t1_wasmRel`; completeness counterexample `pre → pre` |
+| JOIN | 5 | HOSTB bus-210 address; `wasmBaseSegAirMPJ` (HostOJ, HostBJ); `StorageJoinObl` |
+
+* **T1 blocker:** passes at head for K = 1–26; K = 8 and K = 26 proved; `run_t1.sh` passes.
+* **Item 1 [M]:**
+  * u128 KAT: the old AIR proves a run that ignores the writes. The new AIR gives 8/8 proved and
+    54/54 tampers rejected.
+  * The Lean-exported AIR equals the JSON mirror used for the measurements.
+* **Item 3 [M]:** T1 leaves at the stack base configuration. 2 × 553 KB, 268.2 bits, one vk; saved,
+  reloaded, verified; 11/11 tampers rejected. lb 3 exceeds the 22 GB cap.
+* **Item 5 [M]:**
+  * u128 pre-checks 8/8 on the J AIR.
+  * T1 on the J AIR lacks exactly `storage_write`'s HOSTQ, HOSTR and 6 HB messages.
+* Builds:
+  * `lake build WasmBase wasmbase-tool` green (741 jobs; standard axioms; no `sorry`).
+  * Prover green on both backends.
+  * `make pin-check` rc 0; `spec/` unchanged.
+  * Heavy jobs ran in `systemd-run` scopes of ≤ 22 GB.
+  * The WCOV, CONN and JOIN worktrees were removed after merge. ANS's worktree is still locked by
+    its agent process.

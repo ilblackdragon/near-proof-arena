@@ -202,40 +202,75 @@ call key on `busHKey` is the call's own `[ts, hid]`.  So in the segment AIR `HOS
 (group-constant); the `busHostB` message carries the wire id `hid + 256·hg0 + 512·hg1`.  (Before
 the fix `hid` was the wire id itself, and a non-zero group's key lookup `[ts, hid + 256·g]` matched
 no HOST offer: every segment with a multi-group call failed bus 214.) -/
+
+/-! ### Response bytes are memory writes (E2E A-T1, write coverage)
+
+A response byte that fills no register (`dir = 1`, `reg = 0`) is a byte the host call writes into
+linear memory at `ptr + pos` (the five `setU128H` arms: `account_balance`,
+`account_locked_balance`, `attached_deposit`, `validator_stake`, `validator_total_stake`).  Before
+A-T1 such a byte carried no space-3 message (only request bytes did, `HostB.memCnt`), so the live
+memory messages kept the old bytes after the call (the gap of `Main/HostCoverAir.lean`).  Now it
+carries `REG`'s write pair (`RegW.newInters`): with count `wcnt = act·dir·(1−reg)` it consumes the
+live byte `ob` at `ptr + pos` (producer time `mtp < ts`, `timeChk`) and produces the new byte `bv`
+there at `ts`.  `ob` is the new column, appended **last**; `mtp`/`hp` are shared with the request
+rows' MEMIO pair (request rows and write rows are disjoint by `dir`).  The write interactions are
+appended **last** to the table's interaction list. -/
 namespace HostBK
 def hg0 : Nat := 14
 def hg1 : Nat := 15
-def cols : List String := HostB.cols ++ ["hg0", "hg1"]
+/-- The old byte a response (memory-write) row overwrites. -/
+def ob : Nat := 16
+def cols : List String := HostB.cols ++ ["hg0", "hg1", "ob"]
 theorem hg0_name : cols[hg0]? = some "hg0" := by decide
 theorem hg1_name : cols[hg1]? = some "hg1" := by decide
+theorem ob_name : cols[ob]? = some "ob" := by decide
+theorem cols_len : cols.length = 17 := by decide
 /-- The group's wire id on bus 210: `hid + 256·(hg0 + 2·hg1)`. -/
 def wire : Expr := v HostB.hid + 256 * v hg0 + 512 * v hg1
 /-- `HostB.msg` with the wire id in place of `hid`. -/
 def msgW : List Expr := [v HostB.ts, wire, v HostB.dir, v HostB.pos, v HostB.bv]
+/-- **The address message** (E2E A-T1 JOIN): `msgW` with the linear-memory address
+`HostB.memAddr = ptrLo + 65536·ptrHi + pos` in place of `pos`.  It is the message of the four
+`reg = 0` interactions (the request pair and the response pair), so a state-side consumer of a
+request byte (lane B's `HB [ts, ptr + j, b]`) sees the absolute address: `storage_write` reads two
+buffers (key, value) in one call, and `pos` alone would not tell them apart.  The `reg = 1`
+interaction (received by `REG`, whose message is keyed by `pos`) keeps `msgW`. -/
+def msgM : List Expr := [v HostB.ts, wire, v HostB.dir, HostB.memAddr, v HostB.bv]
 def cHg0 : Expr := bool (v hg0)
 def cHg1 : Expr := bool (v hg1)
 /-- The group index is the same on every row of a group (so is the wire id, with `cHidConst`). -/
 def cHg0Const : Expr := (1 - nv HostB.f) * (nv hg0 - v hg0)
 def cHg1Const : Expr := (1 - nv HostB.f) * (nv hg1 - v hg1)
 def constraints : List Expr := HostB.constraints ++ [cHg0, cHg1, cHg0Const, cHg1Const]
-/-- `HostB.inters` with the wire message on the five `busHostB` interactions (the CH, BYTE and
-RANGE16 interactions are `HostB`'s, `HostB.inters.drop 5`). -/
+/-- `HostB.inters` with the wire message on the five `busHostB` interactions — the address message
+`msgM` on the four `reg = 0` ones, `msgW` on the `reg = 1` one (the CH, BYTE and RANGE16
+interactions are `HostB`'s, `HostB.inters.drop 5`). -/
 def wireInters : List Inter :=
-  [⟨busHostB, true, v HostB.act * (1 - v HostB.dir) * (1 - v HostB.reg), msgW⟩,
-   ⟨busHostB, false, v HostB.act * (1 - v HostB.dir) * (1 - v HostB.reg), msgW⟩,
-   ⟨busHostB, true, v HostB.act * v HostB.dir * (1 - v HostB.reg), msgW⟩,
-   ⟨busHostB, false, v HostB.act * v HostB.dir * (1 - v HostB.reg), msgW⟩,
+  [⟨busHostB, true, v HostB.act * (1 - v HostB.dir) * (1 - v HostB.reg), msgM⟩,
+   ⟨busHostB, false, v HostB.act * (1 - v HostB.dir) * (1 - v HostB.reg), msgM⟩,
+   ⟨busHostB, true, v HostB.act * v HostB.dir * (1 - v HostB.reg), msgM⟩,
+   ⟨busHostB, false, v HostB.act * v HostB.dir * (1 - v HostB.reg), msgM⟩,
    ⟨busHostB, true, v HostB.act * v HostB.reg, msgW⟩] ++ HostB.inters.drop 5
 /-- An active `HOSTB` row looks its call key `[ts, hid]` (the base id) up. -/
 def keySend : Inter := ⟨busHKey, true, v HostB.act, [v HostB.ts, v HostB.hid]⟩
-def inters : List Inter := wireInters ++ [keySend]
+/-- **The write count**: an active response byte that fills no register is a linear-memory write. -/
+def wcnt : Expr := v HostB.act * v HostB.dir * (1 - v HostB.reg)
+/-- **The memory-write pair** of a response byte (`RegW.newInters`' shape): consume the live byte
+`ob` at `ptr + pos` (producer time `mtp`), produce the written byte `bv` there at `ts`; `mtp < ts`. -/
+def writeInters : List Inter :=
+  [chRecv 3 HostB.memAddr 0 [v ob, 0, 0, 0] (v HostB.mtp) wcnt,
+   chSend 3 HostB.memAddr 0 [v HostB.bv, 0, 0, 0] (v HostB.ts) wcnt] ++
+  timeChk (v HostB.ts) (v HostB.mtp) (v HostB.hp) wcnt
+def inters : List Inter := wireInters ++ [keySend] ++ writeInters
 def table : Table := ⟨"HOSTB", cols, constraints, inters⟩
 theorem constraints_prefix : HostB.constraints <+: constraints := List.prefix_append _ _
-/-- Only the `busHostB` messages differ from `HostB`'s: every other bus sees the same interactions. -/
-theorem inters_filter (b : Nat) (s : Bool) (hb : b ≠ busHostB) (hk : b ≠ busHKey) :
-    inters.filter (fun i => i.bus = b ∧ i.send = s) = HostB.inters.filter (fun i => i.bus = b ∧ i.send = s) := by
+/-- The interactions before the write pair: only the `busHostB` messages (and the key lookup) differ
+from `HostB`'s. -/
+theorem inters_filter_base (b : Nat) (s : Bool) (hb : b ≠ busHostB) (hk : b ≠ busHKey) :
+    (wireInters ++ [keySend]).filter (fun i => i.bus = b ∧ i.send = s) =
+      HostB.inters.filter (fun i => i.bus = b ∧ i.send = s) := by
   have e : HostB.inters = (HostB.inters.take 5) ++ HostB.inters.drop 5 := (List.take_append_drop _ _).symm
-  simp only [inters, wireInters, List.filter_append]
+  simp only [wireInters, List.filter_append]
   conv => rhs; rw [e, List.filter_append]
   have h1 : HostB.inters.take 5 = [⟨busHostB, true, v HostB.act * (1 - v HostB.dir) * (1 - v HostB.reg), HostB.msg⟩,
       ⟨busHostB, false, v HostB.act * (1 - v HostB.dir) * (1 - v HostB.reg), HostB.msg⟩,
@@ -244,6 +279,22 @@ theorem inters_filter (b : Nat) (s : Bool) (hb : b ≠ busHostB) (hk : b ≠ bus
       ⟨busHostB, true, v HostB.act * v HostB.reg, HostB.msg⟩] := rfl
   rw [h1]
   simp [keySend, Ne.symm hb, Ne.symm hk]
+/-- Only the `busHostB` messages and the write pair differ from `HostB`'s: every bus other than
+`busHostB`, `busHKey`, the CH bus and RANGE16 sees the same interactions. -/
+theorem inters_filter (b : Nat) (s : Bool) (hb : b ≠ busHostB) (hk : b ≠ busHKey) (hs : b ≠ busStk)
+    (hr : b ≠ busR16) :
+    inters.filter (fun i => i.bus = b ∧ i.send = s) = HostB.inters.filter (fun i => i.bus = b ∧ i.send = s) := by
+  rw [inters, List.filter_append, inters_filter_base b s hb hk]
+  have : writeInters.filter (fun i => i.bus = b ∧ i.send = s) = [] := by
+    simp [writeInters, chRecv, chSend, timeChk, r16, Ne.symm hs, Ne.symm hr]
+  rw [this, List.append_nil]
+/-- On the CH bus `HOSTB` with the key lookup and the write pair has `HOSTB`'s interactions followed
+by the write pair's. -/
+theorem inters_filter_stk (s : Bool) :
+    inters.filter (fun i => i.bus = busStk ∧ i.send = s) =
+      HostB.inters.filter (fun i => i.bus = busStk ∧ i.send = s) ++
+        writeInters.filter (fun i => i.bus = busStk ∧ i.send = s) := by
+  rw [inters, List.filter_append, inters_filter_base busStk s (by decide) (by decide)]
 end HostBK
 
 namespace RegCK

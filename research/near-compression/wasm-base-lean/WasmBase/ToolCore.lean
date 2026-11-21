@@ -98,14 +98,24 @@ structure HostEv where
   gAfter : Nat
   /-- the register file the call left behind (`[id, bytes]`), i.e. what it filled -/
   regs : List (Nat × List Nat) := []
+  /-- the linear-memory bytes the call wrote, `[ptr, bytes]` (A-T1: the 16-byte `setU128H` writes
+  of `account_balance` 37, `account_locked_balance` 38, `attached_deposit` 39,
+  `validator_total_stake` 43, `validator_stake` 44; `read_register`'s write is traced from REG) -/
+  wr : List (Nat × List Nat) := []
   deriving Inhabited
+
+/-- The `setU128H` write pointer of a host id: the argument index of `ptr` (A-T1). -/
+def u128WritePtr (hid : Nat) (args : List Nat) : Option Nat :=
+  if hid = 37 ∨ hid = 38 ∨ hid = 39 ∨ hid = 43 then args[0]?
+  else if hid = 44 then args[2]? else none
 
 def hostEvJson (e : HostEv) : String :=
   "{\"hid\":" ++ toString e.hid ++ ",\"np\":" ++ toString e.np ++ ",\"ar\":" ++ toString e.ar ++
   ",\"args\":" ++ natList e.args ++ ",\"st\":" ++ toString e.st ++ ",\"word\":" ++ toString e.word ++
   ",\"gAfter\":" ++ toString e.gAfter ++
   ",\"regs\":" ++ jList ((e.regs).map fun (id, bs) =>
-    "[" ++ toString id ++ "," ++ natList bs ++ "]") ++ "}"
+    "[" ++ toString id ++ "," ++ natList bs ++ "]") ++
+  ",\"wr\":" ++ jList ((e.wr).map fun (p, bs) => "[" ++ toString p ++ "," ++ natList bs ++ "]") ++ "}"
 
 /-- The signature of an import index, from the fixed host table. -/
 def hostSigOf (p : Prepared) (fi : Nat) : Option (Nat × Nat × Nat) :=
@@ -149,8 +159,11 @@ def runStepsH (cfg : NearCfg) (p : Prepared) :
            | .i32 v => v.toNat
            | .i64 v => v.toNat
            | .f32 _ | .f64 _ | .ref _ => 0) else 0
+        let wr := match u128WritePtr hid args with
+          | some q => [(q, (List.range 16).map fun i => (readByte os (q + i)).toNat)]
+          | none => []
         let ev : HostEv := { hid, np, ar, args, st := 0, word, gAfter := os.gas.g,
-                             regs := os.registers.toList.map fun (id, d) => (id, d.toList.map (·.toNat)) }
+                             regs := os.registers.toList.map fun (id, d) => (id, d.toList.map (·.toNat)), wr }
         runStepsH cfg p k os (n + 1) (evs ++ [ev])
       | .abort os e =>
         let ev : HostEv := { hid, np, ar, args, st := 1, word := 0, gAfter := os.gas.g,

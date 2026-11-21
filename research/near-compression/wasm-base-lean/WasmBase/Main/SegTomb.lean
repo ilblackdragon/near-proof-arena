@@ -250,15 +250,18 @@ theorem noSend4_space {T : Table} (hT : NoSend4 T = true) {tr : Trace} {pub : Li
 theorem host_noSend4 : NoSend4 Host.table = true ∧ NoSend4 HostB.table = true ∧ NoSend4 RegW.table = true ∧
     NoSend4 GasT = true := by decide +kernel
 
+theorem host_noSend4W : NoSend4 HostBW = true := by decide +kernel
+
 /-- **A HOST row produces no space-4 message** (its own sends, its call's `HOSTB` and REG-C net
 traffic, its gas register). -/
 theorem host_send_no4 {tr : Trace} {pub : List F} {r : Nat} {x : Msg} (hx : x ∈ prodCHS tr pub (22, r)) :
     x.space ≠ 4 := by
   obtain ⟨h1, h2, h3, h4⟩ := host_noSend4
-  simp only [prodCHS, prodCHM2, rowProdM, hostbProdH, regProdH, gasProdH, ite_true, List.mem_append] at hx
+  simp only [prodCHS, prodCHM2, rowProdM, hostbProdH, regProdH, gasProdH, hbwProdH, ite_true,
+    List.mem_append] at hx
   have ec : chipTM2 22 = Host.table := rfl
   rw [ec] at hx
-  rcases hx with (hx | hx | hx) | hx
+  rcases hx with ((hx | hx | hx) | hx) | hx
   · exact noSend4_space h1 hx
   · simp only [hostbProdOf, List.mem_flatMap] at hx
     obtain ⟨r', -, hx⟩ := hx; exact noSend4_space h2 hx
@@ -269,6 +272,8 @@ theorem host_send_no4 {tr : Trace} {pub : List F} {r : Nat} {x : Msg} (hx : x �
     · cases hx
     · exact noSend4_space h3 hx
   · exact noSend4_space h4 hx
+  · simp only [hbwProdOf, List.mem_flatMap] at hx
+    obtain ⟨r', -, hx⟩ := hx; exact noSend4_space host_noSend4W hx
 
 /-! ## 3. The count -/
 

@@ -1,0 +1,8 @@
+TRACE steps 26 cuts 0 tracegen 0.07s
+SEGBUILD 0 0.25s
+SEG 0 t (0, 26] steps 26 halted 1 | boundary: stream in 2 out 13 msgs, blocks 1 (read-only 0), drops 0 tombs 0, compressions 60 (stream 10, MEMB 18, MPATH 32)
+  CELLS instruction+lookup tables 1448576 | boundary tables 12520 | SHA-512 chip 681088 (height 8192) | total 2142184
+
+thread 'main' (243096) panicked at src/segcmd.rs:158:23:
+segment 0: 8 unbalanced messages by bus {208: 1, 209: 1, 210: 6}; first [((208, [18, 58, 18, 5, 1, 0, 0, 0, 5, 0, 16, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]), 1, Some(("HOST", 3))), ((209, [18, 0, 1, 0, 1584893440, 12547, 1, 0]), -1, Some(("HOST", 3))), ((210, [18, 58, 0, 0, 116]), 1, Some(("HOSTB", 9)))]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace

@@ -1,4 +1,7 @@
 import StateM5a.SnFinal6
+import StateM5a.FieldWsx
+import StateM5a.StHostIf
+import StateM5a.TmplView
 import StateM5a.SnContRec4
 import StateM5a.M5bFinal
 import StateM5a.SnFinal5
@@ -696,3 +699,20 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.StHost.hostOK_of
 #print axioms StateM5a.StHost.hostReqs_of_tape
 #print axioms StateM5a.StHost.m5b_final_tape
+#print axioms StateM5a.StateViewParams.fitsReach_iff
+#print axioms StateM5a.StateViewParams.keysOf_fitsReach
+#print axioms StateM5a.Merkle.root_replicate
+#print axioms StateM5a.Merkle.root_pad
+#print axioms StateM5a.Merkle.ext_inj
+#print axioms StateM5a.TmplView.zeroDig_eq
+#print axioms StateM5a.TmplView.wsRoot_ext
+#print axioms StateM5a.m5tIF_tables
+#print axioms StateM5a.m5tSeg_tables
+#print axioms StateM5a.WS_DEPTH_eq
+#print axioms StateM5a.m5tSegH_tables
+#print axioms StateM5a.stwH_hid
+#print axioms StateM5a.Merkle.wsxChain_out
+#print axioms StateM5a.FieldWsx.wsx_layout
+#print axioms StateM5a.FieldWsx.wsx_link
+#print axioms StateM5a.FieldWsx.wsx_first_z
+#print axioms StateM5a.FieldWsx.wsx_top_pub

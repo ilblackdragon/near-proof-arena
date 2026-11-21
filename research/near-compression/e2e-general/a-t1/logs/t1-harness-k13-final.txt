@@ -1,0 +1,41 @@
+# T1 M10 driver report
+
+case `/data/illia/nearproof-deps/corpora/d3c8/d3/02-h10196-s3`, 2026-11-21 03:02:11
+
+| component | owner | status | detail |
+|---|---|---|---|
+| Lean checker (allFeatures) + FinalOut reference | spec | **pass** | verdict accept, FinalOut 14/14 header fields = run outputs |
+| statement S (StmtEnc, §3.4.1) | E/I | **pass** | S 1007 B (stmtPre 416 + 4 + stmtPost 587), section B 4967 B private, claimDigest bb5aad11ba6ba32d…; = Lean StmtEval True; = kernel t1_S_len/t1_claimDigest True |
+| Wasm calls (Lean tape vs clean-room) | A | **pass** | 1 call(s); cached lane A M3 corpus tape /data/illia/nearproof-deps/e2e- |
+| segment plan (BndRec cuts, Templates.lean) | I/E | **pass** | 8 segments INIT / STATE / RT enter / WASM / WASM / RT resume / STATE / FINAL; digest chain True; 9 records = Lean BndRec.encode/bdigest True; placeholders remain |
+| Wasm whole call (wasmBaseM2Air) | A | **pass** | call 0: check True, return/logs equal True/True, proved+verified True (1474032 B, prove 18.314 s, verify 0.0293 s; CODE root recomputed natively from code 8152bed2…) |
+| Wasm segments (wasmBaseSegAirMP) | A | **pass** | call 0 k=13: 2 seg, precheck 2, chained True; boundary = Lean run 16/16; Lean HoldsX∧ChipIf 2/2; segprove 1316181 B 32.4 s / 50 ms, 1326471 B 31.2 s / 50 ms |
+| state M5b (INTAKE trie + working set + writes + FINAL root) | B | **pass** | post root = header True, precheck True, boundary checks 6/6, verified True 1476227 B 71.98 s |
+| intake (INIT) | G | **missing** | claim + witness decoding in-circuit, receipt intake, INIT leaf: B_0 = Init(claimDigest) -> eng I start with ctxRoot = ctxD(I) (SegSoundInit) |
+| receipt step (RT enter/next/resume) | F | **missing** | FunctionCall action, refund, outcome, gas/compute counters around the VM call, VM answered from the tape K (SegSoundRt) |
+| VM-free engine steps (STATE) | B (+F) | **missing** | STATE leaves: the forward receipt, queue/yield steps, as split leaves exposing stRoot = stD(StV) (SegSoundState); M5b today is one INIT..FINAL proof |
+| join-M6 | A + B | **missing** | HOSTQ/HOSTR/HOSTB produced by STATE rows in the WASM segment's trace (HostIf); HOSTO oracle removed |
+| prep | unassigned | **missing** | PREP: `.pre -> .ent` (SHA-256(code) = code hash, checkModuleM2 + instrumentation -> CODE/FUNC roots = wasm.codeRoot/funcRoot) |
+| finalout (FINAL) | G | **missing** | outcome root, outgoing receipts root, congestion, bandwidth requests, RS encoded_merkle_root/length, tx root; FINAL leaf checks headerOk vs S (SegSoundFinal) |
+| leaves | A/B/F/G + D | **missing** | pinned per-template shapes (blocker 4), leaf statement [phase, h(B)] (§3.4.1), leaf wrapper build_seg_leaf per template |
+| aggregation-M8 | D | **missing** | heterogeneous tree over T1's leaves (exists for D0a base templates only; T1 is not D0a) |
+| wrap-M9 | D | **missing** | ZK wrap over that root with V_d over S only (exists for D0a trees); WrapInitSound / WrapFinalSound |
+| lean-e2e | E | **missing** | e2e_sound_t1 premises discharged per lane (SegSound*, NvFaithfulE2E); M11 non-vacuity on T1 done |
+
+## Segment plan (lane E T1 templates)
+
+| # | template | owner | d_out | what |
+|---|---|---|---|---|
+| 0 | INIT | G (SegSoundInit) | `44eefc6124031aa6…` | init cb wb -> eng I start (CM.step: decode claim + witness, intake; M5b INTAKE: pre-state trie) |
+| 1 | STATE | B (SegSoundState) | `a2e7b254c439051c…` | VM-free engine steps: r0 s5a00 (receipt); up to receipt 1's step |
+| 2 | RT enter | F (SegSoundRt) | `c667b45ba0dde46f…` | receipt 1 (s5k210.s2a00): enter call 0 run (eng I c -> call I c [] q .pre) |
+| 3 | WASM | A (SegSoundWasm) | `9bc23d545b9553f9…` | call 0 run steps (0, 13] of 26: lane A wasmBaseSegAirMP segment 0 |
+| 4 | WASM | A (SegSoundWasm) | `6048b4553977daf6…` | call 0 run steps (13, 26] of 26 (halts): lane A wasmBaseSegAirMP segment 1 |
+| 5 | RT resume | F (SegSoundRt) | `aecc4056365925f7…` | receipt 1: the receipt step with the VM answered from the tape (refund, outcome) |
+| 6 | STATE | B (SegSoundState) | `aecc4056365925f7…` | VM-free engine steps: (none of the outcomes) -> eng I <done out> (yields, delayed queue, ...) |
+| 7 | FINAL | G (SegSoundFinal) | `96e9a15ee00865c3…` | eng done -> fin -> done H o: implicit transitions, outputs, headerOk (M5b FINAL: post-state root) |
+
+## Mismatches
+
+none
+

@@ -1,0 +1,13 @@
+M5T1/Audit.lean:6:0: 'M5T1.chain_val' depends on axioms: [propext, Quot.sound]
+M5T1/Audit.lean:7:0: 'M5T1.lin_val' depends on axioms: [propext, Classical.choice, Quot.sound]
+M5T1/Audit.lean:8:0: 'M5T1.RxField.rx_rel_of_row' depends on axioms: [propext, Classical.choice, Quot.sound]
+M5T1/Audit.lean:9:0: 'M5T1.SpecLink.consts' does not depend on any axioms
+M5T1/Audit.lean:10:0: 'M5T1.SpecLink.actExec_fc' depends on axioms: [propext]
+M5T1/Audit.lean:11:0: 'M5T1.SpecLink.refunds_fc' depends on axioms: [propext, Quot.sound]
+M5T1/Audit.lean:12:0: 'M5T1.SpecLink.stake_fc' depends on axioms: [propext, Quot.sound]
+M5T1/Audit.lean:13:0: 'M5T1.SpecLink.merge_fc' depends on axioms: [propext, Quot.sound]
+M5T1/Audit.lean:14:0: 'M5T1.SpecLink.burnt_fc' depends on axioms: [propext, Quot.sound]
+M5T1/Audit.lean:15:0: 'M5T1.SpecLink.totals_fc' depends on axioms: [propext, Quot.sound]
+M5T1/Audit.lean:16:0: 'M5T1.SpecLink.validActs_fc' depends on axioms: [propext, Classical.choice, Quot.sound]
+M5T1/Audit.lean:17:0: 'M5T1.T1.t1_rel' does not depend on any axioms
+M5T1/Audit.lean:18:0: 'M5T1.T1.t1_spec' depends on axioms: [propext, Quot.sound]

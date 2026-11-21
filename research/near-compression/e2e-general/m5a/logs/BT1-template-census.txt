@@ -1,0 +1,22 @@
+cases 19007, state 19007, trace OK 16205 (85.26 %)
+natural D: {2: 11, 3: 123, 4: 2990, 5: 10470, 6: 2057, 7: 554}
+
+class S: D = 5, members 13594 (natural D <= 5 not in an earlier class), IF covers 13580 (99.90 %, q 0.983); one-segment seg covers 99.36 % (q 0.966)
+  IF  pins {"BR": 9, "KCMP": 9, "KEY": 10, "RNG": 8, "SHA": 13, "SHA512": 15, "SN": 8, "SNC": 5, "WSB": 6, "WSN": 6, "WSX": 5}
+  seg pins {"HTAPE": 13, "RNG": 8, "SHA": 12, "SHA512": 15, "STB": 13, "STW": 5, "WSA": 5, "WSL": 5, "WSP": 5, "WSX": 5}
+  STATE segments per case (cut on STB overflow): {1: 13493, 2: 82, 3: 5}
+  template S: IF 7.91 M cells (w_stack 10), seg 5.03 M (w_stack 8), segh w_stack 8
+
+class M: D = 6, members 2071 (natural D <= 6 not in an earlier class), IF covers 2053 (99.13 %, q 0.986); one-segment seg covers 99.28 % (q 0.947)
+  IF  pins {"BR": 10, "KCMP": 9, "KEY": 11, "RNG": 8, "SHA": 14, "SHA512": 16, "SN": 9, "SNC": 6, "WSB": 7, "WSN": 7, "WSX": 5}
+  seg pins {"HTAPE": 14, "RNG": 8, "SHA": 12, "SHA512": 16, "STB": 14, "STW": 6, "WSA": 6, "WSL": 6, "WSP": 6, "WSX": 5}
+  STATE segments per case (cut on STB overflow): {1: 2049, 2: 4}
+  template M: IF 15.81 M cells (w_stack 6), seg 7.82 M (w_stack 5), segh w_stack 5
+
+class L: D = 7, members 572 (natural D <= 7 not in an earlier class), IF covers 570 (99.65 %, q 0.985); one-segment seg covers 99.83 % (q 0.978)
+  IF  pins {"BR": 11, "KCMP": 10, "KEY": 12, "RNG": 8, "SHA": 15, "SHA512": 17, "SN": 10, "SNC": 5, "WSB": 8, "WSN": 8, "WSX": 5}
+  seg pins {"HTAPE": 15, "RNG": 8, "SHA": 13, "SHA512": 17, "STB": 15, "STW": 7, "WSA": 7, "WSL": 7, "WSP": 7, "WSX": 5}
+  STATE segments per case (cut on STB overflow): {1: 570}
+  template L: IF 31.59 M cells (w_stack 10), seg 15.63 M (w_stack 7), segh w_stack 7
+
+total covered 16203 / 16205 trace-OK cases (99.99 %); of all state cases 85.25 %

@@ -103,6 +103,7 @@ impl TableSpec {
     }
 }
 
+#[derive(Clone)]
 pub struct AirSpec {
     pub num_pub: usize,
     pub tables: Vec<TableSpec>,

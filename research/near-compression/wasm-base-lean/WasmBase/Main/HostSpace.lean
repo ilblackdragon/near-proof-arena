@@ -34,6 +34,7 @@ theorem constSp_host : ConstSp Host.table = true := by decide +kernel
 theorem constSp_hostb : ConstSp HostB.table = true := by decide +kernel
 theorem constSp_regw : ConstSp RegW.table = true := by decide +kernel
 theorem constSp_gas : ConstSp GasT = true := by decide +kernel
+theorem constSp_hostbw : ConstSp HostBW = true := by decide +kernel
 
 /-- A CH message of a constant-space table is in one of `hostSpaces`. -/
 theorem constSp_msg {T : Table} (hS : ConstSp T = true)
@@ -85,9 +86,9 @@ theorem host_prod_space (tr : Trace) (pub : List F) {ρ : Nat × Nat} (h22 : ρ.
   obtain ⟨t, r⟩ := ρ
   simp only at h22; subst h22
   intro x hx
-  simp only [prodCHS, prodCHM2, rowProdM, hostbProdH, regProdH, gasProdH, chipTM2, ite_true,
+  simp only [prodCHS, prodCHM2, rowProdM, hostbProdH, regProdH, gasProdH, hbwProdH, chipTM2, ite_true,
     List.mem_append] at hx
-  rcases hx with ((hx | hx | hx) | hx)
+  rcases hx with (((hx | hx | hx) | hx) | hx)
   · exact constSp_rowProd constSp_host x hx
   · unfold hostbProdOf at hx
     obtain ⟨r', -, hx⟩ := List.mem_flatMap.mp hx
@@ -100,6 +101,9 @@ theorem host_prod_space (tr : Trace) (pub : List F) {ρ : Nat × Nat} (h22 : ρ.
     · exact constSp_rowProd constSp_regw x hx
   · unfold gasProdOf at hx
     exact constSp_rowProd constSp_gas x hx
+  · unfold hbwProdOf at hx
+    obtain ⟨r', -, hx⟩ := List.mem_flatMap.mp hx
+    exact constSp_rowProd constSp_hostbw x hx
 
 /-- **Every message a HOST row consumes** is in space 0, 3, 6 or 7. -/
 theorem host_cons_space (tr : Trace) (pub : List F) {ρ : Nat × Nat} (h22 : ρ.1 = 22) :
@@ -107,9 +111,9 @@ theorem host_cons_space (tr : Trace) (pub : List F) {ρ : Nat × Nat} (h22 : ρ.
   obtain ⟨t, r⟩ := ρ
   simp only at h22; subst h22
   intro x hx
-  simp only [consCHS, consCHM2, rowConsM, hostbConsH, regConsH, gasConsH, chipTM2, ite_true,
+  simp only [consCHS, consCHM2, rowConsM, hostbConsH, regConsH, gasConsH, hbwConsH, chipTM2, ite_true,
     List.mem_append] at hx
-  rcases hx with ((hx | hx | hx) | hx)
+  rcases hx with (((hx | hx | hx) | hx) | hx)
   · exact constSp_rowCons constSp_host x hx
   · unfold hostbConsOf at hx
     obtain ⟨r', -, hx⟩ := List.mem_flatMap.mp hx
@@ -120,6 +124,9 @@ theorem host_cons_space (tr : Trace) (pub : List F) {ρ : Nat × Nat} (h22 : ρ.
     exact constSp_rowCons constSp_regw x hx
   · unfold gasConsOf at hx
     exact constSp_rowCons constSp_gas x hx
+  · unfold hbwConsOf at hx
+    obtain ⟨r', -, hx⟩ := List.mem_flatMap.mp hx
+    exact constSp_rowCons constSp_hostbw x hx
 
 /-- **The space clause at a HOST row** (`RowQ` for `SpC`), for any trace: the row's fused messages
 are in allowed spaces. -/
