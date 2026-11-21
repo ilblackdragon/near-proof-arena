@@ -1434,7 +1434,7 @@ class Gen:
             mv = 0
             if pr and vlen > 0:
                 mv = m
-                m = self.st_run(m, t, vptr, v, hid)
+                m = self.st_run(m, t, vptr, v, hid + 256)   # A-T1: the value buffer's wire id 314
             r = Tw.new()
             Tw.set(r, 'act', 1); Tw.set(r, 'seg', self.sv(seg)); Tw.set(r, 'ts', t); Tw.set(r, 'pr', pr)
             Tw.set(r, 've', ve); Tw.set(r, 'ke', ke); Tw.set(r, 'klen', len(key)); Tw.set(r, 'kptr', kptr)
@@ -1467,7 +1467,7 @@ class Gen:
             for j, b in enumerate(key):
                 tape.append([B_HOSTB, True, [ts, hid, 0, kptr + j, b]])
             for j, b in enumerate(vb):
-                tape.append([B_HOSTB, True, [ts, hid, 0, vptr + j, b]])
+                tape.append([B_HOSTB, True, [ts, hid + 256, 0, vptr + j, b]])   # wire id 314
         return tape
 
     def st_tape(self, only_seg=None):

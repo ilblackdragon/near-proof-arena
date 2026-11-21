@@ -77,7 +77,7 @@ the B-T1 AIR, rejected by B-T1b's** (`precheck: WSX: constraint 118 fails on row
 **Re-proved [M]** (the IF AIR changed; the segment AIR did not): T1 at S — IF **491,416 B**, 35.2 s,
 verify 44 ms, 7.3 GB; seg0 473,236 B (unchanged AIR, re-proved), 37.2 s; chain OK, post root
 `1db48e38…249628` = Lean oracle (`logs/BT1b-T1S-prove.log`). T2_PLACEHOLDER
-Mutants on T1 at S: MUT_PLACEHOLDER
+Mutants on T1 at S (full prover, `logs/BT1b-T1S-mutants.txt`): **23 / 23 of B-T1's rejected** on the new AIR; `wsxsb` WSXSB_PLACEHOLDER
 
 ### Lane G's requests (coordinator, 2026-11-21) [S]
 
@@ -101,6 +101,31 @@ Mutants on T1 at S: MUT_PLACEHOLDER
    bytes `2t`, `2t+1`) received by lane G's `FIN` table at `FinIn` bytes 0..32 (lane G's layout,
    m5d README / leaf spec §4), in place of the public values 53–68. Bus id: lane E's numbering (not
    chosen here). Not built.
+
+### Lane A's join (A-T1, main `4d41313e3`) [K][S]
+
+* **Wire id 314 accepted [K]:** lane A sends `storage_write`'s value buffer on `HOSTB` under wire id
+  `58 + 256 = 314`. `StbH` now accepts `hid ∈ {58, 60, 314}` (`HID_WRITE_V`,
+  `act·(hid − 58)(hid − 60)(hid − 314)`) and `StwH`'s value-run `DESC` receive expects `hidE + 256`
+  (the value run exists only for `pr = 1`, so its id is 314; the key run keeps 58 / 60);
+  `tracegen.py --host` emits 314 for value bytes. (`HOSTB`'s 4th field is now lane A's absolute
+  address — what `StbH` already reads.)
+* **The 8 messages [S].** Lane A's joined T1 segment lacks `HOSTQ [18, 58, 18, 5, 1,0, 0,0, 5,0,
+  16,0, 1,0, …]`, `HOSTR [18, 0, 1, 0, g_lo, g_hi, 1, 0]` and 6 `HOSTB` bytes (key `t` at 0, value at
+  16..20). The layouts are exactly `StwH.qMsg` / `StwH`'s `HOSTR` send / `StbH`'s receive; what
+  supplies them is `m5tSegH`'s rows **inside lane A's WASM-leaf trace** (a storage call happens in a
+  WASM segment, not in a VM-free STATE segment), so the WASM leaf carries the working-set tables
+  and its `R_in → R_out` (`seg_rin_rout`'s statement for the HOST-fed tables). This session's
+  standalone `m5tSegH` dump still routes all 10 of T1's writes through a `HOSTTAPE` stand-in
+  (`S = 0`, `rid = 0`, segment-local `ts`); on the joined trace only the contract's write is a HOST
+  call (the other 9 are the runtime's, on `SREQ`/`HB` in STATE/RT segments). Building the joined
+  trace (lane A's tracer + `tracegen --host` for that one write with lane A's `ts`, `S`, `rid`) is
+  the next step; not done.
+* **What `StorageJoinObl` needs from these rows:** `hb` (the request bytes are exactly the key /
+  value buffers) is `StbH`'s `DESC`-closed runs at `base + j` — to be stated over lane A's
+  `hostReqBytes`; `ans` (`st`, the eviction word, `g_after`) and `regFill` (the evicted value's
+  register bytes) are M6.4 (below), in lane A's `SpecU` form of `ProducerObl.spec` (lane A found
+  the old `spec` unsatisfiable for `storage_write`); not done.
 
 ### Item 2 (M6.4: `HOSTR` from the state side) [S]
 

@@ -51,6 +51,8 @@ def B_HOSTR : Nat := 209
 def B_HOSTB : Nat := 210
 def HID_WRITE : Nat := 58
 def HID_REMOVE : Nat := 60
+/-- Lane A's wire id of `storage_write`'s second (value) buffer on `HOSTB` (`58 + 256`, A-T1). -/
+def HID_WRITE_V : Nat := HID_WRITE + 256
 /-- The host chip's argument count (`Host.nArgs`). -/
 def HOST_NARGS : Nat := 9
 
@@ -65,7 +67,7 @@ storage call's id. -/
 def constraints : List Expr :=
   Stb.constraints ++
   [.isTransition * nx "act" * (1 - c "last") * (nx "hid" - c "hid"),
-   c "act" * (c "hid" - K HID_WRITE) * (c "hid" - K HID_REMOVE)]
+   c "act" * (c "hid" - K HID_WRITE) * (c "hid" - K HID_REMOVE) * (c "hid" - K HID_WRITE_V)]
 
 def interactions : List Interaction :=
   let A := c "act"
@@ -99,7 +101,7 @@ def interactions : List Interaction :=
    snd B_HOSTR A [c "ts", 0, c "rlo", c "rhi", c "glo", c "ghi", 1, 0],
    rcv B_DESC gk [c "mk", c "ts", c "kptr", c "klen", hidE],
    rcv B_SHA_DIGEST gk ([K ID_ST + c "mk", c "klen"] ++ (List.range 32).map fun b => c "dk" b),
-   rcv B_DESC gv [c "mv", c "ts", c "vptr", c "vlen", hidE],
+   rcv B_DESC gv [c "mv", c "ts", c "vptr", c "vlen", hidE + K 256],
    rcv B_SHA_DIGEST gv ([K ID_ST + c "mv", c "vlen"] ++ (List.range 32).map fun b => c "dv" b),
    snd B_WRITE A ([0, c "ts"] ++ pack2 (fun b => c "dk" b) ++ [c "pr", c "vlen"] ++
      pack2 (fun b => c "dv" b))]
