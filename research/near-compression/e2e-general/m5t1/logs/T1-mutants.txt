@@ -1,0 +1,24 @@
+== gasburnt: mutant applied: ['gasburnt']
+PRECHECK FAIL: RX: constraint 244 fails on row 0
+REJECTED (prover error) after 0.2s
+== refund: mutant applied: ['refund']
+PRECHECK FAIL: RX: constraint 494 fails on row 0
+REJECTED (prover error) after 0.2s
+== status: mutant applied: ['status']
+PRECHECK FAIL: 4 unbalanced messages by bus {5: 2, 15: 2}; first [((5, [189, 0]), 2013265920), ((5, [189, 5]), 1), ((15, [1, 185, 116, 54, 235, 239, 240, 1, 142, 152, 226, 7, 33, 86, 99, 52, 210, 75, 86, 223, 141, 68, 35, 23, 197, 47, 2, 13
+REJECTED (prover error) after 0.2s
+== rcptid: mutant applied: ['rcptid']
+PRECHECK FAIL: 6 unbalanced messages by bus {4: 2, 15: 2, 16: 2}; first [((4, [231, 0, 50]), 2013265919), ((4, [231, 0, 51]), 2), ((15, [1, 28, 84, 207, 37, 49, 44, 207, 118, 101, 56, 209, 32, 78, 139, 26, 18, 66, 124, 65, 146, 23, 169, 192
+REJECTED (prover error) after 0.2s
+== statement: mutant applied: ['statement']
+PRECHECK FAIL: RX: constraint 950 fails on row 0
+REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim: BinomialExtensionField { value: [1478279103, 1884855920, 899964590, 114352569, 1857584983, 1728487353, 1412369956, 595098503, 1886205666, 1204371104, 1829727
+== acctpost: mutant applied: ['acctpost']
+PRECHECK FAIL: 4 unbalanced messages by bus {4: 2, 8: 2}; first [((4, [168, 0, 0]), 1), ((4, [168, 0, 1]), 2013265920), ((8, [4, 128, 0]), 2013265920)]
+REJECTED (prover error) after 0.2s
+== logbyte: mutant applied: ['logbyte']
+PRECHECK FAIL: 4 unbalanced messages by bus {4: 2, 15: 2}; first [((4, [184, 0, 116]), 1), ((4, [184, 0, 117]), 2013265920), ((15, [1, 7, 12, 253, 26, 185, 226, 84, 95, 244, 198, 196, 105, 84, 127, 167, 11, 195, 139, 248, 50, 254, 21, 139, 
+REJECTED (prover error) after 0.2s
+== vmburnt: mutant applied: ['vmburnt']
+PRECHECK FAIL: RX: constraint 950 fails on row 0
+REJECTED (prover error) after 0.2s
