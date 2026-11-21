@@ -6,6 +6,7 @@ import FinalM5d.RsRow
 import FinalM5d.RsByte
 import FinalM5d.Split
 import FinalM5d.BOut
+import FinalM5d.MrkWalk
 
 /-! Axiom audit of the M5d headline results: each must depend on `propext`, `Classical.choice`,
 `Quot.sound` only (no `sorryAx`, no `Lean.ofReduceBool`). -/
@@ -35,3 +36,5 @@ import FinalM5d.BOut
 #print axioms FinalM5d.Split.final_join_headerOk
 #print axioms FinalM5d.Split.segSoundInit_join
 #print axioms FinalM5d.BOut.encCIF1_hdrF1
+#print axioms FinalM5d.MrkWalk.walkLevel_eq
+#print axioms FinalM5d.MrkWalk.walkRoot_eq
