@@ -480,6 +480,39 @@ jobs) and B (`StateM5a`, 379 jobs) build green against the changed `View`. Log:
   per-proof union; depth 6 at arity 4 fails 128. Claim stated per level. Finding: `seg-v1` at 32
   grinding bits is 266.9 bits (< 268).
 
+**M11g (lane E, 2026-11-04/05) [K].** Standard axioms only, no `sorry`, checker sha256 unchanged.
+Log: [`docs/logs/e2e-lean-m11g-2026-11-04.md`](../logs/e2e-lean-m11g-2026-11-04.md).
+
+* **`NodeExec` restated over the circuit's own predicate.** `NvField.NvHold`: the four pinned
+  tables, **all exported** (`nv_export_all`: Sha512Air4, TableAir4, ByteAir added), constraints on
+  every row and the field LogUp balance (signed, merged counts) on every bus. The E2EAgg/E2ENode/
+  E2ETree composition is re-derived over a trace-predicate parameter (`E2EHold.lean`;
+  `e2e_sound_of_execH`, `wrapT_ofH`; the old statements are the `HoldsLogUp` instance).
+  `NodeExecV = NodeExecH NvHold`. Vacuity guard kept and grounded in the export
+  (`busUsers_exported`).
+* **Non-vacuity on an honest NV trace.** `nv_export_trace`: a small program run by the circuit's
+  own `nv_trace`, proved and verified by the backend, exported (4,096 rows, 792 used). Proved on it:
+  all 548 constraints on all rows (kernel DAG evaluation, `NvDagEval`), `MemBalance`, `PvdAt` at
+  both `PvD` rows, `ProgBound`, the `assert_eq` pair, and the tape lemma's conclusion. Not
+  exhibited: `NvHold` as a whole (the other tables' traces are not exported).
+* **`PvdAt` and the asserts proved from `NvHold`** (`NvProg.lean`): program binding (premise
+  `ProgBound`) → ALU role (`(1 − ka)·P1`) → op decode (constraint 1799, all 40 cases, partial
+  evaluation `NvAff`) → byte range (ByteAir's keys are byte pairs from its 9 exported constraints;
+  bus-11 field LogUp; premise `GlueByteBool` for four GLUE-row counts) → `op = 8b + a`.
+  `pvdAt_of`, `tapeAt_of`, `wrapTape_of_prog`, `asserted_eq` (every `assert_eq` of the bound
+  program holds on the memory cells), `contAsserts_of`, `nodeExecV_of_prog`.
+* **Left for `NodeExec`:** `ProgBound` (BIND/anchor/V_d binding of the program columns),
+  `GlueByteBool`, `NodeLink` (decode-level), `NodeSha`, `NodeInner`.
+* **`EngOvlInv`** (item 3): proved for the engine's accepting runs
+  (`OvlInv.lean`, `StViewE.engOvlInv_of`): the overlay trie is never modified after
+  `Ovl.ofTrie` and committed keys stay distinct (`reach_trie_nodup`), committed keys only grow
+  (`reach_covered`), over every overlay operation of the logged store and recorder programs.
+  Hypotheses (`IntakeOk`): key count ≤ 2^24, intake trie `wf`, revealed pre-state values < 2^24
+  bytes, `κ` covers the accepting run's output keys (true for the canonical `κRun`), and **`cur`:
+  committed values < 2^24 bytes — open** (the engine caps Wasm writes at 4 MiB; the pass through
+  the host and receipt limits is not done). Non-vacuity only for the conditions (no accepting-run
+  example).
+
 ---
 
 ## 4. Milestones to a first general-chunk E2E proof
@@ -558,12 +591,17 @@ status.
   consistency + `PvD`), with the bus-closure vacuity guard;
 * the soundness budget refreshed for D-8, with the claim stated per level.
 
-Next for lane E (M11g), in order:
-1. Restate `NodeExec` over the field-count LogUp semantics (`NvTape`'s), then `NodeAsserts`
-   (`Sub`/`Zero` over the same memory argument) and the `PvdAt` premise (program binding through
-   BIND/`Acc`, op decode through the byte bus with ByteAir in the model).
-2. `EngOvlInv` (the state view's reachability side), with lane B.
-3. Lane B: move `FitsReach` to `stOfK`; confirm `idxOf = 0` (index rebased at a cut).
+**M11g (lane E, 2026-11-04/05):** see §3.5. Done: `NodeExec` over the circuit's own predicate
+(all four tables exported), honest-trace non-vacuity, `PvdAt` and the program's asserts from
+program binding + op decode over the byte bus, and `EngOvlInv` for accepting runs (value bound `cur` still a hypothesis).
+
+Next for lane E (M11h), in order:
+1. `ProgBound` from BIND/anchor (the program-binding evaluation) and `GlueByteBool` from the GLUE
+   constraints; then `NodeSha` against the SHA contracts (Sha512Air4 is now exported).
+2. `EngOvlInv`'s `cur` (committed value bound through the Wasm host / receipt limits) and `wf` of
+   the revealed intake tries.
+3. A full-circuit honest trace (export the other three tables' traces) to exhibit `NvHold` itself.
+4. Lane B: move `FitsReach` to `stOfK`; confirm `idxOf = 0`.
 
 M11d's open list, updated:
 1. ~~A constructive recorder for `honestQ`~~ (M11e: `recordK`).
