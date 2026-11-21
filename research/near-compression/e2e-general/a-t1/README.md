@@ -57,8 +57,10 @@ and, with count `wcnt = act·dir·(1−reg)` (a response byte that fills no regi
 `chRecv 3 (ptr+pos) 0 [ob,0,0,0] mtp`, `chSend 3 (ptr+pos) 0 [byte,0,0,0] ts` and
 `timeChk ts mtp hp` — the STORE shape of REG's `read_register` write rows (`RegW.newInters`). `mtp` and
 `hp` are shared with the request rows (disjoint by `dir`). The Lean definition is sub-lane WCOV's
-(§1.4); until it lands, `patch_air_json.py` applies exactly this change to the exported JSON
-(`AIR_PATCH=1`).
+(§1.4). Before it landed, `patch_air_json.py` applied the change to the exported JSON
+(`AIR_PATCH=1`). After WCOV's commit, `wasmbase-tool airSegMP 0 0` exports a JSON **equal** to the
+patched one (all tables; HOSTB: same 17 columns, same 20 interactions), so every measurement below
+holds for the Lean AIR as is.
 
 Tooling:
 * `wasmbase-tool prep*` (`ToolCore.lean`): every host event carries `wr` = `[ptr, 16 bytes]` for
