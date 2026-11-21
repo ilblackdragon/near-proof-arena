@@ -3,6 +3,7 @@ import FinalM5d.T1Check
 import FinalM5d.RsCoeff
 import FinalM5d.HbWhole
 import FinalM5d.RsRow
+import FinalM5d.RsByte
 
 /-! Axiom audit of the M5d headline results: each must depend on `propext`, `Classical.choice`,
 `Quot.sound` only (no `sorryAx`, no `Lean.ofReduceBool`). -/
@@ -25,3 +26,5 @@ import FinalM5d.RsRow
 #print axioms FinalM5d.HbWhole.final_template_sound_holds
 #print axioms FinalM5d.RsRow.rs_parity_bit
 #print axioms FinalM5d.RsRow.rs_parity_bit_holds
+#print axioms FinalM5d.RsByte.rs_parity_byte
+#print axioms FinalM5d.RsByte.rs_parity_byte_holds

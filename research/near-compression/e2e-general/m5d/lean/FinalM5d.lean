@@ -14,4 +14,5 @@ import FinalM5d.BusMem
 import FinalM5d.Whole
 import FinalM5d.HbWhole
 import FinalM5d.RsRow
+import FinalM5d.RsByte
 import FinalM5d.Audit
