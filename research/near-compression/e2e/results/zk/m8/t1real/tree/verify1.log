@@ -1,0 +1,25 @@
+VERIFY_PROFILE_MS total=43.12 wrap_verify=30.10
+INDEPENDENT_HTREE_VERIFY_OK bundle_bytes=330648
+	Command being timed: "taskset -c 8 /data/illia/nearproof-deps/pq-e2e-m8/drv2/release/nearproof-chunk-e2e m8-verify /data/illia/nearproof-deps/pq-e2e-m8/real/tree/SETUP.json 0da5d13f0321ebe136fdc1e7382c60f9d407ee373e85cad4818a34ac89c5ebed /data/illia/nearproof-deps/pq-e2e-m8/real/tree/WRAP.bundle"
+	User time (seconds): 0.03
+	System time (seconds): 0.00
+	Percent of CPU this job got: 93%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.04
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 21852
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 5
+	Minor (reclaiming a frame) page faults: 4374
+	Voluntary context switches: 10
+	Involuntary context switches: 8
+	Swaps: 0
+	File system inputs: 2128
+	File system outputs: 8
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

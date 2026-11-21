@@ -1,0 +1,25 @@
+M8_LANE_A cells=2140696 tables=34 chip_comps=58 degree=9
+M8_TEMPLATE_PROVED wasm_seg bytes=416907 seconds=440.7 params=(n_stack 18, w_stack 8, lb 7) queries=[44, 35, 27, 23] bits=269.6
+	Command being timed: "taskset -c 4-9 /data/illia/nearproof-deps/pq-e2e-m8/target/release/nearproof-chunk-e2e m8-prove-a /data/illia/nearproof-deps/pq-e2e-m8/laneA/airSeg.json /data/illia/nearproof-deps/pq-e2e-m8/laneA/seg-0.bin /data/illia/nearproof-deps/pq-e2e-m8/tmpl/wasm0 /data/illia/nearproof/.claude/worktrees/agent-ab612a0268a59b4fb/research/near-compression/final-soundness/calc/dkt_certs_o2.json /data/illia/nearproof/.claude/worktrees/agent-ab612a0268a59b4fb/research/near-compression/final-soundness/lean/DKTCertsO2_big.keys ns18lb7"
+	User time (seconds): 1739.99
+	System time (seconds): 56.71
+	Percent of CPU this job got: 407%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 7:20.85
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 12150728
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 52377660
+	Voluntary context switches: 48146
+	Involuntary context switches: 736518
+	Swaps: 0
+	File system inputs: 208
+	File system outputs: 3096
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

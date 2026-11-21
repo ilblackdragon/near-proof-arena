@@ -1,0 +1,939 @@
+M8_CLAIM_S bytes=1007 claimDigest=bb5aad11ba6ba32d91739f13a2dbd544f2420d770bcd2c3fde9ddc0e1c02710caee28e5e9e4e299f2f01
+M8_TREE arity=4 depth=2 n_rec=138 stmt_len=239 templates=4 node_margin=1.13
+M8_LEAF 0 template=INIT phase 1->3 child=false
+M8_LEAF 1 template=WASM phase 3->3 child=true
+M8_LEAF 2 template=WASM phase 3->3 child=true
+M8_LEAF 3 template=STATE phase 3->3 child=true
+M8_LEAF 4 template=FINAL phase 3->2 child=false
+M8_CHAIN_OK leaves=8 (natively: ctx, indices, boundary digests)
+NV_GEN finish ms=0
+NV_GEN replay ms=0
+NV_GEN profile ms=0 HeightProfile { k_samples: 0, n_runs: 0, j_actual: 0, jobs_actual: 0, jobs_min: 0, samp_actual: 0, samp_min: 0, nv_rows_per_job: 0, comps_per_job: 0, nv_delta_actual: 0, comps_delta_actual: 0 }
+M8_LEAF_PROBE 0 rows=3368 pin=[(21, Some(5124)), (11, Some(1152)), (7, Some(128)), (16, Some(65536))] s=0.1
+NV_PHASE before_dag 51322
+NV_DAG air=15 nodes=15 rows_so_far=51396
+NV_DAG air=16 nodes=242 rows_so_far=51714
+NV_DAG air=32 nodes=5848 rows_so_far=58037
+NV_DAG air=33 nodes=1234 rows_so_far=59781
+NV_DAG air=24 nodes=10 rows_so_far=59853
+NV_DAG air=17 nodes=10 rows_so_far=59910
+NV_DAG air=19 nodes=2308 rows_so_far=62416
+NV_DAG air=20 nodes=417 rows_so_far=74700
+NV_DAG air=27 nodes=175 rows_so_far=76676
+NV_DAG air=31 nodes=491 rows_so_far=77760
+NV_DAG air=6 nodes=29 rows_so_far=78318
+NV_DAG air=25 nodes=99 rows_so_far=78566
+NV_DAG air=0 nodes=68 rows_so_far=78844
+NV_DAG air=1 nodes=127 rows_so_far=79269
+NV_DAG air=2 nodes=124 rows_so_far=79659
+NV_DAG air=3 nodes=216 rows_so_far=80265
+NV_DAG air=4 nodes=577 rows_so_far=81459
+NV_DAG air=5 nodes=270 rows_so_far=82392
+NV_DAG air=7 nodes=100 rows_so_far=82768
+NV_DAG air=8 nodes=87 rows_so_far=83126
+NV_DAG air=9 nodes=116 rows_so_far=83388
+NV_DAG air=10 nodes=604 rows_so_far=84454
+NV_DAG air=11 nodes=294 rows_so_far=85410
+NV_DAG air=12 nodes=212 rows_so_far=86412
+NV_DAG air=13 nodes=1005 rows_so_far=88701
+NV_DAG air=14 nodes=94 rows_so_far=91637
+NV_DAG air=18 nodes=27 rows_so_far=91971
+NV_DAG air=21 nodes=10 rows_so_far=92046
+NV_DAG air=22 nodes=412 rows_so_far=92676
+NV_DAG air=23 nodes=44 rows_so_far=93883
+NV_DAG air=26 nodes=39 rows_so_far=94029
+NV_DAG air=28 nodes=67 rows_so_far=94238
+NV_DAG air=29 nodes=17 rows_so_far=94429
+NV_DAG air=30 nodes=373 rows_so_far=95030
+NV_PHASE after_dag 95637
+NV_PHASE after_stacking 122231
+NV_QCOST round=0 queries=44 rows=23658 per_query=538 nbits=25 k=2 merkle_nodes=3828
+NV_QCOST round=1 queries=35 rows=12782 per_query=365 nbits=23 k=4 merkle_nodes=4773
+NV_QCOST round=2 queries=27 rows=9855 per_query=365 nbits=23 k=4 merkle_nodes=5502
+NV_QCOST round=3 queries=23 rows=8395 per_query=365 nbits=23 k=4 merkle_nodes=6123
+NV_PHASE end 190540
+NV_GEN finish ms=11
+NV_GEN replay ms=303
+NV_GEN profile ms=304 HeightProfile { k_samples: 3357, n_runs: 253, j_actual: 220, jobs_actual: 414, jobs_min: 279, samp_actual: 1833, samp_min: 1680, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 1368, comps_delta_actual: 135 }
+M8_LEAF_PROBE 1 rows=192562 pin=[(21, Some(369240)), (21, Some(1233024)), (7, Some(128)), (16, Some(65536))] s=0.5
+NV_PHASE before_dag 51243
+NV_DAG air=15 nodes=15 rows_so_far=51317
+NV_DAG air=16 nodes=242 rows_so_far=51634
+NV_DAG air=32 nodes=5848 rows_so_far=57957
+NV_DAG air=33 nodes=1234 rows_so_far=59701
+NV_DAG air=24 nodes=10 rows_so_far=59773
+NV_DAG air=17 nodes=10 rows_so_far=59830
+NV_DAG air=25 nodes=99 rows_so_far=60006
+NV_DAG air=19 nodes=2308 rows_so_far=62742
+NV_DAG air=20 nodes=417 rows_so_far=75026
+NV_DAG air=30 nodes=373 rows_so_far=77241
+NV_DAG air=31 nodes=491 rows_so_far=78217
+NV_DAG air=6 nodes=29 rows_so_far=78775
+NV_DAG air=27 nodes=175 rows_so_far=79170
+NV_DAG air=0 nodes=68 rows_so_far=79593
+NV_DAG air=1 nodes=127 rows_so_far=80018
+NV_DAG air=2 nodes=124 rows_so_far=80408
+NV_DAG air=3 nodes=216 rows_so_far=81014
+NV_DAG air=4 nodes=577 rows_so_far=82208
+NV_DAG air=5 nodes=270 rows_so_far=83141
+NV_DAG air=7 nodes=100 rows_so_far=83517
+NV_DAG air=8 nodes=87 rows_so_far=83875
+NV_DAG air=9 nodes=116 rows_so_far=84137
+NV_DAG air=10 nodes=604 rows_so_far=85203
+NV_DAG air=11 nodes=294 rows_so_far=86159
+NV_DAG air=12 nodes=212 rows_so_far=87161
+NV_DAG air=13 nodes=1005 rows_so_far=89450
+NV_DAG air=14 nodes=94 rows_so_far=92386
+NV_DAG air=18 nodes=27 rows_so_far=92720
+NV_DAG air=21 nodes=10 rows_so_far=92795
+NV_DAG air=22 nodes=412 rows_so_far=93425
+NV_DAG air=23 nodes=44 rows_so_far=94632
+NV_DAG air=26 nodes=39 rows_so_far=94778
+NV_DAG air=28 nodes=67 rows_so_far=94987
+NV_DAG air=29 nodes=17 rows_so_far=95178
+NV_PHASE after_dag 95566
+NV_PHASE after_stacking 122097
+NV_QCOST round=0 queries=44 rows=23658 per_query=538 nbits=25 k=2 merkle_nodes=3828
+NV_QCOST round=1 queries=35 rows=12782 per_query=365 nbits=23 k=4 merkle_nodes=4773
+NV_QCOST round=2 queries=27 rows=9855 per_query=365 nbits=23 k=4 merkle_nodes=5502
+NV_QCOST round=3 queries=23 rows=8395 per_query=365 nbits=23 k=4 merkle_nodes=6123
+NV_PHASE end 190406
+NV_GEN finish ms=11
+NV_GEN replay ms=318
+NV_GEN profile ms=319 HeightProfile { k_samples: 3357, n_runs: 253, j_actual: 211, jobs_actual: 419, jobs_min: 279, samp_actual: 1837, samp_min: 1680, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 1417, comps_delta_actual: 140 }
+M8_LEAF_PROBE 2 rows=192428 pin=[(21, Some(369040)), (21, Some(1233024)), (7, Some(128)), (16, Some(65536))] s=0.6
+NV_PHASE before_dag 76130
+NV_DAG air=16 nodes=5848 rows_so_far=82388
+NV_DAG air=0 nodes=13847 rows_so_far=98640
+NV_DAG air=13 nodes=57 rows_so_far=99106
+NV_DAG air=15 nodes=12 rows_so_far=99202
+NV_DAG air=1 nodes=259 rows_so_far=99631
+NV_DAG air=9 nodes=134 rows_so_far=100044
+NV_DAG air=2 nodes=11249 rows_so_far=112126
+NV_DAG air=17 nodes=1234 rows_so_far=140610
+NV_DAG air=3 nodes=4825 rows_so_far=147828
+NV_DAG air=4 nodes=101 rows_so_far=157377
+NV_DAG air=5 nodes=468 rows_so_far=158136
+NV_DAG air=6 nodes=139 rows_so_far=159571
+NV_DAG air=11 nodes=311 rows_so_far=160689
+NV_DAG air=7 nodes=109 rows_so_far=162271
+NV_DAG air=10 nodes=367 rows_so_far=162921
+NV_DAG air=14 nodes=397 rows_so_far=165316
+NV_DAG air=8 nodes=2149 rows_so_far=169252
+NV_DAG air=12 nodes=21 rows_so_far=173398
+NV_PHASE after_dag 173624
+NV_PHASE after_stacking 230924
+NV_QCOST round=0 queries=44 rows=23833 per_query=542 nbits=25 k=2 merkle_nodes=3828
+NV_QCOST round=1 queries=35 rows=12781 per_query=365 nbits=23 k=4 merkle_nodes=4773
+NV_QCOST round=2 queries=27 rows=9855 per_query=365 nbits=23 k=4 merkle_nodes=5502
+NV_QCOST round=3 queries=23 rows=8395 per_query=365 nbits=23 k=4 merkle_nodes=6123
+NV_PHASE end 299413
+NV_GEN finish ms=18
+NV_GEN replay ms=332
+NV_GEN profile ms=333 HeightProfile { k_samples: 3597, n_runs: 272, j_actual: 247, jobs_actual: 460, jobs_min: 299, samp_actual: 1983, samp_min: 1800, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 1632, comps_delta_actual: 161 }
+M8_LEAF_PROBE 3 rows=300430 pin=[(21, Some(538816)), (21, Some(1353728)), (7, Some(128)), (16, Some(65536))] s=0.6
+NV_GEN finish ms=0
+NV_GEN replay ms=0
+NV_GEN profile ms=0 HeightProfile { k_samples: 0, n_runs: 0, j_actual: 0, jobs_actual: 0, jobs_min: 0, samp_actual: 0, samp_min: 0, nv_rows_per_job: 0, comps_per_job: 0, nv_delta_actual: 0, comps_delta_actual: 0 }
+M8_LEAF_PROBE 4 rows=3368 pin=[(21, Some(5124)), (11, Some(1152)), (7, Some(128)), (16, Some(65536))] s=0.1
+NV_GEN finish ms=0
+NV_GEN replay ms=0
+NV_GEN profile ms=0 HeightProfile { k_samples: 0, n_runs: 0, j_actual: 0, jobs_actual: 0, jobs_min: 0, samp_actual: 0, samp_min: 0, nv_rows_per_job: 0, comps_per_job: 0, nv_delta_actual: 0, comps_delta_actual: 0 }
+M8_LEAF_PROBE 5 rows=2674 pin=[(21, Some(4036)), (9, Some(384)), (7, Some(128)), (16, Some(65536))] s=0.1
+NV_GEN finish ms=0
+NV_GEN replay ms=0
+NV_GEN profile ms=0 HeightProfile { k_samples: 0, n_runs: 0, j_actual: 0, jobs_actual: 0, jobs_min: 0, samp_actual: 0, samp_min: 0, nv_rows_per_job: 0, comps_per_job: 0, nv_delta_actual: 0, comps_delta_actual: 0 }
+M8_LEAF_PROBE 6 rows=2674 pin=[(21, Some(4036)), (9, Some(384)), (7, Some(128)), (16, Some(65536))] s=0.1
+NV_GEN finish ms=0
+NV_GEN replay ms=0
+NV_GEN profile ms=0 HeightProfile { k_samples: 0, n_runs: 0, j_actual: 0, jobs_actual: 0, jobs_min: 0, samp_actual: 0, samp_min: 0, nv_rows_per_job: 0, comps_per_job: 0, nv_delta_actual: 0, comps_delta_actual: 0 }
+M8_LEAF_PROBE 7 rows=2674 pin=[(21, Some(4036)), (9, Some(384)), (7, Some(128)), (16, Some(65536))] s=0.1
+M8_LEAF_GEOM Geom { log_rows: 20, prog_log: 19, sha_instances: 1, heights: [(20, Some(538816)), (21, Some(1353728)), (7, Some(128)), (16, Some(65536))] }
+NV_GEN finish ms=0
+NV_GEN replay ms=156
+NV_GEN profile ms=156 HeightProfile { k_samples: 0, n_runs: 0, j_actual: 0, jobs_actual: 0, jobs_min: 0, samp_actual: 0, samp_min: 0, nv_rows_per_job: 0, comps_per_job: 0, nv_delta_actual: 0, comps_delta_actual: 0 }
+M8_LEAF_PROVED 0 template=INIT rows=2344 bytes=452157 seconds=190.4
+NV_PHASE before_dag 50298
+NV_DAG air=15 nodes=15 rows_so_far=50372
+NV_DAG air=16 nodes=242 rows_so_far=50690
+NV_DAG air=32 nodes=5848 rows_so_far=57013
+NV_DAG air=33 nodes=1234 rows_so_far=58757
+NV_DAG air=24 nodes=10 rows_so_far=58829
+NV_DAG air=17 nodes=10 rows_so_far=58886
+NV_DAG air=19 nodes=2308 rows_so_far=61392
+NV_DAG air=20 nodes=417 rows_so_far=73676
+NV_DAG air=27 nodes=175 rows_so_far=75652
+NV_DAG air=31 nodes=491 rows_so_far=76736
+NV_DAG air=6 nodes=29 rows_so_far=77294
+NV_DAG air=25 nodes=99 rows_so_far=77542
+NV_DAG air=0 nodes=68 rows_so_far=77820
+NV_DAG air=1 nodes=127 rows_so_far=78245
+NV_DAG air=2 nodes=124 rows_so_far=78635
+NV_DAG air=3 nodes=216 rows_so_far=79241
+NV_DAG air=4 nodes=577 rows_so_far=80435
+NV_DAG air=5 nodes=270 rows_so_far=81368
+NV_DAG air=7 nodes=100 rows_so_far=81744
+NV_DAG air=8 nodes=87 rows_so_far=82102
+NV_DAG air=9 nodes=116 rows_so_far=82364
+NV_DAG air=10 nodes=604 rows_so_far=83430
+NV_DAG air=11 nodes=294 rows_so_far=84386
+NV_DAG air=12 nodes=212 rows_so_far=85388
+NV_DAG air=13 nodes=1005 rows_so_far=87677
+NV_DAG air=14 nodes=94 rows_so_far=90613
+NV_DAG air=18 nodes=27 rows_so_far=90947
+NV_DAG air=21 nodes=10 rows_so_far=91022
+NV_DAG air=22 nodes=412 rows_so_far=91652
+NV_DAG air=23 nodes=44 rows_so_far=92859
+NV_DAG air=26 nodes=39 rows_so_far=93005
+NV_DAG air=28 nodes=67 rows_so_far=93214
+NV_DAG air=29 nodes=17 rows_so_far=93405
+NV_DAG air=30 nodes=373 rows_so_far=94006
+NV_PHASE after_dag 94613
+NV_PHASE after_stacking 121207
+NV_QCOST round=0 queries=44 rows=23658 per_query=538 nbits=25 k=2 merkle_nodes=3828
+NV_QCOST round=1 queries=35 rows=12782 per_query=365 nbits=23 k=4 merkle_nodes=4773
+NV_QCOST round=2 queries=27 rows=9855 per_query=365 nbits=23 k=4 merkle_nodes=5502
+NV_QCOST round=3 queries=23 rows=8395 per_query=365 nbits=23 k=4 merkle_nodes=6123
+NV_PHASE end 189516
+NV_GEN finish ms=12
+NV_GEN replay ms=323
+NV_GEN profile ms=325 HeightProfile { k_samples: 3357, n_runs: 253, j_actual: 220, jobs_actual: 414, jobs_min: 279, samp_actual: 1833, samp_min: 1680, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 1368, comps_delta_actual: 135 }
+M8_LEAF_PROVED 1 template=WASM rows=191538 bytes=453795 seconds=224.0
+NV_PHASE before_dag 50219
+NV_DAG air=15 nodes=15 rows_so_far=50293
+NV_DAG air=16 nodes=242 rows_so_far=50610
+NV_DAG air=32 nodes=5848 rows_so_far=56933
+NV_DAG air=33 nodes=1234 rows_so_far=58677
+NV_DAG air=24 nodes=10 rows_so_far=58749
+NV_DAG air=17 nodes=10 rows_so_far=58806
+NV_DAG air=25 nodes=99 rows_so_far=58982
+NV_DAG air=19 nodes=2308 rows_so_far=61718
+NV_DAG air=20 nodes=417 rows_so_far=74002
+NV_DAG air=30 nodes=373 rows_so_far=76217
+NV_DAG air=31 nodes=491 rows_so_far=77193
+NV_DAG air=6 nodes=29 rows_so_far=77751
+NV_DAG air=27 nodes=175 rows_so_far=78146
+NV_DAG air=0 nodes=68 rows_so_far=78569
+NV_DAG air=1 nodes=127 rows_so_far=78994
+NV_DAG air=2 nodes=124 rows_so_far=79384
+NV_DAG air=3 nodes=216 rows_so_far=79990
+NV_DAG air=4 nodes=577 rows_so_far=81184
+NV_DAG air=5 nodes=270 rows_so_far=82117
+NV_DAG air=7 nodes=100 rows_so_far=82493
+NV_DAG air=8 nodes=87 rows_so_far=82851
+NV_DAG air=9 nodes=116 rows_so_far=83113
+NV_DAG air=10 nodes=604 rows_so_far=84179
+NV_DAG air=11 nodes=294 rows_so_far=85135
+NV_DAG air=12 nodes=212 rows_so_far=86137
+NV_DAG air=13 nodes=1005 rows_so_far=88426
+NV_DAG air=14 nodes=94 rows_so_far=91362
+NV_DAG air=18 nodes=27 rows_so_far=91696
+NV_DAG air=21 nodes=10 rows_so_far=91771
+NV_DAG air=22 nodes=412 rows_so_far=92401
+NV_DAG air=23 nodes=44 rows_so_far=93608
+NV_DAG air=26 nodes=39 rows_so_far=93754
+NV_DAG air=28 nodes=67 rows_so_far=93963
+NV_DAG air=29 nodes=17 rows_so_far=94154
+NV_PHASE after_dag 94542
+NV_PHASE after_stacking 121073
+NV_QCOST round=0 queries=44 rows=23658 per_query=538 nbits=25 k=2 merkle_nodes=3828
+NV_QCOST round=1 queries=35 rows=12782 per_query=365 nbits=23 k=4 merkle_nodes=4773
+NV_QCOST round=2 queries=27 rows=9855 per_query=365 nbits=23 k=4 merkle_nodes=5502
+NV_QCOST round=3 queries=23 rows=8395 per_query=365 nbits=23 k=4 merkle_nodes=6123
+NV_PHASE end 189382
+NV_GEN finish ms=10
+NV_GEN replay ms=220
+NV_GEN profile ms=221 HeightProfile { k_samples: 3357, n_runs: 253, j_actual: 211, jobs_actual: 419, jobs_min: 279, samp_actual: 1837, samp_min: 1680, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 1417, comps_delta_actual: 140 }
+M8_LEAF_PROVED 2 template=WASM rows=191404 bytes=453333 seconds=185.0
+NV_PHASE before_dag 75106
+NV_DAG air=16 nodes=5848 rows_so_far=81364
+NV_DAG air=0 nodes=13847 rows_so_far=97616
+NV_DAG air=13 nodes=57 rows_so_far=98082
+NV_DAG air=15 nodes=12 rows_so_far=98178
+NV_DAG air=1 nodes=259 rows_so_far=98607
+NV_DAG air=9 nodes=134 rows_so_far=99020
+NV_DAG air=2 nodes=11249 rows_so_far=111102
+NV_DAG air=17 nodes=1234 rows_so_far=139586
+NV_DAG air=3 nodes=4825 rows_so_far=146804
+NV_DAG air=4 nodes=101 rows_so_far=156353
+NV_DAG air=5 nodes=468 rows_so_far=157112
+NV_DAG air=6 nodes=139 rows_so_far=158547
+NV_DAG air=11 nodes=311 rows_so_far=159665
+NV_DAG air=7 nodes=109 rows_so_far=161247
+NV_DAG air=10 nodes=367 rows_so_far=161897
+NV_DAG air=14 nodes=397 rows_so_far=164292
+NV_DAG air=8 nodes=2149 rows_so_far=168228
+NV_DAG air=12 nodes=21 rows_so_far=172374
+NV_PHASE after_dag 172600
+NV_PHASE after_stacking 229900
+NV_QCOST round=0 queries=44 rows=23833 per_query=542 nbits=25 k=2 merkle_nodes=3828
+NV_QCOST round=1 queries=35 rows=12781 per_query=365 nbits=23 k=4 merkle_nodes=4773
+NV_QCOST round=2 queries=27 rows=9855 per_query=365 nbits=23 k=4 merkle_nodes=5502
+NV_QCOST round=3 queries=23 rows=8395 per_query=365 nbits=23 k=4 merkle_nodes=6123
+NV_PHASE end 298389
+NV_GEN finish ms=16
+NV_GEN replay ms=231
+NV_GEN profile ms=232 HeightProfile { k_samples: 3597, n_runs: 272, j_actual: 247, jobs_actual: 460, jobs_min: 299, samp_actual: 1983, samp_min: 1800, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 1632, comps_delta_actual: 161 }
+M8_LEAF_PROVED 3 template=STATE rows=299406 bytes=453375 seconds=247.1
+NV_GEN finish ms=0
+NV_GEN replay ms=151
+NV_GEN profile ms=151 HeightProfile { k_samples: 0, n_runs: 0, j_actual: 0, jobs_actual: 0, jobs_min: 0, samp_actual: 0, samp_min: 0, nv_rows_per_job: 0, comps_per_job: 0, nv_delta_actual: 0, comps_delta_actual: 0 }
+M8_LEAF_PROVED 4 template=FINAL rows=2344 bytes=453375 seconds=219.5
+NV_GEN finish ms=0
+NV_GEN replay ms=95
+NV_GEN profile ms=95 HeightProfile { k_samples: 0, n_runs: 0, j_actual: 0, jobs_actual: 0, jobs_min: 0, samp_actual: 0, samp_min: 0, nv_rows_per_job: 0, comps_per_job: 0, nv_delta_actual: 0, comps_delta_actual: 0 }
+M8_LEAF_PROVED 5 template=PAD rows=1650 bytes=454005 seconds=250.4
+NV_GEN finish ms=0
+NV_GEN replay ms=105
+NV_GEN profile ms=105 HeightProfile { k_samples: 0, n_runs: 0, j_actual: 0, jobs_actual: 0, jobs_min: 0, samp_actual: 0, samp_min: 0, nv_rows_per_job: 0, comps_per_job: 0, nv_delta_actual: 0, comps_delta_actual: 0 }
+M8_LEAF_PROVED 6 template=PAD rows=1650 bytes=452787 seconds=181.6
+NV_GEN finish ms=0
+NV_GEN replay ms=119
+NV_GEN profile ms=119 HeightProfile { k_samples: 0, n_runs: 0, j_actual: 0, jobs_actual: 0, jobs_min: 0, samp_actual: 0, samp_min: 0, nv_rows_per_job: 0, comps_per_job: 0, nv_delta_actual: 0, comps_delta_actual: 0 }
+M8_LEAF_PROVED 7 template=PAD rows=1650 bytes=454215 seconds=169.3
+M8_TEMPLATE_SET INIT:b5c25187870411e3 WASM:eb8574e02d57c8b0 WASM:e8e0d684eec74125 STATE:b60f1f374ecf6794 FINAL:2f2f85b24fc72563
+NV_PHASE before_dag 33436
+NV_DAG air=1 nodes=5848 rows_so_far=39712
+NV_DAG air=0 nodes=4651 rows_so_far=46387
+NV_DAG air=3 nodes=32 rows_so_far=47697
+NV_DAG air=2 nodes=1234 rows_so_far=49011
+NV_PHASE after_dag 49093
+NV_PHASE after_stacking 59934
+NV_QCOST round=0 queries=81 rows=36638 per_query=452 nbits=22 k=2 merkle_nodes=4212
+NV_QCOST round=1 queries=60 rows=20826 per_query=347 nbits=20 k=4 merkle_nodes=5652
+NV_QCOST round=2 queries=40 rows=13880 per_query=347 nbits=20 k=4 merkle_nodes=6612
+NV_QCOST round=3 queries=30 rows=10410 per_query=347 nbits=20 k=4 merkle_nodes=7332
+NV_PHASE end 205533
+NV_PHASE before_dag 234626
+NV_DAG air=1 nodes=5848 rows_so_far=240864
+NV_DAG air=0 nodes=4651 rows_so_far=247441
+NV_DAG air=3 nodes=32 rows_so_far=248750
+NV_DAG air=2 nodes=1234 rows_so_far=249704
+NV_PHASE after_dag 249786
+NV_PHASE after_stacking 260627
+NV_QCOST round=0 queries=81 rows=36612 per_query=452 nbits=22 k=2 merkle_nodes=11544
+NV_QCOST round=1 queries=60 rows=20820 per_query=347 nbits=20 k=4 merkle_nodes=12984
+NV_QCOST round=2 queries=40 rows=13880 per_query=347 nbits=20 k=4 merkle_nodes=13944
+NV_QCOST round=3 queries=30 rows=10410 per_query=347 nbits=20 k=4 merkle_nodes=14664
+NV_PHASE end 406194
+NV_PHASE before_dag 435034
+NV_DAG air=1 nodes=5848 rows_so_far=441272
+NV_DAG air=0 nodes=4651 rows_so_far=447849
+NV_DAG air=3 nodes=32 rows_so_far=449158
+NV_DAG air=2 nodes=1234 rows_so_far=450112
+NV_PHASE after_dag 450194
+NV_PHASE after_stacking 461035
+NV_QCOST round=0 queries=81 rows=36612 per_query=452 nbits=22 k=2 merkle_nodes=18876
+NV_QCOST round=1 queries=60 rows=20820 per_query=347 nbits=20 k=4 merkle_nodes=20316
+NV_QCOST round=2 queries=40 rows=13880 per_query=347 nbits=20 k=4 merkle_nodes=21276
+NV_QCOST round=3 queries=30 rows=10410 per_query=347 nbits=20 k=4 merkle_nodes=21996
+NV_PHASE end 606602
+NV_PHASE before_dag 635442
+NV_DAG air=1 nodes=5848 rows_so_far=641680
+NV_DAG air=0 nodes=4651 rows_so_far=648257
+NV_DAG air=3 nodes=32 rows_so_far=649566
+NV_DAG air=2 nodes=1234 rows_so_far=650520
+NV_PHASE after_dag 650602
+NV_PHASE after_stacking 661443
+NV_QCOST round=0 queries=81 rows=36612 per_query=452 nbits=22 k=2 merkle_nodes=26208
+NV_QCOST round=1 queries=60 rows=20820 per_query=347 nbits=20 k=4 merkle_nodes=27648
+NV_QCOST round=2 queries=40 rows=13880 per_query=347 nbits=20 k=4 merkle_nodes=28608
+NV_QCOST round=3 queries=30 rows=10410 per_query=347 nbits=20 k=4 merkle_nodes=29328
+NV_PHASE end 807010
+NV_GEN finish ms=43
+NV_GEN replay ms=960
+NV_GEN profile ms=966 HeightProfile { k_samples: 23500, n_runs: 1792, j_actual: 1514, jobs_actual: 2922, jobs_min: 1952, samp_actual: 12858, samp_min: 11752, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 9836, comps_delta_actual: 970 }
+NV_PHASE before_dag 33436
+NV_DAG air=1 nodes=5848 rows_so_far=39712
+NV_DAG air=0 nodes=4651 rows_so_far=46387
+NV_DAG air=3 nodes=32 rows_so_far=47697
+NV_DAG air=2 nodes=1234 rows_so_far=49011
+NV_PHASE after_dag 49093
+NV_PHASE after_stacking 59934
+NV_QCOST round=0 queries=81 rows=36638 per_query=452 nbits=22 k=2 merkle_nodes=4212
+NV_QCOST round=1 queries=60 rows=20826 per_query=347 nbits=20 k=4 merkle_nodes=5652
+NV_QCOST round=2 queries=40 rows=13880 per_query=347 nbits=20 k=4 merkle_nodes=6612
+NV_QCOST round=3 queries=30 rows=10410 per_query=347 nbits=20 k=4 merkle_nodes=7332
+NV_PHASE end 205533
+NV_PHASE before_dag 234626
+NV_DAG air=1 nodes=5848 rows_so_far=240864
+NV_DAG air=0 nodes=4651 rows_so_far=247441
+NV_DAG air=3 nodes=32 rows_so_far=248750
+NV_DAG air=2 nodes=1234 rows_so_far=249704
+NV_PHASE after_dag 249786
+NV_PHASE after_stacking 260627
+NV_QCOST round=0 queries=81 rows=36612 per_query=452 nbits=22 k=2 merkle_nodes=11544
+NV_QCOST round=1 queries=60 rows=20820 per_query=347 nbits=20 k=4 merkle_nodes=12984
+NV_QCOST round=2 queries=40 rows=13880 per_query=347 nbits=20 k=4 merkle_nodes=13944
+NV_QCOST round=3 queries=30 rows=10410 per_query=347 nbits=20 k=4 merkle_nodes=14664
+NV_PHASE end 406194
+NV_PHASE before_dag 435034
+NV_DAG air=1 nodes=5848 rows_so_far=441272
+NV_DAG air=0 nodes=4651 rows_so_far=447849
+NV_DAG air=3 nodes=32 rows_so_far=449158
+NV_DAG air=2 nodes=1234 rows_so_far=450112
+NV_PHASE after_dag 450194
+NV_PHASE after_stacking 461035
+NV_QCOST round=0 queries=81 rows=36612 per_query=452 nbits=22 k=2 merkle_nodes=18876
+NV_QCOST round=1 queries=60 rows=20820 per_query=347 nbits=20 k=4 merkle_nodes=20316
+NV_QCOST round=2 queries=40 rows=13880 per_query=347 nbits=20 k=4 merkle_nodes=21276
+NV_QCOST round=3 queries=30 rows=10410 per_query=347 nbits=20 k=4 merkle_nodes=21996
+NV_PHASE end 606602
+NV_PHASE before_dag 635442
+NV_DAG air=1 nodes=5848 rows_so_far=641680
+NV_DAG air=0 nodes=4651 rows_so_far=648257
+NV_DAG air=3 nodes=32 rows_so_far=649566
+NV_DAG air=2 nodes=1234 rows_so_far=650520
+NV_PHASE after_dag 650602
+NV_PHASE after_stacking 661443
+NV_QCOST round=0 queries=81 rows=36612 per_query=452 nbits=22 k=2 merkle_nodes=26208
+NV_QCOST round=1 queries=60 rows=20820 per_query=347 nbits=20 k=4 merkle_nodes=27648
+NV_QCOST round=2 queries=40 rows=13880 per_query=347 nbits=20 k=4 merkle_nodes=28608
+NV_QCOST round=3 queries=30 rows=10410 per_query=347 nbits=20 k=4 merkle_nodes=29328
+NV_PHASE end 807010
+NV_GEN finish ms=42
+NV_GEN replay ms=984
+NV_GEN profile ms=989 HeightProfile { k_samples: 23500, n_runs: 1792, j_actual: 1593, jobs_actual: 2955, jobs_min: 1952, samp_actual: 12907, samp_min: 11752, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 10182, comps_delta_actual: 1003 }
+M8_NODE2_SIZES rows=807472 nv_used=1576816 sha_used=5566728 -> (21,20,2)
+NV_PHASE before_dag 31388
+NV_DAG air=1 nodes=5848 rows_so_far=37664
+NV_DAG air=0 nodes=4651 rows_so_far=44339
+NV_DAG air=3 nodes=32 rows_so_far=45649
+NV_DAG air=2 nodes=1234 rows_so_far=46963
+NV_PHASE after_dag 47045
+NV_PHASE after_stacking 57886
+NV_QCOST round=0 queries=81 rows=36638 per_query=452 nbits=22 k=2 merkle_nodes=4212
+NV_QCOST round=1 queries=60 rows=20826 per_query=347 nbits=20 k=4 merkle_nodes=5652
+NV_QCOST round=2 queries=40 rows=13880 per_query=347 nbits=20 k=4 merkle_nodes=6612
+NV_QCOST round=3 queries=30 rows=10410 per_query=347 nbits=20 k=4 merkle_nodes=7332
+NV_PHASE end 203485
+NV_PHASE before_dag 232578
+NV_DAG air=1 nodes=5848 rows_so_far=238816
+NV_DAG air=0 nodes=4651 rows_so_far=245393
+NV_DAG air=3 nodes=32 rows_so_far=246702
+NV_DAG air=2 nodes=1234 rows_so_far=247656
+NV_PHASE after_dag 247738
+NV_PHASE after_stacking 258579
+NV_QCOST round=0 queries=81 rows=36612 per_query=452 nbits=22 k=2 merkle_nodes=11544
+NV_QCOST round=1 queries=60 rows=20820 per_query=347 nbits=20 k=4 merkle_nodes=12984
+NV_QCOST round=2 queries=40 rows=13880 per_query=347 nbits=20 k=4 merkle_nodes=13944
+NV_QCOST round=3 queries=30 rows=10410 per_query=347 nbits=20 k=4 merkle_nodes=14664
+NV_PHASE end 404146
+NV_PHASE before_dag 432986
+NV_DAG air=1 nodes=5848 rows_so_far=439224
+NV_DAG air=0 nodes=4651 rows_so_far=445801
+NV_DAG air=3 nodes=32 rows_so_far=447110
+NV_DAG air=2 nodes=1234 rows_so_far=448064
+NV_PHASE after_dag 448146
+NV_PHASE after_stacking 458987
+NV_QCOST round=0 queries=81 rows=36612 per_query=452 nbits=22 k=2 merkle_nodes=18876
+NV_QCOST round=1 queries=60 rows=20820 per_query=347 nbits=20 k=4 merkle_nodes=20316
+NV_QCOST round=2 queries=40 rows=13880 per_query=347 nbits=20 k=4 merkle_nodes=21276
+NV_QCOST round=3 queries=30 rows=10410 per_query=347 nbits=20 k=4 merkle_nodes=21996
+NV_PHASE end 604554
+NV_PHASE before_dag 633394
+NV_DAG air=1 nodes=5848 rows_so_far=639632
+NV_DAG air=0 nodes=4651 rows_so_far=646209
+NV_DAG air=3 nodes=32 rows_so_far=647518
+NV_DAG air=2 nodes=1234 rows_so_far=648472
+NV_PHASE after_dag 648554
+NV_PHASE after_stacking 659395
+NV_QCOST round=0 queries=81 rows=36612 per_query=452 nbits=22 k=2 merkle_nodes=26208
+NV_QCOST round=1 queries=60 rows=20820 per_query=347 nbits=20 k=4 merkle_nodes=27648
+NV_QCOST round=2 queries=40 rows=13880 per_query=347 nbits=20 k=4 merkle_nodes=28608
+NV_QCOST round=3 queries=30 rows=10410 per_query=347 nbits=20 k=4 merkle_nodes=29328
+NV_PHASE end 804962
+NV_GEN finish ms=43
+NV_GEN replay ms=875
+NV_GEN profile ms=880 HeightProfile { k_samples: 23500, n_runs: 1792, j_actual: 1514, jobs_actual: 2922, jobs_min: 1952, samp_actual: 12858, samp_min: 11752, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 9836, comps_delta_actual: 970 }
+NV_PHASE before_dag 31388
+NV_DAG air=1 nodes=5848 rows_so_far=37664
+NV_DAG air=0 nodes=4651 rows_so_far=44339
+NV_DAG air=3 nodes=32 rows_so_far=45649
+NV_DAG air=2 nodes=1234 rows_so_far=46963
+NV_PHASE after_dag 47045
+NV_PHASE after_stacking 57886
+NV_QCOST round=0 queries=81 rows=36638 per_query=452 nbits=22 k=2 merkle_nodes=4212
+NV_QCOST round=1 queries=60 rows=20826 per_query=347 nbits=20 k=4 merkle_nodes=5652
+NV_QCOST round=2 queries=40 rows=13880 per_query=347 nbits=20 k=4 merkle_nodes=6612
+NV_QCOST round=3 queries=30 rows=10410 per_query=347 nbits=20 k=4 merkle_nodes=7332
+NV_PHASE end 203485
+NV_PHASE before_dag 232578
+NV_DAG air=1 nodes=5848 rows_so_far=238816
+NV_DAG air=0 nodes=4651 rows_so_far=245393
+NV_DAG air=3 nodes=32 rows_so_far=246702
+NV_DAG air=2 nodes=1234 rows_so_far=247656
+NV_PHASE after_dag 247738
+NV_PHASE after_stacking 258579
+NV_QCOST round=0 queries=81 rows=36612 per_query=452 nbits=22 k=2 merkle_nodes=11544
+NV_QCOST round=1 queries=60 rows=20820 per_query=347 nbits=20 k=4 merkle_nodes=12984
+NV_QCOST round=2 queries=40 rows=13880 per_query=347 nbits=20 k=4 merkle_nodes=13944
+NV_QCOST round=3 queries=30 rows=10410 per_query=347 nbits=20 k=4 merkle_nodes=14664
+NV_PHASE end 404146
+NV_PHASE before_dag 432986
+NV_DAG air=1 nodes=5848 rows_so_far=439224
+NV_DAG air=0 nodes=4651 rows_so_far=445801
+NV_DAG air=3 nodes=32 rows_so_far=447110
+NV_DAG air=2 nodes=1234 rows_so_far=448064
+NV_PHASE after_dag 448146
+NV_PHASE after_stacking 458987
+NV_QCOST round=0 queries=81 rows=36612 per_query=452 nbits=22 k=2 merkle_nodes=18876
+NV_QCOST round=1 queries=60 rows=20820 per_query=347 nbits=20 k=4 merkle_nodes=20316
+NV_QCOST round=2 queries=40 rows=13880 per_query=347 nbits=20 k=4 merkle_nodes=21276
+NV_QCOST round=3 queries=30 rows=10410 per_query=347 nbits=20 k=4 merkle_nodes=21996
+NV_PHASE end 604554
+NV_PHASE before_dag 633394
+NV_DAG air=1 nodes=5848 rows_so_far=639632
+NV_DAG air=0 nodes=4651 rows_so_far=646209
+NV_DAG air=3 nodes=32 rows_so_far=647518
+NV_DAG air=2 nodes=1234 rows_so_far=648472
+NV_PHASE after_dag 648554
+NV_PHASE after_stacking 659395
+NV_QCOST round=0 queries=81 rows=36612 per_query=452 nbits=22 k=2 merkle_nodes=26208
+NV_QCOST round=1 queries=60 rows=20820 per_query=347 nbits=20 k=4 merkle_nodes=27648
+NV_QCOST round=2 queries=40 rows=13880 per_query=347 nbits=20 k=4 merkle_nodes=28608
+NV_QCOST round=3 queries=30 rows=10410 per_query=347 nbits=20 k=4 merkle_nodes=29328
+NV_PHASE end 804962
+NV_GEN finish ms=42
+NV_GEN replay ms=834
+NV_GEN profile ms=839 HeightProfile { k_samples: 23500, n_runs: 1792, j_actual: 1593, jobs_actual: 2955, jobs_min: 1952, samp_actual: 12907, samp_min: 11752, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 10182, comps_delta_actual: 1003 }
+M8_NODE_GEOM Geom { log_rows: 21, prog_log: 20, sha_instances: 2, heights: [(21, Some(1792548)), (22, Some(4194304)), (7, Some(128)), (16, Some(65536)), (22, Some(2237840))] }
+NV_GEN finish ms=0
+NV_GEN replay ms=0
+NV_GEN profile ms=0 HeightProfile { k_samples: 0, n_runs: 0, j_actual: 0, jobs_actual: 0, jobs_min: 0, samp_actual: 0, samp_min: 0, nv_rows_per_job: 0, comps_per_job: 0, nv_delta_actual: 0, comps_delta_actual: 0 }
+NV_PHASE before_dag 31388
+NV_DAG air=1 nodes=5848 rows_so_far=37664
+NV_DAG air=0 nodes=4651 rows_so_far=44339
+NV_DAG air=3 nodes=32 rows_so_far=45649
+NV_DAG air=2 nodes=1234 rows_so_far=46963
+NV_PHASE after_dag 47045
+NV_PHASE after_stacking 57886
+NV_QCOST round=0 queries=81 rows=36638 per_query=452 nbits=22 k=2 merkle_nodes=4212
+NV_QCOST round=1 queries=60 rows=20826 per_query=347 nbits=20 k=4 merkle_nodes=5652
+NV_QCOST round=2 queries=40 rows=13880 per_query=347 nbits=20 k=4 merkle_nodes=6612
+NV_QCOST round=3 queries=30 rows=10410 per_query=347 nbits=20 k=4 merkle_nodes=7332
+NV_PHASE end 203485
+NV_PHASE before_dag 232578
+NV_DAG air=1 nodes=5848 rows_so_far=238816
+NV_DAG air=0 nodes=4651 rows_so_far=245393
+NV_DAG air=3 nodes=32 rows_so_far=246702
+NV_DAG air=2 nodes=1234 rows_so_far=247656
+NV_PHASE after_dag 247738
+NV_PHASE after_stacking 258579
+NV_QCOST round=0 queries=81 rows=36612 per_query=452 nbits=22 k=2 merkle_nodes=11544
+NV_QCOST round=1 queries=60 rows=20820 per_query=347 nbits=20 k=4 merkle_nodes=12984
+NV_QCOST round=2 queries=40 rows=13880 per_query=347 nbits=20 k=4 merkle_nodes=13944
+NV_QCOST round=3 queries=30 rows=10410 per_query=347 nbits=20 k=4 merkle_nodes=14664
+NV_PHASE end 404146
+NV_PHASE before_dag 432986
+NV_DAG air=1 nodes=5848 rows_so_far=439224
+NV_DAG air=0 nodes=4651 rows_so_far=445801
+NV_DAG air=3 nodes=32 rows_so_far=447110
+NV_DAG air=2 nodes=1234 rows_so_far=448064
+NV_PHASE after_dag 448146
+NV_PHASE after_stacking 458987
+NV_QCOST round=0 queries=81 rows=36612 per_query=452 nbits=22 k=2 merkle_nodes=18876
+NV_QCOST round=1 queries=60 rows=20820 per_query=347 nbits=20 k=4 merkle_nodes=20316
+NV_QCOST round=2 queries=40 rows=13880 per_query=347 nbits=20 k=4 merkle_nodes=21276
+NV_QCOST round=3 queries=30 rows=10410 per_query=347 nbits=20 k=4 merkle_nodes=21996
+NV_PHASE end 604554
+NV_PHASE before_dag 633394
+NV_DAG air=1 nodes=5848 rows_so_far=639632
+NV_DAG air=0 nodes=4651 rows_so_far=646209
+NV_DAG air=3 nodes=32 rows_so_far=647518
+NV_DAG air=2 nodes=1234 rows_so_far=648472
+NV_PHASE after_dag 648554
+NV_PHASE after_stacking 659395
+NV_QCOST round=0 queries=81 rows=36612 per_query=452 nbits=22 k=2 merkle_nodes=26208
+NV_QCOST round=1 queries=60 rows=20820 per_query=347 nbits=20 k=4 merkle_nodes=27648
+NV_QCOST round=2 queries=40 rows=13880 per_query=347 nbits=20 k=4 merkle_nodes=28608
+NV_QCOST round=3 queries=30 rows=10410 per_query=347 nbits=20 k=4 merkle_nodes=29328
+NV_PHASE end 804962
+NV_GEN finish ms=42
+NV_GEN replay ms=807
+NV_GEN profile ms=813 HeightProfile { k_samples: 23500, n_runs: 1792, j_actual: 1514, jobs_actual: 2922, jobs_min: 1952, samp_actual: 12858, samp_min: 11752, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 9836, comps_delta_actual: 970 }
+NV_PHASE before_dag 31388
+NV_DAG air=1 nodes=5848 rows_so_far=37664
+NV_DAG air=0 nodes=4651 rows_so_far=44339
+NV_DAG air=3 nodes=32 rows_so_far=45649
+NV_DAG air=2 nodes=1234 rows_so_far=46963
+NV_PHASE after_dag 47045
+NV_PHASE after_stacking 57886
+NV_QCOST round=0 queries=81 rows=36638 per_query=452 nbits=22 k=2 merkle_nodes=4212
+NV_QCOST round=1 queries=60 rows=20826 per_query=347 nbits=20 k=4 merkle_nodes=5652
+NV_QCOST round=2 queries=40 rows=13880 per_query=347 nbits=20 k=4 merkle_nodes=6612
+NV_QCOST round=3 queries=30 rows=10410 per_query=347 nbits=20 k=4 merkle_nodes=7332
+NV_PHASE end 203485
+NV_PHASE before_dag 232578
+NV_DAG air=1 nodes=5848 rows_so_far=238816
+NV_DAG air=0 nodes=4651 rows_so_far=245393
+NV_DAG air=3 nodes=32 rows_so_far=246702
+NV_DAG air=2 nodes=1234 rows_so_far=247656
+NV_PHASE after_dag 247738
+NV_PHASE after_stacking 258579
+NV_QCOST round=0 queries=81 rows=36612 per_query=452 nbits=22 k=2 merkle_nodes=11544
+NV_QCOST round=1 queries=60 rows=20820 per_query=347 nbits=20 k=4 merkle_nodes=12984
+NV_QCOST round=2 queries=40 rows=13880 per_query=347 nbits=20 k=4 merkle_nodes=13944
+NV_QCOST round=3 queries=30 rows=10410 per_query=347 nbits=20 k=4 merkle_nodes=14664
+NV_PHASE end 404146
+NV_PHASE before_dag 432986
+NV_DAG air=1 nodes=5848 rows_so_far=439224
+NV_DAG air=0 nodes=4651 rows_so_far=445801
+NV_DAG air=3 nodes=32 rows_so_far=447110
+NV_DAG air=2 nodes=1234 rows_so_far=448064
+NV_PHASE after_dag 448146
+NV_PHASE after_stacking 458987
+NV_QCOST round=0 queries=81 rows=36612 per_query=452 nbits=22 k=2 merkle_nodes=18876
+NV_QCOST round=1 queries=60 rows=20820 per_query=347 nbits=20 k=4 merkle_nodes=20316
+NV_QCOST round=2 queries=40 rows=13880 per_query=347 nbits=20 k=4 merkle_nodes=21276
+NV_QCOST round=3 queries=30 rows=10410 per_query=347 nbits=20 k=4 merkle_nodes=21996
+NV_PHASE end 604554
+NV_PHASE before_dag 633394
+NV_DAG air=1 nodes=5848 rows_so_far=639632
+NV_DAG air=0 nodes=4651 rows_so_far=646209
+NV_DAG air=3 nodes=32 rows_so_far=647518
+NV_DAG air=2 nodes=1234 rows_so_far=648472
+NV_PHASE after_dag 648554
+NV_PHASE after_stacking 659395
+NV_QCOST round=0 queries=81 rows=36612 per_query=452 nbits=22 k=2 merkle_nodes=26208
+NV_QCOST round=1 queries=60 rows=20820 per_query=347 nbits=20 k=4 merkle_nodes=27648
+NV_QCOST round=2 queries=40 rows=13880 per_query=347 nbits=20 k=4 merkle_nodes=28608
+NV_QCOST round=3 queries=30 rows=10410 per_query=347 nbits=20 k=4 merkle_nodes=29328
+NV_PHASE end 804962
+NV_GEN finish ms=42
+NV_GEN replay ms=822
+NV_GEN profile ms=828 HeightProfile { k_samples: 23500, n_runs: 1792, j_actual: 1514, jobs_actual: 2922, jobs_min: 1952, samp_actual: 12858, samp_min: 11752, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 9836, comps_delta_actual: 970 }
+NV_PHASE before_dag 31388
+NV_DAG air=1 nodes=5848 rows_so_far=37664
+NV_DAG air=0 nodes=4651 rows_so_far=44339
+NV_DAG air=3 nodes=32 rows_so_far=45649
+NV_DAG air=2 nodes=1234 rows_so_far=46963
+NV_PHASE after_dag 47045
+NV_PHASE after_stacking 57886
+NV_QCOST round=0 queries=81 rows=36638 per_query=452 nbits=22 k=2 merkle_nodes=4212
+NV_QCOST round=1 queries=60 rows=20826 per_query=347 nbits=20 k=4 merkle_nodes=5652
+NV_QCOST round=2 queries=40 rows=13880 per_query=347 nbits=20 k=4 merkle_nodes=6612
+NV_QCOST round=3 queries=30 rows=10410 per_query=347 nbits=20 k=4 merkle_nodes=7332
+NV_PHASE end 203485
+NV_PHASE before_dag 232578
+NV_DAG air=1 nodes=5848 rows_so_far=238816
+NV_DAG air=0 nodes=4651 rows_so_far=245393
+NV_DAG air=3 nodes=32 rows_so_far=246702
+NV_DAG air=2 nodes=1234 rows_so_far=247656
+NV_PHASE after_dag 247738
+NV_PHASE after_stacking 258579
+NV_QCOST round=0 queries=81 rows=36612 per_query=452 nbits=22 k=2 merkle_nodes=11544
+NV_QCOST round=1 queries=60 rows=20820 per_query=347 nbits=20 k=4 merkle_nodes=12984
+NV_QCOST round=2 queries=40 rows=13880 per_query=347 nbits=20 k=4 merkle_nodes=13944
+NV_QCOST round=3 queries=30 rows=10410 per_query=347 nbits=20 k=4 merkle_nodes=14664
+NV_PHASE end 404146
+NV_PHASE before_dag 432986
+NV_DAG air=1 nodes=5848 rows_so_far=439224
+NV_DAG air=0 nodes=4651 rows_so_far=445801
+NV_DAG air=3 nodes=32 rows_so_far=447110
+NV_DAG air=2 nodes=1234 rows_so_far=448064
+NV_PHASE after_dag 448146
+NV_PHASE after_stacking 458987
+NV_QCOST round=0 queries=81 rows=36612 per_query=452 nbits=22 k=2 merkle_nodes=18876
+NV_QCOST round=1 queries=60 rows=20820 per_query=347 nbits=20 k=4 merkle_nodes=20316
+NV_QCOST round=2 queries=40 rows=13880 per_query=347 nbits=20 k=4 merkle_nodes=21276
+NV_QCOST round=3 queries=30 rows=10410 per_query=347 nbits=20 k=4 merkle_nodes=21996
+NV_PHASE end 604554
+NV_PHASE before_dag 633394
+NV_DAG air=1 nodes=5848 rows_so_far=639632
+NV_DAG air=0 nodes=4651 rows_so_far=646209
+NV_DAG air=3 nodes=32 rows_so_far=647518
+NV_DAG air=2 nodes=1234 rows_so_far=648472
+NV_PHASE after_dag 648554
+NV_PHASE after_stacking 659395
+NV_QCOST round=0 queries=81 rows=36612 per_query=452 nbits=22 k=2 merkle_nodes=26208
+NV_QCOST round=1 queries=60 rows=20820 per_query=347 nbits=20 k=4 merkle_nodes=27648
+NV_QCOST round=2 queries=40 rows=13880 per_query=347 nbits=20 k=4 merkle_nodes=28608
+NV_QCOST round=3 queries=30 rows=10410 per_query=347 nbits=20 k=4 merkle_nodes=29328
+NV_PHASE end 804962
+NV_GEN finish ms=42
+NV_GEN replay ms=940
+NV_GEN profile ms=945 HeightProfile { k_samples: 23500, n_runs: 1792, j_actual: 1514, jobs_actual: 2922, jobs_min: 1952, samp_actual: 12858, samp_min: 11752, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 9836, comps_delta_actual: 970 }
+M8_NODE_PROVED L2_0 kind=P2 rows=805424 seconds=877.1
+NV_PHASE before_dag 31388
+NV_DAG air=1 nodes=5848 rows_so_far=37664
+NV_DAG air=0 nodes=4651 rows_so_far=44339
+NV_DAG air=3 nodes=32 rows_so_far=45649
+NV_DAG air=2 nodes=1234 rows_so_far=46963
+NV_PHASE after_dag 47045
+NV_PHASE after_stacking 57886
+NV_QCOST round=0 queries=81 rows=36638 per_query=452 nbits=22 k=2 merkle_nodes=4212
+NV_QCOST round=1 queries=60 rows=20826 per_query=347 nbits=20 k=4 merkle_nodes=5652
+NV_QCOST round=2 queries=40 rows=13880 per_query=347 nbits=20 k=4 merkle_nodes=6612
+NV_QCOST round=3 queries=30 rows=10410 per_query=347 nbits=20 k=4 merkle_nodes=7332
+NV_PHASE end 203485
+NV_PHASE before_dag 232578
+NV_DAG air=1 nodes=5848 rows_so_far=238816
+NV_DAG air=0 nodes=4651 rows_so_far=245393
+NV_DAG air=3 nodes=32 rows_so_far=246702
+NV_DAG air=2 nodes=1234 rows_so_far=247656
+NV_PHASE after_dag 247738
+NV_PHASE after_stacking 258579
+NV_QCOST round=0 queries=81 rows=36612 per_query=452 nbits=22 k=2 merkle_nodes=11544
+NV_QCOST round=1 queries=60 rows=20820 per_query=347 nbits=20 k=4 merkle_nodes=12984
+NV_QCOST round=2 queries=40 rows=13880 per_query=347 nbits=20 k=4 merkle_nodes=13944
+NV_QCOST round=3 queries=30 rows=10410 per_query=347 nbits=20 k=4 merkle_nodes=14664
+NV_PHASE end 404146
+NV_PHASE before_dag 432986
+NV_DAG air=1 nodes=5848 rows_so_far=439224
+NV_DAG air=0 nodes=4651 rows_so_far=445801
+NV_DAG air=3 nodes=32 rows_so_far=447110
+NV_DAG air=2 nodes=1234 rows_so_far=448064
+NV_PHASE after_dag 448146
+NV_PHASE after_stacking 458987
+NV_QCOST round=0 queries=81 rows=36612 per_query=452 nbits=22 k=2 merkle_nodes=18876
+NV_QCOST round=1 queries=60 rows=20820 per_query=347 nbits=20 k=4 merkle_nodes=20316
+NV_QCOST round=2 queries=40 rows=13880 per_query=347 nbits=20 k=4 merkle_nodes=21276
+NV_QCOST round=3 queries=30 rows=10410 per_query=347 nbits=20 k=4 merkle_nodes=21996
+NV_PHASE end 604554
+NV_PHASE before_dag 633394
+NV_DAG air=1 nodes=5848 rows_so_far=639632
+NV_DAG air=0 nodes=4651 rows_so_far=646209
+NV_DAG air=3 nodes=32 rows_so_far=647518
+NV_DAG air=2 nodes=1234 rows_so_far=648472
+NV_PHASE after_dag 648554
+NV_PHASE after_stacking 659395
+NV_QCOST round=0 queries=81 rows=36612 per_query=452 nbits=22 k=2 merkle_nodes=26208
+NV_QCOST round=1 queries=60 rows=20820 per_query=347 nbits=20 k=4 merkle_nodes=27648
+NV_QCOST round=2 queries=40 rows=13880 per_query=347 nbits=20 k=4 merkle_nodes=28608
+NV_QCOST round=3 queries=30 rows=10410 per_query=347 nbits=20 k=4 merkle_nodes=29328
+NV_PHASE end 804962
+NV_GEN finish ms=40
+NV_GEN replay ms=850
+NV_GEN profile ms=856 HeightProfile { k_samples: 23500, n_runs: 1792, j_actual: 1593, jobs_actual: 2955, jobs_min: 1952, samp_actual: 12907, samp_min: 11752, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 10182, comps_delta_actual: 1003 }
+NV_PHASE before_dag 31388
+NV_DAG air=1 nodes=5848 rows_so_far=37664
+NV_DAG air=0 nodes=4651 rows_so_far=44339
+NV_DAG air=3 nodes=32 rows_so_far=45649
+NV_DAG air=2 nodes=1234 rows_so_far=46963
+NV_PHASE after_dag 47045
+NV_PHASE after_stacking 57886
+NV_QCOST round=0 queries=81 rows=36638 per_query=452 nbits=22 k=2 merkle_nodes=4212
+NV_QCOST round=1 queries=60 rows=20826 per_query=347 nbits=20 k=4 merkle_nodes=5652
+NV_QCOST round=2 queries=40 rows=13880 per_query=347 nbits=20 k=4 merkle_nodes=6612
+NV_QCOST round=3 queries=30 rows=10410 per_query=347 nbits=20 k=4 merkle_nodes=7332
+NV_PHASE end 203485
+NV_PHASE before_dag 232578
+NV_DAG air=1 nodes=5848 rows_so_far=238816
+NV_DAG air=0 nodes=4651 rows_so_far=245393
+NV_DAG air=3 nodes=32 rows_so_far=246702
+NV_DAG air=2 nodes=1234 rows_so_far=247656
+NV_PHASE after_dag 247738
+NV_PHASE after_stacking 258579
+NV_QCOST round=0 queries=81 rows=36612 per_query=452 nbits=22 k=2 merkle_nodes=11544
+NV_QCOST round=1 queries=60 rows=20820 per_query=347 nbits=20 k=4 merkle_nodes=12984
+NV_QCOST round=2 queries=40 rows=13880 per_query=347 nbits=20 k=4 merkle_nodes=13944
+NV_QCOST round=3 queries=30 rows=10410 per_query=347 nbits=20 k=4 merkle_nodes=14664
+NV_PHASE end 404146
+NV_PHASE before_dag 432986
+NV_DAG air=1 nodes=5848 rows_so_far=439224
+NV_DAG air=0 nodes=4651 rows_so_far=445801
+NV_DAG air=3 nodes=32 rows_so_far=447110
+NV_DAG air=2 nodes=1234 rows_so_far=448064
+NV_PHASE after_dag 448146
+NV_PHASE after_stacking 458987
+NV_QCOST round=0 queries=81 rows=36612 per_query=452 nbits=22 k=2 merkle_nodes=18876
+NV_QCOST round=1 queries=60 rows=20820 per_query=347 nbits=20 k=4 merkle_nodes=20316
+NV_QCOST round=2 queries=40 rows=13880 per_query=347 nbits=20 k=4 merkle_nodes=21276
+NV_QCOST round=3 queries=30 rows=10410 per_query=347 nbits=20 k=4 merkle_nodes=21996
+NV_PHASE end 604554
+NV_PHASE before_dag 633394
+NV_DAG air=1 nodes=5848 rows_so_far=639632
+NV_DAG air=0 nodes=4651 rows_so_far=646209
+NV_DAG air=3 nodes=32 rows_so_far=647518
+NV_DAG air=2 nodes=1234 rows_so_far=648472
+NV_PHASE after_dag 648554
+NV_PHASE after_stacking 659395
+NV_QCOST round=0 queries=81 rows=36612 per_query=452 nbits=22 k=2 merkle_nodes=26208
+NV_QCOST round=1 queries=60 rows=20820 per_query=347 nbits=20 k=4 merkle_nodes=27648
+NV_QCOST round=2 queries=40 rows=13880 per_query=347 nbits=20 k=4 merkle_nodes=28608
+NV_QCOST round=3 queries=30 rows=10410 per_query=347 nbits=20 k=4 merkle_nodes=29328
+NV_PHASE end 804962
+NV_GEN finish ms=41
+NV_GEN replay ms=925
+NV_GEN profile ms=931 HeightProfile { k_samples: 23500, n_runs: 1792, j_actual: 1593, jobs_actual: 2955, jobs_min: 1952, samp_actual: 12907, samp_min: 11752, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 10182, comps_delta_actual: 1003 }
+M8_NODE_PROVED L2_1 kind=P2 rows=805424 seconds=1128.3
+NV_GEN finish ms=0
+NV_GEN replay ms=728
+NV_GEN profile ms=728 HeightProfile { k_samples: 0, n_runs: 0, j_actual: 0, jobs_actual: 0, jobs_min: 0, samp_actual: 0, samp_min: 0, nv_rows_per_job: 0, comps_per_job: 0, nv_delta_actual: 0, comps_delta_actual: 0 }
+M8_PAD_NODE_PROVED L2_2 seconds=877.8
+NV_GEN finish ms=0
+NV_GEN replay ms=312
+NV_GEN profile ms=312 HeightProfile { k_samples: 0, n_runs: 0, j_actual: 0, jobs_actual: 0, jobs_min: 0, samp_actual: 0, samp_min: 0, nv_rows_per_job: 0, comps_per_job: 0, nv_delta_actual: 0, comps_delta_actual: 0 }
+M8_PAD_NODE_PROVED L2_3 seconds=12014.2
+NV_PHASE before_dag 37968
+NV_DAG air=1 nodes=5848 rows_so_far=44246
+NV_DAG air=4 nodes=5849 rows_so_far=50928
+NV_DAG air=0 nodes=4651 rows_so_far=57606
+NV_DAG air=3 nodes=32 rows_so_far=58916
+NV_DAG air=2 nodes=1234 rows_so_far=60230
+NV_PHASE after_dag 60321
+NV_PHASE after_stacking 77099
+NV_QCOST round=0 queries=54 rows=39233 per_query=727 nbits=25 k=2 merkle_nodes=3132
+NV_QCOST round=1 queries=41 rows=14972 per_query=365 nbits=23 k=4 merkle_nodes=4239
+NV_QCOST round=2 queries=31 rows=11315 per_query=365 nbits=23 k=4 merkle_nodes=5076
+NV_QCOST round=3 queries=25 rows=9125 per_query=365 nbits=23 k=4 merkle_nodes=5751
+NV_PHASE end 198522
+NV_PHASE before_dag 229803
+NV_DAG air=1 nodes=5848 rows_so_far=236044
+NV_DAG air=4 nodes=5849 rows_so_far=242726
+NV_DAG air=0 nodes=4651 rows_so_far=249306
+NV_DAG air=3 nodes=32 rows_so_far=250615
+NV_DAG air=2 nodes=1234 rows_so_far=251569
+NV_PHASE after_dag 251660
+NV_PHASE after_stacking 268438
+NV_QCOST round=0 queries=54 rows=39204 per_query=726 nbits=25 k=2 merkle_nodes=8883
+NV_QCOST round=1 queries=41 rows=14965 per_query=365 nbits=23 k=4 merkle_nodes=9990
+NV_QCOST round=2 queries=31 rows=11315 per_query=365 nbits=23 k=4 merkle_nodes=10827
+NV_QCOST round=3 queries=25 rows=9125 per_query=365 nbits=23 k=4 merkle_nodes=11502
+NV_PHASE end 389825
+NV_PHASE before_dag 420853
+NV_DAG air=1 nodes=5848 rows_so_far=427094
+NV_DAG air=4 nodes=5849 rows_so_far=433776
+NV_DAG air=0 nodes=4651 rows_so_far=440356
+NV_DAG air=3 nodes=32 rows_so_far=441665
+NV_DAG air=2 nodes=1234 rows_so_far=442619
+NV_PHASE after_dag 442710
+NV_PHASE after_stacking 459488
+NV_QCOST round=0 queries=54 rows=39204 per_query=726 nbits=25 k=2 merkle_nodes=14634
+NV_QCOST round=1 queries=41 rows=14965 per_query=365 nbits=23 k=4 merkle_nodes=15741
+NV_QCOST round=2 queries=31 rows=11315 per_query=365 nbits=23 k=4 merkle_nodes=16578
+NV_QCOST round=3 queries=25 rows=9125 per_query=365 nbits=23 k=4 merkle_nodes=17253
+NV_PHASE end 580875
+NV_PHASE before_dag 611903
+NV_DAG air=1 nodes=5848 rows_so_far=618144
+NV_DAG air=4 nodes=5849 rows_so_far=624826
+NV_DAG air=0 nodes=4651 rows_so_far=631406
+NV_DAG air=3 nodes=32 rows_so_far=632715
+NV_DAG air=2 nodes=1234 rows_so_far=633669
+NV_PHASE after_dag 633760
+NV_PHASE after_stacking 650538
+NV_QCOST round=0 queries=54 rows=39204 per_query=726 nbits=25 k=2 merkle_nodes=20385
+NV_QCOST round=1 queries=41 rows=14965 per_query=365 nbits=23 k=4 merkle_nodes=21492
+NV_QCOST round=2 queries=31 rows=11315 per_query=365 nbits=23 k=4 merkle_nodes=22329
+NV_QCOST round=3 queries=25 rows=9125 per_query=365 nbits=23 k=4 merkle_nodes=23004
+NV_PHASE end 771925
+NV_GEN finish ms=41
+NV_GEN replay ms=867
+NV_GEN profile ms=872 HeightProfile { k_samples: 24700, n_runs: 1908, j_actual: 1661, jobs_actual: 3134, jobs_min: 2052, samp_actual: 13583, samp_min: 12356, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 10965, comps_delta_actual: 1082 }
+NV_PHASE before_dag 37968
+NV_DAG air=1 nodes=5848 rows_so_far=44246
+NV_DAG air=4 nodes=5849 rows_so_far=50928
+NV_DAG air=0 nodes=4651 rows_so_far=57606
+NV_DAG air=3 nodes=32 rows_so_far=58916
+NV_DAG air=2 nodes=1234 rows_so_far=60230
+NV_PHASE after_dag 60321
+NV_PHASE after_stacking 77099
+NV_QCOST round=0 queries=54 rows=39233 per_query=727 nbits=25 k=2 merkle_nodes=3132
+NV_QCOST round=1 queries=41 rows=14972 per_query=365 nbits=23 k=4 merkle_nodes=4239
+NV_QCOST round=2 queries=31 rows=11315 per_query=365 nbits=23 k=4 merkle_nodes=5076
+NV_QCOST round=3 queries=25 rows=9125 per_query=365 nbits=23 k=4 merkle_nodes=5751
+NV_PHASE end 198522
+NV_PHASE before_dag 229803
+NV_DAG air=1 nodes=5848 rows_so_far=236044
+NV_DAG air=4 nodes=5849 rows_so_far=242726
+NV_DAG air=0 nodes=4651 rows_so_far=249306
+NV_DAG air=3 nodes=32 rows_so_far=250615
+NV_DAG air=2 nodes=1234 rows_so_far=251569
+NV_PHASE after_dag 251660
+NV_PHASE after_stacking 268438
+NV_QCOST round=0 queries=54 rows=39204 per_query=726 nbits=25 k=2 merkle_nodes=8883
+NV_QCOST round=1 queries=41 rows=14965 per_query=365 nbits=23 k=4 merkle_nodes=9990
+NV_QCOST round=2 queries=31 rows=11315 per_query=365 nbits=23 k=4 merkle_nodes=10827
+NV_QCOST round=3 queries=25 rows=9125 per_query=365 nbits=23 k=4 merkle_nodes=11502
+NV_PHASE end 389825
+NV_PHASE before_dag 420853
+NV_DAG air=1 nodes=5848 rows_so_far=427094
+NV_DAG air=4 nodes=5849 rows_so_far=433776
+NV_DAG air=0 nodes=4651 rows_so_far=440356
+NV_DAG air=3 nodes=32 rows_so_far=441665
+NV_DAG air=2 nodes=1234 rows_so_far=442619
+NV_PHASE after_dag 442710
+NV_PHASE after_stacking 459488
+NV_QCOST round=0 queries=54 rows=39204 per_query=726 nbits=25 k=2 merkle_nodes=14634
+NV_QCOST round=1 queries=41 rows=14965 per_query=365 nbits=23 k=4 merkle_nodes=15741
+NV_QCOST round=2 queries=31 rows=11315 per_query=365 nbits=23 k=4 merkle_nodes=16578
+NV_QCOST round=3 queries=25 rows=9125 per_query=365 nbits=23 k=4 merkle_nodes=17253
+NV_PHASE end 580875
+NV_PHASE before_dag 611903
+NV_DAG air=1 nodes=5848 rows_so_far=618144
+NV_DAG air=4 nodes=5849 rows_so_far=624826
+NV_DAG air=0 nodes=4651 rows_so_far=631406
+NV_DAG air=3 nodes=32 rows_so_far=632715
+NV_DAG air=2 nodes=1234 rows_so_far=633669
+NV_PHASE after_dag 633760
+NV_PHASE after_stacking 650538
+NV_QCOST round=0 queries=54 rows=39204 per_query=726 nbits=25 k=2 merkle_nodes=20385
+NV_QCOST round=1 queries=41 rows=14965 per_query=365 nbits=23 k=4 merkle_nodes=21492
+NV_QCOST round=2 queries=31 rows=11315 per_query=365 nbits=23 k=4 merkle_nodes=22329
+NV_QCOST round=3 queries=25 rows=9125 per_query=365 nbits=23 k=4 merkle_nodes=23004
+NV_PHASE end 771925
+NV_GEN finish ms=40
+NV_GEN replay ms=930
+NV_GEN profile ms=936 HeightProfile { k_samples: 24700, n_runs: 1908, j_actual: 1661, jobs_actual: 3134, jobs_min: 2052, samp_actual: 13583, samp_min: 12356, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 10965, comps_delta_actual: 1082 }
+M8_NODE_PROVED L3_0 kind=Pstar rows=772388 seconds=921.5
+NV_PHASE before_dag 31836
+NV_DAG air=1 nodes=5848 rows_so_far=38114
+NV_DAG air=4 nodes=5849 rows_so_far=44796
+NV_DAG air=0 nodes=4651 rows_so_far=51474
+NV_DAG air=3 nodes=32 rows_so_far=52784
+NV_DAG air=2 nodes=1234 rows_so_far=54098
+NV_PHASE after_dag 54189
+NV_PHASE after_stacking 70967
+NV_QCOST round=0 queries=54 rows=39233 per_query=727 nbits=25 k=2 merkle_nodes=3132
+NV_QCOST round=1 queries=41 rows=14972 per_query=365 nbits=23 k=4 merkle_nodes=4239
+NV_QCOST round=2 queries=31 rows=11315 per_query=365 nbits=23 k=4 merkle_nodes=5076
+NV_QCOST round=3 queries=25 rows=9125 per_query=365 nbits=23 k=4 merkle_nodes=5751
+NV_PHASE end 192390
+NV_GEN finish ms=9
+NV_GEN replay ms=212
+NV_GEN profile ms=214 HeightProfile { k_samples: 6175, n_runs: 477, j_actual: 414, jobs_actual: 774, jobs_min: 513, samp_actual: 3390, samp_min: 3089, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 2650, comps_delta_actual: 261 }
+NV_PHASE before_dag 31836
+NV_DAG air=1 nodes=5848 rows_so_far=38114
+NV_DAG air=4 nodes=5849 rows_so_far=44796
+NV_DAG air=0 nodes=4651 rows_so_far=51474
+NV_DAG air=3 nodes=32 rows_so_far=52784
+NV_DAG air=2 nodes=1234 rows_so_far=54098
+NV_PHASE after_dag 54189
+NV_PHASE after_stacking 70967
+NV_QCOST round=0 queries=54 rows=39233 per_query=727 nbits=25 k=2 merkle_nodes=3132
+NV_QCOST round=1 queries=41 rows=14972 per_query=365 nbits=23 k=4 merkle_nodes=4239
+NV_QCOST round=2 queries=31 rows=11315 per_query=365 nbits=23 k=4 merkle_nodes=5076
+NV_QCOST round=3 queries=25 rows=9125 per_query=365 nbits=23 k=4 merkle_nodes=5751
+NV_PHASE end 192390
+NV_GEN finish ms=9
+NV_GEN replay ms=204
+NV_GEN profile ms=205 HeightProfile { k_samples: 6175, n_runs: 477, j_actual: 414, jobs_actual: 774, jobs_min: 513, samp_actual: 3390, samp_min: 3089, nv_rows_per_job: 9, comps_per_job: 1, nv_delta_actual: 2650, comps_delta_actual: 261 }
+
+thread 'main' (4057987) panicked at /data/illia/nearproof-deps/pq-e2e-m8/openvm-sha384/crates/recursion/src/nv/circuit.rs:536:23:
+called `Result::unwrap()` on an `Err` value: StackedPcs(LayoutHeightExceeded { log_height: 21, log_stacked_height: 20 })
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+Command exited with non-zero status 101
+	Command being timed: "taskset -c 0-7 /data/illia/nearproof-deps/pq-e2e-m8/target/release/nearproof-chunk-e2e m8-tree /data/illia/nearproof-deps/pq-e2e-m8/spec.json /data/illia/nearproof-deps/pq-e2e-m8/tree /data/illia/nearproof/.claude/worktrees/agent-ab612a0268a59b4fb/research/near-compression/final-soundness/calc/dkt_certs_o2.json /data/illia/nearproof/.claude/worktrees/agent-ab612a0268a59b4fb/research/near-compression/final-soundness/lean/DKTCertsO2_big.keys"
+	User time (seconds): 40219.24
+	System time (seconds): 2642.32
+	Percent of CPU this job got: 243%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 4:53:03
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 33807740
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 8863764
+	Minor (reclaiming a frame) page faults: 1096936249
+	Voluntary context switches: 15975689
+	Involuntary context switches: 17785142
+	Swaps: 0
+	File system inputs: 1942766448
+	File system outputs: 13640
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 101

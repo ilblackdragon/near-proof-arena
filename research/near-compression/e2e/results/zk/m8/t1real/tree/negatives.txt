@@ -1,0 +1,19 @@
+ACCEPTED honest packet (control)
+REJECTED S byte 0 changed: rc=1 HTREE_VERIFY_REJECT wrap verifier: statement digest differs from the claim
+REJECTED S byte in chunk_inner changed: rc=1 HTREE_VERIFY_REJECT wrap verifier: statement digest differs from the claim
+REJECTED S last byte changed: rc=1 HTREE_VERIFY_REJECT wrap verifier: statement digest differs from the claim
+REJECTED S with a non-empty section B count: rc=1 HTREE_VERIFY_REJECT wrap verifier: statement digest differs from the claim
+REJECTED S length +1: rc=1 HTREE_VERIFY_REJECT proof codec: Custom { kind: Other, error: "CODEC_VERSION mismatch, expected: 3, actual: 21779968" }
+REJECTED S length -1: rc=1 HTREE_VERIFY_REJECT proof codec: Custom { kind: Other, error: "CODEC_VERSION mismatch, expected: 3, actual: 1442841344" }
+REJECTED proof byte flipped (start): rc=1 HTREE_VERIFY_REJECT wrap verifier: final proof: BatchConstraintError(SumClaimMismatch { sum_claim: BinomialExtensionField { value: [999957980, 1527161560, 1057085795, 98843184, 1346353417, 1959381048, 1044789679, 943694449, 551182532, 1425556380, 1090222676, 148533957], _phantom: PhantomData<p3_monty_31::monty_31::MontyField31<p3_baby_bear::baby_bear::BabyBearParameters>> }, sum_univ_domain_s_0: BinomialExtensionField { value: [1537821830, 1404910534, 626105772, 1831509342, 200586609, 1256564475, 895766551, 886305159, 1235880154, 1941440110, 863391900, 956116412], _phantom: PhantomData<p3_monty_31::monty_31::MontyField31<p3_baby_bear::baby_bear::BabyBearParameters>> } })
+REJECTED proof byte flipped (middle): rc=1 HTREE_VERIFY_REJECT wrap verifier: final proof: WhirError(MerkleVerify)
+REJECTED proof byte flipped (end): rc=1 HTREE_VERIFY_REJECT wrap verifier: final proof: WhirError(QueryPhasePoWInvalid)
+REJECTED truncated proof: rc=1 HTREE_VERIFY_REJECT proof codec: Error { kind: UnexpectedEof, message: "failed to fill whole buffer" }
+REJECTED trailing bytes: rc=1 HTREE_VERIFY_REJECT trailing proof bytes
+REJECTED bad magic: rc=1 HTREE_VERIFY_REJECT bundle framing
+REJECTED wrong pin: rc=1 HTREE_VERIFY_REJECT untrusted setup: hash differs from the operator's pin
+REJECTED setup program changed (re-pinned): rc=1 HTREE_VERIFY_REJECT wrap verifier: final program openings differ from the pinned program
+REJECTED setup level changed (re-pinned): rc=1 HTREE_VERIFY_REJECT wrap verifier: wrap setup level
+REJECTED setup wrap heights changed (re-pinned): rc=1 HTREE_VERIFY_REJECT wrap verifier: AIR 0: height (20, Some(379708)) differs from the pinned (20, Some(379712))
+M8_NEGATIVES 16/16 rejected
+M8_NEGATIVES_ALL_REJECTED 16/16

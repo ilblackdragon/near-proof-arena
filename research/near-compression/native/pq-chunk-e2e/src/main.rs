@@ -4,6 +4,18 @@ mod perf_check;
 mod profile;
 #[cfg(feature = "tree")]
 mod tree;
+// [E2E-D M8] the heterogeneous tree, and the SHA-512 chip v4 its lane A / lane B template provers
+// use (lane A's `s384/`, identical to lane B's copy; read-only `#[path]` includes)
+#[cfg(feature = "tree")]
+mod htree;
+#[cfg(feature = "tree")]
+#[allow(dead_code, clippy::all)]
+#[path = "../../wasm-base/src/s384"]
+mod s384 {
+    pub mod air;
+    pub mod reference;
+    pub mod trace;
+}
 mod zk_selftest;
 #[path = "../../pq-state-port/src/main.rs"]
 #[allow(dead_code)]
@@ -1158,6 +1170,23 @@ fn main() {
         Some("tree-audit") if a.len() >= 7 => tree::tree_audit(&a[2], &a[3], &a[4], &a[5], Path::new(&a[6]), &a[7..]),
         #[cfg(feature = "tree")]
         Some("tree-verify") if a.len() == 7 => tree::tree_verify(&a[2], &a[3], &a[4], &a[5], &a[6]),
+        // [E2E-D M8] m8-prove-a AIRSEG DUMP OUT CERTS EXCLUSIONS [nsXXlbY]; m8-prove-b M5A_JSON DUMP_DIR OUT
+        // CERTS EXCLUSIONS [nsXXlbY]; m8-tree SPEC OUT CERTS EXCLUSIONS; m8-verify SETUP PIN BUNDLE
+        #[cfg(feature = "tree")]
+        Some("m8-prove-a") if a.len() == 7 || a.len() == 8 => {
+            htree::prove_lane_a(&a[2], &a[3], Path::new(&a[4]), profile::parse_geom(a.get(7).map_or("ns18lb7", |s| s.as_str())), &a[5], &a[6])
+        }
+        #[cfg(feature = "tree")]
+        Some("m8-prove-b") if a.len() == 7 || a.len() == 8 => {
+            htree::prove_lane_b(&a[2], &a[3], Path::new(&a[4]), profile::parse_geom(a.get(7).map_or("ns18lb7", |s| s.as_str())), &a[5], &a[6])
+        }
+        // [E2E-D M8] m8-import VK PROOF OUT TEMPLATE NAMES: a lane's own saved template proof
+        #[cfg(feature = "tree")]
+        Some("m8-import") if a.len() == 7 => htree::import_template(&a[2], &a[3], Path::new(&a[4]), &a[5], &a[6]),
+        #[cfg(feature = "tree")]
+        Some("m8-tree") if a.len() == 6 => htree::tree_prove(&a[2], Path::new(&a[3]), &a[4], &a[5]),
+        #[cfg(feature = "tree")]
+        Some("m8-verify") if a.len() == 5 => htree::tree_verify(&a[2], &a[3], &a[4]),
         #[cfg(feature = "tree")]
         Some("fs-count") if a.len() == 5 => tree::fs_count(&a[2], &a[3], a[4] == "1"),
         Some("zk-selftest") => zk_selftest::run(&a[2..]),
