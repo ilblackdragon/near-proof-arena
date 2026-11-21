@@ -1,0 +1,76 @@
+# G-2 FINAL class census (shapes.py), 2026-11-21: d3c7-d3c10/d3, every 4th case (stride 4) plus the first 3,192 in path order;
+# m5d-tool dump (the Lean checker's FINAL) per case; 'dump-failed' = the 600 s dump timeout.
+cases 7477, dumped 7405
+    1192   15.94 %  tx
+    1156   15.46 %  tx+rs33/100+shards5
+    1020   13.64 %  tx+rs2/8+shards4
+     795   10.63 %  tx+rs1/3+shards4
+     306    4.09 %  tx+rs33/100
+     274    3.66 %  tx+rs1/3+shards5
+     273    3.65 %  F1
+     263    3.52 %  tx+rs2/8+shards5
+     260    3.48 %  rs33/100+shards5
+     232    3.10 %  rs2/8+shards4
+     219    2.93 %  rs1/3+shards4
+     194    2.59 %  tx+shards4
+     178    2.38 %  tx+rs1/3
+     142    1.90 %  tx+rs2/8
+     137    1.83 %  tx+shards5
+     105    1.40 %  tx+rs33/100+shards4
+      72    0.96 %  dump-failed
+      72    0.96 %  rs1/3+shards5
+      65    0.87 %  rs33/100
+      54    0.72 %  rs2/8+shards5
+      49    0.66 %  tx+proposals+rs2/8+shards4
+      45    0.60 %  rs1/3
+      40    0.53 %  shards4
+      39    0.52 %  tx+proposals+rs33/100+shards5
+      32    0.43 %  shards5
+      31    0.41 %  rs2/8
+      29    0.39 %  tx+proposals
+      26    0.35 %  rs33/100+shards4
+      23    0.31 %  tx+proposals+rs1/3+shards4
+      18    0.24 %  tx+bw
+      17    0.23 %  proposals+rs1/3+shards4
+      11    0.15 %  tx+proposals+rs2/8+shards5
+       9    0.12 %  proposals+rs2/8+shards4
+       9    0.12 %  proposals+rs33/100+shards5
+       9    0.12 %  proposals
+       8    0.11 %  tx+bw+rs33/100+shards5
+       8    0.11 %  tx+proposals+rs33/100
+       8    0.11 %  tx+proposals+shards4
+       7    0.09 %  tx+bw+rs33/100
+       7    0.09 %  tx+proposals+rs2/8
+       5    0.07 %  tx+proposals+rs1/3+shards5
+       5    0.07 %  tx+proposals+shards5
+       5    0.07 %  tx+proposals+rs1/3
+       4    0.05 %  proposals+shards4
+       4    0.05 %  tx+proposals+rs33/100+shards4
+       3    0.04 %  tx+bw+rs2/8
+       3    0.04 %  bw+rs2/8
+       3    0.04 %  tx+bw+rs1/3
+       2    0.03 %  proposals+rs1/3+shards5
+       2    0.03 %  tx+bw+rs2/8+shards5
+       1    0.01 %  proposals+rs2/8+shards5
+       1    0.01 %  bw+rs33/100
+       1    0.01 %  proposals+rs33/100
+       1    0.01 %  bw+rs33/100+shards5
+       1    0.01 %  tx+bw+shards5
+       1    0.01 %  proposals+shards5
+       1    0.01 %  proposals+bw
+single features (dumped cases, a case can have several):
+    5997   80.99 %  tx
+    2745   37.07 %  shards4
+    2333   31.51 %  shards5
+    1996   26.95 %  rs33/100
+    1827   24.67 %  rs2/8
+    1638   22.12 %  rs1/3
+     273    3.69 %  F1
+     247    3.34 %  proposals
+      48    0.65 %  bw
+dump failures (top):
+      72  near-compression/e2e-general/m5d/lean/.lake/build/bin/m5d-to
+  rcpts: p50 6  p99 479  max 1059
+  outcomes: p50 9  p99 572  max 1220
+  n: p50 1762  p99 90831  max 167511
+  txs: p50 2  p99 383  max 710

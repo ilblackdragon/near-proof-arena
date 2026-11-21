@@ -5,7 +5,123 @@ Plan: `docs/zk-formal/E2E-GENERAL-CHUNK-PLAN.md` §1.1 ("outputs and roots"), §
 [`LEAF-TEMPLATE-SPEC.md`](LEAF-TEMPLATE-SPEC.md). Date 2026-11-21. Labels: **[M]** measured here,
 **[K]** kernel-checked Lean (std axioms), **[S]** stated / design only.
 
-## What this is
+## G-2 (2026-11-21): whole-AIR Lean, the leaf joins, `B_out`, pinned shapes, class census
+
+Log `docs/logs/e2e-laneG-g2-2026-11-21.md`. Plan §5.3.
+
+### Item 1 — from `Holds` of the whole AIR [K]
+
+The package now requires lane B's `StateM5a` (read-only: `Bus`, `ChipStub`, `Sha512If`).
+**`Whole.finalAirS`** = `finalAir` + lane B's chip stub `chipStubOn B_IF384`: the AIR the prover
+runs (`Holds finalAir` alone is unsatisfiable: `S384` receives on `IF384` and no Lean table sends
+there). **`S384Chip.precheck_holds_final`**: a precheck-accepted trace (every bus but `IF384`
+balanced, the native chip's sends a permutation of the `IF384` receives) extends, Lean tables
+unchanged, to `Holds finalAirS` whose stub sends are exactly the chip's — so every theorem below
+is about the deployed relation and the chip premise is lane B's `Sha512IfContract` on the chip's
+own sends.
+
+| module | result |
+|---|---|
+| `BusMem` | generic: `mem_busList` (bus list ↔ an occurrence), `recv_sent` / `sent_recv` under `Holds` |
+| `Whole` | `onlyIn` / `occ_in` (who sends / receives a bus, `decide +kernel`), field ↔ natural helpers |
+| `HbWhole` | **`hb_bytes`**: `HbBytes` (was a premise) from `Holds finalAirS` — `FIN` `HB` ← `STMT` (`h = 1 ⇒ act = 1`) → `SB` → `S384` data flag (`⇒ act = 1`, monotone flags) → `R8`/`S2`/`S5` → `RNG` (`v = Σ 2^i β_i`); `fin_row0_act`; **`final_template_sound_holds`** (FINAL with `HbBytes` discharged) |
+| `RsRow` | (was `lean-wip`, over the heartbeat budget; now 0.8 s) `rs_parity_bit_holds`: parity bit = parity of the selected data bits, `q` bytes from `R8` |
+| `RsByte` | **`rs_parity_byte_holds`**: an `RS` row's parity byte `i` = the spec's `parityPart` byte `⊕_j mulRow(M[d+i][j])[d_j]` (with `coeff_linear`, `mat_mem`) |
+| `ShaWhole` | **`sha_msg`**: SHA-256 message identification — a received `SHA_DIGEST (id, L, dg)` whose `(id, i)` senders are functional is `sha256` of their bytes (`sha_digest_recv` from lane L5's closed contract; `|msg| ≤ 2^28`) |
+| `MrkWalk` | **`walkRoot_eq`**: the `MRK` level walk (hash / carry / terminal / zero rows) is nearcore `merklize` (record level) |
+| `S384Rec` | `sha384_of_blocks`: `sha384 m` = the first 48 bytes of `foldl compress IV384` over blocks concatenating to `pad m` |
+| `S384Chip` | **`s384_comp`** (an active `S384` row is a chip compression, via lane B's `comp_sound`), `s384_step` / `s384_iv`, **`s384_chain`**: over a message, the compression input of row `r0 + n` is the fold of `compress` over the rows' blocks from IV384 |
+| `Split` | item 3, below |
+| `BOut` | item 2, below |
+| `Cls.All` | item 4: `f1_eq` — the generated F1 class AIR is `finalAir` (`rfl`) |
+
+**Still open for `Computed`** (named, in order of size): the functional-sender facts per SHA-256
+consumer (`PART`/`RS` ids `PID0 + p`, `SHD` `SHM0/SHL0 + q`, `MRK` `MID0 + g`: disjoint id ranges
+and row counters) — then `sha_msg` gives each digest; the `MRK` table's rows ⇒ `walkLevel` per
+level (the `NODE` bus is functional on `(tree, level, index)`: one `TSTART` per tree, counters);
+`BODY`/`SEG` ⇒ `encodeRcpts` and the shard routing; `S384`'s padding (the rows' blocks are `pad` of
+the received bytes) and digest-byte extraction, which with `s384_chain` + `sha384_of_blocks` gives
+SHA-384 of every `SD` message (then the accumulator openings, modulo `bdigest` collisions).
+
+### Item 2 — `B_out`, pinned shapes, lane D's format [M]
+
+* **Prover** (`prover/`): ported to lane B's B-T1 prover — the verifier's backend (frozen
+  `pq-e2e-d9` `stark-backend-unified` + `plonky3-ext12`), `Sha384CpuEngine`, **lane D's base
+  configuration** (list decoding m = 64, `k_first 2`, `domain_odd_factor 15`, LogUp message length 7,
+  `zk = 0`) with **query grinding 24** (not 32) and the template's `(n_stack, log_blowup, w_stack)`;
+  `prove … OUT` saves `STATE.proof`, `STATE.vk.json` (SavedVk), `statement.json`; **lane D's driver
+  verifies them** (`nearproof-chunk-e2e fs-count VK PROOF 0`, `run.sh` runs it).
+* **Pinned heights** (`templates/*.json`, `census.py`): every table — the SHA-256 table and the
+  SHA-512 chip included (minimum-height options: `sha_cells_pinned`, `gen_main(comps, 1 << pin)`,
+  zero rows) — padded to its class pin; FINAL classes nested by chip height `F1` (≤ 2^13, 120 / 133
+  F1 cases), `F1-M`, `F1-L` (all 133); INIT classes `INIT-14 … INIT-18` by chip height (875 / 875 of a
+  partial census). `run.sh` picks the smallest fitting template (exit 4 = overflow).
+* **`B_out`** (`Final.lean` `Fin.boutInteractions`, `BOut.lean`): `FIN` sends `0x04 ‖ chunk_inner`
+  and `0x05 ‖ encOutputsF1 o` (252 B, from the row's `FinIn` / root / header-length cells) through
+  `S384`; public values 30..44 = `ctxD(.header H)` = `BOut.ctxHeaderD H`, 44..58 = the first
+  component of `outD(.done o)` = `BOut.outDoneD o`. The dump emits **Lean's own** `ctxHeaderD`,
+  `outDoneD`, `encOutputsF1` on the case and `tracegen.py` asserts the circuit's bytes equal them
+  (T1: `ctxHeaderD = a1d33e43…92c7`, `outDoneD = ef7d1e4e…6c72`). The leaf assembles `h(B_out)` from
+  these, `claimDigest` and the view's constants for `done` (§5 of the leaf spec).
+
+| T1 | before (M5d-T1, seg-v1, natural) | G-2 (template, base config) |
+|---|---|---|
+| FINAL (before `B_out`) | 992,188 B | **480,428 B** at `F1` (27.6 s / 31 ms, 6.9 GB, 268.2-bit), fs-count OK |
+| INIT (before the section-B walk) | 790,307 B | **346,723 B** at `INIT-14` (38.8 s / 16 ms, 6.2 GB), fs-count OK |
+| FINAL with `B_out` / INIT with `BLK` | | not re-proved (slice saturated); pycheck OK on the honest traces, `run.sh … prove` reproduces |
+
+**INIT decodes section B (G-2, coordinator request)** — `BLK` framing walk, slot bus, the main
+slot's `prev_state_root` exposed (public values 28..44; bus `PSR` = 22 in the `.init` join); see
+leaf spec §6 (the slot *selection* `(b2i, mainIdx)` = the checker's `walkSegment` is open: mutant
+`psr_slot` is accepted by the AIR).
+
+**Mutants (T1, at the templates, on the G-2 AIRs with `B_out` / `BLK`):** the prover batteries
+could not run: the shared `zkbuild.slice` (the `heavy` wrapper's cgroup) sat at its 40 GB
+`memory.high` from other lanes' jobs and every prover in it stalled. So the batteries ran under
+**`pycheck.py`** (pure Python: every exported constraint on every row, multiplicity bits, every bus
+balanced as a multiset except the chip's `IF384`, then the statement check; `pymutants.sh`):
+**FINAL 35 / 35 rejected** (`logs/G2-T1-final-pymutants.txt`: the 32 of M5d-T1 + `bout_od`,
+`pub_hdr`, `pub_out`), **INIT 10 / 10 rejected** (`logs/G2-T1-init-pymutants.txt`: + `lbshift`
+(walk end differs from `|pre| + ℓ_B`), `psr_slot`, `pub_psr`), honest traces OK. `psr_slot` (another
+slot's `prev_state_root`) is rejected **only by the statement check**; the AIR accepts it (the slot
+selection is the open `walkSegment` obligation, leaf spec §6). Under the prover (before the AIR
+changes) `hdr_psr` was rejected (precheck + native verifier). Re-run with the prover:
+`LEAN=0 ./run.sh CASE OUT mutants` (+ `TEMPLATE=init`).
+
+### Item 3 — the FINAL / INIT leaves as joins [K] (`Split.lean`; lane E's M11i split was not on main)
+
+* `finK_bind` (any driver, any gas cap): the checker's `finK … k = finK … pure >>= k` — `FINAL`'s
+  first part splits at `t = (root, congestion, outgoing)` with no checker change; `FinReach I out t`
+  (`∀ k, finK … k = k t`), `finReach_of`, and `fin_split` (every successful non-genesis `FINAL` step
+  factors through such a `t`: the split is not vacuous).
+* **FINAL**: lane B's `FinalBPart` (input digest opens to `fin I out`, `I.d2 = none`,
+  `FinReach I out t`, the `FinIn` bus carries `fi` with `FinInOK fi I out t`) + lane G's
+  `FinalGPart` (from the bus value: output digest opens to `done I.H o`, `tailNew … t = .ok o`,
+  `headerOk I.H o`) ⇒ **`segSoundFinal_join`**: lane E's `SegSoundFinal`; `final_join_headerOk`
+  also gives FinalOut on the opened `done`.
+* **INIT**: `InitGPart` (input digest opens to `init cb wb` for the bytes on the `CLM` stream) +
+  lane B's `InitBPart` (for those bytes, `CM.step (init cb wb) = .ok c`, output digest opens to `c`)
+  ⇒ **`segSoundInit_join`**: `SegSoundInit`.
+* What lane G's tables give toward `FinalGPart` today: `final_template_sound_holds` (`headerOk` of
+  the decoded public header and `tailNew`'s `o`), modulo `ClassF1` / `Computed` and the `B_out`
+  digest; `H = I.H` is the statement link (`cm_done_header`: the `done` header is the claim's own
+  decoded `chunk_inner`, the window `FIN` reads from the statement whose digest is `ctx`).
+
+### Item 4 — FINAL class census [M] (`shapes.py`, `logs/G2-shapes.{txt,jsonl}`)
+
+7,477 `d3` cases (`d3c7`–`d3c10`, every 4th + the first 3,192), the Lean checker's FINAL per case:
+**F1 is 3.7 %**; transactions are in **81 %**; `(d, t)` ∈ {(1, 3) 22 %, (2, 8) 25 %, (5, 16) 23 %,
+(33, 100) 27 %}, not tied to the shard count (4 shards 37 %, 5 shards 32 %, 6 shards 31 %);
+proposals 3.3 %, bandwidth requests 0.65 %, proposed split 0, header V5 and `|chain_id| = 14`
+everywhere; 1 % dump timeouts (600 s). Without transactions / proposals / bandwidth requests every
+`(NS, d, t)` combination together is ≈ 18 %; adding transactions reaches ≈ 96 %.
+**`gen_class.py NS D T`** generates the class-`(NS, d, t)` FINAL AIR from `Final.lean` (the AIR is
+parametric in exactly these; `FI_LEN = 246 + 8·NS`), `m5d-tool air-final-cls NS D T AIR NAMES`
+exports it (9 classes generated), and `Cls.f1_eq` checks that the generated F1 is `finalAir`.
+Next by frequency: transactions (the `SEG`/`BODY` path with the tx destination + tx accumulator +
+`tx_root` merklize), then proposals, then bandwidth requests.
+
+## What this is (M5d-T1)
 
 * **FINAL** (class `F1`): every chunk-header output lane E's `headerOk` compares (13 comparisons)
   is computed in-circuit from the post-`finK` record `FinIn` and compared, byte by byte, with the

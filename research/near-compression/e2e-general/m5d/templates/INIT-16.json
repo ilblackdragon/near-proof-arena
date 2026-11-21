@@ -1,0 +1,21 @@
+{
+ "name": "INIT-16",
+ "template": "init",
+ "note": "INIT, chip 2^16: d3 census (logs/G2-census.txt): joint max of the class members (27 / 875); not proved yet; G-2: BLK (section-B framing walk) pinned at 2^8 (<= 255 header + slot rows)",
+ "params": {
+  "n_stack": 18,
+  "log_blowup": 1,
+  "w_stack": 9,
+  "pow_bits": 24,
+  "degree": 9
+ },
+ "heights": {
+  "CLM": 16,
+  "INI": 2,
+  "RNG": 8,
+  "S384": 9,
+  "SHA512": 16,
+  "BLK": 8
+ },
+ "cells": 6417212
+}

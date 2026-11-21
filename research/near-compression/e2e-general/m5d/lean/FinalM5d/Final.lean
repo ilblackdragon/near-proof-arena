@@ -103,6 +103,10 @@ def PID0 : Nat := 2 ^ 22
 def MID0 : Nat := 2 ^ 23
 def ID_CLAIM : Nat := 1
 def ID_FIN : Nat := 2
+def ID_HDR : Nat := 3
+def ID_OUT : Nat := 4
+def TAG_HDR : Nat := 4
+def TAG_OUT : Nat := 5
 def RCH0 : Nat := 2 ^ 20
 def OCH0 : Nat := 2 ^ 21
 def CH_OUT : Nat := 1
@@ -115,7 +119,11 @@ def PV_CLAIM : Nat := 0
 def PV_FIN : Nat := 14
 def PV_N : Nat := 28
 def PV_L : Nat := 29
-def NUM_PUB : Nat := 30
+/-- `ctxD (.header H)` = `bdigest (0x04 ‖ chunk_inner)` (`BOut.ctxHeaderD`), 14 limbs. -/
+def PV_HDR : Nat := 30
+/-- `outD (.done o)`'s first component `bdigest (0x05 ‖ encOutputsF1 o)` (`BOut.outDoneD`), 14 limbs. -/
+def PV_OUT : Nat := 44
+def NUM_PUB : Nat := 58
 
 /-- Activity is a prefix of the rows, and the table's last row is inactive. -/
 def actPrefix (T : Cols) : List Expr :=
@@ -143,7 +151,7 @@ end Stmt
 namespace Fin
 def L : Layout :=
   [("act", 1), ("hb", HBN), ("fi", FI_LEN), ("ro", 32), ("rs", 32), ("rsh", 32), ("cd", 48),
-   ("fd", 48), ("nO", 1), ("nR", 1), ("lenC", 1)]
+   ("fd", 48), ("nO", 1), ("nR", 1), ("lenC", 1), ("hd", 48), ("od", 48)]
 def T : Cols := ⟨L⟩
 def hb (i : Nat) : Expr := T.c "hb" i
 def fi (i : Nat) : Expr := T.c "fi" i
@@ -223,7 +231,31 @@ def interactions : List Interaction :=
    rcv B_R8 act [K RSD * P PV_L - P PV_N + K (256 - RSD)]] ++
   (List.range NS).map (fun q => snd B_SID act [K q, sidv q])
 
-def table : Table := { width := L.width, constraints, interactions, maxLog := 4 }
+/-! `B_out` (leaf spec §4): the two `done`-boundary component digests. -/
+/-- The 252 bytes of `BOut.encOutputsF1 (outputsOf …)`, from the row's cells. -/
+def outBytes : List Expr :=
+  (List.range 32).map (fun j => fi (FI_ROOT + j)) ++ T.cs "ro" 32 ++
+  (List.range 8).map (fun j => fi (FI_GL + j)) ++ (List.range 8).map (fun j => fi (FI_GAS + j)) ++
+  (List.range 16).map (fun j => fi (FI_BAL + j)) ++ T.cs "rsh" 32 ++
+  (List.range 43).map (fun j => fi (FI_CONG + j)) ++ (List.range 32).map (fun _ => K 0) ++
+  T.cs "rs" 32 ++ (List.range 8).map (fun j => ci (H_EL + j)) ++
+  (List.range 9).map (fun _ => K 0)
+
+def boutInteractions : List Interaction :=
+  [snd B_SB act [K ID_HDR, K 0, K TAG_HDR]] ++
+  (List.range CI_LEN).map (fun j => snd B_SB act [K ID_HDR, K (1 + j), ci j]) ++
+  [rcv B_SD act ([K ID_HDR, K (1 + CI_LEN)] ++ T.cs "hd" 48),
+   snd B_SB act [K ID_OUT, K 0, K TAG_OUT]] ++
+  (List.range 252).map (fun j => snd B_SB act [K ID_OUT, K (1 + j), outBytes.getD j 0]) ++
+  [rcv B_SD act ([K ID_OUT, K 253] ++ T.cs "od" 48)]
+
+def boutConstraints : List Expr :=
+  eqs act ((List.range 14).map fun i => P (PV_HDR + i)) (limbs3 (T.cs "hd" 42)) ++
+  eqs act ((List.range 14).map fun i => P (PV_OUT + i)) (limbs3 (T.cs "od" 42))
+
+def table : Table :=
+  { width := L.width, constraints := constraints ++ boutConstraints,
+    interactions := interactions ++ boutInteractions, maxLog := 4 }
 end Fin
 
 /-! ## `BODY` -/
@@ -482,5 +514,23 @@ def finalAir : Air :=
 def finalLayouts : List (String × Layout) :=
   [("S384", S384.L), ("RNG", Rng.L), ("STMT", Stmt.L), ("FIN", Fin.L), ("BODY", Body.L),
    ("SEG", Seg.L), ("RS", Rs.L), ("PART", Part.L), ("SHD", Shd.L), ("OUTL", Outl.L), ("MRK", Mrk.L)]
+
+/-! ## Constants for the trace generator (exported next to the AIR) -/
+
+def natList (l : List Nat) : String := "[" ++ ",".intercalate (l.map toString) ++ "]"
+
+def finalConsts : List (String × String) :=
+  [("NS", toString NS), ("RSD", toString RSD), ("RST", toString RST), ("CI_OFF", toString CI_OFF),
+   ("HBN", toString HBN), ("PRE_LEN", toString PRE_LEN), ("FI_LEN", toString FI_LEN),
+   ("FIN_TAG", toString FIN_TAG), ("SHM0", toString SHM0), ("SHL0", toString SHL0),
+   ("PID0", toString PID0), ("MID0", toString MID0), ("ID_CLAIM", toString ID_CLAIM),
+   ("ID_FIN", toString ID_FIN), ("ID_HDR", toString ID_HDR), ("ID_OUT", toString ID_OUT),
+   ("TAG_HDR", toString TAG_HDR), ("TAG_OUT", toString TAG_OUT), ("PV_HDR", toString PV_HDR),
+   ("PV_OUT", toString PV_OUT), ("RCH0", toString RCH0), ("OCH0", toString OCH0),
+   ("CH_OUT", toString CH_OUT), ("CH_RC", toString CH_RC), ("TR_OUT", toString TR_OUT),
+   ("TR_SH", toString TR_SH), ("TR_RS", toString TR_RS), ("NUM_PUB", toString NUM_PUB),
+   ("acc0", natList acc0), ("ivLimbs", natList S384.ivLimbs),
+   ("matrix", "[" ++ ",".intercalate (Rs.matrix.map natList) ++ "]"),
+   ("streamFixed", "[" ++ ",".intercalate (streamFixed.map fun (a, b) => natList [a, b]) ++ "]")]
 
 end FinalM5d

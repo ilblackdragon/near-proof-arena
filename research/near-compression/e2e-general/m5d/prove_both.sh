@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 # Prove FINAL and INIT for one dump without rebuilding (the Lean tool and prover must be built).
+# Superseded (G-2): this is the M5d-T1 path (natural heights, seg-v1 parameters, no saved proof);
+# the template path is `run.sh CASE OUT prove` (TEMPLATE=final / init).
 #   prove_both.sh DUMP_JSON OUT_DIR
 set -euo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)

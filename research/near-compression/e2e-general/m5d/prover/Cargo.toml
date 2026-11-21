@@ -1,28 +1,34 @@
 # E2E M5d prover (lane G): the Lean-exported FINAL / INIT AIR (interpreted, unchanged) + the SHA-256
 # (honest generator of ZkFormal.Sha.Gen) + the native SHA-512 compression chip v4
-# (native/sha384-air4, bus ids moved to 100..103) + the public tape, on the unified SWIRL backend
-# (BabyBear, Ext12, SHA-384, T*, 42-byte digests, stacked WHIR).  Deps: own copy of the
-# pq-state-port tree under /data/illia/nearproof-deps/e2e-m5a/deps (same overlay hash).
+# (native/sha384-air4, bus ids moved to 100..103), on the unified SWIRL backend
+# (BabyBear, Ext12, SHA-384, T*, 42-byte digests, stacked WHIR).
+# G-2 (2026-11-21, as lane B's B-T1): the backend is the verifier's (lane B's frozen copy of lane D's
+# `pq-e2e-d9` stark-backend-unified + plonky3-ext12 under /data/illia/nearproof-deps/laneB-t1/deps),
+# and the SHA-384 config is the recursion crate's own `sha384/{config,mb}.rs` (copied unchanged), so
+# the vk hashes and the proof codec are the ones lane D's leaf reads.
 [package]
 name = "nearproof-e2e-m5d"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-openvm-stark-backend = { path = "/data/illia/nearproof-deps/e2e-m5a/deps/stark-backend-unified/crates/stark-backend", default-features = false, features = ["test-utils", "parallel"] }
-openvm-cpu-backend = { path = "/data/illia/nearproof-deps/e2e-m5a/deps/stark-backend-unified/crates/cpu-backend", default-features = false, features = ["parallel"] }
+openvm-stark-backend = { path = "/data/illia/nearproof-deps/laneB-t1/deps/stark-backend-unified/crates/stark-backend", default-features = false, features = ["test-utils", "parallel"] }
+openvm-cpu-backend = { path = "/data/illia/nearproof-deps/laneB-t1/deps/stark-backend-unified/crates/cpu-backend", default-features = false, features = ["parallel"] }
 p3-baby-bear = "=0.4.3"
 p3-field = "=0.4.3"
 p3-air = "=0.4.3"
 p3-matrix = "=0.4.3"
 p3-maybe-rayon = { version = "=0.4.3", features = ["parallel"] }
 sha2 = { version = "=0.10.9", features = ["compress"] }
+serde = { version = "1", features = ["derive"] }
+p3-symmetric = "=0.4.3"
+p3-dft = "=0.4.3"
 serde_json = "1"
 rayon = "1"
 
 [patch.crates-io]
-p3-baby-bear = { path = "/data/illia/nearproof-deps/e2e-m5a/deps/plonky3-ext12/p3-baby-bear" }
-p3-monty-31 = { path = "/data/illia/nearproof-deps/e2e-m5a/deps/plonky3-ext12/p3-monty-31" }
+p3-baby-bear = { path = "/data/illia/nearproof-deps/laneB-t1/deps/plonky3-ext12/p3-baby-bear" }
+p3-monty-31 = { path = "/data/illia/nearproof-deps/laneB-t1/deps/plonky3-ext12/p3-monty-31" }
 
 [workspace]
 

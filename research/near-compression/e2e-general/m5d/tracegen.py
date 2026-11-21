@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """E2E M5d trace generator (lane G): the FINAL template (class F1) of one chunk.
 
-    tracegen.py DUMP_JSON NAMES_JSON OUT_DIR [--mutant NAME]
+    tracegen.py DUMP_JSON NAMES_JSON OUT_DIR [--mutant NAME] [--template T.json] [--stats-only]
 
 DUMP_JSON is `m5d-tool dump` (the Lean `allFeatures` checker's own `finK` + `tailNew` on the case);
 NAMES_JSON is `m5d-tool air-final` (table and column names, class constants). Writes one `.bin`
@@ -9,6 +9,13 @@ per table (u32 log2 height, u32 width, row-major u32 cells), `sha_msgs.json` (SH
 `comps.json` (SHA-512 compressions, chip order), `pubs.bin` (public values the proof carries) and
 `stmt_pubs.bin` (the statement's: for a mutant, those of the honest run). Exit code 3: the mutant
 does not apply.
+
+G-2 (`--template T.json`, `templates/*.json`): every table is written at the template's pinned
+height (zero rows past the last filled row: every Lean table's activity is a prefix and its padding
+rows are all-zero), and the dump carries `template.json` (the prover then pads `SHA` and the chip
+to their pins and uses the template's parameters); exit code 4 if a table of this case (natural
+height, one padding row kept) exceeds its pin. `--stats-only`: print the natural log heights
+(every Lean table, `SHA`, `SHA512`) and write nothing (the census, `census.py`).
 
 Every output is recomputed here from the `FinIn` record exactly as the AIR does, and compared with
 the checker's `o` (`dump.outputs`) before anything is written.
@@ -100,6 +107,10 @@ class Table:
             for i in range(h):
                 row = self.rows[i] if i < len(self.rows) else [0] * self.width
                 f.write(struct.pack('<%dI' % self.width, *[x % P for x in row]))
+
+
+class TemplateOverflow(Exception):
+    """G-2: a table of this case exceeds the template's pinned height."""
 
 
 class Gen:
@@ -381,6 +392,18 @@ class Gen:
         assert len(fi) == C['FI_LEN']
         fd = self.s384(C['ID_FIN'], [C['FIN_TAG']] + fi)
         cd = self.s384(C['ID_CLAIM'], stream)
+        # B_out (G-2): ctxD(.header H) and outD(.done o)'s digest, = Lean's BOut on this case
+        ci = stream[C['CI_OFF']:C['CI_OFF'] + 302]
+        hd = self.s384(C['ID_HDR'], [C['TAG_HDR']] + ci)
+        ob = (root + roots[C['TR_OUT']] + u(gl, 8) + u(gas, 8) + u(bal, 16) + roots[C['TR_SH']] + cong +
+              [0] * 32 + roots[C['TR_RS']] + ci[129:137] + [0] * 9)
+        assert len(ob) == 252
+        if not self.mutant:
+            assert bytes(ob).hex() == d['bout']['encOutputsF1'], 'encOutputsF1'
+            assert bytes(hd[:42]).hex() == d['bout']['ctxHeaderD'], 'ctxHeaderD'
+        od = self.s384(C['ID_OUT'], [C['TAG_OUT']] + ob)
+        if not self.mutant:
+            assert bytes(od[:42]).hex() == d['bout']['outDoneD'], 'outDoneD'
         # STMT
         St = self.T['STMT']
         for kk, bb in enumerate(stream):
@@ -395,7 +418,9 @@ class Gen:
         F.setv(r, 'hb', stream[:C['HBN']])
         F.setv(r, 'fi', fi)
         F.setv(r, 'ro', roots[C['TR_OUT']]); F.setv(r, 'rs', roots[C['TR_RS']]); F.setv(r, 'rsh', roots[C['TR_SH']])
-        F.setv(r, 'cd', cd); F.setv(r, 'fd', fd)
+        F.setv(r, 'cd', cd); F.setv(r, 'fd', fd); F.setv(r, 'hd', hd); F.setv(r, 'od', od)
+        if self.mut('bout_od'):
+            F.rows[0][F.ix('od', 3)] ^= 1
         F.set(r, 'nO', len(leaves)); F.set(r, 'nR', len(rcpts)); F.set(r, 'lenC', len(stream))
         x = RSD * L - n
         self.look(self.r8, x); self.look(self.r8, x + 256 - RSD)
@@ -406,12 +431,16 @@ class Gen:
             S3 = self.T['S384']
             S3.rows[0][S3.ix('b', 127)] ^= 1
         self.fill_rng()
-        pubs = limbs3(cd[:42]) + limbs3(fd[:42]) + [n, L]
+        pubs = limbs3(cd[:42]) + limbs3(fd[:42]) + [n, L] + limbs3(hd[:42]) + limbs3(od[:42])
         stmt = list(pubs)
         if self.mut('pub_claim'):
             pubs[3] += 1
         if self.mut('pub_n'):
             pubs[28] += 1
+        if self.mut('pub_hdr'):
+            pubs[C['PV_HDR'] + 2] += 1
+        if self.mut('pub_out'):
+            pubs[C['PV_OUT'] + 5] += 1
         self.pubs, self.stmt_pubs = pubs, stmt
         return dict(n=n, L=L, rcpts=len(rcpts), outcomes=len(leaves), stream=len(stream))
 
@@ -467,14 +496,44 @@ class Gen:
             c = len(nxt)
             lvl += 1
 
-    def write(self, out):
+    SPARE = {'STMT', 'BODY', 'SEG', 'RS', 'PART', 'SHD', 'OUTL', 'MRK'}
+
+    def natural(self):
+        """[G-2] Log heights of every table: `nat` as `write` sizes them without a template, `fit`
+        what a template pin must cover (every Lean table keeps one all-zero padding row, so its last
+        row is inactive). `SHA` as the honest generator `sha256gen.rs` (1 + 17·blocks rows per
+        message), the chip `SHA512` as `s384::trace::main_height` (128 rows per compression)."""
+        lg = lambda h: (h - 1).bit_length()
+        nat, fit = {}, {}
+        for nm, T in self.T.items():
+            nat[nm] = 8 if nm == 'RNG' else lg(T.height(spare=nm in self.SPARE))
+            fit[nm] = 8 if nm == 'RNG' else lg(T.height(spare=True))
+        if 'SHA' in self.names['tables']:
+            rows = sum(1 + 17 * ((len(m['bytes']) // 2 + 9 + 63) // 64) for m in self.sha_msgs)
+            nat['SHA'] = fit['SHA'] = lg(max(rows, 4))
+        nat['SHA512'] = fit['SHA512'] = lg(max(128 * len(self.comps), 4))
+        return nat, fit
+
+    def write(self, out, tmpl=None):
         os.makedirs(out, exist_ok=True)
         heights = {}
-        spare = {'STMT', 'BODY', 'SEG', 'RS', 'PART', 'SHD', 'OUTL', 'MRK'}
+        if tmpl is not None:
+            _, fit = self.natural()
+            pin = tmpl['heights']
+            extra = sorted(set(pin) - set(fit))
+            assert not extra, 'template pins tables the AIR does not have: %s' % extra
+            over = ['%s: 2^%d > 2^%d' % (t, fit[t], pin.get(t, -1)) for t in fit if fit[t] > pin.get(t, -1)]
+            if over:
+                raise TemplateOverflow('; '.join(over))
+            assert pin['RNG'] == 8, 'RNG is a fixed 2^8 table'
         for nm, T in self.T.items():
-            h = 256 if nm == 'RNG' else T.height(spare=nm in spare)
+            h = 256 if nm == 'RNG' else T.height(spare=nm in self.SPARE)
+            if tmpl is not None:
+                h = 1 << tmpl['heights'][nm]
             T.dump(os.path.join(out, nm + '.bin'), h)
             heights[nm] = (len(T.rows), h)
+        if tmpl is not None:
+            json.dump(tmpl, open(os.path.join(out, 'template.json'), 'w'), indent=1)
         json.dump(self.sha_msgs, open(os.path.join(out, 'sha_msgs.json'), 'w'))
         json.dump(self.comps, open(os.path.join(out, 'comps.json'), 'w'))
         with open(os.path.join(out, 'pubs.bin'), 'wb') as f:
@@ -511,6 +570,63 @@ class GenInit(Gen):
                 na += kind == 'ka'
                 nb += kind == 'kb'
                 nc += kind != 'kw'
+        # G-2: the framing walk over section B (BLK) and the main slot's prev_state_root (INI)
+        npre = len(pre)
+        reads = set()
+        B = self.T['BLK']
+        def rd32(o):
+            assert blocks[o + 3] == 0
+            reads.update(range(npre + o, npre + o + 4))
+            return blocks[o] + 256 * blocks[o + 1] + 65536 * blocks[o + 2], blocks[o:o + 4]
+        def blkrow(kind, st, en, ys, rb, rs, bi, si):
+            r = B.new()
+            B.set(r, 'act', 1); B.set(r, kind, 1); B.set(r, 's', npre + st); B.set(r, 'e', npre + en)
+            B.set(r, 'E', npre + len(blocks)); B.setv(r, 'y', ys + [0] * (12 - len(ys)))
+            B.set(r, 'rb', rb); B.set(r, 'rs', rs)
+            B.set(r, 'zr', int(rb == 0)); B.set(r, 'ir', pow(rb, P - 2, P) if rb else 0)
+            B.set(r, 'zs', int(rs == 0)); B.set(r, 'is', pow(rs, P - 2, P) if rs else 0)
+            B.set(r, 'bi', bi); B.set(r, 'si', si)
+            sp = u(npre + st, 3); B.setv(r, 'sp', sp)
+            for x in sp:
+                self.look(self.r8, x)
+        o = 0
+        nblk, y = rd32(0)
+        blkrow('kn', 0, 4, y, nblk, 0, 0, 0)
+        o = 4
+        slots, slotrow = {}, {}
+        rb = nblk
+        for bi in range(nblk):
+            st = o
+            l1, y1 = rd32(o + 33)
+            l2, y2 = rd32(o + 37 + l1)
+            ns, y3 = rd32(o + 41 + l1 + l2)
+            o = o + 45 + l1 + l2
+            rb -= 1
+            blkrow('kh', st, o, y1 + y2 + y3, rb, ns, bi + 1, 0)
+            rs = ns
+            for si in range(ns):
+                st = o
+                ls, y0 = rd32(o)
+                slots[(bi, si)] = (npre + o + 4, ls)
+                slotrow[(bi, si)] = len(B.rows)
+                o = o + 12 + ls
+                rs -= 1
+                blkrow('ks', st, o, y0, rb, rs, bi + 1, si + 1)
+        assert o == len(blocks), (o, len(blocks))
+        if self.mut('lbshift'):
+            # a block vector re-framed one byte short: the walk's last end is |pre| + ℓ_B − 1
+            last = B.rows[-1]
+            last[B.ix('e')] -= 1
+        b2i, mi = int(d['walk']['b2i']), int(d['walk']['mainIdx'])
+        sst, sln = slots[(b2i, mi)]
+        selrow = slotrow[(b2i, mi)]
+        psr = cb_ = (pre + blocks + post)[sst + 33:sst + 65]
+        if self.mutant is None:
+            assert bytes(psr).hex() == d['walk']['slotPrevStateRoot'], 'slot prev_state_root'
+        reads.update(range(sst + 33, sst + 65))
+        B.rows[selrow][B.ix('sel')] = 1
+        for rr in T.rows[npre:npre + len(blocks)]:
+            rr[T.ix('rd')] = int(rr[T.ix('kc')] in reads)
         if self.mut('clm_kind'):
             T.rows[len(pre) + 2][T.ix('kb')] = 0
             T.rows[len(pre) + 2][T.ix('kp')] = 1
@@ -529,25 +645,48 @@ class GenInit(Gen):
         I.setv(r, 'pa', u(len(pre), 3)); I.setv(r, 'lb', u(len(blocks), 3)); I.setv(r, 'lc', u(len(cb), 3))
         for v in u(len(pre), 3) + u(len(blocks), 3) + u(len(cb), 3):
             self.look(self.r8, v)
+        I.set(r, 'b2i', b2i); I.set(r, 'mi', mi); I.set(r, 'sst', sst); I.set(r, 'sln', sln)
+        I.setv(r, 'slx', u(sln - 65, 3)); I.setv(r, 'psr', psr)
+        for v in u(sln - 65, 3):
+            self.look(self.r8, v)
+        if self.mut('psr_slot'):
+            # another slot's prev_state_root (the walk picks b2i / mainIdx; here: the next slot)
+            other = [k for k in slots if k != (b2i, mi)][0]
+            sst2, sln2 = slots[other]
+            B.rows[selrow][B.ix('sel')] = 0
+            B.rows[slotrow[other]][B.ix('sel')] = 1
+            r[I.ix('b2i')], r[I.ix('mi')] = other
+            Tc = self.T['CLM']
+            for q in range(sst + 33, sst + 65):
+                Tc.rows[q][Tc.ix('rd')] = 0
+            for q in range(sst2 + 33, sst2 + 65):
+                Tc.rows[q][Tc.ix('rd')] = 1
+            r[I.ix('sst')] = sst2; r[I.ix('sln')] = sln2
+            psr = (pre + blocks + post)[sst2 + 33:sst2 + 65]
+            I.setv(r, 'psr', psr)
         if self.mut('ini_lb'):
             r[I.ix('lb', 0)] += 1
             r[I.ix('nb')] += 1
         self.fill_rng()
-        pubs = limbs3(cd[:42]) + limbs3(xd[:42])
+        pubs = limbs3(cd[:42]) + limbs3(xd[:42]) + [256 * psr[2 * t] + psr[2 * t + 1] for t in range(16)]
         self.pubs, self.stmt_pubs = pubs, list(pubs)
         if self.mut('pub_ctx'):
             self.pubs[20] += 1
+        if self.mut('pub_psr'):
+            self.pubs[30] += 1
         return dict(pre=len(pre), blocks=len(blocks), post=len(post), witness=len(wit), claimDigest=bytes(cd[:42]).hex(),
                     ctxRoot=bytes(xd[:42]).hex())
 
 
-INIT_MUTANTS = ['pre_byte', 'blk_byte', 'wit_byte', 'clm_kind', 'clm_byte', 'ini_lb', 'pub_ctx']
+INIT_MUTANTS = ['pre_byte', 'blk_byte', 'wit_byte', 'clm_kind', 'clm_byte', 'ini_lb', 'pub_ctx',
+                'lbshift', 'psr_slot', 'pub_psr']
 
 MUTANTS = ['hdr_psr', 'hdr_por', 'hdr_emr', 'hdr_el', 'hdr_gu', 'hdr_gl', 'hdr_bb', 'hdr_orr', 'hdr_txr',
            'hdr_props', 'hdr_cong', 'hdr_bw', 'hdr_split',
            'fin_root', 'fin_cong', 'fin_gas', 'fin_bal', 'fin_gl',
            'leaf', 'outcome_drop', 'rcpt_byte', 'rcpt_shard', 'rcpt_drop', 'rcpt_swap',
-           'body_byte', 'rs_par', 'mrk_node', 'stmt_byte', 'fin_ro', 's384_pad', 'pub_claim', 'pub_n']
+           'body_byte', 'rs_par', 'mrk_node', 'stmt_byte', 'fin_ro', 's384_pad', 'pub_claim', 'pub_n',
+           'bout_od', 'pub_hdr', 'pub_out']
 
 
 def main():
@@ -557,6 +696,13 @@ def main():
         i = args.index('--mutant')
         mutant = args[i + 1]
         args = args[:i] + args[i + 2:]
+    tmpl = None
+    if '--template' in args:
+        i = args.index('--template')
+        tmpl = json.load(open(args[i + 1]))
+        args = args[:i] + args[i + 2:]
+    stats_only = '--stats-only' in args
+    args = [a for a in args if a != '--stats-only']
     dump, names, out = json.load(open(args[0])), json.load(open(args[1])), args[2]
     G = GenInit if 'CLM' in names['tables'] else Gen
     g = G(dump, names, mutant)
@@ -571,7 +717,15 @@ def main():
         h.run()
         if G is GenInit or mutant.startswith('pub_'):
             g.stmt_pubs = h.stmt_pubs
-    hts = g.write(out)
+    if stats_only:
+        nat, fit = g.natural()
+        print('STATS', json.dumps(dict(info=info, natural=nat, fit=fit, sha_msgs=len(g.sha_msgs), comps=len(g.comps))))
+        return
+    try:
+        hts = g.write(out, tmpl)
+    except TemplateOverflow as e:
+        print('TEMPLATE OVERFLOW (%s): %s' % (tmpl.get('name'), e))
+        sys.exit(4)
     print('GEN', json.dumps(info), 'tables', json.dumps(hts), 'sha_msgs', len(g.sha_msgs), 'comps', len(g.comps))
 
 
