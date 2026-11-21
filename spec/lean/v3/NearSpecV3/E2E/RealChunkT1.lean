@@ -1,13 +1,16 @@
 import NearSpecV3.E2E.Templates
 import NearSpecV3.E2E.StmtEnc
-import NearSpecV3.Examples.RealCaseD3T1
+import NearSpecV3.E2E.T1Run
 
 /-!
 # E2E-M11h: non-vacuity of the T1 segment system on T1 itself (on demand)
 
-T1 = `d3c8/d3/02-h10196-s3` (plan §4.1). `relAllFeatures_02_h10196_s3`
-(`Examples/RealCaseD3T1.lean`) is a `decide +kernel` evaluation of the whole checker on T1's claim
-and witness bytes. Through the proved factorisation `cm_iff`:
+T1 = `d3c8/d3/02-h10196-s3` (plan §4.1). `t1_accepts` (`E2E/T1Run.lean`) is T1's accepting `CM`
+run, kernel-checked in two pieces (`INTAKE` against an oracle-printed literal intake by kernel
+`Eq.refl`; the other twelve steps by `decide +kernel`; 27.1 GB peak, under the 34 GB cap that the
+monolithic `decide` of the checker exceeds). Through the proved factorisation `cm_iff`:
+
+* `t1_rel : Tier.rel .allFeatures t1Claim t1Wit` (the relation itself, from the run).
 
 * `cm_run_t1`: `CM` has an accepting run on T1 from `init` to `done H o` with `headerOk H o`
   (segmented, non-genesis path: `segment_no_genesis_t1`), with a finite clock.
@@ -25,7 +28,7 @@ and witness bytes. Through the proved factorisation `cm_iff`:
   decodes back (`cut_roundtrip`).
 
 Build: `HEAVY_MEM=34G /data/illia/nearproof-deps/bin/heavy lake build NearSpecV3.E2E.RealChunkT1`
-(the kernel evaluation of the checker in `RealCaseD3T1` dominates).
+(the kernel evaluation in `T1Run` dominates).
 -/
 
 namespace NearSpecV3.E2E.T1
@@ -37,7 +40,12 @@ abbrev t1Claim : Bytes := claimD3_02_h10196_s3
 abbrev t1Wit : Bytes := witnessD3_02_h10196_s3
 
 /-- `CM` accepts T1. -/
-theorem cm_accepts_t1 : CMAccepts t1Claim t1Wit := (cm_iff _ _).1 relAllFeatures_02_h10196_s3
+theorem cm_accepts_t1 : CMAccepts t1Claim t1Wit := by
+  obtain ⟨cf, h, ha⟩ := t1_accepts
+  exact ⟨cf, steps_iff_stepsN.2 ⟨13, h⟩, ha⟩
+
+/-- **T1 satisfies the `allFeatures` relation** (from the kernel-checked run, through `cm_iff`). -/
+theorem t1_rel : Tier.rel .allFeatures t1Claim t1Wit := (cm_iff _ _).2 cm_accepts_t1
 
 set_option maxRecDepth 200000 in
 /-- T1 takes the segmented path (`INTAKE` → engine steps → `FINAL`). -/
@@ -155,6 +163,7 @@ theorem t1_honest_chain (V : ViewImpl) (A : Airs) (hc : ∀ k, TmplComplete V A 
     rw [assemble_t1]; exact hs
   exact honest_chain V A hc t1Stmt t1SecB t1Wit _ hs' hf
 
+#print axioms t1_rel
 #print axioms cm_run_t1
 #print axioms assemble_t1
 #print axioms t1_S_len

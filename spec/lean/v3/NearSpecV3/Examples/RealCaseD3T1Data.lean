@@ -1,7 +1,7 @@
 import NearSpecV3.D3.FunctionCall
 
 /-!
-# Real nearcore D3 cases for the kernel non-vacuity theorems (`RealCaseD3T1.lean`, E2E-M11h T1)
+# Real nearcore D3 cases for the kernel non-vacuity theorems (E2E-M11h T1: `E2E/T1Run.lean`; the monolithic `decide` of the checker on T1 exceeds 34 GB)
 
 Real `ChunkStateWitness` bytes from a D3 oracle corpus (multi-shard nearcore 2.13.4
 `TestEnv` chains with deployed WASM contracts; every verdict from nearcore's cold
