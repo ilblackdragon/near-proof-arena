@@ -178,8 +178,40 @@ def choose_pins(vecs, target):
     return best
 
 
-def cells(pin, widths):
+# table widths (`m5a-tool tmpl-if|tmpl-seg|tmpl-segh`; the chip `SHA512` 83 + its fixed 2^7-row
+# `SHA512T` table of width 9; the cached tables `HTAPE` 10, `HOSTTAPE` 26 are separate commits)
+WIDTH = dict(SHA=544, KEY=63, BR=941, SN=605, KCMP=14, WSB=136, WSN=67, SNC=205, RNG=21, WSX=133,
+             WSA=63, WSL=173, WSP=129, STB=7, STW=76, STBH=8, STWH=82, SHA512=83)
+CACHED = dict(HTAPE=10, HOSTTAPE=26)
+
+
+def cells(pin, widths=WIDTH):
     return sum(widths.get(t, 0) << h for t, h in pin.items())
+
+
+def params(pin, n_stack):
+    """Lane D's base configuration at `n_stack`, lb 1, grinding 24; `w_stack` = the stacked width
+    of the pinned shape (common main + each cached commit) + 2 (packing slack)."""
+    col = 1 << (n_stack + 2)
+    assert max(h for h in pin.values()) <= n_stack + 2, ('table taller than a stacked column', pin)
+    w = -(-(cells(pin) + 9 * 128) // col)
+    for t, cw in CACHED.items():
+        if t in pin:
+            w += -(-(cw << pin[t]) // col)
+    return dict(n_stack=n_stack, log_blowup=1, w_stack=w + 2, pow_bits=24, degree=9)
+
+
+def write_template(out_dir, name, D, pin_i, pin_s, n_stack):
+    pin_s = dict(pin_s)
+    pin_h = {({'STB': 'STBH', 'STW': 'STWH', 'HTAPE': 'HOSTTAPE'}.get(t, t)): h for t, h in pin_s.items()}
+    t = dict(name=name, D=D,
+             **{'if': dict(params=params(pin_i, n_stack), heights=pin_i),
+                'seg': dict(params=params(pin_s, n_stack), heights=pin_s),
+                'segh': dict(params=params(pin_h, n_stack), heights=pin_h)})
+    json.dump(t, open(os.path.join(out_dir, '%s.json' % name), 'w'), indent=1)
+    print('  template %s: IF %.2f M cells (w_stack %d), seg %.2f M (w_stack %d), segh w_stack %d' % (
+        name, cells(pin_i) / 1e6, t['if']['params']['w_stack'], cells(pin_s) / 1e6, t['seg']['params']['w_stack'],
+        t['segh']['params']['w_stack']))
 
 
 def cmd_choose(a):
@@ -224,7 +256,10 @@ def cmd_choose(a):
         for n in nseg:
             hist[n] = hist.get(n, 0) + 1
         print('  STATE segments per case (cut on STB overflow):', dict(sorted(hist.items())))
-        out.append(dict(name=name, D=D2, members=len(mem), covered=len(fit), pin_if=pin_i, pin_seg=pin_s))
+        out.append(dict(name=name, D=D2, members=len(mem), covered=len(fit), pin_if=pin_i, pin_seg=pin_s,
+                        segments=hist))
+        ns = [int(x) for x in a.n_stack.split(',')]
+        write_template(a.out_dir, name, D2, pin_i, pin_s, ns[min(i, len(ns) - 1)])
         left = [r for r in left if r not in fit]
     tot = sum(c['covered'] for c in out)
     print('\ntotal covered %d / %d trace-OK cases (%.2f %%); of all state cases %.2f %%'
@@ -246,6 +281,7 @@ def main():
     c.add_argument('--target', type=float, default=0.99)
     c.add_argument('--classes', default='5,7')
     c.add_argument('--out-dir', required=True)
+    c.add_argument('--n-stack', default='18,20,20', help='per class')
     a = ap.parse_args()
     {'run': cmd_run, 'choose': cmd_choose}[a.cmd](a)
 

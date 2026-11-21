@@ -6,6 +6,7 @@
 # the leaf chain (`leaf_chain.py`) fails.
 #   leaf_mutants.sh STATE_JSON OUT_DIR TEMPLATE_JSON "m1 m2 …" [GENARGS…]
 # (run `leaf.sh … check` first: it exports the AIRs into OUT_DIR/air and builds the prover)
+# MUT_MODE=check: precheck only (every constraint and bus; no proof attempt).
 set -uo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
 ST=$1; OUT=$2; TMPL=$3; MUTS=$4; shift 4
@@ -28,9 +29,16 @@ for m in $MUTS; do
     [ -d "$d" ] || continue
     air=$OUT/air/seg.json; [ "$(basename "$d")" = if ] && air=$OUT/air/if.json
     [ -f "$d/hosttape.json" ] && air=$OUT/air/segh.json
-    nice -n 10 $HEAVY "$BIN" "$air" "$d" mutant "$d/out" > "$d/mutant.log" 2>&1
-    pre=$(grep -oE "PRECHECK (OK|FAIL)[^;]*" "$d/mutant.log" | head -1 | cut -c1-160)
-    res=$(grep -oE "REJECTED.*|ACCEPTED" "$d/mutant.log" | head -1 | cut -c1-120)
+    if [ "${MUT_MODE:-mutant}" = check ]; then
+      # check only: the precheck (every constraint, every bus) without proving
+      nice -n 10 $HEAVY "$BIN" "$air" "$d" check > "$d/mutant.log" 2>&1
+      pre=$(grep -oE "PRECHECK OK[^;]*|precheck: [^;]*" "$d/mutant.log" | head -1 | cut -c1-160)
+      res=ACCEPTED; grep -q "PRECHECK OK" "$d/mutant.log" || res="REJECTED (precheck)"
+    else
+      nice -n 10 $HEAVY "$BIN" "$air" "$d" mutant "$d/out" > "$d/mutant.log" 2>&1
+      pre=$(grep -oE "PRECHECK (OK|FAIL)[^;]*" "$d/mutant.log" | head -1 | cut -c1-160)
+      res=$(grep -oE "REJECTED.*|ACCEPTED" "$d/mutant.log" | head -1 | cut -c1-120)
+    fi
     if [ "$res" != ACCEPTED ]; then verdict=REJECTED; why="$why $(basename "$d"): [$pre] $res;"; fi
   done
   if [ "$verdict" = ACCEPTED ]; then

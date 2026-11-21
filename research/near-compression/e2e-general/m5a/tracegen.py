@@ -2014,6 +2014,10 @@ def _wsa_time(g, tb_of):
     if g.m5b:
         # M5b: the execution side issues the request at time 2^24 (its tape, `STW`, `STB` agree)
         g.raw[tn] = g.raw.pop(t0)
+        if g.splitmode:
+            # B-T1: inside the (first) segment's dump the time is local; the moved access keeps 2^24
+            g.t_local[tn] = tn
+            g.host_r[tn] = g.host_r.get(t0, 0)
         for nm in ('STW', 'STB'):
             Tx = g.T[nm]
             for q in Tx.rows:
