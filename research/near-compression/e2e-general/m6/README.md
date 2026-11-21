@@ -78,6 +78,7 @@ Obligations, by owner:
 ## 4. Status
 
 * 2026-11-03: scope (this file).
+* 2026-11-21: M6 results are in §5. Its open list (§5.6) supersedes the "Open" items below.
 * **Finding [K/S]:** `RelW` reads a state only through its Wasm-visible part and `gas.g`
   (`relW_of_vis`, `relW_sigma`, `Main/HostFoot.lean`). The HOST-row premises quantify over every
   related pre-state, so they fail whenever a continuing host call's answer depends on `σ` (always:
@@ -99,6 +100,162 @@ Obligations, by owner:
 * **σ-pinned restatement [K]:** `HostVacuity.lean` (mechanised counterexample), `SegSigma.lean`,
   `SegSoundSigma(MP).lean`, `SegChainSigma.lean` (`seg_sound_σ`, `seg_sound_cσ`, `seg_chain_σ`).
   The thread `sideR` is the host side plus the register file.
+
+## 5. M6 results (lane A, sixth session, 2026-11-03 … 2026-11-21) [K][M]
+
+All Lean below lives in `wasm-base-lean/WasmBase/Main/` unless noted. Every theorem uses only
+standard axioms, and no proof uses `sorry`. `lake build WasmBase wasmbase-tool` is green (727 jobs,
+rebased on main `7358a938d`). `make pin-check` is ok. `spec/` is unchanged. Sub-lanes: FOOT2,
+HOSTIF, COVER (item 1/3), CHAIN (item 2), GROW, GROW2 (item 4), FIX214 (AIR bug).
+
+### 5.1 Item 1: the honest run satisfies the pinned host premises (M6.1, M6.2) [K]
+
+* **The two-run footprint of `callHost`.** All 75 `hostCall` arms and the 14 curve arms are
+  covered.
+  * Files: `HostTwoRun.lean` (relational framework: `Low`, `Tw`, `Rel2`, the lock-step tactic
+    `rel_auto`), `HostTwoRunArms.lean` (`readSetOf`, `nargs`, `arm2_*`/`arm2c_*`) and
+    `HostTwoRunCall.lean`.
+  * **`callHost_two_run`**: if `Low A k s s'` holds, `HostArm s name`, `nargs name ≤ k`, and
+    `readSetOf name s ⊆ A`, then the two calls correspond: both continue, abort, or are unmodeled
+    alike.
+  * On `.cont`, both post-states are **one `HostEff` applied to the two pre-states**. They have
+    equal `sideR` and `gas.g`, the same pops and pushes and the same bytes written; everything else
+    stays each side's own.
+  * Both mock `trie` and trie-backed `real` storage are covered.
+  * Read sets are exact on continuing runs, except supersets for NUL-terminated `log_utf8`/
+    `panic_utf8`, `log_utf16`, `abort`, and `ed25519_verify`'s early return.
+* **Spec-level non-vacuity check** (`HostTwoRunStep.lean`). It would have caught the HostVacuity
+  issue.
+  * `pinned_cont_g`: on the σ-thread with read coverage, two continuing pre-states land on equal
+    `g` and `sideR`, so `not_rowSpecSeg_of_sigma`'s hypothesis cannot be met.
+  * `Vacuity2.sideR_sA_ne_sB`: the refuting pair is excluded by the pin.
+  * `Vacuity2.twin_witness`: a σ-twin `sC` of `sA` (an extra stack entry, other globals)
+    continues to the same `g` and the same pushed 10. It is checked by `decide` and through
+    `step_host_two_run`.
+* **Bridge to the segment premises.**
+  * `HostSigmaBridge.lean`: `rowSpecSegJ_of_twin`, `holdRowSσ_of_cover`.
+  * `HostCover.lean`: read coverage from the row's consumed stack and space-3 messages via
+    `RelW.live`/`HeapOK` (`hostReadCovered_of_msgs`).
+  * `HostEffTwin.lean`: **`rel_twin_post`**, which moves the honest post-relation to the twin.
+  * `HostTwinP.lean`, `SegSoundSigmaP.lean`: the page count rides on the thread (`SigP`; `RelW`
+    does not pin `pages.size`). The relies are needed only at the row's own gas segment (`RowQS`,
+    `exec_rowsJS`, `seg_sound_σP`).
+  * `HostCoverAir.lean`: AIR facts for the message shape (`host_sp4`, `host_cons_stk`,
+    `host_prod_stk`, `host_pf_lt_np`, `host_prod3_paired`).
+  * `HostCodeFetch.lean`: `HostFeeOK`, `HostCodeT`.
+  * `HostRowsTimesAir.lean`: times.
+  * **`seg_sound_hostIf_air`**: `seg_sound_σ` on the segment AIR, with every HOST-row premise
+    discharged except the following, which stay named:
+    * **`HostIf` + `HostAnsCov`** — the producer contract (lane B, M6.4).
+    * **`HostWritesCovT`** — the AIR gap in §5.5.
+    * **`HostProdNodup`** — overlapping request buffers in one call are outside the AIR's domain.
+    * **`HostCallsNotLinear`** — a static module fact: the checker does not pin the gas kind of
+      call records.
+
+### 5.2 Item 2: one chain statement, entry, pinned `wasm_base_sound_m2` [K]
+
+* **`Cuti.seg_chain_all_mp`** (the default MP AIR) / `seg_chain_all` (base AIR), plus their
+  `_csteps` forms on lane E's call machine. Files: `SegChainAll.lean`, `SegSoundAll.lean`,
+  `SegExecJH.lean`.
+  * One premise per segment (`SegPremAMP`) combines the σ-pinned host premises, the key bus 214
+    (no `HostBLinkedL`/`RegCLinked`), and the memory root (no `memIn`/`memOut`).
+  * In/out relations `InSA`/`OutSA` = BndC, RegWF, ctx digest, MsgWF, memory root and geometry,
+    `InDom`, plus the σ pin.
+  * Conclusion: `Sha384Coll` or `foldSegments` reaches `sN` with `OutSA`.
+* **Entry** (`SegCallSigma.lean`): `entry_inSA_mp`. The verifier's first-segment checks are the
+  **decidable `EntryPub`**: `t`, `S`, `pc = offOf k`, `sb = cid = 0`, `ctx_in` = digest of
+  `cutView s0`, `mem_in` = `memRootOf s0`, and the geometry. `EntrySeed` (the `Bnd` seed) stays
+  named.
+* **Exit, M6.5 shape:** `seg_sound_haltσS`/`_mp` and `call_chain_halt_csteps_mp`. Then
+  **`callResult_of_segments_mp`**: from `CSteps q .pre (.ent …)` and the segments, we get
+  `Sha384Coll` or `callResult q = afterMethod (entPost r)`, where `r` is the step of the pinned
+  last state (`HaltOut`, and `HaltOut.unique` makes it a function of the Wasm part, `g` and σ).
+* **`wasm_base_sound_m2σ`** (`M2SoundSigma.lean`). The old theorem is unchanged.
+
+### 5.3 Item 3: host answers ↔ σ-thread ↔ call tape [K][M]
+
+* **Frequency** (`host_freq.py`, `host-freq.json`/`.md`): eligible calls use `input`(48),
+  `read_register`(49), `register_len`(6), `storage_write`(58) in 1,927 calls each, and `log_utf8`(45),
+  `value_return`(50) in 1,755 calls each. By static imports weighted by calls, all 27,197 calls give
+  the same order (26,964 / 24,551 / 20,376), plus `ed25519_verify` in 127 calls.
+* **`HostIf`** (`HostIf.lean`): host times `hts` are the active HOST rows. The answer of the call
+  of rank `j` is from host side `σc j` to `σc (j+1)` (`HostWit`), with register steps and a cap. The
+  thread is `thread hts σc t = σc (rank hts t)`.
+  * `sigKeep_of_hostIf_seg`, `thread_in`/`_out`: σ is constant between host rows, and the in/out
+    pins hold.
+  * `host_msgs_of_thread`: each HOST row's HOSTR/HOSTB/REG-C messages are those of the thread's
+    arm run.
+* `HostIfCover.lean`, `HostIfCover2.lean`: `holdRowSσ_of_hostIf_cover`, `seg_sound_hostIf'`/`''`.
+* **Tape tie** (`HostIfTape.lean`): `cden_of_parts`, and `callResult_of_chainσ`, which gives
+  `Sha384Coll` or `callResult q = cden q (.ent … sN …)` with `OutSσ`.
+* **Lane B obligations (M6.4)**, stated as `ProducerObl`: per HOST row, `A.ans name σc_j args mem`
+  gives HOSTR status/word/`g_after`, HOSTB bytes written, registers and `σc (j+1)`.
+* **Answer functions** (`HostAns.lean`), proved equal to the arm on all branches:
+  `register_len_ans`, `input_ans`, `read_register_ans`. Not yet done: `storage_write`, `log_utf8`,
+  `value_return`, `ed25519_verify`.
+
+### 5.4 Item 4: `memory.grow` segments [K][M]
+
+* **Lean:**
+  * GROW: `SegGrowStep.lean` (`SzC` size clause, `segg_size_track`, `step_memGrow_ok`/`_fail`,
+    `step_memSize`, `HeapOK.grow`), `SegExecQ.lean` (`exec_rowsJQ`), `SegGrowCode.lean`,
+    `SegGrowRow.lean`.
+  * GROW2: `M3Ctx.lean` (`m3OpNat`, `ModFacts3`, `M3Ctx` with the M2Ctx API and the M2 shadow
+    `toM2`), `SegSpaceG.lean`, `SegGrowFetch.lean`, `SegGrowMemg*.lean`.
+  * **`seg_sound_g`** / `seg_sound_g_view` (`SegSoundG.lean`): the cut case, σ form, with
+    `nblk_out = 64·|sN.pages|`. All MEMG rows are proved. The non-MEMG action layer is the named
+    `SegGLayer`: base-row FETCH under `CodeOK3`, MEMBG pairing, the CUT link on the grow AIR, and
+    the per-row fee bound for failed grows.
+* **Corpus [M]:**
+  * 385 `d3rich` calls execute `memory.grow`; 378 equal the chunk's outcome.
+  * 1,315 segments planned, 1,309 built.
+  * After FIX214, **1,309/1,309 pass pre-check**, and 372 of the 378 calls are OK. The other 6
+    stop at the i32-host generator limit.
+  * **215/215 grow segments proved and verified**, plus 25/25 newly passing ones: 1.41–1.81 MB,
+    median 53 s prove, 69–167 ms verify, 268.2 bits.
+  * Tampers 65/65 rejected. Logs: `logs/m6-grow-*`.
+
+### 5.5 Findings
+
+* **Bus-214 completeness bug (fixed, FIX214) [M][K].**
+  * Cause: multi-group host calls (e.g. `storage_write`'s value group) put HOSTB bytes under wire id
+    `hid + 256·g`, but HOST offered only `[ts, hid]`. Every segment with such a call failed
+    pre-check, including on the default MP AIR.
+  * Fix: `Seg.HostBK` gets group bits `hg0`, `hg1` (2 cells/row, 4 degree-2 constraints). `hid`
+    holds the base id, and the bus-210 wire id is `hid + 256·hg0 + 512·hg1`.
+  * Re-proved: `hostBK_part_stk`, `hostb_act_seg_bit`, `seg_hostBLinkedL`.
+  * Re-checked: d3tiny repro, refill (4/4 proved), 1.13 M benchmark, `run_grow.sh`.
+  * Tampers: d3tiny 49, refill MP 47 + 54, refill M4 34 + 36, grow 26 + 23 + 17, all rejected.
+  * One `storage_write` segment proves: 1,332,045 B, 32 s.
+  * Open: a prover can relabel a whole group index inside a segment. Segment soundness reads by
+    address, so this matters only once the state side consumes wire ids.
+* **Write-coverage AIR gap (COVER, open, needs an AIR change).**
+  * Memory writes reach the bus only through REG write rows, which `cWrHid` limits to
+    `read_register`.
+  * Five hosts write 16 bytes through `setU128H` with no space-3 message: `account_balance`,
+    `account_locked_balance`, `attached_deposit`, `validator_stake`, `validator_total_stake`. For
+    them `HostIf.ans` has no honest witness.
+  * Proposed constraint: HOSTB old-byte column `ob`. With count `act·dir·(1−reg)`, add
+    `chRecv 3 (ptr+pos) [ob] mtp`, `chSend 3 (ptr+pos) [bv] ts`, and `timeChk`, the same shape as
+    REG writes.
+  * None of the five has a dynamic call among the eligible calls, but `d3rich` (`fbc015a8`)
+    imports all five (18,621 calls). The gap therefore blocks `d3rich` calls that reach them.
+* **Page count is not in `RelW`.** It is now carried on the thread (`SigP`). The grow AIR's size
+  clause `SzC` gives it there.
+* **Failed `memory.grow` fee** `fee + lin·n` is unbounded per row (`n < 2^27`). It needs an AIR
+  bound or a stronger `hstepgas`.
+
+### 5.6 Open after M6
+
+* The producer contract `HostIf` + `HostAnsCov` (lane B's state rows, M6.4, `ProducerObl`).
+* The write-coverage AIR change (§5.5).
+* `HostProdNodup` and `HostCallsNotLinear` (a checker fact).
+* `EntrySeed`.
+* Answer functions for the 4 remaining corpus hosts.
+* The grow `SegGLayer`, then the memory root with MEMBG/MEMBH, the halting case and the chain step
+  for grow segments.
+* Lane E side: `preConf q` reaches `.ent p .method (.cont s0) n`. The `EntK.start` entry is still
+  to be composed.
 
 ## 5b. Next milestone after M6: Wasm segments as aggregation-tree leaves [S]
 
