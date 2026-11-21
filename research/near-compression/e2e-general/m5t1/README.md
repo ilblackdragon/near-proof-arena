@@ -1,4 +1,4 @@
-# E2E milestone M5-T1 (lane F): the runtime rows of T1's FunctionCall receipt
+# E2E lane F: the runtime rows of T1's FunctionCall receipt (M5-T1) and the `rt` leaves (F-2)
 
 Plan: `docs/zk-formal/E2E-GENERAL-CHUNK-PLAN.md` §3.3 (Wasm ↔ state join), §4.2 (M5), §5.2 (status).
 Date 2026-11-21. Labels: **[M]** measured here, **[K]** kernel-checked Lean (std axioms, no `sorry`),
@@ -98,18 +98,83 @@ and a row-per-entry schema table.
   `t1_spec`.
 * Axioms: `propext`, `Classical.choice`, `Quot.sound` only; no `sorry`.
 
-## Open (in order)
+## F-2 (2026-11-21): `SegSoundRt` pieces, the `rt` leaves, size
 
-1. **`SegSoundRt`** (lane E's `Templates.lean`, merged): the `rt` template's obligation is stated on
-   boundary digests (`resume`: the receipt step with the VM answered from the tape). What exists is
-   the row level (`rx_rel_of_row` + `SpecLink`); missing: the `MSG`/`DG` row lemmas (the engine walks
-   the schema; `Seg` layouts = the spec's encoders, checked on T1 by `tracegen.py` only), the bus
-   argument for the `RNG` facts (`Hyps.bytes`), the composition into `CutW.applyActionReceiptW`'s
-   monadic step (overlay, recorder), and the boundary digest (`ViewImpl` of RS). `TmplComplete` for
-   `rt`: not started.
+Lane E's `rt` template (`spec/lean/v3/NearSpecV3/E2E/Templates.lean`, `MRt`) has T1 instances
+**enter** (`eng I c → call I c [] q .pre`) and **resume** (`call I c [] q (.fin r) → eng I c'`,
+the receipt step with the VM answered from the tape). Lane I's driver plan
+(`/data/illia/nearproof-deps/e2e-t1/run4/plan.json`) cuts them as segments 2 and 5.
+
+### Lean [K] (`lake build M5T1 m5t1-tool`: 398 jobs, green; `logs/axioms.txt`: std axioms only, no `sorry`)
+
+| file | what is proved |
+|---|---|
+| `Obl.lean` | **Finding F2-1**: `TmplSound` is *absolute* — `tmplSound_image`: every input digest an AIR accepts must be in the image of `bndOf V.bnd` (or `Bad`), which no segment's rows can establish. `TmplSoundFrom` (relative: *given* `bndOf x = d`, the output opens to a meaning successor of `x`), `from_of_sound` (absolute ⇒ relative modulo collision) and **`e2e_sound_t1_from`** (lane E's `e2e_sound_t1` from the five relative premises, by induction from `B_0`, same conclusion). Spec untouched. |
+| `Bus.lean` | `recv_sender` (a receive is matched by a send: `Holds`' exact balance); RNG row `r` holds `r` (`rng_row`), `rng_recv`; **`rx_hyps_of_holds` / `rx_rel_of_holds`**: every active `RX` row of a `Holds (fullAir tape xtape)` trace is in `RxRel` — the byte-range premise of M5-T1's `rx_rel_of_row` is discharged. No native-chip bus: `fullAir` is the Lean tables plus the two explicit tapes, so `Holds` is the circuit's own predicate (premise only: the tapes send nothing on `RNG`). |
+| `Walk.lean` | the semantic interface: a message = a `Walk` over the schema (visits, `VisitOK`, `EndOK`/`ContOK`, `nextSeg`/`nextPl`/`newRAt`). |
+| `MsgSpec.lean` (sub-agent) | **walk → encoder, for every walk**: `rl_spec` (`encodeRcpts` of single-FunctionCall V1 receipts, `FcShape`, per-receipt families), `key_spec` (`kAccount`), `acct_spec` (`Acct.encode`), `ah_spec`/`seed_spec`/`rid_spec` (`actionHash`, seed, `receiptIdFrom` preimages), `rref_spec` (`Rcpt.encode` of the refund receipt), `log_spec`, `part_spec` (`OutD1.partialEncode`, incl. the empty return), `leaf_spec`/`leaf_link` (`OutD1.leaf`); non-vacuity examples. No layout mismatch. Caveats (what the walk alone does not pin): RL count vs receipt number, RREF's two signer visits equal only via `FB`, RREF id = the RID digest (refund is receipt 0), LEAFn's count field from `RX`, APRE `u128::MAX` sentinel. |
+| `MsgRow*.lean` (sub-agent) | **rows → walk**: `sch_row` (every `MSG` row's descriptor is a schema entry, = `segAt mt s`), `span_of` (every active row lies in a message span), **`msg_walk`** (a span `r0..r1` is `IsMsg mt mf (its b bytes) vs`), `span_start_unique`; **`dg_digest`** (an active `DG` row's 32 digest bytes are `sha256` of its message's bytes, via ZkFormal's closed SHA-256 table soundness), `mIdBound_of` (message ids `< 2^24` from the `RX`–`MBEG` balance) and `dg_digest'`. Premises: `SchtFixed` (the preprocessed schema columns, pinned by the vk), tapes send nothing on `SCH`/`RNG`/`SHA_BYTES`/`SHA_DIGEST`/`MLEN`/`MBEG`. |
+| `BndLay.lean`, `Ent.lean` | the `rt` leaves' public values: **the boundary pair as `BndRec.encode` bytes** (`engF` 408 B / `callF` 784 B, one byte per public value), `enterCons`, `resumeCons`. |
+| `SegRt.lean` | enter edge: `carried_eq`, `const_eq` (field-by-field semantics of `ENT` on any satisfying trace), **`segSoundRt_enter_from`**: the relative obligation for enter under the named view contract `EnterView V` (position non-final inside `stRoot` — lane B, review-D7 I3; the `.pre` Wasm record — lane A/PREP; `V.clear`'s `t`/`rPrepaid`), else a 42-B SHA-384 collision. |
+
+**Not yet proved (in order).** (1) Resume: compose `rx_rel_of_holds` + `SpecLink` + `msg_walk`/`MsgSpec` + `dg_digest` into `estepO (strictO (K ++ [(q, r)])) I.prog c = .ok c'` (the monadic `applyActionReceiptW` step: overlay reads/writes, recorder, `emitReceipts` forward/buffer, the action loop's other branches) and the resume view contract (stRoot / outcome accumulator / `vmAcc` updates, which the template carries today); FB single-definer uniqueness (needed to read field values as functions). (2) `TmplComplete .rt` on T1: measured only (both leaves prove at the driver's records and digests [M]); no Lean statement for a concrete `ViewImpl` (none exists yet: lane I's driver has placeholder components).
+
+### The `rt` leaves on T1 [M] (`run.sh CASE OUT leaves`; `logs/F2-leaves.txt`)
+
+Lane D's base configuration (lane B's B-T1 `base_params`: first-order certificates, list decoding
+m = 64, query grinding 24 bits, `domain_odd_factor` 15, tight heights floored to the full height),
+pinned per template (`templates/rt-enter.json`, `templates/rt-resume-T1.json`); proof + vk +
+`statement.json` saved (`RT.proof`, `RT.vk.json` — the stack's `SavedVk` envelope); the boundary
+digests recomputed from the public values **equal lane I's plan** (`rtbnd.py` also asserts it).
+
+| leaf | params | heights | proof | prove / verify / RSS (8 thr, host load ~37) | `d_in` → `d_out` |
+|---|---|---|---|---|---|
+| enter (`ENT`, 410 constraints on 1,192 public values) | ns 10, lb 7, w 8 | `ENT 2` | **87,001 B**, 268.8-bit | 8.9 s / 1.6 ms / 1.2 GB | `a2e7b254…` → `c667b45b…` |
+| resume (M5-T1 rows + `resumeCons`, 1,439 public values) | ns 14, lb 5, w 10 | `SHA 9, RNG 8, SCHT 8, MSG 10, DG 3, RX 2, TAPE 6, XTAPE 9` | **431,245 B**, 268.3-bit (`relations` 136,608, `whir` 272,638, `gkr` 13,832) | 23.7 s / 32 ms / 9.9 GB | `6048b455…` → `aecc4056…` |
+
+At lb 7 the resume leaf is 528,459 B but needs 32.7 GB (throttled at the 40 GB cap); lb 5 is pinned.
+**Mutants** (`logs/F2-mutants.txt`): resume 11/11 rejected (M5-T1's 8 + `bndgas` output boundary
+gas + 1, `bndprepaid` call boundary prepaid + 1, `bndburnt` in-flight burnt − 1), enter 4/4
+(`phase`, `gas`, `stroot`, `clock`).
+
+**What the leaves carry (interface items).** `resumeCons` ties `gasUsed`/`gasBurnt`/`compute`/
+`balanceBurnt` in/out to `RX`'s receipt-state totals, `rPrepaid` to the receipt's prepaid gas,
+`rBurnt`/`rUsed` out to the VM's answer; both edges carry `claimDigest`, indices, `stRoot`,
+`ctxRoot`, the accumulators and `vmAcc` (placeholders / partial in lane I's driver). Owed by others:
+the outcome accumulator update `chainD(leaf)` (lane G's `outcomeAcc` definition; the leaf is on
+`OUTC`), `stRoot` after the account write (lane B), `vmAcc` (lane A/E), the `.pre` and `fin r` Wasm
+records (lane A, PREP), the env values (gas price, height, timestamp, epoch height, random value,
+gas limit) from `ctxRoot` (lane G's INTAKE; public values today), `XTAPE` (M6), the receipt from
+`ctxRoot` instead of re-parsing the whole receipt list per resume.
+
+### Size (item 3)
+
+* **`SCHT` → one row per schema entry, entries preprocessed** (in the vk; `Msg.lean`, prover
+  `air.rs` `prep`): 3,255 → 44 columns; the resume leaf's `relations` term 290,732 → 136,608 B at
+  equal parameters' structure (−154 kB; 528 KB → 431 KB together with lb 5).
+* **Not done: splitting `RX`** (1,368 columns, 3,010 constraints, 1,505 interactions on one row):
+  the remaining `relations` mass. Plan: one row per 16-byte limb operation (a `u128` ALU table fed
+  by a per-receipt op tape), `RX` keeping only the flags and the bus wiring.
+
+### Coverage beyond T1 (item 4, scoped)
+
+T2's shapes (`d3c9/d3/00-h10018-s0` and the plan's T2 list) need, per action: `CreateAccount`
+(no contract: `existenceOk` without an account, `created` in `D2.refunds`, `storageStake` of the
+new account), `DeployContract` (code hash = SHA-256 of the code, the deploy tracker / committed
+code, the code bytes on the state side), `Transfer` (deposit only, no VM call: a STATE-template
+receipt), promise-creating calls (`VMRES.nActions > 0`: `manager`/`distribute`, new receipts
+through `finishActs`, their ids, `ret = receiptIdx`) and multi-action receipts (the action loop's
+merge per action, `isLast` receivers). The schema engine is general (new message types are
+schema entries + `MsgSpec` lemmas); `RX` needs per-action rows (the split above) before more
+action kinds fit.
+
+## Open (M5-T1 list, updated)
+
+1. ~~MSG/DG row lemmas, RNG bus fact~~ (F-2); `SegSoundRt` resume composition and both view
+   contracts: see F-2 "Not yet proved".
 2. **Template coverage**: one FunctionCall per V1 action receipt, ED25519 signer, no inputs/outputs,
    successful call without promises, ≤ 4 non-empty logs, refund > 0, receiver exists with a local
    contract; account-id validity (`AccountId.valid`) and `softExceeded` (recorder size) not in the
    rows; the refund's forward-vs-buffer decision (congestion, bandwidth) is M5c's.
 3. **Stand-ins**: `XTAPE` (lane A's call, lane B's account read/write) is public on T1 → M6.
-4. Proof size (relations term), see above.
+4. Proof size: the `RX` split (above).

@@ -1,0 +1,5 @@
+{
+ "name": "rt-resume/T1",
+ "params": {"n_stack": 14, "log_blowup": 5, "w_stack": 10, "pow_bits": 24, "degree": 4},
+ "heights": {"SHA": 9, "RNG": 8, "SCHT": 8, "MSG": 10, "DG": 3, "RX": 2, "TAPE": 6, "XTAPE": 9}
+}

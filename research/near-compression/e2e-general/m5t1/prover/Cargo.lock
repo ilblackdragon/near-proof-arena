@@ -236,10 +236,13 @@ dependencies = [
  "openvm-stark-backend",
  "p3-air",
  "p3-baby-bear",
+ "p3-dft",
  "p3-field",
  "p3-matrix",
  "p3-maybe-rayon",
+ "p3-symmetric",
  "rayon",
+ "serde",
  "serde_json",
  "sha2",
 ]

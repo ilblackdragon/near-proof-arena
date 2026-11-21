@@ -1,4 +1,5 @@
 import M5T1.Msg
+import M5T1.BndLay
 
 /-!
 # M5T1.Rx — `RX`: one row per incoming receipt (the runtime part of the receipt step)
@@ -39,7 +40,9 @@ def PL : Layout :=
    ("tIn", 1), ("tOut", 1),
    ("gin", 8), ("cin", 8), ("tbin", 16), ("oth", 16), ("sbin", 16), ("wgin", 16), ("noin", 1), ("ngin", 1),
    ("gout", 8), ("cout", 8), ("tbout", 16), ("othout", 16), ("sbout", 16), ("wgout", 16), ("noout", 1),
-   ("ngout", 1)]
+   ("ngout", 1),
+   -- F-2: the boundary pair of the `rt` resume edge (`BndLay`): `BndRec.encode` in a call / out of it
+   ("bin", 784), ("bout", 408)]
 
 def pub (s : String) (j : Nat := 0) : Expr := .pub (PL.off s + j)
 def NUM_PUB : Nat := PL.width
@@ -209,7 +212,11 @@ def chain : List Expr :=
     lastA * (c "ngin" + 1 - pub "ngout")] ++
    (([("gout", "gout", 8), ("cout", "cout", 8), ("tbout", "tbout", 16), ("oth", "othout", 16),
       ("sbout", "sbout", 16), ("wgout", "wgout", 16)] : List (String × String × Nat)).flatMap
-     fun (g, p, w) => (List.range w).map fun k => lastA * (c g k - pub p k)))
+     fun (g, p, w) => (List.range w).map fun k => lastA * (c g k - pub p k))) ++
+  -- F-2: one receipt per `resume` segment; the boundary pair (`BndLay.resumeCons`)
+  [.isFirst * (c "la1" - 1)] ++
+  BndLay.resumeCons ⟨BndLay.callF, PL.off "bin"⟩ ⟨BndLay.engF, PL.off "bout"⟩
+    (fun g k => pub g k) (fun g k => c g k)
 
 def constraints : List Expr :=
   let A := c "act"

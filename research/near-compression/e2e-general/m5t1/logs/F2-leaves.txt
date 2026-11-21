@@ -1,0 +1,27 @@
+SCHT: width 44, constraints 21, interactions 1, degree 2, wf true
+RX: width 1368, constraints 3010, interactions 1505, degree 4, wf true
+ENT: width 1, constraints 410, interactions 0, wf true, public values 1192
+HEIGHTS {"ENT": 2}
+CELLS committed 4
+PRECHECK OK: every constraint on every row; every bus balances (0 distinct messages)
+TIME load+precheck 0.00s
+PARAMS n_stack 10 w_stack 8 log_blowup 7 degree 2 pow 24 queries [45, 38]
+TIME keygen 0.00s
+SOUNDNESS total=268.8 logup=321.4 proximity=300.1 query=268.8
+PROOF total=87001 gkr=56 relations=644 stacking=1360 whir=81602
+TIME prove 8.87s verify 0.0016s threads 8 peak_rss_kib 1204892 proof_bytes 87001
+SAVED /data/illia/nearproof-deps/e2e-m5t1/f2b/enter-proof (RT.proof 87001 B, RT.vk.json 114479 B); boundary d_in "a2e7b254c439051c4241f006cbfde969e3222cb1faedd5b70e427cc408c78fd5bdc7bf22bac3197c3f30" d_out "c667b45ba0dde46f7f57823d5a6460fb515b564494bbf43be15fb4453a5e5e605b51e6c43af5945dd832"
+VERIFY OK (native SWIRL verifier); statement check (tape roots + public values): OK
+resume boundary: d_in 6048b4553977daf6.. d_out aecc4056365925f7.. (lane I plan) = bdigest of the public records
+HEIGHTS {"SHA": 9, "RNG": 8, "SCHT": 8, "MSG": 10, "DG": 3, "RX": 2, "TAPE": 6, "XTAPE": 9}
+HEIGHTS {"SHA": 9, "RNG": 8, "SCHT": 8, "MSG": 10, "DG": 3, "RX": 2, "TAPE": 6, "XTAPE": 9}
+CELLS committed 367320
+PRECHECK OK: every constraint on every row; every bus balances (1890 distinct messages)
+TIME load+precheck 0.14s
+PARAMS n_stack 14 w_stack 10 log_blowup 5 degree 4 pow 24 queries [55, 45, 33]
+TIME keygen 1.89s
+SOUNDNESS total=268.3 logup=322.4 proximity=295.1 query=268.3
+PROOF total=431245 gkr=13832 relations=136608 stacking=2140 whir=272638
+TIME prove 23.72s verify 0.0316s threads 8 peak_rss_kib 9920136 proof_bytes 431245
+SAVED /data/illia/nearproof-deps/e2e-m5t1/f2b/resume-proof (RT.proof 431245 B, RT.vk.json 1768185 B); boundary d_in "6048b4553977daf6b268ebfe23ceba861e0d49d3e002cf0311990e7b4077b9f9ef548a372037a043cd29" d_out "aecc4056365925f7cd73cac7e8f5bd04d7ae3655aad047e0a0e3a184f3145558cc9ae8c7369d08e04fb3"
+VERIFY OK (native SWIRL verifier); statement check (tape roots + public values): OK

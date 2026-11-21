@@ -263,6 +263,16 @@ def main():
         i = args.index("--mutant")
         mutant = args[i + 1]
         args = args[:i] + args[i + 2:]
+    tmpl = None
+    if "--template" in args:
+        i = args.index("--template")
+        tmpl = args[i + 1]
+        args = args[:i] + args[i + 2:]
+    plan = None
+    if "--plan" in args:
+        i = args.index("--plan")
+        plan = args[i + 1]
+        args = args[:i] + args[i + 2:]
     run_path, air_dir, out = args
     global STRICT
     STRICT = mutant is None
@@ -641,6 +651,10 @@ def main():
             msg.setv(row, "lm", bits(fields.flen_use[r["sid"]], 4))
     n_msg_rows = len(msg.rows)
     h = 1 << max(2, (n_msg_rows - 1).bit_length())
+    if tmpl:
+        pin = json.load(open(tmpl))["heights"]["MSG"]
+        assert n_msg_rows <= 1 << pin, f"MSG: {n_msg_rows} rows exceed the template's 2^{pin}"
+        h = 1 << pin
     pad_e = by[(MT["PAD"], 0)][1]
     for _ in range(h - n_msg_rows):
         row = msg.row()
@@ -648,13 +662,16 @@ def main():
             msg.set(row, f, pad_e[f])
         sch_count[(MT["PAD"], 0)] += 1
 
-    # ----- SCHT: one row of multiplicity bits --------------------------------------------------
+    # ----- SCHT: one row per schema entry (the entries are the preprocessed columns `e`; F-2) ---
     scht = Trace(names["SCHT"])
-    row = scht.row()
-    for i, e in enumerate(entries):
-        c = sch_count[(e["mt"], e["s"])]
+    for i in range(256):
+        row = scht.row()
+        e = entries[min(i, len(entries) - 1)]
+        for j, f in enumerate(sch_fields):
+            scht.set(row, "e", e[f], j)
+        c = sch_count[(e["mt"], e["s"])] if i < len(entries) else 0
         for b, v in enumerate(bits(c, nb_sch)):
-            scht.set(row, "m", v, nb_sch * i + b)
+            scht.set(row, "m", v, b)
 
     # ----- DG ----------------------------------------------------------------------------------
     dg = Trace(names["DG"])
@@ -874,6 +891,31 @@ def main():
     for g, w in [("gout", 8), ("cout", 8), ("tbout", 16), ("othout", 16), ("sbout", 16), ("wgout", 16)]:
         setpub(g, le(want_out[g], w))
     setpub("noout", [int(last["nOutcomes"])]); setpub("ngout", [int(last["nOutgoing"])])
+    # F-2: the `rt` resume edge's boundary pair (lane I's driver plan), checked against the Lean run
+    assert plan, "--plan PLAN.json (lane I's driver plan) is required: the resume leaf's public values"
+    import rtbnd
+    b_in, b_out, e_in, e_out, d_in, d_out = rtbnd.pair(plan, "RT resume")
+    assert len(rxs) == 1, "one receipt per resume segment"
+    x0 = rxs[0]
+    check(b_in["phase"] == 6 and b_in["inCall"] and b_out["phase"] == 1 and not b_out["inCall"], "resume phases")
+    check(b_in["gasUsed"] == tot_in["gin"] == b_in["gasBurnt"] and b_in["compute"] == tot_in["cin"], "B_in totals = Lean RS before")
+    check(b_out["gasUsed"] == want_out["gout"] == b_out["gasBurnt"] and b_out["compute"] == want_out["cout"], "B_out totals = Lean RS after")
+    check(b_in["balanceBurnt"] == tot_in["tbin"] and b_out["balanceBurnt"] == want_out["tbout"], "balance burnt = RS txBurnt")
+    check(b_in["rPrepaid"] == x0["gas"] and b_out["rBurnt"] == x0["vb"] and b_out["rUsed"] == x0["vu"], "prepaid / VM burnt / used")
+    if mut("bndgas"):
+        # the claimed output boundary charges the chunk 1 more gas than the receipt step
+        e_out = rtbnd.bndrec.encode(dict(b_out, gasUsed=b_out["gasUsed"] + 1, gasBurnt=b_out["gasBurnt"] + 1))
+        applied.append("bndgas")
+    if mut("bndprepaid"):
+        # the call's boundary claims 1 gas more prepaid than the receipt attached
+        e_in = rtbnd.bndrec.encode(dict(b_in, rPrepaid=b_in["rPrepaid"] + 1))
+        applied.append("bndprepaid")
+    if mut("bndburnt"):
+        # the output boundary's in-flight burnt gas differs from the VM's answer
+        e_out = rtbnd.bndrec.encode(dict(b_out, rBurnt=b_out["rBurnt"] - 1))
+        applied.append("bndburnt")
+    setpub("bin", list(e_in)); setpub("bout", list(e_out))
+    print(f"resume boundary: d_in {d_in[:16]}.. d_out {d_out[:16]}.. (lane I plan) = bdigest of the public records")
     pub_vals = [pubs[nm] for nm in pubnames]
     with open(f"{out}/expected_pubs.bin", "wb") as f:
         f.write(struct.pack(f"<{len(pub_vals)}I", *[v % P for v in pub_vals]))
@@ -912,6 +954,11 @@ def main():
     json.dump([[b, s, m] for b, s, m in xtape], open(f"{out}/xtape.json", "w"))
     with open(f"{out}/pubs.bin", "wb") as f:
         f.write(struct.pack(f"<{len(pub_vals)}I", *[v % P for v in pub_vals]))
+    # F-2: the boundary pair's place in the public values; the template's tables
+    json.dump([pubnames.index("bin.0"), 784, 408], open(f"{out}/bnd.json", "w"))
+    json.dump(["SHA", "RNG", "SCHT", "MSG", "DG", "RX"], open(f"{out}/tables.json", "w"))
+    if tmpl:
+        json.dump(json.load(open(tmpl)), open(f"{out}/template.json", "w"), indent=1)
     expected = dict(
         appliedReceiptsHash=run["appliedReceiptsHash"],
         outcomes=[dict(q=x["q"], leaf=x["out"]["leaf"], gasBurnt=x["out"]["gasBurnt"],
