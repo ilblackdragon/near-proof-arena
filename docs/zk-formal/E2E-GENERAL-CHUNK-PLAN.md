@@ -619,6 +619,22 @@ definition changed. Log: [`docs/logs/e2e-lean-m11h-2026-11-21.md`](../logs/e2e-l
 **M11i (lane E, 2026-11-21) [K].** Standard axioms only, no `sorry`, no checker definition changed.
 Log: [`docs/logs/e2e-lean-m11i-2026-11-21.md`](../logs/e2e-lean-m11i-2026-11-21.md).
 
+* **The official per-template obligation is now the relative form** (`Templates.lean`,
+  replacing M11h's absolute `TmplSound` as the lanes' target; lanes A and F found independently
+  that no segment circuit can meet the absolute form, `M5T1.Obl.tmplSound_image`,
+  `TmplWasm` §4). **`TmplRel V A Bad k := ∀ d d' tr x, A.Holds k d d' tr → bndOf V.bnd x = d →
+  Bad ∨ ∃ x', bndOf V.bnd x' = d' ∧ Meaning k x x'`** (definitionally lane F's
+  `TmplSoundFrom`), one definition for all five templates, abbreviations **`SegRelInit` (G),
+  `SegRelState` (B ∧ F, split below), `SegRelRt` (F), `SegRelWasm` (A), `SegRelFinal` (G)**.
+  **`e2e_sound_t1_rel`**: `NvFaithfulE2E` + `WrapInitSound` + `WrapFinalSound` + the five
+  relative premises ⇒ `E2EStmt s ∨ Bad ∨ BndCollision` (`chain_rel`: the wrap opens `B_0`, each
+  segment carries the opening forward). `tmplRel_of_sound` (absolute ⇒ relative, mod collision)
+  and `e2e_sound_t1_of_abs` keep the M11h statements as a special case; `TmplSound`,
+  `SegSound*`, `e2e_sound_t1` stay for source compatibility. In the M11h table above read
+  `SegSoundX` as `SegRelX` with "the rows open their two boundary digests to `x`, `x'`" replaced
+  by "**if the input digest opens to `x`, the output digest opens to some `x'`** with". The M8
+  counterpart is `TreeM8.TmplSoundRel8` / `e2e_sound_m8_rel` (there INIT stays absolute, since
+  the tree's wrap sees only the phase cell; INIT computes its whole input record from the bytes).
 * **The M8 heterogeneous tree** (`E2E/TreeM8.lean`, `defaultTargets`; `zk-formal/ZkFormal/PQ/E2ETree8.lean`,
   on demand). Leaf kinds `tmpl k | pad` over the five T1 templates; a leaf statement is
   `(ctx, b, b')` with `b = lbOf V x = ((V.bnd x).phase, bndOf V.bnd x)` (lane D's
@@ -662,16 +678,18 @@ All boundaries are under `viewE lB κ stD wasmD` (`ViewE.lean`) with lane B's `s
 exposes `ctx` (the 18 limbs of `claimDigest s`, §3.4.1) and `s_in = [phase, h(B_in)]`,
 `s_out = [phase, h(B_out)]` with `h(B) = bdigest (BndRec.encode B)` (`bndOf`); it witnesses the
 two records, hashes them in-circuit, and copies every field it does not change. The Lean premise
-is `TmplSound8 V A8 Bad k` over the circuit's leaf AIRs `circAirs8` (`E2ETree8.lean`); for
-`state`, `rt`, `wasm` it is M11h's context-free `TmplSound` (`tmplSound8_of`).
+is the **relative** obligation: T1 form `SegRelX V A Bad` (`Templates.lean`, `e2e_sound_t1_rel`),
+M8 form `TmplSoundRel8 V A8 Bad k` over the circuit's leaf AIRs `circAirs8` (`E2ETree8.lean`,
+`e2e_sound_m8_rel`; INIT absolute, `SegSoundInit8`) — "if `b` opens to `x`, then `b'` opens to an
+`x'` with the edge below (and the context link)".
 
 | lane / premise | edge (`Meaning k`) | fields that change (`V.bnd`) | context link | Lean tools |
 |---|---|---|---|---|
-| A `SegSoundWasm8` | `call I c K q cc → call I c K q cc'`, `CSteps q cc cc'` | `wasm = wasmD P (some (q, cc))` only (AIR branch `airBnd` inside a call, `wasmD_air`); phase 6, `ctxRoot`, `stRoot`, accumulators, `vmAcc` copied | none | `csteps_seg`, `csteps_foldSegments`, `rsteps_foldSegments`, `wasmD_binding` |
-| B `SegSoundState8` | `eng I c →* eng I c'` by `VFSteps` (engine steps whose honest tape is empty) | `stRoot = stD (stOfK (κ I) c)`; `outDE (.eng (eposAcc c.pos))` (append: `acc' = bdigest (acc ‖ Ser.enc item)`); phase 1, `ctxRoot`, `vmAcc = bdigest []` copied | none | `stViewE`, `stD_binding_E`, `vfsteps_rsteps`, `mstate_trans` |
-| F `SegSoundRt8` | enter `eng I c → call I c [] q .pre`; next `call I c K q (.fin r) → call I c (K ++ [(q, r)]) q' .pre`; resume `call I c K q (.fin r) → eng I c'` with `estepO (strictO (K ++ [(q, r)])) I.prog c = .ok c'` | enter: phase 1 → 6, `wasm = wasmD P (some (q, .pre))` (fallback `fbBnd`), `vmAcc = bdigest []`; next: `vmAcc' = bdigest (vmAcc ‖ Ser.enc (q, r))` (`vmDE_snoc`), `wasm` → `(q', .pre)`; resume: phase 6 → 1, `vmAcc → bdigest []`, `wasm → none`, `stRoot`/accumulators of `c'` (the receipt step's effects, lane B's commitments); the circuit opens `vmAcc` by recomputing `chainD` over the answers it consumes | none | `vmDE_snoc`, `estepO_honest`, `strictO`, `rsteps_through_calls` |
-| G `SegSoundInit8` | `init cb wb → c`, `CM.step (init cb wb) = .ok c` (`c = eng I ⟨start, initRec⟩` or `gfin G`, `init_step_shape`) | `B_in`: phase 0, `ctxRoot = bdigest (0 ‖ u32 ℓ_B ‖ u32 \|cb\| ‖ cb ‖ wb)`, `stD .none`, `outDE .none`, `vmAcc = bdigest []`; `B_out`: phase 1 / 3, `ctxRoot = bdigest (1 ‖ Ser.enc I)` / `bdigest (2 ‖ Ser.enc G)`, `stD (stOfK (κ I) …)` / `stD .none`, `outDE (.eng ([], [], []))` / `outDE .none` | `∃ s secB w, s.wf ∧ claimDigest s = ctx ∧ cb = assemble s.ci secB s.secC` (INIT hashes `S` = `cb` with section B replaced by `u32 0`: `assemble_splice`, `encode_splice`) | `claimDigest_binding`, `assemble_wf`, `PublicStmt.decode_encode` |
-| G `SegSoundFinal8` | a `CM` run from `eng I ⟨.done out, _⟩`, `fin I out` or `gfin G` to `done H o` / `doneG` | `B_out`: phase 4 / 5, `ctxRoot = bdigest (3 ‖ Ser.enc H)`, `outDE (.done o) = (bdigest (Ser.enc o), [], bdigest [], bdigest [2])`, `stD .none` | for `done H o`: `∃ s, s.wf ∧ claimDigest s = ctx ∧ decodeChunkInner s.ci.chunkInner = .ok H ∧ headerOk H o` (M5d `final_template_sound`) | `cm_done_header`, `fin_accepts_iff`, `final_header_public` |
+| A `SegRelWasm` (T1) / `TmplSoundRel8 .wasm` (M8) | `call I c K q cc → call I c K q cc'`, `CSteps q cc cc'` | `wasm = wasmD P (some (q, cc))` only (AIR branch `airBnd` inside a call, `wasmD_air`); phase 6, `ctxRoot`, `stRoot`, accumulators, `vmAcc` copied | none | `csteps_seg`, `csteps_foldSegments`, `rsteps_foldSegments`, `wasmD_binding` |
+| B ∧ F `SegRelState` / `TmplSoundRel8 .state` (split: `split_sound`) | `eng I c →* eng I c'` by `VFSteps` (engine steps whose honest tape is empty) | `stRoot = stD (stOfK (κ I) c)`; `outDE (.eng (eposAcc c.pos))` (append: `acc' = bdigest (acc ‖ Ser.enc item)`); phase 1, `ctxRoot`, `vmAcc = bdigest []` copied | none | `stViewE`, `stD_binding_E`, `vfsteps_rsteps`, `mstate_trans` |
+| F `SegRelRt` / `TmplSoundRel8 .rt` | enter `eng I c → call I c [] q .pre`; next `call I c K q (.fin r) → call I c (K ++ [(q, r)]) q' .pre`; resume `call I c K q (.fin r) → eng I c'` with `estepO (strictO (K ++ [(q, r)])) I.prog c = .ok c'` | enter: phase 1 → 6, `wasm = wasmD P (some (q, .pre))` (fallback `fbBnd`), `vmAcc = bdigest []`; next: `vmAcc' = bdigest (vmAcc ‖ Ser.enc (q, r))` (`vmDE_snoc`), `wasm` → `(q', .pre)`; resume: phase 6 → 1, `vmAcc → bdigest []`, `wasm → none`, `stRoot`/accumulators of `c'` (the receipt step's effects, lane B's commitments); the circuit opens `vmAcc` by recomputing `chainD` over the answers it consumes | none | `vmDE_snoc`, `estepO_honest`, `strictO`, `rsteps_through_calls` |
+| G `SegRelInit` (T1) / `SegSoundInit8` (M8, absolute) | `init cb wb → c`, `CM.step (init cb wb) = .ok c` (`c = eng I ⟨start, initRec⟩` or `gfin G`, `init_step_shape`) | `B_in`: phase 0, `ctxRoot = bdigest (0 ‖ u32 ℓ_B ‖ u32 \|cb\| ‖ cb ‖ wb)`, `stD .none`, `outDE .none`, `vmAcc = bdigest []`; `B_out`: phase 1 / 3, `ctxRoot = bdigest (1 ‖ Ser.enc I)` / `bdigest (2 ‖ Ser.enc G)`, `stD (stOfK (κ I) …)` / `stD .none`, `outDE (.eng ([], [], []))` / `outDE .none` | `∃ s secB w, s.wf ∧ claimDigest s = ctx ∧ cb = assemble s.ci secB s.secC` (INIT hashes `S` = `cb` with section B replaced by `u32 0`: `assemble_splice`, `encode_splice`) | `claimDigest_binding`, `assemble_wf`, `PublicStmt.decode_encode` |
+| G `SegRelFinal` / `TmplSoundRel8 .final` | a `CM` run from `eng I ⟨.done out, _⟩`, `fin I out` or `gfin G` to `done H o` / `doneG` | `B_out`: phase 4 / 5, `ctxRoot = bdigest (3 ‖ Ser.enc H)`, `outDE (.done o) = (bdigest (Ser.enc o), [], bdigest [], bdigest [2])`, `stD .none` | for `done H o`: `∃ s, s.wf ∧ claimDigest s = ctx ∧ decodeChunkInner s.ci.chunkInner = .ok H ∧ headerOk H o` (M5d `final_template_sound`) | `cm_done_header`, `fin_accepts_iff`, `final_header_public` |
 | D `TreeFaithful`, `PadSound8` | tree / PAD (`b' = b`, phase 4 or 5) | — | wrap: `cx (ctxOf s) = claimDigest s`, `B_0.phase = 0`, `B_N.phase ∈ {4, 5}` (**the `View.split` codes, not D-5's placeholder 1 / 2**) | `treeFaithful_of_aggH`, `compose_ctx`, `NodeExecV` (item 1 below) |
 
 Notes for the lanes:
