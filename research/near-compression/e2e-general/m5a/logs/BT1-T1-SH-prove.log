@@ -1,0 +1,24 @@
+spec oracle: post-state root 1db48e3883e462f12b761a81438bd145dfcc45ee5a7097acdf7b9b000a249628 (Lean applyChanges)
+== if
+PRECHECK OK: every constraint on every row; every bus balances (12207 distinct messages)
+PARAMS n_stack 18 w_stack 10 log_blowup 1 degree 9 pow 24 queries [100, 71, 45, 33] k [2, 4, 4, 4]
+SOUNDNESS total=268.2 logup=324.4 proximity=295.1 query=268.2
+PROOF total=490156 gkr=23192 relations=177572 stacking=2464 whir=286328
+TIME prove 34.47s verify 0.0345s threads 8 peak_rss_kib 7255380 proof_bytes 490156
+SAVED t1/SH/if/out (STATE.proof 490156 B, STATE.vk.json 2886135 B)
+VERIFY OK (native SWIRL verifier); statement check (cached roots + every AIR's public values): OK
+== seg0
+PRECHECK OK: every constraint on every row; every bus balances (4791 distinct messages)
+PARAMS n_stack 18 w_stack 8 log_blowup 1 degree 9 pow 24 queries [100, 71, 45, 33] k [2, 4, 4, 4]
+SOUNDNESS total=268.2 logup=324.4 proximity=295.1 query=268.2
+PROOF total=476698 gkr=21128 relations=102640 stacking=2372 whir=350000
+TIME prove 39.78s verify 0.0291s threads 8 peak_rss_kib 7642040 proof_bytes 476698
+SAVED t1/SH/seg0/out (STATE.proof 476698 B, STATE.vk.json 1463719 B)
+VERIFY OK (native SWIRL verifier); statement check (cached roots + every AIR's public values): OK
+CHAIN if.R_0 = seg0.R_in: OK (ca91c86e35478585…)
+CHAIN seg0.R_out = if.R_n: OK (2d2e132a1af65a2f…)
+WSLEN [17]: OK
+POST 1db48e3883e462f12b761a81438bd145dfcc45ee5a7097acdf7b9b000a249628 = oracle 1db48e3883e462f12b761a81438bd145dfcc45ee5a7097acdf7b9b000a249628: OK
+PROOF if    from proof: 490156 B, vk sha256 ff5af807ac91749c
+PROOF seg0  from proof: 476698 B, vk sha256 aceed1825860844a
+LEAF CHAIN OK
