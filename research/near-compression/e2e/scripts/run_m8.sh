@@ -19,6 +19,8 @@ STAGE=${1:?stage}; O=${2:?work dir}
 mkdir -p "$O"
 C=${CPUSET:-4-11}; TH=${THREADS:-8}
 CERTS=$K/calc/dkt_certs_o2.json; EXCL=$K/lean/DKTCertsO2_big.keys
+# the D-9 tree / wrap configuration (run_tree.sh): wrap zk = 6 at the ns19lb6 FINAL geometry
+export NEARPROOF_CHAIN_GEOM=ns19lb6 NEARPROOF_TAPE_EVAL=1 NEARPROOF_ZK=1 NEARPROOF_ZK_FINAL=6 NEARPROOF_TREE_GEOM=ns20lb5
 die() { echo "RUN_M8_FAILED $*"; exit 1; }
 run() { RAYON_NUM_THREADS=$TH /usr/bin/time -v taskset -c "$C" "$@"; }
 stage_a() {

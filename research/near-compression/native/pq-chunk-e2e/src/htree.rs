@@ -619,12 +619,40 @@ pub fn tree_prove(spec_path: &str, out: &Path, certs: &str, exclusions: &str) {
         return;
     }
     let lc = super::tree::circ(k, lr, pl, 1, cap_log, Some(&h_l));
+    // M8_REUSE=DIR: take a proof from an earlier run of the same spec when it is the same proof
+    // (native verification under the vk of this circuit, pinned heights, statement, program root
+    // checked by the caller); a measurement aid after a failure late in a run
+    let reuse_dir = std::env::var("M8_REUSE").ok().map(std::path::PathBuf::from);
+    let reuse = |file: &str, eng: &Sha384CpuEngine, c: &NvCircuit, h: &[vd::PinnedHeight], st: &RangeStmt| -> Option<(MultiStarkVerifyingKey<SC>, Proof<SC>)> {
+        let f = reuse_dir.as_ref()?.join(file);
+        if !f.exists() {
+            return None;
+        }
+        let p = read_proof(&f);
+        let (_, vk) = eng.keygen(&c.airs::<SC>());
+        let ok = eng.verify(&vk, &p).is_ok()
+            && vd::proof_heights(&p).as_deref() == Some(h)
+            && openvm_recursion_circuit::nv::agg::check_range_statement(&p.public_values[0], st);
+        println!("M8_REUSE {file} {}", if ok { "reused" } else { "NOT reusable" });
+        ok.then_some((vk, p))
+    };
     // ---- prove the leaves
     let mut items: Vec<Item> = vec![];
     let mut n_proofs = 0usize;
     let mut kinds: std::collections::BTreeMap<String, Vec<f64>> = Default::default();
     for (i, l) in leaves.iter().enumerate() {
         let t0 = std::time::Instant::now();
+        if let Some((v, p)) = reuse(&format!("LEAF{i}.proof"), &leaf_engine, &lc, &h_l, &l.stmt) {
+            let name = l.spec.as_ref().map_or("PAD".to_string(), |s| s.name.clone());
+            let c = root_of(&p);
+            if !c_leaf.iter().any(|(_, x)| *x == c) {
+                c_leaf.push((name, c));
+            }
+            save_proof(&out.join(format!("LEAF{i}.proof")), &p);
+            n_proofs += 1;
+            items.push(Item { vk: v, p, stmt: l.stmt.clone() });
+            continue;
+        }
         let (mats, b) = lc.generate_with(|b| {
             l.body(b);
         });
@@ -763,6 +791,15 @@ pub fn tree_prove(spec_path: &str, out: &Path, certs: &str, exclusions: &str) {
             while items.len() % arity != 0 {
                 let t0 = std::time::Instant::now();
                 let a = items.last().unwrap().stmt.e.as_canonical_u32() as usize;
+                let j = items.len();
+                let pst = RangeStmt { ctx: ctx.clone(), a: F::from_usize(a), e: F::from_usize(a + 1), s_a: done.clone(), s_e: done.clone() };
+                if let Some((v, p)) = reuse(&format!("PADN{}_{j}.proof", lvl - 1), &parent, &nc, &h_n, &pst) {
+                    assert_eq!(root_of(&p), c_pad_node);
+                    save_proof(&out.join(format!("PADN{}_{j}.proof", lvl - 1)), &p);
+                    n_proofs += 1;
+                    items.push(Item { vk: v, p, stmt: pst });
+                    continue;
+                }
                 let mut s = None;
                 let (mats, b) = nc.generate_with(|b| {
                     s = Some(build_pad_node(b, &ctx, F::from_usize(a), &done, lvl - 1));
@@ -789,6 +826,20 @@ pub fn tree_prove(spec_path: &str, out: &Path, certs: &str, exclusions: &str) {
                     *s = Some(if lvl == 2 { build_node2(b, &refs, &pre, &set) } else { build_node_star_set(b, &refs, &pre, &[c_node2], c_pad_node) });
                 })
             };
+            let cst = RangeStmt::compose(&pre).expect("children chain");
+            if let Some((v, p)) = reuse(&format!("NODE{lvl}_{j}.proof"), &parent, &nc, &h_n, &cst) {
+                let r = root_of(&p);
+                if lvl == 2 {
+                    assert_eq!(r, c_node2);
+                } else {
+                    assert!(c_star.is_none_or(|c| c == r));
+                    c_star = Some(r);
+                }
+                save_proof(&out.join(format!("NODE{lvl}_{j}.proof")), &p);
+                n_proofs += 1;
+                next.push(Item { vk: v, p, stmt: cst });
+                continue;
+            }
             let mut s = None;
             let (pm, pb) = gen_node(&probe_n, &mut s);
             let (npin, _) = shape_pinned_heights(&pm, &pb, 2, FINAL_PIN_EPS_BITS);
