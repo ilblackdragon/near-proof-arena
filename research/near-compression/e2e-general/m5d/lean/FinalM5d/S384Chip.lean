@@ -1,5 +1,6 @@
 import FinalM5d.HbWhole
 import StateM5a.WsDecode
+import FinalM5d.RsRow
 
 /-!
 # FinalM5d.S384Chip — an active `S384` row is a chip compression (lane B's contract)
@@ -70,6 +71,100 @@ theorem s384_comp (h : Holds finalAirS pub tr) {compress : List Nat → List Nat
       show 3 * (2 * m) + 2 = 6 * m + 2 by omega]; rfl
   · simp only [tn, show 3 * (2 * m + 1) = 6 * m + 3 by omega,
       show 3 * (2 * m + 1) + 1 = 6 * m + 4 by omega, show 3 * (2 * m + 1) + 2 = 6 * m + 5 by omega]; rfl
+
+/-! ## The chain between rows -/
+
+theorem s384_link_sub :
+    ((List.range 24).map fun k => Expr.isTransition * (S384.act - S384.last) *
+      (S384.T.n "hin" k - S384.T.c "hout" k)) ⊆ S384.constraints := by
+  intro e he; unfold S384.constraints
+  simp only [List.mem_append]; simp only [he, true_or, or_true]
+
+theorem s384_iv_sub :
+    ((List.range 24).map fun k => S384.T.c "first" * (S384.T.c "hin" k - K (S384.ivLimbs.getD k 0))) ⊆
+      S384.constraints := by
+  intro e he; unfold S384.constraints
+  simp only [List.mem_append]; simp only [he, true_or, or_true]
+
+theorem s384_constr (h : Holds finalAirS pub tr) {r : Nat} (hr : r < tr.height 1) :
+    ∀ e ∈ S384.constraints, e.eval tr 1 r pub = 0 := by
+  have := h.constr 1 (by decide) r hr
+  rw [tab1] at this; exact this
+
+/-- Inside a message (`act = 1`, `last = 0`, a next row), the next row's `hin` is this row's
+`hout`. -/
+theorem s384_link (h : Holds finalAirS pub tr) {r : Nat} (hr : r + 1 < tr.height 1)
+    (hact : ev tr 1 r pub S384.act = 1) (hlast : ev tr 1 r pub S384.last = 0) {k : Nat} (hk : k < 24) :
+    ev tr 1 (r + 1) pub (S384.T.c "hin" k) = ev tr 1 r pub (S384.T.c "hout" k) := by
+  have hc := s384_constr h (r := r) (by omega) _
+    (s384_link_sub (List.mem_map.2 ⟨k, List.mem_range.2 hk, rfl⟩))
+  have htr : ev tr 1 r pub Expr.isTransition = 1 := by
+    simp only [ev, Expr.eval, Expr.evalWith, rowEnv, show ¬ (r + 1 = tr.height 1) by omega, ite_false]; rfl
+  have hnl : ev tr 1 r pub (S384.act - S384.last) = 1 := by
+    rw [RsRow.ev_sub, hact, hlast]
+  have h1 := gated hc (by rw [FinRow.ev_hmul, htr, hnl])
+  have := ev_sub_eq h1
+  rw [← this]
+  simp only [ev, Expr.eval, Expr.evalWith, rowEnv, S384.T, Cols.n, Cols.c, ite_true,
+    Bool.false_eq_true, ite_false, Nat.mod_eq_of_lt hr]
+
+/-- On a first block, `hin` is the SHA-384 IV. -/
+theorem s384_iv (h : Holds finalAirS pub tr) {r : Nat} (hr : r < tr.height 1)
+    (hf : ev tr 1 r pub (S384.T.c "first") = 1) {k : Nat} (hk : k < 24) :
+    ev tr 1 r pub (S384.T.c "hin" k) = S384.ivLimbs.getD k 0 := by
+  have hc := s384_constr h hr _ (s384_iv_sub (List.mem_map.2 ⟨k, List.mem_range.2 hk, rfl⟩))
+  have := ev_sub_eq (gated hc hf)
+  rw [this, FinRow.ev_K, Nat.mod_eq_of_lt]
+  have : S384.ivLimbs.getD k 0 < 2 ^ 22 := by
+    have hl : ∀ j, j < 24 → S384.ivLimbs.getD j 0 < 2 ^ 22 := by decide
+    exact hl k hk
+  omega
+
+theorem ifLimbs_hin : ∀ j, j < 24 → S384.ifLimbs.getD j 0 = S384.T.c "hin" j := by decide +kernel
+theorem ifLimbs_hout : ∀ j, j < 24 → S384.ifLimbs.getD (72 + j) 0 = S384.T.c "hout" j := by
+  decide +kernel
+
+/-- `hin` of the next row is `hout` of this one, as limb triples. -/
+theorem triples_link (h : Holds finalAirS pub tr) {r : Nat} (hr : r + 1 < tr.height 1)
+    (hact : ev tr 1 r pub S384.act = 1) (hlast : ev tr 1 r pub S384.last = 0) :
+    (triples tr (r + 1) pub).take 8 = (triples tr r pub).drop 24 := by
+  apply List.ext_getElem
+  · simp [triples]
+  · intro k h1 h2
+    have hk : k < 8 := by simp [triples] at h1; omega
+    simp only [triples, List.getElem_take, List.getElem_drop, List.getElem_map, List.getElem_range]
+    rw [ifLimbs_hin _ (by omega), ifLimbs_hin _ (by omega), ifLimbs_hin _ (by omega)]
+    rw [show 3 * (24 + k) = 72 + 3 * k by omega, Nat.add_assoc 72 (3 * k) 1, Nat.add_assoc 72 (3 * k) 2]
+    rw [ifLimbs_hout (3 * k) (by omega), ifLimbs_hout (3 * k + 1) (by omega),
+      ifLimbs_hout (3 * k + 2) (by omega),
+      s384_link h hr hact hlast (by omega), s384_link h hr hact hlast (by omega),
+      s384_link h hr hact hlast (by omega)]
+
+/-- **One step of the `S384` chain**: inside a message, the next row's compression input is this
+row's compression output. -/
+theorem s384_step (h : Holds finalAirS pub tr) {compress : List Nat → List Nat → List Nat}
+    (hcok : CompressOK compress)
+    (hC : Sha512IfContract compress ((busList finalAirS tr pub B_IF384 true).map decIf))
+    {r : Nat} (hr : r + 1 < tr.height 1) (hact : ev tr 1 r pub S384.act = 1)
+    (hact' : ev tr 1 (r + 1) pub S384.act = 1) (hlast : ev tr 1 r pub S384.last = 0) :
+    ∃ hh blk hh' blk' : List Nat, triples tr r pub = (hh ++ blk ++ compress hh blk).map StateM5a.wlimbs ∧
+      triples tr (r + 1) pub = (hh' ++ blk' ++ compress hh' blk').map StateM5a.wlimbs ∧
+      hh' = compress hh blk := by
+  obtain ⟨hh, blk, l1, l2, -, -, e⟩ := s384_comp h hcok hC (by omega) hact
+  obtain ⟨hh', blk', l1', l2', -, -, e'⟩ := s384_comp h hcok hC hr hact'
+  refine ⟨hh, blk, hh', blk', e, e', ?_⟩
+  have hl := triples_link h hr hact hlast
+  rw [e, e'] at hl
+  have e1 : ((hh' ++ blk' ++ compress hh' blk').map StateM5a.wlimbs).take 8 =
+      hh'.map StateM5a.wlimbs := by
+    rw [List.map_append, List.map_append, List.append_assoc]
+    exact List.take_left' (by simp [l1'])
+  have e2 : ((hh ++ blk ++ compress hh blk).map StateM5a.wlimbs).drop 24 =
+      (compress hh blk).map StateM5a.wlimbs := by
+    rw [List.map_append, List.map_append]
+    exact List.drop_left' (by simp [l1, l2])
+  rw [e1, e2] at hl
+  exact StateM5a.Sha512If.map_wlimbs_inj hl
 
 /-! ## Non-vacuity: precheck-accepted traces give `Holds finalAirS` with the chip's sends -/
 
