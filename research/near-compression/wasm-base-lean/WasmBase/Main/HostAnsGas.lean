@@ -13,7 +13,15 @@ register of its gas record replaced:
   unchanged (every T1 host);
 * **`ansT1_sideR`** — hence `ansT1 name (sideR s) … = gfix 0 (ansT1 name s …)`: status, result
   words, `remaining` gas, registers, register usage, writes and the host-side update are those of the
-  run from `s` (`HAns` fields other than `gas.g`).
+  run from `s` (`HAns` fields other than `gas.g`);
+* **`sideT1_sideR`** / **`ansT1_next`** — the host side after the arm's run from `s` (success or any
+  error) is `ansT1F.side name (sideR s) …`: lane B's `next` obligation is satisfiable on honest runs
+  with `σc j = sideR s` (the host-side updates are `SideLocal`: functions of the host side).
+
+Method: `GBlind` (a gas program commutes with replacing the register) closed under the `GM`
+combinators; `payPer_gw`/`payAction_gw`/`commit_gw`/`writeLike_gw` at the bottom; the
+register/memory answers through parametric forms (`ansInputG_gw`, `ansReadRegisterG_gw`,
+`ansRegisterLenG_gw`) so the kernel never compares charges computed on symbolic gas.
 -/
 
 namespace WasmBase
@@ -477,6 +485,135 @@ theorem gfix_fields (x : Nat) (a : HAns) : (gfix x a).err = a.err ∧ (gfix x a)
 
 #print axioms ansT1_gw
 #print axioms ansT1_sideR
+
+
+/-! ## 4. The host side after the call, from the thread's host side (`ProducerObl.next`) -/
+
+theorem sideR_pushI64 (t : St) (v : Nat) : sideR (pushI64 t v) = sideR t := rfl
+
+theorem foldl_push_sideR (l : List Nat) (t : St) : sideR (l.foldl (fun t v => pushI64 t v) t) = sideR t := by
+  induction l generalizing t with
+  | nil => rfl
+  | cons v l ih => simp only [List.foldl_cons]; rw [ih]; rfl
+
+theorem foldl_wb_pages (l : List (Nat × ByteArray)) (t : St) :
+    ∃ pg, l.foldl (fun t w => writeBytes t w.1 w.2) t = { t with pages := pg } := by
+  induction l generalizing t with
+  | nil => exact ⟨t.pages, rfl⟩
+  | cons w l ih =>
+    simp only [List.foldl_cons]
+    obtain ⟨pg, e⟩ := ih (writeBytes t w.1 w.2)
+    rw [e, HostFoot.writeBytes_split]
+    exact ⟨pg, rfl⟩
+
+theorem sideR_postOf (t : St) (a : HAns) :
+    sideR (postOf t a) = sideR { t with gas := a.gas, registers := a.regs, regUsage := a.regUsage } := by
+  unfold postOf
+  rw [foldl_push_sideR]
+  obtain ⟨pg, e⟩ := foldl_wb_pages a.wr t
+  rw [e]
+  rfl
+
+/-- `u` changes the host side as a function of the host side. -/
+def SideLocal (u : St → St) : Prop := ∀ t t', sideR t = sideR t' → sideR (u t) = sideR (u t')
+
+theorem sideLocal_id : SideLocal id := fun _ _ h => h
+
+theorem sideLocal_ret (v : Option (ByteArray ⊕ Nat)) : SideLocal (fun t => { t with ret := v }) := by
+  intro t t' h
+  exact congrArg (fun z : St => ({ z with ret := v } : St)) h
+
+theorem sideLocal_log (n : Nat) (b : ByteArray) :
+    SideLocal (fun t => { t with totalLogLen := n, logs := t.logs.push b }) := by
+  intro t t' h
+  exact congrArg (fun z : St => ({ z with totalLogLen := n, logs := z.logs.push b } : St)) h
+
+theorem sideLocal_len (n : Nat) : SideLocal (fun t => { t with totalLogLen := n }) := by
+  intro t t' h
+  exact congrArg (fun z : St => ({ z with totalLogLen := n } : St)) h
+
+theorem sideLocal_swr (w : SWR) : SideLocal w.upd := by
+  intro t t' h
+  exact congrArg (fun z : St => ({ z with trie := w.trie, real := w.real, storageUsage := w.su } : St)) h
+
+theorem updT1_local {name : String} (hm : name ∈ t1Hosts) (σ : St) (args : List Nat) (mem : Nat → UInt8)
+    (memSz : Nat) : SideLocal (updT1 name σ args mem memSz) := by
+  simp only [t1Hosts, List.mem_cons, List.mem_nil_iff, or_false] at hm
+  rcases hm with rfl | rfl | rfl | rfl | rfl | rfl
+  · rw [updT1_input]; exact sideLocal_id
+  · rw [updT1_register_len]; exact sideLocal_id
+  · rw [updT1_read_register]; exact sideLocal_id
+  · rw [updT1_storage_write]
+    unfold updStorageWrite
+    generalize (swG σ _ _ _ _ _ _).run σ.gas = r
+    cases r with
+    | error e g => exact sideLocal_id
+    | ok kv g => exact sideLocal_swr _
+  · rw [updT1_log_utf8]
+    unfold updLogUtf8
+    generalize (lgG σ _ _ _ _).run σ.gas = r
+    cases r with
+    | error e g => exact sideLocal_id
+    | ok m g =>
+      unfold lgUpdOf
+      dsimp only
+      by_cases h : σ.totalLogLen + m.toUTF8.size > maxTotalLogLength
+      · rw [if_pos h]; exact sideLocal_len _
+      · rw [if_neg h]; exact sideLocal_log _ _
+  · rw [updT1_value_return]
+    unfold updValueReturn
+    generalize (vrG σ _ _ _ _).run σ.gas = r
+    cases r with
+    | error e g => exact sideLocal_id
+    | ok v g => exact sideLocal_ret _
+
+theorem sideR_set (z : St) (G : Gas) (R : Array (Nat × ByteArray)) (U : Nat) :
+    sideR { z with gas := G, registers := R, regUsage := U } =
+      { sideR z with gas := { G with g := 0 }, registers := R, regUsage := U } := rfl
+
+theorem sideR_sideR (s : St) : sideR (sideR s) = sideR s := rfl
+theorem sideR_stack (s : St) (x : Array Val) : sideR { s with stack := x } = sideR s := rfl
+
+/-- **`sideT1` from the thread's host side = `sideT1` from the post-pop state** (every T1 host). -/
+theorem sideT1_sideR {name : String} (hm : name ∈ t1Hosts) (s : St) (x : Array Val) (args : List Nat)
+    (mem : Nat → UInt8) (memSz : Nat) :
+    sideT1 name (sideR s) args mem memSz = sideT1 name { s with stack := x } args mem memSz := by
+  unfold sideT1
+  obtain ⟨a1, u1⟩ := ansT1_sideR hm s args mem memSz
+  obtain ⟨a2, u2⟩ := ansT1_congr (hostFieldsEq_stack s x) name args mem memSz
+  rw [a1, u1, a2, u2]
+  unfold postOfU
+  rw [sideR_postOf, sideR_postOf]
+  have hl := updT1_local hm s args mem memSz (sideR s) { s with stack := x } rfl
+  generalize ansT1 name s args mem memSz = a at *
+  generalize updT1 name s args mem memSz = u at *
+  rw [sideR_set, sideR_set, hl]
+  rfl
+
+theorem popsF_snd_stack : ∀ (n : Nat) (s : St) (out : Array Nat),
+    (TwoRun.popsF n s out).2 = { s with stack := (TwoRun.popsF n s out).2.stack }
+  | 0, s, out => rfl
+  | j + 1, s, out => by
+    simp only [TwoRun.popsF]
+    rw [TwoRun.popN_eq, popsF_snd_stack j]
+
+/-- **`ProducerObl.next` for T1, from the honest pre-state**: the host side after the arm's run from
+`s` (success or any error) is `ansT1F.side` evaluated at the thread's host side `sideR s`. -/
+theorem ansT1_next {name : String} (hm : name ∈ t1Hosts) {s s0 : St} {args : Vector Nat (nargsT1 name)}
+    (e0 : (popArgs (nargsT1 name)).run s = .ok args s0) {s' : St}
+    (h : (hostCall name).get!.run s = .ok () s' ∨ ∃ e, (hostCall name).get!.run s = .error e s') :
+    sideR s' = ansT1F.side name (sideR s) args.toList (readByte s0) (memBytes s0) := by
+  rw [ansT1_side hm e0 h]
+  have e1 := TwoRun.popArgs_ok (nargsT1 name) s
+  have e2 : (popArgs (nargsT1 name)).run s = .ok (TwoRun.argsOf (nargsT1 name) s) (TwoRun.popsF (nargsT1 name) s #[]).2 :=
+    e1
+  rw [e0] at e2
+  injection e2 with _ es
+  rw [es, popsF_snd_stack]
+  exact (sideT1_sideR hm s _ _ _ _).symm
+
+#print axioms sideT1_sideR
+#print axioms ansT1_next
 
 end HostAns
 end WasmBase
