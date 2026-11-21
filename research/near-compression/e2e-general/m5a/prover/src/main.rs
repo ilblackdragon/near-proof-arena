@@ -728,7 +728,16 @@ fn main() {
     } else {
         params(n_stack, w_stack, degree)
     };
-    println!("PARAMS n_stack {} w_stack {} log_blowup {} degree {}", prm.n_stack, prm.w_stack, prm.log_blowup, prm.max_constraint_degree);
+    println!(
+        "PARAMS n_stack {} w_stack {} log_blowup {} degree {} pow {} queries {:?} k {:?}",
+        prm.n_stack,
+        prm.w_stack,
+        prm.log_blowup,
+        prm.max_constraint_degree,
+        prm.whir.query_phase_pow_bits,
+        prm.whir.rounds.iter().map(|r| r.num_queries).collect::<Vec<_>>(),
+        (0..prm.whir.rounds.len()).map(|r| prm.whir.k_round(r)).collect::<Vec<_>>()
+    );
     let eng = Sha384CpuEngine::new(prm);
     let airs = airs(&inst);
     let t1 = Instant::now();

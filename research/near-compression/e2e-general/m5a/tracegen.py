@@ -180,6 +180,7 @@ class Gen:
         # one dump per STATE segment, each with its own compressions, SHA-256 messages, `RNG`
         # counts and tables; inside a segment dump the segment is `seg = 0` and times restart at 1
         self.splitmode = split
+        self.seg_cap = getattr(Gen, 'SEG_CAP', None)
         self.R = {}
         self.role = 'if'
         # Batched FINAL: `plan` (from a first pass, `make_plan`) says, for every node version,
@@ -1161,6 +1162,18 @@ class Gen:
                 ws.append((key, (1, len(v), sha(v)), v))
             ws.append((key, ref, chg[key]))
         S = min(self.segs, len(ws))
+        # B-T1 `--seg-cap N`: cut on overflow — a new STATE segment whenever the next write's key +
+        # value bytes (its `STB` rows) would push the segment past N bytes
+        segof = [t * S // len(ws) for t in range(len(ws))] if ws else []
+        if self.seg_cap:
+            segof, s, acc = [], 0, 0
+            for key, ref, v in ws:
+                b = len(key) + (len(v) if v is not None else 0)
+                if acc and acc + b > self.seg_cap:
+                    s, acc = s + 1, 0
+                acc += b
+                segof.append(s)
+            S = s + 1 if ws else 0
         out = []
         self.raw = {}           # M5b: time -> the raw value written (None: a remove)
         self.t_local = {}
@@ -1171,7 +1184,7 @@ class Gen:
             live[key] = int(v is not None)
         first = {}
         for t, (key, ref, v) in enumerate(ws):
-            s = t * S // len(ws)
+            s = segof[t]
             out.append((t + 1, s, key, ref))
             self.raw[t + 1] = v
             first.setdefault(s, t + 1)
@@ -2158,6 +2171,8 @@ def main():
     tmpl = json.load(open(args[args.index('--template') + 1])) if '--template' in args else None
     host = '--host' in args
     assert split or not host, '--host needs --split'
+    cap = int(args[args.index('--seg-cap') + 1]) if '--seg-cap' in args else None
+    Gen.SEG_CAP = cap
     g = make_gen(st, names, mutant, None, segs, extra, split, host)
     if '--unbatched' not in args:
         plan = g.make_plan()
