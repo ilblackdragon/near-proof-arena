@@ -269,6 +269,41 @@ impl Tree {
 }
 
 // ------------------------------------------------------------------------------------------
+// A-T1: pinned per-template table heights (aggregation-tree leaves, plan §5.0.1.4)
+// ------------------------------------------------------------------------------------------
+
+/// The template's table heights by table name (`segleaf`, `SEG_TEMPLATE`): every table of every
+/// segment is padded to exactly this height, so all segments of the template share one vk and one
+/// leaf geometry.  Unset: each table takes its own power of two (the per-segment heights of M4–M6).
+pub static TEMPLATE: std::sync::OnceLock<HashMap<String, usize>> = std::sync::OnceLock::new();
+
+/// The pinned height of table `name` for a table that needs `h` rows (`h` itself without a template
+/// or when the template does not list the table).  A segment that does not fit is refused.
+pub fn tmpl_h(name: &str, h: usize) -> usize {
+    match TEMPLATE.get().and_then(|m| m.get(name)) {
+        Some(&t) => {
+            assert!(h <= t, "SEGFIT {name}: needs height {h} > template {t}");
+            t
+        }
+        None => h,
+    }
+}
+
+/// Pad a canonical lookup matrix (CODE, FUNC, HOSTT: rows repeated, multiplicities recounted) to its
+/// template height by repeating the last row.
+pub fn pad_rep(name: &str, m: &RowMajorMatrix<F>) -> RowMajorMatrix<F> {
+    let w = m.width;
+    let h = m.values.len() / w;
+    let t = tmpl_h(name, h);
+    let mut v = m.values.clone();
+    let last = v[(h - 1) * w..h * w].to_vec();
+    while v.len() < t * w {
+        v.extend_from_slice(&last);
+    }
+    RowMajorMatrix::new(v, w)
+}
+
+// ------------------------------------------------------------------------------------------
 // Row builder by column name
 // ------------------------------------------------------------------------------------------
 
@@ -297,7 +332,7 @@ impl<'a> Tb<'a> {
     }
     /// Pad to a power of two (`≥ 4`, `+ extra` rows at least) with `pad` rows.
     pub fn finish(mut self, extra: usize, pad: &[(&str, u64)]) -> RowMajorMatrix<F> {
-        let h = (self.rows.len() + extra).max(4).next_power_of_two();
+        let h = tmpl_h(&self.spec.name, (self.rows.len() + extra).max(4).next_power_of_two());
         while self.rows.len() < h {
             self.push();
             for &(n, v) in pad {
@@ -417,7 +452,7 @@ fn stream_rows(tb: &mut Tb, sha: &mut Sha, es: &[([u64; 7], Live)], out: bool, l
 }
 
 fn finish_stream(mut tb: Tb, out: bool, dep: u64) -> RowMajorMatrix<F> {
-    let h = tb.rows.len().max(4).next_power_of_two();
+    let h = tmpl_h(&tb.spec.name, tb.rows.len().max(4).next_power_of_two());
     while tb.rows.len() < h {
         tb.push();
         tb.u("kX", 1);
@@ -920,7 +955,9 @@ pub fn build(seg: &AirSpec, m2: &AirSpec, g: &Gen, prep: &Prep, k: usize, tree: 
     // ---- lookup tables -------------------------------------------------------------------------------
     for name in ["RANGE16", "BYTE", "CODE", "FUNC", "HOSTT"] {
         let (_, fm) = full(name);
-        mats[si(name)] = Some(fm.clone());
+        // A-T1: CODE / FUNC / HOSTT at the template's height (a contract-size class: the padded
+        // height is part of the `code_root` / `func_root` definition, `segcmd::code_matrix_t`)
+        mats[si(name)] = Some(if name == "RANGE16" || name == "BYTE" { fm.clone() } else { pad_rep(name, fm) });
     }
     let mut mats: Vec<RowMajorMatrix<F>> = mats.into_iter().enumerate().map(|(i, m)| m.unwrap_or_else(|| panic!("table {} not built", seg.tables[i].name))).collect();
     recount(seg, &mut mats, &pubs);

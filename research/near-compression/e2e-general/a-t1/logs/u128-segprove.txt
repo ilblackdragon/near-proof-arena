@@ -1,0 +1,11 @@
+PARAMS n_stack 18 w_stack 8 degree 9
+SOUNDNESS total=268.2 logup=330.3 proximity=316.2 query=268.2
+  PROOF 0: 1329285 B, prove 38.2s, verify 56 ms, statement ok (boundary public values, code_root, func_root), peak_rss_kib 1297140
+  PROOF 1: 1329201 B, prove 38.3s, verify 90 ms, statement ok (boundary public values, code_root, func_root), peak_rss_kib 1317588
+  PROOF 2: 1328949 B, prove 40.5s, verify 66 ms, statement ok (boundary public values, code_root, func_root), peak_rss_kib 1334204
+  PROOF 3: 1323615 B, prove 37.6s, verify 55 ms, statement ok (boundary public values, code_root, func_root), peak_rss_kib 1345564
+  PROOF 4: 1325421 B, prove 36.8s, verify 84 ms, statement ok (boundary public values, code_root, func_root), peak_rss_kib 1345564
+  PROOF 5: 1319205 B, prove 39.6s, verify 72 ms, statement ok (boundary public values, code_root, func_root), peak_rss_kib 1346108
+  PROOF 6: 1330881 B, prove 42.3s, verify 62 ms, statement ok (boundary public values, code_root, func_root), peak_rss_kib 1351252
+  PROOF 7: 1319699 B, prove 32.8s, verify 96 ms, statement ok (boundary public values, code_root, func_root), peak_rss_kib 1351252
+SEGPROVE OK 8 segments, chained by hand (B_out(k) = B_in(k+1)); total prove 306.2s

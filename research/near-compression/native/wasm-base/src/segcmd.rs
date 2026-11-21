@@ -41,6 +41,17 @@ pub fn segments(seg_air: &AirSpec, m2_air: &AirSpec, prep_path: &str, k: u64) ->
     let prep = Prep::parse(&std::fs::read_to_string(prep_path).unwrap());
     let cut_at: Vec<u64> = (1..).map(|i| i * k).take_while(|&t| t < prep.steps).collect();
     let t0 = Instant::now();
+    // A-T1: the segment HOSTB's write pair needs the old byte `ob` of every memory-write row; the
+    // full run is traced on the M2 AIR, whose HOSTB has no such column, so it gets one (a witness
+    // column only: no constraint of the M2 AIR reads it; the segment AIR checks it).
+    let mut m2x = m2_air.clone();
+    if seg_air.tables[seg_air.index("HOSTB")].cols.iter().any(|c| c == "ob") {
+        let hb = m2x.index("HOSTB");
+        if !m2x.tables[hb].cols.iter().any(|c| c == "ob") {
+            m2x.tables[hb].cols.push("ob".into());
+        }
+    }
+    let m2_air = &m2x;
     let g = tracegen::generate_cuts(m2_air, &prep, &cut_at);
     assert_eq!(g.steps, prep.steps, "step count vs spec");
     println!("TRACE steps {} cuts {} tracegen {:.2}s", g.steps, cut_at.len(), t0.elapsed().as_secs_f64());
@@ -69,7 +80,7 @@ pub fn segments(seg_air: &AirSpec, m2_air: &AirSpec, prep_path: &str, k: u64) ->
 
 fn cells(s: &SegInst) -> (usize, usize) {
     let main: usize = s.mats.iter().map(|m| m.values.len()).sum();
-    let h = s384::trace::main_height(s.comps.len());
+    let h = seg::tmpl_h("SHA512", s384::trace::main_height(s.comps.len()));
     (main, h * s384::air::WIDTH + 128 * s384::air::T_WIDTH)
 }
 
@@ -194,7 +205,7 @@ fn split_cols(m: &RowMajorMatrix<F>, c: usize) -> (RowMajorMatrix<F>, RowMajorMa
 }
 
 fn chip_mats(comps: &[s384::reference::Comp]) -> (RowMajorMatrix<F>, RowMajorMatrix<F>) {
-    let h = s384::trace::main_height(comps.len());
+    let h = seg::tmpl_h("SHA512", s384::trace::main_height(comps.len()));
     let main = s384::trace::gen_main(comps, h);
     let table = s384::trace::gen_table(&main, h);
     (
@@ -258,8 +269,8 @@ fn statement_ok(eng: &Sha384RefEngine, spec: &AirSpec, proof: &openvm_stark_back
         proof.public_values[i] == want
     });
     let root = |m: RowMajorMatrix<F>| eng.device().commit(&[&ColMajorMatrix::from_row_major(&m)]).expect("root").0;
-    let code = root(tracegen::code_matrix(&prep.records));
-    let func = root(tracegen::func_matrix(prep));
+    let code = root(seg::pad_rep("CODE", &tracegen::code_matrix(&prep.records)));
+    let func = root(seg::pad_rep("FUNC", &tracegen::func_matrix(prep)));
     let ok = |name: &str, want| match &proof.trace_vdata[spec.index(name)] {
         Some(v) => v.cached_commitments.len() == 1 && v.cached_commitments[0] == want,
         None => false,
@@ -597,6 +608,58 @@ fn tampers_key(spec: &AirSpec, s: &SegInst) -> Vec<Case> {
                 m, s.pubs.clone(), s.comps.clone(), s.pubs.clone()));
         }
     }
+    // (h5) A-T1: HOSTB's memory-write pair (`Seg.HostBK.writeInters`, count `act·dir·(1−reg)`): a
+    // response byte of a `setU128H` host consumes the live byte `ob` at `mtp` and produces `byte` at
+    // `ts`.  Every tamper is recounted (BYTE/RANGE16 multiplicities), so only the write pair can
+    // reject it.
+    if spec.tables[ti("HOSTB")].cols.iter().any(|c| c == "ob") {
+        let nb = rows(&s.mats, "HOSTB");
+        let wr = |m: &Vec<RowMajorMatrix<F>>, q: usize| get(m, "HOSTB", q, "act") == one && get(m, "HOSTB", q, "dir") == one
+            && get(m, "HOSTB", q, "reg") == F::ZERO;
+        if let Some(q) = (0..nb).find(|&q| wr(&s.mats, q)) {
+            let ts = get(&s.mats, "HOSTB", q, "ts");
+            let mut cases: Vec<(String, Vec<RowMajorMatrix<F>>)> = vec![];
+            for (c, d) in [("byte", 1u32), ("ob", 1), ("mtp", 1), ("ptrLo", 1), ("pos", 0)] {
+                let mut m = s.mats.clone();
+                if c == "pos" {
+                    // the write lands one address later (pos and gap shifted together, `pos < len` kept)
+                    let (p, g) = (get(&m, "HOSTB", q, "pos"), get(&m, "HOSTB", q, "gap"));
+                    if g == F::ZERO {
+                        continue;
+                    }
+                    put(&mut m, "HOSTB", q, "pos", p + one);
+                    put(&mut m, "HOSTB", q, "gap", g - one);
+                } else {
+                    let x = get(&m, "HOSTB", q, c);
+                    put(&mut m, "HOSTB", q, c, x + F::from_u32(d));
+                }
+                cases.push((format!("HOSTB[row {q}] write byte (ts {}): {c} changed", ts.as_canonical_u32()), m));
+            }
+            // a write row turned into a request (read) row: consumes the NEW byte at `mtp`
+            let mut m = s.mats.clone();
+            put(&mut m, "HOSTB", q, "dir", F::ZERO);
+            cases.push((format!("HOSTB[row {q}] write row relabelled as a read (dir 1 -> 0)"), m));
+            // the pre-fix shape: the call's write group deactivated (and HOST's key multiplicity `nk`
+            // lowered to match, so bus 214 stays balanced): its writes never reach memory
+            let mut m = s.mats.clone();
+            let mut n = 0u32;
+            for p in 0..nb {
+                if wr(&s.mats, p) && get(&s.mats, "HOSTB", p, "ts") == ts {
+                    put(&mut m, "HOSTB", p, "act", F::ZERO);
+                    n += 1;
+                }
+            }
+            if let Some(h) = (0..rows(&m, "HOST")).find(|&h| get(&m, "HOST", h, "act") == one && get(&m, "HOST", h, "ts") == ts) {
+                let nk = get(&m, "HOST", h, "nk");
+                put(&mut m, "HOST", h, "nk", nk - F::from_u32(n));
+            }
+            cases.push((format!("HOSTB write group at ts {} dropped ({n} rows, act = 0): the old gap", ts.as_canonical_u32()), m));
+            for (name, mut m) in cases {
+                seg::recount(spec, &mut m, &s.pubs);
+                out.push((name, m, s.pubs.clone(), s.comps.clone(), s.pubs.clone()));
+            }
+        }
+    }
     // (h3) a foreign HOSTB response group in a padding row: `dir = 1`, `reg = 0`, one byte, its own
     // group; its bus-210 pair cancels, no CH traffic, the BYTE/R16 multiplicities are recounted
     let hb = ti("HOSTB");
@@ -874,4 +937,207 @@ fn tampers_mp(spec: &AirSpec, s: &SegInst) -> Vec<Case> {
         }
     }
     out
+}
+
+// ------------------------------------------------------------------------------------------
+// A-T1: pinned-shape segment templates (aggregation-tree leaves, plan §5.0.1.4 blocker 4)
+// ------------------------------------------------------------------------------------------
+
+/// The table heights of one built segment, by table name (`SHA512` = the chip's main trace).
+fn seg_heights(spec: &AirSpec, s: &SegInst) -> std::collections::BTreeMap<String, usize> {
+    let mut h: std::collections::BTreeMap<String, usize> =
+        spec.tables.iter().zip(&s.mats).map(|(t, m)| (t.name.clone(), m.values.len() / m.width)).collect();
+    h.insert("SHA512".into(), seg::tmpl_h("SHA512", s384::trace::main_height(s.comps.len())));
+    h
+}
+
+/// `segtemplate <seg_air> <m2_air> (<prep> <K>)+`: the per-table maximum height over every segment
+/// of every listed call (each cut every `K` steps), as a template `heights` object, plus the stacked
+/// geometry the template needs (`n_stack`, `w_stack` by the same rule as `params_for`).
+pub fn cmd_segtemplate(a: &[String]) {
+    crate::set_levers();
+    let (seg_air, m2_air) = (load(&a[0]), load(&a[1]));
+    let mut maxh: std::collections::BTreeMap<String, usize> = Default::default();
+    let mut nseg = 0;
+    for pk in a[2..].chunks(2) {
+        let k: u64 = pk[1].parse().unwrap();
+        let (_prep, _g, segs) = segments(&seg_air, &m2_air, &pk[0], k);
+        for s in segs.iter() {
+            for (n, h) in seg_heights(&seg_air, s) {
+                let e = maxh.entry(n).or_default();
+                *e = (*e).max(h);
+            }
+            nseg += 1;
+        }
+    }
+    let total: usize = seg_air.tables.iter().map(|t| maxh[&t.name] * t.cols.len()).sum::<usize>()
+        + maxh["SHA512"] * s384::air::WIDTH + 128 * s384::air::T_WIDTH;
+    let tallest = *maxh.values().max().unwrap();
+    let n_stack = [14usize, 18, 22]
+        .into_iter()
+        .find(|&n| (1usize << (n + 2)) >= tallest && total.div_ceil(1 << (n + 2)) + 4 <= 24)
+        .unwrap_or(22);
+    let w_stack = (total.div_ceil(1 << (n_stack + 2)) + 4).max(8);
+    println!("TEMPLATE_SEGMENTS {nseg} cells {total} tallest {tallest} n_stack {n_stack} w_stack {w_stack}");
+    println!("{}", serde_json::json!({ "n_stack": n_stack, "w_stack": w_stack, "heights": maxh }));
+}
+
+/// A template file: the pinned geometry and per-table heights of one segment template.
+struct Template {
+    n_stack: usize,
+    w_stack: usize,
+    log_blowup: usize,
+    pow: usize,
+    certs: String,
+    exclusions: String,
+    heights: std::collections::HashMap<String, usize>,
+    raw: serde_json::Value,
+}
+fn read_template(path: &str) -> Template {
+    let v: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(path).unwrap()).unwrap();
+    let u = |k: &str| v[k].as_u64().unwrap_or_else(|| panic!("template: {k}")) as usize;
+    let s = |k: &str| v[k].as_str().unwrap_or_else(|| panic!("template: {k}")).to_string();
+    let heights = v["heights"].as_object().unwrap().iter().map(|(k, h)| (k.clone(), h.as_u64().unwrap() as usize)).collect();
+    Template { n_stack: u("n_stack"), w_stack: u("w_stack"), log_blowup: u("log_blowup"), pow: u("pow"),
+        certs: s("certs"), exclusions: s("exclusions"), heights, raw: v.clone() }
+}
+fn template_params(t: &Template) -> SystemParams {
+    crate::seg_base_params(t.n_stack, t.w_stack, t.log_blowup, t.pow, s384::air::DEGREE, &t.certs, &t.exclusions)
+}
+
+fn sha256_hex(b: &[u8]) -> String {
+    use sha2::Digest;
+    sha2::Sha256::digest(b).iter().map(|x| format!("{x:02x}")).collect()
+}
+
+type SegVk = openvm_stark_backend::keygen::types::MultiStarkVerifyingKey<Sha384Config>;
+
+/// Save a verifying key in the stack's envelope (`pq-chunk-e2e` `save_vk`: the extended-domain odd
+/// factor, which upstream VK serde skips, kept explicitly).
+fn save_vk(path: &std::path::Path, vk: &SegVk) -> Vec<u8> {
+    let env = serde_json::json!({ "domain_odd_factor": vk.inner.params.whir.domain_odd_factor, "vk": vk });
+    let b = serde_json::to_vec(&env).unwrap();
+    std::fs::write(path, &b).unwrap();
+    b
+}
+fn read_vk(path: &std::path::Path) -> SegVk {
+    let mut v: serde_json::Value = serde_json::from_slice(&std::fs::read(path).unwrap()).unwrap();
+    let odd = v["domain_odd_factor"].as_u64().unwrap() as usize;
+    let mut vk: SegVk = serde_json::from_value(v["vk"].take()).unwrap();
+    vk.inner.params.whir.domain_odd_factor = odd;
+    vk
+}
+
+/// `segleaf <seg_air> <m2_air> <prep> <K> <template.json> <out_dir>`: prove every segment of the call
+/// at the pinned template (every table padded to the template height; a segment that does not fit is
+/// refused with `SEGFIT`), under the stack's base configuration (`seg_base_params`), with ONE
+/// verifying key; save `SEG.vk.json`, `seg-<i>.proof` (the stack's proof codec), `seg-<i>.pubs.json`
+/// and `manifest.json` (template, parameters, soundness, file hashes, per-segment boundaries).
+pub fn cmd_segleaf(a: &[String]) {
+    crate::set_levers();
+    let (seg_air, m2_air) = (load(&a[0]), load(&a[1]));
+    let k: u64 = a[3].parse().unwrap();
+    let tp = read_template(&a[4]);
+    let out = std::path::Path::new(&a[5]);
+    std::fs::create_dir_all(out).unwrap();
+    seg::TEMPLATE.set(tp.heights.clone()).expect("template set once");
+    let (prep, _g, segs) = segments(&seg_air, &m2_air, &a[2], k);
+    let prm = template_params(&tp);
+    println!("PARAMS n_stack {} w_stack {} log_blowup {} pow {} degree {} (stack base configuration)",
+        prm.n_stack, prm.w_stack, prm.log_blowup, tp.pow, prm.max_constraint_degree);
+    let eng = Sha384RefEngine::new(prm);
+    let airs = airs(&seg_air);
+    let t = Instant::now();
+    let (pk, vk) = eng.keygen(&airs);
+    let b = openvm_stark_backend::soundness::SoundnessCalculator::calculate_from_vk(&vk);
+    println!("KEYGEN {:.2}s; SOUNDNESS total={:.1} logup={:.1} proximity={:.1} query={:.1}",
+        t.elapsed().as_secs_f64(), b.total_bits, b.logup_bits, b.whir_details.proximity_gaps_bits, b.whir_details.query_bits);
+    let vkb = save_vk(&out.join("SEG.vk.json"), &vk);
+    let d_pk = eng.device().transport_pk_to_device(&pk);
+    let mut man = vec![];
+    for (i, s) in segs.iter().enumerate() {
+        report(&seg_air, i, s);
+        let hs = seg_heights(&seg_air, s);
+        for (n, h) in hs.iter() {
+            if let Some(&th) = tp.heights.get(n) {
+                assert_eq!(*h, th, "segment {i}: table {n} height {h} != template {th}");
+            }
+        }
+        seg::precheck(&seg_air, &s.mats, &s.pubs, &s.comps).unwrap_or_else(|e| panic!("segment {i}: {e}"));
+        let t = Instant::now();
+        let proof = eng.prove(&d_pk, ctx(&eng, &seg_air, &s.mats, &s.pubs, &s.comps)).expect("prove");
+        let tp_s = t.elapsed().as_secs_f64();
+        let mut pb = vec![];
+        proof.encode(&mut pb).unwrap();
+        std::fs::write(out.join(format!("seg-{i}.proof")), &pb).unwrap();
+        let pubs: Vec<u32> = s.pubs.iter().map(|x| x.as_canonical_u32()).collect();
+        let pj = serde_json::to_vec(&serde_json::json!({ "segment": i, "halted": s.halted, "pubs": pubs })).unwrap();
+        std::fs::write(out.join(format!("seg-{i}.pubs.json")), &pj).unwrap();
+        let t = Instant::now();
+        eng.verify(&vk, &proof).expect("verify");
+        let tv = t.elapsed().as_secs_f64();
+        assert!(statement_ok(&eng, &seg_air, &proof, &s.pubs, &prep), "segment {i}: statement");
+        println!("  LEAF {i}: {} B, prove {tp_s:.1}s, verify {:.0} ms, statement ok, peak_rss_kib {}",
+            pb.len(), tv * 1000.0, crate::peak_rss_kib());
+        man.push(serde_json::json!({ "segment": i, "t_in": s.b_in.t, "t_out": s.b_out.t, "halted": s.halted,
+            "proof_bytes": pb.len(), "proof_sha256": sha256_hex(&pb), "pubs_sha256": sha256_hex(&pj),
+            "prove_s": tp_s, "verify_ms": tv * 1000.0 }));
+    }
+    assert!(chain_ok(&segs), "boundary chain");
+    let root = |m: RowMajorMatrix<F>| {
+        let c = eng.device().commit(&[&ColMajorMatrix::from_row_major(&m)]).expect("root").0;
+        format!("{c:?}")
+    };
+    let m = serde_json::json!({
+        "template": tp.raw, "k": k, "segments": man, "vk_sha256": sha256_hex(&vkb),
+        "soundness_bits": b.total_bits,
+        "code_root": root(seg::pad_rep("CODE", &tracegen::code_matrix(&prep.records))),
+        "func_root": root(seg::pad_rep("FUNC", &tracegen::func_matrix(&prep))),
+    });
+    std::fs::write(out.join("manifest.json"), serde_json::to_vec_pretty(&m).unwrap()).unwrap();
+    println!("SEGLEAF OK {} segments at one template vk (sha256 {}), boundaries chain; saved to {}",
+        segs.len(), sha256_hex(&vkb), out.display());
+}
+
+/// `segleafverify <seg_air> <out_dir> <n>`: reload `SEG.vk.json` and `seg-0..n-1.proof` from disk,
+/// check the vk against the manifest's hash, verify each proof, check that its public values are the
+/// saved ones and that consecutive segments chain (out-boundary of `i` = in-boundary of `i + 1`:
+/// pc/t/S/sb/cid/S_seg/segb, ctx digest, memory root).
+pub fn cmd_segleafverify(a: &[String]) {
+    use openvm_stark_backend::codec::Decode;
+    crate::set_levers();
+    let spec = load(&a[0]);
+    let out = std::path::Path::new(&a[1]);
+    let n: usize = a[2].parse().unwrap();
+    let man: serde_json::Value = serde_json::from_slice(&std::fs::read(out.join("manifest.json")).unwrap()).unwrap();
+    let vkb = std::fs::read(out.join("SEG.vk.json")).unwrap();
+    assert_eq!(sha256_hex(&vkb), man["vk_sha256"].as_str().unwrap(), "vk hash");
+    let vk = read_vk(&out.join("SEG.vk.json"));
+    let eng = Sha384RefEngine::new(vk.inner.params.clone());
+    let mut prev: Option<Vec<F>> = None;
+    for i in 0..n {
+        let pb = std::fs::read(out.join(format!("seg-{i}.proof"))).unwrap();
+        let mut c = std::io::Cursor::new(&pb[..]);
+        let proof = openvm_stark_backend::proof::Proof::<Sha384Config>::decode(&mut c).expect("proof codec");
+        assert_eq!(c.position() as usize, pb.len(), "trailing proof bytes");
+        let pj: serde_json::Value = serde_json::from_slice(&std::fs::read(out.join(format!("seg-{i}.pubs.json"))).unwrap()).unwrap();
+        let pubs: Vec<F> = pj["pubs"].as_array().unwrap().iter().map(|x| F::from_u32(x.as_u64().unwrap() as u32)).collect();
+        let t = Instant::now();
+        eng.verify(&vk, &proof).unwrap_or_else(|e| panic!("segment {i}: verifier {e:?}"));
+        let tv = t.elapsed().as_secs_f64();
+        let pv_ok = spec.tables.iter().enumerate().all(|(ti, t)| {
+            let want: Vec<F> = if JsonAir::reads_pub(t) { pubs.clone() } else { vec![] };
+            proof.public_values[ti] == want
+        });
+        assert!(pv_ok, "segment {i}: public values");
+        if let Some(p) = &prev {
+            let ok = p[seg::PUB_PC_OUT..seg::PUB_PC_OUT + 10] == pubs[seg::PUB_PC_IN..seg::PUB_PC_IN + 10]
+                && p[seg::PUB_CTX_OUT..seg::PUB_CTX_OUT + 18] == pubs[seg::PUB_CTX_IN..seg::PUB_CTX_IN + 18]
+                && p[seg::PUB_MEM_OUT..seg::PUB_MEM_OUT + 18] == pubs[seg::PUB_MEM_IN..seg::PUB_MEM_IN + 18];
+            assert!(ok, "segment {i}: boundary chain");
+        }
+        println!("  DISK {i}: {} B verified in {:.0} ms, public values = saved, chains", pb.len(), tv * 1000.0);
+        prev = Some(pubs);
+    }
+    println!("SEGLEAFVERIFY OK {n} segments from disk under one vk");
 }
