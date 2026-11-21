@@ -229,19 +229,27 @@ theorem cols_len : cols.length = 17 := by decide
 def wire : Expr := v HostB.hid + 256 * v hg0 + 512 * v hg1
 /-- `HostB.msg` with the wire id in place of `hid`. -/
 def msgW : List Expr := [v HostB.ts, wire, v HostB.dir, v HostB.pos, v HostB.bv]
+/-- **The address message** (E2E A-T1 JOIN): `msgW` with the linear-memory address
+`HostB.memAddr = ptrLo + 65536·ptrHi + pos` in place of `pos`.  It is the message of the four
+`reg = 0` interactions (the request pair and the response pair), so a state-side consumer of a
+request byte (lane B's `HB [ts, ptr + j, b]`) sees the absolute address: `storage_write` reads two
+buffers (key, value) in one call, and `pos` alone would not tell them apart.  The `reg = 1`
+interaction (received by `REG`, whose message is keyed by `pos`) keeps `msgW`. -/
+def msgM : List Expr := [v HostB.ts, wire, v HostB.dir, HostB.memAddr, v HostB.bv]
 def cHg0 : Expr := bool (v hg0)
 def cHg1 : Expr := bool (v hg1)
 /-- The group index is the same on every row of a group (so is the wire id, with `cHidConst`). -/
 def cHg0Const : Expr := (1 - nv HostB.f) * (nv hg0 - v hg0)
 def cHg1Const : Expr := (1 - nv HostB.f) * (nv hg1 - v hg1)
 def constraints : List Expr := HostB.constraints ++ [cHg0, cHg1, cHg0Const, cHg1Const]
-/-- `HostB.inters` with the wire message on the five `busHostB` interactions (the CH, BYTE and
-RANGE16 interactions are `HostB`'s, `HostB.inters.drop 5`). -/
+/-- `HostB.inters` with the wire message on the five `busHostB` interactions — the address message
+`msgM` on the four `reg = 0` ones, `msgW` on the `reg = 1` one (the CH, BYTE and RANGE16
+interactions are `HostB`'s, `HostB.inters.drop 5`). -/
 def wireInters : List Inter :=
-  [⟨busHostB, true, v HostB.act * (1 - v HostB.dir) * (1 - v HostB.reg), msgW⟩,
-   ⟨busHostB, false, v HostB.act * (1 - v HostB.dir) * (1 - v HostB.reg), msgW⟩,
-   ⟨busHostB, true, v HostB.act * v HostB.dir * (1 - v HostB.reg), msgW⟩,
-   ⟨busHostB, false, v HostB.act * v HostB.dir * (1 - v HostB.reg), msgW⟩,
+  [⟨busHostB, true, v HostB.act * (1 - v HostB.dir) * (1 - v HostB.reg), msgM⟩,
+   ⟨busHostB, false, v HostB.act * (1 - v HostB.dir) * (1 - v HostB.reg), msgM⟩,
+   ⟨busHostB, true, v HostB.act * v HostB.dir * (1 - v HostB.reg), msgM⟩,
+   ⟨busHostB, false, v HostB.act * v HostB.dir * (1 - v HostB.reg), msgM⟩,
    ⟨busHostB, true, v HostB.act * v HostB.reg, msgW⟩] ++ HostB.inters.drop 5
 /-- An active `HOSTB` row looks its call key `[ts, hid]` (the base id) up. -/
 def keySend : Inter := ⟨busHKey, true, v HostB.act, [v HostB.ts, v HostB.hid]⟩
