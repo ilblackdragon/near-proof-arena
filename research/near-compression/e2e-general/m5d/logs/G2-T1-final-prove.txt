@@ -1,0 +1,33 @@
+# G-2: T1 final prove at its template (lane D's base configuration, grinding 24), LEAN=0 TEMPLATE=final run.sh CASE OUT prove, 2026-11-21
+dump: wrote /data/illia/nearproof-deps/e2e-m5d/g2/t1f/dump.json
+TEMPLATE /data/illia/nearproof/.claude/worktrees/agent-a9a1b6be5f8a643db/research/near-compression/e2e-general/m5d/templates/F1.json
+GEN {"n": 990, "L": 198, "rcpts": 4, "outcomes": 2, "stream": 1007} tables {"S384": [26, 64], "RNG": [256, 256], "STMT": [1007, 2048], "FIN": [1, 4], "BODY": [990, 4096], "SEG": [7, 32], "RS": [198, 1024], "PART": [16, 32], "SHD": [6, 8], "OUTL": [2, 32], "MRK": [25, 64]} sha_msgs 49 comps 26
+TABLE SHA    width  544 height 2^13 cells   4456448 constraints  1028 interactions    17 deg 4
+TABLE S384   width  449 height 2^6  cells     28736 constraints   812 interactions   321 deg 4
+TABLE RNG    width   69 height 2^8  cells     17664 constraints    71 interactions     3 deg 2
+TABLE STMT   width    4 height 2^11 cells      8192 constraints     9 interactions     2 deg 4
+TABLE FIN    width  914 height 2^2  cells      3656 constraints  1187 interactions   740 deg 2
+TABLE BODY   width   17 height 2^12 cells     69632 constraints    40 interactions     5 deg 5
+TABLE SEG    width  132 height 2^5  cells      4224 constraints   144 interactions    76 deg 4
+TABLE RS     width  218 height 2^10 cells    223232 constraints   331 interactions   109 deg 4
+TABLE PART   width   37 height 2^5  cells      1184 constraints    16 interactions     9 deg 4
+TABLE SHD    width   71 height 2^3  cells       568 constraints    59 interactions    53 deg 4
+TABLE OUTL   width  124 height 2^5  cells      3968 constraints    83 interactions    78 deg 4
+TABLE MRK    width  108 height 2^6  cells      6912 constraints   135 interactions    70 deg 4
+TABLE SHA512 width   83 height 2^13 cells    679936 (native v4)
+TABLE SHA512T width    9 height 2^7  cells      1152 (native v4)
+CELLS 5505504; compressions 26
+PRECHECK OK: every constraint on every row; every bus balances (10985 distinct messages)
+TIME load+precheck 0.87s
+PARAMS n_stack 18 w_stack 8 log_blowup 1 degree 9 pow 24 queries [100, 71, 45, 33] k [2, 4, 4, 4]
+TIME keygen 0.01s
+SOUNDNESS total=268.2 logup=324.4 proximity=295.1 query=268.2
+PROOF total=480428 gkr=19160 relations=175812 stacking=2368 whir=282204
+TIME prove 27.60s verify 0.0308s threads 8 peak_rss_kib 6887928 proof_bytes 480428
+SAVED /data/illia/nearproof-deps/e2e-m5d/g2/t1f/proof-final (STATE.proof 480428 B, STATE.vk.json 2168396 B)
+VERIFY OK (native SWIRL verifier); statement check (public values): OK
+== lane D's driver: fs-count /data/illia/nearproof-deps/e2e-m5d/g2/t1f/proof-final
+FS_COUNT file=/data/illia/nearproof-deps/e2e-m5d/g2/t1f/proof-final/STATE.proof final=false total=671 flush=247 commit=5 squeeze_or_pow_run=415 pow=4 u_len=19
+# statement.json (proof / vk hashes)
+{'proof_bytes': 480428, 'proof_sha256': '357d0383b726188e4bccfdc878bb63733b3555270d57ede233e79c2d04e601c9', 'vk_sha256': '2a3653d0b6e8c257f15acd7be4b595d256a7d50321f944d271ca2a8f2bec8168', 'vk_pre_hash': '[6461537858583820424, 9926036005524894393, 2393144566843843922, 17672662106481413358, 8197708321994358835, 8618]'}
+airs [('SHA', 13, 8192), ('S384', 6, 64), ('RNG', 8, 256), ('STMT', 11, 2048), ('FIN', 2, 4), ('BODY', 12, 4096), ('SEG', 5, 32), ('RS', 10, 1024), ('PART', 5, 32), ('SHD', 3, 8), ('OUTL', 5, 32), ('MRK', 6, 64), ('SHA512', 13, 8192), ('SHA512T', 7, 128)]

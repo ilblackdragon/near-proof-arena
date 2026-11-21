@@ -1,0 +1,28 @@
+{
+ "name": "F1",
+ "template": "final",
+ "note": "class F1, chip <= 2^13: d3 census (logs/G2-census.txt): joint max of the class members (120 / 133 F1 cases)",
+ "params": {
+  "n_stack": 18,
+  "log_blowup": 1,
+  "w_stack": 8,
+  "pow_bits": 24,
+  "degree": 9
+ },
+ "heights": {
+  "BODY": 12,
+  "FIN": 2,
+  "MRK": 6,
+  "OUTL": 5,
+  "PART": 5,
+  "RNG": 8,
+  "RS": 10,
+  "S384": 6,
+  "SEG": 5,
+  "SHA": 13,
+  "SHA512": 13,
+  "SHD": 3,
+  "STMT": 11
+ },
+ "cells": 5505504
+}

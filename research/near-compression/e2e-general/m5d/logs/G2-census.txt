@@ -1,0 +1,49 @@
+# G-2 height census, 2026-11-21 (census.py).
+# FINAL: census.py run CORPUS census-d3-final.jsonl --only final over all 8,192 d3 cases; class F1 = the
+#   generator's class asserts (no transactions, 6 shards with u16 ids, ...): 133 members.
+# INIT: a partial run (both kinds) over the first 875 cases in name order (groups 00-01), stopped for time.
+# The FINAL 'outside' count below also includes the 875 partial records (0 F1 members there).
+# Templates: per class the joint max of the members' fit heights (census.py mktmpl); FINAL nested by chip
+#   height (F1 <= 2^13, F1-M <= 2^17, F1-L all), INIT one class per chip height 2^14..2^18.
+cases 9067, dump OK 9067
+
+FINAL: 133 cases in the class; outside: {'AssertionError: ': 8934}
+  S384    min  4  q99 11  q99.9 12  max 12
+  RNG     min  8  q99  8  q99.9  8  max  8
+  STMT    min 10  q99 11  q99.9 11  max 11
+  FIN     min  2  q99  2  q99.9  2  max  2
+  BODY    min  4  q99 17  q99.9 17  max 17
+  SEG     min  2  q99 10  q99.9 10  max 10
+  RS      min  2  q99 14  q99.9 15  max 15
+  PART    min  5  q99  5  q99.9  5  max  5
+  SHD     min  3  q99  3  q99.9  3  max  3
+  OUTL    min  2  q99 10  q99.9 11  max 11
+  MRK     min  5  q99 10  q99.9 11  max 11
+  SHA     min 11  q99 17  q99.9 18  max 18
+  SHA512  min 11  q99 18  q99.9 19  max 19
+  info n         min      8  q99  70921  max  88281
+  info L         min      2  q99  14185  max  17657
+  info rcpts     min      0  q99    510  max    629
+  info outcomes  min      2  q99    766  max   1128
+  info stream    min   1006  q99   1383  max   1672
+  template F1       covers 120 / 133 of the class (90.23 %), 120 of those not covered by a smaller one
+  template F1-M     covers 131 / 133 of the class (98.50 %), 11 of those not covered by a smaller one
+  template F1-L     covers 133 / 133 of the class (100.00 %), 2 of those not covered by a smaller one
+  left by every template: 0
+
+INIT: 875 cases in the class; outside: {}
+  S384    min  7  q99 11  q99.9 11  max 11
+  RNG     min  8  q99  8  q99.9  8  max  8
+  CLM     min 14  q99 18  q99.9 18  max 18
+  INI     min  2  q99  2  q99.9  2  max  2
+  SHA512  min 14  q99 18  q99.9 18  max 18
+  info pre       min    416  q99    475  max    475
+  info blocks    min   3670  q99   9176  max  20651
+  info post      min    494  q99   1037  max   1128
+  info witness   min   3272  q99 143268  max 228494
+  template INIT-14  covers 160 / 875 of the class (18.29 %), 160 of those not covered by a smaller one
+  template INIT-15  covers 783 / 875 of the class (89.49 %), 623 of those not covered by a smaller one
+  template INIT-16  covers 810 / 875 of the class (92.57 %), 27 of those not covered by a smaller one
+  template INIT-17  covers 861 / 875 of the class (98.40 %), 51 of those not covered by a smaller one
+  template INIT-18  covers 875 / 875 of the class (100.00 %), 14 of those not covered by a smaller one
+  left by every template: 0

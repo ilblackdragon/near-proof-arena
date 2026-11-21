@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """E2E M5d trace generator (lane G): the FINAL template (class F1) of one chunk.
 
-    tracegen.py DUMP_JSON NAMES_JSON OUT_DIR [--mutant NAME]
+    tracegen.py DUMP_JSON NAMES_JSON OUT_DIR [--mutant NAME] [--template T.json] [--stats-only]
 
 DUMP_JSON is `m5d-tool dump` (the Lean `allFeatures` checker's own `finK` + `tailNew` on the case);
 NAMES_JSON is `m5d-tool air-final` (table and column names, class constants). Writes one `.bin`
@@ -9,6 +9,13 @@ per table (u32 log2 height, u32 width, row-major u32 cells), `sha_msgs.json` (SH
 `comps.json` (SHA-512 compressions, chip order), `pubs.bin` (public values the proof carries) and
 `stmt_pubs.bin` (the statement's: for a mutant, those of the honest run). Exit code 3: the mutant
 does not apply.
+
+G-2 (`--template T.json`, `templates/*.json`): every table is written at the template's pinned
+height (zero rows past the last filled row: every Lean table's activity is a prefix and its padding
+rows are all-zero), and the dump carries `template.json` (the prover then pads `SHA` and the chip
+to their pins and uses the template's parameters); exit code 4 if a table of this case (natural
+height, one padding row kept) exceeds its pin. `--stats-only`: print the natural log heights
+(every Lean table, `SHA`, `SHA512`) and write nothing (the census, `census.py`).
 
 Every output is recomputed here from the `FinIn` record exactly as the AIR does, and compared with
 the checker's `o` (`dump.outputs`) before anything is written.
@@ -100,6 +107,10 @@ class Table:
             for i in range(h):
                 row = self.rows[i] if i < len(self.rows) else [0] * self.width
                 f.write(struct.pack('<%dI' % self.width, *[x % P for x in row]))
+
+
+class TemplateOverflow(Exception):
+    """G-2: a table of this case exceeds the template's pinned height."""
 
 
 class Gen:
@@ -467,14 +478,44 @@ class Gen:
             c = len(nxt)
             lvl += 1
 
-    def write(self, out):
+    SPARE = {'STMT', 'BODY', 'SEG', 'RS', 'PART', 'SHD', 'OUTL', 'MRK'}
+
+    def natural(self):
+        """[G-2] Log heights of every table: `nat` as `write` sizes them without a template, `fit`
+        what a template pin must cover (every Lean table keeps one all-zero padding row, so its last
+        row is inactive). `SHA` as the honest generator `sha256gen.rs` (1 + 17·blocks rows per
+        message), the chip `SHA512` as `s384::trace::main_height` (128 rows per compression)."""
+        lg = lambda h: (h - 1).bit_length()
+        nat, fit = {}, {}
+        for nm, T in self.T.items():
+            nat[nm] = 8 if nm == 'RNG' else lg(T.height(spare=nm in self.SPARE))
+            fit[nm] = 8 if nm == 'RNG' else lg(T.height(spare=True))
+        if 'SHA' in self.names['tables']:
+            rows = sum(1 + 17 * ((len(m['bytes']) // 2 + 9 + 63) // 64) for m in self.sha_msgs)
+            nat['SHA'] = fit['SHA'] = lg(max(rows, 4))
+        nat['SHA512'] = fit['SHA512'] = lg(max(128 * len(self.comps), 4))
+        return nat, fit
+
+    def write(self, out, tmpl=None):
         os.makedirs(out, exist_ok=True)
         heights = {}
-        spare = {'STMT', 'BODY', 'SEG', 'RS', 'PART', 'SHD', 'OUTL', 'MRK'}
+        if tmpl is not None:
+            _, fit = self.natural()
+            pin = tmpl['heights']
+            extra = sorted(set(pin) - set(fit))
+            assert not extra, 'template pins tables the AIR does not have: %s' % extra
+            over = ['%s: 2^%d > 2^%d' % (t, fit[t], pin.get(t, -1)) for t in fit if fit[t] > pin.get(t, -1)]
+            if over:
+                raise TemplateOverflow('; '.join(over))
+            assert pin['RNG'] == 8, 'RNG is a fixed 2^8 table'
         for nm, T in self.T.items():
-            h = 256 if nm == 'RNG' else T.height(spare=nm in spare)
+            h = 256 if nm == 'RNG' else T.height(spare=nm in self.SPARE)
+            if tmpl is not None:
+                h = 1 << tmpl['heights'][nm]
             T.dump(os.path.join(out, nm + '.bin'), h)
             heights[nm] = (len(T.rows), h)
+        if tmpl is not None:
+            json.dump(tmpl, open(os.path.join(out, 'template.json'), 'w'), indent=1)
         json.dump(self.sha_msgs, open(os.path.join(out, 'sha_msgs.json'), 'w'))
         json.dump(self.comps, open(os.path.join(out, 'comps.json'), 'w'))
         with open(os.path.join(out, 'pubs.bin'), 'wb') as f:
@@ -557,6 +598,13 @@ def main():
         i = args.index('--mutant')
         mutant = args[i + 1]
         args = args[:i] + args[i + 2:]
+    tmpl = None
+    if '--template' in args:
+        i = args.index('--template')
+        tmpl = json.load(open(args[i + 1]))
+        args = args[:i] + args[i + 2:]
+    stats_only = '--stats-only' in args
+    args = [a for a in args if a != '--stats-only']
     dump, names, out = json.load(open(args[0])), json.load(open(args[1])), args[2]
     G = GenInit if 'CLM' in names['tables'] else Gen
     g = G(dump, names, mutant)
@@ -571,7 +619,15 @@ def main():
         h.run()
         if G is GenInit or mutant.startswith('pub_'):
             g.stmt_pubs = h.stmt_pubs
-    hts = g.write(out)
+    if stats_only:
+        nat, fit = g.natural()
+        print('STATS', json.dumps(dict(info=info, natural=nat, fit=fit, sha_msgs=len(g.sha_msgs), comps=len(g.comps))))
+        return
+    try:
+        hts = g.write(out, tmpl)
+    except TemplateOverflow as e:
+        print('TEMPLATE OVERFLOW (%s): %s' % (tmpl.get('name'), e))
+        sys.exit(4)
     print('GEN', json.dumps(info), 'tables', json.dumps(hts), 'sha_msgs', len(g.sha_msgs), 'comps', len(g.comps))
 
 

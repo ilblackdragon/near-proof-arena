@@ -1,10 +1,10 @@
 //! E2E M5d prover (lane G): the FINAL / INIT template of one chunk, on the main PQ stack.
 //!
-//!   nearproof-e2e-m5d <air.json> <names.json> <dump_dir> check|prove|mutant
+//!   nearproof-e2e-m5d <air.json> <names.json> <dump_dir> check|prove|mutant [out_dir]
 //!
-//! A copy of lane B's M5a prover (`../../m5a/prover`, unchanged modules `air.rs`, `config.rs`,
-//! `sha256gen.rs`, `s384/`) with the table list taken from `names.json` (`m5d-tool air-*`) and no
-//! public tape:
+//! A copy of lane B's M5a prover (`../../m5a/prover`, B-T1 version; unchanged modules `air.rs`,
+//! `sha384/{config,mb}.rs`, `sha256gen.rs`, `s384/`) with the table list taken from `names.json`
+//! (`m5d-tool air-*`) and no public tape:
 //! * the Lean AIR is interpreted unchanged (`air.rs`): every constraint and every interaction;
 //! * the `SHA` table's trace comes from the reference generator of `ZkFormal.Sha.Gen`
 //!   (`sha256gen.rs`) over the dump's `sha_msgs.json` (absent for INIT, which has no `SHA`);
@@ -17,9 +17,25 @@
 //! `check`: constraints + bus balance only. `prove`: precheck, keygen, prove, native verify,
 //! statement check. `mutant`: the same without the precheck assertion; prints `REJECTED (…)` or
 //! `ACCEPTED`.
+//!
+//! **G-2 (templates, as lane B's B-T1).** A dump written by `tracegen.py --template T` carries
+//! `template.json` (the class's pinned per-table log heights, `SHA` and `SHA512` included, and its
+//! parameters). Then every table is at its pinned height (the Lean tables padded by tracegen; the
+//! `SHA` table and the chip padded here by their generators), the tight-height floor is the full
+//! height, and the parameters are lane D's base configuration (`shaped_params_geom`: first-order
+//! certificates, list decoding m = 64, `k_first` 2, `domain_odd_factor` 15, logup message length 7,
+//! `zk = 0`) with query grinding 24 bits and the template's `(n_stack, log_blowup, w_stack)`, built
+//! against the verifier's backend (lane D's frozen `pq-e2e-d9` copy) with `Sha384CpuEngine`.
+//! `prove <out_dir>` saves `STATE.proof` (`Proof::encode`), `STATE.vk.json` (the `SavedVk` envelope
+//! with `domain_odd_factor`) and `statement.json`, which lane D's `nearproof-chunk-e2e fs-count`
+//! reads. Without `template.json` the old seg-v1 parameters are used (natural heights), now on the
+//! same backend.
 mod air;
 #[allow(dead_code, clippy::all)]
-mod config;
+mod sha384 {
+    pub mod config;
+    pub mod mb;
+}
 mod sha256gen;
 #[allow(dead_code, clippy::all)]
 mod s384 {
@@ -29,13 +45,15 @@ mod s384 {
 }
 
 use air::{ClassicalAir, E, JsonAir, TableSpec};
-use config::{F, Sha384Config, Sha384RefEngine};
+use openvm_cpu_backend::CpuBackend;
 use openvm_stark_backend::{
-    AirRef, StarkEngine, SystemParams, WhirConfig, WhirLevers, WhirParams, WhirProximityStrategy,
+    AirRef, CertSet, StarkEngine, SystemParams, WhirConfig, WhirLevers, WhirParams, WhirProximityStrategy,
     codec::Encode,
     interaction::LogUpSecurityParameters,
-    prover::{AirProvingContext, ColMajorMatrix, CpuColMajorBackend, DeviceDataTransporter, ProvingContext},
+    keygen::types::MultiStarkVerifyingKey,
+    prover::{AirProvingContext, DeviceDataTransporter, ProvingContext},
 };
+use sha384::config::{F, Sha384Config, Sha384CpuEngine};
 use p3_field::{PrimeCharacteristicRing, PrimeField32};
 use p3_matrix::dense::RowMajorMatrix;
 use std::collections::BTreeMap;
@@ -51,12 +69,81 @@ fn set_levers() {
         std::env::set_var("NEARPROOF_COSET_LEAF", "1");
         std::env::set_var("NEARPROOF_TSTAR", "1");
     }
-    let l = config::sha_levers();
+    let l = sha384::config::sha_levers();
     assert!(l.digest_bytes == 42 && l.coset_leaf && l.tstar);
 }
 
 fn map_bus(b: u16) -> u16 {
     if b == LEAN_IF { s384::air::BUS_IF } else { b }
+}
+
+/// The repo's first-order certificate set (`final-soundness/calc/dkt_certs_o2.json` minus the
+/// exclusions `final-soundness/lean/DKTCertsO2_big.keys`), as `pq-chunk-e2e/src/profile.rs` reads it.
+fn certs(cert_file: &str, exclusions: &str) -> CertSet {
+    let parse = |s: &str| -> Option<(u64, u64, u64)> {
+        let a: Vec<_> = s.trim().split(',').collect();
+        if a.len() != 4 || a[3] != "1" {
+            return None;
+        }
+        Some((a[0].parse().ok()?, a[1].parse().ok()?, a[2].parse().ok()?))
+    };
+    let v: serde_json::Value = serde_json::from_slice(&std::fs::read(cert_file).expect("cert file")).unwrap();
+    let mut c: CertSet = v.as_object().unwrap().keys().filter_map(|k| parse(k)).collect();
+    for l in std::fs::read_to_string(exclusions).expect("exclusions").lines() {
+        if let Some(x) = parse(l) {
+            c.remove(&x);
+        }
+    }
+    assert!(!c.is_empty(), "no kernel-backed certificates");
+    c
+}
+
+/// [B-T1] Lane D's base configuration (`pq-chunk-e2e/src/profile.rs::shaped_params_geom`, non-final,
+/// `zk = 0`: segments are inner tree children, plan §5.0.1 (2)) at the template's geometry, with the
+/// segment grinding `pow_bits` (24, lane D-8: "the segment prover's grinding stays at 2^24").
+fn base_params(n_stack: usize, log_blowup: usize, w_stack: usize, degree: usize, pow_bits: usize, cert_file: &str, exclusions: &str) -> SystemParams {
+    let (l_skip, k) = (2, 4);
+    assert!(l_skip + n_stack + log_blowup <= 27, "beyond the BabyBear two-adic domain");
+    let extra = (l_skip + n_stack).saturating_sub(20);
+    let levers = WhirLevers {
+        k_first: 2,
+        multiproof: true,
+        keep_domain: true,
+        gruen_gkr: true,
+        gkr_derive_claims: true,
+        next_mask: true,
+        gruen_zerocheck: true,
+        wide_query_pow: true,
+        tight_heights: true,
+        whir_y: true,
+        zk: 0,
+    };
+    let cs = certs(cert_file, exclusions);
+    let whir = WhirConfig::new_full(
+        log_blowup,
+        l_skip + n_stack,
+        WhirParams {
+            k,
+            log_final_poly_len: 6 + extra,
+            query_phase_pow_bits: pow_bits,
+            folding_pow_bits: 0,
+            mu_pow_bits: 0,
+            proximity: WhirProximityStrategy::ListDecoding { m: 64 },
+        },
+        268,
+        levers,
+        15,
+    )
+    .with_first_order(log_blowup, l_skip + n_stack, 268, 50, 64, Some(&cs), 2);
+    SystemParams {
+        l_skip,
+        n_stack,
+        w_stack,
+        log_blowup,
+        whir,
+        logup: LogUpSecurityParameters { max_interaction_count: 1 << 30, log_max_message_length: 7, pow_bits: 0 },
+        max_constraint_degree: degree,
+    }
 }
 
 /// seg-v1 shape (pq-state-port, as lane B's M5a) with log message length 6 and the interaction
@@ -181,6 +268,13 @@ struct Inst {
     native: Vec<(Native, RowMajorMatrix<F>)>,
     chip_if: BTreeMap<Key, u64>,
     n_comps: usize,
+    /// [G-2] the template (`template.json` of a `tracegen.py --template` dump)
+    tmpl: Option<serde_json::Value>,
+}
+
+/// [G-2] A template's pinned log height of `table`, if any.
+fn pin_of(tmpl: &Option<serde_json::Value>, table: &str) -> Option<usize> {
+    tmpl.as_ref().and_then(|t| t["heights"][table].as_u64()).map(|x| x as usize)
 }
 
 fn load(air_path: &str, names_path: &str, dir: &str) -> Inst {
@@ -198,6 +292,14 @@ fn load(air_path: &str, names_path: &str, dir: &str) -> Inst {
     let d = std::path::Path::new(dir);
     let pubs = read_pubs(&d.join("pubs.bin"));
     let stmt_pubs = read_pubs(&d.join("stmt_pubs.bin"));
+    let tmpl: Option<serde_json::Value> =
+        std::fs::read_to_string(d.join("template.json")).ok().map(|t| serde_json::from_str(&t).expect("template.json"));
+    if let Some(t) = &tmpl {
+        // every table of the export (and the chip) has a pin: one template, one shape, one vk
+        for n in names.iter().map(|s| s.as_str()).chain(["SHA512"]) {
+            assert!(t["heights"][n].is_u64(), "template has no pin for {n}");
+        }
+    }
     let (mut spec, mut mats) = (vec![], vec![]);
     for t in cl.tables.iter() {
         let m = if t.name == "SHA" {
@@ -212,7 +314,7 @@ fn load(air_path: &str, names_path: &str, dir: &str) -> Inst {
                     sha256gen::Msg { id: x["id"].as_u64().unwrap() as u32, bytes, dmult: true }
                 })
                 .collect();
-            let (cells, _nrows, _log) = sha256gen::sha_cells(&msgs);
+            let (cells, _nrows, _log) = sha256gen::sha_cells_pinned(&msgs, pin_of(&tmpl, &t.name));
             RowMajorMatrix::new(cells.iter().map(|&x| F::new(x as u32)).collect(), sha256gen::WIDTH)
         } else {
             read_trace(&d.join(format!("{}.bin", t.name)))
@@ -221,6 +323,9 @@ fn load(air_path: &str, names_path: &str, dir: &str) -> Inst {
         let h = m.values.len() / m.width;
         assert!(h.is_power_of_two() && h >= 4, "{}: height {h}", t.name);
         assert!(h.trailing_zeros() as usize <= t.max_log, "{}: maxLog", t.name);
+        if let Some(p) = pin_of(&tmpl, &t.name) {
+            assert_eq!(h, 1 << p, "{}: height differs from the template pin", t.name);
+        }
         spec.push(t.clone());
         mats.push(m);
     }
@@ -234,7 +339,13 @@ fn load(air_path: &str, names_path: &str, dir: &str) -> Inst {
             s384::reference::Comp { h: std::array::from_fn(|i| w("h", i)), block: std::array::from_fn(|i| w("block", i)) }
         })
         .collect();
-    let h = s384::trace::main_height(comps.len());
+    let mut h = s384::trace::main_height(comps.len());
+    if let Some(p) = pin_of(&tmpl, "SHA512") {
+        // [G-2] the chip at its pinned height: `gen_main` fills the rows past the last compression
+        // with the generator's padding rows
+        assert!(h <= 1 << p, "SHA512: {} compressions exceed the template's 2^{p} rows", comps.len());
+        h = 1 << p;
+    }
     let main = s384::trace::gen_main(&comps, h);
     let table = s384::trace::gen_table(&main, h);
     let native = vec![
@@ -255,7 +366,7 @@ fn load(air_path: &str, names_path: &str, dir: &str) -> Inst {
             add(&mut chip_if, (s384::air::BUS_IF, msg), 1);
         }
     }
-    Inst { spec, mats, pubs, stmt_pubs, native, chip_if, n_comps: comps.len() }
+    Inst { spec, mats, pubs, stmt_pubs, native, chip_if, n_comps: comps.len(), tmpl }
 }
 
 fn precheck(inst: &Inst) -> Result<(), String> {
@@ -286,16 +397,16 @@ fn airs(inst: &Inst) -> Vec<AirRef<Sha384Config>> {
     v
 }
 
-fn ctx(inst: &Inst) -> ProvingContext<CpuColMajorBackend<Sha384Config>> {
+fn ctx(inst: &Inst) -> ProvingContext<CpuBackend<Sha384Config>> {
     let mut out = vec![];
     for (i, m) in inst.mats.iter().enumerate() {
         let t = &inst.spec[i];
         let pv: Vec<F> = (0..t.num_pub).map(|k| inst.pubs.get(k).copied().unwrap_or(F::ZERO)).collect();
-        out.push((i, AirProvingContext::simple(ColMajorMatrix::from_row_major(m), pv)));
+        out.push((i, AirProvingContext::simple(m.clone(), pv)));
     }
     let base = inst.mats.len();
     for (j, (_, m)) in inst.native.iter().enumerate() {
-        out.push((base + j, AirProvingContext::simple(ColMajorMatrix::from_row_major(m), vec![])));
+        out.push((base + j, AirProvingContext::simple(m.clone(), vec![])));
     }
     ProvingContext::new(out)
 }
@@ -306,6 +417,69 @@ fn check_statement(inst: &Inst, proof: &openvm_stark_backend::proof::Proof<Sha38
         let pv: Vec<F> = (0..t.num_pub).map(|k| inst.stmt_pubs.get(k).copied().unwrap_or(F::ZERO)).collect();
         proof.public_values[i] == pv
     })
+}
+
+/// [G-2] (as B-T1) The tight-height floor of a pinned template: every common main commits its full height,
+/// so the proof's `(log_height, tight_height)` per AIR is the template's (lane D's `PinnedHeight`).
+fn full_floor(inst: &Inst) -> Vec<(usize, usize, usize)> {
+    let mut f = vec![];
+    for (_t, m) in inst.spec.iter().zip(&inst.mats) {
+        let h = m.values.len() / m.width;
+        f.push((m.width, h.trailing_zeros() as usize, h));
+    }
+    for (_, m) in &inst.native {
+        let h = m.values.len() / m.width;
+        f.push((m.width, h.trailing_zeros() as usize, h));
+    }
+    f
+}
+
+// Upstream skips the extended-domain factor in VK serde; `pq-chunk-e2e` keeps it in an envelope.
+#[derive(serde::Serialize)]
+struct SavedVk<'a> {
+    domain_odd_factor: usize,
+    vk: &'a MultiStarkVerifyingKey<Sha384Config>,
+}
+
+/// [G-2] (as B-T1) Save the proof and vk in the stack's format (`pq-chunk-e2e` `save_proof` / `save_vk`), and
+/// the statement: every AIR's name, public values, `(log_height, tight_height)` and cached roots.
+fn save(out: &std::path::Path, inst: &Inst, vk: &MultiStarkVerifyingKey<Sha384Config>, proof: &openvm_stark_backend::proof::Proof<Sha384Config>, sz: usize) {
+    use sha2::Digest as _;
+    std::fs::create_dir_all(out).unwrap();
+    let mut b = vec![];
+    proof.encode(&mut b).unwrap();
+    assert_eq!(b.len(), sz);
+    std::fs::write(out.join("STATE.proof"), &b).unwrap();
+    let vkb = serde_json::to_vec(&SavedVk { domain_odd_factor: vk.inner.params.whir.domain_odd_factor, vk }).unwrap();
+    std::fs::write(out.join("STATE.vk.json"), &vkb).unwrap();
+    let mut names: Vec<String> = inst.spec.iter().map(|t| t.name.clone()).collect();
+    names.push("SHA512".into());
+    names.push("SHA512T".into());
+    let airs: Vec<serde_json::Value> = names
+        .iter()
+        .enumerate()
+        .map(|(i, n)| {
+            let v = proof.trace_vdata[i].as_ref();
+            serde_json::json!({
+                "name": n,
+                "public_values": proof.public_values[i].iter().map(|x| x.as_canonical_u32()).collect::<Vec<_>>(),
+                "log_height": v.map(|v| v.log_height),
+                "tight_height": v.and_then(|v| v.tight_height),
+                "cached_roots": v.map(|v| v.cached_commitments.iter().map(|c| format!("{c:?}")).collect::<Vec<_>>()),
+            })
+        })
+        .collect();
+    let st = serde_json::json!({
+        "template": inst.tmpl,
+        "proof_bytes": sz,
+        "proof_sha256": format!("{:x}", sha2::Sha256::digest(&b)),
+        "vk_sha256": format!("{:x}", sha2::Sha256::digest(&vkb)),
+        "vk_pre_hash": format!("{:?}", vk.pre_hash),
+        "statement": inst.pubs.iter().map(|x| x.as_canonical_u32()).collect::<Vec<_>>(),
+        "airs": airs,
+    });
+    std::fs::write(out.join("statement.json"), serde_json::to_vec_pretty(&st).unwrap()).unwrap();
+    println!("SAVED {} (STATE.proof {sz} B, STATE.vk.json {} B)", out.display(), vkb.len());
 }
 
 fn census(proof: &openvm_stark_backend::proof::Proof<Sha384Config>) -> (usize, String) {
@@ -364,7 +538,7 @@ fn report(inst: &Inst) {
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     if args.len() < 5 {
-        eprintln!("usage: {} <air.json> <names.json> <dump_dir> check|prove|mutant", args[0]);
+        eprintln!("usage: {} <air.json> <names.json> <dump_dir> check|prove|mutant [out_dir]", args[0]);
         std::process::exit(2);
     }
     let (air_path, names_path, dir, mode) = (&args[1], &args[2], &args[3], args[4].as_str());
@@ -387,9 +561,28 @@ fn main() {
     let n_stack = [14usize, 18, 22].into_iter().find(|&n| (1usize << (n + 2)) >= maxh && total.div_ceil(1 << (n + 2)) + 4 <= 24).unwrap_or(22);
     let w_stack = (total.div_ceil(1 << (n_stack + 2)) + 4).max(8);
     let degree = inst.spec.iter().flat_map(|t| t.constraints.iter().map(deg)).max().unwrap_or(2).max(s384::air::DEGREE);
-    let prm = params(n_stack, w_stack, degree);
-    println!("PARAMS n_stack {} w_stack {} degree {}", prm.n_stack, prm.w_stack, prm.max_constraint_degree);
-    let eng = Sha384RefEngine::new(prm);
+    let prm = if let Some(t) = &inst.tmpl {
+        // [B-T1] the template's pinned parameters (lane D's base configuration)
+        let g = |k: &str| t["params"][k].as_u64().unwrap_or_else(|| panic!("template params.{k}")) as usize;
+        let root = std::env::var("NEARPROOF_ROOT").unwrap_or_else(|_| "/data/illia/nearproof".into());
+        let cert = std::env::var("NEARPROOF_CERTS").unwrap_or_else(|_| format!("{root}/research/near-compression/final-soundness/calc/dkt_certs_o2.json"));
+        let excl = std::env::var("NEARPROOF_EXCL").unwrap_or_else(|_| format!("{root}/research/near-compression/final-soundness/lean/DKTCertsO2_big.keys"));
+        assert_eq!(g("degree"), degree, "template degree");
+        base_params(g("n_stack"), g("log_blowup"), g("w_stack"), degree, g("pow_bits"), &cert, &excl)
+    } else {
+        params(n_stack, w_stack, degree)
+    };
+    println!(
+        "PARAMS n_stack {} w_stack {} log_blowup {} degree {} pow {} queries {:?} k {:?}",
+        prm.n_stack,
+        prm.w_stack,
+        prm.log_blowup,
+        prm.max_constraint_degree,
+        prm.whir.query_phase_pow_bits,
+        prm.whir.rounds.iter().map(|r| r.num_queries).collect::<Vec<_>>(),
+        (0..prm.whir.rounds.len()).map(|r| prm.whir.k_round(r)).collect::<Vec<_>>()
+    );
+    let eng = Sha384CpuEngine::new(prm);
     let airs = airs(&inst);
     let t1 = Instant::now();
     let (pk, vk) = eng.keygen(&airs);
@@ -397,6 +590,9 @@ fn main() {
     let b = openvm_stark_backend::soundness::SoundnessCalculator::calculate_from_vk(&vk);
     println!("SOUNDNESS total={:.1} logup={:.1} proximity={:.1} query={:.1}", b.total_bits, b.logup_bits, b.whir_details.proximity_gaps_bits, b.whir_details.query_bits);
     let d_pk = eng.device().transport_pk_to_device(&pk);
+    if inst.tmpl.is_some() {
+        openvm_stark_backend::prover::stacked_pcs::set_tight_floor(Some(full_floor(&inst)));
+    }
     let t2 = Instant::now();
     let r = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| eng.prove(&d_pk, ctx(&inst)).ok()));
     let t_prove = t2.elapsed().as_secs_f64();
@@ -424,6 +620,9 @@ fn main() {
         std::env::var("RAYON_NUM_THREADS").unwrap_or_default(),
         peak_rss_kib()
     );
+    if let (true, true, Some(out)) = (ver.is_ok(), st, args.get(5)) {
+        save(std::path::Path::new(out), &inst, &vk, &proof, sz);
+    }
     match (ver.is_ok(), st) {
         (true, true) => {
             println!("VERIFY OK (native SWIRL verifier); statement check (public values): OK");

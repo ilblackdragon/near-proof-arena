@@ -1,0 +1,20 @@
+{
+ "name": "INIT-14",
+ "template": "init",
+ "note": "INIT, chip 2^14: d3 census (logs/G2-census.txt): joint max of the class members (sample of 875 d3 cases: 160)",
+ "params": {
+  "n_stack": 18,
+  "log_blowup": 1,
+  "w_stack": 4,
+  "pow_bits": 24,
+  "degree": 9
+ },
+ "heights": {
+  "CLM": 14,
+  "INI": 2,
+  "RNG": 8,
+  "S384": 8,
+  "SHA512": 14
+ },
+ "cells": 1674300
+}
