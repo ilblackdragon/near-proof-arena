@@ -79,7 +79,46 @@ Tooling:
   adjusted (the old-gap shape). Every case is recounted (BYTE/RANGE16 multiplicities).
 * T1 at the new AIR: unchanged behaviour (no write rows); its template leaves (§3) use the new AIR.
 
-Lean (WCOV): see §1.4 (filled in when the sub-lane lands).
+### 1.4 Lean (sub-lane WCOV) [K]
+
+All Lean below is in `wasm-base-lean/WasmBase/`. `lake build WasmBase wasmbase-tool` is green (732 jobs); the
+axioms are standard; there is no `sorry`.
+
+* **The AIR** (`SegAir.lean`, `Seg.HostBK`): 17 columns (`ob` = 16); 20 interactions
+  (`wireInters` 0–14, `keySend` 15, `writeInters` 16–19); constraints unchanged.
+* **Re-proved for the new table:**
+  * `pairSp_hostbk` / `pairSp_hostbw`;
+  * the HOST-row space, stack and time lemmas (`host_prod/cons_space`, `host_prod3_paired`,
+    `host_cons/prod_stk`, `host_prod_times`, `host_cons_times`);
+  * the CH-balance assembly (`seg_ch_assemble`, `seg_hch`/`seg_hchS`, same statements). The
+    write rows are grouped to their call through bus 214 (`SegKeyBase.lean`:
+    `hostb_key_linked`, `seg_hostbW_partition`); no new premise.
+* **Changed statements:**
+  * `HostBK.inters_filter` needs `b ≠ busStk`, `b ≠ busR16`.
+  * `hostBK_part_stk` is now a permutation: HostB's traffic plus the write table `HostBW`.
+  * `prodCHS`/`consCHS` now include the call's write pairs.
+* **`HostWritesCovT` is derived, not assumed** (`Main/HostWriteCov.lean`).
+  * `hostWritesCovT_of`: `HoldsX` + `HostIf` + `HostAnsCovW` + `HostCodeT` ⇒ `HostWritesCovT`.
+  * **`seg_sound_hostIf_airW`**: `seg_sound_hostIf_air` with no `HostWritesCovT` premise.
+  * The producer contract `HostAnsCovW` = `HostAnsCov` + `HostNoTouch`, at the honest witness:
+    an unconsumed byte, set to any value, is left alone by the call.
+  * Why a clause is needed: a byte rewritten with its own value is invisible on one twin and
+    visible on another, so values alone cannot exclude a write to an unconsumed address.
+  * Honest runs satisfy it: only `read_register` (REG write rows) and the five `setU128H` arms (the
+    new rows) call `writeMemH`. Lane B checks it from `ProducerObl.spec`/`.resp`; that link is not
+    formalised yet.
+* **Non-vacuity** (`Main/HostWriteCovCheck.lean`):
+  * `decide +kernel` on a 16-byte `attached_deposit` group: the write pairs consume a message at
+    every address 100–115 and produce the new bytes at `ts`; the old HostB produces nothing.
+  * `hostNoTouch_attached_deposit`: the clause holds at an honest witness, for any state with
+    `PagesOK`.
+* **Failed `memory.grow` fee (analysis, not changed).**
+  * The spec charges `n·lin + c` before the grow, so a continuing failed grow has
+    `amt ≤ g < 2^64`, and the per-row bound `mf = maxFee + maxLin·2^27` is honest.
+  * But `hfee : S_in + (rows+1)(mf+1) < P` then allows only about 15 rows: a vacuity risk for grow
+    segments.
+  * Fix (open): bound the segment by the sum of the actual per-row fees, or add an AIR range check
+    `Lmax − lin·n` with `Lmax` public. Not needed for T1, which does no grow.
 
 ## 3. Item 3: T1's call as pinned-shape tree leaves [M]
 
