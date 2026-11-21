@@ -15,7 +15,7 @@ compares it with the chunk header inside the public statement. Tables, in order:
 | `SHA` | SHA-256 blocks | `ZkFormal.Sha.Table` (contract `sha_digest_contract_closed`) |
 | `S384` | SHA-384 blocks | `FinalM5d.S384`: byte messages over the native SHA-512 chip |
 | `RNG` | 256 | range / split lookups |
-| `STMT` | statement bytes | `u32 |pre| ‖ pre ‖ post` → SHA-384 message `CLAIM` (= `claimDigest`), first `HBN` bytes to `FIN` |
+| `STMT` | statement bytes | lane E's canonical `S = stmtPre ‖ u32 0 ‖ stmtPost` → SHA-384 message `CLAIM` (= `claimDigest`), first `HBN` bytes to `FIN` |
 | `FIN` | 1 | the header window, `FinIn`, the comparisons, the public values |
 | `BODY` | `d·L` | the chunk body `u32 0 ‖ u32 n_R ‖ enc r_1 ‖ …` + zero padding: Reed–Solomon data, per-shard and chain messages |
 | `SEG` | segments | count prefixes, receipts (shard, length, chain step), padding |
@@ -45,19 +45,20 @@ def CHAIN_LEN : Nat := 14
 def CI_LEN : Nat := 302
 /-- `|pre|` = borsh tag + borsh statement id + `u32` pv + borsh chain id + epoch id + borsh inner. -/
 def PRE_LEN : Nat := 4 + claimTag.length + 4 + statementIdV3.length + 4 + 4 + CHAIN_LEN + 32 + 4 + CI_LEN
-/-- stream offset of the chunk inner. -/
-def CI_OFF : Nat := 4 + PRE_LEN - CI_LEN
-/-- stream bytes `FIN` reads: the `u32 |pre|`, `pre`, and the two `u16` Reed–Solomon parameters. -/
-def HBN : Nat := 4 + PRE_LEN + 4
+/-- stream offset of the chunk inner (`S = stmtPre ‖ u32 0 ‖ stmtPost`, lane E's `StmtEnc`). -/
+def CI_OFF : Nat := PRE_LEN - CI_LEN
+/-- stream bytes `FIN` reads: `stmtPre`, the empty block vector `u32 0`, and the two `u16`
+Reed–Solomon parameters. -/
+def HBN : Nat := PRE_LEN + 4 + 4
 
 /-- Fixed stream bytes `(position, value)`. -/
 def streamFixed : List (Nat × Nat) :=
   let at_ (o : Nat) (bs : Bytes) : List (Nat × Nat) := (List.range bs.length).map fun i => (o + i, (bs.getD i 0).toNat)
-  at_ 0 (u32 PRE_LEN) ++ at_ 4 (borshBytes claimTag) ++
-  at_ (8 + claimTag.length) (borshBytes statementIdV3) ++
-  at_ (16 + claimTag.length + statementIdV3.length) (u32 CHAIN_LEN) ++
+  at_ 0 (borshBytes claimTag) ++
+  at_ (4 + claimTag.length) (borshBytes statementIdV3) ++
+  at_ (12 + claimTag.length + statementIdV3.length) (u32 CHAIN_LEN) ++
   at_ (CI_OFF - 4) (u32 CI_LEN) ++ [(CI_OFF, 4)] ++
-  at_ (4 + PRE_LEN) (u16 RSD ++ u16 RST)
+  at_ PRE_LEN (u32 0) ++ at_ (PRE_LEN + 4) (u16 RSD ++ u16 RST)
 
 /-! `FinIn` byte layout (leaf spec §2). -/
 def FI_ROOT : Nat := 0

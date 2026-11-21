@@ -22,7 +22,7 @@ variable {tr : Trace Fp} {t r : Nat} {pub : List Fp}
 
 local notation "PR" => 2013265921
 
-theorem ci_off : CI_OFF = 118 := by decide
+theorem ci_off : CI_OFF = 114 := by decide
 
 theorem ev_hadd (a b : Expr) : ev tr t r pub (a + b) = (ev tr t r pub a + ev tr t r pub b) % PR :=
   ev_add a b
@@ -69,7 +69,7 @@ def fiN (tr : Trace Fp) (t r : Nat) (pub : List Fp) (j : Nat) : Nat := ev tr t r
 def colN (s : String) (tr : Trace Fp) (t r : Nat) (pub : List Fp) (j : Nat) : Nat :=
   ev tr t r pub (Fin.T.c s j)
 
-theorem ci_hb (k : Nat) : Fin.ci k = Fin.hb (118 + k) := by
+theorem ci_hb (k : Nat) : Fin.ci k = Fin.hb (114 + k) := by
   simp only [Fin.ci, ci_off]
 
 /-- The statement-stream cells are bytes (a premise: `S384`'s lookups range-check them). -/
@@ -108,7 +108,7 @@ theorem rowOK_of_constraints (hc : ∀ e ∈ Fin.constraints, e.eval tr t r pub 
   have pfx : Fin.eqFixed ⊆ Fin.headerEqs := by sub_fam
   have G (x : Expr) (hx : Fin.act * x ∈ Fin.headerEqs) := gate hc hact (mem_hdr hx)
   have GE (a b : Expr) (hx : Fin.act * (a - b) ∈ Fin.headerEqs) := gate_eq hc hact (mem_hdr hx)
-  have hcik (k : Nat) : ev tr t r pub (Fin.ci k) = hbN tr t r pub (118 + k) := by
+  have hcik (k : Nat) : ev tr t r pub (Fin.ci k) = hbN tr t r pub (114 + k) := by
     rw [ci_hb]; rfl
   refine
     { tag := ?_, psr := ?_, por := ?_, emr := ?_, el := ?_, el0 := ?_, gu := ?_, gl := ?_, bb := ?_,
@@ -123,44 +123,44 @@ theorem rowOK_of_constraints (hc : ∀ e ∈ Fin.constraints, e.eval tr t r pub 
     simpa [hbN, K] using this
   · intro j hj
     have := E (fun j => Fin.ci (H_PSR + j)) (fun j => Fin.fi (FI_ROOT + j)) 32 pe j hj
-    rw [hcik] at this; simpa [H_PSR, FI_ROOT, fiN, show 118 + (33 + j) = 151 + j by omega] using this
+    rw [hcik] at this; simpa [H_PSR, FI_ROOT, fiN, show 114 + (33 + j) = 147 + j by omega] using this
   · intro j hj
     have := E (fun j => Fin.ci (H_POR + j)) (fun j => Fin.T.c "ro" j) 32 po j hj
-    rw [hcik] at this; simpa [H_POR, colN, show 118 + (65 + j) = 183 + j by omega] using this
+    rw [hcik] at this; simpa [H_POR, colN, show 114 + (65 + j) = 179 + j by omega] using this
   · intro j hj
     have := E (fun j => Fin.ci (H_EMR + j)) (fun j => Fin.T.c "rs" j) 32 pm j hj
-    rw [hcik] at this; simpa [H_EMR, colN, show 118 + (97 + j) = 215 + j by omega] using this
+    rw [hcik] at this; simpa [H_EMR, colN, show 114 + (97 + j) = 211 + j by omega] using this
   · have := GE _ _ (pel (List.mem_singleton.2 rfl))
-    have b0 := hb 247 (by omega); have b1 := hb 248 (by omega); have b2 := hb 249 (by omega)
+    have b0 := hb 243 (by omega); have b1 := hb 244 (by omega); have b2 := hb 245 (by omega)
     simp only [ev_hadd, ev_hmul, ev_K, hcik, H_EL, Nat.reduceAdd, Nat.reduceMod] at this
     simp only [hbN] at b0 b1 b2 this ⊢
     change ev tr t r pub (Expr.pub PV_N) = _ at this
     omega
   · intro j hj
     have := Z (fun j => Fin.ci (H_EL + 3 + j)) 5 pl0 j hj
-    rw [hcik] at this; simpa [H_EL, show 118 + (129 + 3 + j) = 250 + j by omega] using this
+    rw [hcik] at this; simpa [H_EL, show 114 + (129 + 3 + j) = 246 + j by omega] using this
   · intro j hj
     have := E (fun j => Fin.ci (H_GU + j)) (fun j => Fin.fi (FI_GAS + j)) 8 pgu j hj
-    rw [hcik] at this; simpa [H_GU, FI_GAS, fiN, show 118 + (153 + j) = 271 + j by omega] using this
+    rw [hcik] at this; simpa [H_GU, FI_GAS, fiN, show 114 + (153 + j) = 267 + j by omega] using this
   · intro j hj
     have := E (fun j => Fin.ci (H_GL + j)) (fun j => Fin.fi (FI_GL + j)) 8 pgl j hj
-    rw [hcik] at this; simpa [H_GL, FI_GL, fiN, show 118 + (161 + j) = 279 + j by omega] using this
+    rw [hcik] at this; simpa [H_GL, FI_GL, fiN, show 114 + (161 + j) = 275 + j by omega] using this
   · intro j hj
     have := E (fun j => Fin.ci (H_BB + j)) (fun j => Fin.fi (FI_BAL + j)) 16 pbb j hj
-    rw [hcik] at this; simpa [H_BB, FI_BAL, fiN, show 118 + (169 + j) = 287 + j by omega] using this
+    rw [hcik] at this; simpa [H_BB, FI_BAL, fiN, show 114 + (169 + j) = 283 + j by omega] using this
   · intro j hj
     have := E (fun j => Fin.ci (H_ORR + j)) (fun j => Fin.T.c "rsh" j) 32 por' j hj
-    rw [hcik] at this; simpa [H_ORR, colN, show 118 + (185 + j) = 303 + j by omega] using this
+    rw [hcik] at this; simpa [H_ORR, colN, show 114 + (185 + j) = 299 + j by omega] using this
   · intro j hj
     have := Z (fun j => Fin.ci (H_TXR + j)) 32 ptx j hj
-    rw [hcik] at this; simpa [H_TXR, show 118 + (217 + j) = 335 + j by omega] using this
+    rw [hcik] at this; simpa [H_TXR, show 114 + (217 + j) = 331 + j by omega] using this
   · intro j hj
     have h1 := E (fun j => Fin.ci (H_PROPS + j)) (fun j => Fin.fi (FI_PROPS + j)) 4 ppr j hj
     have h2 := Z (fun j => Fin.fi (FI_PROPS + j)) 4 ppr0 j hj
-    rw [hcik, h2] at h1; simpa [H_PROPS, show 118 + (249 + j) = 367 + j by omega] using h1
+    rw [hcik, h2] at h1; simpa [H_PROPS, show 114 + (249 + j) = 363 + j by omega] using h1
   · intro j hj
     have := E (fun j => Fin.ci (H_CONG + j)) (fun j => Fin.fi (FI_CONG + j)) 43 pcg j hj
-    rw [hcik] at this; simpa [H_CONG, FI_CONG, fiN, show 118 + (253 + j) = 371 + j by omega] using this
+    rw [hcik] at this; simpa [H_CONG, FI_CONG, fiN, show 114 + (253 + j) = 367 + j by omega] using this
   · have := G _ (pcg0 (List.mem_singleton.2 rfl))
     simpa [fiN, FI_CONG] using this
   · intro j hj
@@ -169,7 +169,7 @@ theorem rowOK_of_constraints (hc : ∀ e ∈ Fin.constraints, e.eval tr t r pub 
       rw [hcik] at this; simpa [H_BW] using this
     · have h1 := E (fun j => Fin.ci (H_BW + 1 + j)) (fun j => Fin.fi (FI_BW + j)) 4 pbw j (by omega)
       have h2 := Z (fun j => Fin.fi (FI_BW + j)) 4 pbw1 j (by omega)
-      rw [hcik, h2] at h1; simpa [H_BW, show 118 + (296 + 1 + j) = 414 + (j + 1) by omega] using h1
+      rw [hcik, h2] at h1; simpa [H_BW, show 114 + (296 + 1 + j) = 410 + (j + 1) by omega] using h1
   · have h1 := GE (Fin.ci H_SPLIT) (Fin.fi FI_SPLIT) (psp (by simp [Fin.eqSplit]))
     have h2 := G (Fin.fi FI_SPLIT) (psp (by simp [Fin.eqSplit]))
     rw [hcik, h2] at h1; simpa [H_SPLIT] using h1

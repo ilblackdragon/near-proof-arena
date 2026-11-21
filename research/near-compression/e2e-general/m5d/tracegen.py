@@ -191,7 +191,7 @@ class Gen:
         fin = d['finIn']
         pre, post = bytes.fromhex(d['pre']), bytes.fromhex(d['post'])
         ci_off = C['CI_OFF']
-        stream = bytearray(u(len(pre), 4)) + pre + post
+        stream = bytearray(pre) + bytes(4) + post   # lane E's canonical S (StmtEnc)
         H = {'psr': 33, 'por': 65, 'emr': 97, 'el': 129, 'gu': 153, 'gl': 161, 'bb': 169, 'orr': 185,
              'txr': 217, 'props': 249, 'cong': 253, 'bw': 296, 'split': 301}
         # header (statement) mutants: one byte of each compared field of the public chunk header
@@ -200,6 +200,8 @@ class Gen:
                 stream[ci_off + o + (1 if k in ('props', 'cong', 'bw') else 0)] ^= 1
         stream = list(stream)
         assert len(pre) == C['PRE_LEN'] and len(stream) >= C['HBN']
+        if self.mutant is None:
+            print('claimDigest', hashlib.sha384(bytes(stream)).digest()[:42].hex(), file=sys.stderr)
         # -- FinIn ----------------------------------------------------------------------------
         root = list(bytes.fromhex(fin['root']))
         if self.mut('fin_root'):
@@ -514,7 +516,7 @@ class GenInit(Gen):
             T.rows[len(pre) + 2][T.ix('kp')] = 1
         if self.mut('clm_byte'):
             T.rows[len(pre) + len(blocks) + 5][T.ix('b')] ^= 1
-        stmt = u(len(pre), 4) + pre + post
+        stmt = pre + u(0, 4) + post   # lane E's canonical S (StmtEnc.encode_splice)
         cb = pre + blocks + post
         ctx = [C['CTX_TAG']] + u(len(blocks), 4) + u(len(cb), 4) + cb + wit
         cd = self.s384(C['ID_CLAIM'], stmt)

@@ -16,28 +16,25 @@ Everything below is built and measured on T1 unless marked **[S]** (proposal / n
 | digests | `bdigest m = SHA-384(m)[0..42)` (lane E `Bnd.bdigest`, U-10); as public values: 14 limbs, limb `i` = `65536·d[3i] + 256·d[3i+1] + d[3i+2]` |
 | I3 (review-D7) | INIT's input boundary is "before the chunk" (no `B_in`); FINAL's output phase is `done`. Neither accepts a `done` input |
 
-## 2. The statement digest (`ctx` = `claimDigest`) [K for the encoding identity, S for adoption]
+## 2. The statement digest (`ctx` = `claimDigest`) — lane E's canonical encoding [K]
 
-```
-pre  = borsh(claim_tag) ‖ borsh(statement_id) ‖ u32 pv ‖ borsh(chain_id) ‖ epoch_id ‖ borsh(chunk_inner)
-post = u16 rs_data_parts ‖ u16 rs_total_parts ‖ encList epochs ‖ borsh(epoch_start_after)
-       ‖ encList apply_facts ‖ borsh(tx_valid) ‖ encOpt genesis_chunk_extra
-stmtBytes(S) = u32 |pre| ‖ pre ‖ post
-claimDigest  = bdigest(stmtBytes(S))
-```
-
-`pre`/`post` are the public prefix and suffix of `Claim.encode`, so `assemble ci secB secC =
-pre ‖ encList BlockRec.encode secB ‖ post` (by definition of `Claim.encode`; the dump checks it on
-T1). **V_d computes `claimDigest` from the public statement alone**; lane D's `D_wrap(ctx)` takes
-it as `ctx`. Proposal to lane D/E: adopt `stmtBytes` as *the* `claimDigest` preimage (plan §3.2
-"SHA-384 of the public statement" with the encoding fixed). T1: `claimDigest = 6ae2236e…22d7`.
+Plan §3.4.1 / `spec/lean/v3/NearSpecV3/E2E/StmtEnc.lean`: `S = PublicStmt.encode s =
+stmtPre ‖ u32 0 ‖ stmtPost` (the claim-v3 encoding with an empty section B;
+`assemble ci secB secC = stmtPre ‖ encList BlockRec.encode secB ‖ stmtPost`), and
+`claimDigest s = bdigest S`. Both M5d templates hash exactly these bytes in-circuit; on T1
+`|S| = 1,007 B` and both proofs expose `claimDigest = bb5aad11…9f2f01` (= lane E's `t1_claimDigest`).
+V_d computes it from the public statement alone.
 
 ## 3. INIT template
 
-**Proves:** `claimDigest = bdigest(u32|pre| ‖ pre ‖ post)` and
+**Proves:** `claimDigest = bdigest(pre ‖ u32 0 ‖ post)` (§2) and
 `ctxRoot = bdigest(0x00 ‖ u32 ℓ_B ‖ u32 |cb| ‖ cb ‖ wb)` with `cb = pre ‖ blocks ‖ post`,
 `ℓ_B = |blocks|`, over the same witness bytes (`CLM` rows feed both SHA-384 messages; the statement
-message skips the `blocks` rows). `blocks`, `wb` stay private.
+message skips the `blocks` rows and takes the four zero bytes in their place). `blocks`, `wb` stay
+private.
+
+**Lane E target:** `SegSoundInit` (meaning `MInit` = the whole intake step). INIT supplies `B_0`'s
+digests; the step itself is lane B's INTAKE, so the `.init` leaf is INIT ∘ INTAKE.
 
 **Public values (28):** `[claimDigest (14 limbs), ctxRoot (14 limbs)]`.
 
@@ -120,4 +117,8 @@ Every table but `SHA` and the chip accepts padding rows (activity is a prefix, t
 inactive), so padding to class caps is a generator change; the `SHA` table and the chip pad by
 their generators (`sha256gen`, `s384::trace`) — a minimum-height option is needed there.
 
-**Measured (T1):** 989,626 B proof, 268.2-bit, prove 35.0 s, verify 102 ms; 32/32 mutants rejected.
+**Lane E target:** `SegSoundFinal` (meaning `MFinal`: finished engine → `done`, `finK` included);
+M5d proves the `tailNew` + `headerOk` part (`final_template_sound`), `finK` comes from lane B / M5c.
+
+**Measured (T1, canonical `S`):** FINAL 992,188 B, 268.2-bit, prove 30.3 s, verify 83 ms; INIT
+790,307 B, prove 56.1 s, verify 58 ms.

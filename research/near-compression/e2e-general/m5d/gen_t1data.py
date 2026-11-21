@@ -7,7 +7,7 @@ import sys
 
 d = json.load(open(sys.argv[1]))
 pre, post = bytes.fromhex(d['pre']), bytes.fromhex(d['post'])
-stream = len(pre).to_bytes(4, 'little') + pre + post
+stream = pre + bytes(4) + post   # lane E's canonical S
 f = d['finIn']
 acc0 = list(hashlib.sha384(b'').digest()[:42])
 

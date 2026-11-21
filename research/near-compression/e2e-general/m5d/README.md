@@ -21,6 +21,18 @@ stacked WHIR, seg-v1 parameters, the native SHA-512 chip v4 on bus 103). Traces 
 checker's own run (`m5d-tool dump`: lane E's `CM.step` from `init claim witness` to `fin I out`,
 then the checker's `finK` and `tailNew` verbatim).
 
+**Targets in lane E's T1 template system** (`spec/lean/v3/NearSpecV3/E2E/Templates.lean`, main
+`1461c97f6`): `SegSoundInit` (meaning `MInit`: the whole `CM` intake step `init cb wb → CM.step`)
+and `SegSoundFinal` (meaning `MFinal`: a `CM` run from a finished engine configuration to `done`,
+including `finK`). **What M5d-T1 covers of them:** INIT proves the init boundary's two
+chunk-dependent digests (`claimDigest` bound to the canonical `S` of `StmtEnc`, and the
+`ctxD (.raw cb wb)` commitment); the intake step itself (claim / witness decoding, trie
+authentication) is lane B's INTAKE, so `SegSoundInit` needs INIT ∘ INTAKE in one leaf. FINAL proves
+`tailNew` + `headerOk` from the post-`finK` point (`final_template_sound`); `finK` (main root check,
+implicit transitions, outgoing reassignment) is lane B's FINAL root / M5c, so `SegSoundFinal` needs
+them joined (leaf spec §4, option (a)). `TmplComplete` for the M5d part: the T1 proofs plus
+`T1Check`.
+
 ## Commands
 
 ```
@@ -40,7 +52,7 @@ python3 gen_t1data.py DUMP lean/FinalM5d/T1Data.lean  # the Lean non-vacuity dat
 | `SHA` | 2^12 (133 blocks) | `ZkFormal.Sha.Table` (contract `sha_digest_contract_closed`): every spec SHA-256 |
 | `S384` | 2^5 (26 blocks) | **new**: SHA-384 of byte messages over the native compression chip — receives `(id, pos, byte)`, sends `(id, len, digest[48])`, FIPS padding in-circuit, bytes ↔ 21-bit limbs with split lookups |
 | `RNG` | 256 | `R8 (v)`, `S2 (v, v mod 4, v/4)`, `S5 (v, v mod 32, v/32)` lookups |
-| `STMT` | 1,007 | the statement stream `u32 |pre| ‖ pre ‖ post` → SHA-384 `claimDigest`; first 424 bytes → `FIN` |
+| `STMT` | 1,007 | lane E's canonical statement `S = stmtPre ‖ u32 0 ‖ stmtPost` (plan §3.4.1, `StmtEnc`) → SHA-384 `claimDigest`; first 424 bytes → `FIN` |
 | `FIN` | 1 | header window (fixed layout pins, the 13 comparisons), `FinIn` → `finInDigest`, roots, public values |
 | `BODY` | 990 = d·L | the chunk body `u32 0 ‖ u32 n_R ‖ enc r_1 ‖ …` (+ zero padding to `d·L`): Reed–Solomon data cells, per-shard and accumulator-chain message bytes |
 | `SEG` | 7 | segments: the two count prefixes, one per outgoing receipt (shard one-hot, length, chain step `acc_{i+1} = bdigest(acc_i ‖ u64 shard ‖ u32 ℓ ‖ enc r)`), padding |
@@ -58,11 +70,11 @@ Class `F1` pins: header V5, no proposals / bandwidth requests / proposed split /
 
 | | FINAL | INIT |
 |---|---|---|
-| trace | 2,689,104 cells (SHA 2.23 M, chip 0.34 M, RS 55.8 k); 26 SHA-512 compressions | see below |
-| proof | **989,626 B** (whir 686,482, relations 274,548, gkr 25,544) | see below |
-| soundness (calculator) | 268.2 bits | |
-| prove / verify | 35.0 s / 102 ms (8 threads, 0.93 GB peak) | |
-| outputs | outcome root `49be525c…`, outgoing root `647e6f58…`, encoded root `5a648fbd…`, length 990, state root `1db48e38…`, gas 1,577,739,758,301 — each = the Lean checker's (`dump.checks`, tracegen asserts) and = the header's | |
+| trace | 2,689,104 cells (SHA 2.23 M, chip 0.34 M, RS 55.8 k); 26 SHA-512 compressions | 1,616,828 cells (CLM 2^14, chip 2^14); 124 compressions |
+| proof | **992,188 B** (whir 689,044, relations 274,548, gkr 25,544) | **790,307 B** (whir 681,396) |
+| soundness (calculator) | 268.2 bits | 268.2 bits |
+| prove / verify | 30.3 s / 83 ms (8 threads, 0.90 GB peak) | 56.1 s / 58 ms (0.81 GB) |
+| outputs | outcome root `49be525c…`, outgoing root `647e6f58…`, encoded root `5a648fbd…`, length 990, state root `1db48e38…`, gas 1,577,739,758,301 — each = the Lean checker's (`dump.checks`, tracegen asserts) and = the header's | `claimDigest` = `bb5aad11…9f2f01` = lane E's `t1_claimDigest`; `ctxRoot` = `0e790a2c…f745f5fe` |
 
 The dump's self-checks: every output recomputed the way the AIR does it (merklize of the outcome
 leaves, per-shard `u64 s ‖ encodeRcpts` double hash, `buildMatrix` parity, parts root) equals the

@@ -5,9 +5,9 @@ import FinalM5d.Decode
 
 `RowOK hb fi ro rs rsh n` is what the `FIN` row's constraints say about its cells (read as
 naturals; `FinalM5d.FinRow.rowOK_of_constraints` derives it from the constraints over BabyBear):
-`hb` the statement stream's first 424 bytes (the chunk inner at `CI_OFF = 118`), `fi` the `FinIn`
+`hb` the statement stream's first 424 bytes (the chunk inner at `CI_OFF = 114`), `fi` the `FinIn`
 record, `ro`/`rs`/`rsh` the outcome / part / shard tree roots the row receives, `n` the public
-body length. Positions are absolute stream offsets (`118 + H_*`).
+body length. Positions are absolute stream offsets (`114 + H_*`).
 
 `row_headerOk`: then the spec's decoder accepts the public chunk inner, and **`headerOk H o`**
 (lane E's `FinalOut`, all 13 comparisons) holds between the decoded header `H` and the outputs
@@ -52,30 +52,30 @@ theorem slice_zero {f : Nat → Nat} {a n : Nat} (h : ∀ j, j < n → f (a + j)
 
 /-- The `FIN` row's relations (class F1), at absolute stream offsets. -/
 structure RowOK (hb fi ro rs rsh : Nat → Nat) (n : Nat) : Prop where
-  tag : hb 118 = 4
-  psr : ∀ j, j < 32 → hb (151 + j) = fi (0 + j)
-  por : ∀ j, j < 32 → hb (183 + j) = ro (0 + j)
-  emr : ∀ j, j < 32 → hb (215 + j) = rs (0 + j)
-  el : n = hb 247 + 256 * hb 248 + 65536 * hb 249
-  el0 : ∀ j, j < 5 → hb (250 + j) = 0
-  gu : ∀ j, j < 8 → hb (271 + j) = fi (75 + j)
-  gl : ∀ j, j < 8 → hb (279 + j) = fi (99 + j)
-  bb : ∀ j, j < 16 → hb (287 + j) = fi (83 + j)
-  orr : ∀ j, j < 32 → hb (303 + j) = rsh (0 + j)
-  txr : ∀ j, j < 32 → hb (335 + j) = 0
-  props : ∀ j, j < 4 → hb (367 + j) = 0
-  cong : ∀ j, j < 43 → hb (371 + j) = fi (32 + j)
+  tag : hb 114 = 4
+  psr : ∀ j, j < 32 → hb (147 + j) = fi (0 + j)
+  por : ∀ j, j < 32 → hb (179 + j) = ro (0 + j)
+  emr : ∀ j, j < 32 → hb (211 + j) = rs (0 + j)
+  el : n = hb 243 + 256 * hb 244 + 65536 * hb 245
+  el0 : ∀ j, j < 5 → hb (246 + j) = 0
+  gu : ∀ j, j < 8 → hb (267 + j) = fi (75 + j)
+  gl : ∀ j, j < 8 → hb (275 + j) = fi (99 + j)
+  bb : ∀ j, j < 16 → hb (283 + j) = fi (83 + j)
+  orr : ∀ j, j < 32 → hb (299 + j) = rsh (0 + j)
+  txr : ∀ j, j < 32 → hb (331 + j) = 0
+  props : ∀ j, j < 4 → hb (363 + j) = 0
+  cong : ∀ j, j < 43 → hb (367 + j) = fi (32 + j)
   congTag : fi 32 = 0
-  bw : ∀ j, j < 5 → hb (414 + j) = 0
-  split : hb 419 = 0
+  bw : ∀ j, j < 5 → hb (410 + j) = 0
+  split : hb 415 = 0
   bytes : ∀ k, k < 424 → hb k < 256
 
 /-- The decoded header of the window. -/
 def hdrOf (hb : Nat → Nat) : ChunkInner :=
-  hdrF1 (slice hb 119 32) (slice hb 151 32) (slice hb 183 32) (slice hb 215 32) (slice hb 247 8)
-    (slice hb 255 8) (slice hb 263 8) (slice hb 271 8) (slice hb 279 8) (slice hb 287 16)
-    (slice hb 303 32) (slice hb 335 32) (slice hb 372 16) (slice hb 388 16) (slice hb 404 8)
-    (slice hb 412 2)
+  hdrF1 (slice hb 115 32) (slice hb 147 32) (slice hb 179 32) (slice hb 211 32) (slice hb 243 8)
+    (slice hb 251 8) (slice hb 259 8) (slice hb 267 8) (slice hb 275 8) (slice hb 283 16)
+    (slice hb 299 32) (slice hb 331 32) (slice hb 368 16) (slice hb 384 16) (slice hb 400 8)
+    (slice hb 408 2)
 
 /-- The outputs the template computes (class F1). -/
 def outputsOf (fi ro rs rsh : Nat → Nat) (n : Nat) : Outputs :=
@@ -88,17 +88,17 @@ def outputsOf (fi ro rs rsh : Nat → Nat) (n : Nat) : Outputs :=
     encodedMerkleRoot := slice rs 0 32, encodedLength := n }
 
 /-- The chunk-inner window of the stream. -/
-def win (hb : Nat → Nat) : Bytes := slice hb 118 302
+def win (hb : Nat → Nat) : Bytes := slice hb 114 302
 
 theorem slice_one (f : Nat → Nat) (a : Nat) : slice f a 1 = [UInt8.ofNat (f a)] := by
   simp [slice]
 
 theorem win_split (hb : Nat → Nat) :
-    win hb = slice hb 118 1 ++ slice hb 119 32 ++ slice hb 151 32 ++ slice hb 183 32 ++
-      slice hb 215 32 ++ slice hb 247 8 ++ slice hb 255 8 ++ slice hb 263 8 ++ slice hb 271 8 ++
-      slice hb 279 8 ++ slice hb 287 16 ++ slice hb 303 32 ++ slice hb 335 32 ++ slice hb 367 4 ++
-      slice hb 371 1 ++ slice hb 372 16 ++ slice hb 388 16 ++ slice hb 404 8 ++ slice hb 412 2 ++
-      slice hb 414 1 ++ slice hb 415 4 ++ slice hb 419 1 := by
+    win hb = slice hb 114 1 ++ slice hb 115 32 ++ slice hb 147 32 ++ slice hb 179 32 ++
+      slice hb 211 32 ++ slice hb 243 8 ++ slice hb 251 8 ++ slice hb 259 8 ++ slice hb 267 8 ++
+      slice hb 275 8 ++ slice hb 283 16 ++ slice hb 299 32 ++ slice hb 331 32 ++ slice hb 363 4 ++
+      slice hb 367 1 ++ slice hb 368 16 ++ slice hb 384 16 ++ slice hb 400 8 ++ slice hb 408 2 ++
+      slice hb 410 1 ++ slice hb 411 4 ++ slice hb 415 1 := by
   simp only [win, List.append_assoc]
   rw [show (302 : Nat) = 1 + (32 + (32 + (32 + (32 + (8 + (8 + (8 + (8 + (8 + (16 + (32 + (32 +
       (4 + (1 + (16 + (16 + (8 + (2 + (1 + (4 + 1)))))))))))))))))))) from rfl]
@@ -123,26 +123,26 @@ theorem row_headerOk {hb fi ro rs rsh : Nat → Nat} {n : Nat} (h : RowOK hb fi 
     decodeChunkInner (win hb) = .ok (hdrOf hb) ∧
       headerOk (hdrOf hb) (outputsOf fi ro rs rsh n) = true := by
   constructor
-  · have e : win hb = encF1 (slice hb 119 32) (slice hb 151 32) (slice hb 183 32) (slice hb 215 32)
-        (slice hb 247 8) (slice hb 255 8) (slice hb 263 8) (slice hb 271 8) (slice hb 279 8)
-        (slice hb 287 16) (slice hb 303 32) (slice hb 335 32) (slice hb 372 16) (slice hb 388 16)
-        (slice hb 404 8) (slice hb 412 2) := by
-      have t1 : slice hb 118 1 = [4] := by rw [slice_one, h.tag]; rfl
-      have t2 : slice hb 367 4 = [0, 0, 0, 0] := by rw [slice_zero h.props]; rfl
-      have t3 : slice hb 371 1 = [0] := by
+  · have e : win hb = encF1 (slice hb 115 32) (slice hb 147 32) (slice hb 179 32) (slice hb 211 32)
+        (slice hb 243 8) (slice hb 251 8) (slice hb 259 8) (slice hb 267 8) (slice hb 275 8)
+        (slice hb 283 16) (slice hb 299 32) (slice hb 331 32) (slice hb 368 16) (slice hb 384 16)
+        (slice hb 400 8) (slice hb 408 2) := by
+      have t1 : slice hb 114 1 = [4] := by rw [slice_one, h.tag]; rfl
+      have t2 : slice hb 363 4 = [0, 0, 0, 0] := by rw [slice_zero h.props]; rfl
+      have t3 : slice hb 367 1 = [0] := by
         have := h.cong 0 (by omega)
         simp only [Nat.add_zero] at this
         rw [slice_one, this, h.congTag]; rfl
-      have t4 : slice hb 414 1 = [0] := by
+      have t4 : slice hb 410 1 = [0] := by
         have := h.bw 0 (by omega)
         simp only [Nat.add_zero] at this
         rw [slice_one, this]; rfl
-      have t5 : slice hb 415 4 = [0, 0, 0, 0] := by
+      have t5 : slice hb 411 4 = [0, 0, 0, 0] := by
         rw [slice_zero (fun j hj => by
           have := h.bw (1 + j) (by omega)
-          rwa [show 414 + (1 + j) = 415 + j by omega] at this)]
+          rwa [show 410 + (1 + j) = 411 + j by omega] at this)]
         rfl
-      have t6 : slice hb 419 1 = [0] := by rw [slice_one, h.split]; rfl
+      have t6 : slice hb 415 1 = [0] := by rw [slice_one, h.split]; rfl
       rw [win_split, t1, t2, t3, t4, t5, t6]
       rfl
     rw [e]
@@ -159,21 +159,21 @@ theorem row_headerOk {hb fi ro rs rsh : Nat → Nat} {n : Nat} (h : RowOK hb fi 
     have bb := slice_congr (n := 16) h.bb
     have orr := slice_congr (n := 32) h.orr
     have txr := slice_zero (n := 32) h.txr
-    have cd := slice_congr (f := hb) (g := fi) (a := 372) (b := 33) (n := 16)
-      (fun j hj => by have := h.cong (1 + j) (by omega); rwa [show 371 + (1 + j) = 372 + j by omega,
+    have cd := slice_congr (f := hb) (g := fi) (a := 368) (b := 33) (n := 16)
+      (fun j hj => by have := h.cong (1 + j) (by omega); rwa [show 367 + (1 + j) = 368 + j by omega,
         show 32 + (1 + j) = 33 + j by omega] at this)
-    have cb := slice_congr (f := hb) (g := fi) (a := 388) (b := 49) (n := 16)
-      (fun j hj => by have := h.cong (17 + j) (by omega); rwa [show 371 + (17 + j) = 388 + j by omega,
+    have cb := slice_congr (f := hb) (g := fi) (a := 384) (b := 49) (n := 16)
+      (fun j hj => by have := h.cong (17 + j) (by omega); rwa [show 367 + (17 + j) = 384 + j by omega,
         show 32 + (17 + j) = 49 + j by omega] at this)
-    have cr := slice_congr (f := hb) (g := fi) (a := 404) (b := 65) (n := 8)
-      (fun j hj => by have := h.cong (33 + j) (by omega); rwa [show 371 + (33 + j) = 404 + j by omega,
+    have cr := slice_congr (f := hb) (g := fi) (a := 400) (b := 65) (n := 8)
+      (fun j hj => by have := h.cong (33 + j) (by omega); rwa [show 367 + (33 + j) = 400 + j by omega,
         show 32 + (33 + j) = 65 + j by omega] at this)
-    have ca := slice_congr (f := hb) (g := fi) (a := 412) (b := 73) (n := 2)
-      (fun j hj => by have := h.cong (41 + j) (by omega); rwa [show 371 + (41 + j) = 412 + j by omega,
+    have ca := slice_congr (f := hb) (g := fi) (a := 408) (b := 73) (n := 2)
+      (fun j hj => by have := h.cong (41 + j) (by omega); rwa [show 367 + (41 + j) = 408 + j by omega,
         show 32 + (41 + j) = 73 + j by omega] at this)
-    have el : leNat (slice hb 247 8) = n := by
-      rw [leNat_slice8 hb 247 (h.bytes 247 (by omega)) (h.bytes 248 (by omega)) (h.bytes 249 (by omega))
-        (fun j hj => by rw [show 247 + 3 + j = 250 + j by omega]; exact h.el0 j hj), h.el]
+    have el : leNat (slice hb 243 8) = n := by
+      rw [leNat_slice8 hb 243 (h.bytes 243 (by omega)) (h.bytes 244 (by omega)) (h.bytes 245 (by omega))
+        (fun j hj => by rw [show 243 + 3 + j = 246 + j by omega]; exact h.el0 j hj), h.el]
     simp only [headerOk, hdrOf, hdrF1, outputsOf, psr, por, emr, gu, gl, bb, orr, txr, cd, cb, cr, ca,
       el, beq_self_eq_true, Bool.and_self, zeroHash]
 

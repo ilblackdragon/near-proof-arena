@@ -6,9 +6,9 @@ import FinalM5d.Final
 `B_0 = view (init cb wb)` (lane E, `View.split`: phase 0, `ctxRoot = ctxD (.raw cb wb)`, every
 other field empty). The template computes the two digests of `B_0` that depend on the chunk:
 
-* `claimDigest = bdigest (u32 |pre| ‖ pre ‖ post)` — the public statement (`pre`, `post`: the
-  public prefix and suffix of `Claim.encode`, `assemble`'s bytes around the private section B);
-  the same message the FINAL template hashes, and what V_d recomputes from the statement;
+* `claimDigest = bdigest (pre ‖ u32 0 ‖ post)` — lane E's canonical statement encoding
+  (`StmtEnc.claimDigest`, `encode_splice`: `pre = stmtPre`, `post = stmtPost`, the claim with an
+  empty section B); the same message the FINAL template hashes, and what V_d recomputes;
 * `ctxRoot = bdigest (0x00 ‖ u32 ℓ_B ‖ u32 |cb| ‖ cb ‖ wb)` with `cb = pre ‖ blocks ‖ post`
   (`= assemble ci secB secC` when `blocks = encList BlockRec.encode secB`) and `ℓ_B = |blocks|`.
 
@@ -59,7 +59,7 @@ def constraints : List Expr :=
     contRow T * kw * (1 - T.n "kw"),
     endRow T * (ka + kb) ]
 def interactions : List Interaction :=
-  [ snd B_SB (ka + kp) [K ID_CLAIM, K 4 + T.c "ks", T.c "b"],
+  [ snd B_SB (ka + kp) [K ID_CLAIM, T.c "ks" + K 4 * kp, T.c "b"],
     snd B_SB act [K ID_CTX, K 9 + T.c "kc", T.c "b"],
     snd B_END (endRow T) [T.c "na" + ka, T.c "nb" + kb, T.c "nc" + ka + kb + kp, T.c "kc" + 1,
       T.c "ks" + ka + kp] ]
@@ -81,7 +81,7 @@ def constraints : List Expr :=
   eqs act ((List.range 14).map fun i => P (PV_CTX + i)) (limbs3 (T.cs "xd" 42))
 def interactions : List Interaction :=
   [ rcv B_END act [T.c "na", T.c "nb", T.c "nc", T.c "nt", T.c "ns"] ] ++
-  (List.range 4).map (fun j => snd B_SB act [K ID_CLAIM, K j, b4 "pa" j]) ++
+  (List.range 4).map (fun j => snd B_SB act [K ID_CLAIM, T.c "na" + K j, K 0]) ++
   [ snd B_SB act [K ID_CTX, K 0, K CTX_TAG] ] ++
   (List.range 4).map (fun j => snd B_SB act [K ID_CTX, K (1 + j), b4 "lb" j]) ++
   (List.range 4).map (fun j => snd B_SB act [K ID_CTX, K (5 + j), b4 "lc" j]) ++

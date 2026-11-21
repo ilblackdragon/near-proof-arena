@@ -1831,14 +1831,19 @@ See `research/near-compression/e2e-general/m5d/README.md` (commands, tables, cos
   leaves), outgoing receipts root (per-shard `u64 s ‖ encodeRcpts` double hash, `merklizeBorsh`),
   the chunk body, its Reed–Solomon parity (GF(2)-linear rows, the spec's `buildMatrix`) and parts
   root, `encoded_length`, `tx_root` — and compared byte by byte with the chunk header inside the
-  public statement, whose SHA-384 digest is the public `claimDigest`. New generic table `S384`:
-  SHA-384 of byte messages (padding in-circuit) over the native SHA-512 chip. **989,626 B,
-  268.2-bit, prove 35.0 s, verify 102 ms**; every output = the Lean checker's (`m5d-tool dump`:
+  public statement, whose SHA-384 digest is the public `claimDigest` — lane E's canonical §3.4.1
+  `S` (T1: `bb5aad11…9f2f01`). New generic table `S384`: SHA-384 of byte messages (padding
+  in-circuit) over the native SHA-512 chip. **992,188 B, 268.2-bit, prove 30.3 s, verify 83 ms**; every output = the Lean checker's (`m5d-tool dump`:
   lane E's `CM.step` to `fin I out`, then `finK` + `tailNew` verbatim). **Mutants 32/32 rejected**:
   one per compared header field (13), five `FinIn` fields, six data mutants (leaf, receipt byte /
   shard / drop / swap, outcome drop), six row tampers, two public values.
 * **INIT template:** `claimDigest` and `ctxRoot = bdigest(0x00 ‖ u32 ℓ_B ‖ u32 |cb| ‖ cb ‖ wb)` from
-  one byte stream: 795,347 B, 268.2-bit, prove 69 s, verify 51 ms; mutants 7/7 rejected.
+  one byte stream, `claimDigest` over the canonical `S`: 790,307 B, 268.2-bit, prove 56 s, verify
+  58 ms; mutants 7/7 rejected.
+* **Against lane E's T1 template system (`Templates.lean`):** INIT supplies `B_0`'s digests of
+  `SegSoundInit`'s `init` boundary, the intake step itself is lane B's INTAKE (one leaf INIT ∘
+  INTAKE); FINAL proves the `tailNew` + `headerOk` part of `SegSoundFinal`'s `MFinal`, `finK` is lane
+  B / M5c (joined in one segment, leaf spec §4 (a)).
 * **Reed–Solomon cost:** the GF arithmetic is ≈ 41–44 cells per body byte (2 % of T1's trace);
   `encoded_merkle_root` costs the spec's SHA-256 over `t/d ≈ 3×` the body, ≈ 440–460 cells per
   body byte, so ≈ 500 cells / body byte in all, ≈ 0.5 G cells for a 1 MB body [E].

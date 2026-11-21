@@ -1,5 +1,6 @@
 import FinalM5d.Tail
 import FinalM5d.T1Check
+import FinalM5d.RsRow
 
 /-! Axiom audit of the M5d headline results: each must depend on `propext`, `Classical.choice`,
 `Quot.sound` only (no `sorryAx`, no `Lean.ofReduceBool`). -/
@@ -14,3 +15,5 @@ import FinalM5d.T1Check
 #print axioms FinalM5d.T1.t1_window
 #print axioms FinalM5d.T1.t1_outputs
 #print axioms FinalM5d.T1.t1_headerOk
+#print axioms FinalM5d.RsCoeff.coeff_linear
+#print axioms FinalM5d.RsRow.rs_parity_bit
