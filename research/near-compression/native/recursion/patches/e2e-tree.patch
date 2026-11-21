@@ -1203,7 +1203,7 @@
 +}
 --- a/openvm-sha384/crates/recursion/src/nv/tree.rs
 +++ b/openvm-sha384/crates/recursion/src/nv/tree.rs
-@@ -0,0 +1,348 @@
+@@ -0,0 +1,357 @@
 +//! [E2E-D D-5] Chunk-independent aggregation tree and the ZK wrap (plan §5.0.1).
 +//!
 +//! Every proof in the tree is an NV proof over the same AIR set, parameters and pinned trace
@@ -1364,7 +1364,8 @@
 +/// Leaf: PAD, the identity on a done boundary. Witness `(ctx, a, s)`; asserts `s.phase = done`;
 +/// exposes `(ctx, a, a + 1, s, s)`. No child proof.
 +pub fn build_pad(b: &mut Builder, ctx: &[F], a: F, s: &[F]) -> RangeStmt {
-+    assert_eq!((ctx.len(), s.len()), (N_CTX, N_STATE));
++    // [E2E-D M8] any boundary-state width (D0a: [phase, class]; heterogeneous: [phase, h(B)])
++    assert!(ctx.len() == N_CTX && !s.is_empty());
 +    b.agg = true;
 +    let ctx_c: Vec<V> = ctx.iter().map(|&x| b.load_f(x)).collect();
 +    let av = b.load_f(a);
@@ -1378,6 +1379,12 @@
 +    RangeStmt { ctx: ctx.to_vec(), a, e: a + F::ONE, s_a: s.to_vec(), s_e: s.to_vec() }
 +}
 +
++/// [E2E-D M8] The boundary-state width of a node's children (all equal: `build_agg` asserts it):
++/// `N_STATE` for the D0a tree, `htree::N_STATE_H` for the heterogeneous tree.
++fn n_state_of(preimages: &[RangeStmt]) -> usize {
++    preimages.first().map_or(N_STATE, |p| p.s_a.len())
++}
++
 +/// [E2E-D D-7] Level of the first node shape `P_2` (children = leaves) and the anchor level of
 +/// `P_*` (children at level 2 are `P_2` nodes or node-height PADs).
 +pub const LEVEL_NODE2: u32 = 2;
@@ -1389,7 +1396,7 @@
 +/// at levels >= 3 as a later sibling (`Builder::sibling_alt`; never as child 0, which is BIND-bound
 +/// to `P_*`).
 +pub fn build_pad_node(b: &mut Builder, ctx: &[F], a: F, s: &[F], level: u32) -> RangeStmt {
-+    assert_eq!((ctx.len(), s.len()), (N_CTX, N_STATE));
++    assert!(ctx.len() == N_CTX && !s.is_empty());
 +    assert!(level >= LEVEL_NODE2);
 +    b.agg = true;
 +    let ctx_c: Vec<V> = ctx.iter().map(|&x| b.load_f(x)).collect();
@@ -1418,7 +1425,7 @@
 +) -> RangeStmt {
 +    b.anchor_set = Some((LEVEL_LEAF, template_set.to_vec()));
 +    b.force_anchor = true;
-+    let s = super::agg::build_agg(b, children, super::agg::ChildKind::Node { n_ctx: N_CTX, n_state: N_STATE }, preimages);
++    let s = super::agg::build_agg(b, children, super::agg::ChildKind::Node { n_ctx: N_CTX, n_state: n_state_of(preimages) }, preimages);
 +    b.force_anchor = false;
 +    s
 +}
@@ -1450,7 +1457,7 @@
 +    set.push(c_pad_node);
 +    b.anchor_set = Some((LEVEL_NODE2, set));
 +    b.sibling_alt = Some(c_pad_node);
-+    let s = super::agg::build_agg(b, children, super::agg::ChildKind::Node { n_ctx: N_CTX, n_state: N_STATE }, preimages);
++    let s = super::agg::build_agg(b, children, super::agg::ChildKind::Node { n_ctx: N_CTX, n_state: n_state_of(preimages) }, preimages);
 +    b.sibling_alt = None;
 +    s
 +}
@@ -1463,7 +1470,7 @@
 +    template_set: &[Digest],
 +) -> RangeStmt {
 +    b.anchor_set = Some((LEVEL_LEAF, template_set.to_vec()));
-+    super::agg::build_agg(b, children, super::agg::ChildKind::Node { n_ctx: N_CTX, n_state: N_STATE }, preimages)
++    super::agg::build_agg(b, children, super::agg::ChildKind::Node { n_ctx: N_CTX, n_state: n_state_of(preimages) }, preimages)
 +}
 +
 +/// Wrap: verifies the root (level forced to `root_level`, program root = `c_node`), checks the
@@ -1492,7 +1499,9 @@
 +    c_roots: &[Digest],
 +    pre: &RangeStmt,
 +) -> Digest {
-+    assert_eq!((pre.ctx.len(), pre.s_a.len()), (N_CTX, N_STATE));
++    // [E2E-D M8] s_a[1] is folded into D_wrap: the D0a class, or the heterogeneous tree's INIT
++    // input digest limb 0, a constant 0 of every INIT template (`htree::bnd_state`)
++    assert!(pre.ctx.len() == N_CTX && pre.s_a.len() >= N_STATE);
 +    assert!(!c_roots.is_empty(), "wrap: empty root set");
 +    b.agg = true;
 +    if c_roots.len() == 1 {
@@ -2432,7 +2441,7 @@
      /// open flush job (job id, t_start, observed felts)
      tr_pending: Option<(u32, u32, u32)>,
      /// static transcript jobs allocated so far
-@@ -157,6 +160,48 @@
+@@ -157,6 +160,51 @@
      pow_wit: Vec<V>,
      /// squeeze / PoW-run blocks so far (their job ids)
      tr_blocks: u32,
@@ -2478,10 +2487,13 @@
 +    /// may instead carry this program root (the node-height PAD program `C_padN`): one boolean
 +    /// witness `p_i` per sibling, `flag (1 - p_i)(root_i - root_0) = 0` and `p_i (root_i - C) = 0`.
 +    pub sibling_alt: Option<Digest>,
++    /// [E2E-D M8 htree] with `agg`: the child's cached commitments (preamble order, as loaded and
++    /// observed by `build_verifier`), so a generic template leaf can bind them (`htree`)
++    pub captured_cached: Option<Vec<DigestCells>>,
  }
  
  impl Builder {
-@@ -188,12 +233,25 @@
+@@ -188,12 +236,26 @@
              statement: None,
              child_nv: false,
              anchor: None,
@@ -2505,10 +2517,11 @@
 +            capture_statement: false,
 +            captured_statement: None,
 +            sibling_alt: None,
++            captured_cached: None,
          }
      }
  
-@@ -219,19 +277,23 @@
+@@ -219,19 +281,23 @@
          }
      }
  
@@ -2537,7 +2550,7 @@
          v
      }
      /// One base-field cell as unit `uidx` of leaf job `job`.
-@@ -407,10 +469,46 @@
+@@ -407,10 +473,46 @@
          self.push(Op::LoadF, 0, 0, 0, 0, EF::from(x), F::ZERO)
      }
      /// First transcript job of the chain: push the initial state as its state units 2..13.
@@ -2585,7 +2598,7 @@
      }
      /// T*: blocks B_j (j >= 2) of a PoW run created by the last sample: push the PoW witness as
      /// their units 16.. (the hash-chain row adds the counter).
-@@ -435,7 +533,8 @@
+@@ -435,7 +537,8 @@
      /// Close the open flush job: anchor (job, t_start, count).
      fn tr_close(&mut self) {
          if let Some((job, t, cnt)) = self.tr_pending.take() {
@@ -2595,7 +2608,7 @@
          }
      }
      /// Proof-of-work check (levers spec, tag 7): flush; job H(7, [state, witness]) with the
-@@ -465,9 +564,12 @@
+@@ -465,9 +568,12 @@
          if !ok {
              self.failures.push(format!("pow ({bits} bits)"));
          }
@@ -2610,7 +2623,7 @@
          // output word 0 as limbs (l0, l1, l2) from the hash chain
          let state = self.transcript.inner.state;
          let w0 = u64::from_be_bytes(state[..8].try_into().unwrap());
-@@ -606,7 +708,8 @@
+@@ -606,7 +712,8 @@
          } else {
              self.push(Op::UnitW, hi.addr, 2, job, 24, hi.val, F::ZERO)
          };
@@ -3013,14 +3026,15 @@
      pub fn reads_a(self) -> bool {
 --- a/openvm-sha384/crates/recursion/src/nv/mod.rs
 +++ b/openvm-sha384/crates/recursion/src/nv/mod.rs
-@@ -1,4 +1,5 @@
+@@ -1,17 +1,26 @@
  //! NV: narrow fixed-point verifier circuit (see results/pq-recursion-nv/DESIGN.md).
 +pub mod agg;
  pub mod builder;
  pub mod circuit;
  pub mod fmt;
-@@ -6,12 +7,17 @@
+ pub mod glue;
  pub mod hash;
++pub mod htree;
  pub mod isa;
  pub mod transcript2;
 +pub mod tree;
@@ -3033,6 +3047,8 @@
 +mod agg_tests;
 +#[cfg(test)]
 +mod tree_tests;
++#[cfg(test)]
++mod htree_tests;
 +#[cfg(test)]
  mod hash_tests;
  #[cfg(test)]
@@ -3257,7 +3273,18 @@
          if let Some(max_log) = avk.params.max_log_trace_height.filter(|&m| td.log_height > m) {
              let msg = format!("AIR {a}: log_height {} exceeds its maxLog {max_log}", td.log_height);
              b.failures.push(msg.clone());
-@@ -870,16 +882,31 @@
+@@ -512,6 +524,10 @@
+         );
+     }
+ 
++    // [E2E-D M8 htree] hand the cached commitment cells to an aggregation-mode caller
++    if b.agg {
++        b.captured_cached = Some(cached_cells.clone());
++    }
+     // [e2e tape-eval] G1 digest waiting for the cached openings (L1 only).
+     let mut deferred_statement: Option<DigestCells> = None;
+     // ---- zerocheck + logup (batch_constraints.rs) ----
+@@ -870,16 +886,31 @@
          .iter()
          .map(|cs| cs.iter().map(|(c, _)| c.val).collect())
          .collect();
@@ -3294,7 +3321,7 @@
          let cv = coeffs(clm1.val)[0];
          let inv = b.load_f(if cv == F::ZERO { F::ZERO } else { cv.inverse() });
          let flag = b.mul(clm1, inv);
-@@ -889,6 +916,9 @@
+@@ -889,6 +920,9 @@
          // G2: the child's program columns: its cached program part (NV levels) or, for a child
          // without one, its common main P0..P3
          let tc = tid.iter().position(|&a| a == 0).expect("child ALU");
@@ -3304,7 +3331,7 @@
          let child_prog_part = !mvk.per_air[0].params.width.cached_mains.is_empty();
          let prog_open: Vec<V> = if child_prog_part {
              let has_prep = mvk.per_air[0].preprocessed_data.is_some() as usize;
-@@ -898,10 +928,48 @@
+@@ -898,10 +932,48 @@
          };
          // anchor-level child (flag = 0): its program commitment is the constant C_M, the
          // commitment of the level-M program at these parameters (setup); (root - C_M) (1 - flag) = 0
@@ -3355,7 +3382,7 @@
                      let nf = b.one_minus(flag);
                      let cm = b.const_digest(c_m);
                      for (x, y) in [(root.lo, cm.lo), (root.hi, cm.hi)] {
-@@ -918,13 +986,65 @@
+@@ -918,13 +990,65 @@
          } else if flag.val == EF::ZERO {
              b.failures.push("anchor-level child without a program commitment cannot be bound".into());
          }
@@ -3424,7 +3451,7 @@
          // statement passthrough (G1): the child's statement digest (its public values 1..19)
          // is re-exposed unchanged
          let pv = &pv_cells[0];
-@@ -974,7 +1094,11 @@
+@@ -974,7 +1098,11 @@
              for root in &cached_cells {
                  dc = b.node(&dc, root);
              }
@@ -3437,7 +3464,7 @@
          }
      }
      eprintln!("NV_PHASE before_dag {}", b.instrs.len());
-@@ -1358,10 +1482,15 @@
+@@ -1358,10 +1486,15 @@
          let yv: Vec<EF> = ys.iter().map(|v| v.val).collect();
          let dt = b.dig(job, super::circuit::tape_eval_digest(&uv, &yv));
          let dc = b.node(&dc0, &dt);
@@ -3619,3 +3646,859 @@
      }
  }
  
+--- a/openvm-sha384/crates/recursion/src/nv/htree.rs
++++ b/openvm-sha384/crates/recursion/src/nv/htree.rs
+@@ -0,0 +1,473 @@
++//! [E2E-D M8] The heterogeneous tree: a generic leaf wrapper for an arbitrary template.
++//!
++//! A *template* is a proof system for one kind of chunk segment (lane A's Wasm segment, lane B's
++//! state segment, lane G's INIT / FINAL, ...). Its leaf (`build_tmpl_leaf`) is one NV program per
++//! template, a member of `P_2`'s template set `{C_t}` (option A, `tree::build_node2`):
++//!
++//! * it verifies the template's proof (`build_verifier`; the template vk and every per-AIR height
++//!   are program constants, so the leaf's program root `C_t` pins them), or has no child at all
++//!   (a template computed in the leaf, e.g. a stub INIT / FINAL);
++//! * it binds **every** public value and **every** cached commitment of the child, by the
++//!   template's declared layout (`TemplateSpec`): each is a cell of the input or output boundary
++//!   record, equal to another AIR's copy (`pv_equal`), or a constant; a layout leaving any of them
++//!   free is refused at program generation (`TemplateSpec::check`);
++//! * it exposes the canonical range statement `H9(ctx, a, a + 1, s_in, s_out)` with the boundary
++//!   state `s = [phase, h(B)]` (`N_STATE_H` = 1 + 18 cells), where
++//!   `h(B) = H8(BND_MARKER, n_ctx, n_rec, ctx, rec)` is the tree's digest of the boundary record
++//!   (18 limbs). A template whose public values are lane E's 42-byte `bdigest` boundary digests
++//!   declares the record as those 14 limbs; the tree then carries `h(ctx ‖ bdigest)`, equal
++//!   exactly when the `bdigest`s are (modulo SHA-384 collisions).
++//!
++//! **Phases** (`s[0]`): the tree's coarse position, a program constant per template:
++//! `INIT` (only as the input of an INIT-kind template), `MID`, `DONE` (only as the output of a
++//! FINAL-kind template, and of PAD). Node chaining compares the whole `s` (phase and digest), so
++//! the template sequence of any accepted tree is `INIT-kind · MID-kind* · FINAL-kind · PAD*`
++//! (or one INIT→DONE template): the wrap requires `s_a.phase = INIT` (the left edge is an INIT
++//! template) and `s_e.phase = DONE` (the right edge is a FINAL template or PAD after one); PAD
++//! (`tree::build_pad`) requires `DONE`. **No template accepts a `DONE` input** (`check`;
++//! review-D7 I3), so nothing proves a continuation after the chunk's end.
++//!
++//! **`ctx`.** A template with a statement (`stmt_len > 0`: INIT, FINAL) witnesses the public
++//! statement `S` and computes `ctx = H8(STMT_MARKER, n_s, S)` in-circuit; record cells may be
++//! statement cells (`Src::Stmt`). A template without one takes `ctx` as a witness: the node
++//! asserts every child's `ctx` equal to child 0's, and `ctx` is inside every `h(B)`, so the chain
++//! of boundary digests carries it from the INIT leaf (which computes it) to every leaf.
++use p3_field::{PrimeCharacteristicRing, PrimeField32};
++
++use super::{
++    agg::{pack, RangeStmt, StmtCells},
++    builder::{coeffs, Builder, DigestCells, V},
++    fmt::{digest_limbs, NV_DIGEST},
++    tree::{N_CTX, PHASE_DONE, PHASE_INIT},
++    verifier::build_verifier,
++};
++use crate::sha384::config::{digest_from_bytes, felt_bytes, hash_parts, truncate_digest, Digest, Sha384Config, F, TAG_STATEMENT};
++use openvm_stark_backend::{keygen::types::MultiStarkVerifyingKey, proof::Proof};
++
++/// The tree phase between segments (neither the chunk's start nor its end).
++pub const PHASE_MID: u32 = 3;
++/// boundary state cells of the heterogeneous tree: `[phase, h(B) (18 limbs)]`
++pub const N_STATE_H: usize = 1 + NV_DIGEST;
++const P: u32 = 0x7800_0001;
++/// Leading cell of the boundary-record message ("BNDR"): tag 8 is shared with the G1 statement
++/// (leading cell = the AIR count, small), the tape-eval message, the wrap message and `S`.
++pub const BND_MARKER: u32 = 0x424E_4452 % P;
++/// Leading cell of the public-statement message ("STMT").
++pub const STMT_MARKER: u32 = 0x5354_4D54 % P;
++
++/// The source of one boundary-record cell.
++#[derive(Clone, Copy, Debug, PartialEq, Eq)]
++pub enum Src {
++    /// public value `j` of child AIR `air`
++    Pv(usize, usize),
++    /// limb `l` (0..18) of the child's `k`-th cached commitment (preamble order); a commitment
++    /// used at all must be used with all 18 limbs (`check`)
++    Cached(usize, usize),
++    /// cell `k` of the public statement `S`
++    Stmt(usize),
++    /// pass-through slot `j`: one witness cell, the same in `B_in` and `B_out` (the fields of the
++    /// record this template does not touch)
++    Pass(usize),
++    /// a constant
++    Const(u32),
++}
++
++/// [E2E-D M8] Where a leaf's `ctx` (the chunk's `claimDigest`, 18 limbs) comes from.
++#[derive(Clone, Debug, PartialEq, Eq)]
++pub enum CtxMode {
++    /// a witness, bound only by the node's `ctx_i = ctx_0` and by `h(B)` (a template that does not
++    /// read the statement: every segment template; the prototype's stub INIT / FINAL)
++    Witness,
++    /// `H8(STMT_MARKER, n_s, S)` over the leaf's statement cells (test fixtures)
++    HashStmt,
++    /// 18 record-style sources, e.g. the public values in which lane G's INIT / FINAL AIR
++    /// exposes `claimDigest = bdigest(S)` (plan §3.4.1) computed over the statement bytes
++    Src(Vec<Src>),
++}
++
++/// A template's layout: what its leaf binds and exposes.
++#[derive(Clone, Debug, PartialEq, Eq)]
++pub struct TemplateSpec {
++    pub name: String,
++    pub phase_in: u32,
++    pub phase_out: u32,
++    /// `B_in` / `B_out` record cells (`n_rec` each); empty iff the phase is INIT (in) / DONE (out)
++    pub rec_in: Vec<Src>,
++    pub rec_out: Vec<Src>,
++    /// length of the statement cells the leaf witnesses (record sources `Src::Stmt`; hashed into
++    /// `ctx` only with `CtxMode::HashStmt`)
++    pub stmt_len: usize,
++    /// where `ctx` comes from
++    pub ctx_mode: CtxMode,
++    /// pass-through slots
++    pub n_pass: usize,
++    /// child AIRs whose public-value vectors must be identical (the template reads one vector in
++    /// several tables); the first AIR of a group carries the binding of the group
++    pub pv_equal: Vec<Vec<usize>>,
++    /// public values pinned to constants `(air, j, value)`
++    pub pv_const: Vec<(usize, usize, u32)>,
++    /// cached commitments pinned to constants `(k, digest)` (a fixed table)
++    pub cached_const: Vec<(usize, Digest)>,
++}
++
++impl TemplateSpec {
++    /// The layout is well formed for this child (`None`: no child proof) and binds every public
++    /// value and cached commitment of it. Returns the record length.
++    pub fn check(&self, child: Option<&MultiStarkVerifyingKey<Sha384Config>>, child_proof: Option<&Proof<Sha384Config>>) -> Result<usize, String> {
++        let legal = [(PHASE_INIT, PHASE_MID), (PHASE_MID, PHASE_MID), (PHASE_MID, PHASE_DONE), (PHASE_INIT, PHASE_DONE)];
++        if !legal.contains(&(self.phase_in, self.phase_out)) {
++            return Err(format!("{}: phases ({}, {}) not one of INIT->MID, MID->MID, MID->DONE, INIT->DONE (no template takes a DONE input: review-D7 I3)", self.name, self.phase_in, self.phase_out));
++        }
++        if (self.phase_in == PHASE_INIT) != self.rec_in.is_empty() {
++            return Err(format!("{}: B_in record must be empty exactly for an INIT input", self.name));
++        }
++        if (self.phase_out == PHASE_DONE) != self.rec_out.is_empty() {
++            return Err(format!("{}: B_out record must be empty exactly for a DONE output", self.name));
++        }
++        let n_rec = self.rec_in.len().max(self.rec_out.len());
++        if !self.rec_in.is_empty() && !self.rec_out.is_empty() && self.rec_in.len() != self.rec_out.len() {
++            return Err(format!("{}: B_in and B_out records differ in length", self.name));
++        }
++        match &self.ctx_mode {
++            CtxMode::HashStmt if self.stmt_len == 0 => return Err(format!("{}: HashStmt without statement cells", self.name)),
++            CtxMode::Src(v) if v.len() != NV_DIGEST || v.iter().any(|x| matches!(x, Src::Pass(_))) => {
++                return Err(format!("{}: ctx sources must be 18 non-pass cells", self.name));
++            }
++            _ => {}
++        }
++        let ctx_srcs: Vec<Src> = if let CtxMode::Src(v) = &self.ctx_mode { v.clone() } else { vec![] };
++        let all: Vec<Src> = self.rec_in.iter().chain(&self.rec_out).chain(&ctx_srcs).copied().collect();
++        for s in &all {
++            match *s {
++                Src::Stmt(k) if k >= self.stmt_len => return Err(format!("{}: statement cell {k} out of range", self.name)),
++                Src::Pass(j) if j >= self.n_pass => return Err(format!("{}: pass slot {j} out of range", self.name)),
++                Src::Cached(_, l) if l >= NV_DIGEST => return Err(format!("{}: cached limb {l} out of range", self.name)),
++                Src::Const(c) if c >= P => return Err(format!("{}: constant not canonical", self.name)),
++                _ => {}
++            }
++        }
++        // a pass slot keeps its value: it must appear in both records
++        for j in 0..self.n_pass {
++            if !self.rec_in.contains(&Src::Pass(j)) || !self.rec_out.contains(&Src::Pass(j)) {
++                return Err(format!("{}: pass slot {j} not in both records", self.name));
++            }
++        }
++        let (vk, proof) = match (child, child_proof) {
++            (None, None) => {
++                if all.iter().any(|s| matches!(s, Src::Pv(..) | Src::Cached(..))) || !self.pv_equal.is_empty() || !self.pv_const.is_empty() || !self.cached_const.is_empty() {
++                    return Err(format!("{}: child sources without a child proof", self.name));
++                }
++                return Ok(n_rec);
++            }
++            (Some(v), Some(p)) => (v, p),
++            _ => return Err("vk and proof go together".into()),
++        };
++        let n_air = vk.inner.per_air.len();
++        let npv: Vec<usize> = (0..n_air).map(|a| vk.inner.per_air[a].params.num_public_values).collect();
++        let n_cached: usize = (0..n_air).map(|a| vk.inner.per_air[a].params.width.cached_mains.len()).sum();
++        if child_proof.is_some() {
++            for a in 0..n_air {
++                if proof.public_values[a].len() != npv[a] {
++                    return Err(format!("{}: AIR {a} public values {} != vk {}", self.name, proof.public_values[a].len(), npv[a]));
++                }
++            }
++        }
++        // every public value bound
++        let mut bound: Vec<Vec<bool>> = npv.iter().map(|&n| vec![false; n]).collect();
++        for s in &all {
++            if let Src::Pv(a, j) = *s {
++                if a >= n_air || j >= npv[a] {
++                    return Err(format!("{}: public value ({a}, {j}) out of range", self.name));
++                }
++                bound[a][j] = true;
++            }
++        }
++        for &(a, j, c) in &self.pv_const {
++            if a >= n_air || j >= npv[a] || c >= P {
++                return Err(format!("{}: pinned public value ({a}, {j}) out of range", self.name));
++            }
++            bound[a][j] = true;
++        }
++        for g in &self.pv_equal {
++            if g.len() < 2 || g.iter().any(|&a| a >= n_air || npv[a] != npv[g[0]]) {
++                return Err(format!("{}: pv_equal group {g:?} malformed", self.name));
++            }
++            for &a in &g[1..] {
++                bound[a].iter_mut().for_each(|x| *x = true);
++            }
++        }
++        for g in &self.pv_equal {
++            if bound[g[0]].iter().any(|x| !x) {
++                return Err(format!("{}: pv_equal group {g:?}: its first AIR's values are not all bound", self.name));
++            }
++        }
++        for (a, v) in bound.iter().enumerate() {
++            if let Some(j) = v.iter().position(|x| !x) {
++                return Err(format!("{}: public value ({a}, {j}) is bound by nothing (a free public value)", self.name));
++            }
++        }
++        // every cached commitment bound, by all of its limbs or by a constant
++        for k in 0..n_cached {
++            let limbs: Vec<usize> = all.iter().filter_map(|s| if let Src::Cached(kk, l) = *s { (kk == k).then_some(l) } else { None }).collect();
++            let pinned = self.cached_const.iter().any(|&(kk, _)| kk == k);
++            let full = (0..NV_DIGEST).all(|l| limbs.contains(&l));
++            if !(pinned || full) {
++                return Err(format!("{}: cached commitment {k} is bound by nothing (or by some limbs only)", self.name));
++            }
++        }
++        if all.iter().any(|s| matches!(*s, Src::Cached(k, _) if k >= n_cached)) || self.cached_const.iter().any(|&(k, _)| k >= n_cached) {
++            return Err(format!("{}: cached commitment index out of range ({n_cached} cached)", self.name));
++        }
++        Ok(n_rec)
++    }
++}
++
++/// SHA-384 (tag 8, truncated) of `cells` as an 18-limb digest, natively.
++fn h8(cells: &[F]) -> Digest {
++    digest_from_bytes(truncate_digest(hash_parts(TAG_STATEMENT, &[&felt_bytes(cells)])))
++}
++
++/// `ctx = H8(STMT_MARKER, n_s, S)` as 18 limbs (natively).
++pub fn stmt_ctx(s: &[F]) -> Vec<F> {
++    let mut v = vec![F::from_u32(STMT_MARKER), F::from_usize(s.len())];
++    v.extend_from_slice(s);
++    digest_limbs(h8(&v)).to_vec()
++}
++
++/// [E2E-D M8, plan §3.4.1] The chunk's `claimDigest = bdigest(S)` (SHA-384 of the canonical
++/// statement bytes, truncated to 42 bytes) as the tree's 18-limb `ctx` (the 42 bytes, zero-padded to
++/// 48, as a digest).
++pub fn claim_ctx(s_bytes: &[u8]) -> Vec<F> {
++    use sha2::{Digest as _, Sha384};
++    let mut d: [u8; 48] = Sha384::digest(s_bytes).into();
++    for b in &mut d[42..] {
++        *b = 0;
++    }
++    digest_limbs(digest_from_bytes(d)).to_vec()
++}
++
++/// The wrap statement check against the canonical statement bytes: `[LEVEL_WRAP, D_wrap(claimDigest, 0)]`.
++pub fn check_wrap_claim(nv_public_values: &[F], s_bytes: &[u8]) -> bool {
++    super::tree::check_wrap_statement(nv_public_values, &claim_ctx(s_bytes), 0)
++}
++
++/// `h(B) = H8(BND_MARKER, n_ctx, n_rec, ctx, rec)` as 18 limbs (natively).
++pub fn bnd_digest(ctx: &[F], rec: &[F]) -> Vec<F> {
++    let mut v = vec![F::from_u32(BND_MARKER), F::from_usize(ctx.len()), F::from_usize(rec.len())];
++    v.extend_from_slice(ctx);
++    v.extend_from_slice(rec);
++    digest_limbs(h8(&v)).to_vec()
++}
++
++/// The boundary state `[phase, h(B)]` (`rec` empty: the 18 zero limbs; INIT inputs, DONE outputs).
++pub fn bnd_state(phase: u32, ctx: &[F], rec: &[F]) -> Vec<F> {
++    let mut s = vec![F::from_u32(phase)];
++    if rec.is_empty() {
++        s.extend([F::ZERO; NV_DIGEST]);
++    } else {
++        s.extend(bnd_digest(ctx, rec));
++    }
++    s
++}
++
++/// The `DONE` state every PAD leaf carries in a heterogeneous tree.
++pub fn done_state() -> Vec<F> {
++    bnd_state(PHASE_DONE, &[], &[])
++}
++
++/// The witnesses of one template leaf.
++#[derive(Clone, Debug, Default)]
++pub struct LeafWitness {
++    /// the public statement `S` (`stmt_len` cells) or empty
++    pub stmt: Vec<F>,
++    /// `ctx` (18 limbs) for a template without a statement
++    pub ctx: Vec<F>,
++    /// pass-through values (`n_pass`)
++    pub pass: Vec<F>,
++    /// segment index
++    pub a: F,
++}
++
++/// The record values natively (what the leaf computes), for the honest statement.
++pub fn record_values(srcs: &[Src], pvs: &[Vec<F>], cached: &[Digest], w: &LeafWitness) -> Vec<F> {
++    srcs.iter()
++        .map(|s| match *s {
++            Src::Pv(a, j) => pvs[a][j],
++            Src::Cached(k, l) => digest_limbs(cached[k])[l],
++            Src::Stmt(k) => w.stmt[k],
++            Src::Pass(j) => w.pass[j],
++            Src::Const(c) => F::from_u32(c),
++        })
++        .collect()
++}
++
++/// The cached commitments of a proof in preamble order (AIR order, then each AIR's cached mains).
++pub fn proof_cached(proof: &Proof<Sha384Config>) -> Vec<Digest> {
++    proof.trace_vdata.iter().flat_map(|t| t.as_ref().map(|t| t.cached_commitments.clone()).unwrap_or_default()).collect()
++}
++
++/// The statement an honest leaf exposes (natively).
++pub fn leaf_statement(spec: &TemplateSpec, child_proof: Option<&Proof<Sha384Config>>, w: &LeafWitness) -> RangeStmt {
++    let (pvs, cached) = match child_proof {
++        Some(p) => (p.public_values.clone(), proof_cached(p)),
++        None => (vec![], vec![]),
++    };
++    let ctx = match &spec.ctx_mode {
++        CtxMode::HashStmt => stmt_ctx(&w.stmt),
++        CtxMode::Witness => w.ctx.clone(),
++        CtxMode::Src(v) => record_values(v, &pvs, &cached, w),
++    };
++    let rin = record_values(&spec.rec_in, &pvs, &cached, w);
++    let rout = record_values(&spec.rec_out, &pvs, &cached, w);
++    RangeStmt { ctx: ctx.clone(), a: w.a, e: w.a + F::ONE, s_a: bnd_state(spec.phase_in, &ctx, &rin), s_e: bnd_state(spec.phase_out, &ctx, &rout) }
++}
++
++/// In-circuit H8 over cells, returned as 18 limb cells bound to the digest (packed comparison).
++fn h8_limbs(b: &mut Builder, cells: &[V], basis: &mut Vec<V>, what: &str) -> Vec<V> {
++    let vals: Vec<F> = cells.iter().map(|c| coeffs(c.val)[0]).collect();
++    let job = b.job_start(TAG_STATEMENT, 4 * cells.len());
++    for (i, &x) in cells.iter().enumerate() {
++        b.unit1(x, job, 2 + i as u32);
++    }
++    let d = h8(&vals);
++    let dc = b.dig(job, d);
++    limbs_of(b, &dc, basis, what)
++}
++
++/// 18 limb witness cells bound to digest cells `dc` (lo: limbs 0..12, hi: 12..18).
++fn limbs_of(b: &mut Builder, dc: &DigestCells, basis: &mut Vec<V>, what: &str) -> Vec<V> {
++    let limbs = digest_limbs(dc.digest);
++    let cells: Vec<V> = limbs.iter().map(|&x| b.load_f(x)).collect();
++    let lo = pack(b, basis, &cells[..12]);
++    let hi = pack(b, basis, &cells[12..]);
++    b.assert_eq(dc.lo, lo, &format!("{what}: limbs lo"));
++    b.assert_eq(dc.hi, hi, &format!("{what}: limbs hi"));
++    cells
++}
++
++/// [E2E-D M8] The generic template leaf (level 1). See the module docs. Panics (program
++/// generation refused) if the layout does not bind the child completely.
++pub fn build_tmpl_leaf(
++    b: &mut Builder,
++    spec: &TemplateSpec,
++    child: Option<(&MultiStarkVerifyingKey<Sha384Config>, &Proof<Sha384Config>)>,
++    w: &LeafWitness,
++) -> RangeStmt {
++    assert!(!(b.bind || b.child_nv || b.bind_child || b.capture_statement), "a template child is not an NV proof");
++    let n_rec = spec.check(child.map(|c| c.0), child.map(|c| c.1)).unwrap_or_else(|e| panic!("template layout: {e}"));
++    assert_eq!(w.stmt.len(), spec.stmt_len, "{}: statement length", spec.name);
++    assert_eq!(w.pass.len(), spec.n_pass, "{}: pass-through slots", spec.name);
++    b.agg = true;
++    let mut basis: Vec<V> = vec![];
++    // 1. the child proof, its public values and cached commitments
++    let (pv, cached): (Vec<Vec<V>>, Vec<DigestCells>) = match child {
++        Some((vk, proof)) => {
++            b.captured_cached = None;
++            let pv = build_verifier(b, vk, proof);
++            let cached = b.captured_cached.take().expect("cached commitments of the template child");
++            (pv, cached)
++        }
++        None => (vec![], vec![]),
++    };
++    // 2. public-value equalities and pins, pinned cached commitments
++    for g in &spec.pv_equal {
++        for &a in &g[1..] {
++            for j in 0..pv[a].len() {
++                let (x, y) = (pv[a][j], pv[g[0]][j]);
++                b.assert_eq(x, y, &format!("{}: AIR {a} public value {j} = AIR {}'s", spec.name, g[0]));
++            }
++        }
++    }
++    for &(a, j, c) in &spec.pv_const {
++        let k = b.c(F::from_u32(c));
++        b.assert_eq(pv[a][j], k, &format!("{}: pinned public value ({a}, {j})", spec.name));
++    }
++    for &(k, d) in &spec.cached_const {
++        let cd = b.const_digest(d);
++        b.assert_eq(cached[k].lo, cd.lo, &format!("{}: pinned cached commitment {k} lo", spec.name));
++        b.assert_eq(cached[k].hi, cd.hi, &format!("{}: pinned cached commitment {k} hi", spec.name));
++    }
++    // 3. cached commitments used by the record: their limbs, bound to the commitment cells
++    let mut cached_limbs: Vec<Option<Vec<V>>> = vec![None; cached.len()];
++    let ctx_srcs: Vec<Src> = if let CtxMode::Src(v) = &spec.ctx_mode { v.clone() } else { vec![] };
++    for s in spec.rec_in.iter().chain(&spec.rec_out).chain(&ctx_srcs) {
++        if let Src::Cached(k, _) = *s {
++            if cached_limbs[k].is_none() {
++                cached_limbs[k] = Some(limbs_of(b, &cached[k].clone(), &mut basis, &format!("{}: cached commitment {k}", spec.name)));
++            }
++        }
++    }
++    // 4. the statement and ctx
++    let stmt: Vec<V> = w.stmt.iter().map(|&x| b.load_f(x)).collect();
++    let pass: Vec<V> = w.pass.iter().map(|&x| b.load_f(x)).collect();
++    let cell = |b: &mut Builder, s: &Src| -> V {
++        match *s {
++            Src::Pv(a, j) => pv[a][j],
++            Src::Cached(k, l) => cached_limbs[k].as_ref().unwrap()[l],
++            Src::Stmt(k) => stmt[k],
++            Src::Pass(j) => pass[j],
++            Src::Const(c) => b.c(F::from_u32(c)),
++        }
++    };
++    let ctx: Vec<V> = match &spec.ctx_mode {
++        CtxMode::HashStmt => {
++            let mut cells = vec![b.c(F::from_u32(STMT_MARKER)), b.c(F::from_usize(spec.stmt_len))];
++            cells.extend(&stmt);
++            h8_limbs(b, &cells, &mut basis, &format!("{}: ctx = H(S)", spec.name))
++        }
++        CtxMode::Witness => {
++            assert_eq!(w.ctx.len(), N_CTX, "{}: ctx witness", spec.name);
++            w.ctx.iter().map(|&x| b.load_f(x)).collect()
++        }
++        CtxMode::Src(v) => v.iter().map(|x| cell(b, x)).collect(),
++    };
++    // 5. the records and their digests
++    let mut state = |b: &mut Builder, phase: u32, srcs: &[Src], basis: &mut Vec<V>, what: &str| -> Vec<V> {
++        let mut s = vec![b.c(F::from_u32(phase))];
++        if srcs.is_empty() {
++            for _ in 0..NV_DIGEST {
++                let z = b.c(F::ZERO);
++                s.push(z);
++            }
++        } else {
++            let mut cells = vec![b.c(F::from_u32(BND_MARKER)), b.c(F::from_usize(N_CTX)), b.c(F::from_usize(n_rec))];
++            cells.extend(&ctx);
++            for x in srcs {
++                let v = cell(b, x);
++                cells.push(v);
++            }
++            s.extend(h8_limbs(b, &cells, basis, what));
++        }
++        s
++    };
++    let s_a = state(b, spec.phase_in, &spec.rec_in, &mut basis, &format!("{}: h(B_in)", spec.name));
++    let s_e = state(b, spec.phase_out, &spec.rec_out, &mut basis, &format!("{}: h(B_out)", spec.name));
++    let av = b.load_f(w.a);
++    let one = b.c(F::ONE);
++    let e = b.add(av, one);
++    let cells = StmtCells { ctx, a: av, e, s_a, s_e };
++    let val = |c: &V| coeffs(c.val)[0];
++    let stmt_native = RangeStmt {
++        ctx: cells.ctx.iter().map(val).collect(),
++        a: w.a,
++        e: w.a + F::ONE,
++        s_a: cells.s_a.iter().map(val).collect(),
++        s_e: cells.s_e.iter().map(val).collect(),
++    };
++    let dc = super::agg::hash_range(b, &cells);
++    let l = b.c(F::from_u32(super::tree::LEVEL_LEAF));
++    b.pv_level(l);
++    b.pv_digest(&dc);
++    stmt_native
++}
++
++/// The wrap's ctx check for a heterogeneous tree: V_d recomputes `ctx = H(S)` from the public
++/// statement and checks `[LEVEL_WRAP, D_wrap(ctx, 0)]` (the INIT input digest is zero).
++pub fn check_wrap_statement_h(nv_public_values: &[F], stmt: &[F]) -> bool {
++    super::tree::check_wrap_statement(nv_public_values, &stmt_ctx(stmt), 0)
++}
++
++#[allow(dead_code)]
++fn _canon(x: F) -> u32 {
++    x.as_canonical_u32()
++}
+--- a/openvm-sha384/crates/recursion/src/nv/htree_tests.rs
++++ b/openvm-sha384/crates/recursion/src/nv/htree_tests.rs
+@@ -0,0 +1,377 @@
++//! [E2E-D M8] Tests of the heterogeneous tree (nv/htree.rs) on Fibonacci fixture templates of two
++//! kinds, plus statement-only INIT / FINAL stubs:
++//!
++//! the boundary record is `[x_l, x_r, y_l, y_r]` (two Fibonacci machines); template A
++//! (`SegAir { n_ctx: 1 }`, 32 rows) advances `x` and passes `y` through, template B
++//! (`SegAir { n_ctx: 2 }`, 16 rows: another vk, other heights) advances `y` and passes `x`
++//! through; INIT (no child, statement `S`) sets `B_1 = S[0..4]`; FINAL (no child, `S`) requires
++//! `B_N = S[4..8]`. Honest tree `INIT · A · B · FINAL` (arity 4, depth 1): leaves at their own
++//! pinned heights, `P_2` over the set `{C_INIT, C_A, C_B, C_FINAL, C_padL}`, the wrap (debug
++//! check, final domain) exposes `D_wrap(H(S), 0)`. Every negative is checked at the constraint
++//! level (`engine.debug`; host failures ignored) unless marked "generation".
++//! Ignored (proves 9 leaves and 2 nodes); run with `--ignored htree_`.
++use openvm_stark_backend::{keygen::types::MultiStarkVerifyingKey, proof::Proof, test_utils::TestFixture, StarkEngine};
++use p3_field::PrimeCharacteristicRing;
++use p3_matrix::dense::RowMajorMatrix;
++
++use super::{
++    agg::{RangeStmt, SegFixture},
++    builder::Builder,
++    circuit::{prove_mats, shape_pinned_heights, NvCircuit},
++    htree::*,
++    tree::*,
++};
++use crate::sha384::{config::*, e2e_tests::child_params_small};
++
++type Vk = MultiStarkVerifyingKey<Sha384Config>;
++type Pf = Proof<Sha384Config>;
++
++fn parent() -> openvm_stark_backend::SystemParams {
++    let mut p = crate::sha384::e2e_tests::params_from_env("PARENT", [16, 3, 20, 3]);
++    p.max_constraint_degree = NvCircuit::new(3, 16, 1).layout().degree().max(6);
++    p
++}
++
++fn root_of(p: &Pf) -> Digest {
++    p.trace_vdata[0].as_ref().unwrap().cached_commitments[0]
++}
++
++fn debug_body(circ: &NvCircuit, engine: &Sha384CpuEngine, body: impl FnOnce(&mut Builder)) -> Builder {
++    use openvm_cpu_backend::CpuBackend;
++    use openvm_stark_backend::prover::{AirProvingContext, ProvingContext};
++    let airs = circ.airs::<Sha384Config>();
++    let (mats, b): (Vec<RowMajorMatrix<F>>, Builder) = circ.generate_with(body);
++    let ctxs: Vec<AirProvingContext<CpuBackend<Sha384Config>>> = super::circuit::nv_contexts(circ, engine.config(), mats, b.public_values());
++    engine.debug(&airs, &ProvingContext::new(ctxs.into_iter().enumerate().collect()));
++    b
++}
++
++fn hex_bytes(h: &str) -> Vec<u8> {
++    (0..h.len() / 2).map(|i| u8::from_str_radix(&h[2 * i..2 * i + 2], 16).unwrap()).collect()
++}
++
++fn f(x: u64) -> F {
++    F::from_u64(x)
++}
++
++/// Template A: x advances, y passes; public values [c0 = 7, j = 0, pre_l, pre_r, post_l, post_r].
++fn spec_a() -> TemplateSpec {
++    TemplateSpec {
++        name: "A".into(),
++        phase_in: PHASE_MID,
++        phase_out: PHASE_MID,
++        rec_in: vec![Src::Pv(0, 2), Src::Pv(0, 3), Src::Pass(0), Src::Pass(1)],
++        rec_out: vec![Src::Pv(0, 4), Src::Pv(0, 5), Src::Pass(0), Src::Pass(1)],
++        stmt_len: 0,
++        ctx_mode: CtxMode::Witness,
++        n_pass: 2,
++        pv_equal: vec![],
++        pv_const: vec![(0, 0, 7), (0, 1, 0)],
++        cached_const: vec![],
++    }
++}
++/// Template B: y advances, x passes; public values [c0 = 7, c1 = 9, j = 0, pre_l, pre_r, post_l, post_r].
++fn spec_b() -> TemplateSpec {
++    TemplateSpec {
++        name: "B".into(),
++        phase_in: PHASE_MID,
++        phase_out: PHASE_MID,
++        rec_in: vec![Src::Pass(0), Src::Pass(1), Src::Pv(0, 3), Src::Pv(0, 4)],
++        rec_out: vec![Src::Pass(0), Src::Pass(1), Src::Pv(0, 5), Src::Pv(0, 6)],
++        stmt_len: 0,
++        ctx_mode: CtxMode::Witness,
++        n_pass: 2,
++        pv_equal: vec![],
++        pv_const: vec![(0, 0, 7), (0, 1, 9), (0, 2, 0)],
++        cached_const: vec![],
++    }
++}
++/// INIT stub: no child; S = [x0_l, x0_r, y0_l, y0_r, xf_l, xf_r, yf_l, yf_r]; B_1 = S[0..4].
++fn spec_init() -> TemplateSpec {
++    TemplateSpec {
++        name: "INIT".into(),
++        phase_in: PHASE_INIT,
++        phase_out: PHASE_MID,
++        rec_in: vec![],
++        rec_out: (0..4).map(Src::Stmt).collect(),
++        stmt_len: 8,
++        ctx_mode: CtxMode::HashStmt,
++        n_pass: 0,
++        pv_equal: vec![],
++        pv_const: vec![],
++        cached_const: vec![],
++    }
++}
++/// FINAL stub: no child; B_N = S[4..8].
++fn spec_final() -> TemplateSpec {
++    TemplateSpec { name: "FINAL".into(), phase_in: PHASE_MID, phase_out: PHASE_DONE, rec_in: (4..8).map(Src::Stmt).collect(), rec_out: vec![], ..spec_init() }
++}
++
++#[test]
++fn htree_spec_checks() {
++    // generation-level refusals (no proof needed for the stub templates)
++    assert!(spec_init().check(None, None).is_ok());
++    assert!(spec_final().check(None, None).is_ok());
++    let mut s = spec_final();
++    s.phase_in = PHASE_DONE;
++    s.phase_out = PHASE_DONE;
++    assert!(s.check(None, None).unwrap_err().contains("DONE input"), "review-D7 I3: a DONE input is refused");
++    let mut s = spec_init();
++    s.phase_out = PHASE_INIT;
++    assert!(s.check(None, None).is_err(), "INIT output refused");
++    let mut s = spec_init();
++    s.rec_in = vec![Src::Stmt(0)];
++    assert!(s.check(None, None).is_err(), "an INIT input carries no record");
++    let mut s = spec_final();
++    s.rec_out = vec![Src::Stmt(0); 4];
++    assert!(s.check(None, None).is_err(), "a DONE output carries no record");
++    let mut s = spec_init();
++    s.rec_out[0] = Src::Stmt(8);
++    assert!(s.check(None, None).is_err(), "statement cell out of range");
++    let mut s = spec_init();
++    s.rec_out[0] = Src::Pv(0, 0);
++    assert!(s.check(None, None).is_err(), "child source without a child");
++    let mut s = spec_init();
++    s.ctx_mode = CtxMode::Src(vec![Src::Stmt(0); 17]);
++    assert!(s.check(None, None).is_err(), "ctx sources: 18 cells");
++    let mut s = spec_init();
++    s.ctx_mode = CtxMode::Src(vec![Src::Pv(0, 0); 18]);
++    assert!(s.check(None, None).is_err(), "ctx from a child that is not there");
++    // claimDigest = bdigest(S) (plan 3.4.1) as ctx limbs: the 42 bytes come back, the rest is zero
++    let c = claim_ctx(b"abc");
++    let back = digest_bytes(super::fmt::limbs_digest(&c));
++    let want = hex_bytes("cb00753f45a35e8bb5a03d699ac65007272c32ab0eded1631a8b605a43ff5bed8086072ba1e7cc2358baeca134c825a7");
++    assert_eq!(&back[..42], &want[..42]);
++    assert!(back[42..].iter().all(|&x| x == 0));
++    println!("HTREE_SPEC_CHECKS_OK");
++}
++
++#[test]
++#[ignore]
++fn htree_fib_end_to_end() {
++    let lr = crate::sha384::e2e_tests::env_usize("TREE_LOG_ROWS", 19);
++    let app = Sha384CpuEngine::new(child_params_small());
++    // the machine: x from (0, 1) for 32 rows (A), y from (2, 3) for 16 rows (B)
++    let seg_a = |pre: (F, F)| SegFixture { ctx: vec![f(7)], j: 0, pre, n: 32 };
++    let seg_b = |pre: (F, F)| SegFixture { ctx: vec![f(7), f(9)], j: 0, pre, n: 16 };
++    let (x0, y0) = ((f(0), f(1)), (f(2), f(3)));
++    let fa = seg_a(x0);
++    let fb = seg_b(y0);
++    let (xf, yf) = (fa.post(), fb.post());
++    let (va, pa) = fa.keygen_and_prove(&app);
++    let (vb, pb) = fb.keygen_and_prove(&app);
++    assert_ne!(va.pre_hash, vb.pre_hash, "two templates, two vks");
++    // a second A segment continuing x (for the no-FINAL tree) and an A segment from a wrong start
++    let fa2 = seg_a(xf);
++    let (va2, pa2) = fa2.keygen_and_prove(&app);
++    let (vab, pab) = seg_a((f(5), f(8))).keygen_and_prove(&app);
++    assert_eq!(va2.pre_hash, va.pre_hash);
++    let s: Vec<F> = vec![x0.0, x0.1, y0.0, y0.1, xf.0, xf.1, yf.0, yf.1];
++    let ctx = stmt_ctx(&s);
++    let w_stmt = |a: u64| LeafWitness { stmt: s.clone(), ctx: vec![], pass: vec![], a: f(a) };
++    let w_seg = |a: u64, pass: Vec<F>| LeafWitness { stmt: vec![], ctx: ctx.clone(), pass, a: f(a) };
++    let pe = Sha384CpuEngine::new(parent());
++    let k = parent().k_whir();
++    // the NvAir height follows the pin (the node over four leaves needs 2^20 at TREE_LOG_ROWS 19)
++    let mk = |h: Option<&[(usize, Option<usize>)]>| {
++        let l = h.map_or(lr, |h| h[0].0.max(lr));
++        let mut c = NvCircuit::new(k, l, 1);
++        c.program_part = true;
++        c.prog_log = lr - 1;
++        if let Some(h) = h {
++            c.heights = Some(h.iter().map(|&(l, _)| 1usize << l).collect());
++            c.tight_floor = Some(h.iter().map(|&(l, t)| t.unwrap_or(1 << l)).collect());
++        }
++        c
++    };
++    let c0 = mk(None);
++    let dbg = |name: &str, expect_ok: bool, circ: &NvCircuit, eng: &Sha384CpuEngine, body: &dyn Fn(&mut Builder)| {
++        let r = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| debug_body(circ, eng, |b| body(b)).failures));
++        match (&r, expect_ok) {
++            (Ok(f), true) => println!("HTREE_POSITIVE_OK {name} host_failures={f:?}"),
++            (Err(_), false) => println!("HTREE_DEBUG_REJECTED {name}"),
++            (Ok(f), false) => panic!("HTREE constraint check ACCEPTED forged {name} (host failures {f:?})"),
++            (Err(_), true) => panic!("HTREE positive control {name} rejected"),
++        }
++    };
++    let (sa, sb, si, sf) = (spec_a(), spec_b(), spec_init(), spec_final());
++    // ---- leaves, constraint level
++    let y_pass = vec![y0.0, y0.1];
++    let x_pass = vec![xf.0, xf.1];
++    dbg("leaf INIT (honest)", true, &c0, &pe, &|b| {
++        build_tmpl_leaf(b, &si, None, &w_stmt(0));
++    });
++    dbg("leaf A (honest)", true, &c0, &pe, &|b| {
++        build_tmpl_leaf(b, &sa, Some((&va, &pa)), &w_seg(1, y_pass.clone()));
++    });
++    dbg("leaf B (honest)", true, &c0, &pe, &|b| {
++        build_tmpl_leaf(b, &sb, Some((&vb, &pb)), &w_seg(2, x_pass.clone()));
++    });
++    let mut sa_bad = spec_a();
++    sa_bad.pv_const[0].2 = 8;
++    dbg("leaf A: a pinned public value differs", false, &c0, &pe, &|b| {
++        build_tmpl_leaf(b, &sa_bad, Some((&va, &pa)), &w_seg(1, y_pass.clone()));
++    });
++    // generation-level: a layout that leaves a public value free, or the wrong template's layout
++    let mut sa_free = spec_a();
++    sa_free.pv_const.pop();
++    assert!(sa_free.check(Some(&va), Some(&pa)).unwrap_err().contains("free public value"));
++    assert!(sa.check(Some(&vb), Some(&pb)).is_err(), "A's layout on B's proof");
++    println!("HTREE_GENERATION_REFUSED free public value; another template's layout");
++    dbg("PAD (honest, DONE)", true, &c0, &pe, &|b| {
++        build_pad(b, &ctx, f(4), &done_state());
++    });
++    let mid = bnd_state(PHASE_MID, &ctx, &[xf.0, xf.1, y0.0, y0.1]);
++    dbg("PAD on a MID boundary", false, &c0, &pe, &|b| {
++        build_pad(b, &ctx, f(2), &mid);
++    });
++    // ---- leaf heights: max of every leaf kind's shape pin
++    let mut pins = vec![];
++    for body in [
++        &(|b: &mut Builder| {
++            build_tmpl_leaf(b, &si, None, &w_stmt(0));
++        }) as &dyn Fn(&mut Builder),
++        &|b| {
++            build_tmpl_leaf(b, &sa, Some((&va, &pa)), &w_seg(1, y_pass.clone()));
++        },
++        &|b| {
++            build_tmpl_leaf(b, &sb, Some((&vb, &pb)), &w_seg(2, x_pass.clone()));
++        },
++        &|b| {
++            build_tmpl_leaf(b, &sf, None, &w_stmt(3));
++        },
++        &|b| {
++            build_pad(b, &ctx, f(3), &done_state());
++        },
++    ] {
++        let (m, b) = c0.generate_with(|b| body(b));
++        pins.push(shape_pinned_heights(&m, &b, 2, 40.0).0);
++    }
++    let hl: Vec<(usize, Option<usize>)> =
++        (0..pins[0].len()).map(|a| (pins.iter().map(|p| p[a].0).max().unwrap(), Some(pins.iter().map(|p| p[a].1.unwrap()).max().unwrap()))).collect();
++    println!("HTREE_LEAF_PIN {hl:?}");
++    let cl = mk(Some(&hl));
++    let prove = |c: &NvCircuit, body: &dyn Fn(&mut Builder) -> RangeStmt| {
++        let mut st = None;
++        let (m, b) = c.generate_with(|b| st = Some(body(b)));
++        assert!(b.failures.is_empty(), "{:?}", b.failures);
++        let (v, p, _) = prove_mats(c, &pe, m, &b);
++        (v, p, st.unwrap())
++    };
++    let l_init = prove(&cl, &|b| build_tmpl_leaf(b, &si, None, &w_stmt(0)));
++    let l_a = prove(&cl, &|b| build_tmpl_leaf(b, &sa, Some((&va, &pa)), &w_seg(1, y_pass.clone())));
++    let l_b = prove(&cl, &|b| build_tmpl_leaf(b, &sb, Some((&vb, &pb)), &w_seg(2, x_pass.clone())));
++    let l_fin = prove(&cl, &|b| build_tmpl_leaf(b, &sf, None, &w_stmt(3)));
++    let l_a2 = prove(&cl, &|b| build_tmpl_leaf(b, &sa, Some((&va2, &pa2)), &w_seg(3, vec![yf.0, yf.1])));
++    let l_abad = prove(&cl, &|b| build_tmpl_leaf(b, &sa, Some((&vab, &pab)), &w_seg(1, y_pass.clone())));
++    let l_pad2 = prove(&cl, &|b| build_pad(b, &ctx, f(2), &done_state()));
++    let l_pad3 = prove(&cl, &|b| build_pad(b, &ctx, f(3), &done_state()));
++    // the honest statements are what the native model says
++    assert_eq!(l_init.2, leaf_statement(&si, None, &w_stmt(0)));
++    assert_eq!(l_a.2, leaf_statement(&sa, Some(&pa), &w_seg(1, y_pass.clone())));
++    assert_eq!(l_b.2, leaf_statement(&sb, Some(&pb), &w_seg(2, x_pass.clone())));
++    assert_eq!(l_fin.2, leaf_statement(&sf, None, &w_stmt(3)));
++    for (n, l) in [("INIT", &l_init), ("A", &l_a), ("B", &l_b), ("FINAL", &l_fin), ("PAD", &l_pad2)] {
++        assert!(super::agg::check_range_statement(&l.1.public_values[0], &l.2), "{n} statement");
++    }
++    assert_eq!(root_of(&l_a.1), root_of(&l_a2.1), "one program per template (A over two A proofs)");
++    assert_eq!(root_of(&l_pad2.1), root_of(&l_pad3.1));
++    let set = vec![root_of(&l_init.1), root_of(&l_a.1), root_of(&l_b.1), root_of(&l_fin.1), root_of(&l_pad2.1)];
++    let mut uniq = set.clone();
++    uniq.sort();
++    uniq.dedup();
++    assert_eq!(uniq.len(), 5, "five distinct template programs");
++    println!("HTREE_TEMPLATE_SET INIT A B FINAL PAD_L distinct roots");
++    // ---- P_2 over the honest sequence; node pin = shape pin + 25 %
++    let kids = |ls: &[&(Vk, Pf, RangeStmt)]| -> (Vec<(Vk, Pf)>, Vec<RangeStmt>) { (ls.iter().map(|l| (l.0.clone(), l.1.clone())).collect(), ls.iter().map(|l| l.2.clone()).collect()) };
++    let refs = |k: &[(Vk, Pf)]| -> Vec<(Vk, Pf)> { k.to_vec() };
++    let (hk, hp) = kids(&[&l_init, &l_a, &l_b, &l_fin]);
++    let node = |b: &mut Builder, k: &[(Vk, Pf)], p: &[RangeStmt], set: &[Digest]| {
++        let r: Vec<(&Vk, &Pf)> = k.iter().map(|(a, b)| (a, b)).collect();
++        build_node2(b, &r, p, set)
++    };
++    let (m, b) = c0.generate_with(|b| {
++        node(b, &hk, &hp, &set);
++    });
++    let (hn0, _) = shape_pinned_heights(&m, &b, 2, 40.0);
++    let hn: Vec<(usize, Option<usize>)> = hn0
++        .iter()
++        .enumerate()
++        .map(|(a, &(l, t))| {
++            if a < 2 {
++                let t2 = (t.unwrap() + t.unwrap() / 4).next_multiple_of(4);
++                let l2 = l.max(t2.next_power_of_two().trailing_zeros() as usize);
++                (l2, Some(t2.min(1 << l2)))
++            } else {
++                (l, t)
++            }
++        })
++        .collect();
++    println!("HTREE_NODE_PIN {hn:?}");
++    let cn = mk(Some(&hn));
++    dbg("P_2 INIT A B FINAL (honest)", true, &cn, &pe, &|b| {
++        node(b, &hk, &hp, &set);
++    });
++    // node-level negatives (constraint level)
++    dbg("P_2: template set without B (template swap / unknown template)", false, &cn, &pe, &|b| {
++        node(b, &hk, &hp, &[set[0], set[1], set[3], set[4]]);
++    });
++    let (k2, p2) = kids(&[&l_init, &l_abad, &l_b, &l_fin]);
++    dbg("P_2: boundary mismatch (A from another start)", false, &cn, &pe, &|b| {
++        node(b, &k2, &p2, &set);
++    });
++    let (k2, p2) = kids(&[&l_init, &l_b, &l_a, &l_fin]);
++    dbg("P_2: A and B reordered", false, &cn, &pe, &|b| {
++        node(b, &k2, &p2, &set);
++    });
++    let (k2, p2) = kids(&[&l_init, &l_a, &l_pad2, &l_fin]);
++    dbg("P_2: PAD in the middle (on a MID boundary)", false, &cn, &pe, &|b| {
++        node(b, &k2, &p2, &set);
++    });
++    let (k2, p2) = kids(&[&l_init, &l_a, &l_b, &l_pad3]);
++    dbg("P_2: PAD instead of FINAL", false, &cn, &pe, &|b| {
++        node(b, &k2, &p2, &set);
++    });
++    // a segment leaf of another chunk's ctx (A proved with another ctx witness) in this chunk
++    let mut other = ctx.clone();
++    other[0] += F::ONE;
++    let l_actx = prove(&cl, &|b| build_tmpl_leaf(b, &sa, Some((&va, &pa)), &LeafWitness { stmt: vec![], ctx: other.clone(), pass: y_pass.clone(), a: f(1) }));
++    let (k2, p2) = kids(&[&l_init, &l_actx, &l_b, &l_fin]);
++    dbg("P_2: a leaf of another chunk's ctx", false, &cn, &pe, &|b| {
++        node(b, &k2, &p2, &set);
++    });
++    // a forged preimage: child B's exposed state replaced (the hash no longer matches its D)
++    let mut pf = hp.clone();
++    pf[2].s_a[1] += F::ONE;
++    pf[1].s_e[1] += F::ONE;
++    dbg("P_2: forged B boundary preimage (chained consistently)", false, &cn, &pe, &|b| {
++        node(b, &hk, &pf, &set);
++    });
++    let _ = refs;
++    // ---- roots and the wrap
++    let root = prove(&cn, &|b| node(b, &hk, &hp, &set));
++    let root_stmt = RangeStmt::compose(&hp).unwrap();
++    assert_eq!(root.2, root_stmt);
++    let (kn, pn) = kids(&[&l_init, &l_a, &l_b, &l_a2]);
++    let root_nofin = prove(&cn, &|b| node(b, &kn, &pn, &set));
++    assert_eq!(root_of(&root.1), root_of(&root_nofin.1), "one P_2 program over different template mixes");
++    let c2 = root_of(&root.1);
++    let mut fp = parent();
++    fp.whir.levers.zk = 0;
++    let fe = Sha384CpuEngine::new_final(fp);
++    let mut cw = NvCircuit::new(k, lr, 1);
++    cw.prog_log = lr - 2;
++    let wb = debug_body(&cw, &fe, |b| {
++        build_wrap_set(b, &root.0, &root.1, 2, &[c2], &root_stmt);
++    });
++    assert!(wb.failures.is_empty(), "{:?}", wb.failures);
++    assert!(check_wrap_statement_h(&wb.public_values(), &s), "D_wrap = D_wrap(H(S), 0)");
++    let mut s2 = s.clone();
++    s2[7] += F::ONE;
++    assert!(!check_wrap_statement_h(&wb.public_values(), &s2), "another statement rejected natively");
++    println!("HTREE_WRAP_OK rows={}", wb.instrs.len());
++    dbg("wrap: a root that never reaches DONE (no FINAL)", false, &cw, &fe, &|b| {
++        build_wrap_set(b, &root_nofin.0, &root_nofin.1, 2, &[c2], &root_nofin.2);
++    });
++    println!("HTREE_FIB_END_TO_END_OK");
++}
