@@ -108,7 +108,7 @@ theorem argMsg_mem_consCHS {tr : Trace} {pub : List F} {r j : Nat} (hj : j < Hos
     exact List.mem_flatMap.mpr ⟨j, by simpa [Host.argRange] using hj, by simp [hpf]⟩
   have e : rowConsM tr pub (22, r) = rowCons Host.table tr pub 22 r := by simp [rowConsM, chipTM2]
   unfold consCHS consCHM2
-  exact List.mem_append_left _ (List.mem_append_left _ (e ▸ hc))
+  exact List.mem_append_left _ (List.mem_append_left _ (List.mem_append_left _ (e ▸ hc)))
 
 /-- **Stack coverage at a HOST row**: if the first `k` argument flags are set and the argument slots
 are the top `k` slots (`host_arg_slot`: `hostSlot tr r j = size − np + j`, with `np = k`), the row
@@ -128,7 +128,7 @@ theorem msgCoverMem_of_hostb {tr : Trace} {pub : List F} {r : Nat} {B : Nat → 
   refine ⟨x, ?_, h1, h2⟩
   unfold consCHS consCHM2 hostbConsH
   simp only [if_true]
-  exact List.mem_append_left _ (List.mem_append_right _ (List.mem_append_left _ hx))
+  exact List.mem_append_left _ (List.mem_append_left _ (List.mem_append_right _ (List.mem_append_left _ hx)))
 
 /-! ## 3. `HostReadCovered` -/
 

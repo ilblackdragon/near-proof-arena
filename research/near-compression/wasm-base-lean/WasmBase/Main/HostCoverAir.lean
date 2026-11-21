@@ -19,7 +19,8 @@ its own argument/result messages, its `HOSTB` bytes, its REG-C net traffic, its 
   consume at `mtp`, re-produce at `ts`, both counted by `memCnt`) and `REG`'s write pair (old byte `ob`
   consumed at `mtp`, new byte produced at `ts`, both counted by `wcnt`) are the only space-3 sends.
 
-**AIR gap (not fixed here).**  The converse direction — every byte the *spec* call writes is on the
+**AIR gap (fixed in A-T1: `HostBK.writeInters`, `WasmBase/SegAir.lean`; `pairSp_hostbw`, and the
+write coverage is derived in `Main/HostWriteCov.lean`).**  The converse direction — every byte the *spec* call writes is on the
 bus — fails: the only space-3 writes of the AIR are REG's `wcnt` rows, and `cWrHid` forces
 `hid = read_register` on them.  The five `setU128H` arms (`account_balance`, `account_locked_balance`,
 `attached_deposit`, `validator_stake`, `validator_total_stake`) write 16 bytes of linear memory
@@ -53,6 +54,10 @@ theorem pairSp_host : PairSp Host.table = true := by decide +kernel
 theorem pairSp_hostb : PairSp HostB.table = true := by decide +kernel
 theorem pairSp_regw : PairSp RegW.table = true := by decide +kernel
 theorem pairSp_gas : PairSp GasT = true := by decide +kernel
+/-- The A-T1 write pair of `HOSTB`: its new-byte send is paired with its old-byte receive. -/
+theorem pairSp_hostbw : PairSp HostBW = true := by decide +kernel
+/-- **`HOSTB` of the segment AIR** (request MEMIO pair + A-T1 write pair) is `PairSp`. -/
+theorem pairSp_hostbk : PairSp HostBK.table = true := by decide +kernel
 
 theorem mem_rowMsgs_cnt {T : Table} {tr : Trace} {pub : List F} {t r b : Nat} {s : Bool} {m : List F}
     (hm : m ∈ rowMsgs T tr pub t r b s) :
@@ -120,21 +125,21 @@ theorem pairSp_rowProd {T : Table} (hP : PairSp T = true) (hS : ConstSp T = true
 theorem host_prod3_paired (tr : Trace) (pub : List F) (r : Nat) :
     ∀ y ∈ prodCHS tr pub (22, r), y.space = 3 → Cov3 (consCHS tr pub (22, r)) y.slot := by
   intro x hx h3
-  simp only [prodCHS, prodCHM2, rowProdM, hostbProdH, regProdH, gasProdH, chipTM2, ite_true,
+  simp only [prodCHS, prodCHM2, rowProdM, hostbProdH, regProdH, gasProdH, hbwProdH, chipTM2, ite_true,
     List.mem_append] at hx
   have toC : ∀ y, y ∈ consCHS tr pub (22, r) → y.space = 3 → y.slot = x.slot → Cov3 (consCHS tr pub (22, r)) x.slot :=
     fun y hy h1 h2 => ⟨y, hy, h1, h2⟩
-  rcases hx with ((hx | hx | hx) | hx)
+  rcases hx with (((hx | hx | hx) | hx) | hx)
   · obtain ⟨y, hy, h1, h2⟩ := pairSp_rowProd pairSp_host constSp_host hx h3
     refine toC y ?_ h1 h2
     simp only [consCHS, consCHM2, rowConsM, chipTM2, ite_true, List.mem_append]
-    exact Or.inl (Or.inl hy)
+    exact Or.inl (Or.inl (Or.inl hy))
   · unfold hostbProdOf at hx
     obtain ⟨r', hr', hx⟩ := List.mem_flatMap.mp hx
     obtain ⟨y, hy, h1, h2⟩ := pairSp_rowProd pairSp_hostb constSp_hostb hx h3
     refine toC y ?_ h1 h2
     simp only [consCHS, consCHM2, hostbConsH, hostbConsOf, ite_true, List.mem_append, List.mem_flatMap]
-    exact Or.inl (Or.inr (Or.inl ⟨r', hr', hy⟩))
+    exact Or.inl (Or.inl (Or.inr (Or.inl ⟨r', hr', hy⟩)))
   · unfold regProdOf at hx
     obtain ⟨r', hr', hx⟩ := List.mem_flatMap.mp hx
     unfold regNetProd at hx
@@ -144,12 +149,18 @@ theorem host_prod3_paired (tr : Trace) (pub : List F) (r : Nat) :
       refine toC y ?_ h1 h2
       simp only [consCHS, consCHM2, regConsH, regConsOf, regNetCons, ite_true, List.mem_append,
         List.mem_flatMap]
-      exact Or.inl (Or.inr (Or.inr ⟨r', hr', hy⟩))
+      exact Or.inl (Or.inl (Or.inr (Or.inr ⟨r', hr', hy⟩)))
   · unfold gasProdOf at hx
     obtain ⟨y, hy, h1, h2⟩ := pairSp_rowProd pairSp_gas constSp_gas hx h3
     refine toC y ?_ h1 h2
     simp only [consCHS, gasConsH, gasConsOf, ite_true, List.mem_append]
-    exact Or.inr hy
+    exact Or.inl (Or.inr hy)
+  · unfold hbwProdOf at hx
+    obtain ⟨r', hr', hx⟩ := List.mem_flatMap.mp hx
+    obtain ⟨y, hy, h1, h2⟩ := pairSp_rowProd pairSp_hostbw constSp_hostbw hx h3
+    refine toC y ?_ h1 h2
+    simp only [consCHS, hbwConsH, hbwConsOf, ite_true, List.mem_append, List.mem_flatMap]
+    exact Or.inr ⟨r', hr', hy⟩
 
 /-- **(c) The spaces of a HOST row's fused traffic.** -/
 theorem host_sp4 (tr : Trace) (pub : List F) (r : Nat) :
@@ -174,6 +185,7 @@ def NoSp0 (T : Table) : Bool :=
 theorem noSp0_hostb : NoSp0 HostB.table = true := by decide +kernel
 theorem noSp0_regw : NoSp0 RegW.table = true := by decide +kernel
 theorem noSp0_gas : NoSp0 GasT = true := by decide +kernel
+theorem noSp0_hostbw : NoSp0 HostBW = true := by decide +kernel
 
 theorem noSp0_msg {T : Table} (hS : ConstSp T = true) (h0 : NoSp0 T = true)
     {tr : Trace} {pub : List F} {t r : Nat} {s : Bool} {m : List F}
@@ -211,9 +223,9 @@ theorem host_cons_stk (tr : Trace) (pub : List F) (r : Nat) :
     ∀ y ∈ consCHS tr pub (22, r), y.space = 0 →
       ∃ j, j < Host.nArgs ∧ rowNat tr 22 r (Host.pf j) = 1 ∧ y = argMsg tr r j := by
   intro y hy h0
-  simp only [consCHS, consCHM2, rowConsM, hostbConsH, regConsH, gasConsH, chipTM2, ite_true,
+  simp only [consCHS, consCHM2, rowConsM, hostbConsH, regConsH, gasConsH, hbwConsH, chipTM2, ite_true,
     List.mem_append] at hy
-  rcases hy with ((hy | hy | hy) | hy)
+  rcases hy with (((hy | hy | hy) | hy) | hy)
   · rw [host_row_cons] at hy
     obtain ⟨j, hj, hy⟩ := List.mem_flatMap.mp hy
     by_cases hp : rowNat tr 22 r (Host.pf j) = 1
@@ -228,14 +240,17 @@ theorem host_cons_stk (tr : Trace) (pub : List F) (r : Nat) :
     exact absurd h0 (noSp0_rowCons constSp_regw noSp0_regw y hy)
   · unfold gasConsOf at hy
     exact absurd h0 (noSp0_rowCons constSp_gas noSp0_gas y hy)
+  · unfold hbwConsOf at hy
+    obtain ⟨r', -, hy⟩ := List.mem_flatMap.mp hy
+    exact absurd h0 (noSp0_rowCons constSp_hostbw noSp0_hostbw y hy)
 
 /-- **The produced stack message of a HOST row is its result word.** -/
 theorem host_prod_stk (tr : Trace) (pub : List F) (r : Nat) :
     ∀ y ∈ prodCHS tr pub (22, r), y.space = 0 → y = wordMsg tr r := by
   intro y hy h0
-  simp only [prodCHS, prodCHM2, rowProdM, hostbProdH, regProdH, gasProdH, chipTM2, ite_true,
+  simp only [prodCHS, prodCHM2, rowProdM, hostbProdH, regProdH, gasProdH, hbwProdH, chipTM2, ite_true,
     List.mem_append] at hy
-  rcases hy with ((hy | hy | hy) | hy)
+  rcases hy with (((hy | hy | hy) | hy) | hy)
   · rw [host_row_prod] at hy
     split at hy
     · exact List.mem_singleton.mp hy
@@ -251,6 +266,9 @@ theorem host_prod_stk (tr : Trace) (pub : List F) (r : Nat) :
     · exact absurd h0 (noSp0_rowProd constSp_regw noSp0_regw y hy)
   · unfold gasProdOf at hy
     exact absurd h0 (noSp0_rowProd constSp_gas noSp0_gas y hy)
+  · unfold hbwProdOf at hy
+    obtain ⟨r', -, hy⟩ := List.mem_flatMap.mp hy
+    exact absurd h0 (noSp0_rowProd constSp_hostbw noSp0_hostbw y hy)
 
 /-! ## 3. The argument flags: `pf j = 1 ↔ j < np` -/
 

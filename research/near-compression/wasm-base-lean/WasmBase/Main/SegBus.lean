@@ -1,5 +1,6 @@
 import WasmBase.Main.M2Sound
 import WasmBase.Main.SegSound
+import WasmBase.Main.SegKeyBase
 
 /-!
 # WasmBase.Main.SegBus — the STATE/CH bus decomposition of `wasmBaseSegAir` (E2E M4b, S4)
@@ -420,11 +421,35 @@ def gasConsOf (tr : Trace) (pub : List F) (r : Nat) : List Msg := rowCons GasT t
 def gasProdH (tr : Trace) (pub : List F) (ρ : Nat × Nat) : List Msg := if ρ.1 = 22 then gasProdOf tr pub ρ.2 else []
 def gasConsH (tr : Trace) (pub : List F) (ρ : Nat × Nat) : List Msg := if ρ.1 = 22 then gasConsOf tr pub ρ.2 else []
 
+/-! ### The memory-write pairs of a call's response bytes (E2E A-T1)
+
+`HostBK.writeInters` as a table of their own (`HostBW`, for the row accessors), and the write
+messages of the `HOSTB` rows of HOST row `r` (grouped by the call key, `hostbOf`). -/
+
+/-- The write-pair interactions of `HOSTB` (A-T1), as a table of their own. -/
+def HostBW : Table := ⟨"HOSTBW", HostBK.cols, [], HostBK.writeInters⟩
+
+/-- The memory-write messages the `HOSTB` rows of host call `r` produce / consume. -/
+def hbwProdOf (tr : Trace) (pub : List F) (r : Nat) : List Msg :=
+  (hostbOf tr pub r).flatMap fun r' => rowProd HostBW tr pub 25 r'
+def hbwConsOf (tr : Trace) (pub : List F) (r : Nat) : List Msg :=
+  (hostbOf tr pub r).flatMap fun r' => rowCons HostBW tr pub 25 r'
+
+def hbwProdH (tr : Trace) (pub : List F) (ρ : Nat × Nat) : List Msg := if ρ.1 = 22 then hbwProdOf tr pub ρ.2 else []
+def hbwConsH (tr : Trace) (pub : List F) (ρ : Nat × Nat) : List Msg := if ρ.1 = 22 then hbwConsOf tr pub ρ.2 else []
+
 /-- **The CH messages a segment action row produces**: the M2 ones (`HOSTB`, REG-C fused into HOST
-rows) plus a HOST row's gas register. -/
-def prodCHS (tr : Trace) (pub : List F) (ρ : Nat × Nat) : List Msg := prodCHM2 tr pub ρ ++ gasProdH tr pub ρ
+rows), a HOST row's gas register and (A-T1) its call's `HOSTB` memory writes. -/
+def prodCHS (tr : Trace) (pub : List F) (ρ : Nat × Nat) : List Msg :=
+  prodCHM2 tr pub ρ ++ gasProdH tr pub ρ ++ hbwProdH tr pub ρ
 /-- **The CH messages a segment action row consumes.** -/
-def consCHS (tr : Trace) (pub : List F) (ρ : Nat × Nat) : List Msg := consCHM2 tr pub ρ ++ gasConsH tr pub ρ
+def consCHS (tr : Trace) (pub : List F) (ρ : Nat × Nat) : List Msg :=
+  consCHM2 tr pub ρ ++ gasConsH tr pub ρ ++ hbwConsH tr pub ρ
+
+theorem hbwProdH_nil_of_ne {tr : Trace} {pub : List F} {ρ : Nat × Nat} (h : ρ.1 ≠ 22) : hbwProdH tr pub ρ = [] := by
+  simp [hbwProdH, h]
+theorem hbwConsH_nil_of_ne {tr : Trace} {pub : List F} {ρ : Nat × Nat} (h : ρ.1 ≠ 22) : hbwConsH tr pub ρ = [] := by
+  simp [hbwConsH, h]
 
 theorem hostG_rowMsgs_stk (tr : Trace) (pub : List F) (r : Nat) (s : Bool) :
     rowMsgs HostG.table tr pub 22 r busStk s = rowMsgs Host.table tr pub 22 r busStk s ++ rowMsgs GasT tr pub 22 r busStk s := by
@@ -472,6 +497,22 @@ theorem actListM2_gas_cons (tr : Trace) (pub : List F) :
     List.flatMap_eq_nil_iff.mpr (fun ρ hρ => gasConsH_nil_of_ne (actList_ne_host hρ)),
     tail_nil22 (gasConsH tr pub) (fun ρ h => gasConsH_nil_of_ne h), List.nil_append, List.append_nil]
   exact flatMap_congr_on _ _ _ (fun ρ hρ => by simp [gasConsH, hostActRows_eq_host hρ])
+
+theorem actListM2_hbw_prod (tr : Trace) (pub : List F) :
+    (actListM2 tr pub).flatMap (hbwProdH tr pub) = (hostActRows tr pub).flatMap (fun ρ => hbwProdOf tr pub ρ.2) := by
+  unfold actListM2 actListHost
+  rw [List.flatMap_append, List.flatMap_append,
+    List.flatMap_eq_nil_iff.mpr (fun ρ hρ => hbwProdH_nil_of_ne (actList_ne_host hρ)),
+    tail_nil22 (hbwProdH tr pub) (fun ρ h => hbwProdH_nil_of_ne h), List.nil_append, List.append_nil]
+  exact flatMap_congr_on _ _ _ (fun ρ hρ => by simp [hbwProdH, hostActRows_eq_host hρ])
+
+theorem actListM2_hbw_cons (tr : Trace) (pub : List F) :
+    (actListM2 tr pub).flatMap (hbwConsH tr pub) = (hostActRows tr pub).flatMap (fun ρ => hbwConsOf tr pub ρ.2) := by
+  unfold actListM2 actListHost
+  rw [List.flatMap_append, List.flatMap_append,
+    List.flatMap_eq_nil_iff.mpr (fun ρ hρ => hbwConsH_nil_of_ne (actList_ne_host hρ)),
+    tail_nil22 (hbwConsH tr pub) (fun ρ h => hbwConsH_nil_of_ne h), List.nil_append, List.append_nil]
+  exact flatMap_congr_on _ _ _ (fun ρ hρ => by simp [hbwConsH, hostActRows_eq_host hρ])
 
 /-! ## Tables without CH traffic (in one direction) -/
 
@@ -583,10 +624,67 @@ theorem seg_regc_con {r : Nat} (hr : r < tr.height 27) :
   table_constr_eqX H (t := 27) (by simp [seg_air_len]) Seg.RegCK.table (seg_t27 nloc ngl) hr
 
 omit H in
-/-- HOSTB with the call-key lookup has HOSTB's CH traffic. -/
+/-- A `HOSTB` row of the segment AIR has `HOSTB`'s CH traffic followed by its write pair's (A-T1). -/
+theorem hostBK_rowMsgs_stk (r : Nat) (s : Bool) :
+    rowMsgs HostBK.table tr pub 25 r busStk s =
+      rowMsgs HostB.table tr pub 25 r busStk s ++ rowMsgs HostBW tr pub 25 r busStk s := by
+  rw [rowMsgs_eq, rowMsgs_eq, rowMsgs_eq]
+  show (HostBK.inters.filter _).filterMap _ = (HostB.inters.filter _).filterMap _ ++ (HostBK.writeInters.filter _).filterMap _
+  rw [HostBK.inters_filter_stk, List.filterMap_append]
+
+omit H in
+/-- **HOSTB with the call-key lookup and the write pair: its CH traffic is HOSTB's plus the write
+pairs'** (A-T1; before, `part HostBK … = part HostB …`). -/
 theorem hostBK_part_stk (s : Bool) :
-    part HostBK.table tr pub 25 busStk s = part HostB.table tr pub 25 busStk s :=
-  part_congr_filter (HostBK.inters_filter busStk s (by decide) (by decide))
+    ((part HostBK.table tr pub 25 busStk s).map decMsg).Perm
+      ((part HostB.table tr pub 25 busStk s).map decMsg ++ (part HostBW tr pub 25 busStk s).map decMsg) := by
+  unfold part
+  simp only [hostBK_rowMsgs_stk, List.map_flatMap, List.map_append]
+  exact perm_flatMap_append _ _ _
+
+omit H in
+/-- The write pair's interactions all have count `wcnt`. -/
+theorem hostBW_count : ∀ i ∈ HostBK.writeInters, i.count = HostBK.wcnt := by decide
+
+omit H in
+/-- A `HOSTB` row with write traffic has `act = 1`. -/
+theorem hostbW_act (H : HoldsXS nloc ngl pub tr) {r' : Nat} (hr' : r' < tr.height 25) {s : Bool} (h : rowMsgs HostBW tr pub 25 r' busStk s ≠ []) :
+    tr.cell 25 r' HostB.act = 1 := by
+  have hc : (HostBK.wcnt.eval (tr.row pub 25 r')).toNat = 1 := by
+    refine Classical.byContradiction fun hne => ?_
+    apply h
+    rw [rowMsgs_eq, List.filterMap_eq_nil_iff]
+    intro i hi
+    have hcnt := hostBW_count i (List.mem_filter.mp hi).1
+    simp [hcnt, hne]
+  have hb := hostb_act_seg_bit H hr'
+  refine Classical.byContradiction fun hne => ?_
+  have h0 : tr.cell 25 r' HostB.act = 0 := by
+    rcases (show (tr.cell 25 r' HostB.act).toNat = 0 ∨ (tr.cell 25 r' HostB.act).toNat = 1 by omega) with e | e
+    · have := Fp.cast_toNat (tr.cell 25 r' HostB.act); rw [e] at this; rw [← this]; rfl
+    · exact absurd (fp_eq_one_of_toNat e) hne
+  simp only [HostBK.wcnt, Chips.v, Expr.eval_mul', Expr.eval_sub', Expr.eval_col, Expr.eval_ofNat', Trace.row,
+    h0] at hc
+  rw [show ∀ a b : F, (0 : F) * a * b = 0 from fun _ _ => by grind] at hc
+  exact absurd hc (by decide)
+
+omit H in
+/-- **The write block, grouped by host call** (the write-pair analogue of `m2_hostb_partition`; the
+grouping of write rows is `hostb_key_linked`, the call-key bus, not `HostBLinked.linked`). -/
+theorem seg_hostbW_partition (H : HoldsXS nloc ngl pub tr) (hb : HostBLinked tr pub) (s : Bool) :
+    ((hostActRows tr pub).flatMap (fun ρ => (hostbOf tr pub ρ.2).flatMap
+        fun r' => (rowMsgs HostBW tr pub 25 r' busStk s).map decMsg)).Perm
+      ((part HostBW tr pub 25 busStk s).map decMsg) := by
+  rw [hostActRows_eq, List.flatMap_map]
+  simp only [hostbOf_key]
+  unfold part
+  rw [List.map_flatMap]
+  refine key_partition _ (actRowsT_nodup _ _ _ _) (hostKey tr) _ (hostbKey tr) _ ?_ (host_key_uniq hb)
+  intro r' hr' hM
+  have hne : rowMsgs HostBW tr pub 25 r' busStk s ≠ [] := by
+    intro h0; apply hM; rw [h0]; rfl
+  obtain ⟨r, hr, hra, hts, hhid⟩ := hostb_key_linked H hr' (hostbW_act H hr' hne)
+  exact ⟨r, mem_actRowsT.mpr ⟨hr, hra⟩, by simp only [hostbKey, hostKey, hts, hhid]⟩
 
 omit H in
 /-- REG-C with the call-key lookup has REG-C's CH traffic. -/
@@ -666,7 +764,7 @@ theorem seg_rest_dec_true :
     (restPart tr pub busStk true).map decMsg =
       (part Memb.table tr pub 19 busStk true).map decMsg ++
       ((part HostG.table tr pub 22 busStk true).map decMsg ++
-      ((part HostB.table tr pub 25 busStk true).map decMsg ++
+      ((part HostBK.table tr pub 25 busStk true).map decMsg ++
       ((actRowsT IfC.table tr pub 26).flatMap (rowProd IfC.table tr pub 26) ++
       ((part RegC.table tr pub 27 busStk true).map decMsg ++
       ((actRowsT Conv.table tr pub 28).flatMap (rowProd Conv.table tr pub 28) ++
@@ -675,7 +773,7 @@ theorem seg_rest_dec_true :
   obtain ⟨hn, n18, -, n31⟩ := seg_stk_nil tr pub
   obtain ⟨n15, n16, n17, n20, n21, n23, n24⟩ := hn true
   unfold restPart
-  rw [n15, n16, n17, n18, n20, n21, n23, n24, n31, hostBK_part_stk, regCK_part_stk]
+  rw [n15, n16, n17, n18, n20, n21, n23, n24, n31, regCK_part_stk]
   simp only [List.map_append, List.map_nil, List.nil_append, List.append_nil]
   rw [(uniform_part_dec ifc_uniform tr pub 26).1, (uniform_part_dec conv_uniform tr pub 28).1,
     (uniform_part_dec unreach_uniform tr pub 29).1]
@@ -686,7 +784,7 @@ theorem seg_rest_dec_false :
       (part Drop.table tr pub 18 busStk false).map decMsg ++
       ((part Memb.table tr pub 19 busStk false).map decMsg ++
       ((part HostG.table tr pub 22 busStk false).map decMsg ++
-      ((part HostB.table tr pub 25 busStk false).map decMsg ++
+      ((part HostBK.table tr pub 25 busStk false).map decMsg ++
       ((actRowsT IfC.table tr pub 26).flatMap (rowCons IfC.table tr pub 26) ++
       ((part RegC.table tr pub 27 busStk false).map decMsg ++
       ((actRowsT Conv.table tr pub 28).flatMap (rowCons Conv.table tr pub 28) ++
@@ -695,14 +793,14 @@ theorem seg_rest_dec_false :
   obtain ⟨hn, -, n30, -⟩ := seg_stk_nil tr pub
   obtain ⟨n15, n16, n17, n20, n21, n23, n24⟩ := hn false
   unfold restPart
-  rw [n15, n16, n17, n20, n21, n23, n24, n30, hostBK_part_stk, regCK_part_stk]
+  rw [n15, n16, n17, n20, n21, n23, n24, n30, regCK_part_stk]
   simp only [List.map_append]
   rw [(uniform_part_dec ifc_uniform tr pub 26).2, (uniform_part_dec conv_uniform tr pub 28).2,
     (uniform_part_dec unreach_uniform tr pub 29).2]
   generalize (part Drop.table tr pub 18 busStk false).map decMsg = A1
   generalize (part Memb.table tr pub 19 busStk false).map decMsg = A2
   generalize (part HostG.table tr pub 22 busStk false).map decMsg = A3
-  generalize (part HostB.table tr pub 25 busStk false).map decMsg = A4
+  generalize (part HostBK.table tr pub 25 busStk false).map decMsg = A4
   generalize (actRowsT IfC.table tr pub 26).flatMap (rowCons IfC.table tr pub 26) = A5
   generalize (part RegC.table tr pub 27 busStk false).map decMsg = A6
   generalize (actRowsT Conv.table tr pub 28).flatMap (rowCons Conv.table tr pub 28) = A7
@@ -717,7 +815,7 @@ theorem seg_ch_dec_true (X : Ctx) :
       ((actList tr pub).flatMap (fun ρ => (rowMsgs (chipT ρ.1) tr pub ρ.1 ρ.2 busStk true).map decMsg) ++
       ((part Memb.table tr pub 19 busStk true).map decMsg ++
       ((part HostG.table tr pub 22 busStk true).map decMsg ++
-      ((part HostB.table tr pub 25 busStk true).map decMsg ++
+      ((part HostBK.table tr pub 25 busStk true).map decMsg ++
       ((actRowsT IfC.table tr pub 26).flatMap (rowProd IfC.table tr pub 26) ++
       ((part RegC.table tr pub 27 busStk true).map decMsg ++
       ((actRowsT Conv.table tr pub 28).flatMap (rowProd Conv.table tr pub 28) ++
@@ -733,7 +831,7 @@ theorem seg_ch_dec_false (X : Ctx) :
       ((part Drop.table tr pub 18 busStk false).map decMsg ++
       ((part Memb.table tr pub 19 busStk false).map decMsg ++
       ((part HostG.table tr pub 22 busStk false).map decMsg ++
-      ((part HostB.table tr pub 25 busStk false).map decMsg ++
+      ((part HostBK.table tr pub 25 busStk false).map decMsg ++
       ((actRowsT IfC.table tr pub 26).flatMap (rowCons IfC.table tr pub 26) ++
       ((part RegC.table tr pub 27 busStk false).map decMsg ++
       ((actRowsT Conv.table tr pub 28).flatMap (rowCons Conv.table tr pub 28) ++
@@ -764,12 +862,15 @@ theorem seg_ch_assemble {α : Type} [DecidableEq α]
     (hbus : (Sgt ++ (Acht ++ (Mbt ++ (HGt ++ (HBt ++ (Ift ++ (RGt ++ (Cvt ++ (Urt ++ Cit))))))))).Perm
       (Sgf ++ (Achf ++ (Drf ++ (Mbf ++ (HGf ++ (HBf ++ (Iff ++ (RGf ++ (Cvf ++ (Urf ++ Cof)))))))))))
     (pHt : HGt.Perm (Hht ++ Gst)) (pHf : HGf.Perm (Hhf ++ Gsf))
-    (pBt : HBt'.Perm HBt) (pBf : HBf'.Perm HBf)
+    (HB0t HB0f HWt HWf Wt Wf : List α)
+    (kBt : HBt.Perm (HB0t ++ HWt)) (kBf : HBf.Perm (HB0f ++ HWf))
+    (pBt : HBt'.Perm HB0t) (pBf : HBf'.Perm HB0f)
+    (wBt : Wt.Perm HWt) (wBf : Wf.Perm HWf)
     (pRt : RGt.Perm (Rnt ++ Cl)) (pRf : RGf.Perm (Rnf ++ Cl))
     (gRt : RGnt.Perm Rnt) (gRf : RGnf.Perm Rnf)
     (aT : P.Perm ((((Acht ++ Hht) ++ (Ift ++ (Cvt ++ Urt))) ++ HBt') ++ RGnt))
     (aF : Q.Perm ((((Achf ++ Hhf) ++ (Iff ++ (Cvf ++ Urf))) ++ HBf') ++ RGnf))
-    (cT : PS.Perm (P ++ Gst)) (cF : QS.Perm (Q ++ Gsf)) :
+    (cT : PS.Perm ((P ++ Gst) ++ Wt)) (cF : QS.Perm ((Q ++ Gsf) ++ Wf)) :
     ((Cit ++ (Mbt ++ Sgt)) ++ PS).Perm ((Cof ++ (Mbf ++ (Sgf ++ Drf))) ++ QS) := by
   rw [List.perm_iff_count] at *
   intro a
@@ -786,7 +887,11 @@ theorem seg_ch_assemble {α : Type} [DecidableEq α]
   have c10 := aF a
   have c11 := cT a
   have c12 := cF a
-  simp only [List.count_append] at c0 c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 ⊢
+  have c13 := kBt a
+  have c14 := kBf a
+  have c15 := wBt a
+  have c16 := wBf a
+  simp only [List.count_append] at c0 c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 c13 c14 c15 c16 ⊢
   omega
 
 /-- **`hch` for the segment AIR**, from `HoldsX`, `HostBLinked` and `RegCLinked`: the CH balance
@@ -807,13 +912,20 @@ theorem seg_hch {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsX (wasmBa
   have aT := actListM2_prod_perm tr pub
   have aF := actListM2_cons_perm tr pub
   have cT : ((actListM2 tr pub).flatMap (prodCHS tr pub)).Perm
-      ((actListM2 tr pub).flatMap (prodCHM2 tr pub) ++ (hostActRows tr pub).flatMap (fun ρ => gasProdOf tr pub ρ.2)) := by
-    rw [← actListM2_gas_prod]; exact perm_flatMap_append _ _ _
+      (((actListM2 tr pub).flatMap (prodCHM2 tr pub) ++ (hostActRows tr pub).flatMap (fun ρ => gasProdOf tr pub ρ.2)) ++
+        (hostActRows tr pub).flatMap (fun ρ => hbwProdOf tr pub ρ.2)) := by
+    rw [← actListM2_gas_prod, ← actListM2_hbw_prod]
+    exact (perm_flatMap_append _ _ _).trans (List.Perm.append_right _ (perm_flatMap_append _ _ _))
   have cF : ((actListM2 tr pub).flatMap (consCHS tr pub)).Perm
-      ((actListM2 tr pub).flatMap (consCHM2 tr pub) ++ (hostActRows tr pub).flatMap (fun ρ => gasConsOf tr pub ρ.2)) := by
-    rw [← actListM2_gas_cons]; exact perm_flatMap_append _ _ _
+      (((actListM2 tr pub).flatMap (consCHM2 tr pub) ++ (hostActRows tr pub).flatMap (fun ρ => gasConsOf tr pub ρ.2)) ++
+        (hostActRows tr pub).flatMap (fun ρ => hbwConsOf tr pub ρ.2)) := by
+    rw [← actListM2_gas_cons, ← actListM2_hbw_cons]
+    exact (perm_flatMap_append _ _ _).trans (List.Perm.append_right _ (perm_flatMap_append _ _ _))
+  have wBt := seg_hostbW_partition H.toS hb true
+  have wBf := seg_hostbW_partition H.toS hb false
   exact seg_ch_assemble _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-    hbus (seg_host_ch_send H) (seg_host_ch_recv H) pBt pBf pRt pRf gRt gRf aT aF cT cF
+    hbus (seg_host_ch_send H) (seg_host_ch_recv H) _ _ _ _ _ _ (hostBK_part_stk true) (hostBK_part_stk false)
+    pBt pBf wBt wBf pRt pRf gRt gRf aT aF cT cF
 
 /-! ## The boundary blocks: what they contain
 
