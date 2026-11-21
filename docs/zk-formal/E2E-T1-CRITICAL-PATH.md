@@ -1,11 +1,13 @@
 # T1 critical path to M10 (single tracker)
 
-Status: **lane I, milestone I-1, 2026-11-21**, measured on main `7358a938d`. Plan:
-[`E2E-GENERAL-CHUNK-PLAN.md`](E2E-GENERAL-CHUNK-PLAN.md) §3 (interface), §4 (M10), §5.0.1 (wrap
-interface, leaf requirements). Driver: `research/near-compression/e2e-general/t1/` (`run_t1.sh`,
-`t1.py`, `stmt.py`, `bndrec.py`). Labels: **[M]** measured by the I-1 driver this session,
-**[L]** measured by the owning lane (cited), **[S]** design only. Nothing under `spec/` changed
-(checker sha256 `644495ff…a9ae3`).
+Status: **lane I, milestone I-2, 2026-11-21**, measured on main `1461c97f6` (lane E M11h merged).
+Plan: [`E2E-GENERAL-CHUNK-PLAN.md`](E2E-GENERAL-CHUNK-PLAN.md) §3 (interface; §3.4.1 canonical `S`,
+§3.4.2 accepted mutants, §3.5 per-template obligations), §4 (M10), §5.0.1 (wrap interface, leaf
+requirements). Driver: `research/near-compression/e2e-general/t1/` (`run_t1.sh`, `t1.py`,
+`stmt.py`, `bndrec.py`, `lean/StmtEval.lean`, `test_t1.py`). Labels: **[M]** measured by the I-2
+driver this session (run `e2e-t1/run4`), **[L]** measured by the owning lane (cited), **[K]**
+kernel-checked by lane E, **[S]** design only. Nothing under `spec/` changed (checker sha256
+`644495ff…a9ae3`).
 
 **M10 exit test.** T1 = `d3c8/d3/02-h10196-s3`: one ZK proof whose verifier, given only the public
 statement `S` (chunk-header outputs + trusted facts; section B private, D-2), accepts T1 and
@@ -16,98 +18,135 @@ rejects ≥ 50 statement mutants.
 | item | value |
 |---|---|
 | Lean checker `--tier allFeatures` | `accept`; self-check 4/4; **FinalOut: 14/14 header output fields equal the run's outputs** (`finalout.json`) |
-| statement | `S` = claim minus section B: **1,003 B** public; section B **4,967 B** private (2 blocks); `claimDigest` = `bdigest(S)` = `040290778c850dde…` (I-1 encoding, §4 item 0) |
-| run | 2 receipt outcomes (s5a00 forward, gas 568,551,750,000; s5k210.s2a00 FunctionCall, gas 1,009,188,008,301); `gasUsed` 1,577,739,758,301 = Σ outcomes; 4 outgoing receipts; 10 state changes; `balanceBurnt` 0; no transactions |
-| Wasm | 1 call: `d3tiny` (`8152bed2…`, 345 B) `run("again")`, 54 Tgas prepaid, **26 steps**, burnt 121,110,620,829; host calls `input`, `register_len`, `read_register`, `storage_write` (evicted path: returns 1, old value into register 1), `log_utf8`, `value_return`. Lean tape and clean-room checker agree on code, method and burnt gas |
-| segment plan (`plan.json`, cut every 13 Wasm steps) | **7 segments**: `INTAKE → STATE(r0) → STATE(r1 up to VM call) → WASM(0,13] → WASM(13,26] → STATE(r1 resume) → FINAL`; each cut encoded as lane E's `BndRec` (`bndrec.py`), digest chain `d_out(k) = d_in(k+1)` holds; clear fields real (phase, receipt index, Σ gas/compute = header), **every digest field is still a 0^42 placeholder** |
-| mutants (`t1.py mutants`) | 92 distinct statements (+41 witness-consistent runs). **59 false** (the checker rejects with T1's section B and witness; every header output field and every trusted fact the T1 run reads); **33 true** (trusted facts T1's relation never reads, and `height_created`) — binding negatives only, see §3 |
+| statement `S` | lane E's canonical encoding (plan §3.4.1, `E2E/StmtEnc.lean`): `S = stmtPre ‖ 00 00 00 00 ‖ stmtPost` = **1,007 B** (stmtPre 416 B, stmtPost 587 B); section B **4,967 B** private (2 blocks); `claimDigest = bdigest(S)` = `bb5aad11ba6ba32d…9e4e299f2f01`. **Byte for byte equal** to a Lean evaluation of `PublicStmt.encode` / `claimDigest` / `stmtPre` / `stmtPost` on T1's claim bytes (`lean/StmtEval.lean`, `lake env lean --run`; Lean also reports `wf`, `encode_splice` and `decode ∘ encode` true on the input) and to the kernel-evaluated `t1_S_len` / `t1_claimDigest` [K]. I-1's `040290778c…` (1,003 B, no vector count) is retired |
+| `BndRec` codec | `bndrec.py` = Lean `BndRec.encode` / `bdigest` / `decode` **byte for byte** on all 9 records of the plan below (408 B out of call, 868 B in call) and on the self-test records (`bndrec.lean_check`: generated Lean literals, evaluated with lane E's definitions) |
+| run | 2 receipt outcomes (s5a00, gas 568,551,750,000; s5k210.s2a00 FunctionCall, gas 1,009,188,008,301); `gasUsed` 1,577,739,758,301 = Σ outcomes; 4 outgoing receipts; 10 state changes; `balanceBurnt` 0; no transactions |
+| Wasm | 1 call: `d3tiny` (`8152bed2…`, 345 B) `run("again")`, 54 Tgas prepaid, **26 steps**, burnt 121,110,620,829; host calls `input`, `register_len`, `read_register`, `storage_write` (evicted: returns 1, old value into register 1), `log_utf8`, `value_return`. Lean tape and clean-room checker agree |
+| mutants (`t1.py mutants`) | 92 distinct statements (+41 witness-consistent runs). **59 false** (rejected with T1's section B and witness); **33 true** — explained field by field in **plan §3.4.2** (unread by the relation, as in nearcore, or read only on paths T1 does not take; `height_created` is the owner finding). Binding negatives only, §3. Every decodable mutant's `S`/`claimDigest` equals the Lean evaluation |
 
-## 2. Components: status, interface, owner
+## 2. The segment plan: lane I's 7 segments on `Templates.lean`
 
-Status: **PASS** = proves/verifies on T1 today; **BLOCKED** = exists, fails on T1; **MISSING** = no
-code. "Interface" is what the component must expose for the tree (plan §3.2 `BndRec`, §5.0.1 (4)
-leaf statement `H9(ctx, a, a+1, [phase, h(B_in)], [phase, h(B_out)])`).
+Lane E's T1 system (`E2E/Templates.lean`, plan §3.5) has five templates. Every `CM` run factors
+into them (`cm_decomp`): `INIT`, then per engine step either one `state` segment (no VM call) or
+`rt` enter, `wasm` per call, `rt` next / resume, then `final`. T1's honest chain (`t1_honest_chain`)
+is therefore **INIT, STATE, rt(enter), WASM, rt(resume), STATE, FINAL**. I-1's plan maps onto it:
+
+| I-1 segment | template (lane, Lean premise) | T1 content |
+|---|---|---|
+| INTAKE | **INIT** (G, `SegSoundInit`) | `init cb wb → eng I start` (one `CM.step`) |
+| STATE(r0) | **STATE** (B, `SegSoundState`) | every VM-free engine step up to receipt 1's step (incl. receipt 0, s5a00) |
+| STATE(r1 up to VM call) | **RT enter** (F, `SegSoundRt`) | `eng I c → call I c [] q .pre` |
+| WASM(0,13], WASM(13,26] | **WASM** (A, `SegSoundWasm`) | `CSteps` of the call; cuts anywhere (`MWasm`), so the driver's k = 13 gives 2 WASM leaves (k = 26: one) |
+| STATE(r1 resume) | **RT resume** (F) | the whole receipt step with the VM answered from the tape (actions, gas, refund, outcome) |
+| (folded into FINAL in I-1) | **STATE** (B) | VM-free engine steps after receipt 1, to `eng I ⟨done out⟩` |
+| FINAL | **FINAL** (G, `SegSoundFinal`) | `eng done → fin → done H o`, `headerOk` |
+
+At k = 13 the driver's plan is 8 segments (`plan.json`): INIT / STATE / RT enter / WASM / WASM /
+RT resume / STATE / FINAL; the digest chain `d_out(k) = d_in(k+1)` holds. **Owner change from I-1:**
+INIT and FINAL are lane G's (Templates.lean), the receipt step is lane F's, STATE is lane B's.
+
+**Which `BndRec` fields are real today** (`plan.json` `provenance`):
+
+| field | source | status |
+|---|---|---|
+| `claimDigest` | `bdigest(S)`, Lean-checked | **real** |
+| `phase`, `receiptIdx`, `inCall`, `gasUsed`, `gasBurnt`, `compute`, `rPrepaid`, `rBurnt`, `rUsed` | the Lean run's outcomes (clear fields) | **real** |
+| `t` | lane A's in-call clock from the segment publics | **real** in a call |
+| `wasm.pc, sp, framesDigest, globalsDigest, registersDigest, memRoot, memPages, promisesDigest` | lane A segment public values through `WasmView.airBnd` (`ctxDigest[:42]`, `memRoot[:42]`, `nblk/64`, `bdigest []`) | **real** at every WASM cut |
+| `wasm.stackRem, fuel, vmCtxDigest, codeRoot, funcRoot` | not in lane A's public values (`codeRoot/funcRoot` are the proof's CODE/FUNC commitments, checked natively) | placeholder |
+| `stRoot` | lane B's `StCommit` circuit form with M5b's public `trie` (= prev_state_root) and `wsLen`; `ws` (RCH root) and `rest` are not public | **partial** |
+| `ctxRoot`, `outcomeAcc`, `outRcptAcc`, `proposalsAcc`, `bwAcc`, `vmAcc`, `balanceBurnt`, `blockIdx`, `actionIdx` | no component (F, G, A/E) | placeholder 0^42 |
+
+Consequence: the two STATE segments and RT resume → STATE have equal in/out digests today (the
+fields that change there are placeholders). **Seam found:** RT enter ends at `call … .pre`, whose
+`wasmD` is lane A's fallback record (`fbBnd`); lane A's segment 0 starts at the entry state
+(`airBnd`). The `.pre → .ent` step (PREP, C7) is in no template's AIR; the plan puts segment 0's
+entry boundary at the RT enter cut.
+
+## 3. Components: status, interface, owner
+
+Status: **PASS** = proves/verifies on T1 today and its public boundary equals the Lean run's;
+**BLOCKED** = exists, fails on T1; **MISSING** = no code.
 
 | # | component | owner | status on T1 | interface it must expose |
 |---|---|---|---|---|
-| C0 | **INIT / statement**: `S` encoding, `claimDigest = bdigest(S)`, `B_0 = Init(claimDigest)` | E (codec) + D (wrap) + I | **P** [M]: `S` = claim minus section B (I-1 working encoding), `BndRec` codec transcribed in Python (round trip only; not cross-checked against a Lean evaluation) | canonical `S` bytes and tag (wrap §5.0.1 1(b)7, `D_wrap = H(tag_wrap, SHA-384(S))`); `Init`: phase 0, indices/clock/counters 0, accumulators empty, `claimDigest` = ctx |
-| C1 | **receipt intake** (claim + witness decode, incoming/delayed/buffered receipts, INTAKE leaf) | **F (new)** | **MISSING** | in `B_0` (phase 0) → out phase 1 (`eng start`), `ctxRoot = ctxD(I)` (intake record: claim, witness, walk, env, receipts), witness `S` hashed in-circuit to `claimDigest`; receipts handed to STATE rows on a bus |
-| C2 | **runtime** (receipt/action rows: T1's forward receipt, FunctionCall, refund, outcome, gas/compute) | **F (new)** | **MISSING** | STATE template: `receiptIdx`, `actionIdx`, `gasUsed/gasBurnt/compute`, `rPrepaid/rBurnt/rUsed`, `outcomeAcc`/`outRcptAcc[shard]` (`chainD` items), enter/leave `inCall` (phase 1 ↔ 6), `vmAcc` (answered VM queries `K`) |
-| C3 | **Wasm segments** for `d3tiny.run` (`wasmBaseSegAirMP`) | A | **BLOCKED** [M]: `segcheck` fails at every cut size (k = 1, 5, 9, 13, 20, 26): `1 unbalanced message on bus 214 [ts=18, hid=314] from HOSTB`. HOSTB's `storage_write` value group carries wire id `hid + 256` = 314 (M1-b), HOST offers its call key `[ts, hid = 58]` only (M4c). So **no call with a `storage_write` value can be cut today**; T1's single call is one | public values (105 today) mapped into `WasmBnd`: `pc, sp, stackRem, fuel`, `ctxDigest` (frames/globals/registers), `memRoot`, `memPages`, `vmCtxDigest` (host side σ, M6), `promisesDigest`, `codeRoot/funcRoot` (= PREP's, not recomputed natively); buses HOSTQ/HOSTR/HOSTB/214/REG-C local to the segment; I3: reject `B_in.phase = done` |
-| C3' | Wasm whole call (`wasmBaseM2Air`, no boundary) | A | **PASS** [M]: tape trace pre-checks, return `again` / log `tiny` / final gas equal the chunk's; proof 1,474,032 B, 268.2-bit, prove 15.4–15.7 s, verify 28 ms (8 threads). Not a template: no cut, HOSTO oracle, CODE root recomputed natively | – (reference only) |
-| C4 | **host ↔ state join (M6)** | A + B | **MISSING** (lane A: `HostIf` scope, σ-pinned restatements [L]; lane B: M5b `SREQ`/`HB` design, `HostReqs` from the public tape [L]) | STATE rows in the WASM segment's trace answer `HOSTQ [ts, hid, S, args…]` / `HOSTR [ts, status, result, g_after]` / `HOSTB [ts, pos, byte]` (T1: `storage_write` with evicted value → register 1, `input`, `log_utf8`, `value_return`), HOSTO removed; σ carried in `vmCtxDigest` across cuts |
-| C5 | **state**: working set, trie, FINAL MPT root (M5a/M5b) | B | **PASS as one proof** [M]: M5b AIR (INTAKE trie + working set + STATE write rows + FINAL root), spec-oracle root = Lean `stateRoot` = header `1db48e38…`; proof 1,476,227 B, 268.2-bit, prove 58–59 s, verify 95 ms. Not split into leaves; host requests from the public `HTAPE` (not lane A's HOST rows) | split at `RCH` cuts into INTAKE / STATE / FINAL leaves; `stRoot = stD(StV)` with `encStV` (lane E `StViewE`, M11f) instead of the bare `RCH`/`TCH` pair; `TAPE`/`HTAPE` public tapes become in-circuit (M6) |
-| C6 | **outputs / FinalOut** (outcome root, outgoing receipts root, congestion, bandwidth requests, RS `encoded_merkle_root`/`encoded_length`, tx root, gas used, balance burnt, proposals) | **G (new)** | **MISSING** (reference values: `finalout.json`, 14/14 equal) | FINAL template (recommendation 1(b)(ii)): in phase 1/2 → out phase 4 `done`; witnesses `S`, checks `SHA-384(S) = claimDigest` and `headerOk(H, o)` field by field; consumes `outcomeAcc`, `outRcptAcc`, `proposalsAcc`, `bwAcc`; state root from C5 |
-| C7 | **PREP**: code hash → CODE/FUNC | **unassigned** | **MISSING**: lane A's V_d recomputes the CODE root natively from the code bytes [M] (not ZK) | per distinct code (T1: 1 blob, 345 B): SHA-256(code) = the account's code hash (read from the working set), `checkModuleM2` + instrumentation, emits cached CODE/FUNC/HOSTT with the pinned padding; exposes `codeRoot/funcRoot` that C3 equates in-circuit |
-| C8 | **leaf templates with pinned shapes** | A, B, F, G + D | **MISSING** for T1 (blockers 4, 5, 8 of plan §5.0.1.3); D0a base-template leaves exist [L] | per template: one parameter set (n_stack, w_stack, log_blowup; base configuration, 24 grinding bits), height classes, proof + vk saved, verifier-backend vk hashing; leaf wrapper `build_seg_leaf` → `H9(...)` |
-| C9 | **heterogeneous aggregation (M8)** | D | **MISSING for T1** (built for D0a base templates: arity 4, `P_2`/`P_*`, `PAD_L`/`PAD_N`, one setup over classes S/M/L [L]) | anchor set `{C_t}` over T1's templates; 7 leaves → arity 4, depth 2 (16 slots, PAD) |
-| C10 | **ZK wrap (M9)** | D | **MISSING for T1** (D0a tree wraps: 328.8–330.4 KB, verify 49–86 ms, ZK classical ROM [L]) | `[LEVEL_WRAP, D_wrap(S)]`; V_d from `S` alone (no hint, no `u`, no class); packet `S ‖ FINAL` |
-| C11 | **Lean `e2e_sound`** | E | conditional [L]: obligation 3 proved (`cm_iff`, `rcm_iff`); 1, 2, 4 reduce to `NodeExec`/`WrapExec`, per-template `SegSoundR`, `ViewImpl` binding, `WitnessExtraction` | per template `k` of C1–C7: `Holds SegAir_k (B, B') → RSteps (abs B) (abs B') ∨ Bad`; `ViewImpl` instances `ctxD` (F/B), `stD` (B), `outD` (G), `vmD` (A/E), `wasmD` (A, done: `wasmD_binding`) |
+| C0 | **statement** `S`, `claimDigest`, `B_0 = Init(claimDigest)` | E (codec, done [K]) + D (wrap) + I | **PASS** [M]: canonical `S` (§3.4.1) = Lean evaluation = kernel values; `BndRec` = Lean on all cuts | wrap: `D_wrap = H(tag_wrap, SHA-384(S))`; `WrapInitSound`: `B_0` = digest of `init (assemble s.ci secB s.secC) w` |
+| C1 | **INIT** (claim + witness decode, intake record, receipts) | **G** | **MISSING** | `SegSoundInit`: `B_0` (phase 0) → `eng I start` (phase 1), `ctxRoot = ctxD(I)`; witness `S` hashed in-circuit to `claimDigest` |
+| C2 | **receipt step** (RT enter / next / resume) | **F** | **MISSING** | `SegSoundRt`: `enter` (start `q` at a non-final `eng I c`), `resume` (`estepO (strictO (K ++ [(q, r)]))`): actions, gas/compute, refund, outcome, `vmAcc` |
+| C3 | **Wasm segments** `wasmBaseSegAirMP` for `d3tiny.run` | A | **PASS** [M] (was BLOCKED in I-1): lane A's M6 bus-214 multi-group fix (`da5844114`) fixed the HOSTB 314 vs key 58 failure. `segcheck` at k = 13 (2 segments) and k = 26 (1): every pre-check OK, chained. **Boundary = Lean run 16/16** (entry pc, `t`, `S`/`sb`/`cid` = 0, gas `g0` = Lean prep, memory size / `nblk` / depth, entry `memRoot` = Merkle root of the Lean prep image, `t_out` per cut, `halted` only last, chain, final gas = Lean `gFinal` = last host call's `gAfter`, final `memRoot` = image + the Lean tape's `read_register` write). **Lean `HoldsX ∧ ChipIf` SATISFIED** on both dumped segments (`wasmbase-tool holds`, `checkSeg_sound`). Proofs (k = 13): 2 × ~1.33 MB, 268.2-bit, prove 38 + 46 s, verify 54 / 107 ms (8 threads); see §1 of `run4/report.md` | 105 public values → `WasmBnd` by `WasmView.airBnd` (§2); missing: `stackRem`, `fuel`, `vmCtxDigest`, `codeRoot/funcRoot` as public values; HOSTO still an oracle (C4); `.pre → .ent` (C7) |
+| C3' | Wasm whole call (`wasmBaseM2Air`, no boundary) | A | **PASS** [M]: return `again`, log `tiny`, final gas equal; proof 1,474,032 B, 268.2-bit, prove ~15.7 s, verify 28 ms. Reference only | – |
+| C4 | **host ↔ state join (M6)** | A + B | **MISSING** (lane A: `HostIf`, `seg_sound_hostIf_air` [L]; lane B: M5b `SREQ`/`HB` design [L]) | STATE rows answer `HOSTQ`/`HOSTR`/`HOSTB` in the WASM segment (T1: `storage_write` evicted value → register 1, `input`, `log_utf8`, `value_return`); HOSTO removed; σ in `vmCtxDigest` |
+| C5 | **state**: working set, trie, FINAL MPT root (M5b) | B | **PASS as one proof** [M]: post root = Lean `stateRoot` = header `1db48e38…`; **public boundary 6/6**: `pubs` prev_state_root = TAPE `(0, root)`, TAPE `(10, root)` = Lean `stateRoot` and Lean's 10 state changes, prev_state_root and `wsLen` 17 = clean-room checker (Lean prints neither); proof ~1.48 MB, 268.2-bit, prove ~58 s, verify ~95 ms. Not split into STATE leaves; host requests from the public `HTAPE` | split at the template cuts into STATE leaves (`SegSoundState`, VM-free engine steps) exposing `stRoot = stD(StV)` (`StCommit`: `ws` = RCH root, `trie`, `wsLen`, `idx`, `rest`) as public values; INIT/FINAL parts handed to G |
+| C6 | **FINAL / FinalOut** (outcome root, outgoing receipts root, congestion, bandwidth requests, RS encoding, tx root, gas, balance, proposals) | **G** | **MISSING** (reference: `finalout.json`, 14/14) | `SegSoundFinal`: from `eng I ⟨done out⟩` to `done H o`; `WrapFinalSound`: `FinalOutPub s`; consumes the accumulators; state root from C5 |
+| C7 | **PREP** (`.pre → .ent`): code hash → CODE/FUNC | **unassigned** | **MISSING**: lane A recomputes CODE/FUNC natively from the code bytes (not ZK) | per code (T1: 1 blob, 345 B): SHA-256(code) = the account's code hash, `checkModuleM2`, CODE/FUNC roots = `wasm.codeRoot/funcRoot` |
+| C8 | **leaf templates with pinned shapes** | A, B, F, G + D | **MISSING** for T1 (plan §5.0.1.3 blockers 4, 8); leaf statement `[phase, h(B)]` fixed (§3.4.1) | per template: one parameter set, height classes, proof + vk saved, `build_seg_leaf` → `H9(...)` |
+| C9 | **heterogeneous aggregation (M8)** | D | **MISSING for T1** (D0a base templates only [L]) | anchors over T1's 5 templates; 8 leaves → arity 4, depth 2 |
+| C10 | **ZK wrap (M9)** | D | **MISSING for T1** (D0a wraps 328.8–330.4 KB [L]) | `[LEVEL_WRAP, D_wrap(S)]`, V_d from `S` alone; `WrapInitSound`, `WrapFinalSound` |
+| C11 | **Lean `e2e_sound_t1`** | E | **stated, conditional** [K]: `e2e_sound_t1` from `NvFaithfulE2E` + `WrapInitSound`/`WrapFinalSound` + the five `SegSound*`; **M11 non-vacuity on T1 done** (`t1_rel`, `t1_e2e_stmt`, `t1_honest_chain`; 27.1 GB kernel run) | per lane: discharge its `SegSound*` premise (A: `SegSoundWasm`, B: `SegSoundState`, F: `SegSoundRt`, G: `SegSoundInit`/`SegSoundFinal`), D: the wrap premises |
 
-## 3. Statement mutants [M]
+## 4. Statement mutants [M]
 
 `t1.py mutants` changes one public field per mutant (sections A and C; section B never), re-splices
-the original section B, and runs the pinned Lean checker on every mutant claim. Each `chunk_inner`
-mutant runs twice: with the original witness (rejected by `w.innerBytes == c.chunkInner`) and with
-the witness's own copy of the header patched ("+w"), so that the rejection must come from the
-relation's checks.
+the original section B (`assemble_splice`), and runs the pinned Lean checker on every mutant claim.
+Each `chunk_inner` mutant runs twice: with the original witness and with the witness's own copy of
+the header patched ("+w"), so the rejection must come from the relation's checks.
 
-* **92 distinct statements** (sha256 of `S` pairwise distinct, none equal to T1's).
+* **92 distinct statements** (sha256 of the canonical `S` pairwise distinct, none equal to T1's);
+  every decodable one's `S`/`claimDigest` equals the Lean `StmtEnc` evaluation.
 * **59 false statements** (no variant accepted), covering every header output field and every
-  trusted fact T1's run reads. With a patched witness they are rejected by `InvalidStateRoot`,
-  `InvalidOutcomesProof`, `InvalidReceiptsProof`, `InvalidGasUsed`, `InvalidBalanceBurnt`,
-  `InvalidGasLimit`, `InvalidCongestionInfo`, `InvalidBandwidthRequests`,
-  `InvalidValidatorProposals`, `InvalidChunkEncodedMerkleRoot`, `InvalidChunkEncodedLength`,
-  `InvalidTxRoot`, `InvalidChunkHeaderShardSplit`, `receipt proof to_shard_id` (`shard_id`), and
-  `segment does not start at prev_block_hash`. Trusted facts: epoch id, the epoch table, RS
-  parameters, `epoch_start_after`, `tx_valid`, `genesis_chunk_extra`, `validator_update`, and
-  protocol version (`out_of_domain`). These are M10's soundness negatives.
-* **33 true statements** (the checker accepts them with T1's section B and witness): `chain_id`;
-  the epoch record's height, layout byte, validator accounts and stakes, and dropping a validator;
-  `minimum_stake`; and **`chunk_inner.height_created`** once the witness's header copy matches.
-  These fields are not read by T1's relation (no epoch switch, no validator update), so a sound
-  system may prove them. For M10 they are **binding negatives** only: T1's proof must fail on them,
-  because `D_wrap` binds `S`. That `height_created` is unconstrained is a spec observation for
-  lane E and the spec owner. It is not a checker change.
+  trusted fact T1's run reads (`InvalidStateRoot`, `InvalidOutcomesProof`, `InvalidReceiptsProof`,
+  `InvalidGasUsed`, `InvalidBalanceBurnt`, `InvalidGasLimit`, `InvalidCongestionInfo`,
+  `InvalidBandwidthRequests`, `InvalidValidatorProposals`, `InvalidChunkEncodedMerkleRoot`,
+  `InvalidChunkEncodedLength`, `InvalidTxRoot`, `InvalidChunkHeaderShardSplit`, `shard_id`,
+  `prev_block_hash`; trusted facts: epoch id, epoch table, RS parameters, `epoch_start_after`,
+  `tx_valid`, `genesis_chunk_extra`, `validator_update`, protocol version). M10's soundness
+  negatives.
+* **33 true statements** (accepted with T1's section B and witness): `chain_id`; the epoch
+  record's height, layout byte, validator accounts and stakes, dropping a validator;
+  `minimum_stake`; `chunk_inner.height_created` with the witness's header copy patched. **Plan
+  §3.4.2** checks each against the spec and nearcore 2.13.4: none is a soundness gap for T1 (unread
+  by the relation as in nearcore — `height_created`, the layout version byte — or read only on paths
+  T1 does not take; section C is trusted). For M10 they are **binding negatives**: T1's proof must
+  fail on them because `D_wrap` binds `S`. `height_created > height(prev block)` is an owner
+  decision (checker change), not taken.
 
-## 4. Blocking order
+## 5. Blocking order
 
-0. **C0: canonical `S` and leaf statement** (E + D, with I). This fixes `claimDigest` and
-   `s = [phase, h(B)]` (blocker 5), and every leaf exposes them. I-1 uses `S` = claim minus
-   section B.
-1. **C3 bus-214 fix** (A, small). The key lookup must match `hid + 256` value groups (or HOSTB
-   carries the real `hid` plus a group flag). Exit: `run_t1.sh` gives C3 PASS with 2 chained
-   segments.
+0. ~~C0 canonical `S` and leaf statement~~ (**done**: lane E §3.4.1 [K], driver = Lean [M]).
+1. ~~C3 bus-214 fix~~ (**done**: lane A `da5844114`; T1's segments chain, prove and match the
+   Lean run [M]).
 2. **In parallel:**
-   * C1 + C2 (F): T1's two receipts as INTAKE + STATE rows.
-   * C5 split into leaves (B).
-   * C6 (G): T1's 14 FinalOut fields.
-   * C7 PREP for `d3tiny`.
-3. **C4 M6 join** (A + B). Needs 1, the C2 rows and C5's `SREQ`/`HB`. The STATE rows replace
-   HOSTO and `HTAPE`. Exit: the T1 WASM segments with no oracle, and a tampered host answer
-   rejected.
-4. **C8 pinned shapes and saved proofs** per template (A, B, F, G), at the base WHIR
-   configuration.
-5. **C9 + C10** (D). Leaf wrappers for C1–C7, a tree over T1's 7 leaves, and a wrap with V_d over
-   `S`.
-6. **M10** (I). `run_t1.sh` fills each `BndRec` digest from its component and checks equality at
-   all 6 cuts. Exit: `FinalVerify` accepts T1 and rejects the 59 false statements and the
-   33 binding negatives.
-7. **C11** (E) runs alongside steps 1–6. It blocks the `e2e_sound` claim, not the measured run.
+   * C1 INIT + C6 FINAL (G): T1's intake and 14 FinalOut fields.
+   * C2 receipt step (F): RT enter / resume for receipt 1.
+   * C5 split into STATE leaves exposing `stRoot` (B).
+   * C7 PREP for `d3tiny` (the `.pre → .ent` seam).
+   * C3 public values (A): `stackRem`, `fuel`, `vmCtxDigest`, `codeRoot/funcRoot`.
+3. **C4 M6 join** (A + B). Needs C2's rows and C5's `SREQ`/`HB`; replaces HOSTO and `HTAPE`.
+4. **C8 pinned shapes and saved proofs** per template, base WHIR configuration.
+5. **C9 + C10** (D). Leaf wrappers, a tree over T1's 8 leaves, a wrap with V_d over `S`.
+6. **M10** (I). `run_t1.sh` fills every `BndRec` field from its component (today: §2's real
+   fields) and checks every cut. Exit: `FinalVerify` accepts T1 and rejects the 59 false
+   statements and the 33 binding negatives.
+7. **C11** (E + each lane's `SegSound*`) alongside 2–6.
 
-Critical path: 0 → 1 → 3 → 4 → 5 → 6. Lane F (C1, C2) and lane G (C6) are new, and the longest
-items in step 2.
+Critical path: 2 (G, F are new lanes, the longest items) → 3 → 4 → 5 → 6.
 
-## 5. Reproduce
+## 6. Reproduce
 
 ```sh
-PROVE=1 MUTANTS=1 research/near-compression/e2e-general/t1/run_t1.sh /data/illia/nearproof-deps/e2e-t1/run
+PROVE=1 MUTANTS=1 research/near-compression/e2e-general/t1/run_t1.sh /data/illia/nearproof-deps/e2e-t1/run4
+python3 -m pytest -q research/near-compression/e2e-general/t1/test_t1.py
 ```
 
 * Builds the lane A and lane B provers fresh from this tree into
-  `/data/illia/nearproof-deps/e2e-t1/target-{wb,m5a}`.
-* Uses the Lean tools of the main checkout: the checker, `wasmbase-tool` and `m5a-tool`.
-* `wasmbase-tape` is not built on this host. The driver then reads T1's tape from lane A's cached
-  M3 corpus tape (`e2e-laneA/m3/tape.jsonl`, produced by the same checker build). It
-  cross-checks the tape against the clean-room checker.
-* Writes `report.{md,json}`, `plan.json`, `finalout.json`, `mutants.json` and per-component logs.
+  `/data/illia/nearproof-deps/e2e-t1/target-{wb,m5a}` (`NOBUILD=1` skips).
+* Uses the main checkout's Lean tools (checker, `wasmbase-tool`, `m5a-tool`) and its v3 package's
+  built oleans for the Lean evaluations (`lake env lean --run`, no build; scratch files
+  `lean/StmtEval.lean` and the generated `OUT/lean-bnd/BndEval.lean` are outside every build).
+* `wasmbase-tape` is not built on this host: T1's tape is read from lane A's cached M3 corpus tape
+  and cross-checked against the clean-room checker.
+* **Fails loudly**: every disagreement between a component's public boundary (or the driver's
+  encodings) and the Lean run is printed as `MISMATCH [...]` on stderr, listed in `report.md`, and
+  `run_t1.sh` exits 1 (`test_t1.py` checks this path).
+* Writes `report.{md,json}`, `plan.json` (records, digests, provenance, seams), `statement.json`,
+  `finalout.json`, `mutants.json`, per-component logs.
