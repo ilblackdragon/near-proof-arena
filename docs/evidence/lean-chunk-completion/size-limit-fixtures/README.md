@@ -58,6 +58,10 @@ are 64 MiB each and are not committed; `code-response-sha256.txt` pins their byt
 command above regenerates them. **Open:** one seed only (the three boundary chunks), and no
 mutants of these chunks (a mutant would copy 64 MiB of code per case); the negative side of the
 family is the `over64` chunk.
+A parallel run that is now historical ([`../size-limit-chunks/`](../size-limit-chunks/README.md),
+checker `a1627ea3…`, generator not on main) has a 286-case code-cap population with mutants,
+including one-code flips of an exactly-at-cap chunk. It found 0 disagreements. It also has a
+breakage control: without the 4-byte borsh prefix, Lean accepts the over-cap chunk.
 
 ## 2. 48 MiB compressed witness
 

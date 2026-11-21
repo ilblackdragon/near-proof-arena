@@ -1,0 +1,3196 @@
+{
+ "scenario": "code-cap",
+ "seed": 801,
+ "codes": [
+  {
+   "code": "s0cc00",
+   "hash": "DtSyqHyw5JmTYxZe5uvd66aBPwiXCcZuS5xwvKKALJkN",
+   "len": 4194300
+  },
+  {
+   "code": "s0cc01",
+   "hash": "9o71aLF1T5MUM8ZSEeLoQYaTQFzDcdkxo7QTKr2o1223",
+   "len": 4194300
+  },
+  {
+   "code": "s0cc02",
+   "hash": "CRfPU52xJJRpGpRbT2EMTALsL68JEimXrLAepqoKXPb9",
+   "len": 4194300
+  },
+  {
+   "code": "s0cc03",
+   "hash": "B6CnqdPkdTWkyzfnJYkbyvxDnyqxaDLyFVLT4nzaqLbD",
+   "len": 4194300
+  },
+  {
+   "code": "s0cc04",
+   "hash": "Dq5gd2qAYKLANBve7CtHMoSfCPVkwVBoe9LXbJ8hRZkV",
+   "len": 4194300
+  },
+  {
+   "code": "s0cc05",
+   "hash": "ADxtK7ZdJsT7rKdh5NHr4FswuBiawcYmAWf6mfbYoUxR",
+   "len": 4194300
+  },
+  {
+   "code": "s0cc06",
+   "hash": "4S1rgPEqqpNWRiDxfzfywAnLU6o97k5D8Xn9tsKxonQ8",
+   "len": 4194300
+  },
+  {
+   "code": "s0cc07",
+   "hash": "Gg4Y6zZSPsGNkPRFyfMduf13d5XUybTVynLqwne8YVLs",
+   "len": 4194300
+  },
+  {
+   "code": "s0cc08",
+   "hash": "CGpt7LdDvCfvBCWZVyfyjZ2H963CWjkVyJ7k3bxcG8aY",
+   "len": 4194300
+  },
+  {
+   "code": "s0cc09",
+   "hash": "6XAbQguCGjNkFnGcV2bS9F157LVz5HX5jZwUEcd3W3yc",
+   "len": 4194300
+  },
+  {
+   "code": "s0cc10",
+   "hash": "HFyNibJXt7y35EkZ923p8BVRush71WGyD6uskkGkCMyx",
+   "len": 4194300
+  },
+  {
+   "code": "s0cc11",
+   "hash": "GsDkxHx2eZ2bDL8EX5BzAb2rTeBqUSDBcHUbGxCPD137",
+   "len": 4194300
+  },
+  {
+   "code": "s0cc12",
+   "hash": "HXVgFqssnzpXRJUsde4s2m6Td5rVTt12SsQwG11NavXG",
+   "len": 4194299
+  },
+  {
+   "code": "s0cc13",
+   "hash": "7F8SBGTVbXNMBJnuKtSe51iYVB7Ki6dYp9P5sMhmh4HX",
+   "len": 4194299
+  },
+  {
+   "code": "s0cc14",
+   "hash": "4UQJ9HHFBVYe5gsxzCa7ACASugtMUCtAQBwoPTq2egfr",
+   "len": 4194299
+  },
+  {
+   "code": "s0cc15",
+   "hash": "5BUmGiQ5fdvsHrkmNcf7Kt7JbG993uRKmxYScTuerv3T",
+   "len": 4194299
+  },
+  {
+   "code": "s0cc16",
+   "hash": "BWVNpGkd4DTuVJaYuHg21RjyYuz3rTesieCr6dji6FeR",
+   "len": 4194300
+  },
+  {
+   "code": "s0cc17",
+   "hash": "ZxzyPrdhTyoWRrRoUJmNg2ed5JYThNRnJyPFHJ1g2wg",
+   "len": 4194298
+  }
+ ],
+ "probe_sets": [
+  {
+   "borsh_vec_codebytes": 4194308,
+   "cap": 67108864,
+   "decompress_contracts": "ok: 1 codes",
+   "model_codeResponseBytes": 4194308,
+   "n_codes": 1,
+   "protocol_version": 86,
+   "response_variant": "V2",
+   "set": "one",
+   "wire_bytes": 4194571
+  },
+  {
+   "borsh_vec_codebytes": 33554436,
+   "cap": 67108864,
+   "decompress_contracts": "ok: 8 codes",
+   "model_codeResponseBytes": 33554436,
+   "n_codes": 8,
+   "protocol_version": 86,
+   "response_variant": "V2",
+   "set": "eight",
+   "wire_bytes": 33555371
+  },
+  {
+   "borsh_vec_codebytes": 62914561,
+   "cap": 67108864,
+   "decompress_contracts": "ok: 15 codes",
+   "model_codeResponseBytes": 62914561,
+   "n_codes": 15,
+   "protocol_version": 86,
+   "response_variant": "V2",
+   "set": "fifteen",
+   "wire_bytes": 62916168
+  },
+  {
+   "borsh_vec_codebytes": 67108863,
+   "cap": 67108864,
+   "decompress_contracts": "ok: 16 codes",
+   "model_codeResponseBytes": 67108863,
+   "n_codes": 16,
+   "protocol_version": 86,
+   "response_variant": "V2",
+   "set": "at-minus-1",
+   "wire_bytes": 67110563
+  },
+  {
+   "borsh_vec_codebytes": 67108864,
+   "cap": 67108864,
+   "decompress_contracts": "ok: 16 codes",
+   "model_codeResponseBytes": 67108864,
+   "n_codes": 16,
+   "protocol_version": 86,
+   "response_variant": "V2",
+   "set": "at",
+   "wire_bytes": 67110567
+  },
+  {
+   "borsh_vec_codebytes": 67108865,
+   "cap": 67108864,
+   "decompress_contracts": "err: Decompressed data exceeded limit of 67.1 MB: Exceeded the limit of 67108864 bytes",
+   "model_codeResponseBytes": 67108865,
+   "n_codes": 16,
+   "protocol_version": 86,
+   "response_variant": "V2",
+   "set": "over",
+   "wire_bytes": 67110568
+  }
+ ],
+ "honest_boundary_chunks": [
+  {
+   "case": "00-h10006-s3",
+   "set": "one",
+   "codes": [
+    "s0cc00"
+   ],
+   "code_response_bytes": 4194308,
+   "pinned_decompress_contracts": "ok: 1 codes",
+   "nearcore_cold_judge": "ok",
+   "lean_allFeatures": "accept",
+   "lean_reason": "",
+   "lean_wall": "0:06.19",
+   "lean_max_rss_gib": 0.3,
+   "witness_bin_sha256": "fea79ce3c3bdbe9a8a09ccc87a4ac15e91b15fcebd0ae8083d8074dca4f4f797",
+   "claim_bin_sha256": "e313223b9cca1fe83f6a11a9f1fd39af45bef9a829aba641398ecedacb0ffb48",
+   "witness_bin_bytes": 4198796
+  },
+  {
+   "case": "00-h10014-s3",
+   "set": "eight",
+   "codes": [
+    "s0cc06",
+    "s0cc01",
+    "s0cc05",
+    "s0cc03",
+    "s0cc02",
+    "s0cc04",
+    "s0cc00",
+    "s0cc07"
+   ],
+   "code_response_bytes": 33554436,
+   "pinned_decompress_contracts": "ok: 8 codes",
+   "nearcore_cold_judge": "ok",
+   "lean_allFeatures": "accept",
+   "lean_reason": "",
+   "lean_wall": "0:47.38",
+   "lean_max_rss_gib": 1.19,
+   "witness_bin_sha256": "9eafe18630c51000efd5468bc8ce5ecdacc026aa44d07e994a36e97146c5e3e7",
+   "claim_bin_sha256": "efc8bab029d67e1955a467b466d97290a7fc3da77fd819396f6dfe879cff5a21",
+   "witness_bin_bytes": 33561947
+  },
+  {
+   "case": "00-h10022-s3",
+   "set": "fifteen",
+   "codes": [
+    "s0cc06",
+    "s0cc14",
+    "s0cc09",
+    "s0cc13",
+    "s0cc01",
+    "s0cc05",
+    "s0cc03",
+    "s0cc08",
+    "s0cc02",
+    "s0cc04",
+    "s0cc00",
+    "s0cc07",
+    "s0cc11",
+    "s0cc10",
+    "s0cc12"
+   ],
+   "code_response_bytes": 62914561,
+   "pinned_decompress_contracts": "ok: 15 codes",
+   "nearcore_cold_judge": "ok",
+   "lean_allFeatures": "accept",
+   "lean_reason": "",
+   "lean_wall": "1:24.38",
+   "lean_max_rss_gib": 2.06,
+   "witness_bin_sha256": "e7245db3611ecaf1e07b063b2900f15a6a27598e98d3e8b9323d42a7afe1b542",
+   "claim_bin_sha256": "0f27f41a8ae62259c3f50b3b0f92866c391d81059045e17de022a67c9f64755a",
+   "witness_bin_bytes": 62925967
+  },
+  {
+   "case": "00-h10030-s3",
+   "set": "at-minus-1",
+   "codes": [
+    "s0cc17",
+    "s0cc06",
+    "s0cc14",
+    "s0cc09",
+    "s0cc13",
+    "s0cc01",
+    "s0cc05",
+    "s0cc03",
+    "s0cc08",
+    "s0cc02",
+    "s0cc04",
+    "s0cc00",
+    "s0cc07",
+    "s0cc11",
+    "s0cc10",
+    "s0cc12"
+   ],
+   "code_response_bytes": 67108863,
+   "pinned_decompress_contracts": "ok: 16 codes",
+   "nearcore_cold_judge": "ok",
+   "lean_allFeatures": "accept",
+   "lean_reason": "",
+   "lean_wall": "1:30.16",
+   "lean_max_rss_gib": 2.18,
+   "witness_bin_sha256": "45eee757d42a9046493185b5d0274bd85c358b9e59afa24b105b23f9c480fe99",
+   "claim_bin_sha256": "c582b3cb3d92c66ba2fed92e167ed06923d4d704549c14b0b688522867d17420",
+   "witness_bin_bytes": 67121116
+  },
+  {
+   "case": "00-h10038-s3",
+   "set": "at",
+   "codes": [
+    "s0cc06",
+    "s0cc14",
+    "s0cc15",
+    "s0cc09",
+    "s0cc13",
+    "s0cc01",
+    "s0cc05",
+    "s0cc03",
+    "s0cc08",
+    "s0cc02",
+    "s0cc04",
+    "s0cc00",
+    "s0cc07",
+    "s0cc11",
+    "s0cc10",
+    "s0cc12"
+   ],
+   "code_response_bytes": 67108864,
+   "pinned_decompress_contracts": "ok: 16 codes",
+   "nearcore_cold_judge": "ok",
+   "lean_allFeatures": "accept",
+   "lean_reason": "",
+   "lean_wall": "1:29.12",
+   "lean_max_rss_gib": 2.19,
+   "witness_bin_sha256": "79384c1bad3618de0daa78b92dbbd0555ded1f1c25534a498e178c76941d292c",
+   "claim_bin_sha256": "d080fa2952f9eb50194bbc4e7e99a2834376316cea5f27fe11e788e1a7410f3c",
+   "witness_bin_bytes": 67121149
+  },
+  {
+   "case": "00-h10046-s3",
+   "set": "over",
+   "codes": [
+    "s0cc06",
+    "s0cc14",
+    "s0cc09",
+    "s0cc13",
+    "s0cc01",
+    "s0cc05",
+    "s0cc03",
+    "s0cc16",
+    "s0cc08",
+    "s0cc02",
+    "s0cc04",
+    "s0cc00",
+    "s0cc07",
+    "s0cc11",
+    "s0cc10",
+    "s0cc12"
+   ],
+   "code_response_bytes": 67108865,
+   "pinned_decompress_contracts": "err: Decompressed data exceeded limit of 67.1 MB: Exceeded the limit of 67108864 bytes",
+   "nearcore_cold_judge": "ok",
+   "lean_allFeatures": "out_of_domain",
+   "lean_reason": "out of domain (w.code_response_size): cold-fetched contract code exceeds MAX_UNCOMPRESSED_CONTRACT_CODE_RESPONSE_SIZE",
+   "lean_wall": "0:03.11",
+   "lean_max_rss_gib": 2.12,
+   "witness_bin_sha256": "997f2ca2917f029f7115ec68eb37f05a3c89cbc8e6da812f6100d6543cc778e8",
+   "claim_bin_sha256": "e5ac2b474c4fc6d1be625595d7044355d58f8d41b991c870e19d582d348169b0",
+   "witness_bin_bytes": 67121182
+  }
+ ],
+ "all_rows": [
+  {
+   "case": "d3/00-h10003-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10003-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10003-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10003-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10004-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10004-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10004-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10004-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10005-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10005-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10005-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10005-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10006-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10006-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10006-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10007-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10007-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10007-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10007-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10008-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10008-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10008-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10008-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10009-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10009-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10009-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10009-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10010-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10010-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10010-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10010-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10011-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10011-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10011-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10011-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10012-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10012-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10012-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10012-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10013-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10013-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10013-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10013-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10014-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10014-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10014-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10015-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10015-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10015-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10015-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10016-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10016-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10016-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10016-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10017-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10017-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10017-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10017-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10018-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10018-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10018-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10018-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10019-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10019-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10019-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10019-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10020-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10020-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10020-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10020-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10021-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10021-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10021-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10021-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10022-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10022-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10022-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10023-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10023-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10023-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10023-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10024-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10024-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10024-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10024-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10025-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10025-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10025-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10025-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10026-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10026-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10026-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10026-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10027-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10027-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10027-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10027-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10028-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10028-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10028-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10028-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10029-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10029-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10029-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10029-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10030-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10030-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10030-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10031-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10031-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10031-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10031-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10032-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10032-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10032-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10032-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10033-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10033-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10033-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10033-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10034-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10034-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10034-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10034-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10035-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10035-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10035-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10035-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10036-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10036-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10036-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10036-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10037-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10037-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10037-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10037-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10038-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10038-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10038-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10039-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10039-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10039-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10039-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10040-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10040-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10040-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10040-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10041-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10041-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10041-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10041-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10042-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10042-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10042-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10042-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10043-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10043-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10043-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10043-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10044-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10044-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10044-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10044-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10045-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10045-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10045-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10045-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10046-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10046-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10046-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10047-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10047-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10047-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10047-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10048-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10048-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10048-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10048-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10049-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10049-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10049-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10049-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10050-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10050-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10050-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10050-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10051-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10051-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10051-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10051-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10052-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10052-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10052-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10052-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10053-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10053-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10053-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10053-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10054-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10054-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10054-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10054-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10055-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10055-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10055-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10055-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10056-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10056-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10056-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "d3/00-h10056-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "mutants/00-h10006-s3-code.drop.0",
+   "kind": "mutant",
+   "mutation": "code.drop.0",
+   "code_response_bytes": 0,
+   "nearcore_cold": "reject",
+   "lean": "reject",
+   "lean_reason": "invalid: MissingTrieValue (contract code)",
+   "control_C_code": "reject"
+  },
+  {
+   "case": "mutants/00-h10006-s3-code.duplicate",
+   "kind": "mutant",
+   "mutation": "code.duplicate",
+   "code_response_bytes": 8388612,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "mutants/00-h10006-s3-code.extra_garbage",
+   "kind": "mutant",
+   "mutation": "code.extra_garbage",
+   "code_response_bytes": 4194468,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "mutants/00-h10006-s3-code.extra_unneeded",
+   "kind": "mutant",
+   "mutation": "code.extra_unneeded",
+   "code_response_bytes": 4195270,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "mutants/00-h10006-s3-code.flip.0",
+   "kind": "mutant",
+   "mutation": "code.flip.0",
+   "code_response_bytes": 4194308,
+   "nearcore_cold": "reject",
+   "lean": "reject",
+   "lean_reason": "invalid: MissingTrieValue (contract code)",
+   "control_C_code": "reject"
+  },
+  {
+   "case": "mutants/00-h10006-s3-code.truncate.0",
+   "kind": "mutant",
+   "mutation": "code.truncate.0",
+   "code_response_bytes": 2097158,
+   "nearcore_cold": "reject",
+   "lean": "reject",
+   "lean_reason": "invalid: MissingTrieValue (contract code)",
+   "control_C_code": "reject"
+  },
+  {
+   "case": "mutants/00-h10014-s3-code.drop.0",
+   "kind": "mutant",
+   "mutation": "code.drop.0",
+   "code_response_bytes": 29360132,
+   "nearcore_cold": "reject",
+   "lean": "reject",
+   "lean_reason": "invalid: MissingTrieValue (contract code)",
+   "control_C_code": "reject"
+  },
+  {
+   "case": "mutants/00-h10014-s3-code.drop.1",
+   "kind": "mutant",
+   "mutation": "code.drop.1",
+   "code_response_bytes": 29360132,
+   "nearcore_cold": "reject",
+   "lean": "reject",
+   "lean_reason": "invalid: MissingTrieValue (contract code)",
+   "control_C_code": "reject"
+  },
+  {
+   "case": "mutants/00-h10014-s3-code.drop.2",
+   "kind": "mutant",
+   "mutation": "code.drop.2",
+   "code_response_bytes": 29360132,
+   "nearcore_cold": "reject",
+   "lean": "reject",
+   "lean_reason": "invalid: MissingTrieValue (contract code)",
+   "control_C_code": "reject"
+  },
+  {
+   "case": "mutants/00-h10014-s3-code.duplicate",
+   "kind": "mutant",
+   "mutation": "code.duplicate",
+   "code_response_bytes": 37748740,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "mutants/00-h10014-s3-code.extra_garbage",
+   "kind": "mutant",
+   "mutation": "code.extra_garbage",
+   "code_response_bytes": 33554494,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "mutants/00-h10014-s3-code.extra_unneeded",
+   "kind": "mutant",
+   "mutation": "code.extra_unneeded",
+   "code_response_bytes": 33555495,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "mutants/00-h10014-s3-code.flip.0",
+   "kind": "mutant",
+   "mutation": "code.flip.0",
+   "code_response_bytes": 33554436,
+   "nearcore_cold": "reject",
+   "lean": "reject",
+   "lean_reason": "invalid: MissingTrieValue (contract code)",
+   "control_C_code": "reject"
+  },
+  {
+   "case": "mutants/00-h10014-s3-code.flip.1",
+   "kind": "mutant",
+   "mutation": "code.flip.1",
+   "code_response_bytes": 33554436,
+   "nearcore_cold": "reject",
+   "lean": "reject",
+   "lean_reason": "invalid: MissingTrieValue (contract code)",
+   "control_C_code": "reject"
+  },
+  {
+   "case": "mutants/00-h10014-s3-code.flip.2",
+   "kind": "mutant",
+   "mutation": "code.flip.2",
+   "code_response_bytes": 33554436,
+   "nearcore_cold": "reject",
+   "lean": "reject",
+   "lean_reason": "invalid: MissingTrieValue (contract code)",
+   "control_C_code": "reject"
+  },
+  {
+   "case": "mutants/00-h10014-s3-code.none",
+   "kind": "mutant",
+   "mutation": "code.none",
+   "code_response_bytes": 0,
+   "nearcore_cold": "reject",
+   "lean": "reject",
+   "lean_reason": "invalid: MissingTrieValue (contract code)",
+   "control_C_code": "reject"
+  },
+  {
+   "case": "mutants/00-h10014-s3-code.reorder",
+   "kind": "mutant",
+   "mutation": "code.reorder",
+   "code_response_bytes": 33554436,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "mutants/00-h10014-s3-code.truncate.0",
+   "kind": "mutant",
+   "mutation": "code.truncate.0",
+   "code_response_bytes": 31457286,
+   "nearcore_cold": "reject",
+   "lean": "reject",
+   "lean_reason": "invalid: MissingTrieValue (contract code)",
+   "control_C_code": "reject"
+  },
+  {
+   "case": "mutants/00-h10022-s3-code.drop.0",
+   "kind": "mutant",
+   "mutation": "code.drop.0",
+   "code_response_bytes": 58720257,
+   "nearcore_cold": "reject",
+   "lean": "reject",
+   "lean_reason": "invalid: MissingTrieValue (contract code)",
+   "control_C_code": "reject"
+  },
+  {
+   "case": "mutants/00-h10022-s3-code.drop.1",
+   "kind": "mutant",
+   "mutation": "code.drop.1",
+   "code_response_bytes": 58720258,
+   "nearcore_cold": "reject",
+   "lean": "reject",
+   "lean_reason": "invalid: MissingTrieValue (contract code)",
+   "control_C_code": "reject"
+  },
+  {
+   "case": "mutants/00-h10022-s3-code.drop.2",
+   "kind": "mutant",
+   "mutation": "code.drop.2",
+   "code_response_bytes": 58720257,
+   "nearcore_cold": "reject",
+   "lean": "reject",
+   "lean_reason": "invalid: MissingTrieValue (contract code)",
+   "control_C_code": "reject"
+  },
+  {
+   "case": "mutants/00-h10022-s3-code.duplicate",
+   "kind": "mutant",
+   "mutation": "code.duplicate",
+   "code_response_bytes": 67108865,
+   "nearcore_cold": "accept",
+   "lean": "out_of_domain",
+   "lean_reason": "out of domain (w.code_response_size): cold-fetched contract code exceeds MAX_UNCOMPRESSED_CONTRACT_CODE_RESPONSE_SIZE",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "mutants/00-h10022-s3-code.extra_garbage",
+   "kind": "mutant",
+   "mutation": "code.extra_garbage",
+   "code_response_bytes": 62914603,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "mutants/00-h10022-s3-code.extra_unneeded",
+   "kind": "mutant",
+   "mutation": "code.extra_unneeded",
+   "code_response_bytes": 62915523,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "mutants/00-h10022-s3-code.flip.0",
+   "kind": "mutant",
+   "mutation": "code.flip.0",
+   "code_response_bytes": 62914561,
+   "nearcore_cold": "reject",
+   "lean": "reject",
+   "lean_reason": "invalid: MissingTrieValue (contract code)",
+   "control_C_code": "reject"
+  },
+  {
+   "case": "mutants/00-h10022-s3-code.flip.1",
+   "kind": "mutant",
+   "mutation": "code.flip.1",
+   "code_response_bytes": 62914561,
+   "nearcore_cold": "reject",
+   "lean": "reject",
+   "lean_reason": "invalid: MissingTrieValue (contract code)",
+   "control_C_code": "reject"
+  },
+  {
+   "case": "mutants/00-h10022-s3-code.flip.2",
+   "kind": "mutant",
+   "mutation": "code.flip.2",
+   "code_response_bytes": 62914561,
+   "nearcore_cold": "reject",
+   "lean": "reject",
+   "lean_reason": "invalid: MissingTrieValue (contract code)",
+   "control_C_code": "reject"
+  },
+  {
+   "case": "mutants/00-h10022-s3-code.none",
+   "kind": "mutant",
+   "mutation": "code.none",
+   "code_response_bytes": 0,
+   "nearcore_cold": "reject",
+   "lean": "reject",
+   "lean_reason": "invalid: MissingTrieValue (contract code)",
+   "control_C_code": "reject"
+  },
+  {
+   "case": "mutants/00-h10022-s3-code.reorder",
+   "kind": "mutant",
+   "mutation": "code.reorder",
+   "code_response_bytes": 62914561,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "mutants/00-h10022-s3-code.truncate.0",
+   "kind": "mutant",
+   "mutation": "code.truncate.0",
+   "code_response_bytes": 60817411,
+   "nearcore_cold": "reject",
+   "lean": "reject",
+   "lean_reason": "invalid: MissingTrieValue (contract code)",
+   "control_C_code": "reject"
+  },
+  {
+   "case": "mutants/00-h10030-s3-code.drop.0",
+   "kind": "mutant",
+   "mutation": "code.drop.0",
+   "code_response_bytes": 62914561,
+   "nearcore_cold": "reject",
+   "lean": "reject",
+   "lean_reason": "invalid: MissingTrieValue (contract code)",
+   "control_C_code": "reject"
+  },
+  {
+   "case": "mutants/00-h10030-s3-code.drop.1",
+   "kind": "mutant",
+   "mutation": "code.drop.1",
+   "code_response_bytes": 62914559,
+   "nearcore_cold": "reject",
+   "lean": "reject",
+   "lean_reason": "invalid: MissingTrieValue (contract code)",
+   "control_C_code": "reject"
+  },
+  {
+   "case": "mutants/00-h10030-s3-code.drop.2",
+   "kind": "mutant",
+   "mutation": "code.drop.2",
+   "code_response_bytes": 62914560,
+   "nearcore_cold": "reject",
+   "lean": "reject",
+   "lean_reason": "invalid: MissingTrieValue (contract code)",
+   "control_C_code": "reject"
+  },
+  {
+   "case": "mutants/00-h10030-s3-code.duplicate",
+   "kind": "mutant",
+   "mutation": "code.duplicate",
+   "code_response_bytes": 71303165,
+   "nearcore_cold": "accept",
+   "lean": "out_of_domain",
+   "lean_reason": "out of domain (w.code_response_size): cold-fetched contract code exceeds MAX_UNCOMPRESSED_CONTRACT_CODE_RESPONSE_SIZE",
+   "control_C_code": "out_of_domain"
+  },
+  {
+   "case": "mutants/00-h10030-s3-code.extra_garbage",
+   "kind": "mutant",
+   "mutation": "code.extra_garbage",
+   "code_response_bytes": 67108978,
+   "nearcore_cold": "accept",
+   "lean": "out_of_domain",
+   "lean_reason": "out of domain (w.code_response_size): cold-fetched contract code exceeds MAX_UNCOMPRESSED_CONTRACT_CODE_RESPONSE_SIZE",
+   "control_C_code": "out_of_domain"
+  },
+  {
+   "case": "mutants/00-h10030-s3-code.extra_unneeded",
+   "kind": "mutant",
+   "mutation": "code.extra_unneeded",
+   "code_response_bytes": 67109922,
+   "nearcore_cold": "accept",
+   "lean": "out_of_domain",
+   "lean_reason": "out of domain (w.code_response_size): cold-fetched contract code exceeds MAX_UNCOMPRESSED_CONTRACT_CODE_RESPONSE_SIZE",
+   "control_C_code": "out_of_domain"
+  },
+  {
+   "case": "mutants/00-h10030-s3-code.flip.0",
+   "kind": "mutant",
+   "mutation": "code.flip.0",
+   "code_response_bytes": 67108863,
+   "nearcore_cold": "reject",
+   "lean": "reject",
+   "lean_reason": "invalid: MissingTrieValue (contract code)",
+   "control_C_code": "reject"
+  },
+  {
+   "case": "mutants/00-h10030-s3-code.flip.1",
+   "kind": "mutant",
+   "mutation": "code.flip.1",
+   "code_response_bytes": 67108863,
+   "nearcore_cold": "reject",
+   "lean": "reject",
+   "lean_reason": "invalid: MissingTrieValue (contract code)",
+   "control_C_code": "reject"
+  },
+  {
+   "case": "mutants/00-h10030-s3-code.flip.2",
+   "kind": "mutant",
+   "mutation": "code.flip.2",
+   "code_response_bytes": 67108863,
+   "nearcore_cold": "reject",
+   "lean": "reject",
+   "lean_reason": "invalid: MissingTrieValue (contract code)",
+   "control_C_code": "reject"
+  },
+  {
+   "case": "mutants/00-h10030-s3-code.none",
+   "kind": "mutant",
+   "mutation": "code.none",
+   "code_response_bytes": 0,
+   "nearcore_cold": "reject",
+   "lean": "reject",
+   "lean_reason": "invalid: MissingTrieValue (contract code)",
+   "control_C_code": "reject"
+  },
+  {
+   "case": "mutants/00-h10030-s3-code.reorder",
+   "kind": "mutant",
+   "mutation": "code.reorder",
+   "code_response_bytes": 67108863,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "mutants/00-h10030-s3-code.truncate.0",
+   "kind": "mutant",
+   "mutation": "code.truncate.0",
+   "code_response_bytes": 65011714,
+   "nearcore_cold": "reject",
+   "lean": "reject",
+   "lean_reason": "invalid: MissingTrieValue (contract code)",
+   "control_C_code": "reject"
+  },
+  {
+   "case": "mutants/00-h10038-s3-code.drop.0",
+   "kind": "mutant",
+   "mutation": "code.drop.0",
+   "code_response_bytes": 62914560,
+   "nearcore_cold": "reject",
+   "lean": "reject",
+   "lean_reason": "invalid: MissingTrieValue (contract code)",
+   "control_C_code": "reject"
+  },
+  {
+   "case": "mutants/00-h10038-s3-code.drop.1",
+   "kind": "mutant",
+   "mutation": "code.drop.1",
+   "code_response_bytes": 62914561,
+   "nearcore_cold": "reject",
+   "lean": "reject",
+   "lean_reason": "invalid: MissingTrieValue (contract code)",
+   "control_C_code": "reject"
+  },
+  {
+   "case": "mutants/00-h10038-s3-code.drop.2",
+   "kind": "mutant",
+   "mutation": "code.drop.2",
+   "code_response_bytes": 62914561,
+   "nearcore_cold": "reject",
+   "lean": "reject",
+   "lean_reason": "invalid: MissingTrieValue (contract code)",
+   "control_C_code": "reject"
+  },
+  {
+   "case": "mutants/00-h10038-s3-code.duplicate",
+   "kind": "mutant",
+   "mutation": "code.duplicate",
+   "code_response_bytes": 71303168,
+   "nearcore_cold": "accept",
+   "lean": "out_of_domain",
+   "lean_reason": "out of domain (w.code_response_size): cold-fetched contract code exceeds MAX_UNCOMPRESSED_CONTRACT_CODE_RESPONSE_SIZE",
+   "control_C_code": "out_of_domain"
+  },
+  {
+   "case": "mutants/00-h10038-s3-code.extra_garbage",
+   "kind": "mutant",
+   "mutation": "code.extra_garbage",
+   "code_response_bytes": 67108950,
+   "nearcore_cold": "accept",
+   "lean": "out_of_domain",
+   "lean_reason": "out of domain (w.code_response_size): cold-fetched contract code exceeds MAX_UNCOMPRESSED_CONTRACT_CODE_RESPONSE_SIZE",
+   "control_C_code": "out_of_domain"
+  },
+  {
+   "case": "mutants/00-h10038-s3-code.extra_unneeded",
+   "kind": "mutant",
+   "mutation": "code.extra_unneeded",
+   "code_response_bytes": 67109826,
+   "nearcore_cold": "accept",
+   "lean": "out_of_domain",
+   "lean_reason": "out of domain (w.code_response_size): cold-fetched contract code exceeds MAX_UNCOMPRESSED_CONTRACT_CODE_RESPONSE_SIZE",
+   "control_C_code": "out_of_domain"
+  },
+  {
+   "case": "mutants/00-h10038-s3-code.flip.0",
+   "kind": "mutant",
+   "mutation": "code.flip.0",
+   "code_response_bytes": 67108864,
+   "nearcore_cold": "reject",
+   "lean": "reject",
+   "lean_reason": "invalid: MissingTrieValue (contract code)",
+   "control_C_code": "reject"
+  },
+  {
+   "case": "mutants/00-h10038-s3-code.flip.1",
+   "kind": "mutant",
+   "mutation": "code.flip.1",
+   "code_response_bytes": 67108864,
+   "nearcore_cold": "reject",
+   "lean": "reject",
+   "lean_reason": "invalid: MissingTrieValue (contract code)",
+   "control_C_code": "reject"
+  },
+  {
+   "case": "mutants/00-h10038-s3-code.flip.2",
+   "kind": "mutant",
+   "mutation": "code.flip.2",
+   "code_response_bytes": 67108864,
+   "nearcore_cold": "reject",
+   "lean": "reject",
+   "lean_reason": "invalid: MissingTrieValue (contract code)",
+   "control_C_code": "reject"
+  },
+  {
+   "case": "mutants/00-h10038-s3-code.none",
+   "kind": "mutant",
+   "mutation": "code.none",
+   "code_response_bytes": 0,
+   "nearcore_cold": "reject",
+   "lean": "reject",
+   "lean_reason": "invalid: MissingTrieValue (contract code)",
+   "control_C_code": "reject"
+  },
+  {
+   "case": "mutants/00-h10038-s3-code.reorder",
+   "kind": "mutant",
+   "mutation": "code.reorder",
+   "code_response_bytes": 67108864,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "mutants/00-h10038-s3-code.truncate.0",
+   "kind": "mutant",
+   "mutation": "code.truncate.0",
+   "code_response_bytes": 65011714,
+   "nearcore_cold": "reject",
+   "lean": "reject",
+   "lean_reason": "invalid: MissingTrieValue (contract code)",
+   "control_C_code": "reject"
+  },
+  {
+   "case": "mutants/00-h10046-s3-code.drop.0",
+   "kind": "mutant",
+   "mutation": "code.drop.0",
+   "code_response_bytes": 62914561,
+   "nearcore_cold": "reject",
+   "lean": "reject",
+   "lean_reason": "invalid: MissingTrieValue (contract code)",
+   "control_C_code": "reject"
+  },
+  {
+   "case": "mutants/00-h10046-s3-code.drop.1",
+   "kind": "mutant",
+   "mutation": "code.drop.1",
+   "code_response_bytes": 62914562,
+   "nearcore_cold": "reject",
+   "lean": "reject",
+   "lean_reason": "invalid: MissingTrieValue (contract code)",
+   "control_C_code": "reject"
+  },
+  {
+   "case": "mutants/00-h10046-s3-code.drop.2",
+   "kind": "mutant",
+   "mutation": "code.drop.2",
+   "code_response_bytes": 62914561,
+   "nearcore_cold": "reject",
+   "lean": "reject",
+   "lean_reason": "invalid: MissingTrieValue (contract code)",
+   "control_C_code": "reject"
+  },
+  {
+   "case": "mutants/00-h10046-s3-code.duplicate",
+   "kind": "mutant",
+   "mutation": "code.duplicate",
+   "code_response_bytes": 71303169,
+   "nearcore_cold": "accept",
+   "lean": "out_of_domain",
+   "lean_reason": "out of domain (w.code_response_size): cold-fetched contract code exceeds MAX_UNCOMPRESSED_CONTRACT_CODE_RESPONSE_SIZE",
+   "control_C_code": "out_of_domain"
+  },
+  {
+   "case": "mutants/00-h10046-s3-code.extra_garbage",
+   "kind": "mutant",
+   "mutation": "code.extra_garbage",
+   "code_response_bytes": 67108910,
+   "nearcore_cold": "accept",
+   "lean": "out_of_domain",
+   "lean_reason": "out of domain (w.code_response_size): cold-fetched contract code exceeds MAX_UNCOMPRESSED_CONTRACT_CODE_RESPONSE_SIZE",
+   "control_C_code": "out_of_domain"
+  },
+  {
+   "case": "mutants/00-h10046-s3-code.extra_unneeded",
+   "kind": "mutant",
+   "mutation": "code.extra_unneeded",
+   "code_response_bytes": 67108903,
+   "nearcore_cold": "accept",
+   "lean": "out_of_domain",
+   "lean_reason": "out of domain (w.code_response_size): cold-fetched contract code exceeds MAX_UNCOMPRESSED_CONTRACT_CODE_RESPONSE_SIZE",
+   "control_C_code": "out_of_domain"
+  },
+  {
+   "case": "mutants/00-h10046-s3-code.flip.0",
+   "kind": "mutant",
+   "mutation": "code.flip.0",
+   "code_response_bytes": 67108865,
+   "nearcore_cold": "reject",
+   "lean": "out_of_domain",
+   "lean_reason": "out of domain (w.code_response_size): cold-fetched contract code exceeds MAX_UNCOMPRESSED_CONTRACT_CODE_RESPONSE_SIZE",
+   "control_C_code": "reject"
+  },
+  {
+   "case": "mutants/00-h10046-s3-code.flip.1",
+   "kind": "mutant",
+   "mutation": "code.flip.1",
+   "code_response_bytes": 67108865,
+   "nearcore_cold": "reject",
+   "lean": "out_of_domain",
+   "lean_reason": "out of domain (w.code_response_size): cold-fetched contract code exceeds MAX_UNCOMPRESSED_CONTRACT_CODE_RESPONSE_SIZE",
+   "control_C_code": "reject"
+  },
+  {
+   "case": "mutants/00-h10046-s3-code.flip.2",
+   "kind": "mutant",
+   "mutation": "code.flip.2",
+   "code_response_bytes": 67108865,
+   "nearcore_cold": "reject",
+   "lean": "out_of_domain",
+   "lean_reason": "out of domain (w.code_response_size): cold-fetched contract code exceeds MAX_UNCOMPRESSED_CONTRACT_CODE_RESPONSE_SIZE",
+   "control_C_code": "reject"
+  },
+  {
+   "case": "mutants/00-h10046-s3-code.none",
+   "kind": "mutant",
+   "mutation": "code.none",
+   "code_response_bytes": 0,
+   "nearcore_cold": "reject",
+   "lean": "reject",
+   "lean_reason": "invalid: MissingTrieValue (contract code)",
+   "control_C_code": "reject"
+  },
+  {
+   "case": "mutants/00-h10046-s3-code.reorder",
+   "kind": "mutant",
+   "mutation": "code.reorder",
+   "code_response_bytes": 67108865,
+   "nearcore_cold": "accept",
+   "lean": "out_of_domain",
+   "lean_reason": "out of domain (w.code_response_size): cold-fetched contract code exceeds MAX_UNCOMPRESSED_CONTRACT_CODE_RESPONSE_SIZE",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "mutants/00-h10046-s3-code.truncate.0",
+   "kind": "mutant",
+   "mutation": "code.truncate.0",
+   "code_response_bytes": 65011715,
+   "nearcore_cold": "reject",
+   "lean": "reject",
+   "lean_reason": "invalid: MissingTrieValue (contract code)",
+   "control_C_code": "reject"
+  },
+  {
+   "case": "ood/00-h10002-s0",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "ood/00-h10002-s1",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "ood/00-h10002-s2",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "ood/00-h10002-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 0,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "ood/00-h10006-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 4194308,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "ood/00-h10014-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 33554436,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "ood/00-h10022-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 62914561,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "ood/00-h10030-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 67108863,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "ood/00-h10038-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 67108864,
+   "nearcore_cold": "accept",
+   "lean": "accept",
+   "lean_reason": "",
+   "control_C_code": "accept"
+  },
+  {
+   "case": "ood/00-h10046-s3",
+   "kind": "honest",
+   "mutation": null,
+   "code_response_bytes": 67108865,
+   "nearcore_cold": "accept",
+   "lean": "out_of_domain",
+   "lean_reason": "out of domain (w.code_response_size): cold-fetched contract code exceeds MAX_UNCOMPRESSED_CONTRACT_CODE_RESPONSE_SIZE",
+   "control_C_code": "accept"
+  }
+ ]
+}

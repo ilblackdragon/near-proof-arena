@@ -4,7 +4,7 @@
 # template L4 (and its program root C_L4, the tree's template anchor) is a function of the class's
 # shape only. Keeps L4.proof + L4.vk.json (the tree's template input), the FINAL packet, SETUP.
 # usage: run_shape_classes.sh OUT_ROOT CHUNK...   (sequential, <= 10 threads)
-set -uo pipefail
+set -euo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
 ROOT=$(cd "$HERE/../../../.." && pwd)
 O=${1:?OUT_ROOT}; shift
@@ -19,18 +19,22 @@ declare -A CLAIM=(
 )
 export NEARPROOF_CHAIN_GEOM=ns19lb6 NEARPROOF_TAPE_EVAL=1 NEARPROOF_ZK=1 NEARPROOF_ZK_FINAL=6
 export RAYON_NUM_THREADS=${RAYON_NUM_THREADS:-10} HEAVY_MEM=${HEAVY_MEM:-40G}
+fail=0
 for c in "$@"; do
   X=$O/$c
   rm -rf "$X"; mkdir -p "$X"
   cp -r "$E/$c/public" "$E/$c/BASE.proof" "$E/$c/BASE.vk.json" "$E/$c/hint.bin" "$X/"
   echo "LOAD_BEFORE $c $(cut -d' ' -f1-3 /proc/loadavg)"
+  rc=0
   taskset -c "${CPUSET:-8-15,24-25}" /data/illia/nearproof-deps/bin/heavy /usr/bin/time -v \
-    "$B" chain "$AIR" "$X/public" "$X" "$K/calc/dkt_certs_o2.json" "$K/lean/DKTCertsO2_big.keys" > "$X/chain.log" 2>&1
-  echo "CHAIN $c rc=$? $(grep -h 'L1_SHAPE_FLOOR\|FINAL_SHAPE_PIN\|Maximum resident' "$X/chain.log" | cut -c1-120 | tr '\n' ' ')"
+    "$B" chain "$AIR" "$X/public" "$X" "$K/calc/dkt_certs_o2.json" "$K/lean/DKTCertsO2_big.keys" > "$X/chain.log" 2>&1 || rc=$?
+  echo "CHAIN $c rc=$rc $(grep -h 'L1_SHAPE_FLOOR\|FINAL_SHAPE_PIN\|Maximum resident' "$X/chain.log" | cut -c1-120 | tr '\n' ' ')"
+  [ $rc = 0 ] || { fail=1; continue; }
   for i in 1 2 3; do
     RAYON_NUM_THREADS=1 taskset -c 8 "$B" verify "$AIR" "${CLAIM[$c]}" unused "$X/SETUP.json" "$(cat "$X/SETUP.sha256")" "$X/FINAL.bundle" 2>&1 \
       | grep -h "VERIFY_PROFILE_MS\|INDEPENDENT_VERIFY_OK\|panicked"
   done
   rm -f "$X"/L*.state.json "$X"/L[123].vk.json
 done
+[ $fail = 0 ] || { echo CLASSES_FAILED; exit 1; }
 echo CLASSES_DONE

@@ -1,0 +1,398 @@
+{"case": "c37/cases/00-h10048-s0", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c37/cases/00-h10048-s1", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c37/cases/00-h10048-s2", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c37/cases/00-h10048-s3", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c37/cases/00-h10049-s0", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c37/cases/00-h10049-s1", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c37/cases/00-h10049-s2", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c37/cases/00-h10049-s3", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c37/cases/00-h10060-s0", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c37/cases/00-h10060-s1", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c37/cases/00-h10060-s2", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c37/cases/00-h10060-s3", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c37/cases/00-h10061-s0", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c37/cases/00-h10061-s1", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c37/cases/00-h10061-s2", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c37/cases/00-h10061-s3", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c37/cases/00-h10071-s3", "before": ["out_of_domain", "out of domain (e.wasm-α): ETH-implicit account with a local contract (legacy wallet resolution)"], "after": ["out_of_domain", "out of domain (e.wasm-α): float type or operator in a function body"], "nearcore_ok": true}
+{"case": "c37/cases/00-h10073-s0", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c37/cases/00-h10073-s1", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c37/cases/00-h10073-s2", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c37/cases/00-h10073-s4", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c37/cases/00-h10073-s5", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c37/cases/00-h10074-s0", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c37/cases/00-h10074-s1", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c37/cases/00-h10074-s4", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c37/cases/00-h10074-s5", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c37/cases/00-h10075-s2", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c37/mutants/00-h10048-s0-h.proposed_split_forged", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "c37/mutants/00-h10048-s3-h.proposed_split_forged", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "c37/mutants/00-h10049-s3-h.proposed_split_left_memory", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "c37/mutants/00-h10049-s3-h.proposed_split_none", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "c37/mutants/00-h10060-s3-h.proposed_split_left_memory", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "c37/mutants/00-h10060-s3-h.proposed_split_none", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "c37/mutants/00-h10061-s3-h.proposed_split_left_memory", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "c37/mutants/00-h10061-s3-h.proposed_split_none", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "c37/mutants/00-h10073-s4-c.child_layout_boundary(s0a00)", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: MissingTrieValue (retain_split_shard)"], "nearcore_ok": false}
+{"case": "c37/mutants/00-h10073-s4-w.split_child_post_root", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: implicit transition post state root"], "nearcore_ok": false}
+{"case": "c37/mutants/00-h10073-s4-w.split_drop_parent_node", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: MissingTrieValue (retain_split_shard)"], "nearcore_ok": false}
+{"case": "c37/mutants/00-h10073-s5-c.child_layout_boundary(s0a00)", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: MissingTrieValue (retain_split_shard)"], "nearcore_ok": false}
+{"case": "c37/mutants/00-h10073-s5-w.split_child_post_root", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: implicit transition post state root"], "nearcore_ok": false}
+{"case": "c37/mutants/00-h10073-s5-w.split_drop_parent_node", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: MissingTrieValue (retain_split_shard)"], "nearcore_ok": false}
+{"case": "c41/cases/00-h10046-s3", "before": ["out_of_domain", "out of domain (e.wasm-α): ETH-implicit account with a local contract (legacy wallet resolution)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c41/cases/00-h10048-s0", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c41/cases/00-h10048-s1", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c41/cases/00-h10048-s2", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c41/cases/00-h10048-s3", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c41/cases/00-h10049-s0", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c41/cases/00-h10049-s2", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c41/cases/00-h10049-s3", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c41/cases/00-h10050-s1", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c41/cases/00-h10061-s0", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c41/cases/00-h10061-s1", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c41/cases/00-h10061-s2", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["out_of_domain", "out of domain (w.shape): ML-DSA-65 public key"], "nearcore_ok": true}
+{"case": "c41/cases/00-h10062-s0", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c41/cases/00-h10062-s1", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c41/cases/00-h10062-s2", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c41/cases/00-h10062-s4", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c41/cases/00-h10062-s5", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c41/cases/00-h10063-s4", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c41/cases/00-h10063-s5", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["out_of_domain", "out of domain (e.g_alpha): chunk function-call gas 4022796095855 > G_α 3450888781824"], "nearcore_ok": true}
+{"case": "c41/cases/00-h10072-s0", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c41/cases/00-h10072-s1", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c41/cases/00-h10072-s2", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c41/cases/00-h10072-s4", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c41/cases/00-h10072-s5", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c41/cases/00-h10073-s0", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c41/cases/00-h10073-s1", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c41/cases/00-h10073-s2", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c41/cases/00-h10073-s4", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c41/cases/00-h10073-s5", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["out_of_domain", "out of domain (e.wasm-α): float type or operator in a function body"], "nearcore_ok": true}
+{"case": "c41/cases/00-h10081-s4", "before": ["out_of_domain", "out of domain (e.wasm-α): ETH-implicit account with a local contract (legacy wallet resolution)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "c41/mutants/00-h10048-s0-h.proposed_split_forged", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "c41/mutants/00-h10048-s2-h.proposed_split_forged", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "c41/mutants/00-h10048-s3-h.proposed_split_left_memory", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "c41/mutants/00-h10048-s3-h.proposed_split_none", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "c41/mutants/00-h10049-s3-h.proposed_split_left_memory", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "c41/mutants/00-h10049-s3-h.proposed_split_none", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "c41/mutants/00-h10062-s4-c.child_layout_boundary(s0a00)", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: MissingTrieValue (retain_split_shard)"], "nearcore_ok": false}
+{"case": "c41/mutants/00-h10062-s4-c.child_layout_is_parent", "before": ["reject", "invalid: slot count"], "after": ["reject", "invalid: shard not in layout"], "nearcore_ok": false}
+{"case": "c41/mutants/00-h10062-s4-w.split_child_post_root", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: implicit transition post state root"], "nearcore_ok": false}
+{"case": "c41/mutants/00-h10062-s4-w.split_drop_parent_node", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: MissingTrieValue (retain_split_shard)"], "nearcore_ok": false}
+{"case": "c41/mutants/00-h10062-s5-c.child_layout_boundary(s0a00)", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: MissingTrieValue (retain_split_shard)"], "nearcore_ok": false}
+{"case": "c41/mutants/00-h10062-s5-c.child_layout_is_parent", "before": ["reject", "invalid: slot count"], "after": ["reject", "invalid: shard not in layout"], "nearcore_ok": false}
+{"case": "c41/mutants/00-h10062-s5-w.split_child_post_root", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: implicit transition post state root"], "nearcore_ok": false}
+{"case": "c41/mutants/00-h10062-s5-w.split_drop_parent_node", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: MissingTrieValue (retain_split_shard)"], "nearcore_ok": false}
+{"case": "fa0/cases/00-h10048-s0", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa0/cases/00-h10048-s1", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa0/cases/00-h10048-s2", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa0/cases/00-h10049-s0", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa0/cases/00-h10049-s1", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa0/cases/00-h10049-s2", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa0/cases/00-h10049-s3", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa0/cases/00-h10060-s0", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa0/cases/00-h10060-s1", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa0/cases/00-h10060-s2", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["out_of_domain", "out of domain (e.g_alpha): chunk function-call gas 3548626344269 > G_α 3450888781824"], "nearcore_ok": true}
+{"case": "fa0/cases/00-h10060-s3", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa0/cases/00-h10061-s1", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa0/cases/00-h10061-s2", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa0/cases/00-h10061-s3", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa0/cases/00-h10062-s0", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa0/cases/00-h10073-s0", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa0/cases/00-h10073-s1", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa0/cases/00-h10073-s2", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa0/cases/00-h10073-s4", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa0/cases/00-h10073-s5", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa0/cases/00-h10074-s0", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa0/cases/00-h10074-s1", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa0/cases/00-h10074-s2", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa0/cases/00-h10074-s4", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa0/cases/00-h10074-s5", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa0/mutants/00-h10048-s0-h.proposed_split_forged", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "fa0/mutants/00-h10048-s2-h.proposed_split_forged", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "fa0/mutants/00-h10049-s3-h.proposed_split_left_memory", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "fa0/mutants/00-h10049-s3-h.proposed_split_none", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "fa0/mutants/00-h10060-s3-h.proposed_split_left_memory", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "fa0/mutants/00-h10060-s3-h.proposed_split_none", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "fa0/mutants/00-h10061-s3-h.proposed_split_left_memory", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "fa0/mutants/00-h10061-s3-h.proposed_split_none", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "fa0/mutants/00-h10073-s4-c.child_layout_boundary(s0a00)", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: MissingTrieValue (retain_split_shard)"], "nearcore_ok": false}
+{"case": "fa0/mutants/00-h10073-s4-w.split_child_post_root", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: implicit transition post state root"], "nearcore_ok": false}
+{"case": "fa0/mutants/00-h10073-s4-w.split_drop_parent_node", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: MissingTrieValue (retain_split_shard)"], "nearcore_ok": false}
+{"case": "fa0/mutants/00-h10073-s5-c.child_layout_boundary(s0a00)", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: MissingTrieValue (retain_split_shard)"], "nearcore_ok": false}
+{"case": "fa0/mutants/00-h10073-s5-w.split_child_post_root", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: implicit transition post state root"], "nearcore_ok": false}
+{"case": "fa0/mutants/00-h10073-s5-w.split_drop_parent_node", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: MissingTrieValue (retain_split_shard)"], "nearcore_ok": false}
+{"case": "fa1/cases/01-h10048-s0", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa1/cases/01-h10048-s1", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa1/cases/01-h10048-s2", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa1/cases/01-h10048-s3", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa1/cases/01-h10049-s0", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa1/cases/01-h10049-s1", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa1/cases/01-h10049-s2", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa1/cases/01-h10049-s3", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa1/cases/01-h10061-s0", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa1/cases/01-h10061-s1", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa1/cases/01-h10061-s2", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa1/cases/01-h10061-s4", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa1/cases/01-h10062-s0", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa1/cases/01-h10062-s1", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa1/cases/01-h10062-s2", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa1/cases/01-h10062-s4", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa1/cases/01-h10062-s5", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa1/cases/01-h10063-s5", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa1/cases/01-h10072-s0", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa1/cases/01-h10072-s1", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa1/cases/01-h10072-s2", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa1/cases/01-h10072-s4", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa1/cases/01-h10072-s5", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["out_of_domain", "out of domain (e.g_alpha): chunk function-call gas 3620244061397 > G_α 3450888781824"], "nearcore_ok": true}
+{"case": "fa1/cases/01-h10073-s0", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa1/cases/01-h10073-s1", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa1/cases/01-h10073-s2", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa1/cases/01-h10073-s4", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa1/cases/01-h10073-s5", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa1/mutants/01-h10048-s0-h.proposed_split_forged", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "fa1/mutants/01-h10048-s2-h.proposed_split_forged", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "fa1/mutants/01-h10048-s3-h.proposed_split_left_memory", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "fa1/mutants/01-h10048-s3-h.proposed_split_none", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "fa1/mutants/01-h10049-s3-h.proposed_split_left_memory", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "fa1/mutants/01-h10049-s3-h.proposed_split_none", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "fa1/mutants/01-h10061-s4-c.child_layout_boundary(s0a00)", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: MissingTrieValue (retain_split_shard)"], "nearcore_ok": false}
+{"case": "fa1/mutants/01-h10061-s4-w.split_child_post_root", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: implicit transition post state root"], "nearcore_ok": false}
+{"case": "fa1/mutants/01-h10061-s4-w.split_drop_parent_node", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: MissingTrieValue (retain_split_shard)"], "nearcore_ok": false}
+{"case": "fa1/mutants/01-h10062-s5-c.child_layout_boundary(s0a00)", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: MissingTrieValue (retain_split_shard)"], "nearcore_ok": false}
+{"case": "fa1/mutants/01-h10062-s5-c.child_layout_is_parent", "before": ["reject", "invalid: slot count"], "after": ["reject", "invalid: shard not in layout"], "nearcore_ok": false}
+{"case": "fa1/mutants/01-h10062-s5-w.split_child_post_root", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: implicit transition post state root"], "nearcore_ok": false}
+{"case": "fa1/mutants/01-h10062-s5-w.split_drop_parent_node", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: MissingTrieValue (retain_split_shard)"], "nearcore_ok": false}
+{"case": "fa2/cases/02-h10048-s0", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa2/cases/02-h10048-s1", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa2/cases/02-h10048-s2", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa2/cases/02-h10048-s3", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa2/cases/02-h10049-s0", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa2/cases/02-h10049-s1", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa2/cases/02-h10049-s2", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa2/cases/02-h10049-s3", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa2/cases/02-h10061-s0", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa2/cases/02-h10061-s1", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa2/cases/02-h10061-s2", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa2/cases/02-h10062-s0", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa2/cases/02-h10062-s1", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa2/cases/02-h10062-s4", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa2/cases/02-h10062-s5", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa2/cases/02-h10063-s2", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa2/cases/02-h10063-s4", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa2/cases/02-h10063-s5", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa2/cases/02-h10072-s0", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa2/cases/02-h10072-s1", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa2/cases/02-h10072-s2", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa2/cases/02-h10072-s4", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa2/cases/02-h10072-s5", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa2/cases/02-h10073-s0", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["out_of_domain", "out of domain (e.g_alpha): chunk function-call gas 3756631930005 > G_α 3450888781824"], "nearcore_ok": true}
+{"case": "fa2/cases/02-h10073-s1", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa2/cases/02-h10073-s2", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa2/cases/02-h10073-s4", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa2/cases/02-h10073-s5", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fa2/mutants/02-h10048-s0-h.proposed_split_forged", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "fa2/mutants/02-h10048-s2-h.proposed_split_forged", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "fa2/mutants/02-h10048-s3-h.proposed_split_left_memory", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "fa2/mutants/02-h10048-s3-h.proposed_split_none", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "fa2/mutants/02-h10049-s3-h.proposed_split_left_memory", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "fa2/mutants/02-h10049-s3-h.proposed_split_none", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "fa2/mutants/02-h10062-s4-c.child_layout_boundary(s0a00)", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: MissingTrieValue (retain_split_shard)"], "nearcore_ok": false}
+{"case": "fa2/mutants/02-h10062-s4-c.child_layout_is_parent", "before": ["reject", "invalid: slot count"], "after": ["reject", "invalid: shard not in layout"], "nearcore_ok": false}
+{"case": "fa2/mutants/02-h10062-s4-w.split_child_post_root", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: implicit transition post state root"], "nearcore_ok": false}
+{"case": "fa2/mutants/02-h10062-s4-w.split_drop_parent_node", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: MissingTrieValue (retain_split_shard)"], "nearcore_ok": false}
+{"case": "fa2/mutants/02-h10062-s5-c.child_layout_boundary(s0a00)", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: MissingTrieValue (retain_split_shard)"], "nearcore_ok": false}
+{"case": "fa2/mutants/02-h10062-s5-c.child_layout_is_parent", "before": ["reject", "invalid: slot count"], "after": ["reject", "invalid: shard not in layout"], "nearcore_ok": false}
+{"case": "fa2/mutants/02-h10062-s5-w.split_child_post_root", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: implicit transition post state root"], "nearcore_ok": false}
+{"case": "fa2/mutants/02-h10062-s5-w.split_drop_parent_node", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: MissingTrieValue (retain_split_shard)"], "nearcore_ok": false}
+{"case": "fb0/cases/00-h10048-s0", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb0/cases/00-h10048-s1", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb0/cases/00-h10048-s2", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["out_of_domain", "out of domain (e.wasm-α): unmodeled unmodeled out-of-domain host function promise_batch_action_add_gas_key_with_full_access called"], "nearcore_ok": true}
+{"case": "fb0/cases/00-h10048-s3", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb0/cases/00-h10049-s0", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb0/cases/00-h10049-s1", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb0/cases/00-h10049-s2", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb0/cases/00-h10049-s3", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb0/cases/00-h10061-s1", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb0/cases/00-h10061-s2", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb0/cases/00-h10061-s3", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb0/cases/00-h10061-s4", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb0/cases/00-h10061-s5", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb0/cases/00-h10062-s1", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb0/cases/00-h10062-s2", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb0/cases/00-h10062-s3", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb0/cases/00-h10062-s4", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb0/cases/00-h10064-s5", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["out_of_domain", "out of domain (e.g_alpha): chunk function-call gas 25750499883077 > G_α 3450888781824"], "nearcore_ok": true}
+{"case": "fb0/cases/00-h10072-s1", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb0/cases/00-h10072-s2", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb0/cases/00-h10072-s3", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb0/cases/00-h10072-s4", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb0/cases/00-h10072-s5", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb0/mutants/00-h10048-s0-h.proposed_split_left_memory", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "fb0/mutants/00-h10048-s0-h.proposed_split_none", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "fb0/mutants/00-h10048-s1-h.proposed_split_forged", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "fb0/mutants/00-h10048-s3-h.proposed_split_forged", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "fb0/mutants/00-h10049-s0-h.proposed_split_left_memory", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "fb0/mutants/00-h10049-s0-h.proposed_split_none", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "fb0/mutants/00-h10061-s4-c.child_layout_boundary(s2a00)", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: MissingTrieValue (retain_split_shard)"], "nearcore_ok": false}
+{"case": "fb0/mutants/00-h10061-s4-w.split_child_post_root", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: implicit transition post state root"], "nearcore_ok": false}
+{"case": "fb0/mutants/00-h10061-s4-w.split_drop_parent_node", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: MissingTrieValue (retain_split_shard)"], "nearcore_ok": false}
+{"case": "fb0/mutants/00-h10061-s5-c.child_layout_boundary(s2a00)", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: MissingTrieValue (retain_split_shard)"], "nearcore_ok": false}
+{"case": "fb0/mutants/00-h10061-s5-w.split_child_post_root", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: implicit transition post state root"], "nearcore_ok": false}
+{"case": "fb0/mutants/00-h10061-s5-w.split_drop_parent_node", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: MissingTrieValue (retain_split_shard)"], "nearcore_ok": false}
+{"case": "fb1/cases/01-h10048-s0", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["out_of_domain", "out of domain (e.g_alpha): chunk function-call gas 6085154924545 > G_α 3450888781824"], "nearcore_ok": true}
+{"case": "fb1/cases/01-h10048-s1", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb1/cases/01-h10048-s2", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb1/cases/01-h10048-s3", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb1/cases/01-h10049-s0", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb1/cases/01-h10049-s1", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb1/cases/01-h10049-s2", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb1/cases/01-h10049-s3", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb1/cases/01-h10061-s1", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb1/cases/01-h10061-s2", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb1/cases/01-h10061-s3", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb1/cases/01-h10061-s4", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb1/cases/01-h10061-s5", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb1/cases/01-h10062-s1", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb1/cases/01-h10062-s2", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb1/cases/01-h10062-s3", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb1/cases/01-h10062-s4", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb1/cases/01-h10062-s5", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb1/cases/01-h10072-s1", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb1/cases/01-h10072-s2", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb1/cases/01-h10072-s3", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb1/cases/01-h10072-s4", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb1/cases/01-h10072-s5", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb1/cases/01-h10073-s1", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb1/cases/01-h10073-s2", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb1/cases/01-h10073-s3", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb1/cases/01-h10073-s4", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb1/cases/01-h10073-s5", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb1/mutants/01-h10048-s0-h.proposed_split_left_memory", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["out_of_domain", "out of domain (e.g_alpha): chunk function-call gas 6085154924545 > G_α 3450888781824"], "nearcore_ok": false}
+{"case": "fb1/mutants/01-h10048-s0-h.proposed_split_none", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["out_of_domain", "out of domain (e.g_alpha): chunk function-call gas 6085154924545 > G_α 3450888781824"], "nearcore_ok": false}
+{"case": "fb1/mutants/01-h10048-s2-h.proposed_split_forged", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "fb1/mutants/01-h10048-s3-h.proposed_split_forged", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "fb1/mutants/01-h10049-s0-h.proposed_split_left_memory", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "fb1/mutants/01-h10049-s0-h.proposed_split_none", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "fb1/mutants/01-h10061-s4-c.child_layout_boundary(s2a00)", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: MissingTrieValue (retain_split_shard)"], "nearcore_ok": false}
+{"case": "fb1/mutants/01-h10061-s4-w.split_child_post_root", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: implicit transition post state root"], "nearcore_ok": false}
+{"case": "fb1/mutants/01-h10061-s4-w.split_drop_parent_node", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: MissingTrieValue (retain_split_shard)"], "nearcore_ok": false}
+{"case": "fb1/mutants/01-h10061-s5-c.child_layout_boundary(s2a00)", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: MissingTrieValue (retain_split_shard)"], "nearcore_ok": false}
+{"case": "fb1/mutants/01-h10061-s5-w.split_child_post_root", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: implicit transition post state root"], "nearcore_ok": false}
+{"case": "fb1/mutants/01-h10061-s5-w.split_drop_parent_node", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: MissingTrieValue (retain_split_shard)"], "nearcore_ok": false}
+{"case": "fb2/cases/02-h10039-s3", "before": ["out_of_domain", "out of domain (e.wasm-α): ETH-implicit account with a local contract (legacy wallet resolution)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb2/cases/02-h10048-s0", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb2/cases/02-h10048-s1", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb2/cases/02-h10048-s2", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb2/cases/02-h10048-s3", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb2/cases/02-h10049-s0", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb2/cases/02-h10049-s1", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb2/cases/02-h10049-s2", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb2/cases/02-h10049-s3", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb2/cases/02-h10061-s1", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb2/cases/02-h10061-s2", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb2/cases/02-h10061-s3", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb2/cases/02-h10062-s1", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb2/cases/02-h10062-s2", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb2/cases/02-h10062-s4", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb2/cases/02-h10062-s5", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb2/cases/02-h10063-s3", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb2/cases/02-h10063-s4", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb2/cases/02-h10063-s5", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb2/cases/02-h10072-s1", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb2/cases/02-h10072-s2", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb2/cases/02-h10072-s3", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb2/cases/02-h10072-s4", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb2/cases/02-h10072-s5", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb2/cases/02-h10073-s1", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb2/cases/02-h10073-s2", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb2/cases/02-h10073-s3", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb2/cases/02-h10073-s4", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb2/cases/02-h10073-s5", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "fb2/mutants/02-h10048-s0-h.proposed_split_left_memory", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "fb2/mutants/02-h10048-s0-h.proposed_split_none", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "fb2/mutants/02-h10048-s2-h.proposed_split_forged", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "fb2/mutants/02-h10048-s3-h.proposed_split_forged", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "fb2/mutants/02-h10049-s0-h.proposed_split_left_memory", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "fb2/mutants/02-h10049-s0-h.proposed_split_none", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "fb2/mutants/02-h10062-s4-c.child_layout_boundary(s2a00)", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: MissingTrieValue (retain_split_shard)"], "nearcore_ok": false}
+{"case": "fb2/mutants/02-h10062-s4-c.child_layout_is_parent", "before": ["reject", "invalid: slot count"], "after": ["reject", "invalid: shard not in layout"], "nearcore_ok": false}
+{"case": "fb2/mutants/02-h10062-s4-w.split_child_post_root", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: implicit transition post state root"], "nearcore_ok": false}
+{"case": "fb2/mutants/02-h10062-s4-w.split_drop_parent_node", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: MissingTrieValue (retain_split_shard)"], "nearcore_ok": false}
+{"case": "fb2/mutants/02-h10062-s5-c.child_layout_boundary(s2a00)", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: MissingTrieValue (retain_split_shard)"], "nearcore_ok": false}
+{"case": "fb2/mutants/02-h10062-s5-c.child_layout_is_parent", "before": ["reject", "invalid: slot count"], "after": ["reject", "invalid: shard not in layout"], "nearcore_ok": false}
+{"case": "fb2/mutants/02-h10062-s5-w.split_child_post_root", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: implicit transition post state root"], "nearcore_ok": false}
+{"case": "fb2/mutants/02-h10062-s5-w.split_drop_parent_node", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: MissingTrieValue (retain_split_shard)"], "nearcore_ok": false}
+{"case": "t1/cases/00-h10048-s0", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "t1/cases/00-h10048-s1", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "t1/cases/00-h10048-s2", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "t1/cases/00-h10048-s3", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "t1/cases/00-h10049-s0", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "t1/cases/00-h10049-s1", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "t1/cases/00-h10049-s2", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "t1/cases/00-h10049-s3", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "t1/cases/00-h10061-s1", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "t1/cases/00-h10061-s2", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "t1/cases/00-h10061-s3", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "t1/cases/00-h10061-s4", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "t1/cases/00-h10061-s5", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "t1/cases/00-h10062-s2", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "t1/cases/00-h10062-s3", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "t1/cases/00-h10062-s4", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "t1/cases/00-h10062-s5", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "t1/cases/00-h10063-s1", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "t1/cases/00-h10072-s1", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "t1/cases/00-h10072-s2", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "t1/cases/00-h10072-s3", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "t1/cases/00-h10072-s5", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "t1/cases/00-h10073-s1", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "t1/cases/00-h10073-s2", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "t1/cases/00-h10073-s3", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "t1/cases/00-h10073-s4", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "t1/cases/00-h10073-s5", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "t1/mutants/00-h10048-s0-h.proposed_split_left_memory", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "t1/mutants/00-h10048-s0-h.proposed_split_none", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "t1/mutants/00-h10048-s1-h.proposed_split_forged", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "t1/mutants/00-h10048-s1-h.proposed_split_unmet_threshold", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "t1/mutants/00-h10048-s2-h.proposed_split_unmet_threshold", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "t1/mutants/00-h10048-s3-h.proposed_split_forged", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "t1/mutants/00-h10048-s3-h.proposed_split_unmet_threshold", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "t1/mutants/00-h10049-s0-h.proposed_split_left_memory", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "t1/mutants/00-h10049-s0-h.proposed_split_none", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "t1/mutants/00-h10049-s1-h.proposed_split_unmet_threshold", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "t1/mutants/00-h10049-s2-h.proposed_split_unmet_threshold", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "t1/mutants/00-h10049-s3-h.proposed_split_unmet_threshold", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "t1/mutants/00-h10061-s4-c.child_layout_boundary(s2a00)", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: MissingTrieValue (retain_split_shard)"], "nearcore_ok": false}
+{"case": "t1/mutants/00-h10061-s4-w.split_child_post_root", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: implicit transition post state root"], "nearcore_ok": false}
+{"case": "t1/mutants/00-h10061-s4-w.split_drop_parent_node", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: MissingTrieValue (retain_split_shard)"], "nearcore_ok": false}
+{"case": "t1/mutants/00-h10061-s5-c.child_layout_boundary(s2a00)", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: MissingTrieValue (retain_split_shard)"], "nearcore_ok": false}
+{"case": "t1/mutants/00-h10061-s5-w.split_child_post_root", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: implicit transition post state root"], "nearcore_ok": false}
+{"case": "t1/mutants/00-h10061-s5-w.split_drop_parent_node", "before": ["out_of_domain", "out of domain (c.same_layout): resharding"], "after": ["reject", "invalid: MissingTrieValue (retain_split_shard)"], "nearcore_ok": false}
+{"case": "t1/mutants/00-h10072-s1-h.proposed_split_unmet_threshold", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "t1/mutants/00-h10072-s2-h.proposed_split_unmet_threshold", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "t1/mutants/00-h10072-s3-h.proposed_split_unmet_threshold", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "t1/mutants/00-h10072-s5-h.proposed_split_unmet_threshold", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "t1/mutants/00-h10073-s1-h.proposed_split_unmet_threshold", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "t1/mutants/00-h10073-s2-h.proposed_split_unmet_threshold", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "t1/mutants/00-h10073-s3-h.proposed_split_unmet_threshold", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "t1/mutants/00-h10073-s4-h.proposed_split_unmet_threshold", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "t1/mutants/00-h10073-s5-h.proposed_split_unmet_threshold", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "t2/cases/00-h10048-s0", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "t2/cases/00-h10048-s1", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "t2/cases/00-h10048-s2", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "t2/cases/00-h10048-s3", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "t2/cases/00-h10049-s0", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "t2/cases/00-h10049-s1", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "t2/cases/00-h10049-s2", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "t2/cases/00-h10049-s3", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["accept", ""], "nearcore_ok": true}
+{"case": "t2/mutants/00-h10048-s0-h.proposed_split_forged", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "t2/mutants/00-h10048-s0-h.proposed_split_unmet_threshold", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "t2/mutants/00-h10048-s1-h.proposed_split_unmet_threshold", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "t2/mutants/00-h10048-s2-h.proposed_split_unmet_threshold", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "t2/mutants/00-h10048-s3-h.proposed_split_forged", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "t2/mutants/00-h10048-s3-h.proposed_split_unmet_threshold", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "t2/mutants/00-h10049-s0-h.proposed_split_left_memory", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "t2/mutants/00-h10049-s0-h.proposed_split_none", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "t2/mutants/00-h10049-s1-h.proposed_split_unmet_threshold", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "t2/mutants/00-h10049-s2-h.proposed_split_unmet_threshold", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}
+{"case": "t2/mutants/00-h10049-s3-h.proposed_split_unmet_threshold", "before": ["out_of_domain", "out of domain (c.no_split_gate)"], "after": ["reject", "invalid: InvalidChunkHeaderShardSplit"], "nearcore_ok": false}

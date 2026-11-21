@@ -294,3 +294,18 @@ replay reports.
 * A malformed distribution receipt in a *custom* genesis `DelayedReceipt` record is not excluded by
   nearcore. It is outside the mainnet claim, and Lean keeps it out of domain.
 * The observable records of these runs are produced, not yet compared: that is item 9's comparator.
+
+## Parallel run (historical): `parallel-run-2026-10-27/`
+
+The same item was also run independently on branch `worktree-agent-a103b9b4017fa3668`, with its own
+generator scenarios. Those scenarios are not on main. The run used checker `a1627ea3…`.
+Results: curve-yield-timeout 2,051 rows and state-init-emit 6,583 rows (every mutant replayed),
+0 disagreements; 16 z-bound unit vectors with crate = FIPS 204 = Lean. Its files, manifests and
+README are kept in [`parallel-run-2026-10-27/`](parallel-run-2026-10-27/README.md), labelled
+historical. It adds three gaps this README does not list:
+
+* the `AccountId` stale-nonce redeploy *with different code* (reachable, unit-tested only);
+* a state init that consumes part of its deposit. A full-refund control was undetected
+  (0/190), because every fixture stays within the zero-balance storage allowance;
+* the BLS version-branch citation `logic/bls12381.rs:17-28` in `BLS12381.lean:581` and
+  `Wasm/CryptoHost.lean:131`, which should be `:49-53`.

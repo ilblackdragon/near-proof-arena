@@ -1,0 +1,30 @@
+TREE_PARAMS n_stack=20 log_blowup=5 queries=[54, 41, 31, 25] sha_cap_log=22
+TREE_LEAF_PARAMS n_stack=20 log_blowup=2 queries=[81, 60, 40, 30]
+TREE_SHAPE arity=4 depth=1 node_margin=1.13
+TREE_LEAF_FAMILIES [(19, 18, 1), (20, 19, 1)] class_family=[0, 0, 1]
+TREE_TEMPLATE class=0 family=0 kind=base rows=205050 pin=[(19, Some(384360)), (21, Some(1176064)), (7, Some(128)), (16, Some(65536))] base_vk=2578084917fac89f s=5.4
+TREE_TEMPLATE class=1 family=0 kind=base rows=206288 pin=[(19, Some(387204)), (21, Some(1187712)), (7, Some(128)), (16, Some(65536))] base_vk=25d8732f157de4bb s=5.4
+TREE_TEMPLATE class=2 family=1 kind=base rows=465618 pin=[(20, Some(812648)), (21, Some(1750912)), (7, Some(128)), (16, Some(65536))] base_vk=e1cf72d1c5a489ef s=5.6
+TREE_CLASS_KEY_REBUILT class=0
+TREE_CLASS_KEY_REBUILT class=1
+TREE_CLASS_KEY_REBUILT class=2
+TREE_TEMPLATE_CONFIRMED class=0 by=/data/illia/nearproof-deps/pq-e2e-d9/b8/d1_09-h10150-s3
+TREE_TEMPLATE_CONFIRMED class=1 by=/data/illia/nearproof-deps/pq-e2e-d9/b8/d1_05-h10085-s2
+TREE_TEMPLATE_CONFIRMED class=2 by=/data/illia/nearproof-deps/pq-e2e-d9/b8/d1_09-h10012-s0
+TREE_CHUNK_CLASS class=0 family=0 confirmations_per_class=[3, 2, 2]
+TREE_PAD_LEAF family=0 rows=1086 pin=[(19, Some(1648)), (8, Some(256)), (7, Some(128)), (16, Some(65536))]
+TREE_PAD_LEAF family=1 rows=1598 pin=[(20, Some(2416)), (8, Some(256)), (7, Some(128)), (16, Some(65536))]
+TREE_LEAF_HEIGHTS family=0 [(19, Some(387204)), (21, Some(1187712)), (7, Some(128)), (16, Some(65536))]
+TREE_LEAF_HEIGHTS family=1 [(20, Some(812648)), (21, Some(1750912)), (7, Some(128)), (16, Some(65536))]
+TREE_LEAF 0 family=0 rows=205050 bytes=440151 seconds=155.1
+TREE_LEAF 1 family=0 rows=1086 bytes=442671 seconds=194.8
+TREE_LEAF 2 family=0 rows=1086 bytes=440823 seconds=148.7
+TREE_LEAF 3 family=0 rows=1086 bytes=441873 seconds=157.6
+TREE_NODE_GEOM Geom { log_rows: 21, prog_log: 20, sha_instances: 2, heights: [(21, Some(1633584)), (22, Some(4194304)), (7, Some(128)), (16, Some(65536)), (21, Some(1540736))] }
+TREE_PAD_NODE rows=2622
+TREE_NODE L2_0 kind=P2 rows=807000 shape_pin=[(21, Some(1581080)), (22, Some(4194304)), (7, Some(128)), (16, Some(65536)), (21, Some(1396736))] info=[2173, 21431, 238848, 1559648, 5352192]
+TREE_NODE_PROVED L2_0 bytes=483705 seconds=797.3
+WRAP_NEGATIVE_CONTROLS_OK wrong_ctx wrong_class changed_program changed_heights changed_level
+TREE_FIXED_SETUP_IDENTICAL
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 33:40.72
+	Maximum resident set size (kbytes): 28502020

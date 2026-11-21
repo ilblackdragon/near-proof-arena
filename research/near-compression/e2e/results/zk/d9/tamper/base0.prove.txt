@@ -1,0 +1,2 @@
+thread 'main' (206527) panicked at /data/illia/nearproof/.claude/worktrees/agent-ad6b9c98040c197c1/research/near-compression/native/pq-chunk-e2e/src/tree.rs:400:33:
+class 0 (/data/illia/nearproof-deps/pq-e2e-d9/tamper9/base0): base vk differs from the key of the declared AIR + TAPE pad at the class parameters

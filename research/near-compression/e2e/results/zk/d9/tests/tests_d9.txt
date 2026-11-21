@@ -1,0 +1,3 @@
+TEST_OK tree_d9_wrap_set_debug test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 111 filtered out; finished in 1817.12s
+TEST_OK agg/tree test result: ok. 6 passed; 0 failed; 11 ignored; 0 measured; 95 filtered out; finished in 119.68s
+TESTS_D9_DONE

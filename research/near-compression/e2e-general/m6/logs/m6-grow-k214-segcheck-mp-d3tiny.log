@@ -1,0 +1,18 @@
+TRACE steps 26 cuts 3 tracegen 0.05s
+SEGBUILD 0 0.10s
+SEGBUILD 1 0.10s
+SEGBUILD 2 0.09s
+SEGBUILD 3 0.09s
+SEG 0 t (0, 8] steps 8 halted 0 | boundary: stream in 2 out 9 msgs, blocks 0 (read-only 0), drops 0 tombs 0, compressions 8 (stream 8, MEMB 0, MPATH 0)
+  CELLS instruction+lookup tables 1446844 | boundary tables 4108 | SHA-512 chip 86144 (height 1024) | total 1537096
+  PRECHECK OK (0.05s): every constraint on every row, every bus balanced incl. the chip's interface
+SEG 1 t (8, 16] steps 8 halted 0 | boundary: stream in 9 out 12 msgs, blocks 1 (read-only 0), drops 0 tombs 0, compressions 63 (stream 13, MEMB 18, MPATH 32)
+  CELLS instruction+lookup tables 1446840 | boundary tables 13084 | SHA-512 chip 681088 (height 8192) | total 2141012
+  PRECHECK OK (0.06s): every constraint on every row, every bus balanced incl. the chip's interface
+SEG 2 t (16, 24] steps 8 halted 0 | boundary: stream in 12 out 10 msgs, blocks 1 (read-only 1), drops 0 tombs 0, compressions 38 (stream 13, MEMB 9, MPATH 16)
+  CELLS instruction+lookup tables 1446868 | boundary tables 13084 | SHA-512 chip 681088 (height 8192) | total 2141040
+  PRECHECK FAIL: 1 unbalanced messages by bus {214: 1}; first [((214, [18, 314]), 5, Some(("HOSTB", 1)))]
+SEG 3 t (24, 26] steps 2 halted 1 | boundary: stream in 10 out 8 msgs, blocks 1 (read-only 1), drops 0 tombs 0, compressions 36 (stream 11, MEMB 9, MPATH 16)
+  CELLS instruction+lookup tables 1446756 | boundary tables 13084 | SHA-512 chip 681088 (height 8192) | total 2140928
+  PRECHECK OK (0.06s): every constraint on every row, every bus balanced incl. the chip's interface
+SEGCHECK PARTIAL 4 of 4 segments built, 1 pre-check failures, chain true

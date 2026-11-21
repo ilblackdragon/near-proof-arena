@@ -3,7 +3,7 @@
 # node-shape / PAD / wrap-depth mix-ups (review_d7_mixup_debug, adopted from the reviewer's copy),
 # the D-7 base-leaf forgeries (tree_d7_shapes_debug), then the non-ignored agg/tree tests.
 # Builds the lib tests first. Fails (exit 1) on any failure.  usage: tests_d8.sh OUTDIR
-set -uo pipefail
+set -euo pipefail
 D=${NEARPROOF_PQ_DEPS:-/data/illia/nearproof-deps/pq-e2e-d8}
 O=${1:?outdir}; mkdir -p "$O"
 C=${CPUSET:-24-25}

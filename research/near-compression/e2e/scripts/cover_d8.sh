@@ -4,7 +4,7 @@
 # class heights) and the PQ driver's class-admits (TAPE pad, logs, tight heights, the base prover's
 # precheck: every constraint and bus balance). Dumps are deleted after the check.
 # usage: cover_d8.sh CLASS_DIR OUT [JOBS] [CPUS]     prints COVER_DONE ok=.. fail=..
-set -uo pipefail
+set -euo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
 ROOT=$(cd "$HERE/../../../.." && pwd)
 D=${NEARPROOF_PQ_DEPS:-/data/illia/nearproof-deps/pq-e2e-d8}
@@ -43,3 +43,4 @@ taskset -c "$C" xargs -P "$J" -L 1 bash -c 'one "$0" "$1" "$2"' < "$O/jobs.txt" 
 ok=0; fail=0
 while read -r n k _; do if [ -f "$O/$n.ok" ]; then ok=$((ok + 1)); else fail=$((fail + 1)); echo "NOT_COVERED $n $k"; fi; done < "$O/jobs.txt"
 echo "COVER_DONE ok=$ok fail=$fail jobs=$(wc -l < "$O/jobs.txt")"
+[ $fail = 0 ]

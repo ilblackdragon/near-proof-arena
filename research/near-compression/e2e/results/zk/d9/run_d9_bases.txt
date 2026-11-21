@@ -1,0 +1,7 @@
+BASE d1_10-h10075-s0 class=S dump_s=21 base_s=1098 BASE_CLASS_TAPE_PAD log=12 keys=7 BASE_CLASS_HEIGHTS_OK name=S airs=26 	Maximum resident set size (kbytes): 8120680 
+BASE d1_09-h10150-s3 class=S dump_s=24 base_s=1275 BASE_CLASS_TAPE_PAD log=12 keys=7 BASE_CLASS_HEIGHTS_OK name=S airs=26 	Maximum resident set size (kbytes): 8121320 
+BASE d1_09-h10049-s1 class=S dump_s=20 base_s=1046 BASE_CLASS_TAPE_PAD log=12 keys=7 BASE_CLASS_HEIGHTS_OK name=S airs=26 	Maximum resident set size (kbytes): 8846336 
+BASE d1_06-h10010-s3 class=S dump_s=19 base_s=1469 BASE_CLASS_TAPE_PAD log=12 keys=7 BASE_CLASS_HEIGHTS_OK name=S airs=26 	Maximum resident set size (kbytes): 8225020 
+BASE d1_06-h10103-s0 class=S dump_s=1733 base_s=1765 BASE_CLASS_TAPE_PAD log=12 keys=7 BASE_CLASS_HEIGHTS_OK name=S airs=26 	Maximum resident set size (kbytes): 8225992 
+BASE d1_08-h10145-s4 class=S dump_s=16 base_s=1241 BASE_CLASS_TAPE_PAD log=12 keys=7 BASE_CLASS_HEIGHTS_OK name=S airs=26 	Maximum resident set size (kbytes): 8226328 
+BASE d1_07-h10060-s1 class=S dump_s=15 base_s=1231 BASE_CLASS_TAPE_PAD log=12 keys=7 BASE_CLASS_HEIGHTS_OK name=S airs=26 	Maximum resident set size (kbytes): 8160472 

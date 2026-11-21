@@ -1,0 +1,57 @@
+S d1_09-h10049-s1 /data/illia/nearproof-deps/corpora/d1run/d1/09-h10049-s1
+S d1_06-h10010-s3 /data/illia/nearproof-deps/corpora/d1run/d1/06-h10010-s3
+S d1_06-h10103-s0 /data/illia/nearproof-deps/corpora/d1run/d1/06-h10103-s0
+S d1_08-h10145-s4 /data/illia/nearproof-deps/corpora/d1run/d1/08-h10145-s4
+S d1_07-h10060-s1 /data/illia/nearproof-deps/corpora/d1run/d1/07-h10060-s1
+S d1_07-h10050-s1 /data/illia/nearproof-deps/corpora/d1run/d1/07-h10050-s1
+M d1_05-h10129-s5 /data/illia/nearproof-deps/corpora/d1run/d1/05-h10129-s5
+M d1_00-h10015-s0 /data/illia/nearproof-deps/corpora/d1run/d1/00-h10015-s0
+L d1_06-h10119-s2 /data/illia/nearproof-deps/corpora/d1run/d1/06-h10119-s2
+L d1_04-h10139-s1 /data/illia/nearproof-deps/corpora/d1run/d1/04-h10139-s1
+BASE d1_09-h10049-s1 class=S (exists)
+BASE d1_06-h10010-s3 class=S (exists)
+BASE d1_06-h10103-s0 class=S (exists)
+BASE d1_08-h10145-s4 class=S (exists)
+BASE d1_07-h10060-s1 class=S (exists)
+BASE d1_07-h10050-s1 class=S dump_s=8 base_s=296 BASE_CLASS_TAPE_PAD log=12 keys=7 BASE_CLASS_HEIGHTS_OK name=S airs=26 	Maximum resident set size (kbytes): 9001892 
+BASE d1_05-h10129-s5 class=M dump_s=8 base_s=307 BASE_CLASS_TAPE_PAD log=12 keys=7 BASE_CLASS_HEIGHTS_OK name=M airs=26 	Maximum resident set size (kbytes): 9114376 
+BASE d1_00-h10015-s0 class=M dump_s=8 base_s=368 BASE_CLASS_TAPE_PAD log=12 keys=7 BASE_CLASS_HEIGHTS_OK name=M airs=26 	Maximum resident set size (kbytes): 9197952 
+BASE d1_06-h10119-s2 class=L dump_s=11 base_s=319 BASE_CLASS_TAPE_PAD log=12 keys=7 BASE_CLASS_HEIGHTS_OK name=L airs=26 	Maximum resident set size (kbytes): 26459104 
+BASE d1_04-h10139-s1 class=L dump_s=10 base_s=318 BASE_CLASS_TAPE_PAD log=12 keys=7 BASE_CLASS_HEIGHTS_OK name=L airs=26 	Maximum resident set size (kbytes): 24919640 
+LOAD_BEFORE 8.14 8.01 7.79
+TREE d1_09-h10049-s1 TREE_CHUNK_CLASS class=0 family=0 confirmations_per_class=[3, 2, 2] TREE_FIXED_SETUP_IDENTICAL 	Maximum resident set size (kbytes): 28502020 
+VERIFY_PROFILE_MS total=49.41 wrap_verify=28.16 FS_JOBS flush=473 commit=5 squeeze=807 pow=4
+INDEPENDENT_TREE_VERIFY_OK bundle_bytes=330281 class=0
+VERIFY_PROFILE_MS total=48.39 wrap_verify=28.15 FS_JOBS flush=473 commit=5 squeeze=807 pow=4
+INDEPENDENT_TREE_VERIFY_OK bundle_bytes=330281 class=0
+VERIFY_PROFILE_MS total=48.51 wrap_verify=28.47 FS_JOBS flush=473 commit=5 squeeze=807 pow=4
+INDEPENDENT_TREE_VERIFY_OK bundle_bytes=330281 class=0
+LOAD_AFTER 7.30 6.97 7.29
+TREE_RUN_OK /data/illia/nearproof-deps/pq-e2e-d9/sample/d1_09-h10049-s1
+SAMPLE_TREE d1_09-h10049-s1 class=S tree_s=2021
+LOAD_BEFORE 7.30 6.97 7.29
+TREE d1_06-h10010-s3 TREE_CHUNK_CLASS class=0 family=0 confirmations_per_class=[3, 2, 2] TREE_FIXED_SETUP_IDENTICAL 	Maximum resident set size (kbytes): 27882556 
+VERIFY_PROFILE_MS total=49.94 wrap_verify=28.71 FS_JOBS flush=473 commit=5 squeeze=805 pow=4
+INDEPENDENT_TREE_VERIFY_OK bundle_bytes=328866 class=0
+VERIFY_PROFILE_MS total=48.77 wrap_verify=28.41 FS_JOBS flush=473 commit=5 squeeze=805 pow=4
+INDEPENDENT_TREE_VERIFY_OK bundle_bytes=328866 class=0
+VERIFY_PROFILE_MS total=48.43 wrap_verify=28.36 FS_JOBS flush=473 commit=5 squeeze=805 pow=4
+INDEPENDENT_TREE_VERIFY_OK bundle_bytes=328866 class=0
+LOAD_AFTER 7.57 8.58 8.47
+TREE_RUN_OK /data/illia/nearproof-deps/pq-e2e-d9/sample/d1_06-h10010-s3
+SAMPLE_TREE d1_06-h10010-s3 class=S tree_s=1979
+LOAD_BEFORE 7.57 8.58 8.47
+TREE d1_06-h10103-s0 TREE_CHUNK_CLASS class=0 family=0 confirmations_per_class=[3, 2, 2] TREE_FIXED_SETUP_IDENTICAL 	Maximum resident set size (kbytes): 27575100 
+VERIFY_PROFILE_MS total=52.07 wrap_verify=28.22 FS_JOBS flush=473 commit=5 squeeze=822 pow=4
+INDEPENDENT_TREE_VERIFY_OK bundle_bytes=329205 class=0
+VERIFY_PROFILE_MS total=48.41 wrap_verify=28.33 FS_JOBS flush=473 commit=5 squeeze=822 pow=4
+INDEPENDENT_TREE_VERIFY_OK bundle_bytes=329205 class=0
+VERIFY_PROFILE_MS total=48.37 wrap_verify=28.29 FS_JOBS flush=473 commit=5 squeeze=822 pow=4
+INDEPENDENT_TREE_VERIFY_OK bundle_bytes=329205 class=0
+LOAD_AFTER 7.79 6.97 7.07
+TREE_RUN_OK /data/illia/nearproof-deps/pq-e2e-d9/sample/d1_06-h10103-s0
+SAMPLE_TREE d1_06-h10103-s0 class=S tree_s=1870
+LOAD_BEFORE 7.79 6.97 7.07
+TREE d1_08-h10145-s4 TREE_CHUNK_CLASS class=0 family=0 confirmations_per_class=[3, 2, 2] TREE_FIXED_SETUP_IDENTICAL 	Maximum resident set size (kbytes): 28558396 
+RUN_TREE_FAILED tree-verify rc=127 taskset: failed to execute /data/illia/nearproof-deps/pq-e2e-d9/target/release/nearproof-chunk-e2e: No such file or directory
+RUN_D9_FAILED tree d1_08-h10145-s4

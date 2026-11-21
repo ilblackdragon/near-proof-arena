@@ -3,7 +3,7 @@
 # (meta.json: kind honest, in_d0, expected_rel_d0). statedump --heights-only (no re-check, no
 # traces): heights.json + pubmsgs.json per chunk; a chunk whose render fails is listed as FAIL.
 # usage: census_d8.sh OUT [JOBS] [CPUS]
-set -uo pipefail
+set -euo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
 ROOT=$(cd "$HERE/../../../.." && pwd)
 D=${NEARPROOF_PQ_DEPS:-/data/illia/nearproof-deps/pq-e2e-d8}

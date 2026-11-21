@@ -2,7 +2,7 @@
 # Fresh-process, single-thread timing of `verify` on the three ZK-lever runs (read-only inputs).
 # usage: bench_verify_inprocess.sh BINARY CPU [RUNS] [E2E_ROOT] [LABEL]
 # The STATEPUBLIC argument is the run's tools/statepublic (ignored by in-process verifiers).
-set -uo pipefail
+set -euo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
 ROOT=$(cd "$HERE/../../../.." && pwd)
 B=${1:?binary}; CPU=${2:?cpu}; N=${3:-5}

@@ -446,6 +446,14 @@ draft's `w.size` restriction text says so. Removal-soft (7,296 cases, 4 seeds): 
 reason; no Lean accept of a nearcore reject, no `reject → OOD`. Corpus (0 moves), census (0), shard 13 (0) and fixtures (0); narrower `runtimeLimits` on removal-soft: 1,580 `reject → OOD (w.size)`:
 W12 README §17.
 
+**Alternative not adopted (historical).** A parallel lane (branch
+`worktree-agent-a103b9b4017fa3668`, 2026-10-27) proposed a new rung `RelD3S`: the recorder engine on
+every claim, `maxWitnessChunk` = 117,440,542. Its evidence is kept in
+[signed-record](../evidence/lean-chunk-completion/signed-record/README.md), labelled superseded. Its
+Lean, draft and pin changes were not merged. It moved 350 nearcore-valid corpus chunks to accept
+(178 ETH-implicit with a local contract, 172 pre-state code served by an in-chunk deploy). The
+hand-over above leaves those chunks as signed exclusions.
+
 ### 3.5 Rung decision record — `Rel_Dk := RelD3 ∧ InDk` (2026-10-30)
 
 **Finding.** `D1 ⊂ D2` (and `D0 ⊂ D3`, `RelD1a ⊂ RelD3`) is false: D0/D1 never compare the

@@ -13,3 +13,4 @@ r = subprocess.run(['taskset', '-c', '15', str(d / 'target/release/nearproof-chu
 w = time.time() - t
 print(run.name, 'ok' if r.returncode == 0 else 'FAIL', 'wall_ms=%.1f' % (w * 1e3),
       'max_child_rss_mb=%.1f' % (resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss / 1024))
+sys.exit(0 if r.returncode == 0 else 1)

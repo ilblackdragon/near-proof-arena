@@ -1,0 +1,60 @@
+d3tiny before exit 0
+  PRECHECK OK (0.05s): every constraint on every row, every bus balanced incl. the chip's interface
+  PRECHECK OK (0.05s): every constraint on every row, every bus balanced incl. the chip's interface
+  PRECHECK FAIL: 1 unbalanced messages by bus {214: 1}; first [((214, [18, 314]), 5, Some(("HOSTB", 1)))]
+  PRECHECK OK (0.05s): every constraint on every row, every bus balanced incl. the chip's interface
+SEGCHECK PARTIAL 4 of 4 segments built, 1 pre-check failures, chain true
+d3tiny airSegMP exit 0
+  PRECHECK OK (0.05s): every constraint on every row, every bus balanced incl. the chip's interface
+  PRECHECK OK (0.05s): every constraint on every row, every bus balanced incl. the chip's interface
+  PRECHECK OK (0.05s): every constraint on every row, every bus balanced incl. the chip's interface
+  PRECHECK OK (0.05s): every constraint on every row, every bus balanced incl. the chip's interface
+SEGCHECK OK 4 segments chained: B_out(k) = B_in(k+1) for every k
+d3tiny airSeg exit 0
+  PRECHECK OK (0.05s): every constraint on every row, every bus balanced incl. the chip's interface
+  PRECHECK OK (0.06s): every constraint on every row, every bus balanced incl. the chip's interface
+  PRECHECK OK (0.05s): every constraint on every row, every bus balanced incl. the chip's interface
+  PRECHECK OK (0.06s): every constraint on every row, every bus balanced incl. the chip's interface
+SEGCHECK OK 4 segments chained: B_out(k) = B_in(k+1) for every k
+d3tiny prove s2 exit 0
+SEG 1 t (8, 16] steps 8 halted 0 | boundary: stream in 9 out 12 msgs, blocks 1 (read-only 0), drops 0 tombs 0, compressions 63 (stream 13, MEMB 18, MPATH 32)
+  CELLS instruction+lookup tables 1446848 | boundary tables 13084 | SHA-512 chip 681088 (height 8192) | total 2141020
+SEG 2 t (16, 24] steps 8 halted 0 | boundary: stream in 12 out 10 msgs, blocks 1 (read-only 1), drops 0 tombs 0, compressions 38 (stream 13, MEMB 9, MPATH 16)
+  CELLS instruction+lookup tables 1446900 | boundary tables 13084 | SHA-512 chip 681088 (height 8192) | total 2141072
+  PROOF 2: 1332045 B, prove 32.2s, verify 52 ms, statement ok (boundary public values, code_root, func_root), peak_rss_kib 1279596
+SEG 3 t (24, 26] steps 2 halted 1 | boundary: stream in 10 out 8 msgs, blocks 1 (read-only 1), drops 0 tombs 0, compressions 36 (stream 11, MEMB 9, MPATH 16)
+  CELLS instruction+lookup tables 1446772 | boundary tables 13084 | SHA-512 chip 681088 (height 8192) | total 2140944
+SEGPROVE OK 4 segments, chained by hand (B_out(k) = B_in(k+1)); total prove 32.2s
+d3tiny tamper s2 exit 0
+REJECTED HOSTB[row 2].hg1 flipped mid-group: verifier: BatchConstraintError(SumClaimMismatch { sum_claim: BinomialExtensionField { value: [90652255, 473453199, 645157818, 1582990917, 694670984, 282849607, 1976953274, 1747235676, 1456882108, 464852694, 581817784, 1208285406], _phantom: PhantomData<p3_monty_31::monty_31::MontyField31<p3_baby_bear::baby_bear::BabyBearParameters>> }, sum_univ_domain_s_0: BinomialExtensionField { value: [953213138, 1182402783, 803509578, 1515142729, 1023578731, 1867687380, 1201498458, 815127219, 1326648269, 1723065466, 606221952, 1605784183], _phantom: PhantomData<p3_monty_31::monty_31::MontyField31<p3_baby_bear::baby_bear::BabyBearParameters>> } }) [precheck: HOSTB row 1 constraint 18 = 1]
+REJECTED HOSTB group at ts 18 in the pre-fix wire-id encoding (hid += 256*g, g = 0), 5 rows: prover error [precheck: 2 unbalanced messages by bus {214: 2}; first [((214, [18, 58]), -5, Some(("HOST", 0))), ((214, [18, 314]), 5, Some(("HOSTB", 1)))]]
+REJECTED HOSTB foreign response group (ts 7, hid 999) in a padding row: prover error [precheck: 1 unbalanced messages by bus {214: 1}; first [((214, [7, 999]), 1, Some(("HOSTB", 15)))]]
+SEGTAMPER 49 rejected, 0 accepted
+refill airSegMP exit 0
+  PRECHECK OK (0.05s): every constraint on every row, every bus balanced incl. the chip's interface
+SEGCHECK OK 4 segments chained: B_out(k) = B_in(k+1) for every k
+tamper refill airSegMP s0 exit 0
+REJECTED HOSTB[row 1].hg1 flipped mid-group: prover error [precheck: HOSTB row 0 constraint 18 = 1]
+REJECTED HOSTB foreign response group (ts 7, hid 999) in a padding row: prover error [precheck: 1 unbalanced messages by bus {214: 1}; first [((214, [7, 999]), 1, Some(("HOSTB", 7)))]]
+SEGTAMPER 47 rejected, 0 accepted
+tamper refill airSegMP s2 exit 0
+REJECTED HOSTB[row 1].hg1 flipped mid-group: prover error [precheck: HOSTB row 0 constraint 18 = 1]
+REJECTED HOSTB foreign response group (ts 7, hid 999) in a padding row: prover error [precheck: 1 unbalanced messages by bus {214: 1}; first [((214, [7, 999]), 1, Some(("HOSTB", 63)))]]
+SEGTAMPER 54 rejected, 0 accepted
+refill airSeg exit 0
+  PRECHECK OK (0.05s): every constraint on every row, every bus balanced incl. the chip's interface
+SEGCHECK OK 4 segments chained: B_out(k) = B_in(k+1) for every k
+tamper refill airSeg s0 exit 0
+REJECTED HOSTB[row 1].hg1 flipped mid-group: prover error [precheck: HOSTB row 0 constraint 18 = 1]
+REJECTED HOSTB foreign response group (ts 7, hid 999) in a padding row: prover error [precheck: 1 unbalanced messages by bus {214: 1}; first [((214, [7, 999]), 1, Some(("HOSTB", 7)))]]
+SEGTAMPER 34 rejected, 0 accepted
+tamper refill airSeg s2 exit 0
+REJECTED HOSTB[row 1].hg1 flipped mid-group: prover error [precheck: HOSTB row 0 constraint 18 = 1]
+REJECTED HOSTB foreign response group (ts 7, hid 999) in a padding row: prover error [precheck: 1 unbalanced messages by bus {214: 1}; first [((214, [7, 999]), 1, Some(("HOSTB", 63)))]]
+SEGTAMPER 36 rejected, 0 accepted
+refill prove exit 0
+SEG 3 t (90, 96] steps 6 halted 1 | boundary: stream in 40 out 40 msgs, blocks 0 (read-only 0), drops 0 tombs 0, compressions 42 (stream 42, MEMB 0, MPATH 0)
+  CELLS instruction+lookup tables 1448724 | boundary tables 10096 | SHA-512 chip 681088 (height 8192) | total 2139908
+  PROOF 3: 1328727 B, prove 24.7s, verify 47 ms, statement ok (boundary public values, code_root, func_root), peak_rss_kib 1312148
+SEGPROVE OK 4 segments, chained by hand (B_out(k) = B_in(k+1)); total prove 100.0s
+RUN1 DONE

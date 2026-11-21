@@ -31,7 +31,7 @@ use openvm_recursion_circuit::{
         agg::RangeStmt,
         builder::Builder,
         circuit::{program_commitment, prove_mats},
-        tree::{self as t, build_base_leaf, build_node2, build_node_star, build_norm, build_pad, build_pad_node, build_wrap},
+        tree::{self as t, build_base_leaf, build_node2, build_node_star_set, build_norm, build_pad, build_pad_node, build_wrap_set},
     },
     sha384::config::{Digest, F, fs_jobs, fs_jobs_reset},
 };
@@ -39,7 +39,7 @@ use openvm_stark_backend::StarkProtocolConfig;
 use p3_field::{PrimeCharacteristicRing, PrimeField32};
 
 const MAGIC: &[u8; 8] = b"NPQTW02\0";
-const SETUP_VERSION: u32 = 5;
+const SETUP_VERSION: u32 = 6;
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
 pub struct TemplateEntry {
@@ -59,6 +59,9 @@ pub struct TemplateEntry {
     /// recomputes the TAPE under (`None`: the chunk's natural TAPE, D-5 .. D-7)
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tape_pad: Option<(usize, Vec<(u16, usize)>)>,
+    /// [E2E-D D-9] the class's leaf geometry family (index into `TreeShape::families`)
+    #[serde(default)]
+    pub family: u32,
 }
 
 fn tape_pad_of(e: &TemplateEntry) -> Option<state::TapePad> {
@@ -74,16 +77,28 @@ pub struct Geom {
     pub heights: Vec<vd::PinnedHeight>,
 }
 
+/// [E2E-D D-9] One leaf geometry family: the classes whose leaves are proved at this geometry, its
+/// `PAD_L` program and its `P_2` program (the node over `arity` leaves of this geometry, proved at
+/// the shared node heights). D-8 had one family: the largest class's leaf set every leaf's heights.
+#[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
+pub struct LeafFamily {
+    pub leaf: Geom,
+    pub classes: Vec<u32>,
+    pub c_pad_leaf: Digest,
+    pub c_node2: Digest,
+}
+
 /// Audit content of the wrap setup: everything the wrap program embeds (V_d reads none of it).
 #[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
 pub struct TreeShape {
     pub arity: usize,
     pub depth: usize,
-    pub leaf: Geom,
+    /// [E2E-D D-9] leaf geometry families, each with its own `PAD_L` and `P_2`; every node of any
+    /// family is at the one node geometry, so the wrap is one program over `{C_2^f}` (depth 1)
+    /// and `P_*` one program over `{C_2^f} ∪ {C_padN}` (levels >= 3)
+    pub families: Vec<LeafFamily>,
     pub node: Geom,
     pub templates: Vec<TemplateEntry>,
-    pub c_pad_leaf: Digest,
-    pub c_node2: Digest,
     pub c_pad_node: Digest,
     /// `C_*` (None at depth 1: no level >= 3)
     pub c_node_star: Option<Digest>,
@@ -93,6 +108,10 @@ pub struct TreeShape {
     /// tree layer's (`NEARPROOF_TREE_LEAF_PARAMS`); `None`: the tree geometry (D-5 .. D-7)
     #[serde(default)]
     pub leaf_params: Option<(usize, usize)>,
+    /// [E2E-D D-9, review-D8 L1] the tree layer's geometry `(n_stack, log_blowup)`
+    /// (`NEARPROOF_TREE_GEOM` when the setup was made), so `tree-audit` reads it from the setup
+    #[serde(default)]
+    pub tree_geom: Option<(usize, usize)>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -247,7 +266,7 @@ fn template_of(dir: &Path, class: u32, base_tmpl: bool, chain_engine: &Sha384Cpu
     let c_norm = program_commitment(parent.config(), &mats[0]);
     let (pin, _) = shape_pinned_heights(&mats, &b, 2, FINAL_PIN_EPS_BITS);
     let tape_pad = state::TapePad::of_dir(dir).map(|t| (t.log, t.keys));
-    let entry = TemplateEntry { class, kind: if base_tmpl { "base" } else { "chain" }.into(), base_vk_sha256, base_heights, anchor, c_norm, tape_pad };
+    let entry = TemplateEntry { class, kind: if base_tmpl { "base" } else { "chain" }.into(), base_vk_sha256, base_heights, anchor, c_norm, tape_pad, family: 0 };
     Tmpl { vk, p, entry, pin, rows: b.instrs.len(), u }
 }
 
@@ -304,25 +323,82 @@ pub fn tree_prove(air: &str, public: &str, out: &Path, chunk: &Path, classes: &[
     println!("TREE_SHAPE arity={arity} depth={depth} node_margin={margin}");
     let mut seconds = serde_json::Map::new();
     let mut kinds: std::collections::BTreeMap<String, Vec<f64>> = Default::default();
-    // ---- leaf geometry (a setup constant: the leaf programs depend on it)
-    let (leaf_log, leaf_prog) = match &fixed {
-        Some(f) => (f.tree.leaf.log_rows, f.tree.leaf.prog_log),
-        None => env_pair("NEARPROOF_TREE_LEAF_GEOM", (19, 18)),
+    // ---- [E2E-D D-9] leaf geometry families (setup constants: the leaf programs depend on them).
+    // NEARPROOF_TREE_LEAF_FAMILIES=auto (default): each class's leaf at the smallest geometry that
+    // holds it (program 2^pl >= its rows, NvAir 2^lr >= its NvAir rows, lr > pl), classes of equal
+    // geometry share a family; =one: every class at NEARPROOF_TREE_LEAF_GEOM (D-8: one family, the
+    // largest class's leaf sets every leaf's heights).
+    let lg2 = |x: usize| x.max(1).next_power_of_two().trailing_zeros() as usize;
+    let leaf_sha_env = std::env::var("NEARPROOF_TREE_LEAF_SHA").ok().map_or(1, |v| v.parse().unwrap());
+    let one_family = match std::env::var("NEARPROOF_TREE_LEAF_FAMILIES").as_deref() {
+        Ok("auto") | Err(_) => false,
+        Ok("one") => true,
+        Ok(o) => panic!("unknown NEARPROOF_TREE_LEAF_FAMILIES {o}"),
     };
-    // [E2E-D D-8] leaf SHA instances (a setup constant; default 1; NEARPROOF_TREE_LEAF_SHA for leaves
-    // over low-rate bases, whose query paths need more than one 2^22-row instance)
-    let leaf_sha = match &fixed {
-        Some(f) => f.tree.leaf.sha_instances,
-        None => std::env::var("NEARPROOF_TREE_LEAF_SHA").ok().map_or(1, |v| v.parse().unwrap()),
+    // per family: (log_rows, prog_log, sha_instances); per class: its family
+    let (fam_geoms, class_family): (Vec<(usize, usize, usize)>, Vec<usize>) = match &fixed {
+        Some(f) => {
+            assert_eq!(f.tree.templates.len(), classes.len(), "class count differs from the fixed setup's");
+            (
+                f.tree.families.iter().map(|x| (x.leaf.log_rows, x.leaf.prog_log, x.leaf.sha_instances)).collect(),
+                f.tree.templates.iter().map(|e| e.family as usize).collect(),
+            )
+        }
+        None => {
+            let cg: Vec<(usize, usize, usize)> = if one_family {
+                let (l, p) = env_pair("NEARPROOF_TREE_LEAF_GEOM", (19, 18));
+                vec![(l, p, leaf_sha_env); classes.len()]
+            } else {
+                let probe = circ(k, cap_log - 1, cap_log - 2, leaf_sha_env, cap_log, None);
+                classes
+                    .iter()
+                    .enumerate()
+                    .map(|(i, dir)| {
+                        let tm = template_of(Path::new(dir), i as u32, base_tmpl, &chain_engine, &leaf_engine, &probe);
+                        let pl = lg2(tm.rows);
+                        let lr = lg2(tm.pin[0].1.unwrap()).max(pl + 1);
+                        println!("TREE_LEAF_FAMILY_PROBE class={i} rows={} nv_tight={} -> leaf geometry ({lr},{pl},{leaf_sha_env})", tm.rows, tm.pin[0].1.unwrap());
+                        (lr, pl, leaf_sha_env)
+                    })
+                    .collect()
+            };
+            let mut fg = cg.clone();
+            fg.sort();
+            fg.dedup();
+            let cf = cg.iter().map(|g| fg.iter().position(|x| x == g).unwrap()).collect();
+            (fg, cf)
+        }
     };
-    let probe_l = circ(k, leaf_log, leaf_prog, leaf_sha, cap_log, None);
-    // ---- templates: one leaf program per class; the chunk's own template must equal one of them
+    let n_fam = fam_geoms.len();
+    let probe_f: Vec<NvCircuit> = fam_geoms.iter().map(|&(l, p, s)| circ(k, l, p, s, cap_log, None)).collect();
+    println!("TREE_LEAF_FAMILIES {fam_geoms:?} class_family={class_family:?}");
+    // ---- templates: one leaf program per class (at its family's geometry); the chunk's own
+    // template must equal one of them
     let mut tmpls: Vec<Tmpl> = vec![];
     for (i, dir) in classes.iter().enumerate() {
         let t0 = std::time::Instant::now();
-        let tm = template_of(Path::new(dir), i as u32, base_tmpl, &chain_engine, &leaf_engine, &probe_l);
-        println!("TREE_TEMPLATE class={i} kind={} rows={} pin={:?} base_vk={} s={:.1}", tm.entry.kind, tm.rows, tm.pin, &tm.entry.base_vk_sha256[..16], secs(t0));
+        let mut tm = template_of(Path::new(dir), i as u32, base_tmpl, &chain_engine, &leaf_engine, &probe_f[class_family[i]]);
+        tm.entry.family = class_family[i] as u32;
+        println!(
+            "TREE_TEMPLATE class={i} family={} kind={} rows={} pin={:?} base_vk={} s={:.1}",
+            class_family[i],
+            tm.entry.kind,
+            tm.rows,
+            tm.pin,
+            &tm.entry.base_vk_sha256[..16],
+            secs(t0)
+        );
         tmpls.push(tm);
+    }
+    // [E2E-D D-9, review-D8 M1 / M2] every class's base key rebuilt from the declared AIR, its
+    // TAPE pad and the calibration for its shape, compared byte for byte (not only its hash)
+    for (i, (tm, dir)) in tmpls.iter().zip(classes).enumerate() {
+        let (bvk, _) = load_base(Path::new(dir));
+        let pad_dir = state::TapePad::of_dir(Path::new(dir)).map(|t| (t.log, t.keys));
+        assert_eq!(pad_dir, tm.entry.tape_pad, "class {i}: TAPE_PAD.json");
+        class_key_check(air, certs, exclusions, &bvk, &bvk.inner.params, &tm.entry.base_heights, tm.entry.tape_pad.as_ref())
+            .unwrap_or_else(|e| panic!("class {i} ({dir}): {e}"));
+        println!("TREE_CLASS_KEY_REBUILT class={i}");
     }
     // confirmations (review-D6 F5): every base proof given for a class (the class dir, the chunk,
     // NEARPROOF_TREE_CONFIRM dirs) must yield that class's template; count base proofs that are
@@ -339,11 +415,19 @@ pub fn tree_prove(air: &str, public: &str, out: &Path, chunk: &Path, classes: &[
     let match_class = |tm: &Tmpl, tmpls: &[Tmpl]| -> Option<usize> {
         tmpls.iter().position(|c| c.entry.c_norm == tm.entry.c_norm && c.entry.base_vk_sha256 == tm.entry.base_vk_sha256 && c.entry.base_heights == tm.entry.base_heights && c.entry.tape_pad == tm.entry.tape_pad)
     };
+    // [E2E-D D-9] a base dir is tried only as the classes whose base vk it has, each at its family's
+    // geometry (another family's leaf geometry may not hold its leaf program: no panic, no match)
+    let try_class = |dir: &Path, c: usize| -> Option<Tmpl> {
+        if vk_sha(&load_base(dir).0) != tmpls[c].entry.base_vk_sha256 {
+            return None;
+        }
+        std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| template_of(dir, c as u32, base_tmpl, &chain_engine, &leaf_engine, &probe_f[class_family[c]]))).ok()
+    };
     let extra: Vec<String> = std::env::var("NEARPROOF_TREE_CONFIRM").map(|v| v.split_whitespace().map(String::from).collect()).unwrap_or_default();
     for dir in &extra {
-        // the class index is a program constant of the leaf: try each
+        // the class index is a program constant of the leaf: try each (at that class's family)
         let hit = (0..tmpls.len()).find_map(|c| {
-            let tm = template_of(Path::new(dir), c as u32, base_tmpl, &chain_engine, &leaf_engine, &probe_l);
+            let tm = try_class(Path::new(dir), c)?;
             (match_class(&tm, &tmpls) == Some(c)).then_some((c, tm.u))
         });
         let (c, u) = hit.unwrap_or_else(|| panic!("confirmation {dir}: its template is no class's"));
@@ -353,46 +437,69 @@ pub fn tree_prove(air: &str, public: &str, out: &Path, chunk: &Path, classes: &[
     }
     let (class, target) = (0..tmpls.len())
         .find_map(|c| {
-            let tm = template_of(chunk, c as u32, base_tmpl, &chain_engine, &leaf_engine, &probe_l);
+            let tm = try_class(chunk, c)?;
             (match_class(&tm, &tmpls) == Some(c)).then_some((c, tm))
         })
         .expect("the chunk's template leaf is no class's: its base is not at a class shape");
     add_confirm(&mut confirm[class], target.u.clone(), ctx_dir(chunk, public));
+    let fam = class_family[class];
     let class = class as u32;
     let templates: Vec<TemplateEntry> = tmpls.iter().map(|t| t.entry.clone()).collect();
     let confirmed: Vec<usize> = confirm.iter().map(Vec::len).collect();
-    println!("TREE_CHUNK_CLASS class={class} confirmations_per_class={confirmed:?}");
+    println!("TREE_CHUNK_CLASS class={class} family={fam} confirmations_per_class={confirmed:?}");
     let ctx: Vec<F> = if base_tmpl { t::ctx_of_digest(d0a_claim(air, public, chunk).0.digest()) } else { target.p.public_values[0][1..19].to_vec() };
     let done = vec![F::from_u32(t::PHASE_DONE), F::from_u32(class)];
-    // ---- PAD_L
-    let (mats, b) = probe_l.generate_with(|b| {
-        build_pad(b, &ctx, F::ONE, &done);
-    });
-    let c_pad_leaf = program_commitment(leaf_engine.config(), &mats[0]);
-    let (pad_pin, _) = shape_pinned_heights(&mats, &b, 2, FINAL_PIN_EPS_BITS);
-    println!("TREE_PAD_LEAF rows={} pin={pad_pin:?}", b.instrs.len());
-    let mut set: Vec<Digest> = templates.iter().map(|t| t.c_norm).collect();
-    set.push(c_pad_leaf);
-    let h_l: Vec<vd::PinnedHeight> = match &fixed {
+    // ---- PAD_L, one program per family (its ctx / a / s are witnesses: one program per geometry)
+    let mut c_pad_leaf: Vec<Digest> = vec![];
+    let mut pad_pins: Vec<Vec<vd::PinnedHeight>> = vec![];
+    for (f, pc) in probe_f.iter().enumerate() {
+        let (mats, b) = pc.generate_with(|b| {
+            build_pad(b, &ctx, F::ONE, &done);
+        });
+        c_pad_leaf.push(program_commitment(leaf_engine.config(), &mats[0]));
+        let (pad_pin, _) = shape_pinned_heights(&mats, &b, 2, FINAL_PIN_EPS_BITS);
+        println!("TREE_PAD_LEAF family={f} rows={} pin={pad_pin:?}", b.instrs.len());
+        pad_pins.push(pad_pin);
+    }
+    // P_2^f's template set: the family's classes (class order), then its PAD_L
+    let sets: Vec<Vec<Digest>> = (0..n_fam)
+        .map(|f| {
+            let mut s: Vec<Digest> = templates.iter().filter(|e| e.family as usize == f).map(|e| e.c_norm).collect();
+            s.push(c_pad_leaf[f]);
+            s
+        })
+        .collect();
+    let h_ls: Vec<Vec<vd::PinnedHeight>> = match &fixed {
         Some(f) => {
             assert_eq!(f.tree.templates, templates, "template set differs from the fixed setup's");
-            assert_eq!(f.tree.c_pad_leaf, c_pad_leaf, "PAD_L differs from the fixed setup's");
+            for (g, x) in f.tree.families.iter().enumerate() {
+                assert_eq!(x.c_pad_leaf, c_pad_leaf[g], "PAD_L of family {g} differs from the fixed setup's");
+                assert_eq!(x.classes, (0..classes.len() as u32).filter(|&c| class_family[c as usize] == g).collect::<Vec<_>>(), "family {g} classes");
+            }
             assert_eq!((f.tree.arity, f.tree.depth), (arity, depth), "tree shape differs from the fixed setup's");
             if std::env::var("NEARPROOF_TREE_TEMPLATES_ONLY").is_ok_and(|v| v == "1") {
                 println!("TREE_TEMPLATES_MATCH_FIXED_SETUP classes={}", templates.len());
                 return;
             }
-            f.tree.leaf.heights.clone()
+            f.tree.families.iter().map(|x| x.leaf.heights.clone()).collect()
         }
-        None => {
-            let mut pins: Vec<_> = tmpls.iter().map(|t| t.pin.clone()).collect();
-            pins.push(pad_pin);
-            max_pin(&pins)
-        }
+        None => (0..n_fam)
+            .map(|f| {
+                let mut pins: Vec<_> = tmpls.iter().zip(&class_family).filter(|(_, cf)| **cf == f).map(|(t, _)| t.pin.clone()).collect();
+                pins.push(pad_pins[f].clone());
+                max_pin(&pins)
+            })
+            .collect(),
     };
-    println!("TREE_LEAF_HEIGHTS {h_l:?}");
+    for (f, h) in h_ls.iter().enumerate() {
+        println!("TREE_LEAF_HEIGHTS family={f} {h:?}");
+    }
     drop(tmpls);
-    // ---- leaves
+    let set = sets[fam].clone();
+    let h_l = h_ls[fam].clone();
+    let (leaf_log, leaf_prog, leaf_sha) = fam_geoms[fam];
+    let want_root = |i: usize| -> Digest { if i == 0 { templates[class as usize].c_norm } else { c_pad_leaf[fam] } };
+    // ---- leaves (the chunk's family)
     let lc = circ(k, leaf_log, leaf_prog, leaf_sha, cap_log, Some(&h_l));
     let mut items: Vec<Item> = vec![];
     let mut n_proofs = 0usize;
@@ -414,7 +521,7 @@ pub fn tree_prove(air: &str, public: &str, out: &Path, chunk: &Path, classes: &[
                 };
                 if leaf_engine.verify(&v, &p).is_ok()
                     && vd::proof_heights(&p).as_ref() == Some(&h_l)
-                    && root_of(&p) == set[if i == 0 { class as usize } else { set.len() - 1 }]
+                    && root_of(&p) == want_root(i)
                     && openvm_recursion_circuit::nv::agg::check_range_statement(&p.public_values[0], &stmt)
                 {
                     save_proof(&out.join(format!("LEAF{i}.proof")), &p);
@@ -440,12 +547,12 @@ pub fn tree_prove(air: &str, public: &str, out: &Path, chunk: &Path, classes: &[
         assert!(b.failures.is_empty(), "leaf {i}: {:?}", b.failures);
         let (v, p, _) = prove_mats(&lc, &leaf_engine, mats, &b);
         assert_eq!(vd::proof_heights(&p).unwrap(), h_l, "leaf {i}: heights differ from the leaf pin");
-        assert_eq!(root_of(&p), set[if i == 0 { class as usize } else { set.len() - 1 }], "leaf {i}: program root not its template's");
+        assert_eq!(root_of(&p), want_root(i), "leaf {i}: program root not its template's");
         let stmt = s.unwrap();
         assert!(openvm_recursion_circuit::nv::agg::check_range_statement(&p.public_values[0], &stmt));
         let bytes = save_proof(&out.join(format!("LEAF{i}.proof")), &p);
         let sec = secs(t0);
-        println!("TREE_LEAF {i} rows={} bytes={bytes} seconds={sec:.1}", b.instrs.len());
+        println!("TREE_LEAF {i} family={fam} rows={} bytes={bytes} seconds={sec:.1}", b.instrs.len());
         seconds.insert(format!("leaf{i}"), sec.into());
         kinds.entry(if i == 0 { "leaf_template" } else { "pad_leaf" }.into()).or_default().push(sec);
         if i == 0 {
@@ -459,55 +566,89 @@ pub fn tree_prove(air: &str, public: &str, out: &Path, chunk: &Path, classes: &[
             return;
         }
     }
-    // ---- node geometry: from the first P_2 (setup creation) or the fixed setup
-    let node_refs = |items: &[Item]| -> Vec<(MultiStarkVerifyingKey<SC>, Proof<SC>)> { items.iter().map(|x| (x.vk.clone(), x.p.clone())).collect() };
-    let leaf_kids = node_refs(&items);
-    let pre: Vec<RangeStmt> = items.iter().map(|x| x.stmt.clone()).collect();
-    let gen_p2 = |c: &NvCircuit| -> std::thread::Result<(Vec<p3_matrix::dense::RowMajorMatrix<F>>, Builder, RangeStmt)> {
+    // ---- [E2E-D D-9] P_2 inputs per family: the chunk's family over its real leaves; at setup
+    // creation every other family over `arity` copies of one PAD_L proof at that family's leaf
+    // heights (P_2's program is a function of its children's geometry, not of their values: the
+    // probe's program root is checked against the real P_2 of the chunk's own family below, and a
+    // fixed-setup run of a chunk of the other family proves its real P_2 against the setup's root)
+    type Kids = Vec<(MultiStarkVerifyingKey<SC>, Proof<SC>)>;
+    let mut p2_in: Vec<Option<(Kids, Vec<RangeStmt>)>> = vec![None; n_fam];
+    p2_in[fam] = Some((items.iter().map(|x| (x.vk.clone(), x.p.clone())).collect(), items.iter().map(|x| x.stmt.clone()).collect()));
+    if fixed.is_none() {
+        for f in (0..n_fam).filter(|&f| f != fam) {
+            let t0 = std::time::Instant::now();
+            let (l, pl, sh) = fam_geoms[f];
+            let lcf = circ(k, l, pl, sh, cap_log, Some(&h_ls[f]));
+            let mut s = None;
+            let (mats, b) = lcf.generate_with(|b| {
+                s = Some(build_pad(b, &ctx, F::ONE, &done));
+            });
+            assert!(b.failures.is_empty(), "family {f} PAD_L probe: {:?}", b.failures);
+            let (v, p, _) = prove_mats(&lcf, &leaf_engine, mats, &b);
+            assert_eq!(vd::proof_heights(&p).unwrap(), h_ls[f], "family {f} PAD_L probe heights");
+            assert_eq!(root_of(&p), c_pad_leaf[f]);
+            let s = s.unwrap();
+            let sec = secs(t0);
+            println!("TREE_FAMILY_PAD_PROBE family={f} seconds={sec:.1}");
+            seconds.insert(format!("family{f}_pad_probe"), sec.into());
+            p2_in[f] = Some(((0..arity).map(|_| (v.clone(), p.clone())).collect(), vec![s; arity]));
+        }
+    }
+    let gen_p2 = |c: &NvCircuit, f: usize| -> std::thread::Result<(Vec<p3_matrix::dense::RowMajorMatrix<F>>, Builder, RangeStmt)> {
+        let (kids, pre) = p2_in[f].as_ref().expect("P_2 input of this family");
         std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            let refs: Vec<(&MultiStarkVerifyingKey<SC>, &Proof<SC>)> = leaf_kids.iter().map(|(a, b)| (a, b)).collect();
+            let refs: Vec<(&MultiStarkVerifyingKey<SC>, &Proof<SC>)> = kids.iter().map(|(a, b)| (a, b)).collect();
             let mut s = None;
             let (m, b) = c.generate_with(|b| {
-                s = Some(build_node2(b, &refs, &pre, &set));
+                s = Some(build_node2(b, &refs, pre, &sets[f]));
             });
             (m, b, s.unwrap())
         }))
     };
+    // ---- node geometry: from every family's P_2 (setup creation) or the fixed setup
     let node_geom: Geom = match &fixed {
         Some(f) => f.tree.node.clone(),
         None => {
             let m = if depth >= 2 { margin } else { 1.0 };
-            // sizes at the largest geometry, then the smallest geometry holding them with the margin
+            // sizes at the largest geometry (max over the families), then the smallest geometry
+            // holding every family's P_2 with the margin
             let maxg = circ(k, cap_log, cap_log - 1, openvm_recursion_circuit::nv::circuit::MAX_SHA_INSTANCES, cap_log, None);
-            let (mats, b, _) = gen_p2(&maxg).unwrap_or_else(|_| panic!("P_2 does not fit even the largest node geometry"));
-            let used = openvm_recursion_circuit::nv::circuit::natural_tight_heights(&mats, 2);
-            let sha_used: usize = (0..openvm_recursion_circuit::nv::circuit::MAX_SHA_INSTANCES).map(|j| used[openvm_recursion_circuit::nv::circuit::sha_air_index(j)]).sum();
-            let rows = b.instrs.len();
-            drop(mats);
+            let (mut rows, mut nv_used, mut sha_used) = (0usize, 0usize, 0usize);
+            for f in 0..n_fam {
+                let (mats, b, _) = gen_p2(&maxg, f).unwrap_or_else(|_| panic!("P_2 (family {f}) does not fit even the largest node geometry"));
+                let used = openvm_recursion_circuit::nv::circuit::natural_tight_heights(&mats, 2);
+                let su: usize = (0..openvm_recursion_circuit::nv::circuit::MAX_SHA_INSTANCES).map(|j| used[openvm_recursion_circuit::nv::circuit::sha_air_index(j)]).sum();
+                println!("TREE_NODE2_SIZES family={f} rows={} nv_used={} sha_used={su}", b.instrs.len(), used[0]);
+                rows = rows.max(b.instrs.len());
+                nv_used = nv_used.max(used[0]);
+                sha_used = sha_used.max(su);
+            }
             let lg = |x: f64| (x.ceil() as usize).next_power_of_two().trailing_zeros() as usize;
             let mut pl = lg(rows as f64 * m).max(env_pair("NEARPROOF_TREE_NODE_GEOM", (20, 19)).1);
-            let mut lr = lg(used[0] as f64 * m).max(pl + 1);
+            let mut lr = lg(nv_used as f64 * m).max(pl + 1);
             let mut ks_ = ((sha_used as f64 * m) / (1usize << cap_log) as f64).ceil().max(1.0) as usize;
-            println!("TREE_NODE2_SIZES rows={rows} nv_used={} sha_used={sha_used} -> geom=({lr},{pl},{ks_})", used[0]);
+            println!("TREE_NODE2_SIZES max rows={rows} nv_used={nv_used} sha_used={sha_used} -> geom=({lr},{pl},{ks_})");
             loop {
                 let c = circ(k, lr, pl, ks_, cap_log, None);
-                match gen_p2(&c) {
-                    Ok((mats, b, _)) => {
-                        let rows = b.instrs.len();
-                        let (pin, info) = shape_pinned_heights(&mats, &b, 2, FINAL_PIN_EPS_BITS);
-                        let sha_total: usize = (0..ks_).map(|j| pin[openvm_recursion_circuit::nv::circuit::sha_air_index(j)].1.unwrap()).sum();
-                        println!("TREE_NODE2_PROBE geom=({lr},{pl},{ks_}) rows={rows} pin={pin:?} info={info:?}");
-                        if (rows as f64 * m) > (1usize << pl) as f64 {
-                            pl += 1;
-                        } else if (pin[0].1.unwrap() as f64 * m) > (1usize << lr) as f64 {
-                            lr += 1;
-                        } else if (sha_total as f64 * m) > (ks_ << cap_log) as f64 {
-                            ks_ += 1;
-                        } else {
-                            break Geom { log_rows: lr, prog_log: pl, sha_instances: ks_, heights: grow_pin(&pin, m, ks_, cap_log) };
-                        }
-                    }
-                    Err(_) => panic!("P_2 does not fit the geometry ({lr},{pl},{ks_}) chosen from its sizes"),
+                let mut pins = vec![];
+                let mut rows = 0usize;
+                for f in 0..n_fam {
+                    let (mats, b, _) = gen_p2(&c, f).unwrap_or_else(|_| panic!("P_2 (family {f}) does not fit the geometry ({lr},{pl},{ks_}) chosen from its sizes"));
+                    let (pin, info) = shape_pinned_heights(&mats, &b, 2, FINAL_PIN_EPS_BITS);
+                    println!("TREE_NODE2_PROBE family={f} geom=({lr},{pl},{ks_}) rows={} pin={pin:?} info={info:?}", b.instrs.len());
+                    rows = rows.max(b.instrs.len());
+                    pins.push(pin);
+                }
+                let pin = max_pin(&pins);
+                let sha_total: usize = (0..ks_).map(|j| pin[openvm_recursion_circuit::nv::circuit::sha_air_index(j)].1.unwrap()).sum();
+                if (rows as f64 * m) > (1usize << pl) as f64 {
+                    pl += 1;
+                } else if (pin[0].1.unwrap() as f64 * m) > (1usize << lr) as f64 {
+                    lr += 1;
+                } else if (sha_total as f64 * m) > (ks_ << cap_log) as f64 {
+                    ks_ += 1;
+                } else {
+                    break Geom { log_rows: lr, prog_log: pl, sha_instances: ks_, heights: grow_pin(&pin, m, ks_, cap_log) };
                 }
                 assert!(lr <= cap_log && pl < lr && ks_ <= openvm_recursion_circuit::nv::circuit::MAX_SHA_INSTANCES, "no node geometry fits");
                 if pl >= lr {
@@ -519,7 +660,22 @@ pub fn tree_prove(air: &str, public: &str, out: &Path, chunk: &Path, classes: &[
     println!("TREE_NODE_GEOM {node_geom:?}");
     let h_n = node_geom.heights.clone();
     let nc = circ(k, node_geom.log_rows, node_geom.prog_log, node_geom.sha_instances, cap_log, Some(&h_n));
-    // ---- PAD_N and P_2 program roots
+    // ---- P_2 program roots per family: computed at setup creation (the other families from their
+    // probes), from the fixed setup otherwise (the chunk's own family re-derived by its real P_2)
+    let c_node2s: Vec<Digest> = match &fixed {
+        Some(f) => f.tree.families.iter().map(|x| x.c_node2).collect(),
+        None => (0..n_fam)
+            .map(|f| {
+                let probe = circ(k, node_geom.log_rows, node_geom.prog_log, node_geom.sha_instances, cap_log, None);
+                let (mats, _, _) = gen_p2(&probe, f).unwrap_or_else(|_| panic!("P_2 (family {f}) at the node geometry"));
+                let c = program_commitment(parent.config(), &mats[0]);
+                println!("TREE_NODE2_PROGRAM family={f} root={:?}", &c);
+                c
+            })
+            .collect(),
+    };
+    drop(p2_in);
+    // ---- PAD_N program root
     let pad_node_body = |b: &mut Builder, a: usize, level: u32| build_pad_node(b, &ctx, F::from_usize(a), &done, level);
     let (mats, b) = circ(k, node_geom.log_rows, node_geom.prog_log, node_geom.sha_instances, cap_log, None).generate_with(|b| {
         pad_node_body(b, arity, 2);
@@ -562,7 +718,7 @@ pub fn tree_prove(air: &str, public: &str, out: &Path, chunk: &Path, classes: &[
             let mut s = None;
             let gen_node = |c: &NvCircuit, s: &mut Option<RangeStmt>| {
                 c.generate_with(|b| {
-                    *s = Some(if lvl == 2 { build_node2(b, &refs, &pre, &set) } else { build_node_star(b, &refs, &pre, c_node2.unwrap(), c_pad_node) });
+                    *s = Some(if lvl == 2 { build_node2(b, &refs, &pre, &set) } else { build_node_star_set(b, &refs, &pre, &c_node2s, c_pad_node) });
                 })
             };
             // shape check first (natural heights at the node geometry): the pin must hold it
@@ -579,6 +735,9 @@ pub fn tree_prove(air: &str, public: &str, out: &Path, chunk: &Path, classes: &[
             assert_eq!(vd::proof_heights(&p).unwrap(), h_n);
             assert_eq!(p.public_values[0][0], F::from_u32(lvl), "node level");
             let r = root_of(&p);
+            if lvl == 2 {
+                assert_eq!(r, c_node2s[fam], "P_2 (family {fam}): program root differs from the setup's / the family probe's");
+            }
             let slot = if lvl == 2 { &mut c_node2 } else { &mut c_star };
             assert!(slot.is_none_or(|c| c == r), "node programs differ within a shape");
             *slot = Some(r);
@@ -596,7 +755,6 @@ pub fn tree_prove(air: &str, public: &str, out: &Path, chunk: &Path, classes: &[
         items = next;
     }
     assert_eq!(items.len(), 1, "one root");
-    let c_node2 = c_node2.unwrap();
     // [D-7] depth 1: the shape of a P_* over copies of the P_2 proof (statements do not chain: a
     // trace-shape measurement for the arity model, not a valid node)
     if depth == 1 && std::env::var("NEARPROOF_TREE_STAR_PROBE").is_ok_and(|v| v == "1") {
@@ -606,7 +764,7 @@ pub fn tree_prove(air: &str, public: &str, out: &Path, chunk: &Path, classes: &[
         let r = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             let c = circ(k, node_geom.log_rows, node_geom.prog_log, node_geom.sha_instances, cap_log, None);
             let (m, b) = c.generate_with(|b| {
-                build_node_star(b, &refs, &pre, c_node2, c_pad_node);
+                build_node_star_set(b, &refs, &pre, &c_node2s, c_pad_node);
             });
             let (pin, info) = shape_pinned_heights(&m, &b, 2, FINAL_PIN_EPS_BITS);
             println!("TREE_STAR_PROBE arity={arity} rows={} shape_pin={pin:?} info={info:?} fits_node_pin={} gen_s={:.1}", b.instrs.len(), fits(&pin, &h_n), secs(t0));
@@ -615,7 +773,8 @@ pub fn tree_prove(air: &str, public: &str, out: &Path, chunk: &Path, classes: &[
             println!("TREE_STAR_PROBE arity={arity} does not fit the node geometry {:?}", (node_geom.log_rows, node_geom.prog_log, node_geom.sha_instances));
         }
     }
-    let c_root = if depth == 1 { c_node2 } else { c_star.unwrap() };
+    // the wrap's root set: every family's P_2 at depth 1, C_* above
+    let c_roots: Vec<Digest> = if depth == 1 { c_node2s.clone() } else { vec![c_star.unwrap()] };
     let root = items.pop().unwrap();
     // ---- wrap (final domain, zk-masked; heights pinned from the shape, F1(b))
     let t0 = std::time::Instant::now();
@@ -624,12 +783,11 @@ pub fn tree_prove(air: &str, public: &str, out: &Path, chunk: &Path, classes: &[
     wc.prog_log = wrap_prog_log;
     let root_level = 1 + depth as u32;
     let wbody = |b: &mut Builder| {
-        build_wrap(b, &root.vk, &root.p, root_level, c_root, &root.stmt);
+        build_wrap_set(b, &root.vk, &root.p, root_level, &c_roots, &root.stmt);
     };
     let fparams = final_engine.config().params().clone();
     let wh: Vec<vd::PinnedHeight> = match &fixed {
         Some(f) => {
-            assert_eq!(f.tree.c_node2, c_node2, "P_2 differs from the fixed setup's");
             assert_eq!(f.tree.c_node_star, c_star, "P_* differs from the fixed setup's");
             f.final_heights.clone()
         }
@@ -651,19 +809,26 @@ pub fn tree_prove(air: &str, public: &str, out: &Path, chunk: &Path, classes: &[
     seconds.insert("wrap".into(), wsec.into());
     kinds.entry("wrap".into()).or_default().push(wsec);
     let program: Vec<[u32; 4]> = b.instrs.iter().map(|i| i.words()).collect();
+    let families: Vec<LeafFamily> = (0..n_fam)
+        .map(|f| LeafFamily {
+            leaf: Geom { log_rows: fam_geoms[f].0, prog_log: fam_geoms[f].1, sha_instances: fam_geoms[f].2, heights: h_ls[f].clone() },
+            classes: (0..classes.len() as u32).filter(|&c| class_family[c as usize] == f).collect(),
+            c_pad_leaf: c_pad_leaf[f],
+            c_node2: c_node2s[f],
+        })
+        .collect();
     let tree = TreeShape {
         arity,
         depth,
-        leaf: Geom { log_rows: leaf_log, prog_log: leaf_prog, sha_instances: leaf_sha, heights: h_l.clone() },
+        families,
         node: node_geom.clone(),
         templates,
-        c_pad_leaf,
-        c_node2,
         c_pad_node,
         c_node_star: c_star,
         wrap_log_rows: WRAP_LOG_ROWS,
         wrap_prog_log,
         leaf_params,
+        tree_geom: Some(profile::tree_geom()),
     };
     let (_, base_u, _) = d0a_claim(air, public, chunk);
     let base_params: Vec<SystemParams> = classes.iter().map(|d| load_base(Path::new(d)).0.inner.params.clone()).collect();
@@ -741,7 +906,7 @@ pub fn tree_prove(air: &str, public: &str, out: &Path, chunk: &Path, classes: &[
     let kind_stats: serde_json::Map<String, serde_json::Value> =
         kinds.iter().map(|(k, v)| (k.clone(), serde_json::json!({"n": v.len(), "mean_s": v.iter().sum::<f64>() / v.len() as f64}))).collect();
     let result = serde_json::json!({
-        "scope": "D0a template classes, chunk-independent tree (two node shapes, PAD at any level) + wrap (D-7)",
+        "scope": "D0a template classes, chunk-independent tree (two node shapes, PAD at any level, one leaf geometry per family: D-9) + wrap",
         "security_established": false,
         "zero_knowledge_established": zk_ok,
         "zero_knowledge_scope": zk_scope,
@@ -752,68 +917,235 @@ pub fn tree_prove(air: &str, public: &str, out: &Path, chunk: &Path, classes: &[
         "wrap_proof_bytes": proof_bytes, "hint_bytes": hint.len(), "bundle_bytes": packet.len(),
         "setup_bytes": setup_bytes.len(), "setup_sha256": pin,
         "node2_program_rows": node_rows.0, "node_star_program_rows": node_rows.1, "wrap_program_rows": wrap_rows,
-        "leaf_geom": setup.tree.leaf, "node_geom": setup.tree.node, "wrap_heights": wh,
+        "family": fam, "leaf_families": setup.tree.families.len(),
+        "leaf_geom": setup.tree.families[fam].leaf, "node_geom": setup.tree.node, "wrap_heights": wh,
         "seconds": seconds, "seconds_by_kind": kind_stats, "total_seconds": secs(t_all),
     });
     std::fs::write(out.join("RESULT.json"), serde_json::to_vec_pretty(&result).unwrap()).unwrap();
     println!("TREE_WRAP_VERIFIED {result}");
 }
 
-/// [E2E-D D-8, review-D7 L3] `tree-audit SETUP.json CERTS EXCLUSIONS VK_DIR [BASE_DIR...]`: check a
-/// tree setup against its shipped class base vks (VK_DIR/CLASS{i}.BASE.vk.json): each vk's sha256 is
-/// the entry's `base_vk_sha256`, `base_params[i]` is that vk's parameters, the entry's AIR count and
-/// (with a TAPE pad) the TAPE width match the vk; then, for each BASE_DIR (any base proof at a class
-/// shape), the leaf program is regenerated (`build_base_leaf` at the setup's leaf geometry and leaf
-/// parameters) and its root must be the class entry's `c_norm`: the setup's leaf roots are then a
-/// function of the class shapes and vks alone. Exit 1 on any mismatch.
-pub fn tree_audit(setup_path: &str, certs: &str, exclusions: &str, vk_dir: &Path, bases: &[String]) {
-    let setup: WrapSetup = serde_json::from_slice(&std::fs::read(setup_path).unwrap()).unwrap();
+/// [E2E-D D-9, review-D8 M1 / M2] A class's base key, rebuilt and compared: the TAPE pad is
+/// well formed (sorted, unique keys) and its log is the class's TAPE log; the base parameters are
+/// the stack's calibration for the class's pinned shape (n_stack, w_stack, degree from the class
+/// log heights and the pad; the class's own log blowup) at the pinned per-round target; the base vk
+/// is, byte for byte, the key of the declared AIR + the pad's TAPE at those parameters (so the vk's
+/// constraints and the TAPE interactions are the AIR's and the pad's, not just its hash).
+fn class_key_check(
+    air: &str,
+    certs: &str,
+    exclusions: &str,
+    vk: &MultiStarkVerifyingKey<SC>,
+    params: &SystemParams,
+    heights: &[vd::PinnedHeight],
+    tape_pad: Option<&(usize, Vec<(u16, usize)>)>,
+) -> Result<(), String> {
+    let (log, keys) = tape_pad.ok_or("no TAPE pad: a class must pin its TAPE shape (D-8+)")?;
+    let pad = state::TapePad { log: *log, keys: keys.clone() };
+    pad.validate()?;
+    if heights.last().map(|h| h.0) != Some(pad.log) {
+        return Err(format!("TAPE pad log {} != the class's TAPE log {:?}", pad.log, heights.last()));
+    }
+    let logs: Vec<usize> = heights.iter().map(|h| h.0).collect();
+    let r = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        let (n_stack, w_stack, degree) = state::chunk_bridge::class_base_shape(air, &logs, &pad);
+        let mut p = profile::shaped_params_lb(false, n_stack, w_stack, degree, params.log_blowup, certs, exclusions);
+        p.whir.domain_odd_factor = params.whir.domain_odd_factor;
+        let vk2 = state::chunk_bridge::class_base_vk(air, p.clone(), &pad);
+        (p, vk2)
+    }))
+    .map_err(|_| "rebuilding the class key panicked".to_string())?;
+    let (p, vk2) = r;
+    if serde_json::to_value(&p).unwrap() != serde_json::to_value(params).unwrap() {
+        return Err(format!("base parameters are not the calibration for the class shape (rebuilt n_stack {} w_stack {} lb {})", p.n_stack, p.w_stack, p.log_blowup));
+    }
+    if serde_json::to_vec(&vk2).unwrap() != serde_json::to_vec(vk).unwrap() {
+        return Err("base vk differs from the key of the declared AIR + TAPE pad at the class parameters".into());
+    }
+    Ok(())
+}
+
+/// [E2E-D D-8 .. D-9] `tree-audit AIR SETUP.json CERTS EXCLUSIONS VK_DIR [BASE_DIR...]`: check a
+/// tree setup against the declared AIR and its shipped class base vks (VK_DIR/CLASS{i}.BASE.vk.json).
+/// Class level (any setup version, so the D-8 review's tamper fixtures run too): the AIR's sha256
+/// is the setup's; the domain factor of each shipped vk equals the setup's (compared, not
+/// overwritten); each vk's sha256 is the entry's `base_vk_sha256` and `base_params[i]` its
+/// parameters; and `class_key_check` (review-D8 M1, M2): pad well formed and at the class TAPE log,
+/// parameters recomputed from the class shape, the vk rebuilt from AIR + pad byte for byte.
+/// Tree level (setup version 6): every family's `PAD_L` root regenerated at its geometry; each
+/// BASE_DIR's leaf program regenerated at its class's family geometry (root = `c_norm`), and every
+/// class must be covered by at least one BASE_DIR (review-D8 L1); `C_padN` regenerated at the node
+/// geometry; no `C_*` at depth 1; and, when VK_DIR is a run directory (LEAF*.proof, NODE2_0.proof),
+/// the run's family `C_2` regenerated over its leaves, then the wrap program, its pinned heights
+/// and the final vk regenerated over its root. The tree geometry is read from the setup. Exit 1 on
+/// any mismatch.
+pub fn tree_audit(air: &str, setup_path: &str, certs: &str, exclusions: &str, vk_dir: &Path, bases: &[String]) {
+    let setup_bytes = std::fs::read(setup_path).unwrap();
+    let v: serde_json::Value = serde_json::from_slice(&setup_bytes).unwrap();
+    let version = v["version"].as_u64().unwrap_or(0) as u32;
+    let dof = v["domain_odd_factor"].as_u64().unwrap_or(0) as usize;
     let mut bad = 0;
-    for (i, e) in setup.tree.templates.iter().enumerate() {
-        let vk = read_vk(&vk_dir.join(format!("CLASS{i}.BASE.vk.json")));
-        let h = vk_sha(&vk);
-        let mut p0 = setup.base_params[i].clone();
-        p0.whir.domain_odd_factor = vk.inner.params.whir.domain_odd_factor;
-        let params_ok = serde_json::to_value(&p0).unwrap() == serde_json::to_value(&vk.inner.params).unwrap();
-        let airs_ok = e.base_heights.len() == vk.inner.per_air.len();
-        let tape_ok = e.tape_pad.as_ref().is_none_or(|(_, keys)| {
-            let wmsg = keys.iter().map(|k| k.1).max().unwrap_or(1).max(1);
-            vk.inner.per_air.last().unwrap().params.width.cached_mains == vec![wmsg + 1 + keys.len().max(1)]
-        });
-        let ok = h == e.base_vk_sha256 && params_ok && airs_ok && tape_ok;
+    let mut check = |ok: bool, what: String| {
         if !ok {
             bad += 1;
         }
-        println!("TREE_AUDIT_CLASS {i} vk_sha={} params={params_ok} airs={airs_ok} tape_width={tape_ok} -> {}", h == e.base_vk_sha256, if ok { "OK" } else { "MISMATCH" });
+        println!("TREE_AUDIT_CHECK {what} -> {}", if ok { "OK" } else { "MISMATCH" });
+    };
+    check(dof == 15, format!("setup domain_odd_factor {dof}"));
+    check(v["air_sha256"].as_str() == Some(hash(&std::fs::read(air).unwrap()).as_str()), "air_sha256 = sha256(AIR)".into());
+    let templates: Vec<TemplateEntry> = serde_json::from_value(v["tree"]["templates"].clone()).expect("templates");
+    let base_params: Vec<SystemParams> = serde_json::from_value(v["base_params"].clone()).expect("base_params");
+    check(templates.len() == base_params.len() && !templates.is_empty(), format!("{} classes, {} base_params", templates.len(), base_params.len()));
+    for (i, e) in templates.iter().enumerate() {
+        let path = vk_dir.join(format!("CLASS{i}.BASE.vk.json"));
+        let raw: serde_json::Value = serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
+        let vdof = raw["domain_odd_factor"].as_u64().unwrap_or(0) as usize;
+        let mut vk: MultiStarkVerifyingKey<SC> = serde_json::from_value(raw["vk"].clone()).expect("class vk");
+        vk.inner.params.whir.domain_odd_factor = vdof;
+        let h = vk_sha(&vk);
+        let mut p0 = base_params[i].clone();
+        p0.whir.domain_odd_factor = dof;
+        let params_ok = serde_json::to_value(&p0).unwrap() == serde_json::to_value(&vk.inner.params).unwrap();
+        let airs_ok = e.base_heights.len() == vk.inner.per_air.len();
+        let key = if vdof == dof { class_key_check(air, certs, exclusions, &vk, &p0, &e.base_heights, e.tape_pad.as_ref()) } else { Err(format!("vk domain_odd_factor {vdof} != setup's {dof}")) };
+        let ok = h == e.base_vk_sha256 && params_ok && airs_ok && key.is_ok();
+        check(
+            ok,
+            format!(
+                "class {i} vk_sha={} params={params_ok} airs={airs_ok} key={}",
+                h == e.base_vk_sha256,
+                key.as_ref().map_or_else(|e| format!("FAIL({e})"), |_| "rebuilt-identical".into())
+            ),
+        );
     }
-    if !bases.is_empty() {
-        let tparams = profile::params_geom(false, certs, exclusions, profile::tree_geom());
+    if version != SETUP_VERSION {
+        println!("TREE_AUDIT_TREE_LEVEL skipped: setup version {version} (class level only)");
+        check(!bases.is_empty(), format!("{} base dirs given", bases.len()));
+    } else {
+        let setup: WrapSetup = serde_json::from_slice(&setup_bytes).unwrap();
+        let tg = setup.tree.tree_geom.expect("a version-6 setup records its tree geometry");
+        let tparams = profile::params_geom(false, certs, exclusions, tg);
         let cap_log = tparams.l_skip + tparams.n_stack;
         let k = tparams.k_whir();
+        let parent = Sha384CpuEngine::new(tparams.clone());
         let lparams = setup.tree.leaf_params.map_or(tparams.clone(), |g| profile::params_geom(false, certs, exclusions, g));
         let leaf_engine = Sha384CpuEngine::new(lparams);
         let chain_engine = Sha384CpuEngine::new(profile::params(false, certs, exclusions));
-        let lc = circ(k, setup.tree.leaf.log_rows, setup.tree.leaf.prog_log, setup.tree.leaf.sha_instances, cap_log, None);
-        for d in bases {
-            let hit = (0..setup.tree.templates.len()).find(|&c| {
-                let tm = template_of(Path::new(d), c as u32, true, &chain_engine, &leaf_engine, &lc);
-                tm.entry == setup.tree.templates[c]
+        let done = [F::from_u32(t::PHASE_DONE), F::ZERO];
+        let zctx = [F::ZERO; t::N_CTX];
+        let lcs: Vec<NvCircuit> = setup.tree.families.iter().map(|f| circ(k, f.leaf.log_rows, f.leaf.prog_log, f.leaf.sha_instances, cap_log, None)).collect();
+        for (f, (fam, lc)) in setup.tree.families.iter().zip(&lcs).enumerate() {
+            let (mats, _) = lc.generate_with(|b| {
+                build_pad(b, &zctx, F::ONE, &done);
             });
-            match hit {
-                Some(c) => println!("TREE_AUDIT_LEAF_ROOT_OK class={c} base={d}"),
-                None => {
-                    bad += 1;
-                    println!("TREE_AUDIT_LEAF_ROOT_MISMATCH base={d}");
+            let ok = program_commitment(leaf_engine.config(), &mats[0]) == fam.c_pad_leaf
+                && fam.classes.iter().all(|&c| setup.tree.templates.get(c as usize).is_some_and(|e| e.family as usize == f));
+            check(ok, format!("family {f} geom=({},{},{}) classes={:?}: PAD_L root, class list", fam.leaf.log_rows, fam.leaf.prog_log, fam.leaf.sha_instances, fam.classes));
+        }
+        check(
+            setup.tree.templates.iter().enumerate().all(|(c, e)| setup.tree.families.get(e.family as usize).is_some_and(|f| f.classes.contains(&(c as u32)))),
+            "every class in its family".into(),
+        );
+        let mut covered = vec![false; setup.tree.templates.len()];
+        for d in bases {
+            let dvk = vk_sha(&load_base(Path::new(d)).0);
+            let hit = (0..setup.tree.templates.len()).find(|&c| {
+                if setup.tree.templates[c].base_vk_sha256 != dvk {
+                    return false;
+                }
+                let fam = setup.tree.templates[c].family as usize;
+                std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                    let mut tm = template_of(Path::new(d), c as u32, true, &chain_engine, &leaf_engine, &lcs[fam]);
+                    tm.entry.family = fam as u32;
+                    tm.entry == setup.tree.templates[c]
+                }))
+                .unwrap_or(false)
+            });
+            if let Some(c) = hit {
+                covered[c] = true;
+            }
+            check(hit.is_some(), format!("leaf root regenerated from {d}: class {hit:?}"));
+        }
+        check(covered.iter().all(|&x| x), format!("every class's leaf root regenerated by a base dir: {covered:?}"));
+        let ng = &setup.tree.node;
+        let nprobe = || circ(k, ng.log_rows, ng.prog_log, ng.sha_instances, cap_log, None);
+        let (mats, _) = nprobe().generate_with(|b| {
+            build_pad_node(b, &zctx, F::from_usize(setup.tree.arity), &done, 2);
+        });
+        check(program_commitment(parent.config(), &mats[0]) == setup.tree.c_pad_node, "C_padN regenerated at the node geometry".into());
+        drop(mats);
+        check(setup.tree.depth >= 2 || setup.tree.c_node_star.is_none(), "no C_* at depth 1".into());
+        // the run's own family: C_2 over its leaves; the wrap over its root (depth 1)
+        let leaves: Vec<std::path::PathBuf> = (0..setup.tree.arity).map(|i| vk_dir.join(format!("LEAF{i}.proof"))).collect();
+        if leaves.iter().all(|p| p.exists()) && vk_dir.join("LEAF.vk.json").exists() {
+            let lvk = read_vk(&vk_dir.join("LEAF.vk.json"));
+            let kids: Vec<Proof<SC>> = leaves.iter().map(|p| read_proof(p)).collect();
+            let h0 = vd::proof_heights(&kids[0]);
+            match setup.tree.families.iter().position(|f| Some(&f.leaf.heights) == h0.as_ref()) {
+                None => check(false, "the run's leaves are at no family's heights".into()),
+                Some(f) => {
+                    let mut set: Vec<Digest> = setup.tree.templates.iter().filter(|e| e.family as usize == f).map(|e| e.c_norm).collect();
+                    set.push(setup.tree.families[f].c_pad_leaf);
+                    let pre: Vec<RangeStmt> = (0..kids.len()).map(|i| RangeStmt { ctx: zctx.to_vec(), a: F::from_usize(i), e: F::from_usize(i + 1), s_a: done.to_vec(), s_e: done.to_vec() }).collect();
+                    let refs: Vec<(&MultiStarkVerifyingKey<SC>, &Proof<SC>)> = kids.iter().map(|p| (&lvk, p)).collect();
+                    let r = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                        let (m, _) = nprobe().generate_with(|b| {
+                            build_node2(b, &refs, &pre, &set);
+                        });
+                        program_commitment(parent.config(), &m[0])
+                    }));
+                    check(r.as_ref().is_ok_and(|c| *c == setup.tree.families[f].c_node2), format!("C_2 of family {f} regenerated over the run's leaves"));
                 }
             }
+        } else {
+            println!("TREE_AUDIT_NOTE no run leaves in {}: C_2 not regenerated", vk_dir.display());
+        }
+        let root_p = vk_dir.join("NODE2_0.proof");
+        if setup.tree.depth == 1 && root_p.exists() && vk_dir.join("NODE.vk.json").exists() {
+            let rvk = read_vk(&vk_dir.join("NODE.vk.json"));
+            let rp = read_proof(&root_p);
+            check(vd::proof_heights(&rp).as_ref() == Some(&setup.tree.node.heights), "the run's root at the node heights".into());
+            let c_roots: Vec<Digest> = setup.tree.families.iter().map(|f| f.c_node2).collect();
+            let pre = RangeStmt { ctx: zctx.to_vec(), a: F::ZERO, e: F::from_usize(setup.tree.arity), s_a: vec![F::from_u32(t::PHASE_INIT), F::ZERO], s_e: done.to_vec() };
+            let mut fparams = setup.final_vk.inner.params.clone();
+            fparams.whir.domain_odd_factor = setup.domain_odd_factor;
+            let mut calib = profile::params(true, certs, exclusions);
+            calib.whir.domain_odd_factor = setup.domain_odd_factor;
+            check(serde_json::to_value(&calib).unwrap() == serde_json::to_value(&fparams).unwrap(), "final parameters = the FINAL calibration (NEARPROOF_ZK_FINAL, chain geometry from the environment)".into());
+            let final_engine = Sha384CpuEngine::new_final(fparams);
+            let r = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                let mut wc = NvCircuit::new(k, setup.tree.wrap_log_rows, 1);
+                wc.prog_log = setup.tree.wrap_prog_log;
+                let (m, b) = wc.generate_with(|b| {
+                    build_wrap_set(b, &rvk, &rp, 2, &c_roots, &pre);
+                });
+                let program: Vec<[u32; 4]> = b.instrs.iter().map(|i| i.words()).collect();
+                let (pin, _) = shape_pinned_heights(&m, &b, final_engine.config().params().l_skip, FINAL_PIN_EPS_BITS);
+                drop(m);
+                let (_, fvk) = final_engine.keygen(&wc.airs::<SC>());
+                (program, pin, fvk)
+            }));
+            match r {
+                Ok((program, pin, fvk)) => {
+                    check(program == setup.program, "wrap program regenerated over the run's root".into());
+                    check(pin == setup.final_heights, "wrap pinned heights regenerated".into());
+                    let mut f0 = setup.final_vk.clone();
+                    f0.inner.params.whir.domain_odd_factor = setup.domain_odd_factor;
+                    check(serde_json::to_vec(&fvk).unwrap() == serde_json::to_vec(&f0).unwrap(), "final vk regenerated (wrap circuit, FINAL parameters)".into());
+                }
+                Err(_) => check(false, "wrap regeneration panicked".into()),
+            }
+        } else {
+            println!("TREE_AUDIT_NOTE no depth-1 run root in {}: wrap program / heights / final vk not regenerated", vk_dir.display());
         }
     }
     if bad > 0 {
         println!("TREE_AUDIT_FAILED {bad}");
         std::process::exit(1);
     }
-    println!("TREE_AUDIT_OK classes={} bases={}", setup.tree.templates.len(), bases.len());
+    println!("TREE_AUDIT_OK classes={} bases={}", templates.len(), bases.len());
 }
+
 
 fn try_decode_proof(b: &[u8]) -> Result<Proof<SC>, String> {
     let mut c = Cursor::new(b);
