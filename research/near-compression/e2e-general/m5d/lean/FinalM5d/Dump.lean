@@ -1,5 +1,6 @@
 import Lean.Data.Json
 import NearSpecV3.E2E.Statement
+import FinalM5d.BOut
 
 /-!
 # FinalM5d.Dump — the checker's own FINAL on a corpus case, for the trace generator
@@ -128,6 +129,8 @@ def dump (dir : String) (cb wb : Bytes) : Except String Lean.Json := do
         ("encodedMerkleRoot", hx o.encodedMerkleRoot), ("encodedLength", num o.encodedLength),
         ("gasUsed", num o.gasUsed), ("gasLimit", num o.gasLimit),
         ("balanceBurnt", num o.balanceBurnt), ("congestion", hx (congEnc o.congestion))]),
-    ("implicit", num I.w.implicit.length)]
+    ("implicit", num I.w.implicit.length),
+    ("bout", Lean.Json.mkObj [("ctxHeaderD", hx (BOut.ctxHeaderD H)),
+      ("outDoneD", hx (BOut.outDoneD o).1), ("encOutputsF1", hx (BOut.encOutputsF1 o))])]
 
 end FinalM5d.Dump

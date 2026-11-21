@@ -392,6 +392,18 @@ class Gen:
         assert len(fi) == C['FI_LEN']
         fd = self.s384(C['ID_FIN'], [C['FIN_TAG']] + fi)
         cd = self.s384(C['ID_CLAIM'], stream)
+        # B_out (G-2): ctxD(.header H) and outD(.done o)'s digest, = Lean's BOut on this case
+        ci = stream[C['CI_OFF']:C['CI_OFF'] + 302]
+        hd = self.s384(C['ID_HDR'], [C['TAG_HDR']] + ci)
+        ob = (root + roots[C['TR_OUT']] + u(gl, 8) + u(gas, 8) + u(bal, 16) + roots[C['TR_SH']] + cong +
+              [0] * 32 + roots[C['TR_RS']] + ci[129:137] + [0] * 9)
+        assert len(ob) == 252
+        if not self.mutant:
+            assert bytes(ob).hex() == d['bout']['encOutputsF1'], 'encOutputsF1'
+            assert bytes(hd[:42]).hex() == d['bout']['ctxHeaderD'], 'ctxHeaderD'
+        od = self.s384(C['ID_OUT'], [C['TAG_OUT']] + ob)
+        if not self.mutant:
+            assert bytes(od[:42]).hex() == d['bout']['outDoneD'], 'outDoneD'
         # STMT
         St = self.T['STMT']
         for kk, bb in enumerate(stream):
@@ -406,7 +418,9 @@ class Gen:
         F.setv(r, 'hb', stream[:C['HBN']])
         F.setv(r, 'fi', fi)
         F.setv(r, 'ro', roots[C['TR_OUT']]); F.setv(r, 'rs', roots[C['TR_RS']]); F.setv(r, 'rsh', roots[C['TR_SH']])
-        F.setv(r, 'cd', cd); F.setv(r, 'fd', fd)
+        F.setv(r, 'cd', cd); F.setv(r, 'fd', fd); F.setv(r, 'hd', hd); F.setv(r, 'od', od)
+        if self.mut('bout_od'):
+            F.rows[0][F.ix('od', 3)] ^= 1
         F.set(r, 'nO', len(leaves)); F.set(r, 'nR', len(rcpts)); F.set(r, 'lenC', len(stream))
         x = RSD * L - n
         self.look(self.r8, x); self.look(self.r8, x + 256 - RSD)
@@ -417,12 +431,16 @@ class Gen:
             S3 = self.T['S384']
             S3.rows[0][S3.ix('b', 127)] ^= 1
         self.fill_rng()
-        pubs = limbs3(cd[:42]) + limbs3(fd[:42]) + [n, L]
+        pubs = limbs3(cd[:42]) + limbs3(fd[:42]) + [n, L] + limbs3(hd[:42]) + limbs3(od[:42])
         stmt = list(pubs)
         if self.mut('pub_claim'):
             pubs[3] += 1
         if self.mut('pub_n'):
             pubs[28] += 1
+        if self.mut('pub_hdr'):
+            pubs[C['PV_HDR'] + 2] += 1
+        if self.mut('pub_out'):
+            pubs[C['PV_OUT'] + 5] += 1
         self.pubs, self.stmt_pubs = pubs, stmt
         return dict(n=n, L=L, rcpts=len(rcpts), outcomes=len(leaves), stream=len(stream))
 
@@ -588,7 +606,8 @@ MUTANTS = ['hdr_psr', 'hdr_por', 'hdr_emr', 'hdr_el', 'hdr_gu', 'hdr_gl', 'hdr_b
            'hdr_props', 'hdr_cong', 'hdr_bw', 'hdr_split',
            'fin_root', 'fin_cong', 'fin_gas', 'fin_bal', 'fin_gl',
            'leaf', 'outcome_drop', 'rcpt_byte', 'rcpt_shard', 'rcpt_drop', 'rcpt_swap',
-           'body_byte', 'rs_par', 'mrk_node', 'stmt_byte', 'fin_ro', 's384_pad', 'pub_claim', 'pub_n']
+           'body_byte', 'rs_par', 'mrk_node', 'stmt_byte', 'fin_ro', 's384_pad', 'pub_claim', 'pub_n',
+           'bout_od', 'pub_hdr', 'pub_out']
 
 
 def main():

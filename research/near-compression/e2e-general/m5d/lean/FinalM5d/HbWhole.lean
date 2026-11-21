@@ -190,8 +190,8 @@ theorem stmt_h_mem : Stmt.T.c "h" * (1 - Stmt.T.c "act") ∈ Stmt.table.constrai
 theorem fin_hb_mem {k : Nat} (hk : k < HBN) :
     rcv B_HB Fin.act [K k, Fin.hb k] ∈ Fin.table.interactions := by
   simp only [Fin.table, Fin.interactions]
-  exact List.mem_append_left _ (List.mem_append_left _ (List.mem_append_left _
-    (List.mem_append_left _ (List.mem_map.2 ⟨k, List.mem_range.2 hk, rfl⟩))))
+  exact List.mem_append_left _ (List.mem_append_left _ (List.mem_append_left _ (List.mem_append_left _
+    (List.mem_append_left _ (List.mem_map.2 ⟨k, List.mem_range.2 hk, rfl⟩)))))
 
 /-- **`HbBytes` from the whole AIR.** On every row of `FIN` with `act = 1`, in any trace
 satisfying the deployed FINAL AIR, the statement-stream cells are bytes. -/
@@ -234,7 +234,7 @@ theorem hb_bytes (h : Holds finalAirS pub tr) {r : Nat} (hr : r < tr.height 4)
 theorem fin_constr (h : Holds finalAirS pub tr) {r : Nat} (hr : r < tr.height 4) :
     ∀ e ∈ Fin.constraints, e.eval tr 4 r pub = 0 := by
   have := h.constr 4 (by decide) r hr
-  rw [tab4] at this; exact this
+  rw [tab4] at this; exact fun e he => this e (List.mem_append_left _ he)
 
 /-- `FIN`'s row 0 is active (`isFirst · (act − 1)`). -/
 theorem fin_row0_act (h : Holds finalAirS pub tr) : ev tr 4 0 pub Fin.act = 1 := by
