@@ -115,10 +115,13 @@ the hash (spec); the part tree's `t − 1` nodes are fixed per chunk (≈ 2·t b
   projection of the post-`finK` point `(I, out, t)`), `ClassF1` and `Computed` (the received roots
   are the spec's outcome root, outgoing root and `encodedMerkleRoot` of the body), the checker's own
   `tailNew afDriver I out t = .ok o` and `headerOk H o` for the decoded public header `H`.
+* `RsCoeff.coeff_linear` (kernel, 93 s): for every parity coefficient of the class matrix, every byte
+  `x` and bit `k`, bit `k` of the spec's `gfMul c x` is the GF(2) sum the `RS` row constrains.
 * `T1Check`: **non-vacuity on T1** — T1's actual row values satisfy `RowOK` (`decide +kernel`), the
   window is T1's public `chunk_inner`, `outputsOf` = the checker's outputs, `headerOk` holds.
 
-Open (named premises, not yet theorems): `Computed` from `Holds` of the whole AIR (the `MRK` walk ⇒
+Open (named premises, not yet theorems; `lean-wip/RsRow.lean` has the RS row's parity-bit lemma,
+not yet within the heartbeat budget): `Computed` from `Holds` of the whole AIR (the `MRK` walk ⇒
 `merkleRoot`, `RS` rows ⇒ `parityPart`, `BODY`/`SEG` ⇒ `encodeRcpts`, `SHD` ⇒ `outgoingRoot`, the
 SHA-256 contract, the `S384` table ⇒ SHA-384 under lane B's `Sha512IfContract`); `HbBytes`;
 `FinInOK` is the upstream segment's obligation (leaf spec §2).

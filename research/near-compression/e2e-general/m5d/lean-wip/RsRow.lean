@@ -1,4 +1,5 @@
 import FinalM5d.RsCoeff
+-- WIP (not built): elaboration exceeds the default heartbeats at `rs_parity_bit`; see README "Open".
 import FinalM5d.FinRow
 
 /-!
@@ -57,8 +58,8 @@ include hc hact
 theorem x_bool (c : Nat) (hc' : c < 8 * RSD) : ev tr t r pub (Rs.T.c "x" c) ≤ 1 := by
   have hm : bool (Rs.T.c "x" c) ∈ Rs.constraints := by
     unfold Rs.constraints
-    simp only [List.mem_append, List.mem_map, List.mem_range]
-    exact Or.inl (Or.inl (Or.inl (Or.inr ⟨c, hc', rfl⟩)))
+    exact List.mem_append_left _ (List.mem_append_left _ (List.mem_append_left _
+      (List.mem_append_right _ (List.mem_map.2 ⟨c, List.mem_range.2 hc', rfl⟩))))
   have h0 := ev_of_eval (hc _ hm)
   change ev tr t r pub (Expr.mul _ (Expr.add _ (Expr.neg (Expr.const 1)))) = 0 at h0
   rcases ev_mul_eq_zero h0 with h | h
@@ -70,8 +71,8 @@ theorem x_bool (c : Nat) (hc' : c < 8 * RSD) : ev tr t r pub (Rs.T.c "x" c) ≤ 
 theorem r_bool (c : Nat) (hc' : c < 8 * NPAR) : ev tr t r pub (Rs.T.c "r" c) ≤ 1 := by
   have hm : bool (Rs.T.c "r" c) ∈ Rs.constraints := by
     unfold Rs.constraints
-    simp only [List.mem_append, List.mem_map, List.mem_range]
-    exact Or.inl (Or.inl (Or.inr ⟨c, hc', rfl⟩))
+    exact List.mem_append_left _ (List.mem_append_left _
+      (List.mem_append_right _ (List.mem_map.2 ⟨c, List.mem_range.2 hc', rfl⟩)))
   have h0 := ev_of_eval (hc _ hm)
   change ev tr t r pub (Expr.mul _ (Expr.add _ (Expr.neg (Expr.const 1)))) = 0 at h0
   rcases ev_mul_eq_zero h0 with h | h
@@ -87,8 +88,8 @@ theorem rs_parity_bit (hq : ∀ c, c < 8 * NPAR → ev tr t r pub (Rs.T.c "q" c)
   have hm : Rs.act * (Rs.paritySum i k - Rs.T.c "r" (8 * i + k) - K 2 * Rs.T.c "q" (8 * i + k)) ∈
       Rs.constraints := by
     unfold Rs.constraints
-    simp only [List.mem_append, List.mem_flatMap, List.mem_map, List.mem_range]
-    exact Or.inr ⟨i, hi, k, hk, rfl⟩
+    exact List.mem_append_right _ (List.mem_flatMap.2 ⟨i, List.mem_range.2 hi,
+      List.mem_map.2 ⟨k, List.mem_range.2 hk, rfl⟩⟩)
   have h0 := ev_of_eval (hc _ hm)
   rcases ev_mul_eq_zero h0 with h | h
   · rw [hact] at h; omega

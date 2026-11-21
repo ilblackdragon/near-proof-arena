@@ -1,33 +1,33 @@
-# FINAL (class F1) mutant battery on T1 (d3c8/d3/02-h10196-s3), run.sh mutants, 2026-11-21 (one line per mutant: precheck verdict, prover/verifier verdict)
-hdr_psr: PRECHECK FAIL: FIN: constraint 3 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim:  
-hdr_por: PRECHECK FAIL: FIN: constraint 35 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim:  
-hdr_emr: PRECHECK FAIL: FIN: constraint 67 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim:  
-hdr_el: PRECHECK FAIL: FIN: constraint 99 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim:  
-hdr_gu: PRECHECK FAIL: FIN: constraint 105 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim:  
-hdr_gl: PRECHECK FAIL: FIN: constraint 113 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim:  
-hdr_bb: PRECHECK FAIL: FIN: constraint 121 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim:  
-hdr_orr: PRECHECK FAIL: FIN: constraint 137 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim:  
-hdr_txr: PRECHECK FAIL: FIN: constraint 169 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim:  
-hdr_props: PRECHECK FAIL: FIN: constraint 202 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim:  
-hdr_cong: PRECHECK FAIL: FIN: constraint 210 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim:  
-hdr_bw: PRECHECK FAIL: FIN: constraint 254 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim:  
-hdr_split: PRECHECK FAIL: FIN: constraint 262 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim:  
-fin_root: PRECHECK FAIL: FIN: constraint 8 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim:  
-fin_cong: PRECHECK FAIL: FIN: constraint 212 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim:  
-fin_gas: PRECHECK FAIL: FIN: constraint 105 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim:  
-fin_bal: PRECHECK FAIL: FIN: constraint 121 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim:  
-fin_gl: PRECHECK FAIL: FIN: constraint 113 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim:  
-leaf: PRECHECK FAIL: FIN: constraint 35 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim:  
-outcome_drop: PRECHECK FAIL: FIN: constraint 35 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim:  
-rcpt_byte: PRECHECK FAIL: FIN: constraint 67 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim:  
-rcpt_shard: PRECHECK FAIL: FIN: constraint 137 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim:  
-rcpt_drop: PRECHECK FAIL: FIN: constraint 67 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim:  
-rcpt_swap: PRECHECK FAIL: FIN: constraint 67 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim:  
-body_byte: PRECHECK FAIL: 6 unbalanced messages by bus {0: 2, 2: 2, 12: 2}; first [((0, [1048576, 24, 0]), 2013265920), ((0, [1048576, 24, 1]), 1)] REJECTED (prover error) after 0.8s 
-rs_par: PRECHECK FAIL: RS: constraint 137 fails on row 5 REJECTED (prover error) after 0.9s 
-mrk_node: PRECHECK FAIL: FIN: constraint 137 fails on row 0 REJECTED (prover error) after 0.8s 
-stmt_byte: PRECHECK FAIL: 4 unbalanced messages by bus {2: 2, 7: 2}; first [((2, [1, 158, 240]), 1), ((2, [1, 158, 241]), 2013265920)] REJECTED (prover error) after 1.1s 
-fin_ro: PRECHECK FAIL: FIN: constraint 35 fails on row 0 REJECTED (prover error) after 1.0s 
-s384_pad: PRECHECK FAIL: S384: constraint 332 fails on row 0 REJECTED (prover error) after 1.1s 
-pub_claim: PRECHECK FAIL: FIN: constraint 422 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim:  
-pub_n: PRECHECK FAIL: FIN: constraint 99 fails on row 0 REJECTED (prover error) after 1.1s 
+# FINAL (class F1) mutant battery on T1, canonical S (lane E StmtEnc), run.sh mutants, 2026-11-21
+hdr_psr: PRECHECK FAIL: FIN: constraint 3 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim: 
+hdr_por: PRECHECK FAIL: FIN: constraint 35 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim: 
+hdr_emr: PRECHECK FAIL: FIN: constraint 67 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim: 
+hdr_el: PRECHECK FAIL: FIN: constraint 99 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim: 
+hdr_gu: PRECHECK FAIL: FIN: constraint 105 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim: 
+hdr_gl: PRECHECK FAIL: FIN: constraint 113 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim: 
+hdr_bb: PRECHECK FAIL: FIN: constraint 121 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim: 
+hdr_orr: PRECHECK FAIL: FIN: constraint 137 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim: 
+hdr_txr: PRECHECK FAIL: FIN: constraint 169 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim: 
+hdr_props: PRECHECK FAIL: FIN: constraint 202 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim: 
+hdr_cong: PRECHECK FAIL: FIN: constraint 210 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim: 
+hdr_bw: PRECHECK FAIL: FIN: constraint 254 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim: 
+hdr_split: PRECHECK FAIL: FIN: constraint 262 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim: 
+fin_root: PRECHECK FAIL: FIN: constraint 8 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim: 
+fin_cong: PRECHECK FAIL: FIN: constraint 212 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim: 
+fin_gas: PRECHECK FAIL: FIN: constraint 105 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim: 
+fin_bal: PRECHECK FAIL: FIN: constraint 121 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim: 
+fin_gl: PRECHECK FAIL: FIN: constraint 113 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim: 
+leaf: PRECHECK FAIL: FIN: constraint 35 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim: 
+outcome_drop: PRECHECK FAIL: FIN: constraint 35 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim: 
+rcpt_byte: PRECHECK FAIL: FIN: constraint 67 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim: 
+rcpt_shard: PRECHECK FAIL: FIN: constraint 137 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim: 
+rcpt_drop: PRECHECK FAIL: FIN: constraint 67 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim: 
+rcpt_swap: PRECHECK FAIL: FIN: constraint 67 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim: 
+body_byte: PRECHECK FAIL: 6 unbalanced messages by bus {0: 2, 2: 2, 12: 2}; first [((0, [1048576, 24, 0]), 2013265920), ((0, [1048576, 24, 1]), 1)] REJECTED (prover error) after 0.9s 
+rs_par: PRECHECK FAIL: RS: constraint 137 fails on row 5 REJECTED (prover error) after 1.2s 
+mrk_node: PRECHECK FAIL: FIN: constraint 137 fails on row 0 REJECTED (prover error) after 1.3s 
+stmt_byte: PRECHECK FAIL: 4 unbalanced messages by bus {2: 2, 7: 2}; first [((2, [1, 154, 240]), 1), ((2, [1, 154, 241]), 2013265920)] REJECTED (prover error) after 1.1s 
+fin_ro: PRECHECK FAIL: FIN: constraint 35 fails on row 0 REJECTED (prover error) after 0.9s 
+s384_pad: PRECHECK FAIL: S384: constraint 332 fails on row 0 REJECTED (prover error) after 1.2s 
+pub_claim: PRECHECK FAIL: FIN: constraint 422 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim: 
+pub_n: PRECHECK FAIL: FIN: constraint 99 fails on row 0 REJECTED (prover error) after 1.2s 

@@ -1853,12 +1853,11 @@ decodes with the spec's `decodeChunkInner`), `row_headerOk`, `rowOK_of_constrain
 `fin_headerOk` (the exported `FIN` table's constraints over BabyBear ⇒ `headerOk`),
 `tailNew_outputsOf` / **`final_template_sound`** (with `FinInOK`, `ClassF1`, `Computed`: the
 checker's own `tailNew` output passes `headerOk` against the decoded public header),
-`RsCoeff.coeff_linear` (kernel: the class matrix's GF(2) bit matrices are `gfMul`'s),
-`RsRow.rs_parity_bit` (an `RS` row's parity bits from its constraints), `T1Check` (non-vacuity:
+`RsCoeff.coeff_linear` (kernel: the class matrix's GF(2) bit matrices are `gfMul`'s), `T1Check` (non-vacuity:
 T1's row values satisfy `RowOK`, the window is T1's `chunk_inner`, `headerOk` holds).
 
 **Open, in order:** (1) `Computed` from `Holds` of the whole AIR (the `MRK` walk ⇒ `merkleRoot`,
-the RS rows ⇒ `parityPart` (bit level done), `BODY`/`SEG` ⇒ `encodeRcpts`, `SHD` ⇒ `outgoingRoot`,
+the RS rows ⇒ `parityPart` (`lean-wip/RsRow.lean`: the row-level parity-bit lemma, over the heartbeat budget), `BODY`/`SEG` ⇒ `encodeRcpts`, `SHD` ⇒ `outgoingRoot`,
 `S384` ⇒ SHA-384 under `Sha512IfContract`), `HbBytes`; (2) the join with lane B's FINAL / M5c
 (§3.4 note (3)); (3) more classes: transactions (same `SEG` path), proposals, bandwidth requests,
 split, other `(d, t)`, padding to pinned class heights (the SHA-256 and chip generators need a

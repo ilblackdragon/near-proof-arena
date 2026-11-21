@@ -1,8 +1,8 @@
-# INIT mutant battery on T1, TEMPLATE=init run.sh mutants, 2026-11-21 (statement-check rejections: the proof is of another claim / witness, so its public digests differ from B_0's)
+# INIT mutant battery on T1, canonical S, TEMPLATE=init run.sh mutants, 2026-11-21 (statement-check rejections: a proof of another claim / witness exposes other digests than B_0's)
 pre_byte: REJECTED (statement check) 
 blk_byte: REJECTED (statement check) 
 wit_byte: REJECTED (statement check) 
-clm_kind: PRECHECK FAIL: CLM: constraint 15 fails on row 418 REJECTED (prover error) after 1.2s 
-clm_byte: PRECHECK FAIL: 4 unbalanced messages by bus {2: 4}; first [((2, [1, 425, 0]), 2013265920), ((2, [1, 425, 1]), 1)] REJECTED (prover error) after 1.1s 
-ini_lb: PRECHECK FAIL: 6 unbalanced messages by bus {2: 2, 4: 2, 7: 2}; first [((2, [3, 1, 103]), 2013265920), ((2, [3, 1, 104]), 1)] REJECTED (prover error) after 1.3s 
+clm_kind: PRECHECK FAIL: CLM: constraint 15 fails on row 418 REJECTED (prover error) after 1.3s 
+clm_byte: PRECHECK FAIL: 4 unbalanced messages by bus {2: 4}; first [((2, [1, 425, 0]), 2013265920), ((2, [1, 425, 1]), 1)] REJECTED (prover error) after 1.3s 
+ini_lb: PRECHECK FAIL: 6 unbalanced messages by bus {2: 2, 4: 2, 7: 2}; first [((2, [3, 1, 103]), 2013265920), ((2, [3, 1, 104]), 1)] REJECTED (prover error) after 1.2s 
 pub_ctx: PRECHECK FAIL: INI: constraint 26 fails on row 0 REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch { sum_claim: 
