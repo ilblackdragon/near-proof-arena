@@ -1903,6 +1903,32 @@ item 4 (completeness) not started.
   `m5tSegH`) and the `WSX` bus step; lane B's component of `SegSoundState`; M6.4; item 4
   (squash onto an extension sibling, old-leaf-ends split, `VBITS` 9).
 
+**B-T1b (twelfth session, 2026-11-21) [M][K]:** README §"B-T1b", log
+[`docs/logs/e2e-bt1b-state-2026-11-21.md`](../logs/e2e-bt1b-state-2026-11-21.md).
+* **Per-template soundness [K]** (std axioms): the M5a stack reused on the templates through a
+  re-indexed trace (`TmplSeg.reix`, `eval` by `rfl`); **`TmplSeg.m5tSeg_ws`** (the segment: every
+  working set with root `a₀` becomes, after the segment's `WSL`/`WSP` update, one with root `b₀`;
+  touched leaves real and agreeing; closing values = latest writes given distinct touched keys),
+  **`TmplWsx.wsx_ext`** (the `WSX` bus step: public depth-24 roots = row-0 roots extended by
+  `24 − D` zero levels, chip contract), **`seg_rin_rout`** (`R_in → R_out` at depth 24),
+  **`TmplIf.m5tIF_roots`** (the IF's INTAKE / FINAL tree roots = public `R_0` / `R_n`). Open: the
+  IF's FINAL half restated (conditional on the FINAL leaves: `ws_entries` crosses the cut),
+  `wsn_roots` for `ifAir`, the composition.
+* **Soundness fix [K][M]:** `m5tIF`'s `RCH` had a second matching (`WSN` closing its own INTAKE
+  root with `nw = 0`, `WSX` closing itself with `sb = 0`), letting the IF publish `R_0 = R_n` = any
+  root when FINAL = INTAKE; pinned `sb = 1` (`Tmpl.Wsx.sbPin`, `TmplIf.rch_if`: unique matching).
+  Mutant `wsxsb` accepted by B-T1's AIR, rejected now. T1 IF re-proved at S (491,416 B); T2 at M
+  and the mutant battery: README.
+* **Lane G's requests [S]:** the IF has no claim decoder, so the ℓ_B span check needs a new
+  `.init`-leaf framing walk over INIT's `CLM` bytes (designed, README); `.final` = this FINAL +
+  M5c + lane G's `tailNew`, `post_state_root` to lane G's `FinIn` bytes 0..32 on a byte bus
+  (designed). M6.4 (`HOSTR` evicted flag from `WSA` via a new `EVK` bus; `g_after` lane A's) and
+  item 4: not built.
+* **Lane A join (A-T1):** `StbH` accepts the value buffer's wire id 314; the 8 messages lane A's
+  joined T1 segment lacks are `StwH`/`StbH`'s, placed in the WASM leaf's trace (a storage call is in
+  a WASM segment); building that joined trace and `StorageJoinObl` (`hb`, M6.4 `ans` in `SpecU` form,
+  `regFill`) are open. T1 mutants 24 / 24 rejected; T2 IF re-proved at M (515,982 B).
+
 ### 5.2 M5-T1 runtime (lane F): status, 2026-11-21
 
 See `research/near-compression/e2e-general/m5t1/README.md`; log

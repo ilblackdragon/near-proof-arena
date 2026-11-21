@@ -1,3 +1,5 @@
+import StateM5a.TmplDeploy
+import StateM5a.TmplWsx
 import StateM5a.SnFinal6
 import StateM5a.FieldWsx
 import StateM5a.StHostIf
@@ -716,3 +718,25 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.FieldWsx.wsx_link
 #print axioms StateM5a.FieldWsx.wsx_first_z
 #print axioms StateM5a.FieldWsx.wsx_top_pub
+#print axioms StateM5a.TmplSeg.busList_seg
+#print axioms StateM5a.TmplSeg.pt_traffic_seg
+#print axioms StateM5a.TmplSeg.wm_traffic_seg
+#print axioms StateM5a.TmplSeg.rch_traffic_seg
+#print axioms StateM5a.TmplSeg.rng_send_lt_seg
+#print axioms StateM5a.TmplSeg.wsa_gap_seg
+#print axioms StateM5a.TmplSeg.wsl_ok_seg
+#print axioms StateM5a.TmplSeg.wsp_ok_seg
+#print axioms StateM5a.TmplSeg.ws_decoded_seg
+#print axioms StateM5a.TmplSeg.m5tSeg_ws
+#print axioms StateM5a.TmplSeg.node_comp
+#print axioms StateM5a.TmplWsx.wsx_ext
+#print axioms StateM5a.TmplWsx.wsx_ext_seg
+#print axioms StateM5a.TmplWsx.wsx_ext_if
+#print axioms StateM5a.TmplWsx.seg_rin_rout
+#print axioms StateM5a.TmplIf.busList_if_rch
+#print axioms StateM5a.TmplIf.sb_one
+#print axioms StateM5a.TmplIf.rch_traffic_if
+#print axioms StateM5a.TmplIf.rch_if
+#print axioms StateM5a.TmplIf.m5tIF_roots
+#print axioms StateM5a.TmplDeploy.seg_extra_ok
+#print axioms StateM5a.TmplDeploy.if_extra_ok

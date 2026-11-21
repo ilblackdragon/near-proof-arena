@@ -125,8 +125,15 @@ def interactionsSeg : List Interaction :=
    rcv B_RCH .isFirst (c "sb" :: vec "b" 18)] ++
   comps
 
+/-- B-T1b: in `m5tIF` the outgoing root's segment index is pinned, `sb = 1` (`isFirst·(sb − 1)`).
+Without it `RCH` had two matchings when `WSN`'s FINAL index `nw` is `0`: `WSN` could close its own
+INTAKE root (`(0, r₀)` received as `(nw, r_F)`, a FINAL tree equal to the INTAKE tree) while `WSX`
+closed itself (`(0, a)` = `(sb, b)`), so `R_0 = R_n` could be any root.  With `sb = 1` the only
+matching is `a = r₀`, `nw = 1`, `b = r_F` (`TmplIf.rch_if`). -/
+def sbPin : Expr := .isFirst * (c "sb" - 1)
+
 def tableIF (D : Nat) : Table :=
-  { width := L.width, constraints := constraints D, interactions := interactionsIF, maxLog := 5 }
+  { width := L.width, constraints := constraints D ++ [sbPin], interactions := interactionsIF, maxLog := 5 }
 def tableSeg (D : Nat) : Table :=
   { width := L.width, constraints := constraints D, interactions := interactionsSeg, maxLog := 5 }
 end Wsx

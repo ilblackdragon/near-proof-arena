@@ -153,3 +153,7 @@ import StateM5a.Tmpl
 import StateM5a.TmplView
 import StateM5a.StHostIf
 import StateM5a.FieldWsx
+import StateM5a.TmplSeg
+import StateM5a.TmplWsx
+import StateM5a.TmplIf
+import StateM5a.TmplDeploy
