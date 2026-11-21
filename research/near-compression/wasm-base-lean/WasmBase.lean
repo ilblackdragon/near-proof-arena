@@ -200,3 +200,5 @@ import WasmBase.Main.SegSoundSigmaP
 import WasmBase.Main.HostIfCover2
 import WasmBase.Main.HostCodeFetch
 import WasmBase.Main.HostRowsTimesAir
+import WasmBase.Main.HostWriteCov
+import WasmBase.Main.HostWriteCovCheck
