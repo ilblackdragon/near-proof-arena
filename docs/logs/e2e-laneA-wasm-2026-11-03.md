@@ -318,3 +318,30 @@ them onto the lane branch and rebased it onto main `7358a938d`:
   * `make pin-check` rc 0; nothing under `spec/` changed.
   * Heavy jobs ran in `systemd-run --user --scope` (Lean ≤ 24 G, provers ≤ 24 G under one `flock`).
   * The sub-lane worktrees and temp dirs were deleted afterwards.
+
+## Seventh session: milestone A-T1 (2026-11-21)
+
+Details: `research/near-compression/e2e-general/a-t1/README.md`. Sub-lanes: WCOV (write-coverage
+Lean), ANS (T1 answer functions), CONN (lane E's `SegSoundWasm`). The lead did the tracer, the
+prover, the leaves and the scopes.
+
+* **T1 blocker (from lane I):** T1's call passes at lane A's head. Every cut size 1–26
+  pre-checks; K = 8 and K = 26 prove; `run_t1.sh` passes. The failure came from pre-FIX214
+  binaries.
+* **Item 1:**
+  * AIR: HOSTB write pair (`ob`); the prep tool records `wr`; the tracer emits the write rows.
+  * The KAT shows the old gap end to end (the old AIR proves a run that ignores the writes).
+  * New AIR: 8/8 segments proved, 54/54 tampers rejected.
+  * WCOV: proofs re-done, `HostWritesCovT` derived (`seg_sound_hostIf_airW`), non-vacuity
+    checks. Failed-grow fee analysed.
+* **Item 3:**
+  * The prover builds on the stack backend; base configuration; pinned template heights;
+    `segtemplate` / `segleaf` / `segleafverify`.
+  * T1: 2 leaves, 553 KB, 268.2 bits, one vk on disk, reloaded and verified; 11/11 tampers
+    rejected.
+* **Items 4–5:** scopes (PREP R1/R2 and the AIR design; the HB/SREQ bus shape).
+* Builds:
+  * `lake build WasmBase wasmbase-tool` green; standard axioms; no `sorry`.
+  * Prover green against both backends.
+  * `make pin-check` ok; `spec/` unchanged.
+  * Heavy jobs ran in `systemd-run` scopes of ≤ 22 GB.

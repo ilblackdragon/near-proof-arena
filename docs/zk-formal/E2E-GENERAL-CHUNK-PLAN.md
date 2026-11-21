@@ -972,6 +972,37 @@ mutants rejected) is met. The gas equality holds outside the proof (the tape) un
 `lake build WasmBase` breakage reported on 2026-10-31 was fixed on main (`6a1739cd7`), and the build
 is green with the new files.
 
+**Done 2026-11-21, seventh session (lane A): milestone A-T1** (`e2e-general/a-t1/README.md`; log
+`docs/logs/e2e-laneA-wasm-2026-11-03.md`). The build is green (`lake build WasmBase wasmbase-tool`) with
+standard axioms, `pin-check` passes, and `spec/` is unchanged.
+
+* **T1 blocker (lane I) [M]:** at lane A's head, T1's call pre-checks and chains at every cut size
+  1–26. It proves at K = 8 (4 segments) and K = 26 (1 segment), and `t1/run_t1.sh` passes. The
+  reported failure came from binaries older than FIX214.
+* **Item 1, write coverage [M][K]:**
+  * AIR: HOSTB `ob` column and the space-3 write pair (`act·dir·(1−reg)`).
+  * The old AIR proves a run that ignores `setU128H` writes: the KAT's block stays read-only.
+  * The new AIR: 8/8 segments proved, 54/54 tampers rejected (7 new write-pair cases).
+  * Lean: `HostWritesCovT` is derived; `seg_sound_hostIf_airW` has no write premise. The producer
+    clause `HostNoTouch` is added, with non-vacuity checks.
+  * Failed-grow fee: analysed; the fix is open.
+* **Item 3, T1 as pinned-shape leaves [M]:**
+  * The prover is built on the stack's backend, with the stack's base configuration (first-order
+    certificates, m = 64, 24 grinding bits).
+  * Template heights are pinned: `segtemplate` / `segleaf` / `segleafverify`.
+  * T1 gives 2 segments at one vk: 553 KB each, 268.2 bits, queries [100, 71, 45, 33]. Proofs and
+    vk are saved, reloaded, verified and chained; 11/11 saved-leaf tampers rejected.
+  * CODE/FUNC roots are cached commitments of the padded matrices (form R1). The SHA-384-Merkle
+    form R2 is not built.
+* **Items 4, 5 [S]:** PREP scope (R1 recommended; certificate-style AIR; d3tiny 6 SHA-256 blocks,
+  32 records). The HB/SREQ bus-shape change is scoped: absolute addresses also bind HOSTB `ptr`
+  for the producer.
+
+**Next (lane A):** PREP build (CODEBYTES + SHA-256 first, which needs the SHA table's input bytes on
+a bus, `HashRegisterLink`); the joined HB/SREQ HOSTB variant with lane B; `SegSoundWasm` /
+`TmplComplete` for lane E's `Templates.lean`; the failed-grow fee bound; a height-class menu over a
+corpus sample.
+
 ### 5.0 Lane D (ZK wrap for M9): status, 2026-11-05 (milestone D-9)
 
 **Where to read**
