@@ -1,4 +1,5 @@
 import StateM5a.SnFinal6
+import StateM5a.TmplView
 import StateM5a.SnContRec4
 import StateM5a.M5bFinal
 import StateM5a.SnFinal5
@@ -698,3 +699,11 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.StHost.m5b_final_tape
 #print axioms StateM5a.StateViewParams.fitsReach_iff
 #print axioms StateM5a.StateViewParams.keysOf_fitsReach
+#print axioms StateM5a.Merkle.root_replicate
+#print axioms StateM5a.Merkle.root_pad
+#print axioms StateM5a.Merkle.ext_inj
+#print axioms StateM5a.TmplView.zeroDig_eq
+#print axioms StateM5a.TmplView.wsRoot_ext
+#print axioms StateM5a.m5tIF_tables
+#print axioms StateM5a.m5tSeg_tables
+#print axioms StateM5a.WS_DEPTH_eq

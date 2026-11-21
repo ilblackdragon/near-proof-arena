@@ -172,7 +172,7 @@ class Gen:
         # B-T1 (`--split`): the template cut (`Tmpl.m5tIF` / `m5tSeg`): one INTAKE + FINAL dump and
         # one dump per STATE segment, each with its own compressions, SHA-256 messages, `RNG`
         # counts and tables; inside a segment dump the segment is `seg = 0` and times restart at 1
-        self.split = split
+        self.splitmode = split
         self.R = {}
         self.role = 'if'
         # Batched FINAL: `plan` (from a first pass, `make_plan`) says, for every node version,
@@ -245,7 +245,7 @@ class Gen:
     def set_role(self, role):
         """Route compressions, SHA-256 messages, `RNG` counts and the per-segment tables to the
         dump of `role` ('if', or ('seg', s)); a no-op without `--split`."""
-        if not self.split:
+        if not self.splitmode:
             return
         if role not in self.R:
             # the INTAKE + FINAL role keeps the original tables (first call: before any swap)
@@ -260,11 +260,11 @@ class Gen:
 
     def sv(self, s):
         """The segment label a row carries: `s`, or 0 inside a split segment dump."""
-        return 0 if self.split else s
+        return 0 if self.splitmode else s
 
     def tv(self, t):
         """The time a row carries: the global write time, or the segment-local one (from 1)."""
-        return self.t_local[t] if self.split else t
+        return self.t_local[t] if self.splitmode else t
 
     def zero_digest(self, d):
         z = [0] * 6
@@ -1072,7 +1072,7 @@ class Gen:
         self.build_kcmp()
         self.build_keys()
         self.range_versions()
-        if self.split:
+        if self.splitmode:
             # B-T1: the depth-24 roots, `WSX` of every dump (INTAKE + FINAL: R_0 in, R_n out;
             # segment s: R_s out, R_{s+1} in), and one `RNG` per dump
             self.root24 = {}
@@ -1160,7 +1160,7 @@ class Gen:
             self.raw[t + 1] = v
             first.setdefault(s, t + 1)
             self.t_local[t + 1] = t + 1 - first[s] + 1      # B-T1: times restart at 1 per segment
-        if self.split and S == 0:
+        if self.splitmode and S == 0:
             S = 1          # no write: one empty STATE segment (R_out = R_in)
         return out, S
 
@@ -1341,7 +1341,7 @@ class Gen:
             rch.append(ln_lv[0])
             digs = new_d
         self.set_role('if')
-        if self.split and not self.writes:
+        if self.splitmode and not self.writes:
             rch.append(rch[-1])        # the empty segment
         assert digs == [list(x) for x in dig[1]], 'segments end at the FINAL leaves'
         assert rch[-1] == self.tree_levels(D, dig[1])[D][0]
@@ -1349,7 +1349,7 @@ class Gen:
         self.rch = rch
         if self.mutant == 'omitwrite':
             # the dishonest prover leaves one write access out of the trace
-            (self.R[('seg', 0)]['T']['WSA'] if self.split else Ta).rows.pop(0)
+            (self.R[('seg', 0)]['T']['WSA'] if self.splitmode else Ta).rows.pop(0)
 
     # ------------------------------------------------------------------ M5b: STATE rows
     @staticmethod
@@ -1360,7 +1360,7 @@ class Gen:
     def st_run(self, m, ts, base, data):
         """`STB` rows of message `m`: the bytes of `data`, read by call `ts` at `base, ...`."""
         Tb = self.T['STB']
-        if self.split:
+        if self.splitmode:
             self.sha_msg(ID_ST + m, data)       # the segment dump's own SHA-256 table
         else:
             self.sha_st_msgs.append(dict(id=ID_ST + m, bytes=data.hex()))   # `SHAS`, or `SHA` (merged, M5a-8)
@@ -1382,7 +1382,7 @@ class Gen:
         drop = self.writes[0][0] if self.mutant == 'stdrop' else None
         cur_seg = None
         for (t, seg, key, ref) in self.writes:
-            if self.split and seg != cur_seg:
+            if self.splitmode and seg != cur_seg:
                 # B-T1: each segment dump has its own `STB`/`STW` and messages from `m = 0`
                 self.set_role(('seg', seg))
                 Tw, m, cur_seg = self.T['STW'], 0, seg
