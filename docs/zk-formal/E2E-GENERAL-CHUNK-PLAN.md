@@ -568,6 +568,54 @@ Log: [`docs/logs/e2e-lean-m11g-2026-11-04.md`](../logs/e2e-lean-m11g-2026-11-04.
   the host and receipt limits is not done). Non-vacuity only for the conditions (no accepting-run
   example).
 
+**M11h (lane E, 2026-11-21) [K].** T1-first. Standard axioms only, no `sorry`, no checker
+definition changed. Log: [`docs/logs/e2e-lean-m11h-2026-11-21.md`](../logs/e2e-lean-m11h-2026-11-21.md).
+
+* **The T1 segment system and the per-lane obligations** (`E2E/Templates.lean`, `defaultTargets`;
+  namespace `NearSpecV3.E2E.T1`). Templates `init | state | rt | wasm | final`, each with a meaning
+  on `RCM` configurations (all inside `RSteps`, `meaning_rsteps`):
+
+  | template | lane | Lean premise | the rows must open their two boundary digests to `x`, `x'` with |
+  |---|---|---|---|
+  | INTAKE | G | `SegSoundInit V A Bad` | `MInit`: `x = init cb wb`, `CM.step (init cb wb) = .ok c`, `x' = c` |
+  | STATE | B | `SegSoundState V A Bad` | `MState`: `eng I c →* eng I c'` by engine steps that make **no VM call** (`estepO (strictO [])`) |
+  | receipt step | F | `SegSoundRt V A Bad` | `MRt`: `enter` (start call `q` at a non-final `eng I c`), `next` (record `(q, r)`, start `q'`), `resume` (`estepO (strictO (K ++ [(q, r)])) I.prog c = .ok c'`: the whole receipt step — actions, gas, refunds, outcomes — with the VM answered only from the tape) |
+  | WASM | A | `SegSoundWasm V A Bad` | `MWasm`: `call I c K q cc → call I c K q cc'` with `CSteps q cc cc'` (cuts anywhere in a call) |
+  | FINAL | G | `SegSoundFinal V A Bad` | `MFinal`: a `CM` run from `eng I ⟨.done out, _⟩`, `fin I out` or `gfin G` (to `done` / `doneG`) |
+
+  Each premise is `TmplSound V A Bad k := ∀ d d' tr, A.Holds k d d' tr → Bad ∨ ∃ x x',
+  bndOf V.bnd x = d ∧ bndOf V.bnd x' = d' ∧ Meaning k x x'`, where `A : Airs` is the lanes' trace
+  type and AIR predicate per template and `bndOf V.bnd x` the 42-B digest of the boundary record
+  (§3.4.1). The wrap gets `WrapInitSound` (`B_0` = digest of `init (assemble s.ci secB s.secC) w`)
+  and `WrapFinalSound` (`B_N` = digest of a configuration passing `FinalOutPub s`).
+  **`e2e_sound_t1`**: `NvFaithfulE2E` (lane D) + the two wrap obligations + the five template
+  obligations ⇒ `E2EStmt s ∨ Bad ∨ BndCollision V.bnd`; `e2e_sound_t1_bind` splits the collision
+  (SHA-384 or a component commitment, `viewImpl_binding`).
+  Honest side: `TmplComplete V A k` (each lane's completeness), **`cm_decomp`** (every `CM` run
+  factors into these templates: per engine step one `state` segment when the honest tape is empty,
+  else `rt` enter, per call `wasm` + `rt` next/resume), `honest_chain`, `mstate_trans` (STATE
+  segments merge), `cut_roundtrip`.
+* **M11 exit criterion: non-vacuity on T1** (`E2E/T1Run.lean`, `E2E/RealChunkT1.lean`, on
+  demand). The monolithic `decide +kernel` of the checker on T1 is OOM-killed at the 34 GB cap; the
+  run is checked in two kernel pieces: `INTAKE` against an oracle-printed literal intake (kernel
+  `Eq.refl`), then the other 12 `CM` steps (incl. the `d3tiny` call in the spec's Wasm
+  interpreter and `FINAL`) by `decide +kernel` — 27.1 GB, 192–318 s. Proved: `t1_accepts` (13
+  steps), `t1_rel : Tier.rel .allFeatures T1`, `cm_run_t1` (`headerOk`), `t1_e2e_stmt`, and
+  **`t1_honest_chain`**: for any view and lane AIRs meeting the completeness obligations, T1's run
+  is a valid chain of the T1 system whose roots pass the wrap checks for T1's public statement.
+  T1's `S` is 1,007 B and its `claimDigest` is kernel-evaluated (§3.4.1).
+* **Canonical statement encoding** (`E2E/StmtEnc.lean`, §3.4.1) and the **33 accepted statement
+  mutants** checked against spec and nearcore (§3.4.2: unconstrained by design; `height_created`
+  finding for the owner).
+* **`EngOvlInv.cur` narrowed, not closed** (`E2E/OvlVal.lean`, `join/StViewE.lean`, sub-agent):
+  fixed-size writes and the Wasm write-back (under the class `VmWritesShort`) proved `< 2^24` B;
+  `cur` → `curHard` (keys of account, code, access-key, received-data, receipt-queue, contract-data,
+  yield, buffer, bandwidth and global-code columns). **Finding:** the spec admits incoming
+  receipts > 2^24 B (`validReceipt false` has no size check, as nearcore's Existing mode), which are
+  stored verbatim as postponed/delayed receipts, and unbounded global-contract code; nearcore
+  bounds them at creation (chain history). `cur` needs an intake-side receipt-size hypothesis.
+* Not attempted: `NodeSha`, `NodeLink`.
+
 ---
 
 ## 4. Milestones to a first general-chunk E2E proof
@@ -650,13 +698,26 @@ status.
 (all four tables exported), honest-trace non-vacuity, `PvdAt` and the program's asserts from
 program binding + op decode over the byte bus, and `EngOvlInv` for accepting runs (value bound `cur` still a hypothesis).
 
-Next for lane E (M11h), in order:
-1. `ProgBound` from BIND/anchor (the program-binding evaluation) and `GlueByteBool` from the GLUE
-   constraints; then `NodeSha` against the SHA contracts (Sha512Air4 is now exported).
-2. `EngOvlInv`'s `cur` (committed value bound through the Wasm host / receipt limits) and `wf` of
-   the revealed intake tries.
-3. A full-circuit honest trace (export the other three tables' traces) to exhibit `NvHold` itself.
-4. Lane B: move `FitsReach` to `stOfK`; confirm `idxOf = 0`.
+**M11h (lane E, 2026-11-21) [K]:** see §3.5. Done: the T1 segment system with one named
+soundness premise per template (`E2E/Templates.lean`: `SegSoundInit` (G), `SegSoundState` (B),
+`SegSoundRt` (F), `SegSoundWasm` (A), `SegSoundFinal` (G), `WrapInitSound`/`WrapFinalSound`) and
+`e2e_sound_t1`; every `CM` run factors into the templates (`cm_decomp`); **M11 exit criterion met**:
+T1's accepting run kernel-checked under 34 GB (`T1Run`, 27.1 GB) with `t1_e2e_stmt` and
+`t1_honest_chain`; canonical `S`/`claimDigest` (§3.4.1); the 33 accepted statement mutants
+explained (§3.4.2); `cur` narrowed to `curHard` + `VmWritesShort`, with the spec/nearcore
+receipt-size finding.
+
+Next for lane E (M11i), in order:
+1. Lanes F/A/B/G: discharge their `SegSound*` premise for their T1 leaf (and `TmplComplete` for
+   the honest side). Lane D: `WrapInitSound`/`WrapFinalSound` from the wrap's checks on the opened
+   record (`claimDigest` of §3.4.1, `phase`, `headerOk`).
+2. `cur`: owner decision on an intake-side receipt-size hypothesis (incoming receipts satisfy the
+   New-mode 4 MiB limit), then a receipt-size pass for the remaining `Hard` columns;
+   `VmWritesShort` from the host (`storage_write` 4 MiB check).
+3. `ProgBound` from BIND/anchor and `GlueByteBool`; then `NodeSha` (Sha512Air4 exported), `NodeLink`.
+4. A full-circuit honest trace to exhibit `NvHold` itself.
+5. Lane B: move `FitsReach` to `stOfK`; confirm `idxOf = 0` (lane B M5a-9: per-boundary restarts
+   check).
 
 M11d's open list, updated:
 1. ~~A constructive recorder for `honestQ`~~ (M11e: `recordK`).
