@@ -3,7 +3,7 @@
 #
 #   run_t1.sh OUT_DIR [CASE_DIR]          extract, Lean run, calls, segment plan, components, report
 #   PROVE=1 run_t1.sh OUT_DIR             also prove + verify every component that pre-checks
-#   STEPS=K                               Wasm steps per segment (default 13: T1's 26-step call -> 2 segments)
+#   STEPS=K[,K2..]                    Wasm steps per segment (default 13,26: the plan cuts T1's 26-step call into 2 segments; 26 = the whole call is segchecked too)
 #   MUTANTS=1 run_t1.sh OUT_DIR           also the statement mutants (Lean checker on each)
 #
 # Builds (fresh, from this tree; nothing under spec/ is rebuilt):
@@ -30,7 +30,12 @@ RUN=()
 if command -v systemd-run >/dev/null && [ -z "${NOSCOPE:-}" ]; then
   RUN=(systemd-run --user --scope --quiet -p MemoryMax=24G -p MemorySwapMax=0)
 fi
-"${RUN[@]}" python3 "$HERE/t1.py" run "$CASE" "$OUT" --steps "${STEPS:-13}" ${PROVE:+--prove}
+rc=0
+"${RUN[@]}" python3 "$HERE/t1.py" run "$CASE" "$OUT" --steps "${STEPS:-13,26}" ${PROVE:+--prove} || rc=$?
 if [ -n "${MUTANTS:-}" ]; then
-  "${RUN[@]}" python3 "$HERE/t1.py" mutants "$CASE" "$OUT" --jobs 8 | tee "$OUT/mutants.txt"
+  "${RUN[@]}" python3 "$HERE/t1.py" mutants "$CASE" "$OUT" --jobs 8 | tee "$OUT/mutants.txt" || rc=$?
 fi
+if [ "$rc" -ne 0 ]; then
+  echo "run_t1.sh: FAILED (exit $rc): a component boundary disagrees with the Lean run, or a check failed; see $OUT/report.md" >&2
+fi
+exit "$rc"
