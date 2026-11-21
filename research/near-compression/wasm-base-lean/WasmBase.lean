@@ -202,3 +202,4 @@ import WasmBase.Main.HostCodeFetch
 import WasmBase.Main.HostRowsTimesAir
 import WasmBase.Main.HostWriteCov
 import WasmBase.Main.HostWriteCovCheck
+import WasmBase.Main.TmplWasm
