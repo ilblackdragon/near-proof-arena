@@ -263,6 +263,11 @@ def main():
         i = args.index("--mutant")
         mutant = args[i + 1]
         args = args[:i] + args[i + 2:]
+    tmpl = None
+    if "--template" in args:
+        i = args.index("--template")
+        tmpl = args[i + 1]
+        args = args[:i] + args[i + 2:]
     plan = None
     if "--plan" in args:
         i = args.index("--plan")
@@ -646,6 +651,10 @@ def main():
             msg.setv(row, "lm", bits(fields.flen_use[r["sid"]], 4))
     n_msg_rows = len(msg.rows)
     h = 1 << max(2, (n_msg_rows - 1).bit_length())
+    if tmpl:
+        pin = json.load(open(tmpl))["heights"]["MSG"]
+        assert n_msg_rows <= 1 << pin, f"MSG: {n_msg_rows} rows exceed the template's 2^{pin}"
+        h = 1 << pin
     pad_e = by[(MT["PAD"], 0)][1]
     for _ in range(h - n_msg_rows):
         row = msg.row()
@@ -930,6 +939,11 @@ def main():
     json.dump([[b, s, m] for b, s, m in xtape], open(f"{out}/xtape.json", "w"))
     with open(f"{out}/pubs.bin", "wb") as f:
         f.write(struct.pack(f"<{len(pub_vals)}I", *[v % P for v in pub_vals]))
+    # F-2: the boundary pair's place in the public values; the template's tables
+    json.dump([pubnames.index("bin.0"), 784, 408], open(f"{out}/bnd.json", "w"))
+    json.dump(["SHA", "RNG", "SCHT", "MSG", "DG", "RX"], open(f"{out}/tables.json", "w"))
+    if tmpl:
+        json.dump(json.load(open(tmpl)), open(f"{out}/template.json", "w"), indent=1)
     expected = dict(
         appliedReceiptsHash=run["appliedReceiptsHash"],
         outcomes=[dict(q=x["q"], leaf=x["out"]["leaf"], gasBurnt=x["out"]["gasBurnt"],

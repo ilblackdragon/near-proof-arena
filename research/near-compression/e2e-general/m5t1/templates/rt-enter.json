@@ -1,0 +1,5 @@
+{
+ "name": "rt-enter",
+ "params": {"n_stack": 10, "log_blowup": 7, "w_stack": 8, "pow_bits": 24, "degree": 2},
+ "heights": {"ENT": 2}
+}

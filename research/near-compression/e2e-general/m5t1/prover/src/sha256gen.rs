@@ -446,9 +446,19 @@ fn honest_log(nrows: usize) -> usize {
 /// The SHA table rows (as `u64` cells, row-major, 2^log rows) plus the
 /// number of non-padding rows and `log` (`Gen.honestLog`).
 pub fn sha_cells(msgs: &[Msg]) -> (Vec<u64>, usize, usize) {
+    sha_cells_pinned(msgs, None)
+}
+
+/// [B-T1] As [`sha_cells`], padded with zero rows to a template's pinned `2^pin` rows (the honest
+/// generator's padding rows are zero rows).
+pub fn sha_cells_pinned(msgs: &[Msg], pin: Option<usize>) -> (Vec<u64>, usize, usize) {
     let (blks, rows) = sha_layout(msgs);
     let nrows = rows.len();
-    let log = honest_log(nrows);
+    let mut log = honest_log(nrows);
+    if let Some(p) = pin {
+        assert!(log <= p, "SHA: {nrows} rows exceed the template's 2^{p}");
+        log = p;
+    }
     let mut cells = vec![0u64; WIDTH << log];
     cells
         .par_chunks_mut(WIDTH)
