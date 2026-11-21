@@ -1,0 +1,107 @@
+[
+ {
+  "name": "S",
+  "D": 5,
+  "members": 13594,
+  "covered": 13580,
+  "pin_if": {
+   "BR": 9,
+   "KCMP": 9,
+   "KEY": 10,
+   "RNG": 8,
+   "SHA": 13,
+   "SHA512": 15,
+   "SN": 8,
+   "SNC": 5,
+   "WSB": 6,
+   "WSN": 6,
+   "WSX": 5
+  },
+  "pin_seg": {
+   "HTAPE": 13,
+   "RNG": 8,
+   "SHA": 12,
+   "SHA512": 15,
+   "STB": 13,
+   "STW": 5,
+   "WSA": 5,
+   "WSL": 5,
+   "WSP": 5,
+   "WSX": 5
+  },
+  "segments": {
+   "1": 13493,
+   "2": 82,
+   "3": 5
+  }
+ },
+ {
+  "name": "M",
+  "D": 6,
+  "members": 2071,
+  "covered": 2053,
+  "pin_if": {
+   "BR": 10,
+   "KCMP": 9,
+   "KEY": 11,
+   "RNG": 8,
+   "SHA": 14,
+   "SHA512": 16,
+   "SN": 9,
+   "SNC": 6,
+   "WSB": 7,
+   "WSN": 7,
+   "WSX": 5
+  },
+  "pin_seg": {
+   "HTAPE": 14,
+   "RNG": 8,
+   "SHA": 12,
+   "SHA512": 16,
+   "STB": 14,
+   "STW": 6,
+   "WSA": 6,
+   "WSL": 6,
+   "WSP": 6,
+   "WSX": 5
+  },
+  "segments": {
+   "1": 2049,
+   "2": 4
+  }
+ },
+ {
+  "name": "L",
+  "D": 7,
+  "members": 572,
+  "covered": 570,
+  "pin_if": {
+   "BR": 11,
+   "KCMP": 10,
+   "KEY": 12,
+   "RNG": 8,
+   "SHA": 15,
+   "SHA512": 17,
+   "SN": 10,
+   "SNC": 5,
+   "WSB": 8,
+   "WSN": 8,
+   "WSX": 5
+  },
+  "pin_seg": {
+   "HTAPE": 15,
+   "RNG": 8,
+   "SHA": 13,
+   "SHA512": 17,
+   "STB": 15,
+   "STW": 7,
+   "WSA": 7,
+   "WSL": 7,
+   "WSP": 7,
+   "WSX": 5
+  },
+  "segments": {
+   "1": 570
+  }
+ }
+]

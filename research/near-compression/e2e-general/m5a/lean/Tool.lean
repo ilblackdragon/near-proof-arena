@@ -1,5 +1,7 @@
 import StateM5a.Air
 import StateM5a.St
+import StateM5a.Tmpl
+import StateM5a.StHostIf
 import NearSpecV3.D2.State
 import Lean.Data.Json
 
@@ -66,7 +68,31 @@ def main (args : List String) : IO UInt32 := do
     for (nm, t) in tableNamesB.zip A.tables do
       IO.println s!"{nm}: width {t.width}, constraints {t.allConstraints.length}, interactions {t.interactions.length}"
     return 0
+  | ["tmpl-if", d, out, names] =>
+    -- B-T1: the INTAKE + FINAL template (`Tmpl.m5tIF`)
+    let D := d.toNat!
+    IO.FS.writeFile out (ZkFormal.Air.Air.exportJson (m5tIF D))
+    IO.FS.writeFile names (namesJsonT D tableNamesIF)
+    for (nm, t) in tableNamesIF.zip (m5tIF D).tables do
+      IO.println s!"{nm}: width {t.width}, constraints {t.allConstraints.length}, interactions {t.interactions.length}"
+    return 0
+  | ["tmpl-seg", d, out, names] =>
+    -- B-T1: the STATE segment template (`Tmpl.m5tSeg`)
+    let D := d.toNat!
+    IO.FS.writeFile out (ZkFormal.Air.Air.exportJson (m5tSeg D))
+    IO.FS.writeFile names (namesJsonT D tableNamesSeg)
+    for (nm, t) in tableNamesSeg.zip (m5tSeg D).tables do
+      IO.println s!"{nm}: width {t.width}, constraints {t.allConstraints.length}, interactions {t.interactions.length}"
+    return 0
+  | ["tmpl-segh", d, out, names] =>
+    -- B-T1 item 3: the STATE segment template fed by lane A's HOST rows (`StHostIf.m5tSegH`)
+    let D := d.toNat!
+    IO.FS.writeFile out (ZkFormal.Air.Air.exportJson (m5tSegH D))
+    IO.FS.writeFile names (namesJsonH D)
+    for (nm, t) in tableNamesSegH.zip (m5tSegH D).tables do
+      IO.println s!"{nm}: width {t.width}, constraints {t.allConstraints.length}, interactions {t.interactions.length}"
+    return 0
   | ["apply", st] => applyOracle st
   | _ =>
-    IO.eprintln "usage: m5a-tool air|airb D AIR_JSON NAMES_JSON | m5a-tool apply STATE_JSON"
+    IO.eprintln "usage: m5a-tool air|airb|tmpl-if|tmpl-seg|tmpl-segh D AIR_JSON NAMES_JSON | m5a-tool apply STATE_JSON"
     return 2

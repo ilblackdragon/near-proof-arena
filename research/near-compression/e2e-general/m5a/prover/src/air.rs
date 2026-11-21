@@ -191,6 +191,13 @@ impl<F> PartitionedBaseAir<F> for JsonAir {
         // SWIRL needs a non-empty common main: a cached AIR carries one unused zero column
         if self.spec.cached { 1 } else { self.spec.width }
     }
+    /// The per-table cap from the Lean export (`maxLog`).  `HoldsP` accepts any
+    /// `1 <= log <= maxLog`, and the soundness lemmas (capacity, the A7 bound) are proved at
+    /// `maxLog`, so the cap travels into the vk and is enforced by the native verifier, the NV
+    /// program generator and V_d.
+    fn max_log_trace_height(&self) -> Option<usize> {
+        Some(self.spec.max_log)
+    }
 }
 impl<F> BaseAirWithPublicValues<F> for JsonAir {
     fn num_public_values(&self) -> usize {
