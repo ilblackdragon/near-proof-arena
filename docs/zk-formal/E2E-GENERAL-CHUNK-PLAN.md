@@ -614,7 +614,80 @@ definition changed. Log: [`docs/logs/e2e-lean-m11h-2026-11-21.md`](../logs/e2e-l
   receipts > 2^24 B (`validReceipt false` has no size check, as nearcore's Existing mode), which are
   stored verbatim as postponed/delayed receipts, and unbounded global-contract code; nearcore
   bounds them at creation (chain history). `cur` needs an intake-side receipt-size hypothesis.
-* Not attempted: `NodeSha`, `NodeLink`.
+* Not attempted: `NodeSha`, `NodeLink` (done in M11i, below).
+
+**M11i (lane E, 2026-11-21) [K].** Standard axioms only, no `sorry`, no checker definition changed.
+Log: [`docs/logs/e2e-lean-m11i-2026-11-21.md`](../logs/e2e-lean-m11i-2026-11-21.md).
+
+* **The M8 heterogeneous tree** (`E2E/TreeM8.lean`, `defaultTargets`; `zk-formal/ZkFormal/PQ/E2ETree8.lean`,
+  on demand). Leaf kinds `tmpl k | pad` over the five T1 templates; a leaf statement is
+  `(ctx, b, b')` with `b = lbOf V x = ((V.bnd x).phase, bndOf V.bnd x)` (lane D's
+  `s = [phase, h(B)]`, phase codes of `View.split`: init 0, eng 1, fin 2, gfin 3, done 4, doneG 5,
+  call 6). The per-template obligation `TmplSound8` adds a **context link** to M11h's
+  `TmplSound`: INIT opens its input to `init (assemble s.ci secB s.secC) w` for a well-formed `s`
+  with `claimDigest s = ctx`; FINAL, if its output is `done H o`, gives `FinalOutPub s` for such an
+  `s`. `PadSound8`: `b' = b`, phase done/doneG. **`e2e_sound_m8`**: `TreeFaithful` (the accepted
+  tree is a boundary-chained leaf list at `ctx = claimDigest s`, first phase init, last phase
+  done/doneG) + the five obligations + PAD ⇒ `E2EStmt s ∨ Bad ∨ BndCollision ∨ Sha384Coll`. The
+  wrap needs only `ctx` and the two phase cells: the first leaf is forced to be INIT
+  (`phase_zero`, `meaning_init_src`), the last template leaf before a `done` boundary is FINAL
+  (`meaning_done_tgt`, via `init_step_shape`: INTAKE ends in `eng` or `gfin`). **Connection to
+  M11h:** `wrapInitSound_m8` / `wrapFinalSound_m8` prove `e2e_sound_t1`'s `WrapInitSound` /
+  `WrapFinalSound` for the wrap check `wrap8` (an INIT leaf at `claimDigest s` starts at `d`; `d`
+  is a done/doneG end of a FINAL leaf) from the INIT/FINAL obligations, modulo a collision. Honest
+  side: `honest_tree` (an accepting run of an assembled claim is a valid PAD-free leaf chain passing
+  the phase checks, from per-template completeness `TmplComplete8`; `mchain_links` shows the
+  context links hold on `cm_decomp`'s chain). zk-formal: `compose_ctx` (the node's
+  `ctx_i = ctx_0` asserts carry the root context to every leaf), `leaves_of_acc_tree8`,
+  **`treeFaithful_of_aggH`** (obligation 1 for the tree from `build_agg` / wrap faithfulness over
+  `Hold`, the extractors and range binding; leaf keys mapped to kinds by `kindOf`, so a template
+  may have several leaf keys — height classes, families), `e2e_sound_of_tree8`.
+* **Lane E's view components** (`E2E/ViewE.lean`, `defaultTargets`): `ctxDE` (lane G's raw
+  context `bdigest(0 ‖ u32 ℓ_B ‖ u32 |cb| ‖ cb ‖ wb)` for `|cb| < 2^32`; intake / genesis / header
+  as `bdigest(tag ‖ Ser.enc ·)`), `outDE` (running list commitments `chainD` of the outcome,
+  outgoing-receipt and proposal lists; the final `Outputs`; a constructor tag in the fourth field),
+  `vmDE` (`chainD` of the call tape, `vmDE_snoc`: `next` is one SHA-384), constant clear fields,
+  `viewE` and `viewE_binding` (a boundary collision is a SHA-384 collision or a collision of lane
+  B's `stD` / lane A's `wasmD`). **Finding:** lane G's proposals (2) and (4) as written are not
+  injective (`outD .none = outD (.eng ([], [], []))`; a `u32` length wraps for `|cb| ≥ 2^32`), so
+  `Coll outD → Bad` / `Coll ctxD → Bad` would be unsatisfiable; `ViewE` keeps their circuit
+  formulas and adds the domain separation. The serialisers of `Intake`, `GFin`, `ChunkInner`,
+  `Outputs`, `CallArgs`, `Run` (and lane A's `encRest`) are instance arguments: `ViewSer.lean`
+  (sub-agent, see the log) supplies them.
+
+##### How to discharge `SegSound*` (per lane, M11i)
+
+All boundaries are under `viewE lB κ stD wasmD` (`ViewE.lean`) with lane B's `stD`
+(`StateM5a.StateView` with `join/StViewE.stViewE`) and lane A's `wasmD P` (`WasmView`). A leaf
+exposes `ctx` (the 18 limbs of `claimDigest s`, §3.4.1) and `s_in = [phase, h(B_in)]`,
+`s_out = [phase, h(B_out)]` with `h(B) = bdigest (BndRec.encode B)` (`bndOf`); it witnesses the
+two records, hashes them in-circuit, and copies every field it does not change. The Lean premise
+is `TmplSound8 V A8 Bad k` over the circuit's leaf AIRs `circAirs8` (`E2ETree8.lean`); for
+`state`, `rt`, `wasm` it is M11h's context-free `TmplSound` (`tmplSound8_of`).
+
+| lane / premise | edge (`Meaning k`) | fields that change (`V.bnd`) | context link | Lean tools |
+|---|---|---|---|---|
+| A `SegSoundWasm8` | `call I c K q cc → call I c K q cc'`, `CSteps q cc cc'` | `wasm = wasmD P (some (q, cc))` only (AIR branch `airBnd` inside a call, `wasmD_air`); phase 6, `ctxRoot`, `stRoot`, accumulators, `vmAcc` copied | none | `csteps_seg`, `csteps_foldSegments`, `rsteps_foldSegments`, `wasmD_binding` |
+| B `SegSoundState8` | `eng I c →* eng I c'` by `VFSteps` (engine steps whose honest tape is empty) | `stRoot = stD (stOfK (κ I) c)`; `outDE (.eng (eposAcc c.pos))` (append: `acc' = bdigest (acc ‖ Ser.enc item)`); phase 1, `ctxRoot`, `vmAcc = bdigest []` copied | none | `stViewE`, `stD_binding_E`, `vfsteps_rsteps`, `mstate_trans` |
+| F `SegSoundRt8` | enter `eng I c → call I c [] q .pre`; next `call I c K q (.fin r) → call I c (K ++ [(q, r)]) q' .pre`; resume `call I c K q (.fin r) → eng I c'` with `estepO (strictO (K ++ [(q, r)])) I.prog c = .ok c'` | enter: phase 1 → 6, `wasm = wasmD P (some (q, .pre))` (fallback `fbBnd`), `vmAcc = bdigest []`; next: `vmAcc' = bdigest (vmAcc ‖ Ser.enc (q, r))` (`vmDE_snoc`), `wasm` → `(q', .pre)`; resume: phase 6 → 1, `vmAcc → bdigest []`, `wasm → none`, `stRoot`/accumulators of `c'` (the receipt step's effects, lane B's commitments); the circuit opens `vmAcc` by recomputing `chainD` over the answers it consumes | none | `vmDE_snoc`, `estepO_honest`, `strictO`, `rsteps_through_calls` |
+| G `SegSoundInit8` | `init cb wb → c`, `CM.step (init cb wb) = .ok c` (`c = eng I ⟨start, initRec⟩` or `gfin G`, `init_step_shape`) | `B_in`: phase 0, `ctxRoot = bdigest (0 ‖ u32 ℓ_B ‖ u32 \|cb\| ‖ cb ‖ wb)`, `stD .none`, `outDE .none`, `vmAcc = bdigest []`; `B_out`: phase 1 / 3, `ctxRoot = bdigest (1 ‖ Ser.enc I)` / `bdigest (2 ‖ Ser.enc G)`, `stD (stOfK (κ I) …)` / `stD .none`, `outDE (.eng ([], [], []))` / `outDE .none` | `∃ s secB w, s.wf ∧ claimDigest s = ctx ∧ cb = assemble s.ci secB s.secC` (INIT hashes `S` = `cb` with section B replaced by `u32 0`: `assemble_splice`, `encode_splice`) | `claimDigest_binding`, `assemble_wf`, `PublicStmt.decode_encode` |
+| G `SegSoundFinal8` | a `CM` run from `eng I ⟨.done out, _⟩`, `fin I out` or `gfin G` to `done H o` / `doneG` | `B_out`: phase 4 / 5, `ctxRoot = bdigest (3 ‖ Ser.enc H)`, `outDE (.done o) = (bdigest (Ser.enc o), [], bdigest [], bdigest [2])`, `stD .none` | for `done H o`: `∃ s, s.wf ∧ claimDigest s = ctx ∧ decodeChunkInner s.ci.chunkInner = .ok H ∧ headerOk H o` (M5d `final_template_sound`) | `cm_done_header`, `fin_accepts_iff`, `final_header_public` |
+| D `TreeFaithful`, `PadSound8` | tree / PAD (`b' = b`, phase 4 or 5) | — | wrap: `cx (ctxOf s) = claimDigest s`, `B_0.phase = 0`, `B_N.phase ∈ {4, 5}` (**the `View.split` codes, not D-5's placeholder 1 / 2**) | `treeFaithful_of_aggH`, `compose_ctx`, `NodeExecV` (item 1 below) |
+
+Notes for the lanes:
+* **INIT must commit to the decoded intake** (`bdigest (1 ‖ Ser.enc I)`): every engine and call
+  boundary carries it. `Ser.enc I` includes the revealed pre-state trie, so this is
+  witness-sized hashing. A cheaper commitment by the source bytes `(cb, wb)` is binding only if
+  `Intake` carries them (a change of the E2E machine's `Intake` record and a re-check of T1's
+  run); not done, lane E proposal.
+* **FINAL (M5d note (3))**: `MFinal` is a `CM` run, so the FINAL leaf covers `fin → done`, i.e.
+  `finK` (storage bound, gas cap, post-state root, implicit transitions) as well as `tailNew`.
+  Lane G's FINAL starts after `finK`: either join it with lane B's post-state root in one leaf, or
+  lane E splits the `CM` step `fin → done` at `finK` (a new configuration; changes `cm_iff`'s
+  proof and T1's 13-step run). Proposal, not done.
+* **Phase cell**: the leaf must expose the record's own `phase` (the in-circuit hash covers it),
+  and a template must reject `B_in.phase ∈ {4, 5}` (review-D7 I3) — automatic from the meanings,
+  which never start at `done`/`doneG` (`meaning_not_done_src` for `done`; `doneG` is not a `FinStart`).
 
 ---
 
