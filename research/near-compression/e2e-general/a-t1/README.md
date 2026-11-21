@@ -120,6 +120,50 @@ axioms are standard; there is no `sorry`.
   * Fix (open): bound the segment by the sum of the actual per-row fees, or add an AIR range check
     `Lmax − lin·n` with `Lmax` public. Not needed for T1, which does no grow.
 
+## 2. Item 2: answer functions for T1's hosts (sub-lane ANS) [K]
+
+The files are `Main/HostAns2.lean`, `HostAnsT1.lean` and `HostAnsGas.lean`. The build is green
+(741 jobs), the axioms are standard, and there is no `sorry`.
+
+* **Answer functions, proved equal to the spec arm on every branch and error:**
+  * `value_return_ans`: memory or register source; the returned-length limit; the data-receipt byte
+    burn; `ret`.
+  * `log_utf8_ans`: the count limit; both UTF-8 read modes, including the NUL scan with per-byte
+    charges; `BadUTF8`; the log charges; the total raised before its limit check.
+  * `storage_write_ans`: key and value from memory or register; length limits; byte charges; the
+    mock `trie` and the trie-backed `real` backends (with `TTN.storageWrite`'s node and evicted-byte
+    charges and the recorder); storage usage; the evicted value into a register (`regSetH`'s
+    checks) and result 1, or result 0.
+  * Side effects that persist after an error are kept.
+* **The T1 host set:**
+  * `ansT1` / `ansT1F` cover all six T1 hosts (`input`, `register_len`, `read_register`,
+    `storage_write`, `log_utf8`, `value_return`).
+  * `ansT1_arm`, `ansT1_congr`: the answer reads host fields only.
+  * `ansT1_mem`: memory is read only on the read set.
+  * `ansT1_side`: the host side after the call.
+  * `HostAnsGas` (`ansT1_sideR`, `ansT1_next`): the answer at `sideR s` (gas register blanked)
+    agrees with the run from `s`. So lane B's `st`/`word`/`gas`/`regs`/`next` obligations are
+    satisfiable on honest runs.
+* **Finding: `ProducerObl.spec` is unsatisfiable for `value_return`, `log_utf8` and
+  `storage_write`.** `runOf` cannot change `ret`, `logs` or storage. It is restated as `SpecU` (an
+  answer with a host-side update `upd`; a `len ≤ stack size` premise; no σ premise). **`specU_T1`
+  discharges it for every trace whose HOST rows call T1's hosts.** Two named premises remain, both
+  honest: the row's `np` is the arity, and the request bytes cover the read set. Lane B's
+  `ProducerObl` should take the `SpecU` form.
+* **Non-vacuity on T1's own calls** (`decide +kernel`):
+  * `t1_log_utf8` logs "tiny"; `t1_value_return` returns "again". Both have remaining gas equal
+    to the tape's `gAfter` / `gFinal`.
+  * `t1_storage_write_mock`: result 1, register 1 = "self". Its gas differs from the tape by
+    exactly the trie-backed backend's 11 node and 4 evicted-byte charges (the backend T1 ran; it
+    is not evaluated in Lean).
+* **Open, `callResult_of_chainσ` for T1** (`hostIf_of_producerObl`):
+  * `HostIf.reg`/`.cap` follow from `ProducerObl` directly.
+  * `HostIf.ans` needs (i) the honest pre-state per row as a named premise and (ii) a bridge
+    `hostPost_of_answer`: the `call` step through `callHost`, the out STATE/result/gas messages, the
+    written bytes and `RelW` of the post-state. That is the construction-direction counterpart of
+    `holdRowSP_of`, estimated at several hundred lines.
+  * The answer side is complete.
+
 ## 3. Item 3: T1's call as pinned-shape tree leaves [M]
 
 ### 3.1 What was built

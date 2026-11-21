@@ -973,35 +973,56 @@ mutants rejected) is met. The gas equality holds outside the proof (the tape) un
 is green with the new files.
 
 **Done 2026-11-21, seventh session (lane A): milestone A-T1** (`e2e-general/a-t1/README.md`; log
-`docs/logs/e2e-laneA-wasm-2026-11-03.md`). The build is green (`lake build WasmBase wasmbase-tool`) with
-standard axioms, `pin-check` passes, and `spec/` is unchanged.
+`docs/logs/e2e-laneA-wasm-2026-11-03.md`). `lake build WasmBase wasmbase-tool` is green (741 jobs)
+with standard axioms and no `sorry`, `pin-check` passes, and `spec/` is unchanged. Sub-lanes: WCOV,
+ANS, CONN, JOIN.
 
-* **T1 blocker (lane I) [M]:** at lane A's head, T1's call pre-checks and chains at every cut size
-  1–26. It proves at K = 8 (4 segments) and K = 26 (1 segment), and `t1/run_t1.sh` passes. The
-  reported failure came from binaries older than FIX214.
+* **T1 blocker (lane I) [M]:** at lane A's head, T1 pre-checks and chains at every cut size
+  1–26. It proves at K = 8 and K = 26, and `t1/run_t1.sh` passes. The failure came from binaries
+  older than FIX214.
 * **Item 1, write coverage [M][K]:**
-  * AIR: HOSTB `ob` column and the space-3 write pair (`act·dir·(1−reg)`).
-  * The old AIR proves a run that ignores `setU128H` writes: the KAT's block stays read-only.
-  * The new AIR: 8/8 segments proved, 54/54 tampers rejected (7 new write-pair cases).
-  * Lean: `HostWritesCovT` is derived; `seg_sound_hostIf_airW` has no write premise. The producer
-    clause `HostNoTouch` is added, with non-vacuity checks.
-  * Failed-grow fee: analysed; the fix is open.
+  * HOSTB `ob` and the space-3 write pair (`act·dir·(1−reg)`).
+  * The old AIR proves a run that ignores `setU128H` writes (KAT); the new one gives 8/8 proved and
+    54/54 tampers rejected.
+  * `HostWritesCovT` is derived; `seg_sound_hostIf_airW` has no write premise (producer clause
+    `HostNoTouch`, with non-vacuity).
+  * Failed-grow fee: analysed, open.
+* **Item 2, answer functions [K]:**
+  * `storage_write` (both backends), `log_utf8`, `value_return`; `ansT1` for all six T1 hosts.
+  * `specU_T1`. Finding: `ProducerObl.spec` cannot express host-side updates, so it is restated as
+    `SpecU`.
+  * `decide` checks on T1's calls match the tape's gas.
+  * Open: the bridge `hostPost_of_answer` to `HostIf.ans`.
 * **Item 3, T1 as pinned-shape leaves [M]:**
-  * The prover is built on the stack's backend, with the stack's base configuration (first-order
-    certificates, m = 64, 24 grinding bits).
-  * Template heights are pinned: `segtemplate` / `segleaf` / `segleafverify`.
-  * T1 gives 2 segments at one vk: 553 KB each, 268.2 bits, queries [100, 71, 45, 33]. Proofs and
-    vk are saved, reloaded, verified and chained; 11/11 saved-leaf tampers rejected.
-  * CODE/FUNC roots are cached commitments of the padded matrices (form R1). The SHA-384-Merkle
-    form R2 is not built.
-* **Items 4, 5 [S]:** PREP scope (R1 recommended; certificate-style AIR; d3tiny 6 SHA-256 blocks,
-  32 records). The HB/SREQ bus-shape change is scoped: absolute addresses also bind HOSTB `ptr`
-  for the producer.
+  * The prover runs on the stack's backend with the base configuration (first-order
+    certificates, m = 64, 24 grinding bits), at pinned template heights
+    (`segtemplate`/`segleaf`/`segleafverify`).
+  * T1 gives 2 leaves, about 553 KB each, 268.2 bits, queries [100, 71, 45, 33], one vk on disk.
+    The leaves are reloaded and verified; 11/11 tampers rejected.
+  * CODE/FUNC roots are published as cached commitments (R1).
+* **Lane E's template [K]:** `TmplWasm.lean`: `segSoundWasmRel_of` (relative), `segSoundWasm_of`
+  (absolute, with `InOpens`), `e2e_sound_t1_wasmRel`.
+  * Findings: the absolute `TmplSound` needs an opening premise for any field-copying leaf (adopt
+    `TmplSoundRel`); `TmplComplete .wasm` fails for `pre → pre`; the whole-call meaning must split.
+  * The `.pre → .ent` seam is `cstep q .pre = preConf q`, and PREP covers exactly it (statement in
+    the a-t1 README §7). No new `Meaning` is needed.
+* **Item 5, M6 join [K][M]:**
+  * HOSTB bus 210 carries the absolute address.
+  * `wasmBaseSegAirMPJ`: the oracle cannot answer 58/60; storage request bytes go to lane B.
+  * Lane B's `StorageJoinObl`.
+  * T1 on the J AIR lacks exactly `storage_write`'s HOSTQ, HOSTR and 6 HB messages.
+  * Wire-id mismatch with lane B's `StbH`: the value group is wire 314.
+* **Item 4 PREP [S]:** scoped (R1 roots; certificate-style AIR; d3tiny 6 SHA-256 blocks,
+  32 records). Not built.
 
-**Next (lane A):** PREP build (CODEBYTES + SHA-256 first, which needs the SHA table's input bytes on
-a bus, `HashRegisterLink`); the joined HB/SREQ HOSTB variant with lane B; `SegSoundWasm` /
-`TmplComplete` for lane E's `Templates.lean`; the failed-grow fee bound; a height-class menu over a
-corpus sample.
+**Next (lane A):**
+* PREP for d3tiny: CODEBYTES + SHA-256 first, which needs `HashRegisterLink`.
+* `hostPost_of_answer`.
+* Bind `stackRem` as a public (SEGB/CUTI design in the README §8). `vmCtxDigest` waits for lane E's
+  `gasLeft`.
+* The joined pre-check with lane B's tables; storage read/has_key rows.
+* The failed-grow fee bound.
+* A height-class menu over a corpus sample.
 
 ### 5.0 Lane D (ZK wrap for M9): status, 2026-11-05 (milestone D-9)
 
