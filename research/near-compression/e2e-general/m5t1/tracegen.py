@@ -726,10 +726,10 @@ def main():
         vb, vu, vc, vbal, vus, vsub = (val(I[g]) for g in ("vb", "vu", "vc", "vbal", "vus", "vsub"))
         amt, lck = val(I["amt"]), val(I["lck"])
         nbv = x["lm"] + x["la"]
-        B_("nb", le(nbv, 4))
+        B_("nb", le(nbv, 3))
         fcx = FC_BASE_EXEC + FC_BYTE_EXEC * nbv
         B_("fcx", le(fcx, 8))
-        cfx = lin_carries([le(FC_BASE_EXEC, 8)[k] + mul_terms(le(nbv, 4), le(FC_BYTE_EXEC, 3), 8)[k] for k in range(8)], le(fcx, 8), 0)
+        cfx = lin_carries([le(FC_BASE_EXEC, 8)[k] + mul_terms(le(nbv, 3), le(FC_BYTE_EXEC, 3), 8)[k] for k in range(8)], le(fcx, 8), 0)
         rx.setv(r, "cfx", sum((le(c, 2) for c in cfx), []))
 
         def lin3(name, cyname, a, b_, c_, n_):
@@ -849,6 +849,7 @@ def main():
         rx.setv(r, "cgl", lin_carries([le(cur["cin"], 8)[k] + le(dgl, 8)[k] + (1 if k == 0 else 0) for k in range(8)], le(glim, 8), 0))
         rx.set(r, "igs", inv(sum(I["gas"])))
         B_("e1", le(256 - x["lm"], 2)); B_("e2", le(4194304 - x["la"], 3))
+        B_("lmb", le(x["lm"], 2)); B_("lab", le(x["la"], 3))
         B_("gte", le(x["tse"] - x["ts0"] - 2, 3))
         for i in range(len(x["logs"])):
             rx.set(r, "lg", 1, i)

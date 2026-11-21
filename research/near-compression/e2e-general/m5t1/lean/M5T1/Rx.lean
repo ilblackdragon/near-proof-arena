@@ -58,11 +58,11 @@ def byteGroups : Layout :=
    ("vb", 8), ("vu", 8), ("vc", 8), ("vbal", 16), ("vus", 8), ("vsub", 16),
    ("rrh", 32), ("leaf", 32), ("pb", 6),
    -- computed
-   ("nb", 4), ("fcx", 8), ("gb", 8), ("gu", 8), ("cu", 8), ("dvu", 8), ("ad", 16), ("req", 16),
+   ("nb", 3), ("fcx", 8), ("gb", 8), ("gu", 8), ("cu", 8), ("dvu", 8), ("ad", 16), ("req", 16),
    ("ak", 16), ("s1", 16), ("s2", 8), ("dmn", 16), ("burn", 16), ("pexec", 8), ("tot", 8),
    ("gross", 8), ("unu", 16), ("gpb", 16), ("sur", 16), ("bc", 16), ("rf", 16), ("tb", 16),
    ("fc3", 8), ("q10", 8), ("r10", 1), ("rew", 16), ("amt2", 16), ("txb", 16), ("dgl", 8),
-   ("e1", 2), ("e2", 3), ("gte", 3),
+   ("e1", 2), ("e2", 3), ("gte", 3), ("lmb", 2), ("lab", 3),
    -- carries of the products (2 bytes per limb) and of the 3-term sums (1 byte per limb)
    ("cfx", 14), ("crq", 30), ("cun", 46), ("csu", 46), ("cbc", 42), ("ctb", 46), ("crw", 46),
    ("cgb", 7), ("cgu", 7), ("ccu", 7), ("cf3", 7), ("cq", 7)]
@@ -118,9 +118,10 @@ def nonzero (a : Nat → Expr) (n : Nat) (inv : String) : Expr :=
 /-- The receipt step's arithmetic (every constraint is gated by `act` in `constraints`). -/
 def arith : List Expr :=
   let A := c "act"
-  -- |method| + |args|, fcBase/fcByte exec gas
-  [leVal (bv "nb") 4 - c "lm" - c "la"] ++
-  lin 8 (fun k => kb FC_BASE_EXEC k + mulT (bv "nb") 4 (kb FC_BYTE_EXEC) 3 k) (bv "fcx") (cy2 "cfx") 0 ++
+  -- |method| + |args| (each below 2^16 / 2^24), fcBase/fcByte exec gas
+  [c "lm" - leVal (bv "lmb") 2, c "la" - leVal (bv "lab") 3,
+   leVal (bv "nb") 3 - c "lm" - c "la"] ++
+  lin 8 (fun k => kb FC_BASE_EXEC k + mulT (bv "nb") 3 (kb FC_BYTE_EXEC) 3 k) (bv "fcx") (cy2 "cfx") 0 ++
   -- merge: gas burnt / used / compute
   lin 8 (add3 (kb NAR_EXEC) (bv "fcx") (bv "vb")) (bv "gb") (bv "cgb") 0 ++
   lin 8 (add3 (kb NAR_EXEC) (bv "fcx") (bv "vu")) (bv "gu") (bv "cgu") 0 ++
