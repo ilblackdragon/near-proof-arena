@@ -8,11 +8,12 @@
 #   spec   the tree spec (m8_spec.py): record layout, templates INIT / WASM / STATE / FINAL, S
 #   tree   m8-tree (leaves, P_2, P_*, PAD, wrap)
 #   verify m8-verify in fresh processes (3x) + negatives (tampered statement / proof / pin)
-# env: CPUSET (default 4-11), THREADS (8), GEOM (template geometry, ns18lb7), ARITY / DEPTH (4 / 2)
+#   import (real T1 leaves) the lanes' own saved leaves (m8_import_real.sh); then spec with SPEC=m8_spec_real.py
+# env: PROVER, SPEC, CPUSET (default 4-11), THREADS (8), GEOM (template geometry, ns18lb7), ARITY / DEPTH (4 / 2)
 set -euo pipefail
 . "$(cd "$(dirname "$0")" && pwd)/env_d9.sh"
 D=/data/illia/nearproof-deps/pq-e2e-m8
-P=$D/target/release/nearproof-chunk-e2e
+P=${PROVER:-$D/target/release/nearproof-chunk-e2e}
 S=$(cd "$(dirname "$0")" && pwd)
 STAGE=${1:?stage}; O=${2:?work dir}
 mkdir -p "$O"
@@ -45,7 +46,7 @@ stage_b_prove() {
   grep -h M8_TEMPLATE_PROVED "$O/tmpl-state.log"
 }
 stage_spec() {
-  python3 "$S/m8_spec.py" "$O" "${ARITY:-4}" "${DEPTH:-2}" > "$O/spec.txt" || die "spec"
+  python3 "$S/${SPEC:-m8_spec.py}" "$O" "${ARITY:-4}" "${DEPTH:-2}" > "$O/spec.txt" || die "spec"
   cat "$O/spec.txt"
 }
 stage_tree() {
@@ -63,7 +64,7 @@ stage_verify() {
   grep -q "M8_NEGATIVES_ALL_REJECTED" "$O/negatives.txt" || die "a negative was accepted"
 }
 case $STAGE in
-  a) stage_a ;; b) stage_b; stage_b_prove ;; b-dump) stage_b ;; b-prove) stage_b_prove ;; spec) stage_spec ;; tree) stage_tree ;; verify) stage_verify ;;
+  import) PROVER=$P "$S/m8_import_real.sh" "$O" || die import ;; a) stage_a ;; b) stage_b; stage_b_prove ;; b-dump) stage_b ;; b-prove) stage_b_prove ;; spec) stage_spec ;; tree) stage_tree ;; verify) stage_verify ;;
   all) stage_a; stage_b; stage_b_prove; stage_spec; stage_tree; stage_verify ;;
   *) die "unknown stage $STAGE" ;;
 esac

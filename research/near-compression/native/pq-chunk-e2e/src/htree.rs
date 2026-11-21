@@ -513,10 +513,7 @@ pub fn tree_prove(spec_path: &str, out: &Path, certs: &str, exclusions: &str) {
     let hx = sj["claim_s_hex"].as_str().expect("claim_s_hex");
     let claim_s: Vec<u8> = (0..hx.len() / 2).map(|i| u8::from_str_radix(&hx[2 * i..2 * i + 2], 16).unwrap()).collect();
     let ctx = h::claim_ctx(&claim_s);
-    println!("M8_CLAIM_S bytes={} claimDigest={}", claim_s.len(), {
-        let d = openvm_recursion_circuit::sha384::config::digest_bytes(openvm_recursion_circuit::nv::fmt::limbs_digest(&ctx));
-        d[..42].iter().map(|b| format!("{b:02x}")).collect::<String>()
-    });
+    println!("M8_CLAIM_S bytes={} claimDigest={}", claim_s.len(), h::claim_ctx_bytes(&ctx).iter().map(|b| format!("{b:02x}")).collect::<String>());
     let specs: Vec<TemplateSpec> = sj["templates"].as_array().unwrap().iter().map(template_of_json).collect();
     let tparams = profile::params_geom(false, certs, exclusions, profile::tree_geom());
     let cap_log = tparams.l_skip + tparams.n_stack;

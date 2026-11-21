@@ -3648,7 +3648,7 @@
  
 --- a/openvm-sha384/crates/recursion/src/nv/htree.rs
 +++ b/openvm-sha384/crates/recursion/src/nv/htree.rs
-@@ -0,0 +1,473 @@
+@@ -0,0 +1,480 @@
 +//! [E2E-D M8] The heterogeneous tree: a generic leaf wrapper for an arbitrary template.
 +//!
 +//! A *template* is a proof system for one kind of chunk segment (lane A's Wasm segment, lane B's
@@ -3753,7 +3753,8 @@
 +    /// pass-through slots
 +    pub n_pass: usize,
 +    /// child AIRs whose public-value vectors must be identical (the template reads one vector in
-+    /// several tables); the first AIR of a group carries the binding of the group
++    /// several tables; a shorter vector must equal the first AIR's prefix, as lane B's WSB reads the
++    /// first 17 of WSX's 70); the first AIR of a group is the longest and carries the binding
 +    pub pv_equal: Vec<Vec<usize>>,
 +    /// public values pinned to constants `(air, j, value)`
 +    pub pv_const: Vec<(usize, usize, u32)>,
@@ -3840,7 +3841,7 @@
 +            bound[a][j] = true;
 +        }
 +        for g in &self.pv_equal {
-+            if g.len() < 2 || g.iter().any(|&a| a >= n_air || npv[a] != npv[g[0]]) {
++            if g.len() < 2 || g.iter().any(|&a| a >= n_air || npv[a] > npv[g[0]]) {
 +                return Err(format!("{}: pv_equal group {g:?} malformed", self.name));
 +            }
 +            for &a in &g[1..] {
@@ -3886,15 +3887,21 @@
 +}
 +
 +/// [E2E-D M8, plan §3.4.1] The chunk's `claimDigest = bdigest(S)` (SHA-384 of the canonical
-+/// statement bytes, truncated to 42 bytes) as the tree's 18-limb `ctx` (the 42 bytes, zero-padded to
-+/// 48, as a digest).
++/// statement bytes, truncated to 42 bytes) as the tree's 18-cell `ctx`: the 14 three-byte limbs
++/// `65536 d[3i] + 256 d[3i+1] + d[3i+2]` in which lane G's INIT / FINAL expose it (m5d
++/// LEAF-TEMPLATE-SPEC §1, lane E's U-10 limbs), then 4 zero cells. So an INIT leaf binds `ctx` by
++/// `CtxMode::Src([pv 0..14, 0, 0, 0, 0])`, with no in-circuit re-encoding.
 +pub fn claim_ctx(s_bytes: &[u8]) -> Vec<F> {
 +    use sha2::{Digest as _, Sha384};
-+    let mut d: [u8; 48] = Sha384::digest(s_bytes).into();
-+    for b in &mut d[42..] {
-+        *b = 0;
-+    }
-+    digest_limbs(digest_from_bytes(d)).to_vec()
++    let d: [u8; 48] = Sha384::digest(s_bytes).into();
++    let mut v: Vec<F> = (0..14).map(|i| F::from_u32(65536 * d[3 * i] as u32 + 256 * d[3 * i + 1] as u32 + d[3 * i + 2] as u32)).collect();
++    v.extend([F::ZERO; 4]);
++    v
++}
++
++/// The 42 bytes of a `claim_ctx` (inverse on its image).
++pub fn claim_ctx_bytes(ctx: &[F]) -> Vec<u8> {
++    ctx[..14].iter().flat_map(|x| { let v = x.as_canonical_u32(); [(v >> 16) as u8, (v >> 8) as u8, v as u8] }).collect()
 +}
 +
 +/// The wrap statement check against the canonical statement bytes: `[LEVEL_WRAP, D_wrap(claimDigest, 0)]`.
@@ -4264,12 +4271,12 @@
 +    let mut s = spec_init();
 +    s.ctx_mode = CtxMode::Src(vec![Src::Pv(0, 0); 18]);
 +    assert!(s.check(None, None).is_err(), "ctx from a child that is not there");
-+    // claimDigest = bdigest(S) (plan 3.4.1) as ctx limbs: the 42 bytes come back, the rest is zero
++    // claimDigest = bdigest(S) (plan 3.4.1) as ctx: 14 three-byte limbs + 4 zero cells
 +    let c = claim_ctx(b"abc");
-+    let back = digest_bytes(super::fmt::limbs_digest(&c));
 +    let want = hex_bytes("cb00753f45a35e8bb5a03d699ac65007272c32ab0eded1631a8b605a43ff5bed8086072ba1e7cc2358baeca134c825a7");
-+    assert_eq!(&back[..42], &want[..42]);
-+    assert!(back[42..].iter().all(|&x| x == 0));
++    assert_eq!(claim_ctx_bytes(&c), want[..42].to_vec());
++    assert_eq!(c[0], F::from_u32(0xcb0075));
++    assert!(c[14..].iter().all(|x| *x == F::ZERO));
 +    println!("HTREE_SPEC_CHECKS_OK");
 +}
 +
