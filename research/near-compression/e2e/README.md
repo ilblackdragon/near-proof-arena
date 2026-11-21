@@ -95,7 +95,7 @@ the earlier 18-limb form, so it was not resumed.
 
 **Item 4 (one-template trees), code only.** `tree-prove … DEPTH 0` with one leaf family: the wrap
 verifies the D0a template leaf itself (no `P_2`, no `PAD_L`): 1 leaf + wrap instead of 4 leaves +
-`P_2` + wrap. Not measured (host saturated by M8 runs); the wrap's root set is the classes' leaf
+`P_2` + wrap. Not measured: the run (`scripts/depth0_m8.sh`, D-9's L1 chunk, its D-9 template leaf reused) was started under the shared `heavy` slice, which other lanes held above its 40 GB `memory.high`; it was throttled to 48 CPU-s in 22 min and stopped. The wrap's root set is the classes' leaf
 programs at the one leaf geometry, so the wrap heights still hide the class.
 
 **Not done / open.** Lane G's INIT / FINAL as real leaves (`CtxMode::Src`, records per
