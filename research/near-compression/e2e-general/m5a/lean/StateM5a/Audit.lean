@@ -1,3 +1,4 @@
+import StateM5a.TmplDeploy
 import StateM5a.TmplWsx
 import StateM5a.SnFinal6
 import StateM5a.FieldWsx
@@ -732,3 +733,10 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.TmplWsx.wsx_ext_seg
 #print axioms StateM5a.TmplWsx.wsx_ext_if
 #print axioms StateM5a.TmplWsx.seg_rin_rout
+#print axioms StateM5a.TmplIf.busList_if_rch
+#print axioms StateM5a.TmplIf.sb_one
+#print axioms StateM5a.TmplIf.rch_traffic_if
+#print axioms StateM5a.TmplIf.rch_if
+#print axioms StateM5a.TmplIf.m5tIF_roots
+#print axioms StateM5a.TmplDeploy.seg_extra_ok
+#print axioms StateM5a.TmplDeploy.if_extra_ok
