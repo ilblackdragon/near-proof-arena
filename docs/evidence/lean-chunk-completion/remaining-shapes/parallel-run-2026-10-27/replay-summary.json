@@ -1,0 +1,132 @@
+{
+ "curve-yield-timeout": {
+  "cases": 2051,
+  "comparison": "verdict-and-domain-only",
+  "harness_sources": {
+   "oracle/v3-d3/tools/difftest_d3.py": "d1950e47adaced322008e9e9e3438873242ab5c1e6f1d526e703b954cb0eaef0",
+   "tools/d3/replay_successor.py": "33d4051f6382d4f01782ceff3414720b6d5c662c6cc881a572ecb80870eab428"
+  },
+  "output_sha256": "ef54047cff2f5c14d180b2b9aae606bca4a894fa28a507041b047e24ffb3be02",
+  "package": {
+   "binary": "/tmp/claude-1002/-data-illia-nearproof/e268603b-12da-4c61-ab1c-70f2a15e868f/scratchpad/bin/checker-before",
+   "sha256": "a1627ea3285cb91932c54fdbf7ac74c8986eb8a0a9f5ec1dcc372beaaff45475",
+   "tier": "allFeatures"
+  },
+  "partition": {
+   "domain_exclusion_asserted": 2,
+   "verdict_agree_outside_domain": 1682,
+   "verdict_compared_agree": 367
+  },
+  "schema": "near-successor-replay-v1",
+  "status": "pass",
+  "verdicts": {
+   "accept": 733,
+   "out_of_domain": 2,
+   "reject": 1316
+  },
+  "workers": 24
+ },
+ "state-init-emit": {
+  "cases": 6583,
+  "comparison": "verdict-and-domain-only",
+  "harness_sources": {
+   "oracle/v3-d3/tools/difftest_d3.py": "d1950e47adaced322008e9e9e3438873242ab5c1e6f1d526e703b954cb0eaef0",
+   "tools/d3/replay_successor.py": "33d4051f6382d4f01782ceff3414720b6d5c662c6cc881a572ecb80870eab428"
+  },
+  "output_sha256": "1f0e0acb718e5c0a1aa2393e7f17e5640a46d80da6ee99a19332deeb5fef3fd2",
+  "package": {
+   "binary": "/tmp/claude-1002/-data-illia-nearproof/e268603b-12da-4c61-ab1c-70f2a15e868f/scratchpad/bin/checker-before",
+   "sha256": "a1627ea3285cb91932c54fdbf7ac74c8986eb8a0a9f5ec1dcc372beaaff45475",
+   "tier": "allFeatures"
+  },
+  "partition": {
+   "domain_exclusion_unasserted": 3,
+   "verdict_agree_outside_domain": 4711,
+   "verdict_compared_agree": 1869
+  },
+  "schema": "near-successor-replay-v1",
+  "status": "fail",
+  "verdicts": {
+   "accept": 1543,
+   "out_of_domain": 3,
+   "reject": 5037
+  },
+  "workers": 24
+ },
+ "committed-cases": {
+  "cases": 64,
+  "comparison": "verdict-and-domain-only",
+  "harness_sources": {
+   "oracle/v3-d3/tools/difftest_d3.py": "d1950e47adaced322008e9e9e3438873242ab5c1e6f1d526e703b954cb0eaef0",
+   "tools/d3/replay_successor.py": "33d4051f6382d4f01782ceff3414720b6d5c662c6cc881a572ecb80870eab428"
+  },
+  "output_sha256": "7f593a5292e15a60570013a0e3044409fc6ab277e61fc1b60d921235928c40a9",
+  "package": {
+   "binary": "/tmp/claude-1002/-data-illia-nearproof/e268603b-12da-4c61-ab1c-70f2a15e868f/scratchpad/bin/checker-before",
+   "sha256": "a1627ea3285cb91932c54fdbf7ac74c8986eb8a0a9f5ec1dcc372beaaff45475",
+   "tier": "allFeatures"
+  },
+  "partition": {
+   "verdict_agree_outside_domain": 64
+  },
+  "schema": "near-successor-replay-v1",
+  "status": "pass",
+  "verdicts": {
+   "accept": 20,
+   "reject": 44
+  },
+  "workers": 16
+ },
+ "control-curve-yield-timeout-honest": {
+  "cases": 397,
+  "comparison": "verdict-and-domain-only",
+  "harness_sources": {
+   "oracle/v3-d3/tools/difftest_d3.py": "d1950e47adaced322008e9e9e3438873242ab5c1e6f1d526e703b954cb0eaef0",
+   "tools/d3/replay_successor.py": "33d4051f6382d4f01782ceff3414720b6d5c662c6cc881a572ecb80870eab428"
+  },
+  "output_sha256": "173194f8279e430ae3afcbc7ac756bedb69571306cbb3899a9b12f6c576c553b",
+  "package": {
+   "binary": "/tmp/claude-1002/-data-illia-nearproof/e268603b-12da-4c61-ab1c-70f2a15e868f/scratchpad/bin/checker-ctl",
+   "sha256": "ae331c9769d7c7ece511145d0572ea3b6c12a90602581e0ed7b282d8a2eb89f6",
+   "tier": "allFeatures"
+  },
+  "partition": {
+   "verdict_agree_outside_domain": 149,
+   "verdict_compared_agree": 143,
+   "verdict_compared_disagree": 105
+  },
+  "schema": "near-successor-replay-v1",
+  "status": "fail",
+  "verdicts": {
+   "accept": 292,
+   "reject": 105
+  },
+  "workers": 12
+ },
+ "control-state-init-emit-honest": {
+  "cases": 190,
+  "comparison": "verdict-and-domain-only",
+  "harness_sources": {
+   "oracle/v3-d3/tools/difftest_d3.py": "d1950e47adaced322008e9e9e3438873242ab5c1e6f1d526e703b954cb0eaef0",
+   "tools/d3/replay_successor.py": "33d4051f6382d4f01782ceff3414720b6d5c662c6cc881a572ecb80870eab428"
+  },
+  "output_sha256": "2a2c02944863c72e4789e6503770ee7a01578091ce8f0229d1ebe0786f1b1329",
+  "package": {
+   "binary": "/tmp/claude-1002/-data-illia-nearproof/e268603b-12da-4c61-ab1c-70f2a15e868f/scratchpad/bin/checker-ctl",
+   "sha256": "d6229202f015c1ba5c55cbbcf2400148e50bf4cde4f99b025ca33e7ff758d8f6",
+   "tier": "allFeatures"
+  },
+  "partition": {
+   "verdict_agree_outside_domain": 94,
+   "verdict_compared_agree": 80,
+   "verdict_compared_disagree": 16
+  },
+  "schema": "near-successor-replay-v1",
+  "status": "fail",
+  "verdicts": {
+   "accept": 174,
+   "reject": 16
+  },
+  "workers": 12
+ }
+}
