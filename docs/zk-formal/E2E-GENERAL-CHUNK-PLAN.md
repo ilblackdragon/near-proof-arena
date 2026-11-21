@@ -856,12 +856,66 @@ mutants rejected) is met. The gas equality holds outside the proof (the tape) un
 `lake build WasmBase` breakage reported on 2026-10-31 was fixed on main (`6a1739cd7`), and the build
 is green with the new files.
 
-### 5.0 Lane D (ZK wrap for M9): status, 2026-11-04 (milestone D-8)
+### 5.0 Lane D (ZK wrap for M9): status, 2026-11-05 (milestone D-9)
 
-See `research/near-compression/e2e/README.md` §0 (§0a for D-7, §0b for D-6, §0c for D-5, …) and
-`research/near-compression/e2e/ZK-ARGUMENT.md` (§10.1 tree wrap, §10.2 D-7, §10.3 D-8). Logs:
-`docs/logs/e2e-zk-lane-d-2026-11-04-d8.md` (D-8), `…-d7.md` (D-7), `docs/logs/e2e-zk-lane-d-2026-11-04.md`
-(D-6) and `docs/logs/e2e-zk-lane-d-2026-11-03.md`.
+**Where to read**
+* `research/near-compression/e2e/README.md`: §0 is D-9; §0a is D-8, §0b D-7, §0c D-6, §0d D-5, …
+* `research/near-compression/e2e/ZK-ARGUMENT.md`: §10.1 tree wrap, §10.2 D-7, §10.3 D-8, §10.4 D-9.
+* Logs:
+  * `docs/logs/e2e-zk-lane-d-2026-11-05-d9.md` (D-9);
+  * `docs/logs/e2e-zk-lane-d-2026-11-04-d8.md` (D-8) and `…-d7.md` (D-7);
+  * `docs/logs/e2e-zk-lane-d-2026-11-04.md` (D-6);
+  * `docs/logs/e2e-zk-lane-d-2026-11-03.md`.
+
+**Done (D-9):**
+* **One leaf geometry per family, one wrap setup.** Each class's leaf is proved at the smallest
+  geometry that holds it. S and M form one family (NvAir 2^19); L forms another (2^20). Each family
+  has its own `PAD_L` and `P_2`. All `P_2` are proved at one node geometry, and the wrap anchors the
+  set `{C_2^f}`. The setup is version 6.
+  * An L chunk reproduces the setup made by an S chunk byte for byte, including L's `C_2`, which
+    the setup computed from a probe.
+  * Cost: the leaf is −14 % time and −15 % memory at equal threads. That is only ≈ 4–5 % of an S/M
+    chunk's tree proving, because the leaf's SHA AIR stays at 2^21 rows. The larger D0a-specific
+    cost is elsewhere: in a one-template chunk, 3 of the 4 leaves are `PAD_L` proved at the full
+    family heights.
+* **Review-D8 M1 / M2 fixed.** Every class's base vk is rebuilt from the declared AIR, its TAPE pad
+  and the calibration for its shape, in both `tree-prove` and `tree-audit`, and compared byte for
+  byte.
+  * The pad is validated. `validate-base` uses the pad, and the chain path refuses a padded base
+    (I4).
+  * The reviewer's three tamper fixtures are rejected.
+  * `tree-audit` regenerates every setup constant except the other families' `C_2`, which needs a
+    run of each family (L1).
+  * ZK-ARGUMENT §10.3 is corrected (L3 / I1).
+* **Every layer at 274 bits per round, one S chunk** (`NEARPROOF_RBR_ALL=274`; measurement only).
+  The packet grows by 6,130 B (329,357 → 335,487 B), confirming lane E's +6.3 KB estimate. Verify
+  time is unchanged (≈ 69 ms). Tree proving is +12 % (loaded host). Base: see README §0.
+* **Throughput sample, partial** (stopped on the M10 re-prioritisation).
+  * 10 random corpus chunks (6 S, 2 M, 2 L): all dumped and base-proved.
+  * 4 S chunks tree-proved under the production setup. Each reproduced the setup byte for byte.
+    Packets 328,866–330,591 B; tree 1,870–2,021 s; verify 48–55 ms.
+  * No failures. Something outside lane D's scripts deleted the driver binary mid-run; it was
+    rebuilt and the run resumed.
+* **Tidy.** Every run script fails on error, and every results directory carries `SHA256SUMS`
+  (`scripts/sha256sums.sh`).
+* **Oversize policy (review-D8 L2).**
+  * A chunk that no class admits is rejected by the prover: `class-admits` fails, and no base is
+    proved.
+  * For production, add a larger class. It is a new family and a new `P_2` in the same setup; this
+    is free while that `P_2` fits the node geometry, and needs `h_N` re-derived otherwise.
+  * Alternatively, segment the chunk (lanes A/B boundaries).
+  * The 7 TAPE pad keys are corpus-derived. Deriving them from the AIR's public buses is open.
+
+**Open (D-9):**
+* Base-point `u` (QROM): pending an owner decision.
+* The per-round target (274 vs 268): owner decision, now with measured numbers.
+* Lanes A/B templates (blockers 4, 5, 8, 9) and their segment parameters (I5: seg-v1 at 32
+  grinding bits is 266.9 bits).
+* `PAD_L` cost in one-template trees.
+* TAPE keys from the AIR.
+* An independent review of D-9.
+
+#### D-8 status (superseded by D-9 above)
 
 **Done (D-8):**
 * **Production base-class set.** A heights census of all 1,311 D0a-compatible honest chunks of the
@@ -892,7 +946,8 @@ See `research/near-compression/e2e/README.md` §0 (§0a for D-7, §0b for D-6, �
 **Open (D-8):** QROM `u` (owner); lanes A/B templates (blockers 4, 5, 8, 9) — and their segment
 parameters (adopt the base configuration at 24 grinding bits: −75 % in-circuit hashing per segment leaf); one leaf geometry per
 setup (class L's leaf sets every class's leaf heights in a shared setup: a production setup per
-leaf-geometry family, or L chunks split into S-size segments); an independent review of D-8.
+leaf-geometry family, or L chunks split into S-size segments; *done in D-9: families in one
+setup*); an independent review of D-8 (*done: no Critical/High; M1/M2 fixed in D-9*).
 
 #### D-7 status (superseded by D-8 above)
 
@@ -1268,7 +1323,7 @@ Size: the D0a wrap over L4 is 325.2–325.8 KB [main]. The production agg roots,
 (agg log §4 item 2). It should be close to D0a's if the root's geometry equals L4's (both are
 NV children, the same verifier program shape).
 
-##### 3. Blockers and open questions, in order (status after D-8)
+##### 3. Blockers and open questions, in order (status after D-9)
 
 | # | item | owner | D-5 status |
 |---|---|---|---|
@@ -1282,7 +1337,7 @@ NV children, the same verifier program shape).
 | 8 | **In-circuit cached-root binding**, no `u` in the wrap statement | A, D | open for the D0a template: its ctx is the chain's `StatementClaim` digest, which covers `(u, TAPE*(u))`, so `u` is still in the packet and V_d recomputes ctx from (claim, hint, u). A template with a canonical `claimDigest` removes it; D-6: the wrapper's in-circuit cached-root binding prototyped on the D0a base (`build_base_leaf`: TAPE bound in-circuit by tape-eval, statement digest computed in the leaf); for lane A it is CODE/FUNC = `B.codeRoot`/`funcRoot` (§5.0.1.4); D-7: the base-template leaf is the **default** tree leaf (statement and soundness link in ZK-ARGUMENT §10.2), so the D0a tree has no chain levels |
 | 9 | **M6/M5b** | A, B | open (lanes A/B) |
 | 10 | **Wrap ZK obligations carried over** | D | H: the wrap heights are pinned from the shape alone (review-D4 F1 fix (b), ZK-ARGUMENT §7.1) and the setup is chunk-independent, so the D-4 "setup reveals the shape class" caveat is gone for the tree wrap. Q unchanged (owner); D-6: **ZK re-read for the wrap program, flag set** (ZK-ARGUMENT §10.1), classical ROM |
-| 11 | **Soundness budget** | E, D | wrap 268.2 bits per round (`ns19lb6`, queries [46, 41, 31, 25]); tree layer 268.2 bits (`ns20lb5`, queries [54, 41, 31, 25]); `R` counted (≤ 2^11); D-6: the tree layer's 268.2 bits come from WHIR round 1; round 0 is the Johnson fallback at 271.9 (review-D5 Info); D-7: recorded per tree run (`soundness.txt`): wrap 268.2, leaf/node vks 268.2, base class A 269.6 (`n_stack` 18), class B 268.4 (`n_stack` 14); D-8: leaf vk at `ns20lb2` 268.5 (queries [81, 60, 40, 30]); class S / M bases 269.6 (`n_stack` 18, lb 7), class L 268.5 (`n_stack` 22, lb 2) |
+| 11 | **Soundness budget** | E, D | wrap 268.2 bits per round (`ns19lb6`, queries [46, 41, 31, 25]); tree layer 268.2 bits (`ns20lb5`, queries [54, 41, 31, 25]); `R` counted (≤ 2^11); D-6: the tree layer's 268.2 bits come from WHIR round 1; round 0 is the Johnson fallback at 271.9 (review-D5 Info); D-7: recorded per tree run (`soundness.txt`): wrap 268.2, leaf/node vks 268.2, base class A 269.6 (`n_stack` 18), class B 268.4 (`n_stack` 14); D-8: leaf vk at `ns20lb2` 268.5 (queries [81, 60, 40, 30]); class S / M bases 269.6 (`n_stack` 18, lb 7), class L 268.5 (`n_stack` 22, lb 2); D-9: same bits on the family setup; every layer at 274 measured on one chunk (`NEARPROOF_RBR_ALL`): wrap 274.0 [47, 43, 31, 25], node 274.0 [55, 43, 31, 25], leaf 275.6 [83, 62, 41, 31], base 276.3 [45, 36, 28, 24]; packet +6,130 B |
 | 12 | **Lean:** `aggWrapV` `a = 0` and wrap tag; PAD-leaf soundness in `SegSound` | E | open (lane E); the D-5 wrap tag is `TAG_STATEMENT` with leading cell `WRAP_MARKER` |
 
 ##### 4. Lane A/B templates as tree leaves (D-6 plan; blockers 4, 5, 8, 9)
@@ -1304,7 +1359,15 @@ NV children, the same verifier program shape).
   `B_in.phase ≠ done` (or the leaf must check it), as the D0a template leaf does by construction.
 * **One leaf geometry per setup.** A setup has one leaf geometry (P_2's program embeds its
   children's heights): the largest template sets every leaf's heights. Group templates of similar
-  leaf size per setup (D-8: class L's leaf is 1.6× class S's).
+  leaf size per setup (D-8: class L's leaf is 1.6× class S's). *[D-9: resolved inside one setup.]*
+  A setup now has **leaf geometry families**, each with its own `P_2^f`, all at one node
+  geometry; the wrap anchors the set `{C_2^f}`. A lane A/B template joins the family of its leaf
+  size: a new family adds a `P_2` program to the setup, not a new setup.
+* **I5 (review-D8): seg-v1 at 32 grinding bits is below the target.** `base-whir`'s seg-v1 row
+  at `PQD1_POW=32` is 266.9 bits (< 268; `results/zk/d8/base-whir.txt`). The lanes' seg-v1
+  schedule is calibrated at its own 24 bits (268.2). Raising the grinding without recomputing the
+  query counts loses bits. Lanes A/B: recompute the queries at whatever grinding is pinned (or
+  adopt the base configuration, which is calibrated per call).
 
 Read from the lanes' code and logs (lane D did not edit them). Paths are lane A's
 `native/wasm-base` and `e2e-general/m4`, lane B's `e2e-general/m5a`.

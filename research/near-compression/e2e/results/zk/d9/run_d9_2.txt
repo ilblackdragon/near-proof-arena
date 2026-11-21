@@ -1,0 +1,13 @@
+BASE d1_10-h10075-s0 class=S (exists)
+BASE d1_09-h10150-s3 class=S (exists)
+LOAD_BEFORE 5.91 9.44 16.72
+TREE d1_10-h10075-s0 TREE_CHUNK_CLASS class=0 family=0 confirmations_per_class=[2] 	Maximum resident set size (kbytes): 28520212 
+VERIFY_PROFILE_MS total=69.37 wrap_verify=34.93 FS_JOBS flush=473 commit=5 squeeze=831 pow=4
+INDEPENDENT_TREE_VERIFY_OK bundle_bytes=335487 class=0
+VERIFY_PROFILE_MS total=69.49 wrap_verify=35.74 FS_JOBS flush=473 commit=5 squeeze=831 pow=4
+INDEPENDENT_TREE_VERIFY_OK bundle_bytes=335487 class=0
+VERIFY_PROFILE_MS total=68.60 wrap_verify=35.18 FS_JOBS flush=473 commit=5 squeeze=831 pow=4
+INDEPENDENT_TREE_VERIFY_OK bundle_bytes=335487 class=0
+LOAD_AFTER 11.16 10.44 11.20
+TREE_RUN_OK /data/illia/nearproof-deps/pq-e2e-d9/t274/d1_10-h10075-s0
+D9_DONE

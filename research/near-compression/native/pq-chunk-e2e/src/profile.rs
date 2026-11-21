@@ -77,19 +77,33 @@ pub fn shaped_params(
     cert_file: &str,
     exclusions: &str,
 ) -> SystemParams {
+    shaped_params_lb(final_layer, n_stack, w_stack, degree, base_log_blowup(), cert_file, exclusions)
+}
+
+/// [E2E-D D-9, review-D8 M1] [`shaped_params`] at an explicit base log blowup (the class's, read
+/// from a setup's base parameters): `tree-audit` / `tree-prove` rebuild a class's base parameters
+/// from its pinned shape and compare them with the setup's.
+pub fn shaped_params_lb(
+    final_layer: bool,
+    n_stack: usize,
+    w_stack: usize,
+    degree: usize,
+    log_blowup: usize,
+    cert_file: &str,
+    exclusions: &str,
+) -> SystemParams {
     // [E2E-D D-8] the base geometry bound is the two-adic one, 2 + n_stack + log_blowup <= 27 (at the
     // pinned lb 7: n_stack <= 18; a large-class base at n_stack 22 runs at lb <= 3)
     assert!(
-        2 + n_stack + base_log_blowup() <= 27,
-        "chunk shape exceeds the supported BabyBear extended domain (n_stack {n_stack}, lb {})",
-        base_log_blowup()
+        2 + n_stack + log_blowup <= 27,
+        "chunk shape exceeds the supported BabyBear extended domain (n_stack {n_stack}, lb {log_blowup})"
     );
     // only the base calls this (`chunk_bridge::prove_base`)
     // [E2E-D D-5] NEARPROOF_ZK_BASE=2: the QROM option "base zk = 2" (ZK-ARGUMENT 6.5.6), off by
     // default; measured only, not adopted (owner decision)
     let zk_base = std::env::var("NEARPROOF_ZK_BASE").ok().and_then(|v| v.parse().ok()).unwrap_or(1u8);
     let zk = if !final_layer && zk_lever() { zk_base } else { 0 };
-    shaped_params_geom(zk, final_layer, n_stack, base_log_blowup(), w_stack, degree, cert_file, exclusions)
+    shaped_params_geom(zk, final_layer, n_stack, log_blowup, w_stack, degree, cert_file, exclusions)
 }
 
 /// [E2E-D D-8] The base layer's log blowup: the pinned 7, or `NEARPROOF_BASE_LB` (a measurement
@@ -174,10 +188,15 @@ fn shaped_params_geom(
     let (l_skip, k) = (2, 4);
     // [E2E-D] per-round soundness target of the FINAL layer (bits); NEARPROOF_FINAL_RBR overrides
     // the pinned 268 to measure the size at a higher target (e.g. 274, E2E-SOUNDNESS-BUDGET.md)
+    // [E2E-D D-9] NEARPROOF_RBR_ALL: the same per-round target on EVERY layer (base, leaves, nodes,
+    // wrap), a measurement lever for the owner's per-round decision (E2E-SOUNDNESS-BUDGET.md §9:
+    // 274 with constants 1); off by default, never below the pinned 268
+    let rbr_all: Option<usize> = std::env::var("NEARPROOF_RBR_ALL").ok().map(|v| v.parse().expect("NEARPROOF_RBR_ALL"));
+    assert!(rbr_all.is_none_or(|x| x >= 268), "NEARPROOF_RBR_ALL below the pinned 268");
     let rbr_target: usize = if final_layer {
-        std::env::var("NEARPROOF_FINAL_RBR").ok().and_then(|v| v.parse().ok()).unwrap_or(268)
+        std::env::var("NEARPROOF_FINAL_RBR").ok().and_then(|v| v.parse().ok()).or(rbr_all).unwrap_or(268)
     } else {
-        268
+        rbr_all.unwrap_or(268)
     };
     assert!(l_skip + n_stack + log_blowup <= 27, "beyond the BabyBear two-adic domain");
     // Keep four WHIR rounds when the stacked height grows by one bit (ns19): one more bit folded

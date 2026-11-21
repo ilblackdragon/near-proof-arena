@@ -11,7 +11,7 @@
 #     (NEARPROOF_TREE_TEMPLATE=base, nv/tree.rs build_base_leaf), BASE_CHUNKS (default chunk 1).
 # Classes: run_shape_classes.sh output (CLASS_ROOT). Sequential, <= 10 threads, <= 40 GB.
 # usage: run_d6.sh [STEPS]   (default "1 2 3 4")
-set -uo pipefail
+set -euo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
 ROOT=$(cd "$HERE/../../../.." && pwd)
 D=${NEARPROOF_PQ_DEPS:-/data/illia/nearproof-deps/pq-e2e-d6}
@@ -29,46 +29,51 @@ declare -A CLAIM=(
 export RAYON_NUM_THREADS=${RAYON_NUM_THREADS:-10} HEAVY_MEM=${HEAVY_MEM:-40G} CPUSET=${CPUSET:-8-15,24-25}
 export NEARPROOF_CHAIN_GEOM=ns19lb6 NEARPROOF_TAPE_EVAL=1 NEARPROOF_ZK=1 NEARPROOF_ZK_FINAL=6
 STEPS=${1:-1 2 3 4}
+fail=0
 negs() { # TAG CHUNK OTHER_CHUNK
-  python3 "$HERE/tree_negatives.py" "$D/$1/$2" "${CLAIM[$2]}" "${CLAIM[$3]}" "$D/$1/$3" > "$D/$1/$2/negatives.txt" 2>&1
+  python3 "$HERE/tree_negatives.py" "$D/$1/$2" "${CLAIM[$2]}" "${CLAIM[$3]}" "$D/$1/$3" > "$D/$1/$2/negatives.txt" 2>&1 || fail=1
   tail -1 "$D/$1/$2/negatives.txt"
 }
 for s in $STEPS; do case $s in
 1)
   echo "== step 1: tree-a2d1 on $C1 $C2 $C3 (one setup)"
   CLASS_ROOT=$CL OUT_ROOT=$D TAG=tree-a2d1 CHUNKS="$C1 $C2 $C3" NEARPROOF_PQ_DEPS=$D "$HERE/run_tree.sh" 2 1
-  for c in $C2 $C3; do cmp "$D/tree-a2d1/$C1/SETUP.json" "$D/tree-a2d1/$c/SETUP.json" && echo "SETUP_IDENTICAL $C1 $c"; done
+  for c in $C2 $C3; do cmp "$D/tree-a2d1/$C1/SETUP.json" "$D/tree-a2d1/$c/SETUP.json" && echo "SETUP_IDENTICAL $C1 $c" || fail=1; done
   negs tree-a2d1 $C1 $C2; negs tree-a2d1 $C2 $C3; negs tree-a2d1 $C3 $C1
   ;;
 2)
   echo "== step 2: template set from a fresh chain of $C1 against the step-1 setup"
   mkdir -p "$CLB"; for c in $C2 $C3; do ln -sfn "$CL/$c" "$CLB/$c"; done
   X=$D/tree-fresh-templates; rm -rf "$X"; mkdir -p "$X"
+  rc=0
   NEARPROOF_TREE_SETUP=$D/tree-a2d1/$C1/SETUP.json NEARPROOF_TREE_TEMPLATES_ONLY=1 \
     taskset -c "$CPUSET" /data/illia/nearproof-deps/bin/heavy "$PROVER" tree-prove "$AIR" "$CLB/$C1/public" "$X" "$CLB/$C1" \
-    "$K/calc/dkt_certs_o2.json" "$K/lean/DKTCertsO2_big.keys" 2 1 "$CLB/$C1" "$CLB/$C2" "$CLB/$C3" > "$X/prove.log" 2>&1
-  echo "FRESH_TEMPLATES rc=$? $(grep -h 'TREE_TEMPLATES_MATCH_FIXED_SETUP\|panicked' "$X/prove.log")"
+    "$K/calc/dkt_certs_o2.json" "$K/lean/DKTCertsO2_big.keys" 2 1 "$CLB/$C1" "$CLB/$C2" "$CLB/$C3" > "$X/prove.log" 2>&1 || rc=$?
+  echo "FRESH_TEMPLATES rc=$rc $(grep -h 'TREE_TEMPLATES_MATCH_FIXED_SETUP\|panicked' "$X/prove.log")"
+  [ $rc = 0 ] || fail=1
   cmp -s "$CL/$C1/L4.proof" "$CLB/$C1/L4.proof" && echo "WARNING: same L4" || echo "FRESH_L4 (the fresh chain's L4 differs)"
   ;;
 3)
   echo "== step 3: tree-a2d2 on $C2 $C3 (one setup)"
   CLASS_ROOT=$CL OUT_ROOT=$D TAG=tree-a2d2 CHUNKS="$C2 $C3" NEARPROOF_PQ_DEPS=$D "$HERE/run_tree.sh" 2 2
-  cmp "$D/tree-a2d2/$C2/SETUP.json" "$D/tree-a2d2/$C3/SETUP.json" && echo "SETUP_IDENTICAL $C2 $C3"
+  cmp "$D/tree-a2d2/$C2/SETUP.json" "$D/tree-a2d2/$C3/SETUP.json" && echo "SETUP_IDENTICAL $C2 $C3" || fail=1
   negs tree-a2d2 $C2 $C3; negs tree-a2d2 $C3 $C2
   ;;
 4)
   echo "== step 4: arity probe over the depth-2 leaves of $C2"
-  R=$D/tree-a2d2/$C2
+  R=$D/tree-a2d2/$C2; rc=0
   taskset -c "$CPUSET" /data/illia/nearproof-deps/bin/heavy /usr/bin/time -v "$PROVER" tree-arity \
-    "$K/calc/dkt_certs_o2.json" "$K/lean/DKTCertsO2_big.keys" "$R" 2,3,4,8 "${PROVE_ARITY:-3}" "$CL/$C1" "$CL/$C2" "$CL/$C3" > "$R/arity.log" 2>&1
-  echo "ARITY rc=$?"; grep -h "TREE_ARITY\|Maximum resident\|panicked" "$R/arity.log" | cut -c1-600
+    "$K/calc/dkt_certs_o2.json" "$K/lean/DKTCertsO2_big.keys" "$R" 2,3,4,8 "${PROVE_ARITY:-3}" "$CL/$C1" "$CL/$C2" "$CL/$C3" > "$R/arity.log" 2>&1 || rc=$?
+  echo "ARITY rc=$rc"; grep -h "TREE_ARITY\|Maximum resident\|panicked" "$R/arity.log" | cut -c1-600 || true
+  [ $rc = 0 ] || fail=1
   ;;
 5)
   echo "== step 5: base-template tree (the leaf verifies the class base proof directly: lane A/B leaf prototype), arity 2, depth 1"
   NEARPROOF_TREE_TEMPLATE=base CLASS_ROOT=$CL OUT_ROOT=$D TAG=tree-base-a2d1 CHUNKS="${BASE_CHUNKS:-$C1}" NEARPROOF_PQ_DEPS=$D "$HERE/run_tree.sh" 2 1
   for c in ${BASE_CHUNKS:-$C1}; do  # no other-chunk packet in this run: no 4th argument
-    python3 "$HERE/tree_negatives.py" "$D/tree-base-a2d1/$c" "${CLAIM[$c]}" "${CLAIM[$C2]}" > "$D/tree-base-a2d1/$c/negatives.txt" 2>&1; tail -1 "$D/tree-base-a2d1/$c/negatives.txt"
+    python3 "$HERE/tree_negatives.py" "$D/tree-base-a2d1/$c" "${CLAIM[$c]}" "${CLAIM[$C2]}" > "$D/tree-base-a2d1/$c/negatives.txt" 2>&1 || fail=1; tail -1 "$D/tree-base-a2d1/$c/negatives.txt"
   done
   ;;
 esac; done
+[ $fail = 0 ] || { echo D6_FAILED; exit 1; }
 echo D6_DONE

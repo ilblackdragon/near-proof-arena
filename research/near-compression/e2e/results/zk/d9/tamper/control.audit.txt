@@ -1,0 +1,9 @@
+TREE_AUDIT_CHECK setup domain_odd_factor 15 -> OK
+TREE_AUDIT_CHECK air_sha256 = sha256(AIR) -> OK
+TREE_AUDIT_CHECK 3 classes, 3 base_params -> OK
+TREE_AUDIT_CHECK class 0 vk_sha=true params=true airs=true key=rebuilt-identical -> OK
+TREE_AUDIT_CHECK class 1 vk_sha=true params=true airs=true key=rebuilt-identical -> OK
+TREE_AUDIT_CHECK class 2 vk_sha=true params=true airs=true key=rebuilt-identical -> OK
+TREE_AUDIT_TREE_LEVEL skipped: setup version 5 (class level only)
+TREE_AUDIT_CHECK 1 base dirs given -> OK
+TREE_AUDIT_OK classes=3 bases=1
