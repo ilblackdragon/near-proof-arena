@@ -186,6 +186,7 @@ import WasmBase.Main.HostTwoRunStep
 import WasmBase.Main.HostSigmaBridge
 import WasmBase.Main.HostIf
 import WasmBase.Main.HostAns
+import WasmBase.Main.HostAns2
 import WasmBase.Main.HostIfTape
 import WasmBase.Main.HostCover
 import WasmBase.Main.HostIfCover
