@@ -10,7 +10,7 @@ tree_dir() { # RUN_DIR OUT_DIR
   local r=$1 t=$2
   [ -f "$r/RESULT.json" ] || return 0
   mkdir -p "$t"
-  for f in RESULT.json NEGATIVES.json SETUP.sha256 soundness.txt negatives.txt audit.txt; do [ -f "$r/$f" ] && cp "$r/$f" "$t/"; done
+  for f in RESULT.json NEGATIVES.json SETUP.sha256 soundness.txt negatives.txt audit.txt reverify.txt; do if [ -f "$r/$f" ]; then cp "$r/$f" "$t/"; fi; done
   (cd "$r" && sha256sum SETUP.json WRAP.bundle WRAP.proof ./*.vk.json) > "$t/manifest.sha256"
   grep -h "TREE_PARAMS\|TREE_LEAF_PARAMS\|TREE_SHAPE\|TREE_LEAF_FAMIL\|TREE_TEMPLATE\|TREE_CLASS_KEY\|TREE_CHUNK_CLASS\|TREE_PAD_LEAF\|TREE_LEAF\|TREE_FAMILY\|TREE_NODE\|TREE_PAD_NODE\|WRAP_SHAPE_PIN\|WRAP_NEGATIVE\|TREE_FIXED_SETUP_IDENTICAL\|Maximum resident\|Elapsed" "$r/prove.log" | cut -c1-600 > "$t/prove_summary.txt"
   cat "$r"/verify*.log | grep -h "VERIFY_PROFILE_MS\|INDEPENDENT_TREE_VERIFY_OK" > "$t/verify.txt"

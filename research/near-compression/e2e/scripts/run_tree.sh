@@ -18,6 +18,11 @@ export NEARPROOF_CHAIN_GEOM=ns19lb6 NEARPROOF_TAPE_EVAL=1 NEARPROOF_ZK=1 NEARPRO
 export NEARPROOF_TREE_GEOM=${NEARPROOF_TREE_GEOM:-ns20lb5}
 die() { echo "RUN_TREE_FAILED $*"; exit 1; }
 R=${OUT_ROOT:-$D}/$TAG/$(basename "$CH")
+# [D-9] KEEP_PROVED=1: a run whose prove already completed (TREE_WRAP_VERIFIED in its prove.log, e.g.
+# after the verifier binary vanished mid-run) is kept; only the verification and soundness steps rerun
+if [ "${KEEP_PROVED:-0}" = 1 ] && grep -q TREE_WRAP_VERIFIED "$R/prove.log" 2>/dev/null; then
+  echo "TREE_PROVE_KEPT $R"
+else
 rm -rf "$R"; mkdir -p "$R"
 echo "LOAD_BEFORE $(cut -d' ' -f1-3 /proc/loadavg)"
 SETUP_ENV=(); [ -n "$FIX" ] && SETUP_ENV=(NEARPROOF_TREE_SETUP="$FIX")
@@ -25,6 +30,7 @@ SETUP_ENV=(); [ -n "$FIX" ] && SETUP_ENV=(NEARPROOF_TREE_SETUP="$FIX")
 env "${SETUP_ENV[@]}" taskset -c "${CPUSET:-8-15}" /data/illia/nearproof-deps/bin/heavy /usr/bin/time -v \
   "$B" tree-prove "$AIR" "$CH/public" "$R" "$CH" "$K/calc/dkt_certs_o2.json" "$K/lean/DKTCertsO2_big.keys" "$A" "$DEP" $CLASS_DIRS \
   > "$R/prove.log" 2>&1 || die "tree-prove rc=$? ($R/prove.log: $(grep -h -A2 panicked "$R/prove.log" | head -3 | tr '\n' ' '))"
+fi
 echo "TREE $(basename "$CH") $(grep -h 'TREE_FIXED_SETUP_IDENTICAL\|TREE_CHUNK_CLASS\|Maximum resident' "$R/prove.log" | tr '\n' ' ')"
 if [ -n "$FIX" ]; then cmp "$FIX" "$R/SETUP.json" || die "setup differs from $FIX"; fi
 for i in 1 2 3; do

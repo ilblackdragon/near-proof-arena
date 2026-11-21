@@ -110,8 +110,13 @@ for s in ${1:-1 2 3}; do case $s in
   cat "$D/sample/PICK.txt"
   while read -r k n src; do base "$k" "$n" "$src" "$D/bs" < /dev/null; done < "$D/sample/PICK.txt"
   while read -r k n src; do
+    # [D-9] resume: a sample already verified (reverify-able RESULT + 3 verify logs) is skipped; one
+    # whose prove completed is kept (KEEP_PROVED) and only re-verified
+    if [ -f "$D/sample/$n/soundness.txt" ] && [ "$(cat "$D/sample/$n"/verify*.log 2>/dev/null | grep -c INDEPENDENT_TREE_VERIFY_OK)" = 3 ]; then
+      echo "SAMPLE_TREE_DONE $n (exists)"; continue
+    fi
     t0=$(date +%s)
-    "$HERE/run_tree.sh" sample - 1 "$D/bs/$n" "$D/bs/$n/claim.bin" "$PSETUP" < /dev/null || die "tree $n"
+    KEEP_PROVED=1 "$HERE/run_tree.sh" sample - 1 "$D/bs/$n" "$D/bs/$n/claim.bin" "$PSETUP" < /dev/null || die "tree $n"
     echo "SAMPLE_TREE $n class=$k tree_s=$(( $(date +%s) - t0 ))"
   done < "$D/sample/PICK.txt"
   ;;
