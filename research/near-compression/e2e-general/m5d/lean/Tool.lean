@@ -1,6 +1,7 @@
 import FinalM5d.Dump
 import FinalM5d.Final
 import FinalM5d.Init
+import FinalM5d.Cls.All
 import ZkFormal.Air.Export
 
 /-!
@@ -20,20 +21,6 @@ def namesJson (tables : List String) (lays : List (String × Layout)) (consts : 
     q t ++ ":[" ++ ",".intercalate (L.names.map q) ++ "]") ++ "}," ++
   "\"consts\":{" ++ ",".intercalate (consts.map fun (k, v) => q k ++ ":" ++ v) ++ "}}"
 
-def natList (l : List Nat) : String := "[" ++ ",".intercalate (l.map toString) ++ "]"
-
-def finalConsts : List (String × String) :=
-  [("NS", toString NS), ("RSD", toString RSD), ("RST", toString RST), ("CI_OFF", toString CI_OFF),
-   ("HBN", toString HBN), ("PRE_LEN", toString PRE_LEN), ("FI_LEN", toString FI_LEN),
-   ("FIN_TAG", toString FIN_TAG), ("SHM0", toString SHM0), ("SHL0", toString SHL0),
-   ("PID0", toString PID0), ("MID0", toString MID0), ("ID_CLAIM", toString ID_CLAIM),
-   ("ID_FIN", toString ID_FIN), ("RCH0", toString RCH0), ("OCH0", toString OCH0),
-   ("CH_OUT", toString CH_OUT), ("CH_RC", toString CH_RC), ("TR_OUT", toString TR_OUT),
-   ("TR_SH", toString TR_SH), ("TR_RS", toString TR_RS), ("NUM_PUB", toString NUM_PUB),
-   ("acc0", natList acc0), ("ivLimbs", natList S384.ivLimbs),
-   ("matrix", "[" ++ ",".intercalate (Rs.matrix.map natList) ++ "]"),
-   ("streamFixed", "[" ++ ",".intercalate (streamFixed.map fun (a, b) => natList [a, b]) ++ "]")]
-
 def main (args : List String) : IO UInt32 := do
   match args with
   | ["dump", dir, outp] =>
@@ -51,6 +38,15 @@ def main (args : List String) : IO UInt32 := do
     for (n, t) in finalNames.zip finalAir.tables do
       IO.println s!"TABLE {n}: width {t.width}, constraints {t.constraints.length}, interactions {t.interactions.length}"
     return 0
+  | ["air-final-cls", ns, d, tt, out, names] =>
+    match FinalM5d.Cls.byClass ns.toNat! d.toNat! tt.toNat! with
+    | some (A, lays, consts) =>
+      IO.FS.writeFile out (ZkFormal.Air.Air.exportJson A)
+      IO.FS.writeFile names (namesJson finalNames lays consts)
+      for (n, t) in finalNames.zip A.tables do
+        IO.println s!"TABLE {n}: width {t.width}, constraints {t.constraints.length}, interactions {t.interactions.length}"
+      return 0
+    | none => IO.eprintln s!"class ({ns}, {d}, {tt}) not generated (gen_class.py)"; return 2
   | ["air-init", out, names] =>
     IO.FS.writeFile out (ZkFormal.Air.Air.exportJson InitT.initAir)
     IO.FS.writeFile names (namesJson InitT.initNames InitT.initLayouts
@@ -59,5 +55,5 @@ def main (args : List String) : IO UInt32 := do
       IO.println s!"TABLE {n}: width {t.width}, constraints {t.constraints.length}, interactions {t.interactions.length}"
     return 0
   | _ =>
-    IO.eprintln "usage: m5d-tool dump CASE_DIR OUT.json | m5d-tool air-final|air-init AIR_JSON NAMES_JSON"
+    IO.eprintln "usage: m5d-tool dump CASE_DIR OUT.json | m5d-tool air-final|air-init AIR_JSON NAMES_JSON | m5d-tool air-final-cls NS D T AIR_JSON NAMES_JSON"
     return 2

@@ -483,4 +483,20 @@ def finalLayouts : List (String × Layout) :=
   [("S384", S384.L), ("RNG", Rng.L), ("STMT", Stmt.L), ("FIN", Fin.L), ("BODY", Body.L),
    ("SEG", Seg.L), ("RS", Rs.L), ("PART", Part.L), ("SHD", Shd.L), ("OUTL", Outl.L), ("MRK", Mrk.L)]
 
+/-! ## Constants for the trace generator (exported next to the AIR) -/
+
+def natList (l : List Nat) : String := "[" ++ ",".intercalate (l.map toString) ++ "]"
+
+def finalConsts : List (String × String) :=
+  [("NS", toString NS), ("RSD", toString RSD), ("RST", toString RST), ("CI_OFF", toString CI_OFF),
+   ("HBN", toString HBN), ("PRE_LEN", toString PRE_LEN), ("FI_LEN", toString FI_LEN),
+   ("FIN_TAG", toString FIN_TAG), ("SHM0", toString SHM0), ("SHL0", toString SHL0),
+   ("PID0", toString PID0), ("MID0", toString MID0), ("ID_CLAIM", toString ID_CLAIM),
+   ("ID_FIN", toString ID_FIN), ("RCH0", toString RCH0), ("OCH0", toString OCH0),
+   ("CH_OUT", toString CH_OUT), ("CH_RC", toString CH_RC), ("TR_OUT", toString TR_OUT),
+   ("TR_SH", toString TR_SH), ("TR_RS", toString TR_RS), ("NUM_PUB", toString NUM_PUB),
+   ("acc0", natList acc0), ("ivLimbs", natList S384.ivLimbs),
+   ("matrix", "[" ++ ",".intercalate (Rs.matrix.map natList) ++ "]"),
+   ("streamFixed", "[" ++ ",".intercalate (streamFixed.map fun (a, b) => natList [a, b]) ++ "]")]
+
 end FinalM5d
