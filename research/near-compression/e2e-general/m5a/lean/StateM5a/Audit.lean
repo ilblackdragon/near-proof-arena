@@ -1,4 +1,5 @@
 import StateM5a.SnFinal6
+import StateM5a.StHostIf
 import StateM5a.TmplView
 import StateM5a.SnContRec4
 import StateM5a.M5bFinal
@@ -707,3 +708,5 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.m5tIF_tables
 #print axioms StateM5a.m5tSeg_tables
 #print axioms StateM5a.WS_DEPTH_eq
+#print axioms StateM5a.m5tSegH_tables
+#print axioms StateM5a.stwH_hid

@@ -256,17 +256,17 @@ fn check_constraints(t: &TableSpec, m: &RowMajorMatrix<F>, pubs: &[F]) -> Result
 /// A harness table: one row per (key, net count); columns msg[0..W), cnt, sel[k].
 fn harness(name: &str, map: &BTreeMap<Key, u64>, cached: bool) -> (TableSpec, RowMajorMatrix<F>) {
     let mut keys: Vec<(u16, usize)> = map.keys().map(|(b, m)| (*b, m.len())).collect::<BTreeSet<_>>().into_iter().collect();
-    if name == "HTAPE" {
-        // [B-T1] the execution side's two message kinds, always: `SREQ` (7 cells), `HB` (3 cells),
-        // so the table's AIR (hence the vk) does not depend on the segment's traffic
-        for k in [(B_SREQ, 7usize), (B_HB, 3usize)] {
-            assert!(keys.is_empty() || keys.contains(&k) || keys.iter().all(|x| *x == (B_SREQ, 7) || *x == (B_HB, 3)));
-            if !keys.contains(&k) {
-                keys.push(k);
-            }
-        }
-        keys.sort();
-        assert_eq!(keys, vec![(B_SREQ, 7), (B_HB, 3)], "HTAPE: unexpected message kinds");
+    // [B-T1] the execution side's message kinds are fixed per table, so its AIR (hence the vk) does
+    // not depend on the segment's traffic: `HTAPE` = `SREQ` (7 cells) + `HB` (3); `HOSTTAPE` (the
+    // stand-in for lane A's HOST rows) = `HOSTQ` (22) + `HOSTR` (8) + `HOSTB` (5)
+    let fixed: Option<Vec<(u16, usize)>> = match name {
+        "HTAPE" => Some(vec![(B_SREQ, 7), (B_HB, 3)]),
+        "HOSTTAPE" => Some(vec![(208, 22), (209, 8), (210, 5)]),
+        _ => None,
+    };
+    if let Some(f) = fixed {
+        assert!(keys.iter().all(|k| f.contains(k)), "{name}: unexpected message kinds {keys:?}");
+        keys = f;
     }
     let wmsg = keys.iter().map(|k| k.1).max().unwrap_or(1).max(1);
     let width = wmsg + 1 + keys.len().max(1);
@@ -441,9 +441,11 @@ fn load(air_path: &str, dir: &str) -> Inst {
         spec.insert(NAMES.len(), ts);
         mats.insert(NAMES.len(), tm);
     }
-    // M5b: the execution side's messages (`SREQ`, `HB`) on T1, a second public table (last)
+    // M5b: the execution side's messages (`SREQ`, `HB`) on T1, a second public table (last);
+    // [B-T1 item 3] or lane A's host-bus messages (`HOSTQ`/`HOSTR`/`HOSTB`, `hosttape.json`)
     let mut htape = BTreeMap::new();
-    if let Ok(txt) = std::fs::read_to_string(d.join("htape.json")) {
+    let (hname, hfile) = if d.join("hosttape.json").exists() { ("HOSTTAPE", "hosttape.json") } else { ("HTAPE", "htape.json") };
+    if let Ok(txt) = std::fs::read_to_string(d.join(hfile)) {
         let hv: serde_json::Value = serde_json::from_str(&txt).unwrap();
         for x in hv.as_array().unwrap() {
             let bus = map_bus(x[0].as_u64().unwrap() as u16);
@@ -451,8 +453,8 @@ fn load(air_path: &str, dir: &str) -> Inst {
             let msg: Vec<u32> = x[2].as_array().unwrap().iter().map(|v| v.as_u64().unwrap() as u32).collect();
             add(&mut htape, (bus, msg), if send { 1 } else { P - 1 });
         }
-        let (hs, mut hm) = harness("HTAPE", &htape, true);
-        if let Some(p) = pin_of(&tmpl, "HTAPE") {
+        let (hs, mut hm) = harness(hname, &htape, true);
+        if let Some(p) = pin_of(&tmpl, hname) {
             // [B-T1] the cached execution-side table at its pinned height (zero rows: no message)
             hm = pad_harness(&hm, &hs, p);
         }
@@ -563,9 +565,10 @@ fn check_statement(eng: &Sha384CpuEngine, inst: &Inst, want_pubs: &[F], proof: &
         let want = commit_cached(eng, &tm).0;
         tape_ok &= matches!(&proof.trace_vdata[ti], Some(v) if v.cached_commitments.len() == 1 && v.cached_commitments[0] == want);
     }
-    if let Some(hi) = inst.spec.iter().position(|t| t.name == "HTAPE") {
-        let (hs, mut hm) = harness("HTAPE", &inst.htape, true);
-        if let Some(p) = pin_of(&inst.tmpl, "HTAPE") {
+    if let Some(hi) = inst.spec.iter().position(|t| t.name == "HTAPE" || t.name == "HOSTTAPE") {
+        let hname = inst.spec[hi].name.clone();
+        let (hs, mut hm) = harness(&hname, &inst.htape, true);
+        if let Some(p) = pin_of(&inst.tmpl, &hname) {
             hm = pad_harness(&hm, &hs, p);
         }
         let hw = commit_cached(eng, &hm).0;

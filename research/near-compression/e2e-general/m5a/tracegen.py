@@ -83,6 +83,9 @@ P = 2013265921
 ID_KEY, ID_BR, ID_SN, ID_ST = 1 << 24, 2 << 24, 3 << 24, 4 << 24
 # M5b buses (`St.lean`): execution-side requests / bytes, STATE message descriptors; WRITE, TCH
 B_WRITE, B_TCH, B_SREQ, B_HB, B_DESC = 13, 14, 28, 29, 30
+# lane A's cross-proof host buses (`StHostIf.lean`, `WasmBase.Chips.busHostQ/R/B`) and storage ids
+B_HOSTQ, B_HOSTR, B_HOSTB = 208, 209, 210
+HID_WRITE, HID_REMOVE = 58, 60
 W_FINAL = 1 << 20
 RK_ANS, RK_H, RK_HB, RK_HE, RK_LD, RK_NONE, RK_SAME = 0, 1, 2, 3, 4, 5, 6
 KMAX, HPMAX = 64, 33
@@ -167,8 +170,12 @@ class Table:
 
 
 class Gen:
-    def __init__(self, st, names, mutant=None, plan=None, segs=1, extra_writes=0, split=False):
+    def __init__(self, st, names, mutant=None, plan=None, segs=1, extra_writes=0, split=False, host=False):
         self.segs, self.extra_writes = segs, extra_writes
+        # B-T1 item 3 (`--host`, with `--split`): the segment's STATE rows are fed by lane A's HOST
+        # rows (`StHostIf.m5tSegH`: `STBH`/`STWH` on HOSTQ/HOSTR/HOSTB); the stand-in for lane A's
+        # rows is the cached `HOSTTAPE` (`hosttape.json`)
+        self.host = host
         # B-T1 (`--split`): the template cut (`Tmpl.m5tIF` / `m5tSeg`): one INTAKE + FINAL dump and
         # one dump per STATE segment, each with its own compressions, SHA-256 messages, `RNG`
         # counts and tables; inside a segment dump the segment is `seg = 0` and times restart at 1
@@ -249,7 +256,7 @@ class Gen:
             return
         if role not in self.R:
             # the INTAKE + FINAL role keeps the original tables (first call: before any swap)
-            T = {t: (self.T[t] if role == 'if' else Table(t, self.names[t]))
+            T = {t: (self.T[t] if role == 'if' else Table(self.tname(t), self.names[self.tname(t)]))
                  for t in self.SEG_TABLES if t in self.T}
             self.R[role] = dict(comps=[], sha=[], rng={}, T=T)
         R = self.R[role]
@@ -257,6 +264,10 @@ class Gen:
         for t, tb in R['T'].items():
             self.T[t] = tb
         self.role = role
+
+    def tname(self, t):
+        """The template table name of an internal table key (`--host`: `STBH` / `STWH`)."""
+        return {'STB': 'STBH', 'STW': 'STWH'}.get(t, t) if self.host else t
 
     def sv(self, s):
         """The segment label a row carries: `s`, or 0 inside a split segment dump."""
@@ -1153,6 +1164,11 @@ class Gen:
         out = []
         self.raw = {}           # M5b: time -> the raw value written (None: a remove)
         self.t_local = {}
+        self.host_r = {}
+        live = {k: self.pre[k][0] for k in self.keys}
+        for t, (key, ref, v) in enumerate(ws):
+            self.host_r[t + 1] = int(bool(live.get(key, 0)))
+            live[key] = int(v is not None)
         first = {}
         for t, (key, ref, v) in enumerate(ws):
             s = t * S // len(ws)
@@ -1357,7 +1373,7 @@ class Gen:
         """Where the execution side holds a write's key / value (linear-memory addresses)."""
         return 0, len(key)
 
-    def st_run(self, m, ts, base, data):
+    def st_run(self, m, ts, base, data, hid=None):
         """`STB` rows of message `m`: the bytes of `data`, read by call `ts` at `base, ...`."""
         Tb = self.T['STB']
         if self.splitmode:
@@ -1368,6 +1384,8 @@ class Gen:
             r = Tb.new()
             Tb.set(r, 'act', 1); Tb.set(r, 'm', m); Tb.set(r, 'j', j); Tb.set(r, 'b', b)
             Tb.set(r, 'ts', ts); Tb.set(r, 'base', base); Tb.set(r, 'last', int(j == len(data) - 1))
+            if self.host:
+                Tb.set(r, 'hid', hid)
         return m + 1
 
     def build_st(self):
@@ -1396,19 +1414,48 @@ class Gen:
             assert (pr, vlen) == tuple(ref[:2]) and (not pr or sha(v) == ref[2])
             mk = m
             ke = int(len(key) == 0)        # an empty key: no `STB` run, `dk = sha256 []` (M5a-8)
+            hid = HID_WRITE if pr else HID_REMOVE
             if not ke:
-                m = self.st_run(m, t, kptr, key)
+                m = self.st_run(m, t, kptr, key, hid)
             ve = int(pr and vlen == 0)
             mv = 0
             if pr and vlen > 0:
                 mv = m
-                m = self.st_run(m, t, vptr, v)
+                m = self.st_run(m, t, vptr, v, hid)
             r = Tw.new()
             Tw.set(r, 'act', 1); Tw.set(r, 'seg', self.sv(seg)); Tw.set(r, 'ts', t); Tw.set(r, 'pr', pr)
             Tw.set(r, 've', ve); Tw.set(r, 'ke', ke); Tw.set(r, 'klen', len(key)); Tw.set(r, 'kptr', kptr)
             Tw.set(r, 'vlen', vlen); Tw.set(r, 'vptr', vptr); Tw.set(r, 'mk', mk); Tw.set(r, 'mv', mv)
             Tw.setv(r, 'dk', list(sha(key)))
             Tw.setv(r, 'dv', list(sha(v)) if pr else [0] * 32)
+            if self.host:
+                # the HOST stand-in's answer (`HOSTR`): r = 1 iff the key held a value before
+                Tw.set(r, 'rlo', self.host_r[gt])
+
+    def host_tape(self, only_seg):
+        """B-T1 item 3: the stand-in for lane A's HOST rows of segment `only_seg`: per storage call
+        `HOSTQ [ts, hid, S, np, (aLo, aHi) x 9]` and its request bytes `HOSTB [ts, hid, 0, addr, b]`
+        (sent), and the response `HOSTR [ts, 0, r, 0, 0, 0, 1, 0]` (received), `S = 0`,
+        `register_id = 0`, `g_after = 0` (the stand-in has no gas)."""
+        tape = []
+        for (t, seg, key, ref) in self.writes:
+            if seg != only_seg:
+                continue
+            v = self.raw[t]
+            pr = int(v is not None)
+            kptr, vptr = self.st_layout(key, v)
+            vb = v if pr else b''
+            hid = HID_WRITE if pr else HID_REMOVE
+            args = [len(key), kptr] + ([len(vb), vptr, 0] if pr else [0])
+            args += [0] * (9 - len(args))
+            ts = self.tv(t)
+            tape.append([B_HOSTQ, True, [ts, hid, 0, 3 + 2 * pr] + [x for a in args for x in (a, 0)]])
+            tape.append([B_HOSTR, False, [ts, 0, self.host_r[t], 0, 0, 0, 1, 0]])
+            for j, b in enumerate(key):
+                tape.append([B_HOSTB, True, [ts, hid, 0, kptr + j, b]])
+            for j, b in enumerate(vb):
+                tape.append([B_HOSTB, True, [ts, hid, 0, vptr + j, b]])
+        return tape
 
     def st_tape(self, only_seg=None):
         """The execution side's messages on T1: `SREQ(ts, pr, seg, klen, kptr, vlen, vptr)` and the
@@ -1522,6 +1569,7 @@ class Gen:
             post = bytes([post[0] ^ 1]) + post[1:]
         r24 = lambda w: self.l18(w)
         roles = [('if', 'if', self.IF_TABLES)] + [(('seg', s), 'seg%d' % s, self.SEG_ORDER) for s in range(self.nseg)]
+        tn = self.tname
         summary = {}
         for role, name, order in roles:
             kind = 'if' if role == 'if' else 'seg'
@@ -1529,11 +1577,12 @@ class Gen:
             T = dict(R['T'])
             if role == 'if':
                 T.update({t: self.T[t] for t in self.IF_TABLES if t not in T})
-            pin = (tmpl or {}).get(kind, {}).get('heights', {})
+            kind_t = 'segh' if (kind == 'seg' and self.host) else kind
+            pin = (tmpl or {}).get(kind_t, (tmpl or {}).get(kind, {})).get('heights', {})
             nat = {}
             for t in order:
                 n = len(T[t].rows)
-                nat[t] = max(2, (max(n, 4) - 1).bit_length())
+                nat[tn(t)] = max(2, (max(n, 4) - 1).bit_length())
             nat['SHA'] = max(2, (max(self.sha_rows(R['sha']), 4) - 1).bit_length())
             nat['SHA512'] = max(2, (max(self.chip_rows(len(R['comps'])), 4) - 1).bit_length())
             for t, h in nat.items():
@@ -1544,7 +1593,7 @@ class Gen:
                 pubs = pack2(self.pre_root) + [wslen] + r24(a24) + r24(b24) + pack2(post) + [len(self.final)]
             else:
                 pubs = pack2(self.pre_root) + [wslen] + r24(a24) + r24(b24)
-            summary[name] = dict(heights=nat, rows={t: len(T[t].rows) for t in order},
+            summary[name] = dict(heights=nat, rows={tn(t): len(T[t].rows) for t in order},
                                  sha_rows=self.sha_rows(R['sha']), compressions=len(R['comps']),
                                  root_a=bytes(b for w in a24 for b in w.to_bytes(8, 'big')).hex(),
                                  root_b=bytes(b for w in b24 for b in w.to_bytes(8, 'big')).hex())
@@ -1562,20 +1611,22 @@ class Gen:
                     rid_i = T[t].ix('rid')
                     w = T[t].width
                     T[t].pad_row = (lambda rid_i, w: (lambda i: [i if c == rid_i else 0 for c in range(w)]))(rid_i, w)
-                if t in pin and t not in ('WSB', 'RNG'):
-                    kw['pin'] = pin[t]
-                T[t].dump(os.path.join(d, t + '.bin'), **kw)
+                if tn(t) in pin and t not in ('WSB', 'RNG'):
+                    kw['pin'] = pin[tn(t)]
+                T[t].dump(os.path.join(d, tn(t) + '.bin'), **kw)
             json.dump(R['sha'], open(os.path.join(d, 'sha_msgs.json'), 'w'))
             json.dump(R['comps'], open(os.path.join(d, 'comps.json'), 'w'))
             with open(os.path.join(d, 'pubs.bin'), 'wb') as f:
                 f.write(struct.pack('<%dI' % len(pubs), *[x % P for x in pubs]))
-            json.dump(['SHA'] + list(order), open(os.path.join(d, 'tables.json'), 'w'))
-            if role != 'if':
+            json.dump(['SHA'] + [tn(t) for t in order], open(os.path.join(d, 'tables.json'), 'w'))
+            if role != 'if' and self.host:
+                json.dump(self.host_tape(role[1]), open(os.path.join(d, 'hosttape.json'), 'w'))
+            elif role != 'if':
                 json.dump(self.st_tape(role[1]), open(os.path.join(d, 'htape.json'), 'w'))
             if tmpl is not None:
-                json.dump(dict(name=tmpl.get('name'), kind=kind, D=self.D, **tmpl[kind]),
+                json.dump(dict(name=tmpl.get('name'), kind=kind_t, D=self.D, **tmpl.get(kind_t, tmpl[kind])),
                           open(os.path.join(d, 'template.json'), 'w'), indent=1)
-            json.dump(dict(kind=kind, pre_root=self.pre_root.hex(), post_root=post.hex(), ws_len=wslen,
+            json.dump(dict(kind=kind_t, pre_root=self.pre_root.hex(), post_root=post.hex(), ws_len=wslen,
                            changes=len(self.final),
                            depth=self.D, ws_depth=WS_DEPTH, **summary[name]),
                       open(os.path.join(d, 'stats.json'), 'w'), indent=1)
@@ -2019,8 +2070,8 @@ TAMPERS = dict(hphshort=_t_hphshort, hphlong=_t_hphlong, kempty=_t_kempty,
                stkbyte=_t_stkbyte, stvbyte=_t_stvbyte)
 
 
-def make_gen(st, names, mutant, plan, segs=1, extra_writes=0, split=False):
-    g = Gen(st, names, mutant, plan, segs, extra_writes, split)
+def make_gen(st, names, mutant, plan, segs=1, extra_writes=0, split=False, host=False):
+    g = Gen(st, names, mutant, plan, segs, extra_writes, split, host)
     if mutant == 'node':
         # A tampered pre-state node: the leaf of the first written key carries memory usage + 1
         # (still a well-formed node), while its parent keeps the true child hash.  Every row that
@@ -2064,11 +2115,13 @@ def main():
     # pass 1: every node hashed (the unbatched trace, still a valid one); pass 2: batched FINAL
     split = '--split' in args
     tmpl = json.load(open(args[args.index('--template') + 1])) if '--template' in args else None
-    g = make_gen(st, names, mutant, None, segs, extra, split)
+    host = '--host' in args
+    assert split or not host, '--host needs --split'
+    g = make_gen(st, names, mutant, None, segs, extra, split, host)
     if '--unbatched' not in args:
         plan = g.make_plan()
         PT.OVERRIDE.clear()
-        g = make_gen(st, names, mutant, plan, segs, extra, split)
+        g = make_gen(st, names, mutant, plan, segs, extra, split, host)
     if mutant in TAMPERS:
         try:
             TAMPERS[mutant](g)
