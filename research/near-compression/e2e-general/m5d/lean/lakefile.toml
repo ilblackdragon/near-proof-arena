@@ -21,3 +21,9 @@ root = "Tool"
 [[require]]
 name = "ZkFormal"
 path = "../../../../../zk-formal"
+
+# lane B M5a package (read-only): bus-as-list lemmas (StateM5a.Bus), HoldsX / chip stub
+# (StateM5a.ChipStub) and the SHA-512 chip contract (StateM5a.Sha512If).
+[[require]]
+name = "StateM5a"
+path = "../../m5a/lean"

@@ -10,4 +10,7 @@ import FinalM5d.Tail
 import FinalM5d.T1Data
 import FinalM5d.T1Check
 import FinalM5d.RsCoeff
+import FinalM5d.BusMem
+import FinalM5d.Whole
+import FinalM5d.HbWhole
 import FinalM5d.Audit
