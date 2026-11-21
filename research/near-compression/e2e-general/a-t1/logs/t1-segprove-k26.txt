@@ -1,0 +1,3 @@
+PARAMS n_stack 18 w_stack 8 degree 9
+  PROOF 0: 1332633 B, prove 25.5s, verify 49 ms, statement ok (boundary public values, code_root, func_root), peak_rss_kib 1204328
+SEGPROVE OK 1 segments, chained by hand (B_out(k) = B_in(k+1)); total prove 25.5s
