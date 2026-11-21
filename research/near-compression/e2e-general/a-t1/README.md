@@ -162,6 +162,10 @@ axioms are standard; there is no `sorry`.
   swapped, seven public values (+1: pc/t/S in, ctx in, mem in, mem out, status), and a vk with a
   query count changed.
 
+* Higher rate: at `log_blowup` 3 the keygen gives 268.3 bits, but the prover was killed inside
+  the 22 GB scope. That is 4× lb 1's LDE, and lb 1 peaked at 8.1 GB. A higher-rate leaf needs a
+  larger memory budget or a smaller stacked width.
+
 ### 3.3 Not yet (item 3)
 
 * **CODE/FUNC roots in-circuit as a SHA-384 Merkle root with per-segment touched-record openings
