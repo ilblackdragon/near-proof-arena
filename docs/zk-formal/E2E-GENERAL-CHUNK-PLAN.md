@@ -252,6 +252,61 @@ host context is carried in `B`.
 
   Its only public input is the statement of D-2. No boundary leaves the tree.
 
+#### 3.4.1 The canonical statement bytes `S` and `claimDigest` (lane E, M11h) [K]
+
+Fixed in Lean, `spec/lean/v3/NearSpecV3/E2E/StmtEnc.lean` (in `defaultTargets`); lanes D and I
+implement exactly this.
+
+* **`S = PublicStmt.encode s`** = the claim-v3 encoding (`spec/claim-v3.md` §2, `Claim.encode`) of
+  the claim with an **empty section B**: every field in claim order, the block vector replaced by
+  its empty encoding `u32 0` = `00 00 00 00`. Byte layout:
+  `S = stmtPre ‖ 00 00 00 00 ‖ stmtPost`, `stmtPre` = claim tag, statement id, `protocol_version`
+  (u32), `chain_id` (bytes), `epoch_id` (32 B), `chunk_inner` (bytes); `stmtPost` =
+  `rs_data_parts`, `rs_total_parts` (u16), `epochs`, `epoch_start_after`, `apply_facts`,
+  `tx_valid`, `genesis_chunk_extra` (all as in claim-v3). The claim the relation checks is the
+  same bytes with the private block vector (count included) in place of the four zero bytes:
+  `assemble ci secB secC = stmtPre ‖ encList BlockRec.encode secB ‖ stmtPost`
+  (`assemble_splice`, `encode_splice`).
+* **Canonical and injective.** `PublicStmt.decode` = the strict claim decoder (`decodeClaim`) then
+  `blocks = []`; `PublicStmt.decode_encode` on well-formed statements (`PublicStmt.wf` =
+  `Claim.wf` of the empty-B claim: field widths), hence `PublicStmt.encode_inj`. `assemble_wf`: a
+  well-formed assembled claim has a well-formed statement.
+* **`claimDigest s = bdigest S`** (SHA-384 truncated to 42 B, U-10). `claimDigest_binding`: equal
+  digests of well-formed statements are equal statements or a SHA-384 collision. Every
+  boundary's `claimDigest` field is this value; the wrap's `D_wrap = H(tag_wrap, SHA-384(S))`
+  (§5.0.1) hashes the same `S`.
+* **T1** (kernel-evaluated in `E2E/RealChunkT1.lean`): `|S| = 1,007 B` (`t1_S_len`; lane I's I-1
+  working encoding, the claim with the block vector *and its count* cut out, is these bytes
+  without the four zero bytes: 1,003 B, checked byte-for-byte against `e2e-t1/run3/S.bin`),
+  `claimDigest = bb5aad11ba6ba32d91739f13a2dbd544f2420d770bcd2c3fde9ddc0e1c02710caee28e5e9e4e299f2f01`
+  (`t1_claimDigest`; equals Python `hashlib.sha384(S)[:42]`). Lane I's `040290778c…` digest is of
+  the 1,003-B working encoding and must be replaced.
+* **Leaf statement.** A boundary is exposed as `bndOf V.bnd x = bdigest (BndRec.encode (V.bnd x))`
+  (`Boundary.lean`; `BndRec.codec` is fixed-width big-endian, §3.2) with the clear `phase` tag
+  (`View.split`: `init` 0, `eng` 1, `fin` 2, `gfin` 3, `done` 4, `doneG` 5, `inCall` 6), i.e.
+  lane D's `s = [phase, h(B)]` with `h(B) = bdigest (BndRec.encode B)`; the T1 system
+  (`Templates.lean`) is stated over exactly these digests.
+
+#### 3.4.2 Public fields the relation does not constrain (lane I's 33 accepted mutants) [M + spec]
+
+Lane I's T1 mutants (`t1.py mutants`, run `e2e-t1/run3/mutants.txt`): 33 one-field changes of
+`S` are **true statements** (the checker accepts them with T1's section B and witness). Checked
+against the spec and nearcore 2.13.4 (`/data/illia/nearproof-deps/nearcore`, `44f7ae6`):
+
+| field (mutants) | read by | why T1 accepts | verdict |
+|---|---|---|---|
+| `chunk_inner.height_created` (±1, with the witness's header copy patched) | nothing in the relation: decoded (`Wire.lean`, `heightCreated`) and only compared as part of the witness's header copy | nearcore's witness validation never reads it: `validate_chunk_state_witness_impl` (`chain/chain/src/stateless_validation/chunk_validation.rs:565`) uses it only as a log/span field; it is consumed by the consensus layer — chunk-producer selection and signature (`ChunkProductionKey`, `partial_witness_actor.rs:430–440`), the relevance window against the node's **local** head (`client/src/stateless_validation/validate.rs:253–320`, node state, not a validity predicate), and block inclusion. Already recorded as spec finding (1) in `spec/near-chunk-validation-v0.md` §(findings): nearcore accepts the same mutants | **unconstrained by design** (mirrors nearcore). Finding for the owner: an intrinsic constraint every honest chunk satisfies is `height_created > height(prev block)` (the prev block header is in section B); nearcore enforces it only through block inclusion. Adding it is a checker change (owner decision); not done. For M10 these are binding negatives (`D_wrap` binds `S`) |
+| `chain_id` | `Env.chainId`: ETH-implicit wallet hash (`D2/Actions.lean` `ethWalletHash`), global-contract resolution (`StorageExecutionOrig.lean:70`), the VM context | T1 has no ETH-implicit account, no global contract | constrained when read; unread by T1 |
+| `epochs[0].height` | host `epoch_height` (`Wasm/Host.lean:716`), epoch-switch rewards | `d3tiny.run` does not call `epoch_height`; no epoch switch | constrained when read |
+| `epochs[0].layout` (last byte) | `decodeLayout` (`Layout.lean:58`): T1's layout is V2 (tag 2, 293 B); its last byte is the high byte of the trailing `version: u32` (T1: `03 00 00 00`), parsed and discarded | nearcore uses `ShardLayout::version` only in `ShardUId` (DB key prefixes), never in a state root or receipt routing | unconstrained by design (semantically irrelevant); any change to boundaries / shard ids is rejected |
+| `epochs[0].validators[*]` (account, stake ±1, drop) | host `validator_stake` / `validator_total_stake`, epoch-switch validator updates | no such host call, no epoch switch, no validator update in T1 | constrained when read |
+| `apply_facts[0].minimum_stake` | the `Stake` action (`D2/Actions.lean:301`: `stake < env.minStake` fails), via `envOf` (`ChunkValidationD2.lean:228/250`) | T1 has no stake action | constrained when read |
+
+So no accepted mutant is a soundness gap of the relation for T1: each field is either never read
+by the chunk-validity relation (as in nearcore) or read only by paths T1 does not take, and section
+C is a **trusted** input (its correctness is the statement's premise, not proved). Lane I's doc
+(`E2E-T1-CRITICAL-PATH.md` §3) can cite this table.
+
 ### 3.5 The Lean theorem that closes it
 
 ```
@@ -513,6 +568,54 @@ Log: [`docs/logs/e2e-lean-m11g-2026-11-04.md`](../logs/e2e-lean-m11g-2026-11-04.
   the host and receipt limits is not done). Non-vacuity only for the conditions (no accepting-run
   example).
 
+**M11h (lane E, 2026-11-21) [K].** T1-first. Standard axioms only, no `sorry`, no checker
+definition changed. Log: [`docs/logs/e2e-lean-m11h-2026-11-21.md`](../logs/e2e-lean-m11h-2026-11-21.md).
+
+* **The T1 segment system and the per-lane obligations** (`E2E/Templates.lean`, `defaultTargets`;
+  namespace `NearSpecV3.E2E.T1`). Templates `init | state | rt | wasm | final`, each with a meaning
+  on `RCM` configurations (all inside `RSteps`, `meaning_rsteps`):
+
+  | template | lane | Lean premise | the rows must open their two boundary digests to `x`, `x'` with |
+  |---|---|---|---|
+  | INTAKE | G | `SegSoundInit V A Bad` | `MInit`: `x = init cb wb`, `CM.step (init cb wb) = .ok c`, `x' = c` |
+  | STATE | B | `SegSoundState V A Bad` | `MState`: `eng I c →* eng I c'` by engine steps that make **no VM call** (`estepO (strictO [])`) |
+  | receipt step | F | `SegSoundRt V A Bad` | `MRt`: `enter` (start call `q` at a non-final `eng I c`), `next` (record `(q, r)`, start `q'`), `resume` (`estepO (strictO (K ++ [(q, r)])) I.prog c = .ok c'`: the whole receipt step — actions, gas, refunds, outcomes — with the VM answered only from the tape) |
+  | WASM | A | `SegSoundWasm V A Bad` | `MWasm`: `call I c K q cc → call I c K q cc'` with `CSteps q cc cc'` (cuts anywhere in a call) |
+  | FINAL | G | `SegSoundFinal V A Bad` | `MFinal`: a `CM` run from `eng I ⟨.done out, _⟩`, `fin I out` or `gfin G` (to `done` / `doneG`) |
+
+  Each premise is `TmplSound V A Bad k := ∀ d d' tr, A.Holds k d d' tr → Bad ∨ ∃ x x',
+  bndOf V.bnd x = d ∧ bndOf V.bnd x' = d' ∧ Meaning k x x'`, where `A : Airs` is the lanes' trace
+  type and AIR predicate per template and `bndOf V.bnd x` the 42-B digest of the boundary record
+  (§3.4.1). The wrap gets `WrapInitSound` (`B_0` = digest of `init (assemble s.ci secB s.secC) w`)
+  and `WrapFinalSound` (`B_N` = digest of a configuration passing `FinalOutPub s`).
+  **`e2e_sound_t1`**: `NvFaithfulE2E` (lane D) + the two wrap obligations + the five template
+  obligations ⇒ `E2EStmt s ∨ Bad ∨ BndCollision V.bnd`; `e2e_sound_t1_bind` splits the collision
+  (SHA-384 or a component commitment, `viewImpl_binding`).
+  Honest side: `TmplComplete V A k` (each lane's completeness), **`cm_decomp`** (every `CM` run
+  factors into these templates: per engine step one `state` segment when the honest tape is empty,
+  else `rt` enter, per call `wasm` + `rt` next/resume), `honest_chain`, `mstate_trans` (STATE
+  segments merge), `cut_roundtrip`.
+* **M11 exit criterion: non-vacuity on T1** (`E2E/T1Run.lean`, `E2E/RealChunkT1.lean`, on
+  demand). The monolithic `decide +kernel` of the checker on T1 is OOM-killed at the 34 GB cap; the
+  run is checked in two kernel pieces: `INTAKE` against an oracle-printed literal intake (kernel
+  `Eq.refl`), then the other 12 `CM` steps (incl. the `d3tiny` call in the spec's Wasm
+  interpreter and `FINAL`) by `decide +kernel` — 27.1 GB, 192–318 s. Proved: `t1_accepts` (13
+  steps), `t1_rel : Tier.rel .allFeatures T1`, `cm_run_t1` (`headerOk`), `t1_e2e_stmt`, and
+  **`t1_honest_chain`**: for any view and lane AIRs meeting the completeness obligations, T1's run
+  is a valid chain of the T1 system whose roots pass the wrap checks for T1's public statement.
+  T1's `S` is 1,007 B and its `claimDigest` is kernel-evaluated (§3.4.1).
+* **Canonical statement encoding** (`E2E/StmtEnc.lean`, §3.4.1) and the **33 accepted statement
+  mutants** checked against spec and nearcore (§3.4.2: unconstrained by design; `height_created`
+  finding for the owner).
+* **`EngOvlInv.cur` narrowed, not closed** (`E2E/OvlVal.lean`, `join/StViewE.lean`, sub-agent):
+  fixed-size writes and the Wasm write-back (under the class `VmWritesShort`) proved `< 2^24` B;
+  `cur` → `curHard` (keys of account, code, access-key, received-data, receipt-queue, contract-data,
+  yield, buffer, bandwidth and global-code columns). **Finding:** the spec admits incoming
+  receipts > 2^24 B (`validReceipt false` has no size check, as nearcore's Existing mode), which are
+  stored verbatim as postponed/delayed receipts, and unbounded global-contract code; nearcore
+  bounds them at creation (chain history). `cur` needs an intake-side receipt-size hypothesis.
+* Not attempted: `NodeSha`, `NodeLink`.
+
 ---
 
 ## 4. Milestones to a first general-chunk E2E proof
@@ -595,13 +698,26 @@ status.
 (all four tables exported), honest-trace non-vacuity, `PvdAt` and the program's asserts from
 program binding + op decode over the byte bus, and `EngOvlInv` for accepting runs (value bound `cur` still a hypothesis).
 
-Next for lane E (M11h), in order:
-1. `ProgBound` from BIND/anchor (the program-binding evaluation) and `GlueByteBool` from the GLUE
-   constraints; then `NodeSha` against the SHA contracts (Sha512Air4 is now exported).
-2. `EngOvlInv`'s `cur` (committed value bound through the Wasm host / receipt limits) and `wf` of
-   the revealed intake tries.
-3. A full-circuit honest trace (export the other three tables' traces) to exhibit `NvHold` itself.
-4. Lane B: move `FitsReach` to `stOfK`; confirm `idxOf = 0`.
+**M11h (lane E, 2026-11-21) [K]:** see §3.5. Done: the T1 segment system with one named
+soundness premise per template (`E2E/Templates.lean`: `SegSoundInit` (G), `SegSoundState` (B),
+`SegSoundRt` (F), `SegSoundWasm` (A), `SegSoundFinal` (G), `WrapInitSound`/`WrapFinalSound`) and
+`e2e_sound_t1`; every `CM` run factors into the templates (`cm_decomp`); **M11 exit criterion met**:
+T1's accepting run kernel-checked under 34 GB (`T1Run`, 27.1 GB) with `t1_e2e_stmt` and
+`t1_honest_chain`; canonical `S`/`claimDigest` (§3.4.1); the 33 accepted statement mutants
+explained (§3.4.2); `cur` narrowed to `curHard` + `VmWritesShort`, with the spec/nearcore
+receipt-size finding.
+
+Next for lane E (M11i), in order:
+1. Lanes F/A/B/G: discharge their `SegSound*` premise for their T1 leaf (and `TmplComplete` for
+   the honest side). Lane D: `WrapInitSound`/`WrapFinalSound` from the wrap's checks on the opened
+   record (`claimDigest` of §3.4.1, `phase`, `headerOk`).
+2. `cur`: owner decision on an intake-side receipt-size hypothesis (incoming receipts satisfy the
+   New-mode 4 MiB limit), then a receipt-size pass for the remaining `Hard` columns;
+   `VmWritesShort` from the host (`storage_write` 4 MiB check).
+3. `ProgBound` from BIND/anchor and `GlueByteBool`; then `NodeSha` (Sha512Air4 exported), `NodeLink`.
+4. A full-circuit honest trace to exhibit `NvHold` itself.
+5. Lane B: move `FitsReach` to `stOfK`; confirm `idxOf = 0` (lane B M5a-9: per-boundary restarts
+   check).
 
 M11d's open list, updated:
 1. ~~A constructive recorder for `honestQ`~~ (M11e: `recordK`).
