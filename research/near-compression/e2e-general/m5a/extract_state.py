@@ -47,6 +47,11 @@ def main():
         if h in self.store and h not in t['seen'] and 'changes' not in t:
             t['seen'].add(h)
             t['nodes'].append(self.store[h].hex())
+        elif h in self.store and h not in t['seen'] and h in t.get('pre_store', ()):
+            # M5a-9 fix: a pre-state node first read during finalize (e.g. a squash sibling no
+            # find walk touched) is a witness node too; without it tracegen sees a hash sibling
+            t['seen'].add(h)
+            t['nodes'].append(self.store[h].hex())
         return orig_node(self, h)
 
     def ref(self, key):
@@ -67,6 +72,7 @@ def main():
         t = track(self)
         for k, _ in changes:
             t['keys'].setdefault(k.hex(), ref(self, k))
+        t['pre_store'] = set(self.store.keys())
         t['changes'] = [[k.hex(), None if v is None else v.hex()] for k, v in changes]
         root = orig_update(self, changes)
         t['post_root'] = root.hex()
@@ -79,6 +85,8 @@ def main():
     lean = json.loads(open(lean_json).read().splitlines()[0])
     assert lean['verdict'] == 'accept', lean['verdict']
     main_t = LOG['transitions'][0]
+    for t in LOG['transitions']:
+        t.pop('pre_store', None)
     lc = [[c['key'], None if c['valueLen'] is None else int(c['valueLen']), c['valueHash']]
           for c in lean['outputs']['stateChanges']]
     py = [[k, None if v is None else len(bytes.fromhex(v)),

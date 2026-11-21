@@ -1,0 +1,225 @@
+Provenance: commit 61d19af1f; tools copied from it (tracegen.py, ptrie.py, sha512c.py, extract_state.py,
+oracle/tools, oracle/wasm-d3/cleanroom) into /data/illia/nearproof-deps/m5a9/census/; prover binary
+sha256 cc6d0a01dbc1... (= SHA256SUMS-v7), m5a-tool sha256 9c3f65bf4ef3..., nearspec-v3-check-successor
+sha256 644495ff5e04...; M5b AIR exported per D (`m5a-tool airb D`, D = 1..20).
+Run: 2026-11-03 23:47 -> 00:45 UTC (57 min wall, 8 worker threads; per-case python 2.86 core-h,
+`check` 4.55 h summed single-thread wall); prove sample 00:45 -> 01:10 UTC (24.5 min, one at a time,
+8 threads, HEAVY_MEM=40G). Census `check` runs used RAYON_NUM_THREADS=1 (load + precheck only).
+Extraction note: the census copy of extract_state.py also records witness nodes first read during
+finalize (squash siblings); the "extraction" section shows what the repo's version gives.
+Per-case records: logs/M5a9-census.jsonl (line 1 = field list); prove sample: logs/M5a9-census-prove.jsonl.
+
+M5a-9 state-circuit corpus census (M5b AIR at 61d19af1f; prover sha256 cc6d0a01…; D = smallest with 2^D >= working set)
+cases: 19007
+
+== per corpus: status (reject / nochange / state / error) and state-case outcome
+  corpus               total             reject           nochange              error              state           state:OK    state:CHECKFAIL  state:UNSUPPORTED        state:ERROR
+  d3c7                  5381                  0                  0                  0               5381               4566                  0                752                 63
+  d3c8                  8192                  0                  0                  0               8192               6875                  0               1157                160
+  d3c9                  2656                  0                  0                  0               2656               2315                  0                289                 52
+  d3c10                 2778                  0                  0                  0               2778               2449                  0                303                 26
+  all                  19007                  0                  0                  0              19007              16205                  0               2501                301
+
+== state cases (19007): outcome histogram (first failure)
+    16205   85.26%  OK
+     1074    5.65%  UNSUPPORTED:squash onto a ext sibling
+      691    3.64%  UNSUPPORTED:split where a key ends at the branch (old leaf key ends)
+      353    1.86%  UNSUPPORTED:squash to empty / value leaf
+      301    1.58%  ERROR:version readers >= 2^7 (VBITS)
+      214    1.13%  UNSUPPORTED:squash onto a branch sibling
+      146    0.77%  UNSUPPORTED:squash after a branch-value delete
+       23    0.12%  UNSUPPORTED:split where a key ends at the branch (written key ends inside a leaf)
+
+== UNSUPPORTED cases (2501): distinct gap shapes per case (fault-tolerant first pass)
+  number of distinct gap shapes per UNSUPPORTED case: {1: 1982, 2: 470, 3: 45, 4: 4}
+  cases needing ONLY this one shape:
+      846   33.83%  squash onto a ext sibling
+      625   24.99%  split where a key ends at the branch (old leaf key ends)
+      217    8.68%  squash to empty / value leaf
+      184    7.36%  squash onto a branch sibling
+       88    3.52%  squash after a branch-value delete
+       22    0.88%  split where a key ends at the branch (written key ends inside a leaf)
+  cases needing this shape (any):
+     1215   48.58%  squash onto a ext sibling
+      834   33.35%  split where a key ends at the branch (old leaf key ends)
+      470   18.79%  squash onto a branch sibling
+      370   14.79%  squash to empty / value leaf
+      157    6.28%  squash after a branch-value delete
+       25    1.00%  split where a key ends at the branch (written key ends inside a leaf)
+        2    0.08%  long extension key under a delete
+  gap-shape sets:
+      846   33.83%  squash onto a ext sibling
+      625   24.99%  split where a key ends at the branch (old leaf key ends)
+      231    9.24%  squash onto a branch sibling + squash onto a ext sibling
+      217    8.68%  squash to empty / value leaf
+      184    7.36%  squash onto a branch sibling
+      121    4.84%  split where a key ends at the branch (old leaf key ends) + squash to empty / value leaf
+       88    3.52%  squash after a branch-value delete
+       46    1.84%  split where a key ends at the branch (old leaf key ends) + squash onto a ext sibling
+       38    1.52%  squash after a branch-value delete + squash onto a ext sibling
+       22    0.88%  split where a key ends at the branch (written key ends inside a leaf)
+       12    0.48%  split where a key ends at the branch (old leaf key ends) + squash onto a branch sibling + squash onto a ext sibling
+       10    0.40%  squash after a branch-value delete + squash onto a branch sibling + squash onto a ext sibling
+        9    0.36%  split where a key ends at the branch (old leaf key ends) + squash onto a ext sibling + squash to empty / value leaf
+        9    0.36%  split where a key ends at the branch (old leaf key ends) + squash onto a branch sibling
+        8    0.32%  squash onto a branch sibling + squash onto a ext sibling + squash to empty / value leaf
+        7    0.28%  squash after a branch-value delete + squash onto a branch sibling
+        7    0.28%  squash onto a ext sibling + squash to empty / value leaf
+        4    0.16%  split where a key ends at the branch (old leaf key ends) + squash after a branch-value delete
+        3    0.12%  squash onto a branch sibling + squash to empty / value leaf
+        2    0.08%  split where a key ends at the branch (old leaf key ends) + squash after a branch-value delete + squash onto a ext sibling
+        2    0.08%  split where a key ends at the branch (written key ends inside a leaf) + squash onto a ext sibling
+        1    0.04%  split where a key ends at the branch (old leaf key ends) + squash onto a branch sibling + squash to empty / value leaf
+        1    0.04%  split where a key ends at the branch (old leaf key ends) + squash after a branch-value delete + squash onto a branch sibling + squash to empty / value leaf
+        1    0.04%  split where a key ends at the branch (old leaf key ends) + squash onto a branch sibling + squash onto a ext sibling + squash to empty / value leaf
+        1    0.04%  squash after a branch-value delete + squash to empty / value leaf
+  walk occurrences by kind|shape (all UNSUPPORTED cases):
+     3624   60.54%  delete|squash onto a ext sibling
+      954   15.94%  delete|squash onto a branch sibling
+      847   14.15%  upsert|split where a key ends at the branch (old leaf key ends)
+      370    6.18%  delete|squash to empty / value leaf
+      163    2.72%  delete|squash after a branch-value delete
+       25    0.42%  upsert|split where a key ends at the branch (written key ends inside a leaf)
+        3    0.05%  delete|long extension key under a delete
+  (the probe is the unbatched first pass: capacity / plan-only failures such as VBITS are not in these
+   lists; every case with >= 128 working-set keys also needs VBITS, see the greedy and the keys buckets)
+
+== greedy: state cases fully covered after supporting shapes in this order
+  (needs = probe shapes + first failure + VBITS if keys >= 128; shapes hidden behind these, e.g. the
+   plan-only "final node over an in-memory child", can only show up once they are supported)
+  now: 16205 / 19007 (85.26%)
+  + squash onto a ext sibling                                    +  808 -> 17013 (89.51%)
+  + split where a key ends at the branch (old leaf key ends)     +  586 -> 17599 (92.59%)
+  + version readers >= 2^7 (VBITS)                               +  424 -> 18023 (94.82%)
+  + squash onto a branch sibling                                 +  436 -> 18459 (97.12%)
+  + squash to empty / value leaf                                 +  367 -> 18826 (99.05%)
+  + squash after a branch-value delete                           +  154 -> 18980 (99.86%)
+  + split where a key ends at the branch (written key ends inside a leaf) +   25 -> 19005 (99.99%)
+  + long extension key under a delete                            +    2 -> 19007 (100.00%)
+
+== extraction: state cases whose finalize reads witness nodes the main walk never read: 1682
+   (extract_state.py at 61d19af1f drops them; outcome with its nodes_read -> with them)
+     1171   69.62%  UNSUPPORTED:squash onto a hash sibling -> OK
+      195   11.59%  UNSUPPORTED:squash onto a hash sibling -> UNSUPPORTED:squash onto a ext sibling
+       59    3.51%  UNSUPPORTED:squash onto a hash sibling -> ERROR:version readers >= 2^7 (VBITS)
+       56    3.33%  UNSUPPORTED:squash onto a hash sibling -> UNSUPPORTED:squash onto a branch sibling
+       38    2.26%  UNSUPPORTED:squash after a branch-value delete -> UNSUPPORTED:squash after a branch-value delete
+       36    2.14%  UNSUPPORTED:squash onto a ext sibling -> UNSUPPORTED:squash onto a ext sibling
+       33    1.96%  UNSUPPORTED:squash onto a hash sibling -> UNSUPPORTED:split where a key ends at the branch (old leaf key ends)
+       30    1.78%  UNSUPPORTED:squash onto a hash sibling -> UNSUPPORTED:squash after a branch-value delete
+       29    1.72%  UNSUPPORTED:squash onto a hash sibling -> UNSUPPORTED:squash to empty / value leaf
+       20    1.19%  UNSUPPORTED:split where a key ends at the branch (old leaf key ends) -> UNSUPPORTED:split where a key ends at the branch (old leaf key ends)
+       11    0.65%  UNSUPPORTED:squash onto a branch sibling -> UNSUPPORTED:squash onto a branch sibling
+        4    0.24%  UNSUPPORTED:squash to empty / value leaf -> UNSUPPORTED:squash to empty / value leaf
+
+== outcome by working-set size (keys) bucket
+  keys <=32      14876 cases: OK 13594 (91.4%), UNSUPPORTED 1282 (8.6%)
+  keys 33-64      2771 cases: OK 2057 (74.2%), UNSUPPORTED 714 (25.8%)
+  keys 65-127      680 cases: OK 554 (81.5%), UNSUPPORTED 126 (18.5%)
+  keys 128-255     129 cases: ERROR 66 (51.2%), UNSUPPORTED 63 (48.8%)
+  keys >=256       551 cases: UNSUPPORTED 316 (57.4%), ERROR 235 (42.6%)
+  max keys among OK cases: 127
+
+== CHECKFAIL / ERROR state cases (301; first 15 listed, all in the JSONL)
+      301  100.00%  ERROR:version readers >= 2^7 (VBITS)
+  d3c7/00-h10070-s1  ERROR:version readers >= 2^7 (VBITS)  
+  d3c7/00-h10085-s3  ERROR:version readers >= 2^7 (VBITS)  
+  d3c7/01-h10011-s0  ERROR:version readers >= 2^7 (VBITS)  
+  d3c7/01-h10042-s3  ERROR:version readers >= 2^7 (VBITS)  
+  d3c7/01-h10056-s2  ERROR:version readers >= 2^7 (VBITS)  
+  d3c7/01-h10082-s3  ERROR:version readers >= 2^7 (VBITS)  
+  d3c7/01-h10094-s4  ERROR:version readers >= 2^7 (VBITS)  
+  d3c7/01-h10101-s2  ERROR:version readers >= 2^7 (VBITS)  
+  d3c7/01-h10123-s0  ERROR:version readers >= 2^7 (VBITS)  
+  d3c7/01-h10126-s3  ERROR:version readers >= 2^7 (VBITS)  
+  d3c7/02-h10017-s1  ERROR:version readers >= 2^7 (VBITS)  
+  d3c7/02-h10056-s0  ERROR:version readers >= 2^7 (VBITS)  
+  d3c7/02-h10056-s5  ERROR:version readers >= 2^7 (VBITS)  
+  d3c7/02-h10058-s3  ERROR:version readers >= 2^7 (VBITS)  
+  d3c7/02-h10084-s3  ERROR:version readers >= 2^7 (VBITS)  
+
+== pipeline errors (0)
+
+
+== distributions (state cases: all / OK)
+  keys      all: p0=4  p10=15  p25=18  p50=23  p75=31  p90=56  p99=541  p100=1190  mean=41.2  n=19007
+            OK : p0=4  p10=14  p25=18  p50=22  p75=28  p90=39  p99=103  p100=127  mean=26.1  n=16205
+  changes   all: p0=1  p10=6  p25=9  p50=14  p75=21  p90=49  p99=535  p100=1186  mean=32.4  n=19007
+            OK : p0=1  p10=5  p25=9  p50=13  p75=19  p90=30  p99=96  p100=121  mean=17.1  n=16205
+  deletes   all: p0=0  p10=0  p25=0  p50=1  p75=4  p90=16  p99=315  p100=1132  mean=11.1  n=19007
+            OK : p0=0  p10=0  p25=0  p50=0  p75=4  p90=10  p99=45  p100=93  mean=4.2  n=16205
+  D         all: p0=2  p10=4  p25=5  p50=5  p75=5  p90=6  p99=10  p100=11  mean=5.2  n=19007
+            OK : p0=2  p10=4  p25=5  p50=5  p75=5  p90=6  p99=7  p100=7  mean=5.0  n=16205
+  n_trans   all: p0=1  p10=1  p25=1  p50=1  p75=1  p90=1  p99=3  p100=9  mean=1.1  n=19007
+            OK : p0=1  p10=1  p25=1  p50=1  p75=1  p90=1  p99=3  p100=9  mean=1.1  n=16205
+  nodes     all: p0=3  p10=35  p25=43  p50=55  p75=70  p90=94  p99=603  p100=1755  mean=74.3  n=19007
+            OK : p0=3  p10=34  p25=42  p50=53  p75=67  p90=85  p99=216  p100=328  mean=60.9  n=16205
+  maxkey    all: p0=1  p10=40  p25=40  p50=40  p75=46  p90=47  p99=99  p100=99  mean=44.3  n=19007
+            OK : p0=1  p10=40  p25=40  p50=40  p75=46  p90=47  p99=99  p100=99  mean=44.2  n=16205
+  maxval    all: p0=421  p10=421  p25=421  p50=637  p75=901  p90=958  p99=5603  p100=6250  mean=962.6  n=19007
+            OK : p0=421  p10=421  p25=421  p50=637  p75=901  p90=958  p99=5603  p100=6250  mean=944.8  n=16205
+  D histogram (all state): {2: 11, 3: 123, 4: 3106, 5: 11636, 6: 2771, 7: 681, 8: 128, 9: 334, 10: 214, 11: 3}
+  stb       OK : p0=422  p10=935  p25=1185  p50=1558  p75=2219  p90=3735  p99=10864  p100=21008  mean=2203.3  n=16205
+  stw       OK : p0=1  p10=5  p25=9  p50=13  p75=19  p90=30  p99=96  p100=121  mean=17.1  n=16205
+  cells     OK : p0=650748  p10=3801076  p25=5200980  p50=7592932  p75=7669248  p90=10800068  p99=30488708  p100=50022532  mean=7691380.3  n=16205
+  sha_blocks OK : p0=14  p10=131  p25=164  p50=212  p75=275  p90=361  p99=977  p100=1806  mean=249.4  n=16205
+  comps     OK : p0=20  p10=90  p25=140  p50=170  p75=208  p90=338  p99=854  p100=998  mean=202.9  n=16205
+  check_s   OK : p0=0.14  p10=0.55  p25=0.58  p50=1.02  p75=1.08  p90=1.55  p99=4.07  p100=8.37  mean=1.0  n=16205
+  rows STB  OK: p0=422  p10=935  p25=1185  p50=1558  p75=2219  p90=3735  p99=10864  p100=21008  mean=2203.3  n=16205
+  rows BR   OK: p0=5  p10=78  p25=107  p50=150  p75=209  p90=315  p99=862  p100=1410  mean=188.5  n=16205
+  rows SN   OK: p0=4  p10=45  p25=61  p50=84  p75=114  p90=157  p99=357  p100=632  mean=97.9  n=16205
+  rows KEY  OK: p0=4  p10=165  p25=235  p50=350  p75=524  p90=736  p99=1260  p100=2307  mean=411.5  n=16205
+  rows WSB  OK: p0=8  p10=32  p25=64  p50=64  p75=64  p90=128  p99=256  p100=256  mean=72.4  n=16205
+  rows RNG  OK: p0=256  p10=256  p25=256  p50=256  p75=256  p90=256  p99=256  p100=256  mean=256.0  n=16205
+  rows SNC  OK: p0=0  p10=0  p25=0  p50=1  p75=5  p90=9  p99=23  p100=48  mean=3.3  n=16205
+  STB height 2^h (OK): {9: 65, 10: 2302, 11: 9080, 12: 3285, 13: 920, 14: 534, 15: 19}
+  HTAPE height 2^h (OK): {9: 65, 10: 2227, 11: 9051, 12: 3378, 13: 924, 14: 541, 15: 19}
+  SHA512 height 2^h (OK): {12: 18, 13: 169, 14: 3042, 15: 10365, 16: 2057, 17: 554}
+  n_transitions (all accepted, extracted): {1: 17353, 2: 1352, 3: 140, 4: 135, 5: 19, 6: 7, 9: 1}
+  post_root == header root (state cases): {True: 17353, False: 1654}
+  lean_match (state cases): {True: 19007}
+
+== spec path cases (ptrie.apply_changes): state cases using each
+    19007  100.00%  leaf.replace
+    19007  100.00%  branch.descend
+    18930   99.59%  ext.descend
+    11086   58.33%  branch.newChild
+     8592   45.20%  branch.descendDel
+     8592   45.20%  squash.keep
+     8576   45.12%  leaf.delete
+     8039   42.29%  splitLeaf.two
+     6766   35.60%  branch.value
+     5343   28.11%  squash.oneChild
+     5094   26.80%  extend.leaf
+     4085   21.49%  branch.absent
+     3677   19.35%  extend.branch
+     2594   13.65%  splitExt.two
+     1839    9.68%  leaf.absent
+     1456    7.66%  extend.ext
+      834    4.39%  splitLeaf.oldEnds
+      370    1.95%  squash.valueLeaf
+      168    0.88%  ext.absent
+       25    0.13%  splitLeaf.newEnds
+
+== implicit transitions with changes (tracegen only, not checked): 2156 in 1654 cases
+     2156  100.00%  OK
+  keys: p0=2  p10=2  p25=2  p50=2  p75=2  p90=2  p99=2  p100=2  mean=2.0  n=2156
+  changes: p0=1  p10=1  p25=1  p50=1  p75=1  p90=1  p99=1  p100=1  mean=1.0  n=2156
+  stb (OK): p0=422  p10=422  p25=422  p50=638  p75=902  p90=902  p99=902  p100=902  mean=675.0  n=2156
+
+== prove sample
+  d3c7/06-h10004-s0 keys=4 changes=1 D=2 stb=422 cells=650748 root=3c5d17f73a0a9001000729e9315b271ce89daba07a29693071e69a924cd8283d proof=1096701 B prove=7.64s verify=0.0792s rss=126 MiB verify_ok=True accepted=True
+  d3c8/10-h10198-s3 keys=13 changes=5 D=4 stb=892 cells=3799148 root=877c99f53601776f6417eb2ae6b70d82b2fc030cd9b072e1d03fe791c92dac69 proof=1464649 B prove=46.04s verify=0.1083s rss=1288 MiB verify_ok=True accepted=True
+  d3c9/02-h10059-s5 keys=16 changes=6 D=4 stb=1554 cells=3817588 root=029f7615f1b4e92e73dab46fb59b3f737fea564910fe4ab75050310019757cae proof=1466665 B prove=44.99s verify=0.0977s rss=1314 MiB verify_ok=True accepted=True
+  d3c9/02-h10119-s3 keys=17 changes=6 D=5 stb=1260 cells=5184852 root=3499f3b00f9e01c82b7bd819cdd955e3f139617e6b1fe8769418bd4eccc18433 proof=1475471 B prove=63.57s verify=0.1122s rss=1425 MiB verify_ok=True accepted=True
+  d3c10/00-h10045-s1 keys=17 changes=7 D=5 stb=822 cells=5224084 root=384198d1ba1f41a59b4926821a138cc2e824251b19b1ba414620e3b3d722fc77 proof=1466987 B prove=64.59s verify=0.101s rss=1400 MiB verify_ok=True accepted=True
+  d3c8/09-h10115-s1 keys=21 changes=9 D=5 stb=966 cells=5347028 root=7c27f25f52a26871d70553706a5f18f2b4d2decced1c61518c43316b396e34e7 proof=1467249 B prove=61.21s verify=0.1089s rss=1514 MiB verify_ok=True accepted=True
+  d3c8/11-h10201-s5 keys=19 changes=12 D=5 stb=1784 cells=7473304 root=8cff8d13dd321770f30688bac0d4372f0cd83b91b7623de45b18c35679894ff8 proof=1489109 B prove=69.02s verify=0.1007s rss=1547 MiB verify_ok=True accepted=True
+  d3c8/02-h10157-s0 keys=23 changes=12 D=5 stb=1830 cells=7592932 root=ded5b5303a8dc9c6349fa16aaafa845b9fc03f997abd249f16395131a105a4ce proof=1482731 B prove=70.44s verify=0.1003s rss=1715 MiB verify_ok=True accepted=True
+  d3c10/01-h10100-s4 keys=27 changes=15 D=5 stb=1840 cells=7594724 root=c40698af7794174822916cb8a541c6e24e7bfa0a665c32eed2d67f7116c073c6 proof=1479749 B prove=70.44s verify=0.1137s rss=1652 MiB verify_ok=True accepted=True
+  d3c7/05-h10011-s3 keys=21 changes=15 D=5 stb=2510 cells=7627748 root=ab16f1d6a5d10eefefa0cb4280645f08aad451ce7c795a2d059c208776c806dc proof=1484621 B prove=71.18s verify=0.175s rss=1564 MiB verify_ok=True accepted=True
+  d3c7/04-h10114-s0 keys=27 changes=23 D=5 stb=2707 cells=7634532 root=b4a35f265a9d2ca340733fe9eafa0dc4621b0aeb76e1e84a60ce68d8d4e39122 proof=1489913 B prove=68.6s verify=0.1013s rss=1692 MiB verify_ok=True accepted=True
+  d3c8/11-h10116-s3 keys=28 changes=21 D=5 stb=7648 cells=7704164 root=ff73171e984b81c367c0bdd76931ed4c420b359751649ad3a4a22721803dba96 proof=1486049 B prove=71.08s verify=0.1035s rss=1641 MiB verify_ok=True accepted=True
+  d3c9/02-h10131-s3 keys=35 changes=24 D=6 stb=2748 cells=10486832 root=f1ded6c9da8a3418b1b5d29c9bf912bcd7bb5068b1aa9d400ac498f9ef234cd0 proof=1495957 B prove=111.31s verify=0.1052s rss=1644 MiB verify_ok=True accepted=True
+  d3c9/03-h10155-s3 keys=35 changes=27 D=6 stb=4091 cells=15221856 root=032cd6fe29857ef82b29f19bd53ec2a8bca026f4c172d6f7210d2a76358d9acb proof=1520559 B prove=130.91s verify=0.1729s rss=2695 MiB verify_ok=True accepted=True
+  d3c8/03-h10047-s0 keys=125 changes=117 D=7 stb=16775 cells=50022532 root=91b726ee46e9892cc5b6d31624b304b141ea9f0ce4a27cbee4e1722be7a81ed5 proof=1858489 B prove=480.26s verify=0.1265s rss=18167 MiB verify_ok=True accepted=True

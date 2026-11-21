@@ -4,6 +4,103 @@ Plan: `docs/zk-formal/E2E-GENERAL-CHUNK-PLAN.md` §3.2 (the `stRoot` working set
 Date 2026-11-03. Labels: **[M]** measured here, **[K]** kernel-checked Lean (std axioms),
 **[S]** stated / design only.
 
+## M5a-9 (tenth session, 2026-11-03 … 11-21): corpus coverage census; extraction fix
+
+Log `docs/logs/e2e-m5a9-state-2026-11-21.md`. **No AIR change, no Lean change** this session (the
+session was paused by a usage limit). Item 3 (census) is done. Items 1 (branch-end split), 2 (`STB`
+packing) and 4 are **not built**. The census re-ranks them below.
+
+### Corpus census [M] (`census.py`, `logs/M5a9-census*.{jsonl,txt}`)
+
+All 19,007 `d3` cases of `d3c7`–`d3c10` (M5b AIR at `61d19af1f`, `D` = smallest with
+`2^D ≥ |working set|`). Every case is Lean-accepted and changes state in its main transition.
+Pipeline: Lean `--emit-full`, `extract_state.py` (with the fix below), `tracegen.py`, then the
+prover's `check` (every constraint on every row, every bus balanced). 57 min wall on 8 workers.
+
+| outcome (first failure) | cases | share |
+|---|---|---|
+| **OK** (tracegen + `check`) | **16,205** | **85.26 %** |
+| squash onto an extension sibling | 1,074 | 5.65 % |
+| split, old leaf's key ends at the branch (`splitLeaf.oldEnds`: `alice` exists, `alice.near` inserted) | 691 | 3.64 % |
+| squash to a value leaf (`squash.valueLeaf`; never `squash.empty`) | 353 | 1.86 % |
+| `VBITS = 7`: a node with ≥ 128 version readers (working set ≥ 128 keys) | 301 | 1.58 % |
+| squash onto a branch sibling | 214 | 1.13 % |
+| squash after a branch-value delete | 146 | 0.77 % |
+| split, written key ends inside a leaf (`splitLeaf.newEnds`) | 23 | 0.12 % |
+
+* **No `CHECKFAIL`, no tracegen error** besides `VBITS`. Every trace that generates satisfies every
+  constraint and balances every bus.
+* **Prove sample:** 15 OK cases spread by size all verify (native verifier and statement check).
+  Proofs run from 1,096,701 B (4 keys, D = 2, 7.6 s) and 1.46–1.49 MB (D = 4–5, 45–71 s) to
+  1,858,489 B (125 keys, D = 7, 50 M cells, 480 s, 18.2 GB RSS). Roots are in the summary file.
+* **Every gap per case** (a fault-tolerant pass that continues past each unsupported walk): of the
+  2,501 UNSUPPORTED cases, 1,982 need one shape, 470 two, 45 three, 4 four. Also found: "long
+  extension key under a delete" (2 cases). Walk occurrences: delete / squash onto an extension
+  sibling 3,624, onto a branch sibling 954, upsert / old-leaf-ends split 847, squash to a value
+  leaf 370.
+* **Priority from the census** (greedy, cases fully unlocked by each step): squash onto an
+  extension sibling +808 → 89.5 %; old-leaf-ends split +586 → 92.6 %; `VBITS` +424 → 94.8 %; squash
+  onto a branch sibling +436 → 97.1 %; squash to a value leaf +367 → 99.05 %; squash after a
+  branch-value delete +154 → 99.86 %; written-key-ends split +25; long extension under a delete +2
+  → 100 %. The "key ends at the branch" split ranks 2nd (mostly the *old* key ends). The "written
+  key ends" direction and the extension `newEnds` case are rare. The squash family (designed in
+  M5a-8, `RK_XD`) is the most frequent gap.
+* **`VBITS`:** the root is read by every walk, so a working set of N keys gives it about N readers.
+  680 cases (3.6 %) have ≥ 128 keys; no case with ≥ 128 keys passes today. Widening `vm`/`vmn` is an
+  AIR change (more bit columns). The Lean proofs should need only small changes, since they use
+  only the bit decomposition (not checked).
+* **Distributions** (all state cases, OK cases in brackets): keys p50 23 (22), p90 56 (39), p99
+  541 (103). `D` mostly 4–6 (`{4: 3,106, 5: 11,636, 6: 2,771}`), up to 11. Transitions per case:
+  `{1: 17,353, 2: 1,352, 3: 140, 4: 135, …}`. 2,156 implicit transitions with changes, each 2 keys
+  and 1 change, all trace OK (tracegen only). For item 2: `STB` rows on OK cases p50 1,558, p90 3,735,
+  p99 10,864, max 21,008 (height 2^11 for 9,080 cases, 2^12 for 3,285, up to 2^15). `HTAPE`
+  heights are nearly identical. Packing 4 bytes per `STB` row would cut its height by two powers of
+  two on most cases.
+
+### `extract_state.py` fix [M]
+
+Witness nodes that the clean-room checker first reads *during finalize* were dropped: it skipped
+every read once `update` began. These are mostly squash siblings no find walk touched. tracegen
+then saw an unrevealed (`hash`) sibling. Pre-state nodes read during finalize are now recorded.
+Effect: 1,682 cases. 1,171 go from "squash onto a hash sibling" to OK; the rest go to their real
+gap shape. T1 is unchanged (48 nodes; same trace). Checked on `d3c7/00-h10026-s0`: tracegen ok,
+`check` PRECHECK OK.
+
+### Timestamps per boundary (lane E's `idxOf = 0`) [M]
+
+A tracegen copy restarted the write time `t` at 1 in every segment. T2 (D = 6, 5 extra writes)
+with `--segs 3` and with `--segs 47`: `check` PRECHECK OK for both. In the second run, one key is
+written in segments 0 and 1, both at `t = 1`. So the working-set side (`WRITE(seg, t, …)`, `WSA`,
+the `WM` chain, `RCH`) accepts per-boundary restarts. The M5b STATE rows key the execution bytes
+`HB(ts, pos, b)` by `ts` alone. A restart is therefore safe in one proof per segment. One proof
+spanning boundaries would need `seg` added to `HB` (an AIR change, not made); `StHost.MemAgree` is
+stated per `(ts, pos)`.
+
+### Lane E `FitsReach` → `stOfK`; lane D leaf requirements [S]
+
+* `StateViewParams.FitsReach` uses `stOf c = stOfK [] c` (empty key list): unprovable for real runs
+  (lane E's `fitsB` counterexample). The intended statement is lane E's `FitsReachK κ R` (`StViewE`,
+  main `7358a938d`). `stOfK` is defined in `spec/lean/v3/NearSpecV3/E2E/StEnc.lean` on that main,
+  not on this branch's base (`61d19af1f`). The switch replaces the definition once lane B is rebased
+  onto that main (`FitsReach` is not used by `m5b_final`). Not done here (no merge on lane branches).
+* Lane D tree leaf (next milestone; costs estimated, not measured): (1) pinned shape — pad every
+  table to a template height (e.g. `STB` 2^12, SHA-512 2^16, `D` ≤ 7 covers 99 %; the proof costs
+  the template's size, ≈ 1.5–1.9 MB at today's AIR); (2) roots in the statement — the `TCH` ends
+  (`prev/post_state_root`) are already public inputs; `HTAPE` goes once lane A's `HOST` rows feed
+  `HB`/`SREQ`, or becomes a committed public table; (3) fixed-shape segments — `RCH` already chains
+  segments (`WsSeg.ws_compose`), and timestamps can restart (above); the walks need a per-segment
+  cut (M-sized); (4) proof + vk to disk — a prover change only (S).
+
+### Open after M5a-9
+
+1. Completeness, by census frequency: squash onto an extension / branch sibling (M5a-8 design
+   `RK_XD`), the old-leaf-ends split (M5a-8 design: `oLX` with `mL`, `oSL` with a value and one
+   child), `VBITS` 7 → 9, squash to a value leaf, squash after a branch-value delete, the rare
+   `newEnds` splits, a long extension under a delete.
+2. `STB`/`HTAPE` packing (item 2; the census heights above).
+3. `FitsReach` → `FitsReachK` after the rebase; `seg` in `HB` if one proof spans boundaries.
+4. Lane D leaf requirements (above), `HostReqs` from lane A's `HOST` rows, reads.
+
 ## M5a-8 (ninth session, 2026-11-03): continued keys from `Holds`, keys up to 2 KiB, `SHAS` merged
 
 Log `docs/logs/e2e-m5a8-state-2026-11-03.md`. **AIR change** (`SN` column `hph`, `STW` flag `ke`,
