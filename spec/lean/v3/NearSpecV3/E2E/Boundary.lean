@@ -205,6 +205,10 @@ structure WasmBnd where
   sp : Nat
   stackRem : Nat
   fuel : Nat
+  /-- The Wasm gas register `s.gas.g` (u64; the AIR has it as `segb − R·(S − S_seg)`), so the
+  remainder digest `vmCtxDigest` need not move at every instruction (lane A's m6 README §6; M11i).
+  Default `0` until lane A's `WasmView` sets it (§6.2). -/
+  gasLeft : Nat := 0
   framesDigest : ArenaCore.Bytes
   memRoot : ArenaCore.Bytes
   memPages : Nat
@@ -249,11 +253,11 @@ abbrev u128C : Codec Nat := natC 16
 abbrev digC : Codec ArenaCore.Bytes := bytesC digestLen
 
 def WasmBnd.codec : Codec WasmBnd :=
-  mapC (pairC u64C (pairC u64C (pairC u64C (pairC u64C (pairC digC (pairC digC (pairC u64C
-      (pairC digC (pairC digC (pairC digC (pairC digC (pairC digC digC))))))))))))
-    (fun w => (w.pc, w.sp, w.stackRem, w.fuel, w.framesDigest, w.memRoot, w.memPages,
+  mapC (pairC u64C (pairC u64C (pairC u64C (pairC u64C (pairC u64C (pairC digC (pairC digC
+      (pairC u64C (pairC digC (pairC digC (pairC digC (pairC digC (pairC digC digC)))))))))))))
+    (fun w => (w.pc, w.sp, w.stackRem, w.fuel, w.gasLeft, w.framesDigest, w.memRoot, w.memPages,
       w.globalsDigest, w.registersDigest, w.vmCtxDigest, w.promisesDigest, w.codeRoot, w.funcRoot))
-    (fun (a, b, c, d, e, f, g, h, i, j, k, l, m) => ⟨a, b, c, d, e, f, g, h, i, j, k, l, m⟩)
+    (fun (a, b, c, d, g0, e, f, g, h, i, j, k, l, m) => ⟨a, b, c, d, g0, e, f, g, h, i, j, k, l, m⟩)
     (fun _ => rfl)
 
 def BndRec.codec : Codec BndRec :=

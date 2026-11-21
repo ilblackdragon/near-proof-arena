@@ -578,6 +578,272 @@ theorem split_sound (V : ViewImpl) {A : Airs8} {k : Tmpl} (S : SplitAir A k) (M 
   rw [hg x x' hm, ← hq, hr, hr']
 
 #print axioms split_sound
+
+/-! ## The relative obligation (lane A's A-T1 finding)
+
+A leaf that **copies** boundary fields it does not constrain (WASM, RT, STATE: everything outside
+the template's own component) cannot open its input digest by itself, so the absolute
+`TmplSound8` needs an opening premise. Lane A's `TmplWasm.segSoundWasmRel_of` proves the
+**relative** form: every opening of the input steps to an opening of the output. The chain only
+needs that, given an opened first boundary, which INIT supplies (INIT computes its whole input
+record from the claim and witness bytes). `e2e_sound_m8_rel` is `e2e_sound_m8` with the relative
+form for `state`, `rt`, `wasm`, `final` and the absolute one for `init`, plus `NotInitIn` (a
+non-INIT leaf rejects an input of phase `init`; lane A's leaf already asserts phase 6). -/
+
+/-- **The relative per-template obligation.** -/
+def TmplSoundRel8 (V : ViewImpl) (A : Airs8) (Bad : Prop) (k : Tmpl) : Prop :=
+  ∀ ctx b b' (tr : A.Tr (.tmpl k)), A.Holds (.tmpl k) ctx b b' tr →
+    ∀ x, b = lbOf V x → Bad ∨ ∃ x', b' = lbOf V x' ∧ Meaning k x x' ∧ CtxLink k ctx x x'
+
+/-- An absolute obligation is a relative one, modulo a boundary collision. -/
+theorem tmplSoundRel8_of {V : ViewImpl} {A : Airs8} {Bad : Prop} {k : Tmpl}
+    (h : TmplSound8 V A Bad k) : TmplSoundRel8 V A (Bad ∨ BndCollision V.bnd) k := by
+  classical
+  intro ctx b b' tr hh x hx
+  rcases h ctx b b' tr hh with hb | ⟨y, y', hy, hy', hm, hl⟩
+  · exact .inl (.inl hb)
+  by_cases e : x = y
+  · subst e; exact .inr ⟨y', hy', hm, hl⟩
+  · exact .inl (.inr ⟨x, y, e, congrArg Prod.snd (hx.symm.trans hy)⟩)
+
+/-- **Non-INIT leaves reject an `init`-phase input** (a phase-cell check of each leaf). -/
+def NotInitIn (A : Airs8) (Bad : Prop) : Prop :=
+  ∀ k ctx b b' (tr : A.Tr k), A.Holds k ctx b b' tr → k ≠ .tmpl .init → Bad ∨ b.1 ≠ 0
+
+/-- A relatively opened leaf. -/
+def OpenedR (V : ViewImpl) (ctx : Bytes) {A : Airs8} (l : Leaf A) : Prop :=
+  (∃ k, l.1 = .tmpl k ∧ ∀ x, l.2.1 = lbOf V x →
+      ∃ x', l.2.2.1 = lbOf V x' ∧ Meaning k x x' ∧ CtxLink k ctx x x') ∨
+    (l.1 = .pad ∧ l.2.2.1 = l.2.1 ∧ DonePh l.2.1.1)
+
+theorem walkR {V : ViewImpl} {A : Airs8} {ctx : Bytes} :
+    ∀ (ls : List (Leaf A)) (x0 : RConf) (bN : LB), (∀ l ∈ ls, OpenedR V ctx l) →
+      BndChained (lbOf V x0) (ls.map fun x => (x.2.1, x.2.2.1)) bN →
+      ∃ xN, bN = lbOf V xN ∧ RSteps x0 xN ∧
+        (xN = x0 ∨ ∃ k a, Meaning k a xN ∧ CtxLink k ctx a xN)
+  | [], x0, bN, _, h => ⟨x0, h.symm, .refl _, .inl rfl⟩
+  | l :: ls, x0, bN, ho, ⟨h1, h2⟩ => by
+    simp only at h1 h2
+    rcases ho l List.mem_cons_self with ⟨k, -, hk⟩ | ⟨-, hpad, -⟩
+    · obtain ⟨x', ha', hm, hl⟩ := hk x0 h1.symm
+      rw [ha'] at h2
+      obtain ⟨xN, hN, hr, hlast⟩ :=
+        walkR ls x' bN (fun l' hl' => ho l' (List.mem_cons_of_mem _ hl')) h2
+      refine ⟨xN, hN, (meaning_rsteps hm).trans hr, .inr ?_⟩
+      rcases hlast with rfl | hlast
+      · exact ⟨k, x0, hm, hl⟩
+      · exact hlast
+    · rw [hpad, ← h1] at h2
+      exact walkR ls x0 bN (fun l' hl' => ho l' (List.mem_cons_of_mem _ hl')) h2
+
+/-- **`e2e_sound_m8` with the relative obligations** (absolute INIT, relative others). -/
+theorem e2e_sound_m8_rel (V : ViewImpl) (A : Airs8) {Proof : Type}
+    (FinalVerify : PublicStmt → Proof → Bool) (Bad : Prop)
+    (ob1 : TreeFaithful A FinalVerify Bad)
+    (hInit : SegSoundInit8 V A Bad) (hState : TmplSoundRel8 V A Bad .state)
+    (hRt : TmplSoundRel8 V A Bad .rt) (hWasm : TmplSoundRel8 V A Bad .wasm)
+    (hFinal : TmplSoundRel8 V A Bad .final) (hPad : PadSound8 A Bad) (hNI : NotInitIn A Bad)
+    (s : PublicStmt) (hwf : s.wf = true) (π : Proof) (hv : FinalVerify s π = true) :
+    E2EStmt s ∨ Bad ∨ BndCollision V.bnd ∨ Sha384Coll := by
+  classical
+  rcases ob1 s π hv with hb | ⟨ch, ⟨hholds, hchain⟩, h0, hN⟩
+  · exact .inr (.inl hb)
+  by_cases hbad : Bad
+  · exact .inr (.inl hbad)
+  by_cases hcol : BndCollision V.bnd
+  · exact .inr (.inr (.inl hcol))
+  by_cases hsha : Sha384Coll
+  · exact .inr (.inr (.inr hsha))
+  have hrel : ∀ k, TmplSoundRel8 V A (Bad ∨ BndCollision V.bnd) k
+    | .init => tmplSoundRel8_of hInit
+    | .state => fun ctx b b' tr hh x hx => (hState ctx b b' tr hh x hx).imp_left .inl
+    | .rt => fun ctx b b' tr hh x hx => (hRt ctx b b' tr hh x hx).imp_left .inl
+    | .wasm => fun ctx b b' tr hh x hx => (hWasm ctx b b' tr hh x hx).imp_left .inl
+    | .final => fun ctx b b' tr hh x hx => (hFinal ctx b b' tr hh x hx).imp_left .inl
+  have hop : ∀ l ∈ ch.leaves, OpenedR V (claimDigest s) l := by
+    intro l hl
+    obtain ⟨kd, b, b', tr⟩ := l
+    have hh := hholds _ hl
+    cases kd with
+    | tmpl k =>
+      refine .inl ⟨k, rfl, fun x hx => ?_⟩
+      rcases hrel k _ _ _ tr hh x hx with hb | h
+      · rcases hb with hb | hb
+        · exact absurd hb hbad
+        · exact absurd hb hcol
+      · exact h
+    | pad =>
+      rcases hPad _ _ _ tr hh with hb | ⟨h1, h2⟩
+      · exact absurd hb hbad
+      · exact .inr ⟨rfl, h1, h2⟩
+  -- the first leaf is INIT (phase 0), opened absolutely
+  obtain ⟨secB, w, hx0⟩ : ∃ secB w, ch.b0 = lbOf V (.base (.init (assemble s.ci secB s.secC) w)) := by
+    cases hls : ch.leaves with
+    | nil =>
+      rw [hls] at hchain
+      have : ch.b0 = ch.bN := hchain
+      rw [this] at h0
+      rcases hN with h | h <;> omega
+    | cons l rest =>
+      rw [hls] at hchain hholds
+      obtain ⟨h1, -⟩ := hchain
+      simp only at h1
+      obtain ⟨kd, b, b', tr⟩ := l
+      simp only at h1
+      have hh := hholds _ List.mem_cons_self
+      by_cases hk : kd = .tmpl .init
+      · subst hk
+        rcases hInit _ _ _ tr hh with hb | ⟨a, a', ha, -, hm, hl⟩
+        · exact absurd hb hbad
+        have hp : (V.bnd a).phase = 0 := by
+          have := congrArg Prod.fst (h1.trans ha)
+          simp only [lbOf] at this
+          rw [← this]; exact h0
+        obtain ⟨cb, wb, rfl⟩ := phase_zero hp
+        obtain ⟨s', secB, w, hwf', hd', hx⟩ := hl
+        rcases claimDigest_binding hwf' hwf hd' with he | he
+        · subst he
+          exact ⟨secB, w, h1.trans (ha.trans (by rw [hx]))⟩
+        · exact absurd he hsha
+      · rcases hNI _ _ _ _ tr hh hk with hb | hb
+        · exact absurd hb hbad
+        · exact absurd (h1 ▸ h0) hb
+  rw [hx0] at hchain
+  obtain ⟨xN, hxN, hrun, hlast⟩ := walkR ch.leaves _ ch.bN hop hchain
+  have hpN : DonePh (V.bnd xN).phase := by
+    have := congrArg Prod.fst hxN
+    simp only [lbOf] at this
+    rw [← this]; exact hN
+  rcases phase_done hpN with ⟨H, o, rfl⟩ | rfl
+  · rcases hlast with he | ⟨k, a, hm, hl⟩
+    · cases he
+    · have hk := meaning_done_tgt hm
+      subst hk
+      obtain ⟨s', hwf', hd', hf⟩ := hl H o rfl
+      rcases claimDigest_binding hwf' hwf hd' with he | he
+      · subst he
+        exact .inl ((e2e_stmt_iff_cm s').2
+          ⟨secB, w, _, rsteps_sound hrun, finalOutPub_accepting s' _ hf⟩)
+      · exact absurd he hsha
+  · exact .inl ((e2e_stmt_iff_cm s).2 ⟨secB, w, _, rsteps_sound hrun, rfl⟩)
+
+/-! ## The fine honest decomposition (lane A's completeness finding)
+
+`cm_decomp` uses one `wasm` segment per **whole call** (`.pre → .fin r`), which no fixed-height
+leaf proves (`TmplWasm.wasm_not_complete_pre`). `refine_chain` splits every `wasm` element into
+single call-machine steps from non-final configurations (`MWasm1`: the `.pre → .ent` seam
+`cstep q .pre = preConf q` — PREP —, each instruction, and the halting step), so completeness is
+needed only on single steps (`TmplCompleteFine`); consecutive steps may be merged into one leaf
+by `CSteps.trans` (lane A's `WasmSegComplete`). -/
+
+/-- One call-machine step from a non-final call configuration. -/
+def MWasm1 (x x' : RConf) : Prop :=
+  ∃ I c K q cc, x = .call I c K q cc ∧ (∀ r, cc ≠ .fin r) ∧ x' = .call I c K q (cstep q cc)
+
+theorem mwasm1_meaning {x x' : RConf} (h : MWasm1 x x') : Meaning .wasm x x' := by
+  obtain ⟨I, c, K, q, cc, rfl, -, rfl⟩ := h
+  exact .run (.step (.refl _))
+
+/-- A call-machine run is a chain of single steps. -/
+theorem csteps_fine (I : Intake) (c : EConf) (K : VmV) (q : VmQ) {a b : CallConf}
+    (h : CSteps q a b) : ∃ L, MChain (.call I c K q a) L (.call I c K q b) ∧
+      ∀ e ∈ L, e.1 = .wasm ∧ MWasm1 e.2.1 e.2.2 := by
+  induction h with
+  | refl => exact ⟨[], rfl, fun _ h => absurd h (by simp)⟩
+  | @step a b' _ ih =>
+    obtain ⟨L, hL, hall⟩ := ih
+    by_cases hf : ∃ r, a = .fin r
+    · obtain ⟨r, rfl⟩ := hf
+      exact ⟨L, hL, hall⟩
+    · have hnf : ∀ r, a ≠ .fin r := fun r e => hf ⟨r, e⟩
+      refine ⟨(.wasm, .call I c K q a, .call I c K q (cstep q a)) :: L,
+        ⟨rfl, mwasm1_meaning ⟨I, c, K, q, a, rfl, hnf, rfl⟩, hL⟩, fun e he => ?_⟩
+      rcases List.mem_cons.1 he with rfl | he
+      · exact ⟨rfl, I, c, K, q, a, rfl, hnf, rfl⟩
+      · exact hall e he
+
+/-- **Refining a meaning chain**: every `wasm` element becomes single steps; the others stay. -/
+theorem refine_chain : ∀ {a b : RConf} (L : List (Tmpl × RConf × RConf)), MChain a L b →
+    ∃ L', MChain a L' b ∧ ∀ e ∈ L', (e.1 ≠ .wasm ∧ e ∈ L) ∨ (e.1 = .wasm ∧ MWasm1 e.2.1 e.2.2)
+  | a, b, [], h => ⟨[], h, fun _ h => absurd h (by simp)⟩
+  | a, b, e :: L, ⟨h1, hm, hr⟩ => by
+    obtain ⟨L', hL', hall⟩ := refine_chain L hr
+    obtain ⟨k, x, x'⟩ := e
+    simp only at h1 hm hr hL' ⊢
+    subst h1
+    by_cases hk : k = .wasm
+    · subst hk
+      cases hm with
+      | @run I c K q cc cc' hc =>
+        obtain ⟨L0, h0, hall0⟩ := csteps_fine I c K q hc
+        refine ⟨L0 ++ L', mchain_append L0 L' h0 hL', fun e he => ?_⟩
+        rcases List.mem_append.1 he with he | he
+        · exact .inr (hall0 e he)
+        · rcases hall e he with ⟨hne, hm⟩ | h
+          · exact .inl ⟨hne, List.mem_cons_of_mem _ hm⟩
+          · exact .inr h
+    · refine ⟨(k, a, x') :: L', ⟨rfl, hm, hL'⟩, fun e he => ?_⟩
+      rcases List.mem_cons.1 he with rfl | he
+      · exact .inl ⟨hk, List.mem_cons_self⟩
+      · rcases hall e he with ⟨hne, hm⟩ | h
+        · exact .inl ⟨hne, List.mem_cons_of_mem _ hm⟩
+        · exact .inr h
+
+/-- **Completeness on the fine decomposition**: as `TmplComplete8`, but for `wasm` only on single
+call-machine steps. -/
+def TmplCompleteFine (V : ViewImpl) (A : Airs8) (s : PublicStmt) : Prop :=
+  (∀ k, k ≠ .wasm → TmplComplete8 V A s k) ∧
+    ∀ x x', MWasm1 x x' → ∃ tr, A.Holds (.tmpl .wasm) (claimDigest s) (lbOf V x) (lbOf V x') tr
+
+/-- The leaf chain of a meaning chain, from per-element completeness. -/
+theorem tree_of_mchain' (V : ViewImpl) (A : Airs8) (ctx : Bytes) :
+    ∀ {a b : RConf} (L : List (Tmpl × RConf × RConf)), MChain a L b →
+      (∀ e ∈ L, ∃ tr, A.Holds (.tmpl e.1) ctx (lbOf V e.2.1) (lbOf V e.2.2) tr) →
+      ∃ ch : TreeChain A, ch.Valid ctx ∧ ch.b0 = lbOf V a ∧ ch.bN = lbOf V b
+  | a, b, [], h, _ => by cases h; exact ⟨⟨[], _, _⟩, ⟨by simp, rfl⟩, rfl, rfl⟩
+  | a, b, e :: L, ⟨h1, hm, hr⟩, hc => by
+    subst h1
+    obtain ⟨tr, htr⟩ := hc e List.mem_cons_self
+    obtain ⟨ch, ⟨hs, hch⟩, h0, hN⟩ :=
+      tree_of_mchain' V A ctx L hr (fun e' he' => hc e' (List.mem_cons_of_mem _ he'))
+    refine ⟨⟨⟨.tmpl e.1, lbOf V e.2.1, lbOf V e.2.2, tr⟩ :: ch.leaves, _, ch.bN⟩,
+      ⟨?_, ⟨rfl, ?_⟩⟩, rfl, hN⟩
+    · intro x hx
+      rcases List.mem_cons.1 hx with rfl | hx
+      · exact htr
+      · exact hs x hx
+    · rw [← h0]; exact hch
+
+theorem meaning_of_mem : ∀ {a b : RConf} {L : List (Tmpl × RConf × RConf)}, MChain a L b →
+    ∀ e ∈ L, Meaning e.1 e.2.1 e.2.2
+  | _, _, [], _, _, he => absurd he (by simp)
+  | _, _, _ :: L, ⟨_, hm, hr⟩, e, he => by
+    rcases List.mem_cons.1 he with rfl | he
+    · exact hm
+    · exact meaning_of_mem hr e he
+
+/-- **The honest side on the fine decomposition** (completeness needed on single Wasm steps). -/
+theorem honest_tree_fine (V : ViewImpl) (A : Airs8) (s : PublicStmt) (hwf : s.wf = true)
+    (hc : TmplCompleteFine V A s) (secB : List BlockRec) (w : Bytes) (cf : Conf)
+    (hrun : Steps (.init (assemble s.ci secB s.secC) w) cf) (hacc : FinalOutPub s cf) :
+    ∃ ch : TreeChain A, ch.Valid (claimDigest s) ∧ ch.b0.1 = 0 ∧ DonePh ch.bN.1 := by
+  obtain ⟨L, hL⟩ := cm_decomp hrun
+  obtain ⟨L', hL', hall⟩ := refine_chain L hL
+  have hl := mchain_links s secB w hwf cf hacc _ L' hL' (fun cb wb h => rfl)
+  obtain ⟨ch, hv, h0, hN⟩ := tree_of_mchain' V A (claimDigest s) L' hL' (fun e he => by
+    rcases hall e he with ⟨hne, -⟩ | ⟨hw, hm⟩
+    · exact hc.1 e.1 hne _ _ (meaning_of_mem hL' e he) (hl e he)
+    · rw [hw]; exact hc.2 _ _ hm)
+  refine ⟨ch, hv, by rw [h0]; rfl, ?_⟩
+  rw [hN]
+  cases cf with
+  | done H o => exact .inl rfl
+  | doneG => exact .inr rfl
+  | _ => exact absurd hacc (by simp [FinalOutPub])
+
+#print axioms e2e_sound_m8_rel
+#print axioms refine_chain
+#print axioms honest_tree_fine
 #print axioms init_step_shape
 #print axioms walk
 #print axioms e2e_sound_m8
