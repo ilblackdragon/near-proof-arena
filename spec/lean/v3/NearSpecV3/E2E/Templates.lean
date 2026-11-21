@@ -132,6 +132,17 @@ def Meaning : Tmpl → RConf → RConf → Prop
   | .wasm => MWasm
   | .final => MFinal
 
+theorem VFSteps.trans {I : Intake} {a b c : EConf} (h1 : VFSteps I a b) (h2 : VFSteps I b c) :
+    VFSteps I a c := by
+  induction h1 with
+  | refl => exact h2
+  | step h _ ih => exact .step h (ih h2)
+
+/-- Consecutive `STATE` segments merge into one (a leaf may cover several VM-free engine steps). -/
+theorem mstate_trans {x y z : RConf} (h1 : MState x y) (h2 : MState y z) : MState x z := by
+  cases h1 with
+  | run h1 => cases h2 with | run h2 => exact .run (h1.trans h2)
+
 theorem vfree_estep {I : Intake} {c c' : EConf} (h : VFree I c c') : estep I.prog c = .ok c' :=
   estepO_sound (strictO_le (fun _ h => by cases h)) I.prog c c' h.2
 
