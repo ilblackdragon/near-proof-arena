@@ -1,7 +1,7 @@
 {
  "name": "INIT-14",
  "template": "init",
- "note": "INIT, chip 2^14: d3 census (logs/G2-census.txt): joint max of the class members (sample of 875 d3 cases: 160)",
+ "note": "INIT, chip 2^14: d3 census (logs/G2-census.txt): joint max of the class members (sample of 875 d3 cases: 160); G-2: BLK (section-B framing walk) pinned at 2^8 (<= 255 header + slot rows)",
  "params": {
   "n_stack": 18,
   "log_blowup": 1,
@@ -14,7 +14,8 @@
   "INI": 2,
   "RNG": 8,
   "S384": 8,
-  "SHA512": 14
+  "SHA512": 14,
+  "BLK": 8
  },
- "cells": 1674300
+ "cells": 1681980
 }

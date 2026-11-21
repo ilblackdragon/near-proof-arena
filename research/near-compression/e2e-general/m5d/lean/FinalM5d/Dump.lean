@@ -130,6 +130,9 @@ def dump (dir : String) (cb wb : Bytes) : Except String Lean.Json := do
         ("gasUsed", num o.gasUsed), ("gasLimit", num o.gasLimit),
         ("balanceBurnt", num o.balanceBurnt), ("congestion", hx (congEnc o.congestion))]),
     ("implicit", num I.w.implicit.length),
+    ("walk", Lean.Json.mkObj [("b2i", num I.wk.b2i), ("mainShard", num I.wk.mainShard),
+      ("mainIdx", num ((I.Lmain.index I.wk.mainShard).getD 999999)),
+      ("slotPrevStateRoot", hx I.slotB2.prevStateRoot)]),
     ("bout", Lean.Json.mkObj [("ctxHeaderD", hx (BOut.ctxHeaderD H)),
       ("outDoneD", hx (BOut.outDoneD o).1), ("encOutputsF1", hx (BOut.encOutputsF1 o))])]
 

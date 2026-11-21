@@ -132,3 +132,29 @@ M5d proves the `tailNew` + `headerOk` part (`final_template_sound`), `finK` come
 
 **Measured (T1, canonical `S`):** FINAL 992,188 B, 268.2-bit, prove 30.3 s, verify 83 ms; INIT
 790,307 B, prove 56.1 s, verify 58 ms.
+
+## 5. The join buses (G-2) — fixed here for lanes B / D / E
+
+Bus ids are in the joint leaf's numbering = lane G's `FinalM5d.Dsl` numbering (buses `0..18` as
+in `Dsl.lean`, then the G-2 ones). A joint leaf is one AIR: lane B's tables are added with their
+buses renumbered past these, except the two join buses below, which both sides use as written.
+
+| bus | id | messages | sender → receiver |
+|---|---|---|---|
+| `FINB` (`FinIn`) | **23** | `(j, byte)`, `j < FI_LEN = 246 + 8·NS`, multiplicity 1 each | lane B's IF FINAL (bytes `0..32`: `post_state_root`, from `TCH(n, post)`; lane B's `pack2` limb `t` = bytes `2t, 2t+1`, big-endian) and M5c (congestion, …) → lane G's `FIN` (`fi[j]`), in place of `finInDigest`. In the standalone FINAL template these bytes are hashed to `finInDigest` (public values 14..28) instead. |
+| `PSR` | **22** | `(j, byte)`, `j < 32`, multiplicity 1 each | lane G's `INI` (the main chunk slot's `prev_state_root`, read from the claim) → lane B's IF INTAKE (`WSB`'s public limbs 0–15). In the standalone INIT template the bytes are public values 28..44 (16 big-endian byte pairs = lane B's `pack2`). |
+| `CB`, `LB`, `SLOT` | 19, 20, 21 | INIT-internal (claim byte reads, section-B span, slots) | — |
+
+## 6. INIT: the claim's section B (G-2) [M]
+
+INIT now decodes the framing of section B (`BLK`, `Init.lean`): the block vector
+`encList BlockRec.encode secB` is walked field group by field group (count, per block
+`u8 ‖ hash ‖ u32-bytes ‖ u32-bytes ‖ u32 m`, per slot `u32-bytes ‖ u64`), contiguous, from `|pre|`
+to exactly `|pre| + ℓ_B` — the `ℓ_B` hashed into `ctxRoot`. So `ℓ_B` is the span `decodeClaimE`'s
+`pVec dBlock` consumes, the obligation of §3 (no longer lane B's). Every slot is on `SLOT
+(block, slot, inner start, inner length)`; `INI` takes the main slot `(b2i, mainIdx)` (private,
+from the checker's walk) and reads its `prev_state_root` (inner bytes 33..65, `inner length ≥ 65`).
+**Open [S]:** that `(b2i, mainIdx)` is `walkSegment`'s choice (the walk reads section B's headers
+and section C's epochs / layouts) — mutant `psr_slot` (another slot) is *not* rejected by the AIR;
+until the walk is in-circuit the leaf must take `(b2i, mainIdx)` as trusted (e.g. a public value
+lane D checks against the statement's walk, which V_d can recompute only with section B).

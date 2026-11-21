@@ -570,6 +570,60 @@ class GenInit(Gen):
                 na += kind == 'ka'
                 nb += kind == 'kb'
                 nc += kind != 'kw'
+        # G-2: the framing walk over section B (BLK) and the main slot's prev_state_root (INI)
+        npre = len(pre)
+        reads = set()
+        B = self.T['BLK']
+        def rd32(o):
+            assert blocks[o + 3] == 0
+            reads.update(range(npre + o, npre + o + 4))
+            return blocks[o] + 256 * blocks[o + 1] + 65536 * blocks[o + 2], blocks[o:o + 4]
+        def blkrow(kind, st, en, ys, rb, rs, bi, si):
+            r = B.new()
+            B.set(r, 'act', 1); B.set(r, kind, 1); B.set(r, 's', npre + st); B.set(r, 'e', npre + en)
+            B.set(r, 'E', npre + len(blocks)); B.setv(r, 'y', ys + [0] * (12 - len(ys)))
+            B.set(r, 'rb', rb); B.set(r, 'rs', rs)
+            B.set(r, 'zr', int(rb == 0)); B.set(r, 'ir', pow(rb, P - 2, P) if rb else 0)
+            B.set(r, 'zs', int(rs == 0)); B.set(r, 'is', pow(rs, P - 2, P) if rs else 0)
+            B.set(r, 'bi', bi); B.set(r, 'si', si)
+            sp = u(npre + st, 3); B.setv(r, 'sp', sp)
+            for x in sp:
+                self.look(self.r8, x)
+        o = 0
+        nblk, y = rd32(0)
+        blkrow('kn', 0, 4, y, nblk, 0, 0, 0)
+        o = 4
+        slots = {}
+        rb = nblk
+        for bi in range(nblk):
+            st = o
+            l1, y1 = rd32(o + 33)
+            l2, y2 = rd32(o + 37 + l1)
+            ns, y3 = rd32(o + 41 + l1 + l2)
+            o = o + 45 + l1 + l2
+            rb -= 1
+            blkrow('kh', st, o, y1 + y2 + y3, rb, ns, bi + 1, 0)
+            rs = ns
+            for si in range(ns):
+                st = o
+                ls, y0 = rd32(o)
+                slots[(bi, si)] = (npre + o + 4, ls)
+                o = o + 12 + ls
+                rs -= 1
+                blkrow('ks', st, o, y0, rb, rs, bi + 1, si + 1)
+        assert o == len(blocks), (o, len(blocks))
+        if self.mut('lbshift'):
+            # a block vector re-framed one byte short: the walk's last end is |pre| + ℓ_B − 1
+            last = B.rows[-1]
+            last[B.ix('e')] -= 1
+        b2i, mi = int(d['walk']['b2i']), int(d['walk']['mainIdx'])
+        sst, sln = slots[(b2i, mi)]
+        psr = cb_ = (pre + blocks + post)[sst + 33:sst + 65]
+        if self.mutant is None:
+            assert bytes(psr).hex() == d['walk']['slotPrevStateRoot'], 'slot prev_state_root'
+        reads.update(range(sst + 33, sst + 65))
+        for rr in T.rows[npre:npre + len(blocks)]:
+            rr[T.ix('rd')] = int(rr[T.ix('kc')] in reads)
         if self.mut('clm_kind'):
             T.rows[len(pre) + 2][T.ix('kb')] = 0
             T.rows[len(pre) + 2][T.ix('kp')] = 1
@@ -588,19 +642,33 @@ class GenInit(Gen):
         I.setv(r, 'pa', u(len(pre), 3)); I.setv(r, 'lb', u(len(blocks), 3)); I.setv(r, 'lc', u(len(cb), 3))
         for v in u(len(pre), 3) + u(len(blocks), 3) + u(len(cb), 3):
             self.look(self.r8, v)
+        I.set(r, 'b2i', b2i); I.set(r, 'mi', mi); I.set(r, 'sst', sst); I.set(r, 'sln', sln)
+        I.setv(r, 'slx', u(sln - 65, 3)); I.setv(r, 'psr', psr)
+        for v in u(sln - 65, 3):
+            self.look(self.r8, v)
+        if self.mut('psr_slot'):
+            # another slot's prev_state_root (the walk picks b2i / mainIdx; here: the next slot)
+            other = [k for k in slots if k != (b2i, mi)][0]
+            sst2, sln2 = slots[other]
+            r[I.ix('sst')] = sst2; r[I.ix('sln')] = sln2
+            psr = (pre + blocks + post)[sst2 + 33:sst2 + 65]
+            I.setv(r, 'psr', psr)
         if self.mut('ini_lb'):
             r[I.ix('lb', 0)] += 1
             r[I.ix('nb')] += 1
         self.fill_rng()
-        pubs = limbs3(cd[:42]) + limbs3(xd[:42])
+        pubs = limbs3(cd[:42]) + limbs3(xd[:42]) + [256 * psr[2 * t] + psr[2 * t + 1] for t in range(16)]
         self.pubs, self.stmt_pubs = pubs, list(pubs)
         if self.mut('pub_ctx'):
             self.pubs[20] += 1
+        if self.mut('pub_psr'):
+            self.pubs[30] += 1
         return dict(pre=len(pre), blocks=len(blocks), post=len(post), witness=len(wit), claimDigest=bytes(cd[:42]).hex(),
                     ctxRoot=bytes(xd[:42]).hex())
 
 
-INIT_MUTANTS = ['pre_byte', 'blk_byte', 'wit_byte', 'clm_kind', 'clm_byte', 'ini_lb', 'pub_ctx']
+INIT_MUTANTS = ['pre_byte', 'blk_byte', 'wit_byte', 'clm_kind', 'clm_byte', 'ini_lb', 'pub_ctx',
+                'lbshift', 'psr_slot', 'pub_psr']
 
 MUTANTS = ['hdr_psr', 'hdr_por', 'hdr_emr', 'hdr_el', 'hdr_gu', 'hdr_gl', 'hdr_bb', 'hdr_orr', 'hdr_txr',
            'hdr_props', 'hdr_cong', 'hdr_bw', 'hdr_split',
