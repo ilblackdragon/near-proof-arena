@@ -80,4 +80,42 @@ theorem ext_inj (hinj : ∀ a b c d, H a b = H c d → a = c ∧ b = d) (z : α)
   | 0, _, _, h => h
   | k + 1, x, y, h => ext_inj hinj z D k x y (hinj _ _ _ _ h).1
 
+
+/-! ## `WSX` at record level
+
+A `WSX` row holds `(z, a)` and the two node hashes `zo = H z z`, `ao = H a z`; consecutive active
+rows are linked (`z' = zo`, `a' = ao`), and the first row's `z` is the constant `Z_D`.  Then the
+last row's `ao` is the extension of the first row's `a` by the number of rows. -/
+
+/-- A chain of `WSX` rows `(z, a)` from level `d`, ending in `out` (the top row's `ao`). -/
+def WsxChain (z : α) : Nat → List (α × α) → α → Prop
+  | _, [], _ => False
+  | d, [(zz, a)], out => zz = zd H z d ∧ out = H a zz
+  | d, (zz, a) :: (zz', a') :: rest, out =>
+      zz = zd H z d ∧ zz' = H zz zz ∧ a' = H a zz ∧ WsxChain z (d + 1) ((zz', a') :: rest) out
+
+theorem extUp_succ_left (z : α) : ∀ (D k : Nat) (x : α),
+    extUp H z D (k + 1) x = extUp H z (D + 1) k (H x (zd H z D))
+  | D, 0, x => by simp [extUp]
+  | D, k + 1, x => by
+    rw [extUp, extUp_succ_left z D k x, extUp, show D + (k + 1) = D + 1 + k by omega]
+
+/-- **`WSX` computes the extension**: rows from level `d`, `n + 1` of them, end in
+`extUp H z d (n + 1) a₀` (the first row's `a`). -/
+theorem wsxChain_out (z : α) : ∀ (rows : List (α × α)) (d : Nat) (a0 zz0 out : α),
+    rows.head? = some (zz0, a0) → WsxChain H z d rows out → out = extUp H z d rows.length a0
+  | [], _, _, _, _, h, _ => by simp at h
+  | [(zz, a)], d, a0, zz0, out, h, hc => by
+    simp only [List.head?_cons, Option.some.injEq, Prod.mk.injEq] at h
+    obtain ⟨rfl, rfl⟩ := h
+    obtain ⟨hz, ho⟩ := hc
+    simp [extUp, ho, hz]
+  | (zz, a) :: (zz', a') :: rest, d, a0, zz0, out, h, hc => by
+    simp only [List.head?_cons, Option.some.injEq, Prod.mk.injEq] at h
+    obtain ⟨rfl, rfl⟩ := h
+    obtain ⟨hz, hz', ha', hrest⟩ := hc
+    have := wsxChain_out z ((zz', a') :: rest) (d + 1) a' zz' out rfl hrest
+    rw [this, ha', hz]
+    simp only [List.length_cons]
+    rw [extUp_succ_left H z d (rest.length + 1)]
 end StateM5a.Merkle

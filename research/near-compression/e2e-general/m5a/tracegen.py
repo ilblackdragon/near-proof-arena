@@ -1589,8 +1589,16 @@ class Gen:
                 if t in pin and h > pin[t]:
                     raise TemplateOverflow('%s %s: natural 2^%d > template 2^%d' % (name, t, h, pin[t]))
             a24, b24 = self.root24[role]
+            if role == ('seg', 0) and self.mutant == 'segrout':
+                # the segment claims another outgoing working-set root (one bit of word 0)
+                b24 = [b24[0] ^ 1] + list(b24[1:])
+            if role == ('seg', 0) and self.mutant == 'segrin':
+                a24 = [a24[0] ^ (1 << 40)] + list(a24[1:])
+            if role == 'if' and self.mutant == 'ifr0':
+                a24 = [a24[0] ^ 1] + list(a24[1:])
             if role == 'if':
-                pubs = pack2(self.pre_root) + [wslen] + r24(a24) + r24(b24) + pack2(post) + [len(self.final)]
+                pubs = pack2(self.pre_root) + [wslen] + r24(a24) + r24(b24) + pack2(post) + \
+                    [len(self.final) + (1 if self.mutant == 'nchange' else 0)]
             else:
                 pubs = pack2(self.pre_root) + [wslen] + r24(a24) + r24(b24)
             summary[name] = dict(heights=nat, rows={tn(t): len(T[t].rows) for t in order},
@@ -2023,7 +2031,7 @@ def _st_tamper(g, part):
     rows = [r for r in Tb.rows if Tb.get(r, 'm') == m]
     Tb.set(rows[0], 'b', Tb.get(rows[0], 'b') ^ 1)
     data = bytes(Tb.get(r, 'b') for r in rows)
-    msg = next(x for x in g.sha_st_msgs if x['id'] == ID_ST + m)
+    msg = next(x for x in (g.sha_msgs if g.splitmode else g.sha_st_msgs) if x['id'] == ID_ST + m)
     msg['bytes'] = data.hex()
     Tw.setv(w, 'dk' if part == 'mk' else 'dv', list(sha(data)))
 
@@ -2060,7 +2068,40 @@ def _t_kempty(g):
     Tw.set(r, 'ke', 1)
 
 
-TAMPERS = dict(hphshort=_t_hphshort, hphlong=_t_hphlong, kempty=_t_kempty,
+# ---- B-T1 mutants (the template cut: `WSX`, the boundary public values)
+def _t_wsxzero(g):
+    # the zero-subtree chain starts from another digest than the constant Z_D (one limb + 1),
+    # consistently hashed: `isFirst·(z − Z_D)`
+    T = g.R['if']['T']['WSX']
+    r = T.rows[0]
+    T.set(r, 'z', T.get(r, 'z', 0) + 1, 0)
+
+
+def _t_wsxroot(g):
+    # the segment's incoming depth-D root replaced (first row's `a`): `RCH(0, ·)` unbalanced
+    T = g.T['WSX']
+    r = T.rows[0]
+    T.set(r, 'a', T.get(r, 'a', 0) ^ 1, 0)
+
+
+def _t_wsxhash(g):
+    # one extension step's output changed (and carried to the next row): the chip's compression
+    # disagrees
+    T = g.T['WSX']
+    r, r2 = T.rows[3], T.rows[4]
+    v = (T.get(r, 'ao', 0) + 1) % (1 << 21)
+    T.set(r, 'ao', v, 0)
+    T.set(r2, 'a', v, 0)
+
+
+def _t_wsxlvl(g):
+    # the extension stops one level early (its top row at level 22, the 24-level root claimed one
+    # level below): `top·(lvl − 23)` / the active-prefix constraints
+    T = g.R['if']['T']['WSX']
+    T.rows.pop()
+
+
+TAMPERS = dict(wsxzero=_t_wsxzero, wsxroot=_t_wsxroot, wsxhash=_t_wsxhash, wsxlvl=_t_wsxlvl, hphshort=_t_hphshort, hphlong=_t_hphlong, kempty=_t_kempty,
                lmwrap=_t_lmwrap, vbyte=_t_vbyte, dmono=_t_dmono, bvwrap=_t_bvwrap, absent=_t_absent, extabsent=_t_extabsent, branchval=_t_branchval, split=_t_split,
                splitext=_t_splitext, absdel=_t_absdel, squash=_t_squash, chain=_t_chain,
                verslot=_t_verslot, vernid=_t_vernid, vmcount=_t_vmcount, finroot=_t_finroot,
@@ -2123,6 +2164,8 @@ def main():
         PT.OVERRIDE.clear()
         g = make_gen(st, names, mutant, plan, segs, extra, split, host)
     if mutant in TAMPERS:
+        if split:
+            g.set_role(('seg', 0))       # segment tampers act on the first segment's dump
         try:
             TAMPERS[mutant](g)
         except StopIteration:
