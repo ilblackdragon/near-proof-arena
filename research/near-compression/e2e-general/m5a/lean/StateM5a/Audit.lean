@@ -1,4 +1,5 @@
 import StateM5a.SnFinal6
+import StateM5a.FieldWsx
 import StateM5a.StHostIf
 import StateM5a.TmplView
 import StateM5a.SnContRec4
@@ -711,3 +712,7 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.m5tSegH_tables
 #print axioms StateM5a.stwH_hid
 #print axioms StateM5a.Merkle.wsxChain_out
+#print axioms StateM5a.FieldWsx.wsx_layout
+#print axioms StateM5a.FieldWsx.wsx_link
+#print axioms StateM5a.FieldWsx.wsx_first_z
+#print axioms StateM5a.FieldWsx.wsx_top_pub

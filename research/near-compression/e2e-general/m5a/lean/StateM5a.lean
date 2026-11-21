@@ -152,3 +152,4 @@ import StateM5a.StHost
 import StateM5a.Tmpl
 import StateM5a.TmplView
 import StateM5a.StHostIf
+import StateM5a.FieldWsx
