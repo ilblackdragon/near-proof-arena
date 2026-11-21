@@ -1,5 +1,6 @@
 import FinalM5d.Dump
 import FinalM5d.Final
+import FinalM5d.Init
 import ZkFormal.Air.Export
 
 /-!
@@ -50,6 +51,13 @@ def main (args : List String) : IO UInt32 := do
     for (n, t) in finalNames.zip finalAir.tables do
       IO.println s!"TABLE {n}: width {t.width}, constraints {t.constraints.length}, interactions {t.interactions.length}"
     return 0
+  | ["air-init", out, names] =>
+    IO.FS.writeFile out (ZkFormal.Air.Air.exportJson InitT.initAir)
+    IO.FS.writeFile names (namesJson InitT.initNames InitT.initLayouts
+      (finalConsts ++ [("ID_CTX", toString InitT.ID_CTX), ("CTX_TAG", toString InitT.CTX_TAG)]))
+    for (n, t) in InitT.initNames.zip InitT.initAir.tables do
+      IO.println s!"TABLE {n}: width {t.width}, constraints {t.constraints.length}, interactions {t.interactions.length}"
+    return 0
   | _ =>
-    IO.eprintln "usage: m5d-tool dump CASE_DIR OUT.json | m5d-tool air-final AIR_JSON NAMES_JSON"
+    IO.eprintln "usage: m5d-tool dump CASE_DIR OUT.json | m5d-tool air-final|air-init AIR_JSON NAMES_JSON"
     return 2

@@ -399,7 +399,17 @@ class Gen:
         self.look(self.r8, x); self.look(self.r8, x + 256 - RSD)
         if self.mut('fin_ro'):
             F.rows[0][F.ix('ro', 0)] ^= 1
-        # RNG
+        self.fill_rng()
+        pubs = limbs3(cd[:42]) + limbs3(fd[:42]) + [n, L]
+        stmt = list(pubs)
+        if self.mut('pub_claim'):
+            pubs[3] += 1
+        if self.mut('pub_n'):
+            pubs[28] += 1
+        self.pubs, self.stmt_pubs = pubs, stmt
+        return dict(n=n, L=L, rcpts=len(rcpts), outcomes=len(leaves), stream=len(stream))
+
+    def fill_rng(self):
         G = self.T['RNG']
         for v in range(256):
             r = G.new()
@@ -412,16 +422,6 @@ class Gen:
                 for i in range(20):
                     G.set(r, nm, (c >> i) & 1, i)
         assert all(v < 256 for dd in (self.r8, self.s2, self.s5) for v in dd), 'range lookup out of range'
-        pubs = limbs3(cd[:42]) + limbs3(fd[:42]) + [n, L]
-        stmt = list(pubs)
-        if self.mut('pub_claim'):
-            pubs[3] += 1
-        if self.mut('pub_n'):
-            pubs[28] += 1
-        self.pubs, self.stmt_pubs = pubs, stmt
-        if self.mutant is None or self.mutant.startswith('pub_') is False:
-            pass
-        return dict(n=n, L=L, rcpts=len(rcpts), outcomes=len(leaves), stream=len(stream))
 
     def tree(self, tr, leaves):
         T = self.T['MRK']
@@ -481,6 +481,65 @@ class Gen:
         return heights
 
 
+class GenInit(Gen):
+    """The INIT template: `claimDigest` and `ctxRoot` of `B_0` from the claim and witness bytes."""
+
+    def run(self):
+        d, C = self.d, self.C
+        pre, blocks, post = (list(bytes.fromhex(d[k])) for k in ('pre', 'blocks', 'post'))
+        wit = list(bytes.fromhex(d['witness']))
+        assert bytes(pre + blocks + post).hex() == d['claim']
+        if self.mut('pre_byte'):
+            pre[30] ^= 1
+        if self.mut('wit_byte'):
+            wit[100] ^= 1
+        if self.mut('blk_byte'):
+            blocks[7] ^= 1
+        kinds = [('ka', pre), ('kb', blocks), ('kp', post), ('kw', wit)]
+        T = self.T['CLM']
+        kc = ks = na = nb = nc = 0
+        for kind, bs in kinds:
+            for b in bs:
+                r = T.new()
+                T.set(r, 'act', 1); T.set(r, 'kc', kc); T.set(r, 'ks', ks); T.set(r, 'b', b); T.set(r, kind, 1)
+                T.set(r, 'na', na); T.set(r, 'nb', nb); T.set(r, 'nc', nc)
+                kc += 1
+                ks += kind in ('ka', 'kp')
+                na += kind == 'ka'
+                nb += kind == 'kb'
+                nc += kind != 'kw'
+        if self.mut('clm_kind'):
+            T.rows[len(pre) + 2][T.ix('kb')] = 0
+            T.rows[len(pre) + 2][T.ix('kp')] = 1
+        if self.mut('clm_byte'):
+            T.rows[len(pre) + len(blocks) + 5][T.ix('b')] ^= 1
+        stmt = u(len(pre), 4) + pre + post
+        cb = pre + blocks + post
+        ctx = [C['CTX_TAG']] + u(len(blocks), 4) + u(len(cb), 4) + cb + wit
+        cd = self.s384(C['ID_CLAIM'], stmt)
+        xd = self.s384(C['ID_CTX'], ctx)
+        I = self.T['INI']
+        r = I.new()
+        I.set(r, 'act', 1); I.set(r, 'na', len(pre)); I.set(r, 'nb', len(blocks)); I.set(r, 'nc', len(cb))
+        I.set(r, 'nt', len(cb) + len(wit)); I.set(r, 'ns', len(pre) + len(post))
+        I.setv(r, 'cd', cd); I.setv(r, 'xd', xd)
+        I.setv(r, 'pa', u(len(pre), 3)); I.setv(r, 'lb', u(len(blocks), 3)); I.setv(r, 'lc', u(len(cb), 3))
+        for v in u(len(pre), 3) + u(len(blocks), 3) + u(len(cb), 3):
+            self.look(self.r8, v)
+        if self.mut('ini_lb'):
+            r[I.ix('lb', 0)] += 1
+            r[I.ix('nb')] += 1
+        self.fill_rng()
+        pubs = limbs3(cd[:42]) + limbs3(xd[:42])
+        self.pubs, self.stmt_pubs = pubs, list(pubs)
+        if self.mut('pub_ctx'):
+            self.pubs[20] += 1
+        return dict(pre=len(pre), blocks=len(blocks), post=len(post), witness=len(wit), claimDigest=bytes(cd[:42]).hex(),
+                    ctxRoot=bytes(xd[:42]).hex())
+
+
+INIT_MUTANTS = ['pre_byte', 'blk_byte', 'wit_byte', 'clm_kind', 'clm_byte', 'ini_lb', 'pub_ctx']
+
 MUTANTS = ['hdr_psr', 'hdr_por', 'hdr_emr', 'hdr_el', 'hdr_gu', 'hdr_gl', 'hdr_bb', 'hdr_orr', 'hdr_txr',
            'hdr_props', 'hdr_cong', 'hdr_bw', 'hdr_split',
            'fin_root', 'fin_cong', 'fin_gas', 'fin_bal', 'fin_gl',
@@ -496,17 +555,19 @@ def main():
         mutant = args[i + 1]
         args = args[:i] + args[i + 2:]
     dump, names, out = json.load(open(args[0])), json.load(open(args[1])), args[2]
-    g = Gen(dump, names, mutant)
-    if mutant is not None:
-        # statement values of the honest run (the verifier's / leaf's view)
-        h = Gen(dump, names, None)
-        h.run()
+    G = GenInit if 'CLM' in names['tables'] else Gen
+    g = G(dump, names, mutant)
     info = g.run()
     if not g.applied:
         print('mutant %s: not applicable' % mutant)
         sys.exit(3)
     if mutant is not None:
-        g.stmt_pubs = h.stmt_pubs if mutant.startswith('pub_') else g.stmt_pubs
+        # the statement's public values are those of the honest run (the verifier's / leaf's view:
+        # `claimDigest` from the public statement, the boundary digests from the neighbouring segment)
+        h = G(dump, names, None)
+        h.run()
+        if G is GenInit or mutant.startswith('pub_'):
+            g.stmt_pubs = h.stmt_pubs
     hts = g.write(out)
     print('GEN', json.dumps(info), 'tables', json.dumps(hts), 'sha_msgs', len(g.sha_msgs), 'comps', len(g.comps))
 

@@ -150,41 +150,50 @@ def ci (i : Nat) : Expr := hb (CI_OFF + i)
 def act := T.c "act"
 def sidv (q : Nat) : Expr := fi (FI_SIDS + 8 * q) + K 256 * fi (FI_SIDS + 8 * q + 1)
 
-/-- The header comparisons (`headerOk`'s 13 fields), byte by byte, and the class pins. -/
+/-- `act · e` for `e` over `j < n`. -/
+def rng (n : Nat) (f : Nat → Expr) : List Expr := ((List.range n).map f).map (fun e => act * e)
+
+/-! The header comparisons (`headerOk`'s 13 fields), byte by byte, and the class pins; one family
+per field (`FinalM5d.Link` addresses them by name). -/
+/-- 1 `prev_state_root` = `FinIn.root`. -/
+def eqPsr := rng 32 (fun j => ci (H_PSR + j) - fi (FI_ROOT + j))
+/-- 2 `prev_outcome_root` = the outcome tree's root. -/
+def eqPor := rng 32 (fun j => ci (H_POR + j) - T.c "ro" j)
+/-- 12 `encoded_merkle_root` = the part tree's root. -/
+def eqEmr := rng 32 (fun j => ci (H_EMR + j) - T.c "rs" j)
+/-- 13 `encoded_length` = `n` (`u64`, `n < 2^24`). -/
+def eqEl := [act * (P PV_N - (ci H_EL + K 256 * ci (H_EL + 1) + K 65536 * ci (H_EL + 2)))]
+def eqEl0 := rng 5 (fun j => ci (H_EL + 3 + j))
+/-- 5 `prev_gas_used`, 4 `gas_limit`, 6 `prev_balance_burnt`. -/
+def eqGu := rng 8 (fun j => ci (H_GU + j) - fi (FI_GAS + j))
+def eqGl := rng 8 (fun j => ci (H_GL + j) - fi (FI_GL + j))
+def eqBb := rng 16 (fun j => ci (H_BB + j) - fi (FI_BAL + j))
+/-- 7 `prev_outgoing_receipts_root` = the shard tree's root. -/
+def eqOrr := rng 32 (fun j => ci (H_ORR + j) - T.c "rsh" j)
+/-- 11 `tx_root` = `merkleRoot [] = zeroHash` (class: no transactions). -/
+def eqTxr := rng 32 (fun j => ci (H_TXR + j))
+/-- 3 proposals: `u32 0` on both sides (class: none). -/
+def eqProps := rng 4 (fun j => ci (H_PROPS + j) - fi (FI_PROPS + j))
+def eqProps0 := rng 4 (fun j => fi (FI_PROPS + j))
+/-- 8 congestion (`tag 0 ‖ u128 ‖ u128 ‖ u64 ‖ u16`). -/
+def eqCong := rng 43 (fun j => ci (H_CONG + j) - fi (FI_CONG + j))
+def eqCong0 := [act * fi FI_CONG]
+/-- 9 bandwidth requests: `tag 0 ‖ u32 0` (class: none). -/
+def eqBw0 := [act * ci H_BW]
+def eqBw := rng 4 (fun j => ci (H_BW + 1 + j) - fi (FI_BW + j))
+def eqBw1 := rng 4 (fun j => fi (FI_BW + j))
+/-- 10 proposed split: `none` (class). -/
+def eqSplit := [act * (ci H_SPLIT - fi FI_SPLIT), act * fi FI_SPLIT]
+/-- Fixed stream bytes (claim format, lengths, header tag, Reed–Solomon parameters). -/
+def eqFixed := streamFixed.map (fun (o, v) => act * (hb o - K v))
+/-- Class pins inside `FinIn`: no transactions (empty tx accumulator), 6 shards with u16 ids. -/
+def eqPins := rng 42 (fun j => fi (FI_TACC + j) - K (acc0.getD j 0)) ++
+  rng 4 (fun j => fi (FI_NSH + j) - K ((u32 NS).getD j 0).toNat) ++
+  (List.range NS).flatMap (fun q => rng 6 (fun j => fi (FI_SIDS + 8 * q + 2 + j)))
+
 def headerEqs : List Expr :=
-  let rng (o n : Nat) (f : Nat → Expr) : List Expr := (List.range n).map f |>.map (fun e => act * e)
-  -- 1 prev_state_root = FinIn.root
-  rng 0 32 (fun j => ci (H_PSR + j) - fi (FI_ROOT + j)) ++
-  -- 2 prev_outcome_root = the outcome tree's root
-  rng 0 32 (fun j => ci (H_POR + j) - T.c "ro" j) ++
-  -- 12 encoded_merkle_root = the part tree's root
-  rng 0 32 (fun j => ci (H_EMR + j) - T.c "rs" j) ++
-  -- 13 encoded_length = n (u64, n < 2^24)
-  [act * (P PV_N - (ci H_EL + K 256 * ci (H_EL + 1) + K 65536 * ci (H_EL + 2)))] ++
-  rng 0 5 (fun j => ci (H_EL + 3 + j)) ++
-  -- 5 prev_gas_used, 4 gas_limit, 6 prev_balance_burnt
-  rng 0 8 (fun j => ci (H_GU + j) - fi (FI_GAS + j)) ++
-  rng 0 8 (fun j => ci (H_GL + j) - fi (FI_GL + j)) ++
-  rng 0 16 (fun j => ci (H_BB + j) - fi (FI_BAL + j)) ++
-  -- 7 prev_outgoing_receipts_root = the shard tree's root
-  rng 0 32 (fun j => ci (H_ORR + j) - T.c "rsh" j) ++
-  -- 11 tx_root = merkleRoot [] = zeroHash (class: no transactions)
-  rng 0 32 (fun j => ci (H_TXR + j)) ++
-  -- 3 proposals: `u32 0` on both sides (class: none)
-  rng 0 4 (fun j => ci (H_PROPS + j) - fi (FI_PROPS + j)) ++ rng 0 4 (fun j => fi (FI_PROPS + j)) ++
-  -- 8 congestion (tag 0 ‖ u128 ‖ u128 ‖ u64 ‖ u16)
-  rng 0 43 (fun j => ci (H_CONG + j) - fi (FI_CONG + j)) ++ [act * fi FI_CONG] ++
-  -- 9 bandwidth requests: tag 0 ‖ `u32 0` (class: none)
-  [act * ci H_BW] ++ rng 0 4 (fun j => ci (H_BW + 1 + j) - fi (FI_BW + j)) ++
-  rng 0 4 (fun j => fi (FI_BW + j)) ++
-  -- 10 proposed split: `none` (class)
-  [act * (ci H_SPLIT - fi FI_SPLIT), act * fi FI_SPLIT] ++
-  -- fixed stream bytes (claim format, lengths, header tag, Reed–Solomon parameters)
-  streamFixed.map (fun (o, v) => act * (hb o - K v)) ++
-  -- class pins inside FinIn: no transactions (empty tx accumulator), 6 shards with u16 ids
-  rng 0 42 (fun j => fi (FI_TACC + j) - K (acc0.getD j 0)) ++
-  rng 0 4 (fun j => fi (FI_NSH + j) - K ((u32 NS).getD j 0).toNat) ++
-  (List.range NS).flatMap (fun q => rng 0 6 (fun j => fi (FI_SIDS + 8 * q + 2 + j)))
+  eqPsr ++ eqPor ++ eqEmr ++ eqEl ++ eqEl0 ++ eqGu ++ eqGl ++ eqBb ++ eqOrr ++ eqTxr ++ eqProps ++
+  eqProps0 ++ eqCong ++ eqCong0 ++ eqBw0 ++ eqBw ++ eqBw1 ++ eqSplit ++ eqFixed ++ eqPins
 
 def constraints : List Expr :=
   [bool act, .isFirst * (act - 1), .isTransition * T.n "act"] ++ headerEqs ++
