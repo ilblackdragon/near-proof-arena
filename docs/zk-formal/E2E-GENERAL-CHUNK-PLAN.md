@@ -1872,6 +1872,10 @@ item 4 (completeness) not started.
   M5c + lane G's `tailNew`, `post_state_root` to lane G's `FinIn` bytes 0..32 on a byte bus
   (designed). M6.4 (`HOSTR` evicted flag from `WSA` via a new `EVK` bus; `g_after` lane A's) and
   item 4: not built.
+* **Lane A join (A-T1):** `StbH` accepts the value buffer's wire id 314; the 8 messages lane A's
+  joined T1 segment lacks are `StwH`/`StbH`'s, placed in the WASM leaf's trace (a storage call is in
+  a WASM segment); building that joined trace and `StorageJoinObl` (`hb`, M6.4 `ans` in `SpecU` form,
+  `regFill`) are open. T1 mutants 24 / 24 rejected; T2 IF re-proved at M (515,982 B).
 
 ### 5.2 M5-T1 runtime (lane F): status, 2026-11-21
 
