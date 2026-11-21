@@ -1,0 +1,45 @@
+== mutant gasburnt: mutant applied: ['gasburnt']
+PRECHECK FAIL: RX: constraint 244 fails on row 0
+REJECTED (prover error) after 0.3s
+== mutant refund: mutant applied: ['refund']
+PRECHECK FAIL: RX: constraint 494 fails on row 0
+REJECTED (prover error) after 0.3s
+== mutant status: mutant applied: ['status']
+PRECHECK FAIL: 4 unbalanced messages by bus {5: 2, 15: 2}; first [((5, [189, 0]), 2013265920), ((5, [189, 5]), 1), ((15, [1, 185, 116, 54, 235, 239, 240, 1, 142, 152, 226, 7, 33, 86, 99, 52, 210, 75, 86, 223, 141, 68, 35, 23, 197, 47, 2, 138, 143, 121, 150, 125, 67]), 1)]
+REJECTED (prover error) after 0.3s
+== mutant rcptid: mutant applied: ['rcptid']
+PRECHECK FAIL: 6 unbalanced messages by bus {4: 2, 15: 2, 16: 2}; first [((4, [231, 0, 50]), 2013265919), ((4, [231, 0, 51]), 2), ((15, [1, 28, 84, 207, 37, 49, 44, 207, 118, 101, 56, 209, 32, 78, 139, 26, 18, 66, 124, 65, 146, 23, 169, 192, 86, 4, 225, 99, 87, 209, 156, 202, 44]), 1)]
+REJECTED (prover error) after 0.3s
+== mutant statement: mutant applied: ['statement']
+PRECHECK FAIL: RX: constraint 950 fails on row 0
+REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch …)))
+== mutant acctpost: mutant applied: ['acctpost']
+PRECHECK FAIL: 4 unbalanced messages by bus {4: 2, 8: 2}; first [((4, [168, 0, 0]), 1), ((4, [168, 0, 1]), 2013265920), ((8, [4, 128, 0]), 2013265920)]
+REJECTED (prover error) after 0.3s
+== mutant logbyte: mutant applied: ['logbyte']
+PRECHECK FAIL: 4 unbalanced messages by bus {4: 2, 15: 2}; first [((4, [184, 0, 116]), 1), ((4, [184, 0, 117]), 2013265920), ((15, [1, 7, 12, 253, 26, 185, 226, 84, 95, 244, 198, 196, 105, 84, 127, 167, 11, 195, 139, 248, 50, 254, 21, 139, 118, 94, 207, 73, 155, 197, 214, 229, 97]), 1)]
+REJECTED (prover error) after 0.3s
+== mutant vmburnt: mutant applied: ['vmburnt']
+PRECHECK FAIL: RX: constraint 950 fails on row 0
+REJECTED (prover error) after 0.3s
+== mutant bndgas: mutant applied: ['bndgas']
+PRECHECK FAIL: RX: constraint 1433 fails on row 0
+REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch …)))
+== mutant bndprepaid: mutant applied: ['bndprepaid']
+PRECHECK FAIL: RX: constraint 1392 fails on row 0
+REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch …)))
+== mutant bndburnt: mutant applied: ['bndburnt']
+PRECHECK FAIL: RX: constraint 1481 fails on row 0
+REJECTED (native verifier: Some(BatchConstraintError(SumClaimMismatch …)))
+== enter mutant phase
+PRECHECK FAIL: ENT: constraint 10 fails on row 0
+REJECTED (native verifier: Some(BatchConstraintError(InconsistentClaims)))
+== enter mutant gas
+PRECHECK FAIL: ENT: constraint 361 fails on row 0
+REJECTED (native verifier: Some(BatchConstraintError(InconsistentClaims)))
+== enter mutant stroot
+PRECHECK FAIL: ENT: constraint 94 fails on row 0
+REJECTED (native verifier: Some(BatchConstraintError(InconsistentClaims)))
+== enter mutant clock
+PRECHECK FAIL: ENT: constraint 20 fails on row 0
+REJECTED (native verifier: Some(BatchConstraintError(InconsistentClaims)))

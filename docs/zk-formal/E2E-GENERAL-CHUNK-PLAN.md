@@ -1878,6 +1878,27 @@ See `research/near-compression/e2e-general/m5t1/README.md`; log
   bus fact, composition into `CutW.applyActionReceiptW` and the RS boundary view; template coverage
   beyond T1's shape (README "Open").
 
+**F-2 (lane F, 2026-11-21)** — README §F-2, log [`docs/logs/e2e-f2-runtime-2026-11-21.md`](../logs/e2e-f2-runtime-2026-11-21.md).
+* **Finding F2-1 (for lane E / all lanes) [K]:** `TmplSound` is absolute — `Obl.tmplSound_image`:
+  every input digest a template's AIR accepts must be in the image of `bndOf V.bnd` (or `Bad`), which
+  no segment's rows can check. The relative form `TmplSoundFrom` (given `bndOf x = d`) suffices:
+  `Obl.e2e_sound_t1_from` re-derives `e2e_sound_t1`'s conclusion from the five relative premises;
+  `from_of_sound` (absolute ⇒ relative modulo collision). Recommendation: state the per-template
+  premises in the relative form.
+* **[K]** `Bus.rx_rel_of_holds` (the `RNG` byte-range premise discharged from `Holds (fullAir …)`);
+  `MsgSpec` (every schema walk = the spec encoder: `encodeRcpts`, `Acct.encode`, `kAccount`,
+  `actionHash`/seed/`receiptIdFrom` preimages, refund `Rcpt.encode`, `partialEncode`, `leaf`);
+  `MsgRow.msg_walk` (rows of a message span are a walk), `sch_row`, `span_of`, `dg_digest`
+  (digest = `sha256` of the message, via ZkFormal's SHA-256 table soundness), `mIdBound_of`;
+  `SegRt.segSoundRt_enter_from` (enter edge, relative, under the named view contract `EnterView`).
+  Open: the resume composition into `estepO (strictO (K ++ [(q, r)]))` and the resume view contract.
+* **[M] The `rt` leaves as pinned-shape templates** (lane D's base configuration, pow 24; public
+  values = the boundary pair as `BndRec.encode` bytes; proof + vk + statement saved): enter
+  **87,001 B** (8.9 s), resume **431,245 B** (23.7 s, 9.9 GB); boundary digests = lane I's plan
+  (`a2e7b254… → c667b45b…`, `6048b455… → aecc4056…`); mutants 11/11 (resume) + 4/4 (enter).
+* **[M] Size:** `SCHT` preprocessed, one row per entry (3,255 → 44 columns): `relations`
+  290,732 → 136,608 B. `RX` split not done (plan in README).
+
 ### 5.3 M5d (FINAL and INIT templates, lane G): status, 2026-11-21
 
 See `research/near-compression/e2e-general/m5d/README.md` (commands, tables, costs) and
