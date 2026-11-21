@@ -1,0 +1,80 @@
+
+running 1 test
+L1_0_PARAMS l_skip=2 n_stack=18 k=4 log_blowup=7 queries=[41, 38, 29, 23] pow(mu,fold,query,logup)=(0,0,32,0)
+L1_0_O2 target=236 margin_milli=50 m=64 rounds(n,k,A,q,first_order)=[(2013265920, 1048576, 37140791, 41, true), (2013265920, 524288, 26000207, 38, true), (2013265920, 32768, 6325509, 29, true), (2013265920, 2048, 1559051, 23, true)]
+NV_PHASE before_dag 2179
+NV_DAG air=0 nodes=24 rows_so_far=2234
+NV_PHASE after_dag 2247
+NV_PHASE after_stacking 2555
+NV_QCOST round=0 queries=10 rows=2080 per_query=208 nbits=8 k=3 merkle_nodes=80
+NV_QCOST round=1 queries=4 rows=836 per_query=209 nbits=7 k=3 merkle_nodes=108
+NV_QCOST round=2 queries=2 rows=406 per_query=203 nbits=6 k=3 merkle_nodes=120
+NV_PHASE end 8404
+NV_PHASE before_dag 9014
+NV_DAG air=0 nodes=24 rows_so_far=9069
+NV_PHASE after_dag 9082
+NV_PHASE after_stacking 9389
+NV_QCOST round=0 queries=10 rows=2070 per_query=207 nbits=8 k=3 merkle_nodes=200
+NV_QCOST round=1 queries=4 rows=836 per_query=209 nbits=7 k=3 merkle_nodes=228
+NV_QCOST round=2 queries=2 rows=406 per_query=203 nbits=6 k=3 merkle_nodes=240
+NV_PHASE end 15228
+L1_0_GEOM merkle_nodes=240 leaf_blocks=69 comps=309 rows=39552 log_rows=16 a0h=18 a1h=17 a2h=7 a3h=16
+L1_0_CACHED proof_bytes=256165
+L1_0_SUMMARY children=2 program_rows=15252 merkle_nodes=240 leaf_blocks=69 cached=true prove_s=0.0
+L1_1_PARAMS l_skip=2 n_stack=18 k=4 log_blowup=7 queries=[41, 38, 29, 23] pow(mu,fold,query,logup)=(0,0,32,0)
+L1_1_O2 target=236 margin_milli=50 m=64 rounds(n,k,A,q,first_order)=[(2013265920, 1048576, 37140791, 41, true), (2013265920, 524288, 26000207, 38, true), (2013265920, 32768, 6325509, 29, true), (2013265920, 2048, 1559051, 23, true)]
+NV_PHASE before_dag 2179
+NV_DAG air=0 nodes=24 rows_so_far=2234
+NV_PHASE after_dag 2247
+NV_PHASE after_stacking 2555
+NV_QCOST round=0 queries=10 rows=2080 per_query=208 nbits=8 k=3 merkle_nodes=80
+NV_QCOST round=1 queries=4 rows=836 per_query=209 nbits=7 k=3 merkle_nodes=108
+NV_QCOST round=2 queries=2 rows=406 per_query=203 nbits=6 k=3 merkle_nodes=120
+NV_PHASE end 8404
+NV_PHASE before_dag 9014
+NV_DAG air=0 nodes=24 rows_so_far=9069
+NV_PHASE after_dag 9082
+NV_PHASE after_stacking 9389
+NV_QCOST round=0 queries=10 rows=2070 per_query=207 nbits=8 k=3 merkle_nodes=200
+NV_QCOST round=1 queries=4 rows=836 per_query=209 nbits=7 k=3 merkle_nodes=228
+NV_QCOST round=2 queries=2 rows=406 per_query=203 nbits=6 k=3 merkle_nodes=240
+NV_PHASE end 15228
+L1_1_GEOM merkle_nodes=240 leaf_blocks=69 comps=309 rows=39552 log_rows=16 a0h=18 a1h=17 a2h=7 a3h=16
+L1_1_CACHED proof_bytes=255913
+L1_1_SUMMARY children=2 program_rows=15252 merkle_nodes=240 leaf_blocks=69 cached=true prove_s=0.0
+L2_0_PARAMS l_skip=2 n_stack=19 k=4 log_blowup=6 queries=[46, 41, 31, 25] pow(mu,fold,query,logup)=(0,0,32,0)
+L2_0_O2 target=236 margin_milli=50 m=64 rounds(n,k,A,q,first_order)=[(2013265920, 2097152, 53146367, 46, true), (2013265920, 1048576, 37140791, 41, true), (2013265920, 65536, 8992555, 31, true), (2013265920, 4096, 2210990, 25, true)]
+NV_PHASE before_dag 24535
+NV_DAG air=0 nodes=4651 rows_so_far=30773
+NV_DAG air=1 nodes=5848 rows_so_far=38233
+NV_DAG air=3 nodes=32 rows_so_far=38778
+NV_DAG air=2 nodes=1234 rows_so_far=40092
+NV_PHASE after_dag 40174
+NV_PHASE after_stacking 49950
+NV_QCOST round=0 queries=41 rows=11593 per_query=283 nbits=26 k=1 merkle_nodes=1230
+NV_QCOST round=1 queries=38 rows=13877 per_query=365 nbits=23 k=4 merkle_nodes=2256
+NV_QCOST round=2 queries=29 rows=10585 per_query=365 nbits=23 k=4 merkle_nodes=3039
+NV_QCOST round=3 queries=23 rows=8395 per_query=365 nbits=23 k=4 merkle_nodes=3660
+NV_PHASE end 117031
+NV_PHASE before_dag 140285
+NV_DAG air=0 nodes=4651 rows_so_far=146416
+NV_DAG air=1 nodes=5848 rows_so_far=153847
+NV_DAG air=3 nodes=32 rows_so_far=154391
+NV_DAG air=2 nodes=1234 rows_so_far=155345
+NV_PHASE after_dag 155427
+NV_PHASE after_stacking 165190
+NV_QCOST round=0 queries=41 rows=11562 per_query=282 nbits=26 k=1 merkle_nodes=4890
+NV_QCOST round=1 queries=38 rows=13870 per_query=365 nbits=23 k=4 merkle_nodes=5916
+NV_QCOST round=2 queries=29 rows=10585 per_query=365 nbits=23 k=4 merkle_nodes=6699
+NV_QCOST round=3 queries=23 rows=8395 per_query=365 nbits=23 k=4 merkle_nodes=7320
+NV_PHASE end 232233
+L2_0_GEOM merkle_nodes=7320 leaf_blocks=1427 comps=8747 rows=1119616 log_rows=21 a0h=20 a1h=21 a2h=7 a3h=16
+test nv::agg_tests::agg_chain_depth_n has been running for over 60 seconds
+L2_0_SUMMARY children=2 cols=173 opened=291 interactions=87097600 cells=254084224 program_rows=232318 merkle_nodes=7320 leaf_blocks=1427 chain_starts=2 nvair_h=1048576 prove_s=700.5 peak_rss_gb=18.76
+L2_0_SOUNDNESS total=268.2 logup=321.9 proximity=283.1 query=268.2
+L2_0_PROOF_BYTES total=315913 gkr=37592 relations=24772 stacking=5920 whir=247430
+AGG_DEPTH2_OK leaves=4 final statement = segments [0, 4)
+test nv::agg_tests::agg_chain_depth_n ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 106 filtered out; finished in 700.58s
+

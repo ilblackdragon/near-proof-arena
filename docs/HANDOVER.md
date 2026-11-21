@@ -164,7 +164,18 @@ Three sentences the reader can act on, each with its evidence and its limit:
      units error; the per-child cut is 914.5 of its own 5,010.5 compressions. See item 3, which also
      supersedes the earlier "4×" and "2×" figures (the first was the pre-lever `X15 = 1`
      measurement; the second conflated row-count with compression-count).
-3. **Depth 2 is arithmetically IMPOSSIBLE at production blowup — a new hard blocker.**
+3. **SUPERSEDED 2026-10-24: "Depth 2 is arithmetically IMPOSSIBLE at production blowup" is
+   WRONG.** Depth 2 proves and verifies at production targets: `AGG_DEPTH2_OK leaves=4`,
+   **315,913 B**, 700.5 s, 18.76 GB — the `ns19/lb6` pairing keeps `l_skip+n_stack+log_blowup=27`
+   while raising the stacked ceiling to `2^21`. Depth 3 also verifies (`AGG_DEPTH3_OK`, 322,027 B).
+   The blocker below was true only at `log_blowup=7`. **The remaining problem is size, not
+   geometry: 315,913 B is 15,913 B (5.3 %) over cap.** See
+   `docs/logs/pq-agg-depth2-legal-2026-10-24.md` and
+   `research/near-compression/results/pq-agg-depth-law/EXTRAPOLATION-1PGAS.md` §1.3/§2.2. The text
+   below is retained as the falsified record; its "18.3 % compression cut" figure was also
+   corrected to **555 compressions (6.8 %)** once `coset_leaf=1` was measured.
+
+   **Depth 2 is arithmetically IMPOSSIBLE at production blowup — a new hard blocker.**
    The 2-NV-child aggregation node needs a 2^21-row SHA compression AIR at the **full production
    lever set** (measured panic `LayoutHeightExceeded { log_height: 21, log_stacked_height: 20 }`,
    `circuit.rs:458`), but the stacked height is `l_skip + n_stack ≤ 27 − log_blowup`, which at
@@ -234,7 +245,15 @@ Five facts, each measured unless marked, and each with the correction it needs:
    `agg-d2-l2prod-ns18.log` (byte-identical totals). **Limit:** these are *App*-child nodes at
    `nvair_h=2^18`; the 1 Pgas root aggregates *Node* children at `2^20`, which is the depth-2
    geometry question, not a bytes question.
-2. **Depth 2 remains blocked at production blowup, and the deficit is exactly 1 bit — but the
+2. **SUPERSEDED 2026-10-24: "Depth 2 remains blocked at production blowup" is WRONG.** The
+   table below is the record of four *failed* pairings; the fifth, `ns19 lb6` with production
+   hash levers (`d=42, coset_leaf=1`), **passes**: `AGG_DEPTH2_OK leaves=4`, 315,913 B,
+   `comps=8747`, `log_rows=21` against the `2^21` ceiling — **46.6 % headroom**, not a deficit.
+   Depth 2 needed both the geometry pairing *and* the production hash levers; geometry alone at
+   `ns19/lb6` still panicked at 22 against 21 (`agg-d2-lb6.log`), and production levers alone at
+   `ns18/lb7` still panicked at 21 against 20. Read the table as "each earlier attempt", not as
+   "blocked". See `docs/logs/pq-agg-depth2-legal-2026-10-24.md`.
+   **Depth 2 remains blocked at production blowup, and the deficit is exactly 1 bit — but the
    frequently quoted `23 > 22` pair is the `lb = 5` row, not the production row.** The measured
    panics are:
 
@@ -288,6 +307,13 @@ Five facts, each measured unless marked, and each with the correction it needs:
 **Merge gate:** keep `lane/pq-agg-rebase` **unmerged** until a depth-2 target measurement or a
 1 Pgas target measurement exists. Everything above is measured at depth 1 and below; nothing
 above is a depth-2 or 1 Pgas size result.
+
+> **UPDATE 2026-10-24: the first half of this gate is now satisfied, the second is not.** A
+> depth-2 production-target measurement exists — `AGG_DEPTH2_OK leaves=4`, **315,913 B**,
+> 700.5 s, 18.76 GB — and a depth-3 one (`AGG_DEPTH3_OK`, 322,027 B). There is still **no 1 Pgas
+> measurement**, and the depth-2 result is **15,913 B over the 300 KB cap**, so it satisfies the
+> gate's "measurement exists" clause without satisfying the objective. Do not read this as a
+> 1 Pgas result. See `docs/logs/pq-agg-depth2-legal-2026-10-24.md`.
 
 ## Aggregation tail: what is now measured (2026-10-23)
 
