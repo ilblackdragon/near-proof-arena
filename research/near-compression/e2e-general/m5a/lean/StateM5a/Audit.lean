@@ -696,3 +696,5 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.StHost.hostOK_of
 #print axioms StateM5a.StHost.hostReqs_of_tape
 #print axioms StateM5a.StHost.m5b_final_tape
+#print axioms StateM5a.StateViewParams.fitsReach_iff
+#print axioms StateM5a.StateViewParams.keysOf_fitsReach
