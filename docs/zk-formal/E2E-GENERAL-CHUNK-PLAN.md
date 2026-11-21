@@ -671,6 +671,28 @@ Log: [`docs/logs/e2e-lean-m11i-2026-11-21.md`](../logs/e2e-lean-m11i-2026-11-21.
   `Outputs`, `CallArgs`, `Run` (and lane A's `encRest`) are instance arguments: `ViewSer.lean`
   (sub-agent, see the log) supplies them.
 
+* **Serialisers (`E2E/ViewSer.lean`, `defaultTargets`; sub-agent).** `Ser` instances for the
+  closure of `Intake`, `GFin`, `ChunkInner`, `Outputs`, `Prepared`, `EntK` (≈ 60 types: claim,
+  witness, block, layout, walk, env, Wasm module/frame/gas/value types); resolved encoders
+  `ctxDEc`, `outDEc` with `coll_ctxDEc`, `coll_outDEc` (a collision is a SHA-384 collision): lanes
+  G and F can use `ctxDE .header`, `ctxDE .intake`, `outDE .done` now.
+  **Finding (owner decision needed, not implemented): the call tape and the Wasm component cannot
+  be committed injectively.** `TTN.RealStore.store : ByteArray → Option ByteArray` is a
+  *function* field, and it occurs in `CallArgs` (= `VmQ`), `St`, `Res`, `Run`, `CallConf`;
+  `no_ser_store : Ser TTN.Store → False` (Cantor). So **no** `vmD : VmV → Bytes` and no lane-A
+  remainder encoder `encRest` is injective, and `Coll V.vmD → Bad` / `Coll V.wasmD → Bad`
+  (premises of `viewImpl_binding_bad`) are unsatisfiable for every view: the M11c binding
+  argument does not close for `call` configurations. In honest runs the store is a function of
+  the context (`CutW.lean:101`: `store := fun hb => (env.codeOf (ofBA hb)).map toBA`, with
+  `env.store : HStore` serialisable). Options: **(a)** a spec/machine change — `RealStore` carries
+  first-order data (the `HStore`) instead of the function; **(b)** a view change — commit the tape
+  and the Wasm remainder with the stores blanked (`ViewSer`'s `argsN`, `runN`, `confN`, `encQRN`,
+  injective modulo stores: `encQRN_pf_mod`, `confN_eq`) plus a template obligation that
+  `q.real.store` is the context `Env`'s lookup. Recommendation: (a) (it removes a non-first-order
+  value from a boundary-carried type; the checker's semantics is unchanged if the function is
+  rebuilt from the data at use). Lanes A/F: until then, `vmDE` and lane A's `encRest` exist only
+  in the stores-blanked form.
+
 ##### How to discharge `SegSound*` (per lane, M11i)
 
 All boundaries are under `viewE lB κ stD wasmD` (`ViewE.lean`) with lane B's `stD`
