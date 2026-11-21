@@ -94,11 +94,12 @@ count: end = start + 45 + l₁ + l₂), a slot row `ks` (end = start + 12 + lₛ
 so `ℓ_B` is exactly the span of the block vector `decodeClaimE` reads (`dBlock`, `dSlot`). Lengths
 are read through `B_CB` from `CLM`'s section-B bytes (`u32`, top byte 0: lengths `< 2^24`); the
 remaining-block / remaining-slot counters `rb`, `rs` with zero flags force the grammar. Every slot
-row sends `SLOT (block, slot, inner start, inner length)`. -/
+row may send `SLOT (block, slot, inner start, inner length)` (bit `sel`; `INI` receives the main
+slot's once). -/
 namespace Blk
 def L : Layout :=
   [("act", 1), ("kn", 1), ("kh", 1), ("ks", 1), ("s", 1), ("e", 1), ("E", 1), ("y", 12), ("rb", 1),
-   ("rs", 1), ("zr", 1), ("ir", 1), ("zs", 1), ("is", 1), ("bi", 1), ("si", 1), ("sp", 3)]
+   ("rs", 1), ("zr", 1), ("ir", 1), ("zs", 1), ("is", 1), ("bi", 1), ("si", 1), ("sp", 3), ("sel", 1)]
 def T : Cols := ⟨L⟩
 def act := T.c "act"
 def kn := T.c "kn"
@@ -124,8 +125,9 @@ def constraints : List Expr :=
     kn * (T.c "rb" - v 0), kn * T.c "rs",
     contRow T * (T.n "rb" - T.c "rb" + T.n "kh"),
     contRow T * (T.n "rs" - T.n "kh" * vn 2 - T.n "ks" * (T.c "rs" - 1)),
-    T.c "zr" * T.c "rb", (1 - T.c "zr") * (T.c "rb" * T.c "ir" - 1),
-    T.c "zs" * T.c "rs", (1 - T.c "zs") * (T.c "rs" * T.c "is" - 1),
+    T.c "zr" * T.c "rb", act * (1 - T.c "zr") * (T.c "rb" * T.c "ir" - 1),
+    T.c "zs" * T.c "rs", act * (1 - T.c "zs") * (T.c "rs" * T.c "is" - 1),
+    bool (T.c "sel"), T.c "sel" * (1 - ks),
     -- the grammar: a slot follows iff slots remain; otherwise a block header, iff blocks remain
     contRow T * (1 - T.c "zs") * (1 - T.n "ks"), contRow T * T.c "zs" * T.n "ks",
     contRow T * T.c "zs" * T.c "zr",
@@ -138,7 +140,7 @@ def interactions : List Interaction :=
   (List.range 4).map (fun j => rcv B_CB act [pos 0 + K j, T.c "y" j]) ++
   (List.range 4).map (fun j => rcv B_CB kh [pos 1 + K j, T.c "y" (4 + j)]) ++
   (List.range 4).map (fun j => rcv B_CB kh [pos 2 + K j, T.c "y" (8 + j)]) ++
-  [ snd B_SLOT ks [T.c "bi" - 1, T.c "si" - 1, s + K 4, v 0] ] ++
+  [ snd B_SLOT (T.c "sel") [T.c "bi" - 1, T.c "si" - 1, s + K 4, v 0] ] ++
   (List.range 3).map (fun j => rcv B_R8 act [T.c "sp" j])
 def table : Table := { width := L.width, constraints, interactions, maxLog := 20 }
 end Blk

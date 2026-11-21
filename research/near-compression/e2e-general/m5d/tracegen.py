@@ -593,7 +593,7 @@ class GenInit(Gen):
         nblk, y = rd32(0)
         blkrow('kn', 0, 4, y, nblk, 0, 0, 0)
         o = 4
-        slots = {}
+        slots, slotrow = {}, {}
         rb = nblk
         for bi in range(nblk):
             st = o
@@ -608,6 +608,7 @@ class GenInit(Gen):
                 st = o
                 ls, y0 = rd32(o)
                 slots[(bi, si)] = (npre + o + 4, ls)
+                slotrow[(bi, si)] = len(B.rows)
                 o = o + 12 + ls
                 rs -= 1
                 blkrow('ks', st, o, y0, rb, rs, bi + 1, si + 1)
@@ -618,10 +619,12 @@ class GenInit(Gen):
             last[B.ix('e')] -= 1
         b2i, mi = int(d['walk']['b2i']), int(d['walk']['mainIdx'])
         sst, sln = slots[(b2i, mi)]
+        selrow = slotrow[(b2i, mi)]
         psr = cb_ = (pre + blocks + post)[sst + 33:sst + 65]
         if self.mutant is None:
             assert bytes(psr).hex() == d['walk']['slotPrevStateRoot'], 'slot prev_state_root'
         reads.update(range(sst + 33, sst + 65))
+        B.rows[selrow][B.ix('sel')] = 1
         for rr in T.rows[npre:npre + len(blocks)]:
             rr[T.ix('rd')] = int(rr[T.ix('kc')] in reads)
         if self.mut('clm_kind'):
@@ -650,6 +653,14 @@ class GenInit(Gen):
             # another slot's prev_state_root (the walk picks b2i / mainIdx; here: the next slot)
             other = [k for k in slots if k != (b2i, mi)][0]
             sst2, sln2 = slots[other]
+            B.rows[selrow][B.ix('sel')] = 0
+            B.rows[slotrow[other]][B.ix('sel')] = 1
+            r[I.ix('b2i')], r[I.ix('mi')] = other
+            Tc = self.T['CLM']
+            for q in range(sst + 33, sst + 65):
+                Tc.rows[q][Tc.ix('rd')] = 0
+            for q in range(sst2 + 33, sst2 + 65):
+                Tc.rows[q][Tc.ix('rd')] = 1
             r[I.ix('sst')] = sst2; r[I.ix('sln')] = sln2
             psr = (pre + blocks + post)[sst2 + 33:sst2 + 65]
             I.setv(r, 'psr', psr)

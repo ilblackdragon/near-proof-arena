@@ -1,0 +1,12 @@
+# G-2 INIT mutant battery on T1 at templates/INIT-14.json under pycheck.py (every constraint, every bus but the chip IF384, statement check; no proving — the shared zkbuild.slice was saturated), 2026-11-21
+honest: PYCHECK OK
+pre_byte: STATEMENT MISMATCH (public values differ from the statement) PYCHECK FAIL (1) 
+blk_byte: STATEMENT MISMATCH (public values differ from the statement) PYCHECK FAIL (1) 
+wit_byte: STATEMENT MISMATCH (public values differ from the statement) PYCHECK FAIL (1) 
+clm_kind: CONSTRAINT FAIL CLM row 418 constraint 15 CONSTRAINT FAIL CLM row 418 constraint 17 CONSTRAINT FAIL CLM row 418 constraint 21 CONSTRAINT FAIL CLM row 418 constraint 25 BUS UNBALANCED 2 distinct differing messages 1 e.g. [((1, 420,
+clm_byte: BUS UNBALANCED 2 distinct differing messages 4 e.g. [((1, 425, 1), 1), ((3, 5397, 1), 1)] PYCHECK FAIL (1) 
+ini_lb: BUS UNBALANCED 2 distinct differing messages 2 e.g. [((3, 1, 104), 1), ((3, 1, 103), 1)] BUS UNBALANCED 4 distinct differing messages 2 e.g. [((103,), 1), ((104,), 1)] BUS UNBALANCED 7 distinct differing messages 2 e.g. [((416, 49
+pub_ctx: CONSTRAINT FAIL INI row 0 constraint 26 STATEMENT MISMATCH (public values differ from the statement) PYCHECK FAIL (2) 
+lbshift: CONSTRAINT FAIL BLK row 14 constraint 14 CONSTRAINT FAIL BLK row 14 constraint 33 PYCHECK FAIL (2) 
+psr_slot: STATEMENT MISMATCH (public values differ from the statement) PYCHECK FAIL (1) 
+pub_psr: CONSTRAINT FAIL INI row 0 constraint 37 STATEMENT MISMATCH (public values differ from the statement) PYCHECK FAIL (2) 
