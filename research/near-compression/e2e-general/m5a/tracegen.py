@@ -86,12 +86,18 @@ B_WRITE, B_TCH, B_SREQ, B_HB, B_DESC = 13, 14, 28, 29, 30
 W_FINAL = 1 << 20
 RK_ANS, RK_H, RK_HB, RK_HE, RK_LD, RK_NONE, RK_SAME = 0, 1, 2, 3, 4, 5, 6
 KMAX, HPMAX = 64, 33
+WS_DEPTH = 24          # lane E's `Enc.wsDepth` (`Tmpl.WS_DEPTH`): the committed working-set root's depth
 VBITS = 7
 # ops that read a node version and leave it in place (`del` returned `deleted = false`)
 SAME_OPS = {'BR.oDA', 'BR.oDS', 'BR.oDZ', 'SN.oLZ', 'SN.oEZ', 'SN.oES'}
 
 
 class Unsupported(Exception):
+    pass
+
+
+class TemplateOverflow(Exception):
+    """B-T1: a table of this case exceeds the template's pinned height."""
     pass
 
 
@@ -138,9 +144,14 @@ class Table:
     def get(self, r, nm, j=None):
         return r[self.ix(nm, j)]
 
-    def dump(self, path, min_rows=4, exact=None):
+    def dump(self, path, min_rows=4, exact=None, pin=None):
         h = max(len(self.rows), min_rows)
         h = 1 << (h - 1).bit_length()
+        if pin is not None:
+            # B-T1: the template's pinned height (log2); the trace must fit it
+            if h > 1 << pin:
+                raise TemplateOverflow('%s: %d rows > template 2^%d' % (self.name, len(self.rows), pin))
+            h = 1 << pin
         if exact is not None:
             assert len(self.rows) == exact == h, (self.name, len(self.rows), exact)
         pad = self.pad_row if hasattr(self, 'pad_row') else None
@@ -156,8 +167,14 @@ class Table:
 
 
 class Gen:
-    def __init__(self, st, names, mutant=None, plan=None, segs=1, extra_writes=0):
+    def __init__(self, st, names, mutant=None, plan=None, segs=1, extra_writes=0, split=False):
         self.segs, self.extra_writes = segs, extra_writes
+        # B-T1 (`--split`): the template cut (`Tmpl.m5tIF` / `m5tSeg`): one INTAKE + FINAL dump and
+        # one dump per STATE segment, each with its own compressions, SHA-256 messages, `RNG`
+        # counts and tables; inside a segment dump the segment is `seg = 0` and times restart at 1
+        self.split = split
+        self.R = {}
+        self.role = 'if'
         # Batched FINAL: `plan` (from a first pass, `make_plan`) says, for every node version,
         # whether it is published under a version id (`nref`: rewritten by a later change) or
         # hashed (final), how many rows read it, and which row hashes each pre-state node.
@@ -175,7 +192,7 @@ class Gen:
         # M5a-8: without a `SHAS` table the STATE messages go to the M5a SHA-256 table (`sha_msgs.json`)
         self.sha_merged = self.m5b and 'SHAS' not in names.get('tables', [])
         self.T = {t: Table(t, names[t]) for t in ['KEY', 'BR', 'SN', 'KCMP', 'WSB', 'WSN', 'WSA', 'SNC', 'RNG', 'WSL', 'WSP']
-                  + (['STB', 'STW'] if self.m5b else [])}
+                  + (['STB', 'STW'] if self.m5b else []) + (['WSX'] if 'WSX' in names else [])}
         self.rng_count = {}
         self.sha_msgs = []
         self.comps = []
@@ -221,6 +238,58 @@ class Gen:
     def rng(self, v):
         assert 0 <= v < 256, ('range', v)
         self.rng_count[v] = self.rng_count.get(v, 0) + 1
+
+    # ------------------------------------------------------------------ B-T1: template roles
+    SEG_TABLES = ('WSA', 'WSL', 'WSP', 'STB', 'STW', 'RNG', 'WSX')
+
+    def set_role(self, role):
+        """Route compressions, SHA-256 messages, `RNG` counts and the per-segment tables to the
+        dump of `role` ('if', or ('seg', s)); a no-op without `--split`."""
+        if not self.split:
+            return
+        if role not in self.R:
+            # the INTAKE + FINAL role keeps the original tables (first call: before any swap)
+            T = {t: (self.T[t] if role == 'if' else Table(t, self.names[t]))
+                 for t in self.SEG_TABLES if t in self.T}
+            self.R[role] = dict(comps=[], sha=[], rng={}, T=T)
+        R = self.R[role]
+        self.comps, self.sha_msgs, self.rng_count = R['comps'], R['sha'], R['rng']
+        for t, tb in R['T'].items():
+            self.T[t] = tb
+        self.role = role
+
+    def sv(self, s):
+        """The segment label a row carries: `s`, or 0 inside a split segment dump."""
+        return 0 if self.split else s
+
+    def tv(self, t):
+        """The time a row carries: the global write time, or the segment-local one (from 1)."""
+        return self.t_local[t] if self.split else t
+
+    def zero_digest(self, d):
+        z = [0] * 6
+        for _ in range(d):
+            z = S5.compress(S5.IV384, z + z + [1 << 63, 0, 0, 768])[:6]
+        return z
+
+    def build_wsx(self, a, b, sb):
+        """`WSX` (`Tmpl.Wsx`): extend the depth-`D` roots `a`, `b` to depth 24 with the zero-subtree
+        chain; returns the depth-24 roots."""
+        T = self.T['WSX']
+        z = self.zero_digest(self.D)
+        a, b = list(a), list(b)
+        for lvl in range(self.D, WS_DEPTH):
+            r = T.new()
+            T.set(r, 'act', 1); T.set(r, 'top', int(lvl == WS_DEPTH - 1)); T.set(r, 'lvl', lvl)
+            T.set(r, 'sb', sb)
+            out = {}
+            for nm, x in (('z', z), ('a', a), ('b', b)):
+                cid, o = self.node_hash(x, z)
+                T.setv(r, nm, self.l18(x)); T.set(r, 'c' + nm, cid)
+                T.setv(r, nm + 'o', self.l18(o[:6])); T.setv(r, nm + 'x', self.l18(o[6:]))
+                out[nm] = o[:6]
+            z, a, b = out['z'], out['a'], out['b']
+        return a, b
 
     # ------------------------------------------------------------------ versions (batched FINAL)
     def vkey(self, node):
@@ -952,6 +1021,7 @@ class Gen:
 
     # ------------------------------------------------------------------ the run
     def run(self):
+        self.set_role('if')
         st_pre = PT.reveal_all(self.store, self.pre_root)
         if getattr(self, "tamper_fn", None):
             st_pre = self.tamper_fn(st_pre)
@@ -998,9 +1068,20 @@ class Gen:
         self.pre, self.final = pre, final
         self.build_ws()
         self.build_st()
+        self.set_role('if')
         self.build_kcmp()
         self.build_keys()
         self.range_versions()
+        if self.split:
+            # B-T1: the depth-24 roots, `WSX` of every dump (INTAKE + FINAL: R_0 in, R_n out;
+            # segment s: R_s out, R_{s+1} in), and one `RNG` per dump
+            self.root24 = {}
+            self.root24['if'] = self.build_wsx(self.rch[0], self.rch[-1], self.nseg)
+            for s in range(self.nseg):
+                self.set_role(('seg', s))
+                self.root24[('seg', s)] = self.build_wsx(self.rch[s], self.rch[s + 1], 1)
+                self.build_rng()
+            self.set_role('if')
         self.build_rng()
 
     def range_versions(self):
@@ -1071,9 +1152,16 @@ class Gen:
         S = min(self.segs, len(ws))
         out = []
         self.raw = {}           # M5b: time -> the raw value written (None: a remove)
+        self.t_local = {}
+        first = {}
         for t, (key, ref, v) in enumerate(ws):
-            out.append((t + 1, t * S // len(ws), key, ref))
+            s = t * S // len(ws)
+            out.append((t + 1, s, key, ref))
             self.raw[t + 1] = v
+            first.setdefault(s, t + 1)
+            self.t_local[t + 1] = t + 1 - first[s] + 1      # B-T1: times restart at 1 per segment
+        if self.split and S == 0:
+            S = 1          # no write: one empty STATE segment (R_out = R_in)
         return out, S
 
     def build_ws(self):
@@ -1160,6 +1248,8 @@ class Gen:
         idx_of = {k: i for i, k in enumerate(self.keys)}
         rch = [self.tree_levels(D, digs)[D][0]]
         for s in range(self.nseg):
+            self.set_role(('seg', s))
+            Ta, Tl, Tp = self.T['WSA'], self.T['WSL'], self.T['WSP']
             seg_w = [w for w in self.writes if w[1] == s]
             touched = sorted(set(idx_of[w[2]] for w in seg_w))
             seg_start = list(state)
@@ -1168,7 +1258,8 @@ class Gen:
                 i = idx_of[key]
                 kdi, p, c, wr = state[i]
                 r = Ta.new()
-                Ta.set(r, 'act', 1); Ta.set(r, 'seg', s); Ta.set(r, 't', t)
+                t = self.tv(t)
+                Ta.set(r, 'act', 1); Ta.set(r, 'seg', self.sv(s)); Ta.set(r, 't', t)
                 Ta.setv(r, 'kd', pack2(kdi))
                 Ta.set(r, 'cp', c[0]); Ta.set(r, 'cl', c[1]); Ta.setv(r, 'cv', pack2(c[2])); Ta.set(r, 'wr', wr)
                 idp = last_t.get(i, 0)
@@ -1195,7 +1286,7 @@ class Gen:
                 kdi, p, c, wr = seg_start[i]
                 nk, np_, nc, nwr = state[i]
                 r = Tl.new()
-                Tl.set(r, 'act', 1); Tl.set(r, 'seg', s); Tl.set(r, 'i', i)
+                Tl.set(r, 'act', 1); Tl.set(r, 'seg', self.sv(s)); Tl.set(r, 'i', i)
                 Tl.setv(r, 'kd', pack2(kdi)); Tl.setv(r, 'kb', list(kdi))
                 Tl.set(r, 'pp', p[0]); Tl.set(r, 'pl', p[1]); Tl.setv(r, 'pv', pack2(p[2]))
                 Tl.setv(r, 'plx', self.len_chunks(p[1]))
@@ -1226,7 +1317,7 @@ class Gen:
                 for j in par:
                     r = Tp.new()
                     top = int(l == D - 1)
-                    Tp.set(r, 'act', 1); Tp.set(r, 'seg', s); Tp.set(r, 'lvl', l); Tp.set(r, 'idx', j)
+                    Tp.set(r, 'act', 1); Tp.set(r, 'seg', self.sv(s)); Tp.set(r, 'lvl', l); Tp.set(r, 'idx', j)
                     Tp.set(r, 'top', top)
                     Tp.set(r, 'tl', int(2 * j in cur_t)); Tp.set(r, 'tr', int(2 * j + 1 in cur_t))
                     a_o, a_n, b_o, b_n = lo_lv[2 * j], ln_lv[2 * j], lo_lv[2 * j + 1], ln_lv[2 * j + 1]
@@ -1249,13 +1340,16 @@ class Gen:
             assert lo_lv[0] == rch[-1]
             rch.append(ln_lv[0])
             digs = new_d
+        self.set_role('if')
+        if self.split and not self.writes:
+            rch.append(rch[-1])        # the empty segment
         assert digs == [list(x) for x in dig[1]], 'segments end at the FINAL leaves'
         assert rch[-1] == self.tree_levels(D, dig[1])[D][0]
         build(1, dig[1])
         self.rch = rch
         if self.mutant == 'omitwrite':
             # the dishonest prover leaves one write access out of the trace
-            Ta.rows.pop(0)
+            (self.R[('seg', 0)]['T']['WSA'] if self.split else Ta).rows.pop(0)
 
     # ------------------------------------------------------------------ M5b: STATE rows
     @staticmethod
@@ -1266,7 +1360,10 @@ class Gen:
     def st_run(self, m, ts, base, data):
         """`STB` rows of message `m`: the bytes of `data`, read by call `ts` at `base, ...`."""
         Tb = self.T['STB']
-        self.sha_st_msgs.append(dict(id=ID_ST + m, bytes=data.hex()))   # `SHAS`, or `SHA` (merged, M5a-8)
+        if self.split:
+            self.sha_msg(ID_ST + m, data)       # the segment dump's own SHA-256 table
+        else:
+            self.sha_st_msgs.append(dict(id=ID_ST + m, bytes=data.hex()))   # `SHAS`, or `SHA` (merged, M5a-8)
         for j, b in enumerate(data):
             r = Tb.new()
             Tb.set(r, 'act', 1); Tb.set(r, 'm', m); Tb.set(r, 'j', j); Tb.set(r, 'b', b)
@@ -1283,10 +1380,16 @@ class Gen:
         Tw = self.T['STW']
         m = 0
         drop = self.writes[0][0] if self.mutant == 'stdrop' else None
+        cur_seg = None
         for (t, seg, key, ref) in self.writes:
+            if self.split and seg != cur_seg:
+                # B-T1: each segment dump has its own `STB`/`STW` and messages from `m = 0`
+                self.set_role(('seg', seg))
+                Tw, m, cur_seg = self.T['STW'], 0, seg
             if t == drop:
                 continue      # the dishonest prover leaves a requested write out of the STATE rows
             v = self.raw[t]
+            gt, t = t, self.tv(t)
             pr = int(v is not None)
             kptr, vptr = self.st_layout(key, v)
             vlen = len(v) if pr else 0
@@ -1301,18 +1404,22 @@ class Gen:
                 mv = m
                 m = self.st_run(m, t, vptr, v)
             r = Tw.new()
-            Tw.set(r, 'act', 1); Tw.set(r, 'seg', seg); Tw.set(r, 'ts', t); Tw.set(r, 'pr', pr)
+            Tw.set(r, 'act', 1); Tw.set(r, 'seg', self.sv(seg)); Tw.set(r, 'ts', t); Tw.set(r, 'pr', pr)
             Tw.set(r, 've', ve); Tw.set(r, 'ke', ke); Tw.set(r, 'klen', len(key)); Tw.set(r, 'kptr', kptr)
             Tw.set(r, 'vlen', vlen); Tw.set(r, 'vptr', vptr); Tw.set(r, 'mk', mk); Tw.set(r, 'mv', mv)
             Tw.setv(r, 'dk', list(sha(key)))
             Tw.setv(r, 'dv', list(sha(v)) if pr else [0] * 32)
 
-    def st_tape(self):
+    def st_tape(self, only_seg=None):
         """The execution side's messages on T1: `SREQ(ts, pr, seg, klen, kptr, vlen, vptr)` and the
-        bytes `HB(ts, pos, byte)` of each write's key and value."""
+        bytes `HB(ts, pos, byte)` of each write's key and value (B-T1 `--split`: of segment
+        `only_seg`, at its local times, `seg = 0`)."""
         tape = []
         for (t, seg, key, ref) in self.writes:
+            if only_seg is not None and seg != only_seg:
+                continue
             v = self.raw[t]
+            seg, t = self.sv(seg), self.tv(t)
             pr = int(v is not None)
             kptr, vptr = self.st_layout(key, v)
             vb = v if pr else b''
@@ -1391,6 +1498,88 @@ class Gen:
             assert cnt < 1 << 20
             for t in range(20):
                 T.set(r, 'm', (cnt >> t) & 1, t)
+
+    # ------------------------------------------------------------------ B-T1 output
+    IF_TABLES = ('KEY', 'BR', 'SN', 'KCMP', 'WSB', 'WSN', 'SNC', 'RNG', 'WSX')
+    SEG_ORDER = ('WSA', 'WSL', 'WSP', 'RNG', 'STB', 'STW', 'WSX')
+
+    @staticmethod
+    def sha_rows(msgs):
+        # the SHA-256 table (`sha256gen.rs`): per message one start row, per block 16 rounds + 1
+        return sum(1 + 17 * ((len(m['bytes']) // 2 + 9 + 63) // 64) for m in msgs)
+
+    @staticmethod
+    def chip_rows(n):
+        return 128 * n
+
+    def write_split(self, out, tmpl=None, stats_only=False):
+        """One dump per template proof: `out/if` (INTAKE + FINAL) and `out/seg<s>` (STATE segment
+        `s`).  `tmpl` (a template file: `{"D", "if": {"heights", "params"}, "seg": {…}}`) pins every
+        table's height; a table that does not fit raises `TemplateOverflow`."""
+        wslen = len(self.keys) + (1 if self.mutant == 'wslen' else -1 if self.mutant == 'wslenlo' else 0)
+        post = self.post_root
+        if self.mutant == 'postroot':
+            post = bytes([post[0] ^ 1]) + post[1:]
+        r24 = lambda w: self.l18(w)
+        roles = [('if', 'if', self.IF_TABLES)] + [(('seg', s), 'seg%d' % s, self.SEG_ORDER) for s in range(self.nseg)]
+        summary = {}
+        for role, name, order in roles:
+            kind = 'if' if role == 'if' else 'seg'
+            R = self.R[role]
+            T = dict(R['T'])
+            if role == 'if':
+                T.update({t: self.T[t] for t in self.IF_TABLES if t not in T})
+            pin = (tmpl or {}).get(kind, {}).get('heights', {})
+            nat = {}
+            for t in order:
+                n = len(T[t].rows)
+                nat[t] = max(2, (max(n, 4) - 1).bit_length())
+            nat['SHA'] = max(2, (max(self.sha_rows(R['sha']), 4) - 1).bit_length())
+            nat['SHA512'] = max(2, (max(self.chip_rows(len(R['comps'])), 4) - 1).bit_length())
+            for t, h in nat.items():
+                if t in pin and h > pin[t]:
+                    raise TemplateOverflow('%s %s: natural 2^%d > template 2^%d' % (name, t, h, pin[t]))
+            a24, b24 = self.root24[role]
+            if role == 'if':
+                pubs = pack2(self.pre_root) + [wslen] + r24(a24) + r24(b24) + pack2(post) + [len(self.final)]
+            else:
+                pubs = pack2(self.pre_root) + [wslen] + r24(a24) + r24(b24)
+            summary[name] = dict(heights=nat, rows={t: len(T[t].rows) for t in order},
+                                 sha_rows=self.sha_rows(R['sha']), compressions=len(R['comps']),
+                                 root_a=bytes(b for w in a24 for b in w.to_bytes(8, 'big')).hex(),
+                                 root_b=bytes(b for w in b24 for b in w.to_bytes(8, 'big')).hex())
+            if stats_only:
+                continue
+            d = os.path.join(out, name)
+            os.makedirs(d, exist_ok=True)
+            for t in order:
+                kw = {}
+                if t == 'WSB':
+                    kw['exact'] = 2 << self.D
+                elif t == 'RNG':
+                    kw['exact'] = 256
+                elif t in ('BR', 'SN'):
+                    rid_i = T[t].ix('rid')
+                    w = T[t].width
+                    T[t].pad_row = (lambda rid_i, w: (lambda i: [i if c == rid_i else 0 for c in range(w)]))(rid_i, w)
+                if t in pin and t not in ('WSB', 'RNG'):
+                    kw['pin'] = pin[t]
+                T[t].dump(os.path.join(d, t + '.bin'), **kw)
+            json.dump(R['sha'], open(os.path.join(d, 'sha_msgs.json'), 'w'))
+            json.dump(R['comps'], open(os.path.join(d, 'comps.json'), 'w'))
+            with open(os.path.join(d, 'pubs.bin'), 'wb') as f:
+                f.write(struct.pack('<%dI' % len(pubs), *[x % P for x in pubs]))
+            json.dump(['SHA'] + list(order), open(os.path.join(d, 'tables.json'), 'w'))
+            if role != 'if':
+                json.dump(self.st_tape(role[1]), open(os.path.join(d, 'htape.json'), 'w'))
+            if tmpl is not None:
+                json.dump(dict(name=tmpl.get('name'), kind=kind, D=self.D, **tmpl[kind]),
+                          open(os.path.join(d, 'template.json'), 'w'), indent=1)
+            json.dump(dict(kind=kind, pre_root=self.pre_root.hex(), post_root=post.hex(), ws_len=wslen,
+                           changes=len(self.final),
+                           depth=self.D, ws_depth=WS_DEPTH, **summary[name]),
+                      open(os.path.join(d, 'stats.json'), 'w'), indent=1)
+        return summary
 
     # ------------------------------------------------------------------ output
     def write(self, out):
@@ -1830,8 +2019,8 @@ TAMPERS = dict(hphshort=_t_hphshort, hphlong=_t_hphlong, kempty=_t_kempty,
                stkbyte=_t_stkbyte, stvbyte=_t_stvbyte)
 
 
-def make_gen(st, names, mutant, plan, segs=1, extra_writes=0):
-    g = Gen(st, names, mutant, plan, segs, extra_writes)
+def make_gen(st, names, mutant, plan, segs=1, extra_writes=0, split=False):
+    g = Gen(st, names, mutant, plan, segs, extra_writes, split)
     if mutant == 'node':
         # A tampered pre-state node: the leaf of the first written key carries memory usage + 1
         # (still a well-formed node), while its parent keeps the true child hash.  Every row that
@@ -1873,11 +2062,13 @@ def main():
     segs = int(args[args.index('--segs') + 1]) if '--segs' in args else 1
     extra = int(args[args.index('--extra-writes') + 1]) if '--extra-writes' in args else 0
     # pass 1: every node hashed (the unbatched trace, still a valid one); pass 2: batched FINAL
-    g = make_gen(st, names, mutant, None, segs, extra)
+    split = '--split' in args
+    tmpl = json.load(open(args[args.index('--template') + 1])) if '--template' in args else None
+    g = make_gen(st, names, mutant, None, segs, extra, split)
     if '--unbatched' not in args:
         plan = g.make_plan()
         PT.OVERRIDE.clear()
-        g = make_gen(st, names, mutant, plan, segs, extra)
+        g = make_gen(st, names, mutant, plan, segs, extra, split)
     if mutant in TAMPERS:
         try:
             TAMPERS[mutant](g)
@@ -1886,6 +2077,15 @@ def main():
             # leaf, which the synthetic `bval` case does not have): not a rejection, not a crash
             print(f'NOT APPLICABLE: mutant {mutant} has no target row in this trace')
             sys.exit(3)
+    if split:
+        # B-T1: exit 4 if the case does not fit the template
+        try:
+            summ = g.write_split(out, tmpl, stats_only='--stats-only' in args)
+        except TemplateOverflow as e:
+            print('TEMPLATE OVERFLOW: %s' % e)
+            sys.exit(4)
+        print(json.dumps(dict(split=summ, segments=g.nseg, writes=len(g.writes))))
+        return
     stats = g.write(out)
     print(json.dumps(dict((k, stats[k]) for k in ('rows', 'heights', 'sha_msgs', 'sha_blocks', 'compressions',
                                                   'ops', 'versions', 'writes', 'segments'))))
