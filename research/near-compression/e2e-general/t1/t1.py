@@ -338,7 +338,7 @@ def step_plan(out, cd, full, calls, comps, k_steps):
                     mismatch("plan", f"call {c['index']} WASM segment {k}: B_in from its own public values "
                              f"!= B_out of the previous cut")
                 cut("WASM", f"call {c['index']} {c['method']} steps ({b['in']['t']}, {b['out']['t']}] of {steps}"
-                    f"{' (halts)' if b['out']['halted'] else ''}: lane A wasmBaseSegAirMP segment {k}",
+                    f"{' (halts)' if b['halted'] else ''}: lane A wasmBaseSegAirMP segment {k}",
                     t=b["out"]["t"], wasm=wasm_of(b["out"]))
         else:
             t = 0
