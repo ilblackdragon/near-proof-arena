@@ -169,7 +169,7 @@ fn env_pair(name: &str, d: (usize, usize)) -> (usize, usize) {
     })
 }
 
-fn circ(k: usize, log_rows: usize, prog_log: usize, sha: usize, cap_log: usize, h: Option<&[vd::PinnedHeight]>) -> NvCircuit {
+pub(crate) fn circ(k: usize, log_rows: usize, prog_log: usize, sha: usize, cap_log: usize, h: Option<&[vd::PinnedHeight]>) -> NvCircuit {
     let mut c = NvCircuit::new(k, log_rows, sha);
     c.program_part = true;
     c.prog_log = prog_log;
@@ -181,12 +181,12 @@ fn circ(k: usize, log_rows: usize, prog_log: usize, sha: usize, cap_log: usize, 
     c
 }
 
-fn fits(nat: &[vd::PinnedHeight], pin: &[vd::PinnedHeight]) -> bool {
+pub(crate) fn fits(nat: &[vd::PinnedHeight], pin: &[vd::PinnedHeight]) -> bool {
     nat.len() == pin.len() && nat.iter().zip(pin).all(|(a, b)| a.0 <= b.0 && a.1.unwrap_or(1 << a.0) <= b.1.unwrap_or(1 << b.0))
 }
 
 /// Per-AIR maximum of several pins (same AIR set).
-fn max_pin(pins: &[Vec<vd::PinnedHeight>]) -> Vec<vd::PinnedHeight> {
+pub(crate) fn max_pin(pins: &[Vec<vd::PinnedHeight>]) -> Vec<vd::PinnedHeight> {
     (0..pins[0].len())
         .map(|a| {
             let l = pins.iter().map(|p| p[a].0).max().unwrap();
@@ -197,7 +197,7 @@ fn max_pin(pins: &[Vec<vd::PinnedHeight>]) -> Vec<vd::PinnedHeight> {
 }
 
 /// Grow a pin by `margin` (NvAir tight; SHA total, redistributed over `k` instances of 2^cap_log).
-fn grow_pin(p: &[vd::PinnedHeight], margin: f64, k: usize, cap_log: usize) -> Vec<vd::PinnedHeight> {
+pub(crate) fn grow_pin(p: &[vd::PinnedHeight], margin: f64, k: usize, cap_log: usize) -> Vec<vd::PinnedHeight> {
     let g = |x: usize| ((x as f64 * margin).ceil() as usize).next_multiple_of(4);
     let mut out = p.to_vec();
     let t0 = g(p[0].1.unwrap()).min(1 << p[0].0);
