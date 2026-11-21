@@ -76,8 +76,8 @@ the B-T1 AIR, rejected by B-T1b's** (`precheck: WSX: constraint 118 fails on row
 
 **Re-proved [M]** (the IF AIR changed; the segment AIR did not): T1 at S — IF **491,416 B**, 35.2 s,
 verify 44 ms, 7.3 GB; seg0 473,236 B (unchanged AIR, re-proved), 37.2 s; chain OK, post root
-`1db48e38…249628` = Lean oracle (`logs/BT1b-T1S-prove.log`). T2_PLACEHOLDER
-Mutants on T1 at S (full prover, `logs/BT1b-T1S-mutants.txt`): **23 / 23 of B-T1's rejected** on the new AIR; `wsxsb` WSXSB_PLACEHOLDER
+`1db48e38…249628` = Lean oracle (`logs/BT1b-T1S-prove.log`). T2 at M — IF **515,982 B**, prove 855 s on the loaded host (load ≈ 35; was 123 s), verify 56 ms, 25.7 GB, precheck OK (`logs/BT1b-T2M-prove.log`); its segment AIR is unchanged (B-T1: 510,652 B).
+Mutants on T1 at S (full prover, `logs/BT1b-T1S-mutants.txt`): **23 / 23 of B-T1's rejected** on the new AIR; plus the new `wsxsb` **rejected** (precheck `WSX: constraint 118`, then the native verifier): **24 / 24**.
 
 ### Lane G's requests (coordinator, 2026-11-21) [S]
 

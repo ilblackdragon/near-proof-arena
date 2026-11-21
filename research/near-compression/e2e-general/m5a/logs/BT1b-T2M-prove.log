@@ -1,0 +1,10 @@
+spec oracle: post-state root 61f5330ac8001b656a126707ae7ab487920e9943e263915d1018a1e607993006 (Lean applyChanges)
+== if
+PRECHECK OK: every constraint on every row; every bus balances (28289 distinct messages)
+PARAMS n_stack 20 w_stack 6 log_blowup 1 degree 9 pow 24 queries [100, 71, 45, 33] k [2, 4, 4, 4]
+SOUNDNESS total=268.2 logup=324.4 proximity=293.1 query=268.2
+PROOF total=515982 gkr=25352 relations=178052 stacking=2464 whir=309514
+TIME prove 855.00s verify 0.0560s threads 8 peak_rss_kib 25684712 proof_bytes 515982
+SAVED /data/illia/nearproof-deps/laneB-t1/t1b/T2M/if/out (STATE.proof 515982 B, STATE.vk.json 2886234 B)
+VERIFY OK (native SWIRL verifier); statement check (cached roots + every AIR's public values): OK
+== seg0
