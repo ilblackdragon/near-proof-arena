@@ -1041,8 +1041,12 @@ pub fn cmd_segleaf(a: &[String]) {
     let out = std::path::Path::new(&a[5]);
     std::fs::create_dir_all(out).unwrap();
     seg::TEMPLATE.set(tp.heights.clone()).expect("template set once");
-    let (prep, _g, segs) = segments(&seg_air, &m2_air, &a[2], k);
+    let (prep, g, segs) = segments(&seg_air, &m2_air, &a[2], k);
     let prm = template_params(&tp);
+    // the stack budget `stackRem` at a cut: the live space-5 message `[rem & 0xffff, rem >> 16]`
+    let stack_rem = |c: &tracegen::CutSnap| -> Option<u64> {
+        c.live.iter().find(|l| l.space == 5 && l.slot == 0).map(|l| l.v[0] | (l.v[1] << 16))
+    };
     println!("PARAMS n_stack {} w_stack {} log_blowup {} pow {} degree {} (stack base configuration)",
         prm.n_stack, prm.w_stack, prm.log_blowup, tp.pow, prm.max_constraint_degree);
     let eng = Sha384RefEngine::new(prm);
@@ -1071,7 +1075,22 @@ pub fn cmd_segleaf(a: &[String]) {
         proof.encode(&mut pb).unwrap();
         std::fs::write(out.join(format!("seg-{i}.proof")), &pb).unwrap();
         let pubs: Vec<u32> = s.pubs.iter().map(|x| x.as_canonical_u32()).collect();
-        let pj = serde_json::to_vec(&serde_json::json!({ "segment": i, "halted": s.halted, "pubs": pubs })).unwrap();
+        // A-T1 (lane I's boundary digest): the WasmBnd fields beyond the 105 public values.
+        // `code_root`/`func_root`: the proof's cached CODE/FUNC commitments (bound by the proof; the
+        // 42-byte digest as 6 u64 words: five full words + a 16-bit last word). `fuel`: not in the AIR; the leaf rule is
+        // `fuel_out = fuel_in - (t_out - t_in)` (one call-machine step per STATE time).
+        // `stack_rem`: the honest value at each cut, from the trace's live budget message; **not
+        // bound by a public value** (it is inside the ctx digest's cut view, `budMsg`), so a leaf must
+        // not rely on it until the AIR exposes it.  `vm_ctx_digest`: not available (the remainder
+        // `blank s` moves with `gas.g`; m6 §6, TmplWasm `RestOK`).
+        let cc = |name: &str| proof.trace_vdata[seg_air.index(name)].as_ref().map(|v| v.cached_commitments[0].to_vec());
+        let wf = serde_json::json!({
+            "code_root_words": cc("CODE"), "func_root_words": cc("FUNC"),
+            "fuel_rule": "fuel_out = fuel_in - (t_out - t_in)", "steps": s.b_out.t - s.b_in.t,
+            "stack_rem_in_unbound": stack_rem(&g.cuts[i]), "stack_rem_out_unbound": stack_rem(&g.cuts[i + 1]),
+            "vm_ctx_digest": serde_json::Value::Null,
+        });
+        let pj = serde_json::to_vec(&serde_json::json!({ "segment": i, "halted": s.halted, "pubs": pubs, "wasm_fields": wf })).unwrap();
         std::fs::write(out.join(format!("seg-{i}.pubs.json")), &pj).unwrap();
         let t = Instant::now();
         eng.verify(&vk, &proof).expect("verify");
@@ -1130,6 +1149,12 @@ pub fn cmd_segleafverify(a: &[String]) {
             proof.public_values[ti] == want
         });
         assert!(pv_ok, "segment {i}: public values");
+        // the published CODE/FUNC roots are the proof's own cached commitments
+        for (name, key) in [("CODE", "code_root_words"), ("FUNC", "func_root_words")] {
+            let want: Vec<u64> = proof.trace_vdata[spec.index(name)].as_ref().expect("cached").cached_commitments[0].to_vec();
+            let got: Vec<u64> = pj["wasm_fields"][key].as_array().expect(key).iter().map(|x| x.as_u64().unwrap()).collect();
+            assert_eq!(got, want, "segment {i}: published {name} root");
+        }
         if let Some(p) = &prev {
             let ok = p[seg::PUB_PC_OUT..seg::PUB_PC_OUT + 10] == pubs[seg::PUB_PC_IN..seg::PUB_PC_IN + 10]
                 && p[seg::PUB_CTX_OUT..seg::PUB_CTX_OUT + 18] == pubs[seg::PUB_CTX_IN..seg::PUB_CTX_IN + 18]

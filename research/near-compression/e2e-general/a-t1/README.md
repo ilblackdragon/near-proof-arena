@@ -254,3 +254,98 @@ carries `[ts, wire, dir, pos, byte]`, with `pos` relative to the group's `ptr`. 
   stay in the standalone Wasm template.
 To do: the Lean AIR (a new `Seg.HostBJ` variant, so the standalone template is unchanged), the
 tracer, and a joined pre-check on T1 with lane B's STB/STW tables.
+
+## 6. Lane E's `SegSoundWasm` (sub-lane CONN) [K]
+
+The file is `WasmBase/Main/TmplWasm.lean`. The build is green (735 jobs), the axioms are standard,
+and `spec/` is unchanged.
+
+* **The leaf predicate.** `wasmHolds Pv d d' tr` combines:
+  * `LeafW`, the circuit's checks:
+    * `bdigest` of the witnessed `B_in`/`B_out` equals `d`/`d'`; the records are `WF`; phase `inCall`;
+    * every non-Wasm field is copied;
+    * the Wasm in/out fields equal the publics (pc, sp, 42-byte ctx/mem prefixes, pages, depth);
+    * globals/registers digests = the frames digest; promises = `bdigest []`;
+    * `fuel_out + (t_out − t_in) = fuel_in`; code/func roots carried; `t_in < t_out`.
+  * `SegPremAMP`, `StaticOK`, the in-opening `win`, and the named `CutSeed` and `RestOK`.
+* **Theorems:**
+  * `wasm_core`, `segSoundWasmRel_of`: the relative form `TmplSoundRel V A Sha384Coll .wasm`.
+    Every opening of `d` steps by `CSteps` to an opening of `d'`.
+  * `segSoundWasm_of`: lane E's absolute `SegSoundWasm`, given the named `InOpens`.
+  * `e2e_sound_t1_wasmRel`: `e2e_sound_t1` with the relative form, so no `InOpens` is needed.
+* **Named premises, and why an honest run meets them:**
+  * `CutSeed` (`RelW` at the cut, ctx, cid, `RegWF`, σ pin, 48-byte `mem_in`) is **proved from the
+    previous segment's `OutSA` + `LinkPubM`** (`cutSeed_of_out`): it is the chain's continuity.
+  * `RestOK` (out `stackRem` and `vmCtxDigest`) is proved for the honest record
+    (`restOK_honest`). No public binds these two fields.
+  * Non-vacuity: `wasmHolds_honest`, for consecutive honest segments.
+* **Findings for lane E:**
+  * (1) A field-copying leaf cannot meet the absolute `TmplSound`: copied non-Wasm fields are
+    unconstrained. Lane F's `rt` has the same issue. **Proposal: adopt `TmplSoundRel`**
+    (`e2e_sound_t1_wasmRel` shows it suffices).
+  * (2) `mem_in` in the 42-byte record cannot be lifted to the AIR's 48-byte root when no block is
+    touched. Fix with a 42-byte `seg_membIn` variant or a 48-byte `memRoot` field.
+  * (3) The missing `gasLeft` and `stackRem` publics force `CutSeed.bnd`/`RestOK` (m6 §6).
+  * (4) **Completeness:** `wasm_not_complete_pre` shows that `TmplComplete .wasm` fails for the
+    instance `pre → pre` (`CSteps.refl`).
+    * Lane E's `cm_decomp` uses one `wasm` segment per whole call (`.pre → .fin`).
+    * Fixed-height leaves prove `ent → ent` with at least one step.
+    * The whole-call meaning must split into entry (§7), mid-call segments, and halt. The honest
+      side `WasmSegComplete` is stated, not proved: it is the tracer's completeness, measured by
+      `segcheck`.
+
+## 7. The `.pre → .ent` seam: PREP covers exactly `cstep q .pre = preConf q` [S]
+
+The integrator found that lane F's rt-enter ends at `.call I c K q .pre`, while lane A's
+segment 0 starts at `.ent p k (.cont s0) n`. In lane E's call machine
+(`E2E/CallMachine.lean`), `cstep q .pre = preConf q` is **one** call-machine step, and it is
+`runCall`'s whole prefix:
+* `prepare cfg code` (decode, validate, analyse, instrument);
+* the contract-loading gas;
+* `link` and `resolve method`;
+* `instantiate` (globals, data segments into memory, the stack budget);
+* `adjustSt` (ctx, balance, storage usage, real store);
+* the entry (`tailConf`: `.ent p (.start mi | .method) (enter …) fuel`);
+* or a `.fin` line on every error branch (prepare error, method not found, gas exceeded, link
+  error).
+So `MWasm (call I c K q .pre) (call I c K q (preConf q))` is already a Wasm meaning instance.
+
+**Proposal to lane E:** no new `Meaning`. Keep `Tmpl.wasm` and let `A.Tr .wasm` be a sum: segment
+traces ⊕ PREP traces. The leaf geometry differs, but lane D's set of template classes already
+allows that. If lane E prefers a distinct kind for readability: `Tmpl.prep` with
+`MPrep (call I c K q .pre) (call I c K q (preConf q))`, which is contained in `MWasm`, so
+`meaning_rsteps` is unchanged.
+
+**PREP's statement** (completing §4). From the boundary digest of `.call I c K q .pre` (which
+carries `q`: code hash, method, ctx, store) to that of `preConf q`:
+* (a) `SHA-256(code) = h` from the state's code hash;
+* (b) `prepare` ok, and the CODE/FUNC roots equal the commitments of `checkModuleM2`'s padded
+  records (R1);
+* (c) the loading-gas arithmetic;
+* (d) `instantiate`: the initial `memRoot`. The data segments are hashed into the memory tree,
+  and the zero subtrees are constants, so the cost is about data blocks × depth;
+* (e) the entry frame/`pc`/`sp`/`stackRem`;
+* (f) `vmCtxDigest` of `blank s0`: the remainder (host side after `adjustSt`) encoded and
+  hashed. This is the one field PREP must compute that no Wasm segment does;
+* (g) every error branch ends in `.fin` with the spec's line.
+For d3tiny, (d) is the data image, `dataEnd` bytes.
+
+## 8. Wasm boundary fields for lane I's boundary digest [M]
+
+`segleaf` now writes, per segment (`seg-<i>.pubs.json` → `wasm_fields`; T1 samples in
+`logs/t1-leaf-k13-seg{0,1}.pubs.json`), the `WasmBnd` fields beyond the 105 publics:
+
+| field | status | source |
+|---|---|---|
+| `codeRoot`, `funcRoot` | **bound** | the proof's cached CODE/FUNC commitments (42 bytes = 5 × u64 + 16 bits; `segleafverify` checks them against the proof) |
+| `fuel` | **bound by rule** | `fuel_out = fuel_in − (t_out − t_in)`: one call-machine step per STATE time (`LeafW`); `fuel_in` of segment 0 is the entry's `n` |
+| `stackRem` | **honest value, unbound** | the cut's live budget message (`stack_rem_in/out_unbound`; T1: 262,032 at both cuts). It is committed inside the frames digest (`cutMsgs` has `budMsg`), but no public exposes it |
+| `vmCtxDigest` | **not available** | `bdigest (encRest (blank s))` moves with `gas.g` at every step. It needs lane E's `gasLeft` (m6 §6) plus the state side's σ at host rows (M6.4) |
+| `globalsDigest`, `registersDigest`, `promisesDigest` | by definition | = `framesDigest`, = `framesDigest`, `bdigest []` (`airBnd`) |
+
+**To bind `stackRem` (next AIR change):** SEGB, the boundary table with one row, consumes the in
+stream's budget message and produces the out stream's. Today CUTI/CUTO route it through the ctx
+digest. Add two public values `rem_in`/`rem_out` and equate them with the budget message's value at
+CUTI's and CUTO's space-5 row. A space-5 row needs a selector column `isBud` with
+`isBud·(space − 5) = 0`, and the count must force exactly one budget row per stream. Then
+`RestOK.stackRem` becomes an AIR fact.
