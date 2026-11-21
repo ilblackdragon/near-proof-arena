@@ -1806,3 +1806,30 @@ change.
   `seg` in `HB`.
 * **Not built:** branch-end split, `STB` packing. **Open:** as README "Open after M5a-9";
   `FitsReach` → lane E's `FitsReachK` after rebasing on main `7358a938d`; lane D leaf requirements.
+
+### 5.2 M5-T1 runtime (lane F): status, 2026-11-21
+
+See `research/near-compression/e2e-general/m5t1/README.md`; log
+[`docs/logs/e2e-m5t1-runtime-2026-11-21.md`](../logs/e2e-m5t1-runtime-2026-11-21.md).
+
+* **T1's FunctionCall receipt step proves on the main stack [M]:** 1,158,991 B, 268.2-bit, prove
+  5.7 s, verify 105 ms. Tables: a schema-driven Borsh engine `MSG` (parses `encodeRcpts` of the
+  incoming receipts and the receiver account; emits the account write, action hash, seed, refund
+  receipt id, refund receipt, logs, `partialEncode` and the outcome leaf), `DG` (digests as fields),
+  `RX` (one row per receipt: `actExec`, merge, storage stake, `burn = min`, `D2.refunds`, tokens burnt,
+  receiver reward, totals), the SHA-256 table. Outputs = the Lean run's (`m5t1-tool dump`: the
+  checker's own `intakeK`/`estep` with the receipt step through `pwO`): outcome leaf `e63a8497…`,
+  gas burnt 1,009,188,008,301, refund receipt `aa203713…` (54,888,077,387,472·10⁹ yocto), receiver
+  account, totals. Mutants **8/8 rejected** (gas burnt, refund, status, receipt id, statement, account
+  write, log byte, VM burnt).
+* **Interfaces (§3.3):** the call request is `VMCALL (qf, ts)` with the context as the receipt
+  family's `FB` fields (what lane A's context getters read); the answer `VMRES` + `FB` fields; the
+  account write is lane B's `SREQ`/`HB`; the read follows lane B's §M5b read design (`SRQ`/`SRS`/`HBR`).
+  On T1 a public stand-in tape plays lanes A and B (as lane B's `HTAPE`) → M6.
+* **Lean [K]:** `RxField.rx_rel_of_row` (any trace: `RX` constraints + `act` + `RNG` facts ⇒ `RxRel`
+  of the decoded row), `SpecLink` (`refunds_fc`, `stake_fc`, `merge_fc`, `burnt_fc`, `totals_fc`,
+  `actExec_fc`, `validActs_fc`, `consts`: the spec's functions compute `RxRel`'s values), `T1.t1_rel`
+  (non-vacuity); std axioms, no `sorry`; spec unchanged (checker sha `644495ff…`), `pin-check` ok.
+* **Open:** `SegSoundRt` / `TmplComplete .rt` (§3.5 table) — the `MSG`/`DG` row lemmas, the `RNG`
+  bus fact, composition into `CutW.applyActionReceiptW` and the RS boundary view; template coverage
+  beyond T1's shape (README "Open").

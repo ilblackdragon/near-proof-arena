@@ -3,5 +3,5 @@ RNG: width 21, constraints 23, interactions 1, degree 2, wf true
 SCHT: width 3255, constraints 3255, interactions 155, degree 4, wf true
 MSG: width 54, constraints 79, interactions 15, degree 4, wf true
 DG: width 39, constraints 102, interactions 34, degree 2, wf true
-RX: width 1364, constraints 2537, interactions 1501, degree 4, wf true
+RX: width 1368, constraints 2543, interactions 1505, degree 4, wf true
 schema entries 155, public values 247

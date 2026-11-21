@@ -13,7 +13,7 @@ the Lean run's values — gas burnt `1009188008301`, refund `5488807738747200000
 
 namespace M5T1.T1
 
-open M5T1 M5T1.SpecLink
+open M5T1 M5T1.SpecLink NearSpecV3.D2
 
 def t1Vals : RxVals :=
 { lm := 3, la := 5, gp := 1000000000, egp := 0, gas := 54000000000000,
