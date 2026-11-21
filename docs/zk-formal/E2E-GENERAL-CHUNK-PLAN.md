@@ -1928,12 +1928,20 @@ T1's row values satisfy `RowOK`, the window is T1's `chunk_inner`, `headerOk` ho
   `finK_bind` (the checker's `finK` splits at `t`, any driver), `fin_split` (honest runs factor),
   lane B's `FinalBPart` + lane G's `FinalGPart` (joined by the `FinIn` bus) ⇒ **`SegSoundFinal`**;
   `InitGPart` + lane B's `InitBPart` (joined by the `CLM` bytes) ⇒ **`SegSoundInit`**.
-* **Item 2:** G2_PROVER_NUMBERS
+* **Item 2 [M]:** the prover on lane D's base configuration (lane B's B-T1 backend, grinding 24),
+  pinned per-class heights (templates `F1`/`F1-M`/`F1-L`, `INIT-14..18`; SHA-256 and chip padded to
+  their pins), proofs saved in lane D's format and verified by lane D's driver (`fs-count`): T1 FINAL
+  **480,428 B** (was 992,188), INIT **346,723 B** (was 790,307), 268.2-bit. `B_out`: `FIN` computes
+  `ctxD(.header H)` and `outD(.done o)`'s digest (public values 30..58), equal on T1 to Lean's
+  `BOut` definitions (dump cross-check). **INIT now decodes section B's framing** (`BLK`: `ℓ_B` is the
+  block vector's exact span) and exposes the main slot's `prev_state_root` (bus `PSR` = 22 for the
+  `.init` join; `FinIn` bus `FINB` = 23 — leaf spec §5); the slot *selection* (`walkSegment`) is open.
+  Mutant batteries not re-run (the shared `zkbuild.slice` was saturated by other lanes).
 * **Item 4 [M], class census** (7,477 `d3` cases): F1 3.7 %, transactions 81 %, `(d, t)` ∈ {(1,3),
   (2,8), (5,16), (33,100)} on 4/5/6 shards, proposals 3.3 %, bandwidth requests 0.65 %, split 0.
   `gen_class.py` generates the FINAL AIR per `(NS, d, t)` (`Cls.f1_eq`: the generated F1 is
   `finalAir`); proved and verified on one case each of (4, 2, 8) 977,328 B, (5, 33, 100)
-  1,110,996 B, (4, 1, 3) G2_C413 (natural heights, seg-v1).
+  1,110,996 B, (4, 1, 3) precheck OK, proof not completed (host throttling) — natural heights, seg-v1.
 
 **Open, in order:** (1) `Computed` — the functional-sender facts per SHA-256 consumer (then
 `sha_msg`), the `MRK` rows ⇒ `walkLevel` (functional `NODE` bus), `BODY`/`SEG` ⇒ `encodeRcpts`,

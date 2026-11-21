@@ -43,6 +43,46 @@ level (the `NODE` bus is functional on `(tree, level, index)`: one `TSTART` per 
 the received bytes) and digest-byte extraction, which with `s384_chain` + `sha384_of_blocks` gives
 SHA-384 of every `SD` message (then the accumulator openings, modulo `bdigest` collisions).
 
+### Item 2 — `B_out`, pinned shapes, lane D's format [M]
+
+* **Prover** (`prover/`): ported to lane B's B-T1 prover — the verifier's backend (frozen
+  `pq-e2e-d9` `stark-backend-unified` + `plonky3-ext12`), `Sha384CpuEngine`, **lane D's base
+  configuration** (list decoding m = 64, `k_first 2`, `domain_odd_factor 15`, LogUp message length 7,
+  `zk = 0`) with **query grinding 24** (not 32) and the template's `(n_stack, log_blowup, w_stack)`;
+  `prove … OUT` saves `STATE.proof`, `STATE.vk.json` (SavedVk), `statement.json`; **lane D's driver
+  verifies them** (`nearproof-chunk-e2e fs-count VK PROOF 0`, `run.sh` runs it).
+* **Pinned heights** (`templates/*.json`, `census.py`): every table — the SHA-256 table and the
+  SHA-512 chip included (minimum-height options: `sha_cells_pinned`, `gen_main(comps, 1 << pin)`,
+  zero rows) — padded to its class pin; FINAL classes nested by chip height `F1` (≤ 2^13, 120 / 133
+  F1 cases), `F1-M`, `F1-L` (all 133); INIT classes `INIT-14 … INIT-18` by chip height (875 / 875 of a
+  partial census). `run.sh` picks the smallest fitting template (exit 4 = overflow).
+* **`B_out`** (`Final.lean` `Fin.boutInteractions`, `BOut.lean`): `FIN` sends `0x04 ‖ chunk_inner`
+  and `0x05 ‖ encOutputsF1 o` (252 B, from the row's `FinIn` / root / header-length cells) through
+  `S384`; public values 30..44 = `ctxD(.header H)` = `BOut.ctxHeaderD H`, 44..58 = the first
+  component of `outD(.done o)` = `BOut.outDoneD o`. The dump emits **Lean's own** `ctxHeaderD`,
+  `outDoneD`, `encOutputsF1` on the case and `tracegen.py` asserts the circuit's bytes equal them
+  (T1: `ctxHeaderD = a1d33e43…92c7`, `outDoneD = ef7d1e4e…6c72`). The leaf assembles `h(B_out)` from
+  these, `claimDigest` and the view's constants for `done` (§5 of the leaf spec).
+
+| T1 | before (M5d-T1, seg-v1, natural) | G-2 (template, base config) |
+|---|---|---|
+| FINAL (before `B_out`) | 992,188 B | **480,428 B** at `F1` (27.6 s / 31 ms, 6.9 GB, 268.2-bit), fs-count OK |
+| INIT (before the section-B walk) | 790,307 B | **346,723 B** at `INIT-14` (38.8 s / 16 ms, 6.2 GB), fs-count OK |
+| FINAL with `B_out` / INIT with `BLK` | | G2_REPROVE |
+
+**INIT decodes section B (G-2, coordinator request)** — `BLK` framing walk, slot bus, the main
+slot's `prev_state_root` exposed (public values 28..44; bus `PSR` = 22 in the `.init` join); see
+leaf spec §6 (the slot *selection* `(b2i, mainIdx)` = the checker's `walkSegment` is open: mutant
+`psr_slot` is accepted by the AIR).
+
+**Mutants:** the batteries could not run in this session — the shared `zkbuild.slice` (the `heavy`
+wrapper's cgroup) sat at its 40 GB `memory.high` from other lanes' jobs, and every prover in it
+(even the precheck) stalled in page reclaim; only `hdr_psr` completed before (rejected, FIN constraint
+3 + native verifier). Re-run: `LEAN=0 ./run.sh CASE OUT mutants` and `TEMPLATE=init …` (the
+battery runs the precheck first, the full prover only for mutants passing it). New mutants:
+FINAL `bout_od`, `pub_hdr`, `pub_out`; INIT `lbshift`, `psr_slot` (expected: accepted — the open
+selection), `pub_psr`.
+
 ### Item 3 — the FINAL / INIT leaves as joins [K] (`Split.lean`; lane E's M11i split was not on main)
 
 * `finK_bind` (any driver, any gas cap): the checker's `finK … k = finK … pure >>= k` — `FINAL`'s
