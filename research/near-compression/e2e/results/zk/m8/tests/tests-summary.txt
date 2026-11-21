@@ -1,0 +1,29 @@
+HTREE_POSITIVE_OK leaf INIT (honest) host_failures=[]
+HTREE_POSITIVE_OK leaf A (honest) host_failures=[]
+HTREE_POSITIVE_OK leaf B (honest) host_failures=[]
+HTREE_DEBUG_REJECTED leaf A: a pinned public value differs
+HTREE_GENERATION_REFUSED free public value; another template's layout
+HTREE_POSITIVE_OK PAD (honest, DONE) host_failures=[]
+HTREE_DEBUG_REJECTED PAD on a MID boundary
+HTREE_LEAF_PIN [(19, Some(19092)), (17, Some(68352)), (7, Some(128)), (16, Some(65536))]
+HTREE_TEMPLATE_SET INIT A B FINAL PAD_L distinct roots
+HTREE_NODE_PIN [(20, Some(634280)), (22, Some(2872160)), (7, Some(128)), (16, Some(65536))]
+HTREE_POSITIVE_OK P_2 INIT A B FINAL (honest) host_failures=[]
+HTREE_DEBUG_REJECTED P_2: template set without B (template swap / unknown template)
+HTREE_DEBUG_REJECTED P_2: boundary mismatch (A from another start)
+HTREE_DEBUG_REJECTED P_2: A and B reordered
+HTREE_DEBUG_REJECTED P_2: PAD in the middle (on a MID boundary)
+HTREE_DEBUG_REJECTED P_2: PAD instead of FINAL
+HTREE_DEBUG_REJECTED P_2: a leaf of another chunk's ctx
+HTREE_DEBUG_REJECTED P_2: forged B boundary preimage (chained consistently)
+HTREE_WRAP_OK rows=66742
+HTREE_DEBUG_REJECTED wrap: a root that never reaches DONE (no FINAL)
+HTREE_FIB_END_TO_END_OK
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 113 filtered out; finished in 2945.76s
+TREE_D9_WRAP_SET_ACCEPTED root first rows=65154
+TREE_D9_WRAP_SET_ACCEPTED root second rows=65154
+TREE_D9_WRAP_SET_ACCEPTED root of three rows=65212
+TREE_D9_NEGATIVE_REJECTED root not in the set
+TREE_D9_NEGATIVE_REJECTED set of one wrong root
+TREE_D9_NEGATIVE_REJECTED wrong root level with a set
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 113 filtered out; finished in 1349.36s
