@@ -1216,3 +1216,21 @@ cases re-proved (roots = Lean oracle), 121 mutant runs: 119 rejected, 2 not appl
   extension / branch sibling" — several sessions each; mismatch past the head; long extension
   under a delete; empty trie), `HostReqs` from lane A's HOST rows, reads, `STB` packing, lane E
   `StViewE`.
+
+**M5a-9 (tenth session, 2026-11-21) [M]:** README §"M5a-9", log
+[`docs/logs/e2e-m5a9-state-2026-11-21.md`](../logs/e2e-m5a9-state-2026-11-21.md). No AIR or Lean
+change.
+* **Corpus census [M]:** all 19,007 `d3` cases of d3c7–d3c10 (M5b AIR): **16,205 (85.3 %) trace
+  and pass `check`**, none fails `check`; 15 sampled proofs verify (1.10–1.86 MB). First gaps:
+  squash onto an extension sibling 5.65 %, old-leaf-ends split (`alice` → `alice.near`) 3.64 %,
+  squash to a value leaf 1.86 %, `VBITS` (≥ 128 working-set keys) 1.58 %, squash onto a branch
+  sibling 1.13 %, squash after a branch-value delete 0.77 %, written-key-ends split 0.12 %. Greedy
+  order to 100 %: ext-sibling squash (→ 89.5 %), old-ends split (→ 92.6 %), `VBITS` (→ 94.8 %),
+  branch-sibling squash (→ 97.1 %), value-leaf squash (→ 99.05 %), branch-value squash, the rest.
+* **`extract_state.py` fix:** witness nodes first read during finalize (squash siblings) were
+  dropped; 1,171 cases turn OK.
+* **Timestamps restart per boundary [M]:** the working-set side accepts it (T2, `--segs 47`, a
+  key written in two segments at `t = 1`); the M5b `HB(ts, pos, b)` needs one proof per segment or
+  `seg` in `HB`.
+* **Not built:** branch-end split, `STB` packing. **Open:** as README "Open after M5a-9";
+  `FitsReach` → lane E's `FitsReachK` after rebasing on main `7358a938d`; lane D leaf requirements.
