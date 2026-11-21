@@ -662,13 +662,16 @@ def main():
             msg.set(row, f, pad_e[f])
         sch_count[(MT["PAD"], 0)] += 1
 
-    # ----- SCHT: one row of multiplicity bits --------------------------------------------------
+    # ----- SCHT: one row per schema entry (the entries are the preprocessed columns `e`; F-2) ---
     scht = Trace(names["SCHT"])
-    row = scht.row()
-    for i, e in enumerate(entries):
-        c = sch_count[(e["mt"], e["s"])]
+    for i in range(256):
+        row = scht.row()
+        e = entries[min(i, len(entries) - 1)]
+        for j, f in enumerate(sch_fields):
+            scht.set(row, "e", e[f], j)
+        c = sch_count[(e["mt"], e["s"])] if i < len(entries) else 0
         for b, v in enumerate(bits(c, nb_sch)):
-            scht.set(row, "m", v, nb_sch * i + b)
+            scht.set(row, "m", v, b)
 
     # ----- DG ----------------------------------------------------------------------------------
     dg = Trace(names["DG"])
@@ -899,6 +902,18 @@ def main():
     check(b_out["gasUsed"] == want_out["gout"] == b_out["gasBurnt"] and b_out["compute"] == want_out["cout"], "B_out totals = Lean RS after")
     check(b_in["balanceBurnt"] == tot_in["tbin"] and b_out["balanceBurnt"] == want_out["tbout"], "balance burnt = RS txBurnt")
     check(b_in["rPrepaid"] == x0["gas"] and b_out["rBurnt"] == x0["vb"] and b_out["rUsed"] == x0["vu"], "prepaid / VM burnt / used")
+    if mut("bndgas"):
+        # the claimed output boundary charges the chunk 1 more gas than the receipt step
+        e_out = rtbnd.bndrec.encode(dict(b_out, gasUsed=b_out["gasUsed"] + 1, gasBurnt=b_out["gasBurnt"] + 1))
+        applied.append("bndgas")
+    if mut("bndprepaid"):
+        # the call's boundary claims 1 gas more prepaid than the receipt attached
+        e_in = rtbnd.bndrec.encode(dict(b_in, rPrepaid=b_in["rPrepaid"] + 1))
+        applied.append("bndprepaid")
+    if mut("bndburnt"):
+        # the output boundary's in-flight burnt gas differs from the VM's answer
+        e_out = rtbnd.bndrec.encode(dict(b_out, rBurnt=b_out["rBurnt"] - 1))
+        applied.append("bndburnt")
     setpub("bin", list(e_in)); setpub("bout", list(e_out))
     print(f"resume boundary: d_in {d_in[:16]}.. d_out {d_out[:16]}.. (lane I plan) = bdigest of the public records")
     pub_vals = [pubs[nm] for nm in pubnames]

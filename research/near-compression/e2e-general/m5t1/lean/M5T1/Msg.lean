@@ -30,17 +30,27 @@ namespace M5T1
 
 open ZkFormal.Air
 
-/-! ## `SCHT`: the schema as a constant lookup table (one row; multiplicities are row-0 bits) -/
+/-! ## `SCHT`: the schema as a preprocessed table (one row per entry; F-2)
+
+Row `i < |schema|` holds entry `i`'s `SCH` message (`e`, the 23 descriptor values of `Seg.msg`)
+and its multiplicity bits (`m`); rows past the schema repeat the last entry (`PAD`). The `e`
+columns are **preprocessed** (fixed by the verifying key; the prover's `JsonAir` serves them as the
+preprocessed trace), so the verifier pins them; in Lean they are trace columns and that fact is the
+premise `SchtFixed` of the `MSG` soundness lemmas. (M5-T1 had one row of `|schema|·21` bit columns
+with the entries as constants of the interactions: 3,255 opened columns, ~150 kB of the proof.) -/
 
 namespace Scht
 def NBITS : Nat := 21
-def L : Layout := [("m", schema.length * NBITS)]
+def NE : Nat := 23
+def L : Layout := [("e", NE), ("m", NBITS)]
 def T : Cols := ⟨L⟩
 def interactions : List Interaction :=
-  (schema.zipIdx).map fun (g, i) =>
-    sndBits B_SCH ((List.range NBITS).map fun b => .isFirst * T.c "m" (NBITS * i + b))
-      (g.msg.map K)
-def table : Table := { width := L.width, constraints := [], interactions, maxLog := 2 }
+  [sndBits B_SCH ((List.range NBITS).map fun b => T.c "m" b) ((List.range NE).map fun j => T.c "e" j)]
+def table : Table := { width := L.width, constraints := [], interactions, maxLog := 8 }
+/-- The preprocessed rows: the schema's entries, then the last one repeated. -/
+def padSeg : Seg := { mt := MT_PAD, s := 0, kind := K_PAD, fixL := 0, cont := false }
+def row (i : Nat) : List Nat := (schema.getD i padSeg).msg
+theorem last_pad : schema.getLast? = some padSeg := by decide +kernel
 end Scht
 
 /-! ## `RNG`: `v < 256` (rows `0..255`) -/

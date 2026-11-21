@@ -257,6 +257,7 @@ fn harness(name: &str, map: &BTreeMap<Key, u64>, cached: bool) -> (TableSpec, Ro
         harness: Some((wmsg, keys)),
         cached,
         num_pub: 0,
+        prep: None,
     };
     (spec, RowMajorMatrix::new(v, width))
 }
@@ -345,7 +346,26 @@ fn load(air_path: &str, dir: &str) -> Inst {
         } else if tmpl.is_some() {
             panic!("{}: no pinned height in template.json", t.name);
         }
-        spec.push(t.clone());
+        let mut t = t.clone();
+        if t.name == "SCHT" {
+            // [F-2] the schema entries are the preprocessed columns: the rows of `Scht.row` (the
+            // schema's entries in order, then the last one repeated); the dump must agree
+            let sp = std::path::Path::new(air_path).with_file_name("schema.json");
+            let sch: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(sp).expect("schema.json next to the AIR")).unwrap();
+            let ent = sch["entries"].as_array().unwrap();
+            let ne = ent[0].as_array().unwrap().len();
+            let mut v = vec![];
+            for r in 0..h {
+                let e = ent[r.min(ent.len() - 1)].as_array().unwrap();
+                for (j, x) in e.iter().enumerate() {
+                    let x = x.as_u64().unwrap() as u32;
+                    assert_eq!(m.values[r * m.width + j], F::new(x), "SCHT row {r} col {j}: not the schema");
+                    v.push(x);
+                }
+            }
+            t.prep = Some((ne, v));
+        }
+        spec.push(t);
         mats.push(m);
     }
     let mut tapes = vec![];
@@ -421,7 +441,12 @@ fn ctx(eng: &Sha384CpuEngine, inst: &Inst, mats: &[RowMajorMatrix<F>], pubs: &[F
     for (i, m) in mats.iter().enumerate() {
         let t = &inst.spec[i];
         let pv: Vec<F> = (0..t.num_pub).map(|k| pubs.get(k).copied().unwrap_or(F::ZERO)).collect();
-        if !t.cached {
+        if let Some((pw, _)) = &t.prep {
+            let w = m.width;
+            let h = m.values.len() / w;
+            let main: Vec<F> = (0..h).flat_map(|r| m.values[r * w + pw..(r + 1) * w].to_vec()).collect();
+            out.push((i, AirProvingContext::simple(RowMajorMatrix::new(main, w - pw), pv)));
+        } else if !t.cached {
             out.push((i, AirProvingContext::simple(m.clone(), pv)));
         } else {
             let (commitment, data) = commit_cached(eng, m);
@@ -441,7 +466,7 @@ fn full_floor(inst: &Inst) -> Vec<(usize, usize, usize)> {
         .zip(&inst.mats)
         .map(|(t, m)| {
             let h = m.values.len() / m.width;
-            (if t.cached { 1 } else { m.width }, h.trailing_zeros() as usize, h)
+            (if t.cached { 1 } else { m.width - t.prep.as_ref().map(|p| p.0).unwrap_or(0) }, h.trailing_zeros() as usize, h)
         })
         .collect()
 }

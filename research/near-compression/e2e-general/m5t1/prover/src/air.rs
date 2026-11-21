@@ -104,6 +104,8 @@ pub struct TableSpec {
     pub cached: bool,
     /// number of public values this AIR reads (`max pub index + 1`)
     pub num_pub: usize,
+    /// [F-2] the first `w` columns are preprocessed (fixed by the vk): `(w, row-major values)`
+    pub prep: Option<(usize, Vec<u32>)>,
 }
 
 pub struct ClassicalAir {
@@ -159,6 +161,7 @@ impl ClassicalAir {
                     harness: None,
                     cached: false,
                     num_pub,
+                    prep: None,
                 }
             })
             .collect();
@@ -174,12 +177,17 @@ pub struct JsonAir {
     pub spec: TableSpec,
 }
 
-impl<F> BaseAir<F> for JsonAir {
+impl<F: p3_field::Field> BaseAir<F> for JsonAir {
     fn width(&self) -> usize {
-        self.spec.width
+        self.spec.width - self.spec.prep.as_ref().map(|p| p.0).unwrap_or(0)
+    }
+    fn preprocessed_trace(&self) -> Option<p3_matrix::dense::RowMajorMatrix<F>> {
+        self.spec.prep.as_ref().map(|(w, v)| {
+            p3_matrix::dense::RowMajorMatrix::new(v.iter().map(|&x| F::from_u32(x)).collect(), *w)
+        })
     }
 }
-impl<F> PartitionedBaseAir<F> for JsonAir {
+impl<F: p3_field::Field> PartitionedBaseAir<F> for JsonAir {
     fn cached_main_widths(&self) -> Vec<usize> {
         if self.spec.cached {
             vec![self.spec.width]
@@ -189,7 +197,7 @@ impl<F> PartitionedBaseAir<F> for JsonAir {
     }
     fn common_main_width(&self) -> usize {
         // SWIRL needs a non-empty common main: a cached AIR carries one unused zero column
-        if self.spec.cached { 1 } else { self.spec.width }
+        if self.spec.cached { 1 } else { self.spec.width - self.spec.prep.as_ref().map(|p| p.0).unwrap_or(0) }
     }
     /// The per-table cap from the Lean export (`maxLog`).  `HoldsP` accepts any
     /// `1 <= log <= maxLog`, and the soundness lemmas (capacity, the A7 bound) are proved at
@@ -199,7 +207,7 @@ impl<F> PartitionedBaseAir<F> for JsonAir {
         Some(self.spec.max_log)
     }
 }
-impl<F> BaseAirWithPublicValues<F> for JsonAir {
+impl<F: p3_field::Field> BaseAirWithPublicValues<F> for JsonAir {
     fn num_public_values(&self) -> usize {
         self.spec.num_pub
     }
@@ -226,7 +234,7 @@ fn build<AB: AirBuilderWithPublicValues>(
     }
 }
 
-impl<AB: AirBuilderWithPublicValues + InteractionBuilder + PartitionedAirBuilder> Air<AB>
+impl<AB: AirBuilderWithPublicValues + InteractionBuilder + PartitionedAirBuilder + p3_air::PairBuilder> Air<AB>
     for JsonAir
 {
     fn eval(&self, b: &mut AB) {
@@ -248,6 +256,11 @@ impl<AB: AirBuilderWithPublicValues + InteractionBuilder + PartitionedAirBuilder
                     .map(|&v| v.into()),
             );
         } else {
+            if self.spec.prep.is_some() {
+                let pre = b.preprocessed();
+                l.extend(pre.row_slice(0).unwrap().iter().map(|&v| v.into()));
+                n.extend(pre.row_slice(1).unwrap().iter().map(|&v| v.into()));
+            }
             let main = b.main();
             l.extend(main.row_slice(0).unwrap().iter().map(|&v| v.into()));
             n.extend(main.row_slice(1).unwrap().iter().map(|&v| v.into()));
