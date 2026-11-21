@@ -1,0 +1,22 @@
+# E2E M5-T1 (lane F): the runtime rows of T1's FunctionCall receipt (intake, dispatch, gas,
+# refunds, outcome, balances). The AIR is a `ZkFormal.Air` value (single source of truth):
+# `m5t1-tool air` exports it for the Rust prover (`../prover`); the lemmas in `M5T1/` are stated
+# about the same value and linked to the spec's receipt step (`NearSpecV3.Successor`).
+name = "M5T1"
+version = "0.1.0"
+defaultTargets = ["M5T1", "m5t1-tool"]
+
+[leanOptions]
+autoImplicit = false
+relaxedAutoImplicit = false
+
+[[lean_lib]]
+name = "M5T1"
+
+[[lean_exe]]
+name = "m5t1-tool"
+root = "Tool"
+
+[[require]]
+name = "ZkFormal"
+path = "../../../../../zk-formal"

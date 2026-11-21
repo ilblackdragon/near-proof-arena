@@ -1,0 +1,29 @@
+{
+ "appliedReceiptsHash": "e454c49e2c9e5bd502d3d51146670316b74b9a83ab2e395c65c465d635181476",
+ "outcomes": [
+  {
+   "q": 1,
+   "leaf": "e63a84974ee869e18c585abfcd03e0843a3b1a63e2fde8c736defaf42b7ef67d",
+   "gasBurnt": "1009188008301",
+   "tokensBurnt": "0",
+   "status": {
+    "v": "616761696e",
+    "kind": "valueBytes"
+   },
+   "receiptIds": [
+    "331e3c0bcb5f98e5d1880636d726204049522f7d32153163a4475d0a2a6eeca1"
+   ],
+   "refundHash": "aa20371396a16645e9400cdb9bc7257fe04b26b3219695a262db9e9915712fab",
+   "refundAmount": "54888077387472000000000",
+   "accountPost": "0000a082307fde1e82c71d0000000000000000000000000000000000000000008152bed25554d521d3fcdd919f4457b66e06b720906fdd40fd6fd0723ed36bf93d02000000000000"
+  }
+ ],
+ "totalsOut": {
+  "gout": 1577739758301,
+  "cout": 1732463022301,
+  "tbout": 0,
+  "othout": 0,
+  "sbout": 0,
+  "wgout": 121110620829
+ }
+}
