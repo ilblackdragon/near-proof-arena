@@ -1,0 +1,23 @@
+# T1 M10 driver report
+
+case `/data/illia/nearproof-deps/corpora/d3c8/d3/02-h10196-s3`, 2026-11-21 01:04:37
+
+| component | owner | status | detail |
+|---|---|---|---|
+| Lean checker (allFeatures) + FinalOut reference | spec | **pass** | verdict accept, FinalOut 14/14 header fields = run outputs |
+| statement split (D-2) | I | **pass** | S 1003 B, section B 4967 B private, claimDigest 040290778c850dde… |
+| Wasm calls (Lean tape vs clean-room) | A | **pass** | 1 call(s); cached lane A M3 corpus tape /data/illia/nearproof-deps/e2e- |
+| segment plan (BndRec cuts) | I/E | **pass** | 7 segments INTAKE/STATE/STATE/WASM/WASM/STATE/FINAL; digest chain True; placeholders remain |
+| Wasm whole call (wasmBaseM2Air) | A | **pass** | call 0: check True, return/logs equal True/True, proved+verified True (1474032 B, prove 16.601 s, verify 0.0294 s; CODE root recomputed natively from code 8152bed2…) |
+| Wasm segments (wasmBaseSegAirMP) | A | **pass** | call 0 k=13: 2 seg, precheck 2, chained True |
+| state M5b (INTAKE trie + working set + writes + FINAL root) | B | **pass** | post root = header True, precheck True, verified True 1476227 B 59.8 s |
+| intake | F (new) | **missing** | claim + witness decoding in-circuit, receipt intake (incoming/delayed/buffered), INTAKE leaf exposing B_0 = Init(claimDigest) with ctxRoot |
+| runtime | F (new) | **missing** | receipt/action rows: FunctionCall action, refund receipt, outcome, gas/compute counters (STATE template) |
+| join-M6 | A + B | **missing** | HOSTQ/HOSTR/HOSTB produced by STATE rows in the WASM segment's trace (HostIf); HOSTO oracle removed |
+| prep | unassigned | **missing** | PREP sub-proof: SHA-256(code) = code hash, checkModuleM2 + instrumentation -> CODE/FUNC roots = B.codeRoot/funcRoot |
+| finalout | G (new) | **missing** | outcome root, outgoing receipts root, congestion, bandwidth requests, RS encoded_merkle_root/length, tx root; FINAL leaf checks headerOk vs S |
+| leaves | A/B/F/G + D | **missing** | pinned per-template shapes (blocker 4), canonical boundary statement [phase, h(B)] (blocker 5), leaf wrapper build_seg_leaf per template |
+| aggregation-M8 | D | **missing** | heterogeneous tree over T1's leaves (exists for D0a base templates only; T1 is not D0a) |
+| wrap-M9 | D | **missing** | ZK wrap over that root with V_d over S only (exists for D0a trees) |
+| lean-e2e | E | **missing** | e2e_sound obligations for T1's templates (SegSound per template, NodeExec/WrapExec, ViewImpl instances) |
+

@@ -71,6 +71,8 @@ pub struct HostEv {
     pub g_after: u64,
     /// the register file the call left behind `(id, bytes)`, i.e. what it filled
     pub regs: Vec<(u64, Vec<u64>)>,
+    /// A-T1: the linear-memory bytes the call wrote, `(ptr, bytes)` (the `setU128H` hosts)
+    pub wr: Vec<(u64, Vec<u64>)>,
 }
 
 impl Prep {
@@ -150,6 +152,15 @@ impl Prep {
                             g_after: e["gAfter"].as_u64().unwrap(),
                             regs: e
                                 .get("regs")
+                                .and_then(|r| r.as_array())
+                                .map(|r| {
+                                    r.iter()
+                                        .map(|p| (p[0].as_u64().unwrap(), nums(&p[1])))
+                                        .collect()
+                                })
+                                .unwrap_or_default(),
+                            wr: e
+                                .get("wr")
                                 .and_then(|r| r.as_array())
                                 .map(|r| {
                                     r.iter()
@@ -690,6 +701,11 @@ pub fn generate_cuts(air: &AirSpec, prep: &Prep, cut_at: &[u64]) -> Gen {
     // its producer time `mtp` and re-produces it at `ts` (`Chips.HostB.memCnt`, `timeChk ts mtp hp`),
     // so the row carries the real memory byte and the trace's `mem.cur` is re-timed to `ts`.
     let mut hostb_rows: Vec<[u64; 14]> = vec![];
+    // A-T1 (`Seg.HostBK.writeInters`): a response byte that fills no register (`dir = 1`,
+    // `reg = 0`) is a linear-memory WRITE: it consumes the live byte `ob` at `mtp` and produces
+    // the new byte at `ts`.  `ob` by HOSTB row index (absent = 0).
+    let has_hbw = has_host && air.tables[air.index("HOSTB")].cols.iter().any(|c| c == "ob");
+    let mut hostb_ob: HashMap<usize, u64> = HashMap::new();
     let mut hostb_done = false;
     // The register file as the trace sees it (`space 6`): content, fill time, and whether the
     // register's message is still live (filled and not yet read).  `filled_seen` makes the fill
@@ -1157,6 +1173,31 @@ pub fn generate_cuts(air: &AirSpec, prep: &Prep, cut_at: &[u64]) -> Gen {
                         st.r16(blen);
                         st.r16(ptr_lo);
                         st.r16(32 * ptr_hi);
+                    }
+                }
+                // A-T1: the memory writes of the `setU128H` hosts (`account_balance` …): one
+                // response group of 16 bytes at `ptr`, each byte the STORE shape of `writeInters`.
+                if has_hbw && ev.st == 0 {
+                    for (ptr, bs) in ev.wr.iter() {
+                        let (ptr, blen) = (*ptr, bs.len() as u64);
+                        assert!(blen > 0 && blen < 65536 && ptr < (1u64 << 27));
+                        let (ptr_lo, ptr_hi) = (ptr & 0xffff, ptr >> 16);
+                        for (pos, &b) in bs.iter().enumerate() {
+                            let pos = pos as u64;
+                            let a = ptr + pos;
+                            let (ob, mtp) = mem.get(a);
+                            let hp = st.tchk(ts, mtp);
+                            mem.cur.insert(a, (b, ts));
+                            hostb_ob.insert(hostb_rows.len(), ob);
+                            hostb_rows.push([ts, 1, pos, b, blen, hid, blen - pos - 1, 1,
+                                (pos == 0) as u64, 0, ptr_lo, ptr_hi, mtp, hp]);
+                            st.byte(0, b, 0);
+                            st.r16(blen - pos - 1);
+                            st.r16(pos);
+                            st.r16(blen);
+                            st.r16(ptr_lo);
+                            st.r16(32 * ptr_hi);
+                        }
                     }
                 }
                 // The placeholder byte stream belongs to the minimum slice.  With the REG table the
@@ -2156,11 +2197,14 @@ pub fn generate_cuts(air: &AirSpec, prep: &Prep, cut_at: &[u64]) -> Gen {
         // HOSTB: the byte stream, padded by group-start rows (`f = 1`, `act = 0`), which keeps
         // `first`/`last` at a group break and never fires a continuation constraint.
         let mut hb = hb;
-        for rec in hostb_rows.iter() {
+        for (ri, rec) in hostb_rows.iter().enumerate() {
             let mut r = hb.row();
             for (k, name) in ["ts", "dir", "pos", "byte", "len", "hid", "gap", "act", "f", "reg",
                               "ptrLo", "ptrHi", "mtp", "hp"].iter().enumerate() {
                 r.u(name, rec[k]);
+            }
+            if has_hbw {
+                r.u("ob", hostb_ob.get(&ri).copied().unwrap_or(0));
             }
         }
         let hgt = (hb.rows.len() + 1).max(4).next_power_of_two();

@@ -347,7 +347,7 @@ theorem seg_ch_dec_trueS (X : Ctx) :
       ((actList tr pub).flatMap (fun ρ => (rowMsgs (chipT ρ.1) tr pub ρ.1 ρ.2 busStk true).map decMsg) ++
       ((part Memb.table tr pub 19 busStk true).map decMsg ++
       ((part HostG.table tr pub 22 busStk true).map decMsg ++
-      ((part HostB.table tr pub 25 busStk true).map decMsg ++
+      ((part HostBK.table tr pub 25 busStk true).map decMsg ++
       ((actRowsT IfC.table tr pub 26).flatMap (rowProd IfC.table tr pub 26) ++
       ((part RegC.table tr pub 27 busStk true).map decMsg ++
       ((actRowsT Conv.table tr pub 28).flatMap (rowProd Conv.table tr pub 28) ++
@@ -363,7 +363,7 @@ theorem seg_ch_dec_falseS (X : Ctx) :
       ((part Drop.table tr pub 18 busStk false).map decMsg ++
       ((part Memb.table tr pub 19 busStk false).map decMsg ++
       ((part HostG.table tr pub 22 busStk false).map decMsg ++
-      ((part HostB.table tr pub 25 busStk false).map decMsg ++
+      ((part HostBK.table tr pub 25 busStk false).map decMsg ++
       ((actRowsT IfC.table tr pub 26).flatMap (rowCons IfC.table tr pub 26) ++
       ((part RegC.table tr pub 27 busStk false).map decMsg ++
       ((actRowsT Conv.table tr pub 28).flatMap (rowCons Conv.table tr pub 28) ++
@@ -391,13 +391,20 @@ theorem seg_hchS {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsXS nloc 
   have aT := actListM2_prod_perm tr pub
   have aF := actListM2_cons_perm tr pub
   have cT : ((actListM2 tr pub).flatMap (prodCHS tr pub)).Perm
-      ((actListM2 tr pub).flatMap (prodCHM2 tr pub) ++ (hostActRows tr pub).flatMap (fun ρ => gasProdOf tr pub ρ.2)) := by
-    rw [← actListM2_gas_prod]; exact perm_flatMap_append _ _ _
+      (((actListM2 tr pub).flatMap (prodCHM2 tr pub) ++ (hostActRows tr pub).flatMap (fun ρ => gasProdOf tr pub ρ.2)) ++
+        (hostActRows tr pub).flatMap (fun ρ => hbwProdOf tr pub ρ.2)) := by
+    rw [← actListM2_gas_prod, ← actListM2_hbw_prod]
+    exact (perm_flatMap_append _ _ _).trans (List.Perm.append_right _ (perm_flatMap_append _ _ _))
   have cF : ((actListM2 tr pub).flatMap (consCHS tr pub)).Perm
-      ((actListM2 tr pub).flatMap (consCHM2 tr pub) ++ (hostActRows tr pub).flatMap (fun ρ => gasConsOf tr pub ρ.2)) := by
-    rw [← actListM2_gas_cons]; exact perm_flatMap_append _ _ _
+      (((actListM2 tr pub).flatMap (consCHM2 tr pub) ++ (hostActRows tr pub).flatMap (fun ρ => gasConsOf tr pub ρ.2)) ++
+        (hostActRows tr pub).flatMap (fun ρ => hbwConsOf tr pub ρ.2)) := by
+    rw [← actListM2_gas_cons, ← actListM2_hbw_cons]
+    exact (perm_flatMap_append _ _ _).trans (List.Perm.append_right _ (perm_flatMap_append _ _ _))
+  have wBt := seg_hostbW_partition H hb true
+  have wBf := seg_hostbW_partition H hb false
   exact seg_ch_assemble _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-    hbus (seg_host_ch_sendS H) (seg_host_ch_recvS H) pBt pBf pRt pRf gRt gRf aT aF cT cF
+    hbus (seg_host_ch_sendS H) (seg_host_ch_recvS H) _ _ _ _ _ _ (hostBK_part_stk true) (hostBK_part_stk false)
+    pBt pBf wBt wBf pRt pRf gRt gRf aT aF cT cF
 
 section
 variable {nloc ngl : Nat} {pub : List F} {tr : Trace} (H : HoldsXS nloc ngl pub tr)

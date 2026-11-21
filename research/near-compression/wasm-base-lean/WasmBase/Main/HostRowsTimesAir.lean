@@ -68,6 +68,7 @@ theorem sendTs_host : SendTs Host.table cTs = true := by decide +kernel
 theorem sendTs_hostb : SendTs HostB.table HostB.ts = true := by decide +kernel
 theorem sendTs_regw : SendTs RegW.table Reg.ts = true := by decide +kernel
 theorem sendTs_gas : SendTs GasT cTs = true := by decide +kernel
+theorem sendTs_hostbw : SendTs HostBW HostB.ts = true := by decide +kernel
 
 theorem sendTs_rowProd {T : Table} {c : Nat} (hS : SendTs T c = true) {t r : Nat} {x : Msg}
     (hx : x ∈ rowProd T tr pub t r) : x.tp = rowNat tr t r c := by
@@ -87,9 +88,9 @@ theorem host_prod_times (r : Nat) :
   intro x hx
   rw [host_lvl]
   suffices h : x.tp = rowNat tr 22 r cTs by rw [h]; exact ⟨rowNat_lt tr 22 r _, rfl⟩
-  simp only [prodCHS, prodCHM2, rowProdM, hostbProdH, regProdH, gasProdH, chipTM2, ite_true,
+  simp only [prodCHS, prodCHM2, rowProdM, hostbProdH, regProdH, gasProdH, hbwProdH, chipTM2, ite_true,
     List.mem_append] at hx
-  rcases hx with ((hx | hx | hx) | hx)
+  rcases hx with (((hx | hx | hx) | hx) | hx)
   · exact sendTs_rowProd sendTs_host hx
   · unfold hostbProdOf at hx
     obtain ⟨r', hr', hx⟩ := List.mem_flatMap.mp hx
@@ -105,6 +106,10 @@ theorem host_prod_times (r : Nat) :
       simp only [regKey, hostKey, Prod.mk.injEq, decide_eq_true_eq] at this
       exact this.1
   · exact sendTs_rowProd sendTs_gas hx
+  · unfold hbwProdOf at hx
+    obtain ⟨r', hr', hx⟩ := List.mem_flatMap.mp hx
+    rw [sendTs_rowProd sendTs_hostbw hx]
+    exact (List.mem_filter.mp hr').2 |> fun h => by simpa using (of_decide_eq_true h).1
 
 end
 
@@ -168,9 +173,9 @@ theorem host_cons_times (H : HoldsX (wasmBaseSegAir nloc ngl) pub tr) {r : Nat} 
     fun i hi => hi
   have in27 : ∀ i, i ∈ Seg.RegCK.inters → i ∈ ((wasmBaseSegAir nloc ngl).tables[27]'ht27).inters :=
     fun i hi => hi
-  simp only [consCHS, consCHM2, rowConsM, hostbConsH, regConsH, gasConsH, chipTM2, ite_true,
+  simp only [consCHS, consCHM2, rowConsM, hostbConsH, regConsH, gasConsH, hbwConsH, chipTM2, ite_true,
     List.mem_append] at hx
-  rcases hx with ((hx | hx | hx) | hx)
+  rcases hx with (((hx | hx | hx) | hx) | hx)
   · -- the HOST row's arguments
     rw [host_row_cons] at hx
     obtain ⟨j, hj, hx⟩ := List.mem_flatMap.mp hx
@@ -261,6 +266,22 @@ theorem host_cons_times (H : HoldsX (wasmBaseSegAir nloc ngl) pub tr) {r : Nat} 
       (in22 _ (hm _ (List.mem_cons_of_mem _ List.mem_cons_self))) hc
     rw [decMsg_tp_of_last (e := (v HostG.gtp).eval (tr.row pub 22 r)) rfl rfl]
     exact ⟨n, hn, by rw [ev_v]; exact tchk_to rfl he⟩
+  · -- the call's `HOSTB` memory writes (A-T1): the old byte, consumed at `mtp < ts`
+    unfold hbwConsOf at hx
+    obtain ⟨r', hr', hx⟩ := List.mem_flatMap.mp hx
+    obtain ⟨hr'h, hts, -⟩ := mem_hostbOf.mp hr'
+    have hL : HostBW.inters.filter (fun i => i.bus = busStk ∧ i.send = false) =
+        [chRecv 3 HostB.memAddr 0 [v HostBK.ob, 0, 0, 0] (v HostB.mtp) HostBK.wcnt] := by decide
+    obtain ⟨i, hi, hc, rfl⟩ := recv_tp hx _ hL
+    simp only [List.mem_singleton] at hi
+    subst hi
+    have hm18 : r16 (v HostB.ts - v HostB.mtp - 1 - 65536 * v HostB.hp) HostBK.wcnt ∈ Seg.HostBK.inters :=
+      List.mem_of_getElem? (i := 18) (by decide)
+    have hm19 : r16 (4 * v HostB.hp) HostBK.wcnt ∈ Seg.HostBK.inters :=
+      List.mem_of_getElem? (i := 19) (by decide)
+    obtain ⟨n, hn, he⟩ := seg_tchk H ht25 hr'h (in25 _ hm18) (in25 _ hm19) hc
+    rw [decMsg_tp_of_last (e := (v HostB.mtp).eval (tr.row pub 25 r')) rfl rfl]
+    exact ⟨n, hn, by rw [ev_v]; exact tchk_to hts he⟩
 
 /-- **The produced messages of a HOST row are pairwise distinct** (named; see the header). -/
 def HostProdNodup (tr : Trace) (pub : List F) : Prop :=

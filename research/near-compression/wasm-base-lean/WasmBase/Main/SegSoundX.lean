@@ -73,7 +73,7 @@ def SegInstrRows (X : Ctx) (tr : Trace) (pub : List F) : Prop :=
 
 theorem gasH_nil_of_ne {tr : Trace} {pub : List F} {ρ : Nat × Nat} (h : ρ.1 ≠ 22) :
     consCHS tr pub ρ = consCHM2 tr pub ρ ∧ prodCHS tr pub ρ = prodCHM2 tr pub ρ := by
-  simp [consCHS, prodCHS, gasConsH, gasProdH, h]
+  simp [consCHS, prodCHS, gasConsH, gasProdH, hbwConsH, hbwProdH, h]
 
 /-- **Assembling `hrows` for the segment AIR.**  Instruction rows: `SegInstrRows` (+ `SegKeepM2`);
 HOST rows: `HoldRowS` verbatim. -/
