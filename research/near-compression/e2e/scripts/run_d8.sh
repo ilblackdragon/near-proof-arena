@@ -10,7 +10,7 @@
 #     that setup (must reproduce it byte for byte); fresh-process negatives on two of them.
 # Sequential; bases at 10 threads, trees at 8; <= 40 GB.  usage: run_d8.sh [STEPS]
 #   env: LEAF_PARAMS (NEARPROOF_TREE_LEAF_PARAMS for every tree run; default ns20lb2 = the D-8 leaf lever)
-set -uo pipefail
+set -euo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
 ROOT=$(cd "$HERE/../../../.." && pwd)
 D=${NEARPROOF_PQ_DEPS:-/data/illia/nearproof-deps/pq-e2e-d8}
@@ -43,7 +43,7 @@ base() { # CLASS NAME CASE_DIR
 }
 for s in ${1:-1 2 3 4}; do case $s in
 1) python3 "$HERE/classes_d8.py" "$D/census" "$CL" --cuts "${CUTS:-0.5,0.95}" > "$CL.txt" || die classes; cat "$CL.txt" ;;
-2) "$HERE/cover_d8.sh" "$CL" "$D/cover" 8 8-15 | tee "$D/cover.txt"; grep -q "fail=0 " "$D/cover.txt" || die "coverage has failures" ;;
+2) "$HERE/cover_d8.sh" "$CL" "$D/cover" 8 8-15 | tee "$D/cover.txt" || die "coverage has failures"; grep -q "fail=0 " "$D/cover.txt" || die "coverage has failures" ;;
 3) members | while read -r k n src; do base "$k" "$n" "$src" || exit 1; done || die bases ;;
 4)
   mapfile -t M < <(members)

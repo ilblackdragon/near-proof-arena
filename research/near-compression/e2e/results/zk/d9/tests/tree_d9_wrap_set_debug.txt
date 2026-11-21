@@ -1,0 +1,9 @@
+TREE_D9_WRAP_SET_ACCEPTED root first rows=65154
+TREE_D9_WRAP_SET_ACCEPTED root second rows=65154
+TREE_D9_WRAP_SET_ACCEPTED root of three rows=65212
+TREE_D9_NEGATIVE_REJECTED root not in the set
+TREE_D9_NEGATIVE_REJECTED set of one wrong root
+TREE_D9_NEGATIVE_REJECTED wrong root level with a set
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 111 filtered out; finished in 1817.12s
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 30:17.15
+	Maximum resident set size (kbytes): 14021324

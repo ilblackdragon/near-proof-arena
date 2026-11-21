@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Collect the three ZK-lever runs and time the fresh-process verifier on one core (5 runs each).
 # usage: bench_zk_verify.sh [E2E_ROOT] [CPU]
-set -uo pipefail
+set -euo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
 E=${1:-/data/illia/nearproof-deps/pq-e2e-d/e2e}; CPU=${2:-30}
 export NEARPROOF_PQ_DEPS=${NEARPROOF_PQ_DEPS:-/data/illia/nearproof-deps/pq-e2e-d}

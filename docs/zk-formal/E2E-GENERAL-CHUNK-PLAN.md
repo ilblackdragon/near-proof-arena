@@ -66,7 +66,7 @@ AIR: `research/near-compression/wasm-base-lean/WasmBase` (Lean, the single sourc
 | control flow: block/loop/br/br_if/return, `if`/`else` | CTRL, IF chip (`IfCheck.lean`, `docs/logs/pq-if-air-2026-10-22.md`) | **B** | IF: 14 cols, 2 constraints | `if_rowfacts` proved; the full IF checker soundness is open |
 | calls (defined functions) | family 4, FUNC table (§13.1) | **B** | – | proved (`step_call`, `call_rowfacts`) |
 | gas (instruction units `S`, `R·S ≤ g0`) | in every chip; per-segment invariant `WasmBase/Main/SegExec.lean`, `R/pq-host-gas` | **B** Wasm-internal; host resynchronisation (`g := remaining`) is **P** | – | Wasm-only proved; `H0`/`HoldRow` open |
-| segmentation of one call | spec: `NearSpecV3/Wasm/Segment.lean` `run_foldSegments` [K]; `wasmBaseSegAir` (`WasmBase/SegAir.lean`, E2E M4) | **B** (2026-11-03): mid-call cuts with SHA-384 `ctxDigest` + `memRoot` boundary; 1.13 M-step call proved as 5 chained segments | boundary per written 1 KiB block 50 SHA-512 compressions (`D = 16`); M4b multiproof (`wasmBaseSegAirMP`): 680 per 32-block segment, boundary 43 % | `exec_of_rows_cut`, `cuts_csteps` [K]; M4b: `seg_sound`, `wasmD_binding` [K]; M4c: `seg_chain_mem`/`seg_chain_k` (chained segments → `CSteps` or `Sha384Coll`; memory roots, CUTI side, halting, MP AIR default) [K]; host relies vacuous on host traces until M6's σ pinning |
+| segmentation of one call | spec: `NearSpecV3/Wasm/Segment.lean` `run_foldSegments` [K]; `wasmBaseSegAir` (`WasmBase/SegAir.lean`, E2E M4) | **B** (2026-11-03): mid-call cuts with SHA-384 `ctxDigest` + `memRoot` boundary; 1.13 M-step call proved as 5 chained segments | boundary per written 1 KiB block 50 SHA-512 compressions (`D = 16`); M4b multiproof (`wasmBaseSegAirMP`): 680 per 32-block segment, boundary 43 % | `exec_of_rows_cut`, `cuts_csteps` [K]; M4b: `seg_sound`, `wasmD_binding` [K]; M4c: `seg_chain_mem`/`seg_chain_k` (chained segments → `CSteps` or `Sha384Coll`; memory roots, CUTI side, halting, MP AIR default) [K]; host relies vacuous on host traces until M6's σ pinning; M6: σ-pinned `seg_chain_all_mp` and honest host premises (`callHost_two_run`, `seg_sound_hostIf_air`) relative to the producer contract `HostIf` [K] |
 
 ### 1.3 Host functions (HOST/HOSTO/HOSTT/HOSTB/REG chips, `WasmBase/HostChip.lean`)
 
@@ -251,6 +251,61 @@ host context is carried in `B`.
     info, bandwidth requests, encoded Merkle root and length, tx root.
 
   Its only public input is the statement of D-2. No boundary leaves the tree.
+
+#### 3.4.1 The canonical statement bytes `S` and `claimDigest` (lane E, M11h) [K]
+
+Fixed in Lean, `spec/lean/v3/NearSpecV3/E2E/StmtEnc.lean` (in `defaultTargets`); lanes D and I
+implement exactly this.
+
+* **`S = PublicStmt.encode s`** = the claim-v3 encoding (`spec/claim-v3.md` §2, `Claim.encode`) of
+  the claim with an **empty section B**: every field in claim order, the block vector replaced by
+  its empty encoding `u32 0` = `00 00 00 00`. Byte layout:
+  `S = stmtPre ‖ 00 00 00 00 ‖ stmtPost`, `stmtPre` = claim tag, statement id, `protocol_version`
+  (u32), `chain_id` (bytes), `epoch_id` (32 B), `chunk_inner` (bytes); `stmtPost` =
+  `rs_data_parts`, `rs_total_parts` (u16), `epochs`, `epoch_start_after`, `apply_facts`,
+  `tx_valid`, `genesis_chunk_extra` (all as in claim-v3). The claim the relation checks is the
+  same bytes with the private block vector (count included) in place of the four zero bytes:
+  `assemble ci secB secC = stmtPre ‖ encList BlockRec.encode secB ‖ stmtPost`
+  (`assemble_splice`, `encode_splice`).
+* **Canonical and injective.** `PublicStmt.decode` = the strict claim decoder (`decodeClaim`) then
+  `blocks = []`; `PublicStmt.decode_encode` on well-formed statements (`PublicStmt.wf` =
+  `Claim.wf` of the empty-B claim: field widths), hence `PublicStmt.encode_inj`. `assemble_wf`: a
+  well-formed assembled claim has a well-formed statement.
+* **`claimDigest s = bdigest S`** (SHA-384 truncated to 42 B, U-10). `claimDigest_binding`: equal
+  digests of well-formed statements are equal statements or a SHA-384 collision. Every
+  boundary's `claimDigest` field is this value; the wrap's `D_wrap = H(tag_wrap, SHA-384(S))`
+  (§5.0.1) hashes the same `S`.
+* **T1** (kernel-evaluated in `E2E/RealChunkT1.lean`): `|S| = 1,007 B` (`t1_S_len`; lane I's I-1
+  working encoding, the claim with the block vector *and its count* cut out, is these bytes
+  without the four zero bytes: 1,003 B, checked byte-for-byte against `e2e-t1/run3/S.bin`),
+  `claimDigest = bb5aad11ba6ba32d91739f13a2dbd544f2420d770bcd2c3fde9ddc0e1c02710caee28e5e9e4e299f2f01`
+  (`t1_claimDigest`; equals Python `hashlib.sha384(S)[:42]`). Lane I's `040290778c…` digest is of
+  the 1,003-B working encoding and must be replaced.
+* **Leaf statement.** A boundary is exposed as `bndOf V.bnd x = bdigest (BndRec.encode (V.bnd x))`
+  (`Boundary.lean`; `BndRec.codec` is fixed-width big-endian, §3.2) with the clear `phase` tag
+  (`View.split`: `init` 0, `eng` 1, `fin` 2, `gfin` 3, `done` 4, `doneG` 5, `inCall` 6), i.e.
+  lane D's `s = [phase, h(B)]` with `h(B) = bdigest (BndRec.encode B)`; the T1 system
+  (`Templates.lean`) is stated over exactly these digests.
+
+#### 3.4.2 Public fields the relation does not constrain (lane I's 33 accepted mutants) [M + spec]
+
+Lane I's T1 mutants (`t1.py mutants`, run `e2e-t1/run3/mutants.txt`): 33 one-field changes of
+`S` are **true statements** (the checker accepts them with T1's section B and witness). Checked
+against the spec and nearcore 2.13.4 (`/data/illia/nearproof-deps/nearcore`, `44f7ae6`):
+
+| field (mutants) | read by | why T1 accepts | verdict |
+|---|---|---|---|
+| `chunk_inner.height_created` (±1, with the witness's header copy patched) | nothing in the relation: decoded (`Wire.lean`, `heightCreated`) and only compared as part of the witness's header copy | nearcore's witness validation never reads it: `validate_chunk_state_witness_impl` (`chain/chain/src/stateless_validation/chunk_validation.rs:565`) uses it only as a log/span field; it is consumed by the consensus layer — chunk-producer selection and signature (`ChunkProductionKey`, `partial_witness_actor.rs:430–440`), the relevance window against the node's **local** head (`client/src/stateless_validation/validate.rs:253–320`, node state, not a validity predicate), and block inclusion. Already recorded as spec finding (1) in `spec/near-chunk-validation-v0.md` §(findings): nearcore accepts the same mutants | **unconstrained by design** (mirrors nearcore). Finding for the owner: an intrinsic constraint every honest chunk satisfies is `height_created > height(prev block)` (the prev block header is in section B); nearcore enforces it only through block inclusion. Adding it is a checker change (owner decision); not done. For M10 these are binding negatives (`D_wrap` binds `S`) |
+| `chain_id` | `Env.chainId`: ETH-implicit wallet hash (`D2/Actions.lean` `ethWalletHash`), global-contract resolution (`StorageExecutionOrig.lean:70`), the VM context | T1 has no ETH-implicit account, no global contract | constrained when read; unread by T1 |
+| `epochs[0].height` | host `epoch_height` (`Wasm/Host.lean:716`), epoch-switch rewards | `d3tiny.run` does not call `epoch_height`; no epoch switch | constrained when read |
+| `epochs[0].layout` (last byte) | `decodeLayout` (`Layout.lean:58`): T1's layout is V2 (tag 2, 293 B); its last byte is the high byte of the trailing `version: u32` (T1: `03 00 00 00`), parsed and discarded | nearcore uses `ShardLayout::version` only in `ShardUId` (DB key prefixes), never in a state root or receipt routing | unconstrained by design (semantically irrelevant); any change to boundaries / shard ids is rejected |
+| `epochs[0].validators[*]` (account, stake ±1, drop) | host `validator_stake` / `validator_total_stake`, epoch-switch validator updates | no such host call, no epoch switch, no validator update in T1 | constrained when read |
+| `apply_facts[0].minimum_stake` | the `Stake` action (`D2/Actions.lean:301`: `stake < env.minStake` fails), via `envOf` (`ChunkValidationD2.lean:228/250`) | T1 has no stake action | constrained when read |
+
+So no accepted mutant is a soundness gap of the relation for T1: each field is either never read
+by the chunk-validity relation (as in nearcore) or read only by paths T1 does not take, and section
+C is a **trusted** input (its correctness is the statement's premise, not proved). Lane I's doc
+(`E2E-T1-CRITICAL-PATH.md` §3) can cite this table.
 
 ### 3.5 The Lean theorem that closes it
 
@@ -480,6 +535,87 @@ jobs) and B (`StateM5a`, 379 jobs) build green against the changed `View`. Log:
   per-proof union; depth 6 at arity 4 fails 128. Claim stated per level. Finding: `seg-v1` at 32
   grinding bits is 266.9 bits (< 268).
 
+**M11g (lane E, 2026-11-04/05) [K].** Standard axioms only, no `sorry`, checker sha256 unchanged.
+Log: [`docs/logs/e2e-lean-m11g-2026-11-04.md`](../logs/e2e-lean-m11g-2026-11-04.md).
+
+* **`NodeExec` restated over the circuit's own predicate.** `NvField.NvHold`: the four pinned
+  tables, **all exported** (`nv_export_all`: Sha512Air4, TableAir4, ByteAir added), constraints on
+  every row and the field LogUp balance (signed, merged counts) on every bus. The E2EAgg/E2ENode/
+  E2ETree composition is re-derived over a trace-predicate parameter (`E2EHold.lean`;
+  `e2e_sound_of_execH`, `wrapT_ofH`; the old statements are the `HoldsLogUp` instance).
+  `NodeExecV = NodeExecH NvHold`. Vacuity guard kept and grounded in the export
+  (`busUsers_exported`).
+* **Non-vacuity on an honest NV trace.** `nv_export_trace`: a small program run by the circuit's
+  own `nv_trace`, proved and verified by the backend, exported (4,096 rows, 792 used). Proved on it:
+  all 548 constraints on all rows (kernel DAG evaluation, `NvDagEval`), `MemBalance`, `PvdAt` at
+  both `PvD` rows, `ProgBound`, the `assert_eq` pair, and the tape lemma's conclusion. Not
+  exhibited: `NvHold` as a whole (the other tables' traces are not exported).
+* **`PvdAt` and the asserts proved from `NvHold`** (`NvProg.lean`): program binding (premise
+  `ProgBound`) → ALU role (`(1 − ka)·P1`) → op decode (constraint 1799, all 40 cases, partial
+  evaluation `NvAff`) → byte range (ByteAir's keys are byte pairs from its 9 exported constraints;
+  bus-11 field LogUp; premise `GlueByteBool` for four GLUE-row counts) → `op = 8b + a`.
+  `pvdAt_of`, `tapeAt_of`, `wrapTape_of_prog`, `asserted_eq` (every `assert_eq` of the bound
+  program holds on the memory cells), `contAsserts_of`, `nodeExecV_of_prog`.
+* **Left for `NodeExec`:** `ProgBound` (BIND/anchor/V_d binding of the program columns),
+  `GlueByteBool`, `NodeLink` (decode-level), `NodeSha`, `NodeInner`.
+* **`EngOvlInv`** (item 3): proved for the engine's accepting runs
+  (`OvlInv.lean`, `StViewE.engOvlInv_of`): the overlay trie is never modified after
+  `Ovl.ofTrie` and committed keys stay distinct (`reach_trie_nodup`), committed keys only grow
+  (`reach_covered`), over every overlay operation of the logged store and recorder programs.
+  Hypotheses (`IntakeOk`): key count ≤ 2^24, intake trie `wf`, revealed pre-state values < 2^24
+  bytes, `κ` covers the accepting run's output keys (true for the canonical `κRun`), and **`cur`:
+  committed values < 2^24 bytes — open** (the engine caps Wasm writes at 4 MiB; the pass through
+  the host and receipt limits is not done). Non-vacuity only for the conditions (no accepting-run
+  example).
+
+**M11h (lane E, 2026-11-21) [K].** T1-first. Standard axioms only, no `sorry`, no checker
+definition changed. Log: [`docs/logs/e2e-lean-m11h-2026-11-21.md`](../logs/e2e-lean-m11h-2026-11-21.md).
+
+* **The T1 segment system and the per-lane obligations** (`E2E/Templates.lean`, `defaultTargets`;
+  namespace `NearSpecV3.E2E.T1`). Templates `init | state | rt | wasm | final`, each with a meaning
+  on `RCM` configurations (all inside `RSteps`, `meaning_rsteps`):
+
+  | template | lane | Lean premise | the rows must open their two boundary digests to `x`, `x'` with |
+  |---|---|---|---|
+  | INTAKE | G | `SegSoundInit V A Bad` | `MInit`: `x = init cb wb`, `CM.step (init cb wb) = .ok c`, `x' = c` |
+  | STATE | B | `SegSoundState V A Bad` | `MState`: `eng I c →* eng I c'` by engine steps that make **no VM call** (`estepO (strictO [])`) |
+  | receipt step | F | `SegSoundRt V A Bad` | `MRt`: `enter` (start call `q` at a non-final `eng I c`), `next` (record `(q, r)`, start `q'`), `resume` (`estepO (strictO (K ++ [(q, r)])) I.prog c = .ok c'`: the whole receipt step — actions, gas, refunds, outcomes — with the VM answered only from the tape) |
+  | WASM | A | `SegSoundWasm V A Bad` | `MWasm`: `call I c K q cc → call I c K q cc'` with `CSteps q cc cc'` (cuts anywhere in a call) |
+  | FINAL | G | `SegSoundFinal V A Bad` | `MFinal`: a `CM` run from `eng I ⟨.done out, _⟩`, `fin I out` or `gfin G` (to `done` / `doneG`) |
+
+  Each premise is `TmplSound V A Bad k := ∀ d d' tr, A.Holds k d d' tr → Bad ∨ ∃ x x',
+  bndOf V.bnd x = d ∧ bndOf V.bnd x' = d' ∧ Meaning k x x'`, where `A : Airs` is the lanes' trace
+  type and AIR predicate per template and `bndOf V.bnd x` the 42-B digest of the boundary record
+  (§3.4.1). The wrap gets `WrapInitSound` (`B_0` = digest of `init (assemble s.ci secB s.secC) w`)
+  and `WrapFinalSound` (`B_N` = digest of a configuration passing `FinalOutPub s`).
+  **`e2e_sound_t1`**: `NvFaithfulE2E` (lane D) + the two wrap obligations + the five template
+  obligations ⇒ `E2EStmt s ∨ Bad ∨ BndCollision V.bnd`; `e2e_sound_t1_bind` splits the collision
+  (SHA-384 or a component commitment, `viewImpl_binding`).
+  Honest side: `TmplComplete V A k` (each lane's completeness), **`cm_decomp`** (every `CM` run
+  factors into these templates: per engine step one `state` segment when the honest tape is empty,
+  else `rt` enter, per call `wasm` + `rt` next/resume), `honest_chain`, `mstate_trans` (STATE
+  segments merge), `cut_roundtrip`.
+* **M11 exit criterion: non-vacuity on T1** (`E2E/T1Run.lean`, `E2E/RealChunkT1.lean`, on
+  demand). The monolithic `decide +kernel` of the checker on T1 is OOM-killed at the 34 GB cap; the
+  run is checked in two kernel pieces: `INTAKE` against an oracle-printed literal intake (kernel
+  `Eq.refl`), then the other 12 `CM` steps (incl. the `d3tiny` call in the spec's Wasm
+  interpreter and `FINAL`) by `decide +kernel` — 27.1 GB, 192–318 s. Proved: `t1_accepts` (13
+  steps), `t1_rel : Tier.rel .allFeatures T1`, `cm_run_t1` (`headerOk`), `t1_e2e_stmt`, and
+  **`t1_honest_chain`**: for any view and lane AIRs meeting the completeness obligations, T1's run
+  is a valid chain of the T1 system whose roots pass the wrap checks for T1's public statement.
+  T1's `S` is 1,007 B and its `claimDigest` is kernel-evaluated (§3.4.1).
+* **Canonical statement encoding** (`E2E/StmtEnc.lean`, §3.4.1) and the **33 accepted statement
+  mutants** checked against spec and nearcore (§3.4.2: unconstrained by design; `height_created`
+  finding for the owner).
+* **`EngOvlInv.cur` narrowed, not closed** (`E2E/OvlVal.lean`, `join/StViewE.lean`, sub-agent):
+  fixed-size writes and the Wasm write-back (under the class `VmWritesShort`) proved `< 2^24` B;
+  `cur` → `curHard` (keys of account, code, access-key, received-data, receipt-queue, contract-data,
+  yield, buffer, bandwidth and global-code columns). **Finding:** the spec admits incoming
+  receipts > 2^24 B (`validReceipt false` has no size check, as nearcore's Existing mode), which are
+  stored verbatim as postponed/delayed receipts, and unbounded global-contract code; nearcore
+  bounds them at creation (chain history). `cur` needs an intake-side receipt-size hypothesis.
+* Not attempted: `NodeSha`, `NodeLink`.
+
 ---
 
 ## 4. Milestones to a first general-chunk E2E proof
@@ -558,12 +694,30 @@ status.
   consistency + `PvD`), with the bus-closure vacuity guard;
 * the soundness budget refreshed for D-8, with the claim stated per level.
 
-Next for lane E (M11g), in order:
-1. Restate `NodeExec` over the field-count LogUp semantics (`NvTape`'s), then `NodeAsserts`
-   (`Sub`/`Zero` over the same memory argument) and the `PvdAt` premise (program binding through
-   BIND/`Acc`, op decode through the byte bus with ByteAir in the model).
-2. `EngOvlInv` (the state view's reachability side), with lane B.
-3. Lane B: move `FitsReach` to `stOfK`; confirm `idxOf = 0` (index rebased at a cut).
+**M11g (lane E, 2026-11-04/05):** see §3.5. Done: `NodeExec` over the circuit's own predicate
+(all four tables exported), honest-trace non-vacuity, `PvdAt` and the program's asserts from
+program binding + op decode over the byte bus, and `EngOvlInv` for accepting runs (value bound `cur` still a hypothesis).
+
+**M11h (lane E, 2026-11-21) [K]:** see §3.5. Done: the T1 segment system with one named
+soundness premise per template (`E2E/Templates.lean`: `SegSoundInit` (G), `SegSoundState` (B),
+`SegSoundRt` (F), `SegSoundWasm` (A), `SegSoundFinal` (G), `WrapInitSound`/`WrapFinalSound`) and
+`e2e_sound_t1`; every `CM` run factors into the templates (`cm_decomp`); **M11 exit criterion met**:
+T1's accepting run kernel-checked under 34 GB (`T1Run`, 27.1 GB) with `t1_e2e_stmt` and
+`t1_honest_chain`; canonical `S`/`claimDigest` (§3.4.1); the 33 accepted statement mutants
+explained (§3.4.2); `cur` narrowed to `curHard` + `VmWritesShort`, with the spec/nearcore
+receipt-size finding.
+
+Next for lane E (M11i), in order:
+1. Lanes F/A/B/G: discharge their `SegSound*` premise for their T1 leaf (and `TmplComplete` for
+   the honest side). Lane D: `WrapInitSound`/`WrapFinalSound` from the wrap's checks on the opened
+   record (`claimDigest` of §3.4.1, `phase`, `headerOk`).
+2. `cur`: owner decision on an intake-side receipt-size hypothesis (incoming receipts satisfy the
+   New-mode 4 MiB limit), then a receipt-size pass for the remaining `Hard` columns;
+   `VmWritesShort` from the host (`storage_write` 4 MiB check).
+3. `ProgBound` from BIND/anchor and `GlueByteBool`; then `NodeSha` (Sha512Air4 exported), `NodeLink`.
+4. A full-circuit honest trace to exhibit `NvHold` itself.
+5. Lane B: move `FitsReach` to `stOfK`; confirm `idxOf = 0` (lane B M5a-9: per-boundary restarts
+   check).
 
 M11d's open list, updated:
 1. ~~A constructive recorder for `honestQ`~~ (M11e: `recordK`).
@@ -754,28 +908,130 @@ See `research/near-compression/e2e-general/m1/README.md` for commands, logs and 
 * **M6 [S][K]:** scope (`m6/README.md`). `HostRely.sp` is a theorem; the host footprint is proved
   for all 89 arms (`callHost_hinv`); `RegWF` is preserved by every step.
 
+**Done 2026-11-21, sixth session (lane A): M6, lane-A side** (`m6/README.md` §5; log
+`docs/logs/e2e-laneA-wasm-2026-11-03.md`). The build is green (727 jobs, on main `7358a938d`) with
+standard axioms, `pin-check` passes, and `spec/` is unchanged.
+
+* **Honest host premises [K].**
+  * The two-run footprint `callHost_two_run` holds for all 75 + 14 arms. Low-equivalent states on
+    the arm's read set give one `HostEff` applied to both.
+  * A spec-level non-vacuity check (`pinned_cont_g`, `Vacuity2.twin_witness`) would have caught
+    HostVacuity.
+  * `rel_twin_post` and the page count on the thread (`SigP`) lead to `seg_sound_hostIf_air`:
+    segment soundness with every HOST-row premise discharged except the named ones —
+    * the producer contract `HostIf` + `HostAnsCov`;
+    * `HostWritesCovT` (the AIR gap below);
+    * `HostProdNodup`;
+    * `HostCallsNotLinear`.
+* **One chain [K].**
+  * `seg_chain_all_mp` (+ `_csteps`) carries the σ pin, the memory root and the key bus.
+  * Entry: the decidable `EntryPub` and `entry_inSA_mp`.
+  * Exit: `callResult_of_segments_mp` (M6.5 shape).
+  * `wasm_base_sound_m2σ`.
+* **Host answers ↔ tape [K][M].**
+  * The `HostIf` contract is indexed by host-call rank. `SigKeep`, the in/out pins and the bus
+    messages ↔ the thread's arm run are proved.
+  * `callResult_of_chainσ`.
+  * Lane B's obligations are stated as `ProducerObl`.
+  * Answer functions are proved for `register_len`, `input`, `read_register`.
+  * Corpus host frequency: `m6/host-freq.md`.
+* **Grow [K][M].**
+  * `M3Ctx`, size clause `SzC`, all MEMG rows, and `seg_sound_g`, the last relative to a named
+    non-MEMG action layer `SegGLayer`.
+  * Corpus `d3rich` grow calls: 1,309/1,309 segments pre-check; 215 + 25 grow segments proved and
+    verified (median 1.43 MB, 53 s); tampers 65/65.
+* **AIR fix [M][K]: bus 214, multi-group HOSTB.** HOSTB group bits; `hid` = base id. Before it,
+  every segment with a `storage_write` value group failed pre-check, also on the default MP AIR.
+  Re-proved, re-checked, and all tamper batteries rejected.
+* **Found, open:** the write-coverage AIR gap. Five `setU128H` hosts write memory with no
+  space-3 message: `account_balance`, `account_locked_balance`, `attached_deposit`,
+  `validator_stake`, `validator_total_stake`. All five are imported by `d3rich`. The proposed HOSTB
+  old-byte write pair is in `m6/README.md` §5.5.
+* **Proposed to lane E (route via integrator):** `WasmBnd.gasLeft` and the register-id order via
+  `registersDigest`. The diff is in `m6/README.md` §6.
+
 **Next (lane A):**
-* M6: the σ-pinned host-row premises, then `HostIf ⇒ HoldRowS ∧ HostRely` (M6.2) and the
-  noninterference half of the footprint (M6.1).
-* One combined chain statement (memory + key bus + MP); the first segment's `h0` from `enter`.
-* `seg_sound` for `wasmBaseSegAirG`; the corpus grow calls.
-* The generator limits (stack-budget trap row, out-of-gas row,
+* The write-coverage AIR change (HOSTB `ob` column and the space-3 write pair), with re-proof and
+  tampers.
+* Grow:
+  * `SegGLayer` (base-row FETCH under `CodeOK3`, MEMBG pairing, the CUT link);
+  * the grow memory root, halting case and chain;
+  * the fee bound on failed grows.
+* Answer functions for `storage_write`, `log_utf8`, `value_return`, `ed25519_verify`; `EntrySeed`.
+* With lane B: discharge `HostIf` from the state rows (M6.4, `ProducerObl`); pin the HOSTB group
+  index when the state side consumes wire ids.
+* The generator limits (i32 host signatures in segment AIRs, stack-budget trap row, out-of-gas row,
   `≥ 2^27` addresses).
-* **Distinguish the storage key and value bytes in-circuit** when the state side consumes bus 210
-  (the `hid + 256` wire convention, M6).
-* **M6.** Replace HOSTO so the tape is bound inside the proof.
+* **Next milestone, the aggregation-tree leaf (lane D §5.0.1.4; `m6/README.md` §5b):**
+  * fixed per-template heights;
+  * in-circuit CODE/FUNC roots, with touched-record multiproofs per segment;
+  * proof + vk on disk.
 
 The milestone-1 exit test (return bytes, logs and gas equal the chunk's outcome on T1 and T2, with
 mutants rejected) is met. The gas equality holds outside the proof (the tape) until M6. The
 `lake build WasmBase` breakage reported on 2026-10-31 was fixed on main (`6a1739cd7`), and the build
 is green with the new files.
 
-### 5.0 Lane D (ZK wrap for M9): status, 2026-11-04 (milestone D-8)
+### 5.0 Lane D (ZK wrap for M9): status, 2026-11-05 (milestone D-9)
 
-See `research/near-compression/e2e/README.md` §0 (§0a for D-7, §0b for D-6, §0c for D-5, …) and
-`research/near-compression/e2e/ZK-ARGUMENT.md` (§10.1 tree wrap, §10.2 D-7, §10.3 D-8). Logs:
-`docs/logs/e2e-zk-lane-d-2026-11-04-d8.md` (D-8), `…-d7.md` (D-7), `docs/logs/e2e-zk-lane-d-2026-11-04.md`
-(D-6) and `docs/logs/e2e-zk-lane-d-2026-11-03.md`.
+**Where to read**
+* `research/near-compression/e2e/README.md`: §0 is D-9; §0a is D-8, §0b D-7, §0c D-6, §0d D-5, …
+* `research/near-compression/e2e/ZK-ARGUMENT.md`: §10.1 tree wrap, §10.2 D-7, §10.3 D-8, §10.4 D-9.
+* Logs:
+  * `docs/logs/e2e-zk-lane-d-2026-11-05-d9.md` (D-9);
+  * `docs/logs/e2e-zk-lane-d-2026-11-04-d8.md` (D-8) and `…-d7.md` (D-7);
+  * `docs/logs/e2e-zk-lane-d-2026-11-04.md` (D-6);
+  * `docs/logs/e2e-zk-lane-d-2026-11-03.md`.
+
+**Done (D-9):**
+* **One leaf geometry per family, one wrap setup.** Each class's leaf is proved at the smallest
+  geometry that holds it. S and M form one family (NvAir 2^19); L forms another (2^20). Each family
+  has its own `PAD_L` and `P_2`. All `P_2` are proved at one node geometry, and the wrap anchors the
+  set `{C_2^f}`. The setup is version 6.
+  * An L chunk reproduces the setup made by an S chunk byte for byte, including L's `C_2`, which
+    the setup computed from a probe.
+  * Cost: the leaf is −14 % time and −15 % memory at equal threads. That is only ≈ 4–5 % of an S/M
+    chunk's tree proving, because the leaf's SHA AIR stays at 2^21 rows. The larger D0a-specific
+    cost is elsewhere: in a one-template chunk, 3 of the 4 leaves are `PAD_L` proved at the full
+    family heights.
+* **Review-D8 M1 / M2 fixed.** Every class's base vk is rebuilt from the declared AIR, its TAPE pad
+  and the calibration for its shape, in both `tree-prove` and `tree-audit`, and compared byte for
+  byte.
+  * The pad is validated. `validate-base` uses the pad, and the chain path refuses a padded base
+    (I4).
+  * The reviewer's three tamper fixtures are rejected.
+  * `tree-audit` regenerates every setup constant except the other families' `C_2`, which needs a
+    run of each family (L1).
+  * ZK-ARGUMENT §10.3 is corrected (L3 / I1).
+* **Every layer at 274 bits per round, one S chunk** (`NEARPROOF_RBR_ALL=274`; measurement only).
+  The packet grows by 6,130 B (329,357 → 335,487 B), confirming lane E's +6.3 KB estimate. Verify
+  time is unchanged (≈ 69 ms). Tree proving is +12 % (loaded host). Base: see README §0.
+* **Throughput sample, partial** (stopped on the M10 re-prioritisation).
+  * 10 random corpus chunks (6 S, 2 M, 2 L): all dumped and base-proved.
+  * 4 S chunks tree-proved under the production setup. Each reproduced the setup byte for byte.
+    Packets 328,866–330,591 B; tree 1,870–2,021 s; verify 48–55 ms.
+  * No failures. Something outside lane D's scripts deleted the driver binary mid-run; it was
+    rebuilt and the run resumed.
+* **Tidy.** Every run script fails on error, and every results directory carries `SHA256SUMS`
+  (`scripts/sha256sums.sh`).
+* **Oversize policy (review-D8 L2).**
+  * A chunk that no class admits is rejected by the prover: `class-admits` fails, and no base is
+    proved.
+  * For production, add a larger class. It is a new family and a new `P_2` in the same setup; this
+    is free while that `P_2` fits the node geometry, and needs `h_N` re-derived otherwise.
+  * Alternatively, segment the chunk (lanes A/B boundaries).
+  * The 7 TAPE pad keys are corpus-derived. Deriving them from the AIR's public buses is open.
+
+**Open (D-9):**
+* Base-point `u` (QROM): pending an owner decision.
+* The per-round target (274 vs 268): owner decision, now with measured numbers.
+* Lanes A/B templates (blockers 4, 5, 8, 9) and their segment parameters (I5: seg-v1 at 32
+  grinding bits is 266.9 bits).
+* `PAD_L` cost in one-template trees.
+* TAPE keys from the AIR.
+* An independent review of D-9.
+
+#### D-8 status (superseded by D-9 above)
 
 **Done (D-8):**
 * **Production base-class set.** A heights census of all 1,311 D0a-compatible honest chunks of the
@@ -806,7 +1062,8 @@ See `research/near-compression/e2e/README.md` §0 (§0a for D-7, §0b for D-6, �
 **Open (D-8):** QROM `u` (owner); lanes A/B templates (blockers 4, 5, 8, 9) — and their segment
 parameters (adopt the base configuration at 24 grinding bits: −75 % in-circuit hashing per segment leaf); one leaf geometry per
 setup (class L's leaf sets every class's leaf heights in a shared setup: a production setup per
-leaf-geometry family, or L chunks split into S-size segments); an independent review of D-8.
+leaf-geometry family, or L chunks split into S-size segments; *done in D-9: families in one
+setup*); an independent review of D-8 (*done: no Critical/High; M1/M2 fixed in D-9*).
 
 #### D-7 status (superseded by D-8 above)
 
@@ -1182,7 +1439,7 @@ Size: the D0a wrap over L4 is 325.2–325.8 KB [main]. The production agg roots,
 (agg log §4 item 2). It should be close to D0a's if the root's geometry equals L4's (both are
 NV children, the same verifier program shape).
 
-##### 3. Blockers and open questions, in order (status after D-8)
+##### 3. Blockers and open questions, in order (status after D-9)
 
 | # | item | owner | D-5 status |
 |---|---|---|---|
@@ -1196,7 +1453,7 @@ NV children, the same verifier program shape).
 | 8 | **In-circuit cached-root binding**, no `u` in the wrap statement | A, D | open for the D0a template: its ctx is the chain's `StatementClaim` digest, which covers `(u, TAPE*(u))`, so `u` is still in the packet and V_d recomputes ctx from (claim, hint, u). A template with a canonical `claimDigest` removes it; D-6: the wrapper's in-circuit cached-root binding prototyped on the D0a base (`build_base_leaf`: TAPE bound in-circuit by tape-eval, statement digest computed in the leaf); for lane A it is CODE/FUNC = `B.codeRoot`/`funcRoot` (§5.0.1.4); D-7: the base-template leaf is the **default** tree leaf (statement and soundness link in ZK-ARGUMENT §10.2), so the D0a tree has no chain levels |
 | 9 | **M6/M5b** | A, B | open (lanes A/B) |
 | 10 | **Wrap ZK obligations carried over** | D | H: the wrap heights are pinned from the shape alone (review-D4 F1 fix (b), ZK-ARGUMENT §7.1) and the setup is chunk-independent, so the D-4 "setup reveals the shape class" caveat is gone for the tree wrap. Q unchanged (owner); D-6: **ZK re-read for the wrap program, flag set** (ZK-ARGUMENT §10.1), classical ROM |
-| 11 | **Soundness budget** | E, D | wrap 268.2 bits per round (`ns19lb6`, queries [46, 41, 31, 25]); tree layer 268.2 bits (`ns20lb5`, queries [54, 41, 31, 25]); `R` counted (≤ 2^11); D-6: the tree layer's 268.2 bits come from WHIR round 1; round 0 is the Johnson fallback at 271.9 (review-D5 Info); D-7: recorded per tree run (`soundness.txt`): wrap 268.2, leaf/node vks 268.2, base class A 269.6 (`n_stack` 18), class B 268.4 (`n_stack` 14); D-8: leaf vk at `ns20lb2` 268.5 (queries [81, 60, 40, 30]); class S / M bases 269.6 (`n_stack` 18, lb 7), class L 268.5 (`n_stack` 22, lb 2) |
+| 11 | **Soundness budget** | E, D | wrap 268.2 bits per round (`ns19lb6`, queries [46, 41, 31, 25]); tree layer 268.2 bits (`ns20lb5`, queries [54, 41, 31, 25]); `R` counted (≤ 2^11); D-6: the tree layer's 268.2 bits come from WHIR round 1; round 0 is the Johnson fallback at 271.9 (review-D5 Info); D-7: recorded per tree run (`soundness.txt`): wrap 268.2, leaf/node vks 268.2, base class A 269.6 (`n_stack` 18), class B 268.4 (`n_stack` 14); D-8: leaf vk at `ns20lb2` 268.5 (queries [81, 60, 40, 30]); class S / M bases 269.6 (`n_stack` 18, lb 7), class L 268.5 (`n_stack` 22, lb 2); D-9: same bits on the family setup; every layer at 274 measured on one chunk (`NEARPROOF_RBR_ALL`): wrap 274.0 [47, 43, 31, 25], node 274.0 [55, 43, 31, 25], leaf 275.6 [83, 62, 41, 31], base 276.3 [45, 36, 28, 24]; packet +6,130 B |
 | 12 | **Lean:** `aggWrapV` `a = 0` and wrap tag; PAD-leaf soundness in `SegSound` | E | open (lane E); the D-5 wrap tag is `TAG_STATEMENT` with leading cell `WRAP_MARKER` |
 
 ##### 4. Lane A/B templates as tree leaves (D-6 plan; blockers 4, 5, 8, 9)
@@ -1218,7 +1475,15 @@ NV children, the same verifier program shape).
   `B_in.phase ≠ done` (or the leaf must check it), as the D0a template leaf does by construction.
 * **One leaf geometry per setup.** A setup has one leaf geometry (P_2's program embeds its
   children's heights): the largest template sets every leaf's heights. Group templates of similar
-  leaf size per setup (D-8: class L's leaf is 1.6× class S's).
+  leaf size per setup (D-8: class L's leaf is 1.6× class S's). *[D-9: resolved inside one setup.]*
+  A setup now has **leaf geometry families**, each with its own `P_2^f`, all at one node
+  geometry; the wrap anchors the set `{C_2^f}`. A lane A/B template joins the family of its leaf
+  size: a new family adds a `P_2` program to the setup, not a new setup.
+* **I5 (review-D8): seg-v1 at 32 grinding bits is below the target.** `base-whir`'s seg-v1 row
+  at `PQD1_POW=32` is 266.9 bits (< 268; `results/zk/d8/base-whir.txt`). The lanes' seg-v1
+  schedule is calibrated at its own 24 bits (268.2). Raising the grinding without recomputing the
+  query counts loses bits. Lanes A/B: recompute the queries at whatever grinding is pinned (or
+  adopt the base configuration, which is calibrated per call).
 
 Read from the lanes' code and logs (lane D did not edit them). Paths are lane A's
 `native/wasm-base` and `e2e-general/m4`, lane B's `e2e-general/m5a`.
@@ -1523,3 +1788,21 @@ cases re-proved (roots = Lean oracle), 121 mutant runs: 119 rejected, 2 not appl
   extension / branch sibling" — several sessions each; mismatch past the head; long extension
   under a delete; empty trie), `HostReqs` from lane A's HOST rows, reads, `STB` packing, lane E
   `StViewE`.
+
+**M5a-9 (tenth session, 2026-11-21) [M]:** README §"M5a-9", log
+[`docs/logs/e2e-m5a9-state-2026-11-21.md`](../logs/e2e-m5a9-state-2026-11-21.md). No AIR or Lean
+change.
+* **Corpus census [M]:** all 19,007 `d3` cases of d3c7–d3c10 (M5b AIR): **16,205 (85.3 %) trace
+  and pass `check`**, none fails `check`; 15 sampled proofs verify (1.10–1.86 MB). First gaps:
+  squash onto an extension sibling 5.65 %, old-leaf-ends split (`alice` → `alice.near`) 3.64 %,
+  squash to a value leaf 1.86 %, `VBITS` (≥ 128 working-set keys) 1.58 %, squash onto a branch
+  sibling 1.13 %, squash after a branch-value delete 0.77 %, written-key-ends split 0.12 %. Greedy
+  order to 100 %: ext-sibling squash (→ 89.5 %), old-ends split (→ 92.6 %), `VBITS` (→ 94.8 %),
+  branch-sibling squash (→ 97.1 %), value-leaf squash (→ 99.05 %), branch-value squash, the rest.
+* **`extract_state.py` fix:** witness nodes first read during finalize (squash siblings) were
+  dropped; 1,171 cases turn OK.
+* **Timestamps restart per boundary [M]:** the working-set side accepts it (T2, `--segs 47`, a
+  key written in two segments at `t = 1`); the M5b `HB(ts, pos, b)` needs one proof per segment or
+  `seg` in `HB`.
+* **Not built:** branch-end split, `STB` packing. **Open:** as README "Open after M5a-9";
+  `FitsReach` → lane E's `FitsReachK` after rebasing on main `7358a938d`; lane D leaf requirements.

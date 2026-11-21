@@ -1203,7 +1203,7 @@
 +}
 --- a/openvm-sha384/crates/recursion/src/nv/tree.rs
 +++ b/openvm-sha384/crates/recursion/src/nv/tree.rs
-@@ -0,0 +1,311 @@
+@@ -0,0 +1,348 @@
 +//! [E2E-D D-5] Chunk-independent aggregation tree and the ZK wrap (plan §5.0.1).
 +//!
 +//! Every proof in the tree is an NV proof over the same AIR set, parameters and pinned trace
@@ -1433,7 +1433,22 @@
 +    c_node2: Digest,
 +    c_pad_node: Digest,
 +) -> RangeStmt {
-+    b.anchor_set = Some((LEVEL_NODE2, vec![c_node2, c_pad_node]));
++    build_node_star_set(b, children, preimages, &[c_node2], c_pad_node)
++}
++
++/// [E2E-D D-9] `P_*` over level-2 children whose programs are one of the family `P_2` programs
++/// `c_node2s` (one per leaf geometry family) or `C_padN`: the level-2 anchor set is
++/// `{C_2^f} ∪ {C_padN}`; deeper children as in `build_node_star`.
++pub fn build_node_star_set(
++    b: &mut Builder,
++    children: &[(&MultiStarkVerifyingKey<Sha384Config>, &Proof<Sha384Config>)],
++    preimages: &[RangeStmt],
++    c_node2s: &[Digest],
++    c_pad_node: Digest,
++) -> RangeStmt {
++    let mut set = c_node2s.to_vec();
++    set.push(c_pad_node);
++    b.anchor_set = Some((LEVEL_NODE2, set));
 +    b.sibling_alt = Some(c_pad_node);
 +    let s = super::agg::build_agg(b, children, super::agg::ChildKind::Node { n_ctx: N_CTX, n_state: N_STATE }, preimages);
 +    b.sibling_alt = None;
@@ -1461,15 +1476,37 @@
 +    c_node: Digest,
 +    pre: &RangeStmt,
 +) -> Digest {
++    build_wrap_set(b, vk, proof, root_level, &[c_node], pre)
++}
++
++/// [E2E-D D-9] The wrap over a root whose program is ONE of the pinned roots `c_roots` (one-hot
++/// anchor set at the forced root level; `Builder::anchor_set`): at depth 1 the root is a `P_2`, and
++/// with one leaf geometry per family (D-9) every family has its own `P_2` program `C_2^f` at the
++/// shared node heights. A single root (`c_roots.len() == 1`) is the D-5 .. D-8 constant anchor,
++/// program for program.
++pub fn build_wrap_set(
++    b: &mut Builder,
++    vk: &MultiStarkVerifyingKey<Sha384Config>,
++    proof: &Proof<Sha384Config>,
++    root_level: u32,
++    c_roots: &[Digest],
++    pre: &RangeStmt,
++) -> Digest {
 +    assert_eq!((pre.ctx.len(), pre.s_a.len()), (N_CTX, N_STATE));
++    assert!(!c_roots.is_empty(), "wrap: empty root set");
 +    b.agg = true;
-+    b.anchor = Some((root_level, c_node));
++    if c_roots.len() == 1 {
++        b.anchor = Some((root_level, c_roots[0]));
++    } else {
++        b.anchor_set = Some((root_level, c_roots.to_vec()));
++    }
 +    b.force_anchor = true;
 +    b.bind_child = true;
 +    b.bind_child_index = 0;
 +    let pv = build_verifier(b, vk, proof);
 +    b.bind_child = false;
 +    b.force_anchor = false;
++    b.anchor_set = None;
 +    let v = &pv[0];
 +    assert_eq!(v.len(), super::uair::NV_NUM_PVS, "root exposes [level, D]");
 +    let ld = |b: &mut Builder, xs: &[F]| -> Vec<V> { xs.iter().map(|&x| b.load_f(x)).collect() };
@@ -1517,7 +1554,7 @@
 +}
 --- a/openvm-sha384/crates/recursion/src/nv/tree_tests.rs
 +++ b/openvm-sha384/crates/recursion/src/nv/tree_tests.rs
-@@ -0,0 +1,724 @@
+@@ -0,0 +1,845 @@
 +//! [E2E-D D-5] Tests of the chunk-independent tree (nv/tree.rs) on Fibonacci fixture templates:
 +//! template proof (NV level 1 over a Fib segment) -> normaliser / PAD leaves -> one node ->
 +//! wrap (debug constraint check, final domain). Ignored (proves several NV levels); run with
@@ -1557,6 +1594,127 @@
 +    let ctxs: Vec<AirProvingContext<CpuBackend<Sha384Config>>> = super::circuit::nv_contexts(circ, engine.config(), mats, b.public_values());
 +    engine.debug(&airs, &ProvingContext::new(ctxs.into_iter().enumerate().collect()));
 +    b
++}
++
++/// [E2E-D D-9] The wrap over a root-program SET (`build_wrap_set`: one `P_2` per leaf geometry
++/// family at depth 1): the root's program in the set (either position) passes the debug check; a
++/// set without it, a set of one wrong root, and a wrong root level are rejected at the constraint
++/// level (`engine.debug`, prover-side failures ignored).
++#[test]
++#[ignore]
++fn tree_d9_wrap_set_debug() {
++    let lr_t = 17;
++    let lr = crate::sha384::e2e_tests::env_usize("TREE_LOG_ROWS", 19);
++    let segs = chunk_segments(&[7], 1, 32);
++    let app_engine = Sha384CpuEngine::new(child_params_small());
++    let (avk, ap) = segs[0].keygen_and_prove(&app_engine);
++    let pe = Sha384CpuEngine::new(parent());
++    // template proof T: NV level 1 over the app segment (program part cached, like D0a L1..L4)
++    let mut ct = NvCircuit::new(child_params_small().k_whir(), lr_t, 1);
++    ct.program_part = true;
++    let (tvk, tp, _, _) = super::circuit::prove_level(&ct, &pe, &avk, &ap);
++    let c_t = root_of(&tp);
++    println!("TREE_T level={} root={c_t:?}", tp.public_values[0][0]);
++    let k = parent().k_whir();
++    let mut cn = NvCircuit::new(k, lr, 1);
++    cn.program_part = true;
++    cn.prog_log = lr - 1;
++    // normaliser (leaf 0) and PAD (leaf 1), proved at their natural heights first to size the pin
++    let norm = |c: &NvCircuit| c.generate_with(|b| {
++        build_norm(b, &tvk, &tp, (1, c_t), F::ZERO, 0);
++    });
++    let (mats_n, bn) = norm(&cn);
++    let ctx = bn.public_values(); // [1, D(norm)] -- the ctx is the template's digest
++    let stmt_n = RangeStmt { ctx: tp.public_values[0][1..19].to_vec(), a: F::ZERO, e: F::ONE, s_a: vec![F::from_u32(PHASE_INIT), F::ZERO], s_e: vec![F::from_u32(PHASE_DONE), F::ZERO] };
++    assert!(super::agg::check_range_statement(&ctx, &stmt_n), "normaliser statement");
++    let pad_s = vec![F::from_u32(PHASE_DONE), F::ZERO];
++    let pad = |c: &NvCircuit| c.generate_with(|b| {
++        build_pad(b, &stmt_n.ctx, F::ONE, &pad_s);
++    });
++    let (mats_p, bp) = pad(&cn);
++    let (hn, _) = shape_pinned_heights(&mats_n, &bn, 2, 40.0);
++    let (hp, _) = shape_pinned_heights(&mats_p, &bp, 2, 40.0);
++    // node heights: generous pin from the normaliser (the node verifies two leaf-sized children)
++    let pin: Vec<(usize, Option<usize>)> = hn.iter().zip(&hp).map(|(a, b)| (a.0.max(b.0), Some(a.1.unwrap().max(b.1.unwrap())))).collect();
++    println!("TREE_LEAF_PIN norm={hn:?} pad={hp:?}");
++    let _ = (mats_n, mats_p);
++    let leaf_circ = |h: &[(usize, Option<usize>)]| {
++        let mut c = cn.clone();
++        c.heights = Some(h.iter().map(|&(l, _)| 1usize << l).collect());
++        c.tight_floor = Some(h.iter().map(|&(l, t)| t.unwrap_or(1 << l)).collect());
++        c
++    };
++    // iterate the uniform pin until the node fits it
++    let mut h = pin.clone();
++    // the node verifies two children: about 2.4x a leaf's rows here (start at 2.5x + 1/16)
++    let grow = |x: usize| (2 * x + x / 2 + x / 16).next_multiple_of(4);
++    let t1 = grow(h[1].1.unwrap());
++    h[1] = (h[1].0.max(t1.next_power_of_two().trailing_zeros() as usize), Some(t1));
++    h[0].1 = Some(grow(h[0].1.unwrap()).min(1 << h[0].0));
++    let (nvk, np, nb) = {
++        let c = leaf_circ(&h);
++        let (m, b) = norm(&c);
++        let (v, p, _) = prove_mats(&c, &pe, m, &b);
++        (v, p, b)
++    };
++    let (pvk, pp, _pb) = {
++        let c = leaf_circ(&h);
++        let (m, b) = pad(&c);
++        let (v, p, _) = prove_mats(&c, &pe, m, &b);
++        (v, p, b)
++    };
++    let _ = nb;
++    assert_eq!(nvk.pre_hash, pvk.pre_hash, "normaliser and PAD share the tree vk");
++    let set = vec![root_of(&np), root_of(&pp)];
++    let stmt_p = RangeStmt { ctx: stmt_n.ctx.clone(), a: F::ONE, e: F::from_u32(2), s_a: pad_s.clone(), s_e: pad_s.clone() };
++    let pre = vec![stmt_n.clone(), stmt_p.clone()];
++    let kids: Vec<(&Vk, &Pf)> = vec![(&nvk, &np), (&pvk, &pp)];
++    let c = leaf_circ(&h);
++    let (m, b) = c.generate_with(|b| {
++        build_node(b, &kids, &pre, &set);
++    });
++    let (hnode, slack) = shape_pinned_heights(&m, &b, 2, 40.0);
++    println!("TREE_NODE natural_pin={hnode:?} slack={slack:?} uniform_pin={h:?} rows={}", b.instrs.len());
++    assert!(hnode.iter().zip(&h).all(|(a, p)| a.0 <= p.0 && a.1 <= p.1), "the node does not fit the uniform pin");
++    let (_vroot, proot, _) = prove_mats(&c, &pe, m, &b);
++    let root_stmt = RangeStmt::compose(&pre).unwrap();
++    assert!(super::agg::check_range_statement(&proot.public_values[0], &root_stmt));
++    assert_eq!(proot.public_values[0][0], F::from_u32(2), "root level");
++    let c_node = root_of(&proot);
++    let mut fp = parent();
++    fp.whir.levers.zk = 0;
++    let fe = Sha384CpuEngine::new_final(fp);
++    let mut cw = NvCircuit::new(k, lr, 1);
++    cw.prog_log = lr - 2;
++    let mut other = c_node;
++    other[0] ^= 1;
++    let mut other2 = c_node;
++    other2[1] ^= 1;
++    for (name, set) in [("first", vec![c_node, other]), ("second", vec![other, c_node]), ("of three", vec![other, other2, c_node])] {
++        let wb = debug_body(&cw, &fe, |_| {}, |b| {
++            build_wrap_set(b, &nvk, &proot, 2, &set, &root_stmt);
++        });
++        assert!(wb.failures.is_empty(), "{:?}", wb.failures);
++        assert!(check_wrap_statement(&wb.public_values(), &stmt_n.ctx, 0));
++        println!("TREE_D9_WRAP_SET_ACCEPTED root {name} rows={}", wb.instrs.len());
++    }
++    // constraint-level negatives: the debug check must panic (prover-side failures are ignored)
++    let neg = |name: &str, f: &dyn Fn(&mut Builder)| {
++        let r = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
++            let _ = debug_body(&cw, &fe, |_| {}, |b| f(b));
++        }));
++        assert!(r.is_err(), "TREE_D9 negative accepted by the constraints: {name}");
++        println!("TREE_D9_NEGATIVE_REJECTED {name}");
++    };
++    neg("root not in the set", &|b| {
++        build_wrap_set(b, &nvk, &proot, 2, &[other, other2], &root_stmt);
++    });
++    neg("set of one wrong root", &|b| {
++        build_wrap_set(b, &nvk, &proot, 2, &[other], &root_stmt);
++    });
++    neg("wrong root level with a set", &|b| {
++        build_wrap_set(b, &nvk, &proot, 3, &[c_node, other], &root_stmt);
++    });
 +}
 +
 +#[test]

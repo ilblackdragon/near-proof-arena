@@ -8,7 +8,8 @@
 #                      + openvm-recursion-sha384 + openvm-recursion-stream + openvm-recursion-cpu-fast
 #                      + e2e-verify + zk-pcs + zk-piop + e2e-heights + e2e-tree (and the backend /
 #                      plonky3 patches of those scripts).  Shared trees are refused by those scripts.
-#   out file           default <repo>/zk-formal/ZkFormal/PQ/NvAirExport.lean
+#   out file           default <repo>/zk-formal/ZkFormal/PQ/NvAirExport.lean; NvCircuitExport.lean (the
+#                      other three AIRs) and NvHonestExport.lean (an honest NvAir trace) next to it
 #
 # nv_export.rs is installed as a #[cfg(test)] module `nv::nv_export` of the private tree (the only
 # change outside the patch stack; setup_e2e_verify_deps.sh's reverse-apply check does not cover
@@ -59,6 +60,9 @@ Circuit: NvCircuit::new(3, 17, 1) (one compression instance), keygen with parent
 Regenerate: \`research/near-compression/native/recursion/nv-export/setup.sh <repo>\` (cargo test --release -p openvm-recursion-circuit --lib nv::nv_export)."
 export NV_EXPORT_HEADER="$HDR"
 export NV_EXPORT_OUT=$OUT
+# M11g: tables 1..3 of the circuit, and an honest NvAir trace (proved and verified before export)
+export NV_EXPORT_ALL_OUT=${NV_EXPORT_ALL_OUT:-$(dirname "$OUT")/NvCircuitExport.lean}
+export NV_EXPORT_TRACE_OUT=${NV_EXPORT_TRACE_OUT:-$(dirname "$OUT")/NvHonestExport.lean}
 export CARGO_TARGET_DIR=${CARGO_TARGET_DIR:-$D/target}
 export CARGO_BUILD_JOBS=${CARGO_BUILD_JOBS:-8}
 nice cargo test --release -p openvm-recursion-circuit --lib nv::nv_export -- --nocapture

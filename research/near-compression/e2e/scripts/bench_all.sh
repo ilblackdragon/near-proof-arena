@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Verifier timing for the three e2e runs plus the delivered v1 packet (old protocol, for comparison).
-set -uo pipefail
+set -euo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
 ROOT=$(cd "$HERE/../../../.." && pwd)
 E=/data/illia/nearproof-deps/pq-e2e-zk/e2e

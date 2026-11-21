@@ -313,7 +313,13 @@ fn chain(
     final_only: bool,
 ) {
     let (mut vk, mut p) = load_base(out);
-    state::chunk_bridge::check_base_key(air, public, &vk);
+    // [E2E-D D-9, review-D8 I4] the chain packets (D0a `verify`) carry the natural TAPE only: a
+    // base proved at a class with a pinned TAPE shape goes through the tree (`tree-prove`)
+    assert!(
+        state::TapePad::of_dir(out).is_none(),
+        "chain: the base has a pinned TAPE shape (TAPE_PAD.json): the D0a chain packet verifies the natural TAPE only; use tree-prove"
+    );
+    state::chunk_bridge::check_base_key(air, public, &vk, None);
     let base_params = vk.inner.params.clone();
     let root_claim = state::chunk_bridge::expected_claim(air, public, base_params.clone());
     assert_eq!(p.public_values, root_claim.public_values, "base public values");
@@ -1036,7 +1042,8 @@ fn main() {
         }
         Some("validate-base") if a.len() == 5 => {
             let (vk, _) = load_base(Path::new(&a[4]));
-            state::chunk_bridge::check_base_key(&a[2], &a[3], &vk);
+            // [E2E-D D-9, review-D8 M1 / I4] under the base dir's pinned TAPE shape, if any
+            state::chunk_bridge::check_base_key(&a[2], &a[3], &vk, state::TapePad::of_dir(Path::new(&a[4])).as_ref());
             println!("BASE_AIR_KEY_MATCH_OK");
         }
         Some("chain") if a.len() == 7 || a.len() == 8 => chain(
@@ -1147,7 +1154,8 @@ fn main() {
             a[9].parse().unwrap(),
         ),
         #[cfg(feature = "tree")]
-        Some("tree-audit") if a.len() >= 6 => tree::tree_audit(&a[2], &a[3], &a[4], Path::new(&a[5]), &a[6..]),
+        // [E2E-D D-9] tree-audit AIR SETUP CERTS EXCLUSIONS VK_DIR [BASE_DIR...]
+        Some("tree-audit") if a.len() >= 7 => tree::tree_audit(&a[2], &a[3], &a[4], &a[5], Path::new(&a[6]), &a[7..]),
         #[cfg(feature = "tree")]
         Some("tree-verify") if a.len() == 7 => tree::tree_verify(&a[2], &a[3], &a[4], &a[5], &a[6]),
         #[cfg(feature = "tree")]

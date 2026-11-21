@@ -237,8 +237,40 @@ pub fn stacked_openings_at(
 
 /// Rebuild the entire base VK from the declared AIR and verifier-produced public tape.
 /// This prevents a local checkpoint for a different relation entering a trusted setup run.
-pub fn check_base_key(air: &str, public: &str, vk: &MultiStarkVerifyingKey<Sha384Config>) {
-    public_statement(air, public, vk.inner.params.clone(), Some(vk), None, None);
+/// [E2E-D D-9, review-D8 M1 / I4] `pad`: the class's pinned TAPE shape (the base dir's
+/// `TAPE_PAD.json`); `None` only for a natural-TAPE base (D-7 and earlier).
+pub fn check_base_key(air: &str, public: &str, vk: &MultiStarkVerifyingKey<Sha384Config>, pad: Option<&TapePad>) {
+    public_statement(air, public, vk.inner.params.clone(), Some(vk), None, pad);
+}
+
+/// [E2E-D D-9, review-D8 M1 / M2] The base AIR set of a class with a pinned TAPE shape: the
+/// classical tables of the declared AIR (buses offset) and the TAPE spec built from the pad alone
+/// (its keys fix the TAPE width and its interactions; no chunk data is needed).
+fn class_tables(air: &str, pad: &TapePad) -> Vec<TableSpec> {
+    pad.validate().unwrap_or_else(|e| panic!("TAPE pad: {e}"));
+    let mut cl = ClassicalAir::parse(&std::fs::read_to_string(air).unwrap(), ORDER);
+    assert_eq!(cl.tables.len(), ORDER.len());
+    offset_buses(&mut cl);
+    let (ts, _) = harness_padded("TAPE", &BTreeMap::new(), true, Some(pad));
+    cl.tables.into_iter().chain(std::iter::once(ts)).collect()
+}
+
+/// [E2E-D D-9, review-D8 M1] The base vk of a class, rebuilt from the declared AIR, the class's
+/// TAPE pad and the base parameters (what `prove_base` keys for every member of the class).
+pub fn class_base_vk(air: &str, params: SystemParams, pad: &TapePad) -> MultiStarkVerifyingKey<Sha384Config> {
+    let engine = Sha384RefEngine::new(params);
+    let tables: Vec<AirRef<Sha384Config>> = class_tables(air, pad).into_iter().map(|spec| Arc::new(JsonAir { spec }) as AirRef<Sha384Config>).collect();
+    engine.keygen(&tables).1
+}
+
+/// [E2E-D D-9, review-D8 M1] The base shape parameters `(n_stack, w_stack, max_constraint_degree)`
+/// of a class from its per-AIR log heights (AIR order, TAPE last) and TAPE pad: `params_for`'s rule
+/// on the class's padded tables (what `prove_base` derives from a member's padded dump).
+pub fn class_base_shape(air: &str, logs: &[usize], pad: &TapePad) -> (usize, usize, usize) {
+    let specs = class_tables(air, pad);
+    assert_eq!(specs.len(), logs.len(), "class AIR count");
+    let sizes: Vec<(usize, usize)> = specs.iter().zip(logs).map(|(t, &l)| (t.width, l)).collect();
+    shape_of(&sizes, &specs)
 }
 
 /// Verifier-generated public inputs: the public values and the TAPE's net message counts.

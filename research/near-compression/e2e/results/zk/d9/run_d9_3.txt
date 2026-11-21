@@ -1,0 +1,35 @@
+S d1_09-h10049-s1 /data/illia/nearproof-deps/corpora/d1run/d1/09-h10049-s1
+S d1_06-h10010-s3 /data/illia/nearproof-deps/corpora/d1run/d1/06-h10010-s3
+S d1_06-h10103-s0 /data/illia/nearproof-deps/corpora/d1run/d1/06-h10103-s0
+S d1_08-h10145-s4 /data/illia/nearproof-deps/corpora/d1run/d1/08-h10145-s4
+S d1_07-h10060-s1 /data/illia/nearproof-deps/corpora/d1run/d1/07-h10060-s1
+S d1_07-h10050-s1 /data/illia/nearproof-deps/corpora/d1run/d1/07-h10050-s1
+M d1_05-h10129-s5 /data/illia/nearproof-deps/corpora/d1run/d1/05-h10129-s5
+M d1_00-h10015-s0 /data/illia/nearproof-deps/corpora/d1run/d1/00-h10015-s0
+L d1_06-h10119-s2 /data/illia/nearproof-deps/corpora/d1run/d1/06-h10119-s2
+L d1_04-h10139-s1 /data/illia/nearproof-deps/corpora/d1run/d1/04-h10139-s1
+BASE d1_09-h10049-s1 class=S (exists)
+BASE d1_06-h10010-s3 class=S (exists)
+BASE d1_06-h10103-s0 class=S (exists)
+BASE d1_08-h10145-s4 class=S (exists)
+BASE d1_07-h10060-s1 class=S (exists)
+BASE d1_07-h10050-s1 class=S (exists)
+BASE d1_05-h10129-s5 class=M (exists)
+BASE d1_00-h10015-s0 class=M (exists)
+BASE d1_06-h10119-s2 class=L (exists)
+BASE d1_04-h10139-s1 class=L (exists)
+SAMPLE_TREE_DONE d1_09-h10049-s1 (exists)
+SAMPLE_TREE_DONE d1_06-h10010-s3 (exists)
+SAMPLE_TREE_DONE d1_06-h10103-s0 (exists)
+TREE_PROVE_KEPT /data/illia/nearproof-deps/pq-e2e-d9/sample/d1_08-h10145-s4
+TREE d1_08-h10145-s4 TREE_CHUNK_CLASS class=0 family=0 confirmations_per_class=[3, 2, 2] TREE_FIXED_SETUP_IDENTICAL 	Maximum resident set size (kbytes): 28558396 
+VERIFY_PROFILE_MS total=54.80 wrap_verify=30.31 FS_JOBS flush=473 commit=5 squeeze=810 pow=4
+INDEPENDENT_TREE_VERIFY_OK bundle_bytes=330591 class=0
+VERIFY_PROFILE_MS total=52.08 wrap_verify=29.38 FS_JOBS flush=473 commit=5 squeeze=810 pow=4
+INDEPENDENT_TREE_VERIFY_OK bundle_bytes=330591 class=0
+VERIFY_PROFILE_MS total=54.58 wrap_verify=32.74 FS_JOBS flush=473 commit=5 squeeze=810 pow=4
+INDEPENDENT_TREE_VERIFY_OK bundle_bytes=330591 class=0
+LOAD_AFTER 5.78 2.83 1.52
+TREE_RUN_OK /data/illia/nearproof-deps/pq-e2e-d9/sample/d1_08-h10145-s4
+SAMPLE_TREE d1_08-h10145-s4 class=S tree_s=0
+LOAD_BEFORE 5.78 2.83 1.52

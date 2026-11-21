@@ -1,0 +1,10 @@
+S d1_09-h10049-s1 /data/illia/nearproof-deps/corpora/d1run/d1/09-h10049-s1
+S d1_06-h10010-s3 /data/illia/nearproof-deps/corpora/d1run/d1/06-h10010-s3
+S d1_06-h10103-s0 /data/illia/nearproof-deps/corpora/d1run/d1/06-h10103-s0
+S d1_08-h10145-s4 /data/illia/nearproof-deps/corpora/d1run/d1/08-h10145-s4
+S d1_07-h10060-s1 /data/illia/nearproof-deps/corpora/d1run/d1/07-h10060-s1
+S d1_07-h10050-s1 /data/illia/nearproof-deps/corpora/d1run/d1/07-h10050-s1
+M d1_05-h10129-s5 /data/illia/nearproof-deps/corpora/d1run/d1/05-h10129-s5
+M d1_00-h10015-s0 /data/illia/nearproof-deps/corpora/d1run/d1/00-h10015-s0
+L d1_06-h10119-s2 /data/illia/nearproof-deps/corpora/d1run/d1/06-h10119-s2
+L d1_04-h10139-s1 /data/illia/nearproof-deps/corpora/d1run/d1/04-h10139-s1
