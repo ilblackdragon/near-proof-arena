@@ -485,10 +485,100 @@ theorem specU_T1 (tr : Trace) (pub : List F) (memSz : Nat → Nat)
 end Trace
 
 
+
+/-! ## 6. The host side after the call -/
+
+/-- **The host side after a T1 host call** (`HostAnsF.side`): the answer's post-state through `sideR`. -/
+def sideT1 (name : String) (σ : St) (args : List Nat) (mem : Nat → UInt8) (memSz : Nat) : St :=
+  sideR (postOfU σ (ansT1 name σ args mem memSz) (updT1 name σ args mem memSz))
+
+/-- `ansT1` in lane B's `HostAnsF` shape. -/
+def ansT1F : HostIf.HostAnsF := ⟨ansT1, sideT1⟩
+
+/-- **The arm's post-state has host side `sideT1`** (on success and on every error). -/
+theorem ansT1_side {name : String} (hm : name ∈ t1Hosts) {s s0 : St} {args : Vector Nat (nargsT1 name)}
+    (e0 : (popArgs (nargsT1 name)).run s = .ok args s0) {s' : St}
+    (h : (hostCall name).get!.run s = .ok () s' ∨ ∃ e, (hostCall name).get!.run s = .error e s') :
+    sideR s' = sideT1 name s0 args.toList (readByte s0) (memBytes s0) := by
+  rw [ansT1_arm hm e0] at h
+  unfold runOfU at h
+  unfold sideT1
+  split at h
+  · rcases h with h | ⟨e, h⟩
+    · injection h with _ h; rw [h]
+    · cases h
+  · rcases h with h | ⟨e, h⟩
+    · cases h
+    · injection h with _ h; rw [h]
+
+/-! ## 7. Non-vacuity: T1's calls, evaluated
+
+T1's memory (`ttiny` at 0, `again` at 16), memory size 64 MiB, the gas before each call set from the
+prep tape (`gAfter` of the previous host call minus the Wasm instructions between, `822,756` each:
+4 before `log_utf8`, 3 before `value_return`, 6 before `storage_write`). -/
+
+def memT1 (a : Nat) : UInt8 :=
+  if a < 5 then [116, 116, 105, 110, 121].getD a 0
+  else if 16 ≤ a ∧ a < 21 then [97, 103, 97, 105, 110].getD (a - 16) 0 else 0
+
+def memSzT1 : Nat := 67108864
+
+/-- A host side with remaining gas `R` (prepaid 300 Tgas). -/
+def stT1 (R : Nat) (regs : Array (Nat × ByteArray)) (trie : Array (ByteArray × ByteArray)) : St :=
+  { pages := #[], globals := #[], table := #[], tableMax := 0, elems := #[], datas := #[], stackRem := 0,
+    gas := { burnt := 300000000000000 - R, prepaid := 300000000000000, limit := 300000000000000, g := 0 },
+    registers := regs, trie := trie }
+
+def bAgain : ByteArray := ⟨#[97, 103, 97, 105, 110]⟩
+def bSelf : ByteArray := ⟨#[115, 101, 108, 102]⟩
+def bT : ByteArray := ⟨#[116]⟩
+
+/-- `log_utf8(4, 1)` logs `tiny`; remaining gas after = the prep's `gAfter` (53,881,785,485,415). -/
+theorem t1_log_utf8 :
+    (ansLogUtf8 (stT1 (53892552822273 - 4 * 822756) #[] #[]) 4 1 memT1 memSzT1).err = none ∧
+    (ansLogUtf8 (stT1 (53892552822273 - 4 * 822756) #[] #[]) 4 1 memT1 memSzT1).gas.remaining = 53881785485415 ∧
+    (updLogUtf8 (stT1 (53892552822273 - 4 * 822756) #[] #[]) 4 1 memT1 memSzT1
+      (stT1 (53892552822273 - 4 * 822756) #[] #[])).logs.toList.map ByteArray.toList = [[116, 105, 110, 121]] ∧
+    (updLogUtf8 (stT1 (53892552822273 - 4 * 822756) #[] #[]) 4 1 memT1 memSzT1
+      (stT1 (53892552822273 - 4 * 822756) #[] #[])).totalLogLen = 4 := by
+  decide +kernel
+
+/-- `value_return(5, 16)` returns `again`; remaining gas after = the prep's `gAfter` (= `gFinal`). -/
+theorem t1_value_return :
+    (ansValueReturn (stT1 (53881785485415 - 3 * 822756) #[] #[]) 5 16 memT1 memSzT1).err = none ∧
+    (ansValueReturn (stT1 (53881785485415 - 3 * 822756) #[] #[]) 5 16 memT1 memSzT1).gas.remaining =
+      53878889379171 ∧
+    (match (updValueReturn (stT1 (53881785485415 - 3 * 822756) #[] #[]) 5 16 memT1 memSzT1
+        (stT1 (53881785485415 - 3 * 822756) #[] #[])).ret with
+      | some (.inl v) => v.toList == [97, 103, 97, 105, 110]
+      | _ => false) = true := by
+  decide +kernel
+
+/-- `storage_write(1, 0, 5, 16, 1)` against the mock store holding `t ↦ self`: result `1`, register 1
+`:= self`, `t ↦ again`; the gas is the mock's (the trie-backed run of the tape charges in addition
+11 trie nodes × 2,280,000,000 and 4 evicted bytes × 32,117,307: `gAfter` = 53,892,552,822,273). -/
+theorem t1_storage_write_mock :
+    (ansStorageWrite (stT1 (53990576570850 - 6 * 822756) #[(0, bAgain)] #[(bT, bSelf)]) 1 0 5 16 1 memT1 memSzT1).err
+      = none ∧
+    (ansStorageWrite (stT1 (53990576570850 - 6 * 822756) #[(0, bAgain)] #[(bT, bSelf)]) 1 0 5 16 1 memT1 memSzT1).res
+      = [1] ∧
+    (ansStorageWrite (stT1 (53990576570850 - 6 * 822756) #[(0, bAgain)] #[(bT, bSelf)]) 1 0 5 16 1 memT1
+      memSzT1).regs.toList.map (fun e => (e.1, e.2.toList)) = [(0, [97, 103, 97, 105, 110]), (1, [115, 101, 108, 102])] ∧
+    (ansStorageWrite (stT1 (53990576570850 - 6 * 822756) #[(0, bAgain)] #[(bT, bSelf)]) 1 0 5 16 1 memT1
+      memSzT1).gas.remaining = 53892552822273 + 11 * 2280000000 + 4 * 32117307 ∧
+    ((updStorageWrite (stT1 (53990576570850 - 6 * 822756) #[(0, bAgain)] #[(bT, bSelf)]) 1 0 5 16 1 memT1 memSzT1
+      (stT1 (53990576570850 - 6 * 822756) #[(0, bAgain)] #[(bT, bSelf)])).trie.toList.map
+        (fun e => (e.1.toList, e.2.toList))) = [([116], [97, 103, 97, 105, 110])] := by
+  decide +kernel
+
 #print axioms ansT1_arm
 #print axioms ansT1_congr
 #print axioms ansT1_mem
 #print axioms specU_T1
+#print axioms ansT1_side
+#print axioms t1_log_utf8
+#print axioms t1_value_return
+#print axioms t1_storage_write_mock
 
 end HostAns
 end WasmBase
