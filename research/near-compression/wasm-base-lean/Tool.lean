@@ -2,6 +2,7 @@ import WasmBase.ToolCore
 import WasmBase.Census
 import WasmBase.Check.TraceDump
 import WasmBase.SegAirG
+import WasmBase.SegAirJ
 /-!
 `wasmbase-tool` — exporter and verifier-side preparation for the direct-Wasm base layer.
 
@@ -24,6 +25,9 @@ import WasmBase.SegAirG
 * `wasmbase-tool airM2 <nloc> <ngl>` / `evalM2`: `wasmBaseM2Air` (E2E M2, `WasmBase/M2Air.lean`).
 * `wasmbase-tool airSegMP <nloc> <ngl>`: `wasmBaseSegAirMP` (E2E M4b: `wasmBaseSegAir` with MPATH as a batched
   Merkle multiproof, `WasmBase/SegAirMP.lean`).
+* `wasmbase-tool airSegMPJ <nloc> <ngl>`: `wasmBaseSegAirMPJ` (E2E A-T1 item 5, the M6 join: `wasmBaseSegAirMP`
+  with HOSTO → `HostOJ` (no storage answers) and HOSTB → `HostBJ` (storage request bytes go to lane B),
+  `WasmBase/SegAirJ.lean`).
 * `wasmbase-tool airM2r <nloc> <ngl>` / `evalM2r`: `wasmBaseM2rAir` (M2 + the absent-register header:
   REG-A and RINIT, `WasmBase/M2RegAbsent.lean`).
 * `wasmbase-tool airM3 <nloc> <ngl>` / `evalM3` / `prepM3`: `wasmBaseM3Air` (HOST-W tags, MEMG, MSZ,
@@ -70,6 +74,7 @@ def main (args : List String) : IO Unit := do
   | ["airM2", l, n] => IO.println (airJson (wasmBaseM2Air l.toNat! n.toNat!))
   | ["airSeg", l, n] => IO.println (airJson (wasmBaseSegAir l.toNat! n.toNat!))
   | ["airSegMP", l, n] => IO.println (airJson (wasmBaseSegAirMP l.toNat! n.toNat!))
+  | ["airSegMPJ", l, n] => IO.println (airJson (wasmBaseSegAirMPJ l.toNat! n.toNat!))
   | ["airSegG", l, n] => IO.println (airJson (wasmBaseSegAirG l.toNat! n.toNat!))
   | ["evalM2", l, n, path] => evalPoints l.toNat! n.toNat! path 5
   | ["airM2r", l, n] => IO.println (airJson (wasmBaseM2rAir l.toNat! n.toNat!))

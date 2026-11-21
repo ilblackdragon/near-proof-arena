@@ -69,6 +69,7 @@ import WasmBase.M2Check
 import WasmBase.M2Air
 import WasmBase.SegAir
 import WasmBase.SegAirMP
+import WasmBase.SegAirJ
 import WasmBase.SegAirG
 import WasmBase.Census
 import WasmBase.Main.M2Link
@@ -202,4 +203,5 @@ import WasmBase.Main.HostCodeFetch
 import WasmBase.Main.HostRowsTimesAir
 import WasmBase.Main.HostWriteCov
 import WasmBase.Main.HostWriteCovCheck
+import WasmBase.Main.HostJoin
 import WasmBase.Main.TmplWasm
