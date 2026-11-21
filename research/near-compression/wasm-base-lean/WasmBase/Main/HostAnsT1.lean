@@ -364,9 +364,131 @@ theorem ansT1_mem {name : String} (hm : name ∈ t1Hosts) (σ : St) (args : List
     exact ⟨rfl, rfl⟩
 
 
+/-! ## 5. The spec clause at the trace level (lane B's `ProducerObl.spec`, restated) -/
+
+theorem valNat_vNum (v : Val) : TwoRun.valNat v = vNum v := by cases v <;> rfl
+
+theorem popsF_fst : ∀ (j : Nat) (s : St) (out : Array Nat), j ≤ s.stack.size →
+    (TwoRun.popsF j s out).1 =
+      out ++ ((List.range j).map fun k => vNum (s.stack[s.stack.size - 1 - k]?.getD (.i32 0))).toArray
+  | 0, s, out, _ => by simp [TwoRun.popsF]
+  | j + 1, s, out, hj => by
+    simp only [TwoRun.popsF]
+    rw [TwoRun.popN_eq]
+    rw [popsF_fst j _ _ (by simp; omega)]
+    simp only [Array.size_pop]
+    rw [List.range_succ_eq_map]
+    simp only [List.map_cons, List.map_map]
+    rw [Array.back?_eq_getElem?, valNat_vNum]
+    apply Array.ext'
+    simp only [Array.toList_append, Array.toList_push, List.append_assoc]
+    simp only [List.cons_append, List.nil_append, Nat.sub_zero]
+    congr 2
+    apply List.map_congr_left
+    intro k hk
+    simp only [List.mem_range] at hk
+    simp only [Function.comp, Array.getElem?_pop]
+    rw [if_pos (by omega)]
+    congr 3
+    omega
+
+theorem argsOf_toList (n : Nat) (s : St) (hn : n ≤ s.stack.size) :
+    (TwoRun.argsOf n s).toList = (List.range n).map fun i => vNum (s.stack[s.stack.size - n + i]?.getD (.i32 0)) := by
+  apply List.ext_getElem
+  · simp [TwoRun.argsOf, TwoRun.popsF_size]
+  · intro i h1 h2
+    simp only [List.length_map, List.length_range] at h2
+    simp [TwoRun.argsOf, popsF_fst n s #[] hn]
+    congr 3; omega
+
+theorem popsF_snd (n : Nat) (s : St) (hn : n ≤ s.stack.size) :
+    (TwoRun.popsF n s #[]).2 = { s with stack := s.stack.extract 0 (s.stack.size - n) } := by
+  obtain ⟨-, e, -⟩ := TwoRun.popsF_two n s s [] [] s.stack.toList #[] (by simp) (by simp) (by simp; exact hn)
+  rw [e]
+  congr 1
+  apply Array.ext'
+  simp
+
+theorem readByte_stack (s : St) (x : Array Val) : readByte { s with stack := x } = readByte s := rfl
+theorem memBytes_stack (s : St) (x : Array Val) : memBytes { s with stack := x } = memBytes s := rfl
+
+section Trace
+open ZkFormal.Algebra Chips Seg Local HostIf
+
+theorem hostReadMem_eq {tr : Trace} {pub : List F} {r : Nat} {s : St} {b : Nat}
+    (hmem : ∀ x ∈ hostBytes tr pub r, x.1 = 0 → x.2.1 = 0 → (readByte s x.2.2.1).toNat = x.2.2.2)
+    (hx : ∃ x ∈ hostBytes tr pub r, x.1 = 0 ∧ x.2.1 = 0 ∧ x.2.2.1 = b) : readByte s b = hostReadMem tr pub r b := by
+  obtain ⟨x, hxm, hx1, hx2, hx3⟩ := hx
+  unfold hostReadMem
+  cases hf : (hostBytes tr pub r).find? (fun x => x.1 = 0 ∧ x.2.1 = 0 ∧ x.2.2.1 = b) with
+  | none =>
+    exfalso
+    have := List.find?_eq_none.mp hf x hxm
+    simp [hx1, hx2, hx3] at this
+  | some y =>
+    have hy := List.mem_of_find?_eq_some hf
+    have hp := List.find?_some hf
+    simp only [decide_eq_true_eq] at hp
+    obtain ⟨hp1, hp2, hp3⟩ := hp
+    dsimp only
+    rw [← hmem y hy hp1 hp2, hp3]
+    simp
+
+/-- **The spec clause of the producer obligations, with the host-side update** (`ProducerObl.spec`
+restated): `runOf` cannot express `value_return`/`log_utf8`/`storage_write` (they change `ret`,
+`logs`/`totalLogLen`, `trie`/`real`/`storageUsage`), so the arm is `runOfU` with `A.upd`; the
+stack premise `len ≤ size` is added (an honest pre-state holds the row's operands).  The host-side
+premise of `ProducerObl.spec` is dropped (the clause holds for every state). -/
+def SpecU (A : HostAnsU) (tr : Trace) (pub : List F) (memSz : Nat → Nat) : Prop :=
+  ∀ r, HAct tr pub r → ∀ s : St,
+    (hostArgs tr r).length ≤ s.stack.size →
+    (∀ i, i < (hostArgs tr r).length → vNum (s.stack[s.stack.size - (hostArgs tr r).length + i]?.getD (.i32 0)) =
+      (hostArgs tr r).getD i 0) →
+    (∀ x ∈ hostBytes tr pub r, x.1 = 0 → x.2.1 = 0 → (readByte s x.2.2.1).toNat = x.2.2.2) →
+    memBytes s = memSz r →
+    (hostCall (hidName (hostHid tr r))).get!.run s =
+      runOfU { s with stack := s.stack.extract 0 (s.stack.size - (hostArgs tr r).length) }
+        (A.ans (hidName (hostHid tr r)) s (hostArgs tr r) (hostReadMem tr pub r) (memSz r))
+        (A.upd (hidName (hostHid tr r)) s (hostArgs tr r) (hostReadMem tr pub r) (memSz r))
+
+/-- **The spec half of lane B's obligations for T1's host set**: if every active HOST row calls a T1
+host, its argument count is that host's arity (`np`), and its request bytes cover the arm's read
+set (`rdsT1`), then `ansT1U` satisfies the spec clause. -/
+theorem specU_T1 (tr : Trace) (pub : List F) (memSz : Nat → Nat)
+    (hT1 : ∀ r, HAct tr pub r → hidName (hostHid tr r) ∈ t1Hosts)
+    (hnp : ∀ r, HAct tr pub r → (hostArgs tr r).length = nargsT1 (hidName (hostHid tr r)))
+    (hcov : ∀ r, HAct tr pub r → ∀ (σ : St) b, TwoRun.rdSet σ (rdsT1 (hidName (hostHid tr r)) (hostArgs tr r)) b →
+      ∃ x ∈ hostBytes tr pub r, x.1 = 0 ∧ x.2.1 = 0 ∧ x.2.2.1 = b) :
+    SpecU ansT1U tr pub memSz := by
+  intro r hA s hsz hst hmem hms
+  have hm := hT1 r hA
+  have hn := hnp r hA
+  have e0 := TwoRun.popArgs_ok (nargsT1 (hidName (hostHid tr r))) s
+  rw [ansT1_arm hm e0, popsF_snd _ s (by omega)]
+  have ha : (TwoRun.argsOf (nargsT1 (hidName (hostHid tr r))) s).toList = hostArgs tr r := by
+    rw [argsOf_toList _ s (by omega)]
+    apply List.ext_getElem
+    · simp [hn]
+    · intro i h1 h2
+      simp only [List.getElem_map, List.getElem_range]
+      rw [← hn, hst i h2]
+      simp [List.getD_eq_getElem?_getD, h2]
+  rw [ha, readByte_stack, memBytes_stack, hms, ← hn]
+  obtain ⟨c1, c2⟩ := ansT1_congr (hostFieldsEq_stack s (s.stack.extract 0 (s.stack.size - (hostArgs tr r).length)))
+    (hidName (hostHid tr r)) (hostArgs tr r) (readByte s) (memSz r)
+  rw [c1, c2]
+  obtain ⟨m1, m2⟩ := ansT1_mem hm s (hostArgs tr r) (mem := readByte s) (mem' := hostReadMem tr pub r) (memSz r)
+    (fun b hb => hostReadMem_eq hmem (hcov r hA s b hb))
+  rw [m1, m2]
+  rfl
+
+end Trace
+
+
 #print axioms ansT1_arm
 #print axioms ansT1_congr
 #print axioms ansT1_mem
+#print axioms specU_T1
 
 end HostAns
 end WasmBase
