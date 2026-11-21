@@ -52,7 +52,7 @@ AIR: `research/near-compression/wasm-base-lean/WasmBase` (Lean, the single sourc
 | receipts and actions | D0a `rcptV3` (transfer receipts); promise bookkeeping `PBC`, `zk-formal/ZkFormal/PQ/Receipt/*` | **B** transfer; **–** CreateAccount, FunctionCall, AddKey/DeleteKey, Stake, Deploy, DeleteAccount, Delegate, global/gas-key actions, data receipts and yields. There is **no D2/D3 chunk AIR** (`nearAirV3D2` = 0 hits) | `PBC` 49 cols, 51 constraints, 29 interactions (`R/pq-receipt-air/README.md`) | encodings proved (`remaining_eleven_closed`, `promise_encodings_cover`); `RIDS/SRC/RCL`, `newReceipts`, `FCPlanIsTrace` open |
 | queues (delayed, buffered, outgoing, yield, bandwidth scheduler, congestion) | D0a: `qvV3` (table 22), scheduler tables 11–15, ChaCha 8–10 | **B for D0a's shapes**; D2's design keeps queue arithmetic **native** (P-D2-2), which ZK rules out (§2) | `qv` is the degree-6 table | D0a proved |
 | gas, fees, balances, refunds | D0a refund codec and `acct` | **B** transfer refunds; **–** function-call gas (burnt/used, prepaid, weights distribution, gas price, receiver reward) | – | D0a proved |
-| outputs and roots | D0a `mrk` (maxLog 19), `sort`, `upsA7`/`sizeA7` post-state, public header segments | **B for D0a** (state, outcome and outgoing roots); **–** in-circuit Reed–Solomon `encoded_merkle_root`/`encoded_length`, validator proposals, congestion info, bandwidth requests for the general case | – | D0a proved |
+| outputs and roots | D0a `mrk` (maxLog 19), `sort`, `upsA7`/`sizeA7` post-state, public header segments; general: M5d FINAL template `research/near-compression/e2e-general/m5d` (§5.2) | **B for D0a** (state, outcome and outgoing roots); **B for class F1 / T1** (M5d, 2026-11-21): all 13 `headerOk` comparisons in-circuit incl. Reed–Solomon `encoded_merkle_root`/`encoded_length`; **–** proposals, bandwidth requests, split, transactions (other classes) | FINAL T1 989,626 B; Reed–Solomon + part hashing ≈ 500 cells / body byte | FIN row ⇒ `headerOk` proved (`final_template_sound`, named `Computed`/`FinInOK` premises) |
 
 ### 1.2 Wasm side (WB, on the main PQ stack)
 
@@ -306,6 +306,18 @@ So no accepted mutant is a soundness gap of the relation for T1: each field is e
 by the chunk-validity relation (as in nearcore) or read only by paths T1 does not take, and section
 C is a **trusted** input (its correctness is the statement's premise, not proved). Lane I's doc
 (`E2E-T1-CRITICAL-PATH.md` §3) can cite this table.
+
+  **M5d coordination note (lane G, 2026-11-21; details and owners in
+  `research/near-compression/e2e-general/m5d/LEAF-TEMPLATE-SPEC.md`).** Proposals:
+  (1) `claimDigest` is lane E's canonical §3.4.1 value `bdigest(stmtPre ‖ u32 0 ‖ stmtPost)`;
+  INIT and FINAL hash exactly these bytes in-circuit (T1: 1,007 B, `bb5aad11…9f2f01`). (2) *lane B:* `ctxD (.raw cb wb) =
+  bdigest(0x00 ‖ u32 ℓ_B ‖ u32 |cb| ‖ cb ‖ wb)` (INIT computes it); INTAKE must check that the
+  decoded block list spans `ℓ_B` bytes (else section C could be re-read from shifted bytes).
+  (3) *lanes B/E:* FINAL starts after `finK`; join it to lane B's FINAL / M5c in one segment with
+  the `FinIn` record on a bus (recommended), or split `CM`'s `fin → done` step at `finK`.
+  (4) *lane E:* the M5d accumulators are `chainD` over outcome leaves and over
+  `u64 routedShard ‖ u32 ℓ ‖ Rcpt.encode r`; `outD(.none) = (bdigest [], [bdigest []], bdigest [],
+  bdigest [])`.
 
 ### 3.5 The Lean theorem that closes it
 
@@ -1865,3 +1877,49 @@ See `research/near-compression/e2e-general/m5t1/README.md`; log
 * **Open:** `SegSoundRt` / `TmplComplete .rt` (§3.5 table) — the `MSG`/`DG` row lemmas, the `RNG`
   bus fact, composition into `CutW.applyActionReceiptW` and the RS boundary view; template coverage
   beyond T1's shape (README "Open").
+
+### 5.3 M5d (FINAL and INIT templates, lane G): status, 2026-11-21
+
+See `research/near-compression/e2e-general/m5d/README.md` (commands, tables, costs) and
+`LEAF-TEMPLATE-SPEC.md` (for lane D); log `docs/logs/e2e-laneG-m5d-2026-11-21.md`.
+
+**Done [M] (T1 = `d3c8/d3/02-h10196-s3`, main stack, 8 threads):**
+* **FINAL template, class F1** (V5 header, no proposals / bandwidth requests / split /
+  transactions, 6 shards, Reed–Solomon (5, 16)): every output `headerOk` compares is computed
+  in-circuit from the post-`finK` record `FinIn` — outcome root (`merklize` of the accumulated
+  leaves), outgoing receipts root (per-shard `u64 s ‖ encodeRcpts` double hash, `merklizeBorsh`),
+  the chunk body, its Reed–Solomon parity (GF(2)-linear rows, the spec's `buildMatrix`) and parts
+  root, `encoded_length`, `tx_root` — and compared byte by byte with the chunk header inside the
+  public statement, whose SHA-384 digest is the public `claimDigest` — lane E's canonical §3.4.1
+  `S` (T1: `bb5aad11…9f2f01`). New generic table `S384`: SHA-384 of byte messages (padding
+  in-circuit) over the native SHA-512 chip. **992,188 B, 268.2-bit, prove 30.3 s, verify 83 ms**; every output = the Lean checker's (`m5d-tool dump`:
+  lane E's `CM.step` to `fin I out`, then `finK` + `tailNew` verbatim). **Mutants 32/32 rejected**:
+  one per compared header field (13), five `FinIn` fields, six data mutants (leaf, receipt byte /
+  shard / drop / swap, outcome drop), six row tampers, two public values.
+* **INIT template:** `claimDigest` and `ctxRoot = bdigest(0x00 ‖ u32 ℓ_B ‖ u32 |cb| ‖ cb ‖ wb)` from
+  one byte stream, `claimDigest` over the canonical `S`: 790,307 B, 268.2-bit, prove 56 s, verify
+  58 ms; mutants 7/7 rejected.
+* **Against lane E's T1 template system (`Templates.lean`):** INIT supplies `B_0`'s digests of
+  `SegSoundInit`'s `init` boundary, the intake step itself is lane B's INTAKE (one leaf INIT ∘
+  INTAKE); FINAL proves the `tailNew` + `headerOk` part of `SegSoundFinal`'s `MFinal`, `finK` is lane
+  B / M5c (joined in one segment, leaf spec §4 (a)).
+* **Reed–Solomon cost:** the GF arithmetic is ≈ 41–44 cells per body byte (2 % of T1's trace);
+  `encoded_merkle_root` costs the spec's SHA-256 over `t/d ≈ 3×` the body, ≈ 440–460 cells per
+  body byte, so ≈ 500 cells / body byte in all, ≈ 0.5 G cells for a 1 MB body [E].
+
+**Lean [K]** (`m5d/lean/FinalM5d`, std axioms, `Audit.lean`): `decode_F1` (the class layout
+decodes with the spec's `decodeChunkInner`), `row_headerOk`, `rowOK_of_constraints` /
+`fin_headerOk` (the exported `FIN` table's constraints over BabyBear ⇒ `headerOk`),
+`tailNew_outputsOf` / **`final_template_sound`** (with `FinInOK`, `ClassF1`, `Computed`: the
+checker's own `tailNew` output passes `headerOk` against the decoded public header),
+`RsCoeff.coeff_linear` (kernel: the class matrix's GF(2) bit matrices are `gfMul`'s), `T1Check` (non-vacuity:
+T1's row values satisfy `RowOK`, the window is T1's `chunk_inner`, `headerOk` holds).
+
+**Open, in order:** (1) `Computed` from `Holds` of the whole AIR (the `MRK` walk ⇒ `merkleRoot`,
+the RS rows ⇒ `parityPart` (`lean-wip/RsRow.lean`: the row-level parity-bit lemma, over the heartbeat budget), `BODY`/`SEG` ⇒ `encodeRcpts`, `SHD` ⇒ `outgoingRoot`,
+`S384` ⇒ SHA-384 under `Sha512IfContract`), `HbBytes`; (2) the join with lane B's FINAL / M5c
+(§3.4 note (3)); (3) more classes: transactions (same `SEG` path), proposals, bandwidth requests,
+split, other `(d, t)`, padding to pinned class heights (the SHA-256 and chip generators need a
+minimum-height option); (4) `B_out`'s `ctxD(.header H)` / `outD(.done o)` digests in the template;
+(5) INTAKE's `ℓ_B` check (lane B).
+

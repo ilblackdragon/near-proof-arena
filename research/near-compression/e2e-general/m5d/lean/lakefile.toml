@@ -1,0 +1,23 @@
+# E2E M5d (lane G): the FINAL and INIT templates for general chunks.
+# The AIRs are `ZkFormal.Air` values (single source of truth): `m5d-tool air-final` / `air-init`
+# export them for the Rust prover (`../prover`); `m5d-tool dump` runs the Lean `allFeatures`
+# checker's own FINAL code (`finK` + `tailNew`) on a corpus case and writes what the trace
+# generator needs; the lemmas in `FinalM5d/` are stated about the same values.
+name = "FinalM5d"
+version = "0.1.0"
+defaultTargets = ["FinalM5d", "m5d-tool"]
+
+[leanOptions]
+autoImplicit = false
+relaxedAutoImplicit = false
+
+[[lean_lib]]
+name = "FinalM5d"
+
+[[lean_exe]]
+name = "m5d-tool"
+root = "Tool"
+
+[[require]]
+name = "ZkFormal"
+path = "../../../../../zk-formal"
