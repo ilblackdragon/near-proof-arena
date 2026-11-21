@@ -16,7 +16,7 @@ setup = (T / "SETUP.json").read_bytes()
 pin = (T / "SETUP.sha256").read_text().strip()
 bundle = (T / "WRAP.bundle").read_bytes()
 n = int.from_bytes(bundle[8:12], "little")
-body = 12 + 4 * n
+body = 12 + n
 
 def run(name, setup_b, pin_s, bundle_b):
     sp, bp = O / f"{name}.setup.json", O / f"{name}.bundle"
@@ -46,12 +46,12 @@ cases = []
 r = subprocess.run([P, "m8-verify", str(T / "SETUP.json"), pin, str(T / "WRAP.bundle")], capture_output=True, text=True)
 assert r.returncode == 0 and "INDEPENDENT_HTREE_VERIFY_OK" in r.stdout, "the honest packet is rejected"
 print("ACCEPTED honest packet (control)")
-s0 = bytearray(bundle); s0[12] ^= 1
-cases.append(("statement cell 0 changed", setup, pin, bytes(s0)))
-sl = bytearray(bundle); sl[12 + 4 * (n - 1)] ^= 1
-cases.append(("statement last cell changed", setup, pin, bytes(sl)))
-cases.append(("statement cell non-canonical", setup, pin, bundle[:12] + (0x78000001).to_bytes(4, "little") + bundle[16:]))
-cases.append(("statement length +1", setup, pin, bundle[:8] + (n + 1).to_bytes(4, "little") + bundle[12:]))
+cases.append(("S byte 0 changed", setup, pin, flip(bundle, 12)))
+cases.append(("S byte in chunk_inner changed", setup, pin, flip(bundle, 12 + 200)))
+cases.append(("S last byte changed", setup, pin, flip(bundle, 12 + n - 1)))
+cases.append(("S with a non-empty section B count", setup, pin, flip(bundle, 12 + 416)))
+cases.append(("S length +1", setup, pin, bundle[:8] + (n + 1).to_bytes(4, "little") + bundle[12:]))
+cases.append(("S length -1", setup, pin, bundle[:8] + (n - 1).to_bytes(4, "little") + bundle[12:]))
 cases.append(("proof byte flipped (start)", setup, pin, flip(bundle, body + 40)))
 cases.append(("proof byte flipped (middle)", setup, pin, flip(bundle, body + (len(bundle) - body) // 2)))
 cases.append(("proof byte flipped (end)", setup, pin, flip(bundle, len(bundle) - 3)))
@@ -68,8 +68,6 @@ def th(s):
     h[1] = h[1] + 4 if h[1] is not None else 4
 b, p = setup_with(th)
 cases.append(("setup wrap heights changed (re-pinned)", b, p, bundle))
-b, p = setup_with(lambda s: s["tree"].__setitem__("stmt_len", s["tree"]["stmt_len"] + 1))
-cases.append(("setup statement length changed (re-pinned)", b, p, bundle))
 ok = sum(run(*c) for c in cases)
 print(f"M8_NEGATIVES {ok}/{len(cases)} rejected")
 if ok == len(cases):

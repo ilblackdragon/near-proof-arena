@@ -16,11 +16,14 @@ Templates:
   STATE (lane B state proof):     MID -> MID, S part (prev root; on output wsLen and the TAPE /
          HTAPE roots), W part passed through
   FINAL (no child, statement S):  MID -> DONE, B_in = (S.W_final, S.S_final)
-S = W_init | prev_root | W_final | S_final.
+S = W_init | prev_root | W_final | S_final: the stub templates' statement cells (private witnesses).
+The public statement is the canonical S of plan §3.4.1 (lane E, StmtEnc.lean): T1's claim.bin with
+its section B (count included) replaced by 00 00 00 00; every leaf's ctx is claimDigest = bdigest(S)
+(checked against lane E's kernel-evaluated T1 value).
 Every public value of a child is bound (record, equal-group, or pinned constant); htree's
 TemplateSpec::check refuses the spec otherwise.
 """
-import json, sys
+import hashlib, json, os, sys
 from pathlib import Path
 
 W, ARITY, DEPTH = Path(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3])
@@ -105,10 +108,21 @@ templates = [
     {"name": "FINAL", "phase_in": 3, "phase_out": 2, "rec_in": stmt(o_wf, nW) + stmt(o_sf, nS), "rec_out": [],
      "stmt_len": len(S), "n_pass": 0, "pv_equal": [], "pv_const": []},
 ]
+for t in templates:
+    t["ctx"] = "witness"
 leaves = [{"template": "INIT"}] + [{"template": "WASM", "dir": str(d)} for d in wasm_dirs] + \
          [{"template": "STATE", "dir": str(state_dir)}, {"template": "FINAL"}]
-spec = {"arity": ARITY, "depth": DEPTH, "n_rec": n_rec, "stmt": S, "templates": templates, "leaves": leaves}
+# the canonical public statement (plan 3.4.1)
+claim = open(os.environ.get("T1_CLAIM", "/data/illia/nearproof-deps/corpora/d3c8/d3/02-h10196-s3/claim.bin"), "rb").read()
+secb = open(os.environ.get("T1_SECB", "/data/illia/nearproof-deps/e2e-t1/run3/secB.bin"), "rb").read()
+assert claim.count(secb) == 1
+i = claim.find(secb)
+claim_s = claim[:i] + b"\0\0\0\0" + claim[i + len(secb):]
+cd = hashlib.sha384(claim_s).hexdigest()[:84]
+T1_CD = "bb5aad11ba6ba32d91739f13a2dbd544f2420d770bcd2c3fde9ddc0e1c02710caee28e5e9e4e299f2f01"
+assert len(claim_s) == 1007 and cd == T1_CD, (len(claim_s), cd)
+spec = {"arity": ARITY, "depth": DEPTH, "n_rec": n_rec, "stmt": S, "claim_s_hex": claim_s.hex(), "templates": templates, "leaves": leaves}
 json.dump(spec, open(W / "spec.json", "w"))
 print(f"M8_SPEC n_rec={n_rec} (W {nW}: lane A cached {n_cached_a} [{', '.join(c[1] for c in infos[0]['cached'])}]; "
       f"S {nS}: lane B cached {n_cached_b} [{', '.join(c[1] for c in sinfo['cached'])}]) stmt={len(S)} "
-      f"leaves={[l['template'] for l in leaves]} lane A pv groups={ga} pinned={len(pv_const_a)} lane B pv groups={gb}")
+      f"claim S={len(claim_s)} B claimDigest={cd[:8]}..{cd[-6:]} leaves={[l['template'] for l in leaves]} lane A pv groups={ga} pinned={len(pv_const_a)} lane B pv groups={gb}")

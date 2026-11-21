@@ -15,16 +15,17 @@
 //!   propagating the boundary record leaf by leaf, and the chain is checked natively before any
 //!   proof; leaves at one pinned leaf geometry, `P_2` over the template set `{C_t} ∪ {C_padL}`,
 //!   `P_*` / `PAD_N` above, the wrap (FINAL domain, zk-masked) exposing `D_wrap(H(S), 0)`.
-//!   Writes `SETUP.json`, `WRAP.bundle` (`NPQHT01 | u32 n | S (n x u32) | wrap proof`),
+//!   Writes `SETUP.json`, `WRAP.bundle` (`NPQHT01 | u32 n | S (n bytes, plan §3.4.1) | wrap proof`),
 //!   `RESULT.json`.
-//! * `m8-verify SETUP PIN BUNDLE`: V_d (pinned vk, program, heights, level; `ctx = H(S)`).
+//! * `m8-verify SETUP PIN BUNDLE`: V_d (pinned vk, program, heights, level;
+//!   `ctx = claimDigest = bdigest(S)`, the 42-byte SHA-384 of the canonical statement bytes).
 use super::*;
 use openvm_recursion_circuit::{
     nv::{
         agg::RangeStmt,
         builder::Builder,
         circuit::{commit_program_part, program_commitment, prove_mats},
-        htree::{self as h, LeafWitness, Src, TemplateSpec},
+        htree::{self as h, CtxMode, LeafWitness, Src, TemplateSpec},
         tree::{self as t, build_node2, build_node_star_set, build_pad, build_pad_node, build_wrap_set},
     },
     sha384::config::{Digest, F},
@@ -408,6 +409,12 @@ fn template_of_json(v: &serde_json::Value) -> TemplateSpec {
         rec_in: srcs("rec_in"),
         rec_out: srcs("rec_out"),
         stmt_len: v["stmt_len"].as_u64().unwrap() as usize,
+        ctx_mode: match &v["ctx"] {
+            serde_json::Value::String(m) if m == "witness" => CtxMode::Witness,
+            serde_json::Value::String(m) if m == "hash_stmt" => CtxMode::HashStmt,
+            serde_json::Value::Array(a) => CtxMode::Src(a.iter().map(src_of).collect()),
+            o => panic!("ctx mode {o}"),
+        },
         n_pass: v["n_pass"].as_u64().unwrap() as usize,
         pv_equal: v["pv_equal"].as_array().unwrap().iter().map(nums).collect(),
         pv_const: v["pv_const"].as_array().unwrap().iter().map(|x| { let y = nums(x); (y[0], y[1], y[2] as u32) }).collect(),
@@ -487,8 +494,16 @@ pub fn tree_prove(spec_path: &str, out: &Path, certs: &str, exclusions: &str) {
     let arity = sj["arity"].as_u64().unwrap() as usize;
     let depth = sj["depth"].as_u64().unwrap() as usize;
     let n_rec = sj["n_rec"].as_u64().unwrap() as usize;
+    // the stub templates' statement cells (private record sources) and the canonical statement
+    // bytes S (plan §3.4.1): ctx = claimDigest = bdigest(S), the only public input
     let stmt: Vec<F> = sj["stmt"].as_array().unwrap().iter().map(|x| F::from_u32(x.as_u64().unwrap() as u32)).collect();
-    let ctx = h::stmt_ctx(&stmt);
+    let hx = sj["claim_s_hex"].as_str().expect("claim_s_hex");
+    let claim_s: Vec<u8> = (0..hx.len() / 2).map(|i| u8::from_str_radix(&hx[2 * i..2 * i + 2], 16).unwrap()).collect();
+    let ctx = h::claim_ctx(&claim_s);
+    println!("M8_CLAIM_S bytes={} claimDigest={}", claim_s.len(), {
+        let d = openvm_recursion_circuit::sha384::config::digest_bytes(openvm_recursion_circuit::nv::fmt::limbs_digest(&ctx));
+        d[..42].iter().map(|b| format!("{b:02x}")).collect::<String>()
+    });
     let specs: Vec<TemplateSpec> = sj["templates"].as_array().unwrap().iter().map(template_of_json).collect();
     let tparams = profile::params_geom(false, certs, exclusions, profile::tree_geom());
     let cap_log = tparams.l_skip + tparams.n_stack;
@@ -534,7 +549,7 @@ pub fn tree_prove(spec_path: &str, out: &Path, certs: &str, exclusions: &str) {
                 pass[j] = cur.as_ref().expect("a pass-through needs a previous record")[p];
             }
         }
-        let w = LeafWitness { stmt: if spec.stmt_len > 0 { stmt.clone() } else { vec![] }, ctx: if spec.stmt_len > 0 { vec![] } else { ctx.clone() }, pass, a };
+        let w = LeafWitness { stmt: if spec.stmt_len > 0 { stmt.clone() } else { vec![] }, ctx: if spec.ctx_mode == CtxMode::Witness { ctx.clone() } else { vec![] }, pass, a };
         assert!(spec.stmt_len == 0 || spec.stmt_len == stmt.len(), "leaf {i}: statement length");
         let (pvs, cached) = match &child {
             Some((_, p)) => (p.public_values.clone(), h::proof_cached(p)),
@@ -548,6 +563,7 @@ pub fn tree_prove(spec_path: &str, out: &Path, certs: &str, exclusions: &str) {
         }
         let rout = h::record_values(&spec.rec_out, &pvs, &cached, &w);
         let st = h::leaf_statement(&spec, child.as_ref().map(|c| &c.1), &w);
+        assert_eq!(st.ctx, ctx, "leaf {i} ({name}): its ctx is not the chunk's claimDigest");
         println!("M8_LEAF {i} template={name} phase {}->{} child={}", spec.phase_in, spec.phase_out, child.is_some());
         phase = spec.phase_out;
         cur = if rout.is_empty() { None } else { Some(rout) };
@@ -581,8 +597,10 @@ pub fn tree_prove(spec_path: &str, out: &Path, certs: &str, exclusions: &str) {
         pins.push(pin);
     }
     let pl = lg2(rows_max);
-    let h_l = super::tree::max_pin(&pins);
+    let mut h_l = super::tree::max_pin(&pins);
     let lr = lg2(h_l[0].1.unwrap()).max(pl + 1);
+    // the NvAir height is the circuit's 2^log_rows (the probe ran at the largest geometry)
+    h_l[0].0 = lr;
     let leaf_g = super::tree::Geom { log_rows: lr, prog_log: pl, sha_instances: 1, heights: h_l.clone() };
     println!("M8_LEAF_GEOM {leaf_g:?}");
     let lc = super::tree::circ(k, lr, pl, 1, cap_log, Some(&h_l));
@@ -834,18 +852,16 @@ pub fn tree_prove(spec_path: &str, out: &Path, certs: &str, exclusions: &str) {
     std::fs::write(out.join("SETUP.sha256"), &pin).unwrap();
     let proof_bytes = save_proof(&out.join("WRAP.proof"), &fp);
     let mut packet = MAGIC.to_vec();
-    packet.extend_from_slice(&(stmt.len() as u32).to_le_bytes());
-    for x in &stmt {
-        packet.extend_from_slice(&x.as_canonical_u32().to_le_bytes());
-    }
+    packet.extend_from_slice(&(claim_s.len() as u32).to_le_bytes());
+    packet.extend_from_slice(&claim_s);
     fp.encode(&mut packet).unwrap();
     std::fs::write(out.join("WRAP.bundle"), &packet).unwrap();
     // native V_d and controls
     let vds = VdSetup { vk_final: setup.final_vk.clone(), program: setup.program.clone(), level: setup.level, heights: Some(wh.clone()) };
     vd::verify_wrap(&vds, &final_engine, &ctx, 0, &fp).expect("V_d (wrap)");
-    let mut s2 = stmt.clone();
-    s2[0] += F::ONE;
-    assert!(vd::verify_wrap(&vds, &final_engine, &h::stmt_ctx(&s2), 0, &fp).is_err(), "another statement accepted");
+    let mut s2 = claim_s.clone();
+    s2[0] ^= 1;
+    assert!(vd::verify_wrap(&vds, &final_engine, &h::claim_ctx(&s2), 0, &fp).is_err(), "another statement accepted");
     let mut bad = vds.clone();
     bad.program[0][0] ^= 1;
     assert!(vd::verify_wrap(&bad, &final_engine, &ctx, 0, &fp).is_err());
@@ -856,11 +872,11 @@ pub fn tree_prove(spec_path: &str, out: &Path, certs: &str, exclusions: &str) {
         "scope": "E2E-D M8 prototype: heterogeneous tree (generic template leaf, template set of several kinds, stub INIT / FINAL) over T1-shaped segments (lane A Wasm segments, lane B state proof, re-proved under the verifier's backend at the stack's base configuration) + wrap",
         "security_established": false,
         "zero_knowledge_established": false,
-        "zero_knowledge_scope": "none for this prototype's statement: the stub INIT / FINAL public statement S carries boundary-record values (memory, context and tape roots of private data) that lane G's INIT / FINAL keep inside the tree; the wrap itself is zk-masked as in D-9",
+        "zero_knowledge_scope": "not claimed for the prototype: the packet is S (plan 3.4.1) + the zk-masked wrap and nothing else leaves the tree, but the prototype's setup is per run (its template set lists this run's template leaf programs at the segments' natural heights, not pinned template shapes) and the stub INIT / FINAL are not sound templates",
         "arity": arity, "depth": depth, "leaves": leaves.len(), "tree_proofs": n_proofs,
         "templates": setup.tree.templates.iter().map(|e| e.name.clone()).collect::<Vec<_>>(),
         "template_set_size": set.len(),
-        "wrap_proof_bytes": proof_bytes, "statement_cells": stmt.len(), "bundle_bytes": packet.len(),
+        "wrap_proof_bytes": proof_bytes, "statement_bytes": claim_s.len(), "stub_statement_cells": stmt.len(), "bundle_bytes": packet.len(),
         "setup_bytes": setup_bytes.len(), "setup_sha256": pin,
         "leaf_geom": setup.tree.leaf, "node_geom": setup.tree.node, "wrap_heights": wh, "wrap_program_rows": wrap_rows,
         "seconds": seconds, "seconds_by_kind": kind_stats, "total_seconds": secs(t_all),
@@ -884,19 +900,13 @@ fn verify_checked(setup_path: &str, pin: &str, bundle: &str) -> Result<(usize, f
         return Err("bundle framing".into());
     }
     let n = u32::from_le_bytes(packet[8..12].try_into().unwrap()) as usize;
-    if n != setup.tree.stmt_len || packet.len() < 12 + 4 * n {
-        return Err("statement length".into());
+    if packet.len() < 12 + n {
+        return Err("truncated statement".into());
     }
-    let mut stmt = vec![];
-    for i in 0..n {
-        let x = u32::from_le_bytes(packet[12 + 4 * i..16 + 4 * i].try_into().unwrap());
-        if x >= 0x7800_0001 {
-            return Err("noncanonical statement cell".into());
-        }
-        stmt.push(F::from_u32(x));
-    }
-    let ctx = h::stmt_ctx(&stmt);
-    let body = &packet[12 + 4 * n..];
+    // ctx = claimDigest = bdigest(S) of the canonical statement bytes (plan §3.4.1); V_d does not
+    // decode S (the claim-v3 decoder is the relation's, not the wrap's)
+    let ctx = h::claim_ctx(&packet[12..12 + n]);
+    let body = &packet[12 + n..];
     let fp = std::panic::catch_unwind(|| {
         let mut c = Cursor::new(body);
         let p = Proof::<SC>::decode(&mut c).map_err(|e| format!("proof codec: {e:?}"))?;

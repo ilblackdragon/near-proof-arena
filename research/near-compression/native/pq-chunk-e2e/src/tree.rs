@@ -282,7 +282,14 @@ fn secs(t0: std::time::Instant) -> f64 {
 }
 
 pub fn tree_prove(air: &str, public: &str, out: &Path, chunk: &Path, classes: &[String], certs: &str, exclusions: &str, arity: usize, depth: usize) {
-    assert!(arity >= 2 && depth >= 1);
+    assert!(arity >= 2);
+    // [E2E-D M8 item 4] depth 0: the wrap verifies the template leaf itself (no P_2, no PAD_L). A
+    // D0a template leaf already takes init to done, so a one-template tree needs no node; the wrap
+    // anchors the set of every class's leaf program at the one leaf geometry, so it needs one
+    // family (NEARPROOF_TREE_LEAF_FAMILIES=one: otherwise the wrap's heights would reveal the family)
+    let depth0 = depth == 0;
+    assert!(!depth0 || std::env::var("NEARPROOF_TREE_LEAF_FAMILIES").as_deref() == Ok("one"), "depth 0 needs one leaf family (NEARPROOF_TREE_LEAF_FAMILIES=one)");
+    let n_leaves = if depth0 { 1 } else { arity };
     std::fs::create_dir_all(out).unwrap();
     let t_all = std::time::Instant::now();
     let tparams = profile::params_geom(false, certs, exclusions, profile::tree_geom());
@@ -507,7 +514,7 @@ pub fn tree_prove(air: &str, public: &str, out: &Path, chunk: &Path, classes: &[
     // leaf setup when it is the same leaf (native verification, leaf heights, program root and
     // statement all checked); leaves do not depend on the arity or the depth (measurement aid)
     let reuse = std::env::var("NEARPROOF_TREE_REUSE_LEAVES").ok().map(std::path::PathBuf::from);
-    for i in 0..arity {
+    for i in 0..n_leaves {
         let t0 = std::time::Instant::now();
         if let Some(rd) = &reuse {
             let f = rd.join(format!("LEAF{i}.proof"));
@@ -566,6 +573,10 @@ pub fn tree_prove(air: &str, public: &str, out: &Path, chunk: &Path, classes: &[
             return;
         }
     }
+    let (node_geom, c_node2s, c_pad_node, c_star, node_rows) = if depth0 {
+        let (l, pl, sh) = fam_geoms[fam];
+        (Geom { log_rows: l, prog_log: pl, sha_instances: sh, heights: h_l.clone() }, vec![Digest::default(); n_fam], Digest::default(), None, (0usize, 0usize))
+    } else {
     // ---- [E2E-D D-9] P_2 inputs per family: the chunk's family over its real leaves; at setup
     // creation every other family over `arity` copies of one PAD_L proof at that family's leaf
     // heights (P_2's program is a function of its children's geometry, not of their values: the
@@ -773,8 +784,11 @@ pub fn tree_prove(air: &str, public: &str, out: &Path, chunk: &Path, classes: &[
             println!("TREE_STAR_PROBE arity={arity} does not fit the node geometry {:?}", (node_geom.log_rows, node_geom.prog_log, node_geom.sha_instances));
         }
     }
+    (node_geom, c_node2s, c_pad_node, c_star, node_rows)
+    };
     // the wrap's root set: every family's P_2 at depth 1, C_* above
-    let c_roots: Vec<Digest> = if depth == 1 { c_node2s.clone() } else { vec![c_star.unwrap()] };
+    // [M8 item 4] depth 0: the template leaves of the (one) family, without PAD_L
+    let c_roots: Vec<Digest> = if depth0 { set[..set.len() - 1].to_vec() } else if depth == 1 { c_node2s.clone() } else { vec![c_star.unwrap()] };
     let root = items.pop().unwrap();
     // ---- wrap (final domain, zk-masked; heights pinned from the shape, F1(b))
     let t0 = std::time::Instant::now();
