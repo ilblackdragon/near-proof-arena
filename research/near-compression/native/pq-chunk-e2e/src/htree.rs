@@ -154,6 +154,19 @@ fn ctx_of(engine: &Sha384CpuEngine, m: &RowMajorMatrix<F>, cached_cols: usize, p
 }
 
 /// Lane A: one `segdump` file (M4c "NPTD" format) proved under the verifier's backend.
+/// A template proof a lane saved itself (vk in the `SavedVk` envelope, the stack's proof codec):
+/// verified natively here, copied to `OUT/TMPL.{vk.json,proof}` and described in `INFO.json`.
+/// `NAMES` is a comma-separated AIR name list or `-` (then `air<i>`).
+pub fn import_template(vk_path: &str, proof_path: &str, out: &Path, template: &str, names: &str) {
+    std::fs::create_dir_all(out).unwrap();
+    let vk = read_vk(Path::new(vk_path));
+    let p = read_proof(Path::new(proof_path));
+    let n = vk.inner.per_air.len();
+    let names: Vec<String> = if names == "-" { (0..n).map(|i| format!("air{i}")).collect() } else { names.split(',').map(String::from).collect() };
+    assert_eq!(names.len(), n, "AIR names");
+    finish_template(out, template, names, &vk, &p, 0.0);
+}
+
 pub fn prove_lane_a(air_seg: &str, dump: &str, out: &Path, geom: (usize, usize), certs: &str, exclusions: &str) {
     use crate::s384;
     use wasm_air::{AirSpec, JsonAir};
@@ -603,6 +616,11 @@ pub fn tree_prove(spec_path: &str, out: &Path, certs: &str, exclusions: &str) {
     h_l[0].0 = lr;
     let leaf_g = super::tree::Geom { log_rows: lr, prog_log: pl, sha_instances: 1, heights: h_l.clone() };
     println!("M8_LEAF_GEOM {leaf_g:?}");
+    // M8_CHECK_ONLY=1: stop after the native chain check and the leaf program probes (no proof)
+    if std::env::var("M8_CHECK_ONLY").is_ok_and(|v| v == "1") {
+        println!("M8_CHECK_ONLY_DONE");
+        return;
+    }
     let lc = super::tree::circ(k, lr, pl, 1, cap_log, Some(&h_l));
     // ---- prove the leaves
     let mut items: Vec<Item> = vec![];

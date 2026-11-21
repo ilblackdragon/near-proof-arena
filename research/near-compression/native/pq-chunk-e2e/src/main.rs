@@ -1180,6 +1180,9 @@ fn main() {
         Some("m8-prove-b") if a.len() == 7 || a.len() == 8 => {
             htree::prove_lane_b(&a[2], &a[3], Path::new(&a[4]), profile::parse_geom(a.get(7).map_or("ns18lb7", |s| s.as_str())), &a[5], &a[6])
         }
+        // [E2E-D M8] m8-import VK PROOF OUT TEMPLATE NAMES: a lane's own saved template proof
+        #[cfg(feature = "tree")]
+        Some("m8-import") if a.len() == 7 => htree::import_template(&a[2], &a[3], Path::new(&a[4]), &a[5], &a[6]),
         #[cfg(feature = "tree")]
         Some("m8-tree") if a.len() == 6 => htree::tree_prove(&a[2], Path::new(&a[3]), &a[4], &a[5]),
         #[cfg(feature = "tree")]
