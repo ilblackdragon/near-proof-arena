@@ -147,12 +147,14 @@ theorem s384_step (h : Holds finalAirS pub tr) {compress : List Nat → List Nat
     (hC : Sha512IfContract compress ((busList finalAirS tr pub B_IF384 true).map decIf))
     {r : Nat} (hr : r + 1 < tr.height 1) (hact : ev tr 1 r pub S384.act = 1)
     (hact' : ev tr 1 (r + 1) pub S384.act = 1) (hlast : ev tr 1 r pub S384.last = 0) :
-    ∃ hh blk hh' blk' : List Nat, triples tr r pub = (hh ++ blk ++ compress hh blk).map StateM5a.wlimbs ∧
+    ∃ hh blk hh' blk' : List Nat, hh.length = 8 ∧ blk.length = 16 ∧ W64 hh ∧ W64 blk ∧
+      hh'.length = 8 ∧ blk'.length = 16 ∧ W64 hh' ∧ W64 blk' ∧
+      triples tr r pub = (hh ++ blk ++ compress hh blk).map StateM5a.wlimbs ∧
       triples tr (r + 1) pub = (hh' ++ blk' ++ compress hh' blk').map StateM5a.wlimbs ∧
       hh' = compress hh blk := by
-  obtain ⟨hh, blk, l1, l2, -, -, e⟩ := s384_comp h hcok hC (by omega) hact
-  obtain ⟨hh', blk', l1', l2', -, -, e'⟩ := s384_comp h hcok hC hr hact'
-  refine ⟨hh, blk, hh', blk', e, e', ?_⟩
+  obtain ⟨hh, blk, l1, l2, w1, w2, e⟩ := s384_comp h hcok hC (by omega) hact
+  obtain ⟨hh', blk', l1', l2', w1', w2', e'⟩ := s384_comp h hcok hC hr hact'
+  refine ⟨hh, blk, hh', blk', l1, l2, w1, w2, l1', l2', w1', w2', e, e', ?_⟩
   have hl := triples_link h hr hact hlast
   rw [e, e'] at hl
   have e1 : ((hh' ++ blk' ++ compress hh' blk').map StateM5a.wlimbs).take 8 =
@@ -165,6 +167,80 @@ theorem s384_step (h : Holds finalAirS pub tr) {compress : List Nat → List Nat
     exact List.drop_left' (by simp [l1, l2])
   rw [e1, e2] at hl
   exact StateM5a.Sha512If.map_wlimbs_inj hl
+
+/-! ## Words and the chain over a message -/
+
+/-- A limb triple back to its word. -/
+def unl (l : List Nat) : Nat := l.getD 0 0 + 2 ^ 21 * l.getD 1 0 + 2 ^ 42 * l.getD 2 0
+
+theorem unl_wlimbs {x : Nat} (hx : x < 2 ^ 64) : unl (StateM5a.wlimbs x) = x := by
+  simp only [unl, StateM5a.wlimbs, List.getD_cons_zero, List.getD_cons_succ]
+  omega
+
+/-- Words `a … a+n−1` of the row's 32 interface words. -/
+def words (tr : Trace Fp) (r : Nat) (pub : List Fp) (a n : Nat) : List Nat :=
+  (((triples tr r pub).drop a).take n).map unl
+
+theorem words_of {r : Nat} {hh blk : List Nat} {compress : List Nat → List Nat → List Nat}
+    (hcok : CompressOK compress) (l1 : hh.length = 8) (l2 : blk.length = 16) (w1 : W64 hh)
+    (w2 : W64 blk) (e : triples tr r pub = (hh ++ blk ++ compress hh blk).map StateM5a.wlimbs) :
+    words tr r pub 0 8 = hh ∧ words tr r pub 8 16 = blk ∧ words tr r pub 24 8 = compress hh blk := by
+  have hid : ∀ l : List Nat, W64 l → (l.map StateM5a.wlimbs).map unl = l := fun l hl => by
+    rw [List.map_map]
+    conv => rhs; rw [← List.map_id l]
+    apply List.map_congr_left
+    intro x hx'; exact unl_wlimbs (hl x hx')
+  have hc8 := (hcok hh blk).1
+  unfold words
+  rw [e, List.map_append, List.map_append]
+  refine ⟨?_, ?_, ?_⟩
+  · rw [List.drop_zero, List.append_assoc, List.take_left' (by simp [l1]), hid hh w1]
+  · rw [List.append_assoc, List.drop_left' (by simp [l1]), List.take_left' (by simp [l2]), hid blk w2]
+  · rw [List.drop_left' (by simp [l1, l2]), List.take_of_length_le (by simp [hc8]),
+      hid _ (hcok hh blk).2]
+
+theorem iv_words {r : Nat} (h : Holds finalAirS pub tr) (hr : r < tr.height 1)
+    (hf : ev tr 1 r pub (S384.T.c "first") = 1) :
+    words tr r pub 0 8 = NearSpecV3.E2E.Bnd.IV384 := by
+  have hiv : ∀ k, k < 8 → [S384.ivLimbs.getD (3 * k) 0, S384.ivLimbs.getD (3 * k + 1) 0,
+      S384.ivLimbs.getD (3 * k + 2) 0] = StateM5a.wlimbs (NearSpecV3.E2E.Bnd.IV384.getD k 0) := by
+    decide
+  have hw : ∀ k, k < 8 → NearSpecV3.E2E.Bnd.IV384.getD k 0 < 2 ^ 64 := by decide
+  apply List.ext_getElem
+  · simp [words, triples, NearSpecV3.E2E.Bnd.IV384]
+  · intro k h1 h2
+    have hk : k < 8 := by simp [words, triples] at h1; omega
+    simp only [words, triples, List.drop_zero, List.getElem_map, List.getElem_take,
+      List.getElem_range]
+    rw [ifLimbs_hin _ (by omega), ifLimbs_hin _ (by omega), ifLimbs_hin _ (by omega),
+      s384_iv h hr hf (by omega), s384_iv h hr hf (by omega), s384_iv h hr hf (by omega), hiv k hk,
+      unl_wlimbs (hw k hk), List.getD_eq_getElem?_getD, List.getElem?_eq_getElem h2]
+    rfl
+
+/-- **The `S384` chain over a message**: from a first row `r0` through `n` non-last active rows,
+the compression input of row `r0 + n` is the fold of the compression over the rows' blocks from
+the SHA-384 IV. -/
+theorem s384_chain (h : Holds finalAirS pub tr) {compress : List Nat → List Nat → List Nat}
+    (hcok : CompressOK compress)
+    (hC : Sha512IfContract compress ((busList finalAirS tr pub B_IF384 true).map decIf))
+    {r0 : Nat} (hf : ev tr 1 r0 pub (S384.T.c "first") = 1) :
+    ∀ n, r0 + n < tr.height 1 → (∀ j, j ≤ n → ev tr 1 (r0 + j) pub S384.act = 1) →
+      (∀ j, j < n → ev tr 1 (r0 + j) pub S384.last = 0) →
+      words tr (r0 + n) pub 0 8 =
+        (List.range n).foldl (fun hh j => compress hh (words tr (r0 + j) pub 8 16))
+          NearSpecV3.E2E.Bnd.IV384
+  | 0, hr, _, _ => by simpa using iv_words h hr hf
+  | n + 1, hr, hact, hlast => by
+    have ih := s384_chain h hcok hC hf n (by omega) (fun j hj => hact j (by omega))
+      (fun j hj => hlast j (by omega))
+    have hact1 : ev tr 1 (r0 + n + 1) pub S384.act = 1 := by
+      have := hact (n + 1) (Nat.le_refl _); rwa [← Nat.add_assoc] at this
+    obtain ⟨hh, blk, hh', blk', l1, l2, w1, w2, l1', l2', w1', w2', e, e', hstep⟩ :=
+      s384_step h hcok hC (r := r0 + n) (by omega) (hact n (by omega)) hact1 (hlast n (by omega))
+    obtain ⟨a1, a2, -⟩ := words_of hcok l1 l2 w1 w2 e
+    obtain ⟨b1, -, -⟩ := words_of hcok l1' l2' w1' w2' e'
+    rw [List.range_succ, List.foldl_append, List.foldl_cons, List.foldl_nil, ← ih, a1, a2,
+      show r0 + (n + 1) = r0 + n + 1 by omega, b1, hstep]
 
 /-! ## Non-vacuity: precheck-accepted traces give `Holds finalAirS` with the chip's sends -/
 

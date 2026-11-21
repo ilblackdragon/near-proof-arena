@@ -50,3 +50,5 @@ import FinalM5d.S384Chip
 #print axioms FinalM5d.S384Chip.precheck_holds_final
 #print axioms FinalM5d.S384Chip.s384_step
 #print axioms FinalM5d.S384Chip.s384_iv
+#print axioms FinalM5d.S384Chip.s384_chain
+#print axioms FinalM5d.S384Chip.iv_words
