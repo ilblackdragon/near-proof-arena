@@ -1,6 +1,7 @@
 import StateM5a.StateViewParams
 import NearSpecV3.E2E.StEnc
 import NearSpecV3.E2E.OvlInv
+import NearSpecV3.E2E.OvlVal
 
 /-!
 # Lane E's `StViewE` for lane B's state view (E2E-M11f, item 1)
@@ -45,11 +46,17 @@ from `start` the overlay's trie is the program's trie `P.t` and its committed ke
 * **`IntakeOk κ I`**: the intake-side conditions — `len` (`≤ 2^24` keys), `wf` (the intake's
   main trie is well-formed), `pre` (its revealed pre-state values of the listed keys are
   `< 2^24` bytes), `cover` (`κ I` contains the keys of the accepting run's committed output;
-  `κRun` satisfies it at every intake, `cover_κRun`), and `cur`, the **one open condition**:
-  committed values `< 2^24` bytes (the engine bounds contract storage writes by 4 MiB, but a
-  bound for every write needs a pass through the Wasm host and the receipt limits).
-* **`engOvlInv_of κ : EngOvlInv κ (RK κ)`** with `RK κ I c := IntakeOk κ I ∧ RAcc I c`, and
-  `fitsReachK_engine`.
+  `κRun` satisfies it at every intake, `cover_κRun`), and `curHard`, the **remaining open
+  condition** (M11h): committed values `< 2^24` bytes **at `Hard` keys only**
+  (`NearSpecV3/E2E/OvlVal.lean`: the keys whose values carry receipt, transaction, pre-state,
+  layout or scheduler bytes; two of them — postponed / yield / delayed / buffered receipts and
+  global contract code — are unbounded by the spec, see `OvlVal.Hard`).
+* **`engOvlInv_of κ : EngOvlInv κ (RK κ)`** with `RK κ I c := IntakeOk κ I ∧ RAcc I c`, given
+  `[OvlVal.VmWritesShort]` (the Wasm interpreter records only storage writes that passed the
+  host's 4 MiB value check: a statement about `vmCall` alone), and `fitsReachK_engine`. Every
+  non-`Hard` committed value (pending-data counts, access-key nonces, global contract nonces,
+  delayed / yield queue indices, buffered-receipt group metadata and entries, and the Wasm
+  write-back at any key) is bounded by `OvlVal.reach_committed_short`.
 
 Checked with `lake env lean` from `m5a/lean` (lane B's package, which requires `ZkFormal` and so
 `NearSpecV3`). Axioms: `propext`, `Classical.choice`, `Quot.sound` only.
@@ -216,19 +223,35 @@ structure IntakeOk (κ : Intake → List Bytes) (I : Intake) : Prop where
   contains it. -/
   cover : ∀ out r, ESteps I.prog (initConf I) ⟨.done out, r⟩ →
     ∀ k ∈ OvlInv.keys (out.committed.getD []), k ∈ κ I
-  /-- **Open (not an engine fact proved here)**: every value committed at a configuration of an
-  accepting run is `< 2^24` bytes. The engine bounds contract storage writes by
-  `maxLengthStorageValue = 4 MiB` (`Wasm/Host.lean`), but the bound for every write (receipts,
-  postponed receipts, received data, …) needs a pass through the Wasm host and the receipt size
-  limits; it is kept as a hypothesis. -/
-  cur : ∀ c o, RAcc I c → posOvl c.pos = some o → ∀ k ∈ κ I, ∀ v,
+  /-- **Open (not an engine fact proved here), at `Hard` keys only**: every value committed at
+  a `Hard` key (`OvlVal.Hard`) at a configuration of an accepting run is `< 2^24` bytes. At every
+  other key the bound is proved (`OvlVal.reach_committed_short`, given `OvlVal.VmWritesShort`).
+  The `Hard` keys are the write sites whose values carry bytes of incoming receipts,
+  transactions, the pre-state, the layout or the bandwidth-scheduler primitive. Two classes are
+  **not bounded by the spec at all**, so this is not an engine fact: (1) a receipt stored
+  verbatim — `kPostponed`/`kYieldReceipt` (`r.encode`) and `kDelayed`/`kBuf`
+  (`encodeStoredV1 r _ _`): an incoming action receipt passes `validReceipt false` (no
+  `maxReceiptSize` check outside `newMode`) with up to 100 function calls of 4 MiB arguments, and
+  is stored at `kPostponed` when one of its input data ids is not yet received (> 20 MiB with five
+  such calls; the witness cap `maxWitnessChunk` ≈ 75 MB admits it); (2) `kGlobalContractCode`:
+  `applyDistributionL` stores a distribution receipt's `d.code` with no length check, and
+  `validReceipt` accepts every distribution body. Both are bounded in nearcore by the creating
+  chunk's `validate_receipt` in `New` mode (`max_receipt_size = 4 MiB`, deploy size limits), i.e.
+  by the validity of the chain history behind the intake's incoming receipts. -/
+  curHard : ∀ c o, RAcc I c → posOvl c.pos = some o → ∀ k ∈ κ I, OvlVal.Hard k → ∀ v,
     kvFind k o.committed = some v → okB v = true
 
 /-- The engine's reachability restricted to intakes satisfying the intake-side conditions. -/
 def RK (κ : Intake → List Bytes) (I : Intake) (c : EConf) : Prop := IntakeOk κ I ∧ RAcc I c
 
-/-- **`EngOvlInv` for the engine.** -/
-theorem engOvlInv_of (κ : Intake → List Bytes) : EngOvlInv κ (RK κ) := by
+theorem okB_of_vok {v : Option Bytes} (h : OvlVal.vok v) : okB v = true := by
+  cases v with
+  | none => rfl
+  | some x => simpa [okB] using h x rfl
+
+/-- **`EngOvlInv` for the engine**, given that the Wasm interpreter records only storage writes
+that passed the host's value-length check (`OvlVal.VmWritesShort`). -/
+theorem engOvlInv_of (κ : Intake → List Bytes) [OvlVal.VmWritesShort] : EngOvlInv κ (RK κ) := by
   intro I c o ⟨hI, hR, out, r, hdone⟩ ho
   rw [posOvl_eq] at ho
   obtain ⟨ht, hn⟩ := OvlInv.reach_trie_nodup I.prog _ hR ho
@@ -240,14 +263,18 @@ theorem engOvlInv_of (κ : Intake → List Bytes) : EngOvlInv κ (RK κ) := by
     unfold entryAt
     split
     · rename_i v hv
-      exact ⟨hpre, hI.cur c o ⟨hR, out, r, hdone⟩ (by rw [posOvl_eq]; exact ho) k hk v hv⟩
+      refine ⟨hpre, ?_⟩
+      by_cases hh : OvlVal.Hard k
+      · exact hI.curHard c o ⟨hR, out, r, hdone⟩ (by rw [posOvl_eq]; exact ho) k hk hh v hv
+      · exact okB_of_vok (OvlVal.reach_committed_short I.prog _ hR ho k hh v hv)
     · exact ⟨hpre, hpre⟩
   · rw [ht']; exact hI.wf
   · intro k hk
     exact hI.cover out r (hR.trans hdone) k (OvlInv.reach_covered I.prog _ hR ho hdone k hk)
 
 /-- **`FitsReachK` for the engine.** -/
-theorem fitsReachK_engine (κ : Intake → List Bytes) : FitsReachK κ (RK κ) :=
+theorem fitsReachK_engine (κ : Intake → List Bytes) [OvlVal.VmWritesShort] :
+    FitsReachK κ (RK κ) :=
   fitsReachK_of κ (RK κ) (engOvlInv_of κ)
 
 /-- **A key list that covers the run's writes**: the keys of the accepting run's committed output
@@ -274,7 +301,8 @@ theorem cover_κRun (I : Intake) (out : MainOutD2) (r : Successor.StorageExecuti
 
 /-- The same for the unrestricted accepting-run relation, when every intake satisfies the
 conditions. -/
-theorem engOvlInv_acc (κ : Intake → List Bytes) (h : ∀ I, IntakeOk κ I) : EngOvlInv κ RAcc :=
+theorem engOvlInv_acc (κ : Intake → List Bytes) [OvlVal.VmWritesShort] (h : ∀ I, IntakeOk κ I) :
+    EngOvlInv κ RAcc :=
   fun I c o hR ho => engOvlInv_of κ I c o ⟨h I, hR⟩ ho
 
 
@@ -283,8 +311,8 @@ theorem engOvlInv_acc (κ : Intake → List Bytes) (h : ∀ I, IntakeOk κ I) : 
 An intake whose main trie is a bare (well-formed) hash and whose store is empty: the engine's first
 step reads the delayed-queue indices from the trie and stops with `MissingTrieValue`, so no
 configuration of an accepting run exists; `IntakeOk κRun` holds (`cover` by `cover_κRun`). This
-shows the conditions are consistent, not that an accepting run satisfies `cur` (that is the open
-condition). -/
+shows the conditions are consistent, not that an accepting run satisfies `curHard` (that is the
+open condition). -/
 
 deriving instance Inhabited for Congestion, BwRequest, ChunkInner, EpochRec, BlockRec, Claim,
   Transition, StateWitnessD2, BlockHdr, ChunkSlot, Blk, Layout, Successor.Walk, ApplyCtx,
@@ -336,13 +364,16 @@ example : IntakeOk κRun demoIntake where
   wf := zero32_wf
   pre := by rw [demo_κRun]; intro k hk; cases hk
   cover := cover_κRun demoIntake
-  cur := fun _ _ ⟨h1, out, r, h2⟩ _ => absurd (h1.trans h2) (demo_not_accepting out r)
+  curHard := fun _ _ ⟨h1, out, r, h2⟩ _ => absurd (h1.trans h2) (demo_not_accepting out r)
 
 #print axioms stD_binding_E
 #print axioms viewImpl_hst_E
 #print axioms fitsB_of_facts
 #print axioms fitsReachK_of
+#print axioms okB_of_vok
 #print axioms engOvlInv_of
+#print axioms OvlVal.reach_vals
+#print axioms OvlVal.reach_committed_short
 #print axioms fitsReachK_engine
 #print axioms cover_κRun
 #print axioms engOvlInv_acc
