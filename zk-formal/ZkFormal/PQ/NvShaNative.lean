@@ -106,4 +106,92 @@ theorem tail_pin {s5 t v : Nat} (hs : s5 < 2 ^ 22) (ht : t < 2 ^ 16) (hv : v < 2
 
 #print axioms tail_pin
 
+/-! ## List and byte lemmas used by `NvSha` -/
+
+theorem beToNat_foldl_lt (l : Bytes) (acc : Nat) :
+    l.foldl (fun a x => a * 256 + x.toNat) acc < (acc + 1) * 256 ^ l.length := by
+  induction l generalizing acc with
+  | nil => simp
+  | cons x xs ih =>
+    simp only [List.foldl_cons, List.length_cons]
+    have hx : x.toNat < 256 := x.toNat_lt
+    have := ih (acc * 256 + x.toNat)
+    calc _ < (acc * 256 + x.toNat + 1) * 256 ^ xs.length := this
+      _ ≤ ((acc + 1) * 256) * 256 ^ xs.length := Nat.mul_le_mul_right _ (by omega)
+      _ = (acc + 1) * 256 ^ (xs.length + 1) := by rw [Nat.pow_succ]; ac_rfl
+
+theorem beToNat_lt (l : Bytes) : ArenaCore.Bytes.beToNat l < 256 ^ l.length := by
+  have := beToNat_foldl_lt l 0
+  simpa [ArenaCore.Bytes.beToNat] using this
+
+theorem digWords_length (d : Bytes) : (digWords d).length = 6 := by simp [digWords]
+
+theorem digWords_lt (d : Bytes) : ∀ w ∈ digWords d, w < 2 ^ 64 := by
+  intro w hw
+  obtain ⟨i, -, rfl⟩ := List.mem_map.1 hw
+  have := beToNat_lt ((d.drop (8 * i)).take 8)
+  have hl : ((d.drop (8 * i)).take 8).length ≤ 8 := by simp only [List.length_take]; omega
+  calc _ < 256 ^ ((d.drop (8 * i)).take 8).length := this
+    _ ≤ 256 ^ 8 := Nat.pow_le_pow_right (by decide) hl
+    _ = 2 ^ 64 := by decide
+
+theorem flatMap_wlimbs_length : ∀ ws : List Nat, (ws.flatMap wlimbs).length = 3 * ws.length
+  | [] => rfl
+  | w :: ws => by
+    simp only [List.flatMap_cons, List.length_append, flatMap_wlimbs_length ws, List.length_cons]
+    simp [wlimbs]; omega
+
+theorem jobLimbs_length (pre : Bytes) (tag : Nat) (us : List (List Fp)) :
+    (jobLimbs pre tag us).length = 18 := by
+  unfold jobLimbs
+  rw [flatMap_wlimbs_length, digWords_length]
+
+/-- A sparse concatenation over a range: if `f` vanishes off a strictly increasing list `S` of
+indices in `[s, s + n)`, the concatenation over the range is the concatenation over `S`. -/
+theorem flatMap_range'_sparse {β : Type} (f : Nat → List β) :
+    ∀ (n s : Nat) (S : List Nat), S.Pairwise (· < ·) → (∀ y ∈ S, s ≤ y ∧ y < s + n) →
+      (∀ y, s ≤ y → y < s + n → y ∉ S → f y = []) →
+      (List.range' s n).flatMap f = S.flatMap f
+  | 0, s, S, _, hS, _ => by
+    cases S with
+    | nil => rfl
+    | cons y _ => have := hS y List.mem_cons_self; omega
+  | n + 1, s, S, hp, hS, hf => by
+    rw [List.range'_succ, List.flatMap_cons]
+    cases S with
+    | nil =>
+      rw [hf s (Nat.le_refl _) (by omega) (by simp)]
+      exact flatMap_range'_sparse f n (s + 1) [] (by simp) (by simp) (fun y h1 h2 _ => hf y (by omega) (by omega) (by simp))
+    | cons y S' =>
+      have hy := hS y List.mem_cons_self
+      have hp' := List.pairwise_cons.1 hp
+      by_cases hys : y = s
+      · subst hys
+        rw [List.flatMap_cons]
+        congr 1
+        refine flatMap_range'_sparse f n (y + 1) S' hp'.2 (fun z hz => ?_) (fun z h1 h2 hz => ?_)
+        · have := hp'.1 z hz; have := hS z (List.mem_cons_of_mem _ hz); omega
+        · exact hf z (by omega) (by omega) (by
+            simp only [List.mem_cons, not_or]; exact ⟨by omega, hz⟩)
+      · rw [hf s (Nat.le_refl _) (by omega) (by
+            simp only [List.mem_cons, not_or]
+            refine ⟨fun e => hys e.symm, fun hs => ?_⟩
+            have := hp'.1 s hs; omega), List.nil_append]
+        refine flatMap_range'_sparse f n (s + 1) (y :: S') hp (fun z hz => ?_) (fun z h1 h2 hz => ?_)
+        · have := hS z hz
+          rcases List.mem_cons.1 hz with rfl | hz
+          · omega
+          · have := hp'.1 z hz; omega
+        · exact hf z (by omega) (by omega) hz
+
+theorem flatMap_range_sparse {β : Type} (f : Nat → List β) (h : Nat) (S : List Nat)
+    (hp : S.Pairwise (· < ·)) (hS : ∀ y ∈ S, y < h) (hf : ∀ y, y < h → y ∉ S → f y = []) :
+    (List.range h).flatMap f = S.flatMap f := by
+  rw [List.range_eq_range']
+  exact flatMap_range'_sparse f h 0 S hp (fun y hy => ⟨Nat.zero_le _, by simpa using hS y hy⟩)
+    (fun y _ h2 hy => hf y (by simpa using h2) hy)
+
+#print axioms flatMap_range_sparse
+#print axioms digWords_lt
+
 end ZkFormal.PQ.NvShaNative
