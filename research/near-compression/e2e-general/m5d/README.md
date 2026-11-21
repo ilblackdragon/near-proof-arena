@@ -68,7 +68,7 @@ SHA-384 of every `SD` message (then the accumulator openings, modulo `bdigest` c
 |---|---|---|
 | FINAL (before `B_out`) | 992,188 B | **480,428 B** at `F1` (27.6 s / 31 ms, 6.9 GB, 268.2-bit), fs-count OK |
 | INIT (before the section-B walk) | 790,307 B | **346,723 B** at `INIT-14` (38.8 s / 16 ms, 6.2 GB), fs-count OK |
-| FINAL with `B_out` / INIT with `BLK` | | G2_REPROVE |
+| FINAL with `B_out` / INIT with `BLK` | | not re-proved (slice saturated); pycheck OK on the honest traces, `run.sh … prove` reproduces |
 
 **INIT decodes section B (G-2, coordinator request)** — `BLK` framing walk, slot bus, the main
 slot's `prev_state_root` exposed (public values 28..44; bus `PSR` = 22 in the `.init` join); see
