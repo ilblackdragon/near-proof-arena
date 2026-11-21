@@ -1668,7 +1668,9 @@ output). `N_STATE` is 19 instead of the D0a tree's 2.
   `FinalOutPub S` (lane G). The wrap itself checks only the phases, `a = 0` and `ctx`.
 * *`ctx` = `claimDigest`.* The wrap exposes `D_wrap(ctx, 0)` (the D-5 tag-8 wrap message with
   class cell 0, which every INIT input's digest limb 0 is), and V_d computes
-  `ctx = limbs(bdigest(S))`, the 42-byte SHA-384 of the canonical statement bytes of plan §3.4.1.
+  `ctx` = `bdigest(S)` (the 42-byte SHA-384 of the canonical statement bytes of plan §3.4.1) as 14
+  three-byte limbs and 4 zero cells (`htree::claim_ctx`, injective on 42-byte strings; the form
+  lane G's INIT / FINAL expose), so `ctx` binds `S` modulo SHA-384 collisions.
   Inside the tree, `ctx` is a witness bound by node equality and by every `h(B)`; the INIT template
   must bind it to `S` (`CtxMode::Src`: the public values in which lane G's INIT AIR exposes
   `bdigest(S)`). The prototype's stub INIT / FINAL (no child) take `ctx` as a witness: **in the
@@ -1692,4 +1694,6 @@ template mix leaves the tree. The wrap program depends on the root's shape, `C_*
   are the segments' natural heights. With pinned template shapes (lanes A/B, plan §5.0.1 (4)) the
   set becomes a setup constant, as for D0a classes;
 * `A` grows with the tree (here 8 leaves + 2 `P_2` + 2 `PAD_N` + `P_*` = 13 proofs, `A = 14`).
-`security_established = false`; M8 is not independently reviewed.
+**Measured** (README §0): the T1 tree over the lanes' saved leaves — packet 330,648 B, verify
+40–43 ms, 16/16 fresh-process negatives. `security_established = false`; M8 is not independently
+reviewed.

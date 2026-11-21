@@ -39,7 +39,9 @@ for i in 1 2 3; do
   grep -h "VERIFY_PROFILE_MS\|INDEPENDENT_TREE_VERIFY_OK" "$R/verify$i.log"
 done
 # soundness of the wrap vk (SETUP.json), the tree vks, and every class's base vk (review-D6 F3)
-VKS=("$R/SETUP.json" "$R/LEAF.vk.json" "$R/NODE.vk.json")
+VKS=("$R/SETUP.json" "$R/LEAF.vk.json")
+# [M8] a depth-0 tree has no node
+[ -f "$R/NODE.vk.json" ] && VKS+=("$R/NODE.vk.json")
 for c in $CLASS_DIRS; do VKS+=("$c/BASE.vk.json"); done
 "$B" soundness "${VKS[@]}" > "$R/soundness.txt" 2>&1 || die "soundness rc=$?"
 grep -c SOUNDNESS_BITS "$R/soundness.txt" | grep -qx "${#VKS[@]}" || die "soundness report incomplete"
