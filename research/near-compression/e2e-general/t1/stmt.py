@@ -7,16 +7,23 @@ Plan: docs/zk-formal/E2E-GENERAL-CHUNK-PLAN.md §2.1 (D-2), §3.4; Lean
 * Section A (`ChunkPub`: protocol_version, chain_id, epoch_id, chunk_inner) and section C (`SecC`:
   rs parts, epochs, epoch_start_after, apply_facts, tx_valid, genesis_chunk_extra) are public.
 * Section B (the block records) is private (D-2).
-* `S` (the statement bytes the wrap hashes into `claimDigest`) is, here, the claim bytes with the
-  section-B vector cut out: `claim[:b0] ++ claim[b1:]`. This is the I-1 working encoding; lane D/E
-  fix the canonical one (plan §5.0.1 1(b)7(i)). It is injective on claims with a fixed section B,
-  which is all the mutant check needs.
+* `S` (the statement bytes the wrap hashes into `claimDigest`) is lane E's canonical encoding
+  (plan §3.4.1, Lean `E2E/StmtEnc.lean`, `PublicStmt.encode`): the claim-v3 encoding of the claim
+  with an **empty** section B, `S = stmtPre ++ 00 00 00 00 ++ stmtPost`, i.e. the claim bytes with
+  the block vector (count included, `claim[b0:b1]`) replaced by `u32 0`. `claimDigest = bdigest(S)`
+  (42-B SHA-384). T1: |S| = 1,007 B, claimDigest `bb5aad11…9f2f01` (`RealChunkT1.t1_S_len`,
+  `t1_claimDigest`); `lean/StmtEval.lean` evaluates the Lean definitions on any claim file and
+  `t1.py run` checks this module against it byte for byte. (I-1 used the claim with the vector and
+  its count cut out: 1,003 B, superseded.)
 
 Mutants change one public field each (section A or C, never B) and are re-spliced with the
 original section B and witness, so the Lean checker sees `assemble(ci', secB, secC')`.
 """
 import hashlib
+import json
+import os
 import struct
+import subprocess
 
 
 class Field:
@@ -181,16 +188,27 @@ def parse_claim(b):
     return out
 
 
+EMPTY_B = b"\x00\x00\x00\x00"  # encList BlockRec.encode [] (StmtEnc.encList_blocks_nil)
+
+
 def statement_bytes(claim, pc=None):
-    """S: the claim without section B (D-2)."""
+    """S = PublicStmt.encode: stmtPre ++ u32 0 ++ stmtPost (StmtEnc.encode_splice)."""
     pc = pc or parse_claim(claim)
     b0, b1 = pc["secB"]
-    return claim[:b0] + claim[b1:]
+    return claim[:b0] + EMPTY_B + claim[b1:]
+
+
+def stmt_pre_post(s_bytes, b0):
+    """(stmtPre, stmtPost) of S, whose empty block vector sits at `b0`."""
+    assert s_bytes[b0:b0 + 4] == EMPTY_B, "S: no empty block vector at b0"
+    return s_bytes[:b0], s_bytes[b0 + 4:]
 
 
 def splice_secB(s_bytes, secB, b0):
-    """assemble: put the private section B back at its offset (S was cut at `b0`)."""
-    return s_bytes[:b0] + secB + s_bytes[b0:]
+    """assemble (StmtEnc.assemble_splice): stmtPre ++ encList BlockRec.encode secB ++ stmtPost, where
+    `secB` is the block vector's bytes, count included."""
+    pre, post = stmt_pre_post(s_bytes, b0)
+    return pre + secB + post
 
 
 def sha384(b):
@@ -200,6 +218,47 @@ def sha384(b):
 def claim_digest(s_bytes):
     """`claimDigest` = the 42-B truncated SHA-384 of S (U-10; Lean `bdigest`)."""
     return sha384(s_bytes)[:42]
+
+
+# T1 (`d3c8/d3/02-h10196-s3`): the kernel-evaluated values (`RealChunkT1.t1_S_len`, `t1_claimDigest`)
+T1_S_LEN = 1007
+T1_CLAIM_DIGEST = "bb5aad11ba6ba32d91739f13a2dbd544f2420d770bcd2c3fde9ddc0e1c02710caee28e5e9e4e299f2f01"
+
+LEAN_PKG = "/data/illia/nearproof/spec/lean/v3"
+STMT_EVAL = os.path.join(os.path.dirname(os.path.abspath(__file__)), "lean", "StmtEval.lean")
+
+
+def lean_stmt(claim_paths, pkg=LEAN_PKG):
+    """Evaluate lane E's `PublicStmt.encode` / `claimDigest` (`E2E/StmtEnc.lean`) on claim files with
+    `lean/StmtEval.lean` (`lake env lean --run`, the v3 package's oleans; no build). Returns
+    {path: row} (row: S_len, pre_len, post_len, wf, splice, decode_roundtrip, claimDigest, S hex; or
+    `error`), or None when Lean could not be run."""
+    try:
+        p = subprocess.run(["lake", "env", "lean", "--run", STMT_EVAL] + list(claim_paths), cwd=pkg,
+                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=3600)
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    rows = {}
+    for ln in p.stdout.decode(errors="replace").splitlines():
+        if ln.startswith("{"):
+            d = json.loads(ln)
+            rows[d["file"]] = d
+    return rows
+
+
+def lean_stmt_compare(claim, row, pc=None):
+    """Byte-for-byte comparison of this module's S / claimDigest with a `lean_stmt` row."""
+    s = statement_bytes(claim, pc)
+    b0 = (pc or parse_claim(claim))["secB"][0]
+    pre, post = stmt_pre_post(s, b0)
+    if row is None or "error" in row:
+        return {"ok": False, "error": (row or {}).get("error", "Lean not run")}
+    r = {"S_equal": row["S"] == s.hex(), "claimDigest_equal": row["claimDigest"] == claim_digest(s).hex(),
+         "pre_len_equal": row["pre_len"] == len(pre), "post_len_equal": row["post_len"] == len(post),
+         "lean_wf": row["wf"], "lean_splice": row["splice"], "lean_decode_roundtrip": row["decode_roundtrip"],
+         "S_len": row["S_len"], "claimDigest": row["claimDigest"]}
+    r["ok"] = all(v for k, v in r.items() if k not in ("S_len", "claimDigest"))
+    return r
 
 
 # ---------------------------------------------------------------------------

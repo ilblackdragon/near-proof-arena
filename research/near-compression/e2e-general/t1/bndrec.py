@@ -3,8 +3,10 @@
 
 `BndRec.codec`: fixed-width big-endian naturals (`natC w`), 42-B digests (`bytesC 42`), one-byte
 booleans, `u64`-counted lists, a presence byte for options, fields in declaration order. `bdigest`
-= the first 42 bytes of SHA-384 (U-10). Not cross-checked against a Lean evaluation (no exporter
-exists for `BndRec.encode`); `selftest()` checks the round trip and widths here only.
+= the first 42 bytes of SHA-384 (U-10). Cross-checked against Lean: `lean_source(recs)` writes a
+scratch Lean program (outside every build) that evaluates `BndRec.encode`, `bdigest` and
+`BndRec.decode` on the same records with lane E's own definitions; `lean_check(recs)` runs it
+(`lake env lean --run`, in the v3 package) and compares byte for byte (`t1.py run`, step `plan`).
 
 Phase tags are `View.split`'s: init 0, eng 1, fin 2, gfin 3, done 4, doneG 5, call 6.
 """
@@ -135,6 +137,79 @@ def to_json(rec):
             return {k: j(x) for k, x in v.items()}
         return v
     return j(rec)
+
+
+# ---------------------------------------------------------------------------
+# cross-check against Lean (`NearSpecV3.E2E.Bnd.BndRec.encode` / `bdigest`)
+# ---------------------------------------------------------------------------
+LEAN_PKG = "/data/illia/nearproof/spec/lean/v3"
+
+
+def _lean_val(kind, v):
+    if kind in ("u64", "u128"):
+        return str(v)
+    if kind == "dig":
+        return f'h "{bytes(v).hex()}"'
+    if kind == "bool":
+        return "true" if v else "false"
+    if kind == "diglist":
+        return "[" + ", ".join(_lean_val("dig", d) for d in v) + "]"
+    if kind == "optwasm":
+        if v is None:
+            return "none"
+        return "some { " + ", ".join(f"{n} := {_lean_val(k, v[n])}" for n, k in WASM_FIELDS) + " }"
+    raise ValueError(kind)
+
+
+def lean_source(recs):
+    """A Lean program printing, per record, `encode` (hex), `bdigest encode` (hex) and whether
+    `BndRec.decode (encode r) = some r` (lane E's definitions, `E2E/Boundary.lean`)."""
+    L = ["import NearSpecV3.E2E.Boundary", "open NearSpecV3.E2E.Bnd", "",
+         "def hexOf (b : List UInt8) : String :=",
+         "  let d := \"0123456789abcdef\".toList",
+         "  String.join (b.map fun x => String.ofList [d[(x.toNat / 16)]!, d[(x.toNat % 16)]!])",
+         "def nib (c : Char) : Nat := if c.isDigit then c.toNat - 48 else c.toNat - 87",
+         "def unhex : List Char → List UInt8",
+         "  | a :: b :: r => (nib a * 16 + nib b).toUInt8 :: unhex r",
+         "  | _ => []",
+         "def h (s : String) : List UInt8 := unhex s.toList", "",
+         "def recs : List BndRec := ["]
+    for i, r in enumerate(recs):
+        body = ", ".join(f"{n} := {_lean_val(k, r[n])}" for n, k in BND_FIELDS)
+        L.append(f"  {{ {body} }}" + ("," if i + 1 < len(recs) else ""))
+    L += ["]", "",
+          "def main : IO Unit := do",
+          "  for r in recs do",
+          "    let e := r.encode",
+          "    IO.println s!\"{hexOf e} {hexOf (bdigest e)} {decide (BndRec.decode e = some r)}\""]
+    return "\n".join(L) + "\n"
+
+
+def lean_check(recs, workdir, pkg=LEAN_PKG):
+    """Evaluate `recs` in Lean and compare with this module, byte for byte. Returns a dict with
+    `ok` (True / False; None when Lean could not be run) and one row per record."""
+    import os
+    import subprocess
+    src = os.path.join(workdir, "BndEval.lean")
+    open(src, "w").write(lean_source(recs))
+    try:
+        p = subprocess.run(["lake", "env", "lean", "--run", src], cwd=pkg, stdout=subprocess.PIPE,
+                           stderr=subprocess.STDOUT, timeout=1800)
+    except (OSError, subprocess.TimeoutExpired) as x:
+        return {"ok": None, "error": str(x)}
+    txt = p.stdout.decode(errors="replace")
+    out = [ln.split() for ln in txt.splitlines()
+           if len(ln.split()) == 3 and ln.split()[2] in ("true", "false")]
+    if p.returncode or len(out) != len(recs):
+        return {"ok": False, "error": txt[-600:]}
+    rows = []
+    for r, (enc_hex, dig_hex, rt) in zip(recs, out):
+        e = encode(r)
+        rows.append({"len": len(e), "encode_equal": enc_hex == e.hex(),
+                     "digest_equal": dig_hex == digest(r).hex(), "lean_roundtrip": rt == "true",
+                     "digest": dig_hex})
+    ok = all(x["encode_equal"] and x["digest_equal"] and x["lean_roundtrip"] for x in rows)
+    return {"ok": ok, "n": len(rows), "rows": rows, "source": src}
 
 
 def selftest():
