@@ -270,3 +270,51 @@ CORE, CUTI, MEM, MP, NV, GROW, LINK, M6, SIGMA.
 * The σ form of `wasm_base_sound_m2`; one chain statement with σ + memory + key bus.
 * One combined chain statement; the first segment's `h0` from `enter`; `seg_sound` for the grow AIR
   (size clause); the corpus grow calls.
+
+## Sixth session: M6 (2026-11-03 to 2026-11-21; paused by a usage limit in between)
+
+Details: `research/near-compression/e2e-general/m6/README.md` §5 (results), §5b (aggregation-leaf
+scope), §6 (`WasmBnd` diff for lane E). Seven sub-lanes ran in worktrees; the lead cherry-picked
+them onto the lane branch and rebased it onto main `7358a938d`:
+
+| sub-lane | item | result |
+|---|---|---|
+| FOOT2 | 1 | `callHost_two_run` for all 89 arms; `pinned_cont_g`, `Vacuity2`; read coverage from messages |
+| HOSTIF | 3 | `HostIf`, σ-thread by host-call rank, `SigKeep`, tape tie, `ProducerObl`, 3 answer functions, frequency table |
+| COVER | 1 | `rel_twin_post`, `SigP`, segment-pinned relies, AIR message-shape/fee/time facts, `seg_sound_hostIf_air`; found the write-coverage gap |
+| CHAIN | 2 | `seg_chain_all(_mp)`, `EntryPub`/`entry_inSA_mp`, `callResult_of_segments_mp`, `wasm_base_sound_m2σ` |
+| GROW | 4 | size clause and grow steps, `exec_rowsJQ`, corpus grow calls; found the bus-214 bug |
+| GROW2 | 4 | `M3Ctx`, MEMG rows, `seg_sound_g` (relative to `SegGLayer`) |
+| FIX214 | AIR | bus-214 multi-group HOSTB fix, re-proofs, tamper batteries |
+
+* **Item 1 [K]:**
+  * Spec-level two-run footprint and non-vacuity check.
+  * HOST-row premises reduced to the producer contract plus named `HostWritesCovT`,
+    `HostProdNodup` and `HostCallsNotLinear`.
+* **Item 2 [K]:** one chain statement on the MP AIR (σ + memory root + key bus), the decidable
+  entry check, the exit/`callResult` shape, and `wasm_base_sound_m2σ`.
+* **Item 3 [K][M]:** host bus ↔ σ-thread ↔ call tape; lane B's obligations; answer functions for 3
+  of 7 corpus hosts.
+* **Item 4 [K][M]:** `seg_sound_g` relative to `SegGLayer`. The corpus grow calls ran:
+  * 1,309/1,309 segments pre-check after FIX214;
+  * 240 grow segments proved and verified;
+  * 65/65 tampers rejected.
+* **Item 5 [S]:** `WasmBnd.gasLeft` plus `registersDigest` as the register-id-order digest (the
+  diff is in the m6 README §6).
+* **AIR change (FIX214):**
+  * Change: HOSTB group bits; `hid` = base id; wire id `hid + 256·hg0 + 512·hg1` on bus 210.
+  * Tampers rejected: d3tiny 49, refill MP 47/54, refill M4 34/36, grow 26/23/17.
+  * One `storage_write` segment proved: 1.33 MB, 32 s.
+* **Open:**
+  * The write-coverage AIR gap (5 `setU128H` hosts) and its proposed constraint.
+  * `HostIf` from lane B's state rows.
+  * `SegGLayer`.
+  * `EntrySeed`.
+  * Answer functions for 4 more corpus hosts.
+  * The aggregation-leaf requirements (next milestone).
+* Builds and checks:
+  * `lake build WasmBase wasmbase-tool` green (727 jobs; standard axioms; no `sorry`).
+  * Prover release build green (FIX214).
+  * `make pin-check` rc 0; nothing under `spec/` changed.
+  * Heavy jobs ran in `systemd-run --user --scope` (Lean ≤ 24 G, provers ≤ 24 G under one `flock`).
+  * The sub-lane worktrees and temp dirs were deleted afterwards.

@@ -66,7 +66,7 @@ AIR: `research/near-compression/wasm-base-lean/WasmBase` (Lean, the single sourc
 | control flow: block/loop/br/br_if/return, `if`/`else` | CTRL, IF chip (`IfCheck.lean`, `docs/logs/pq-if-air-2026-10-22.md`) | **B** | IF: 14 cols, 2 constraints | `if_rowfacts` proved; the full IF checker soundness is open |
 | calls (defined functions) | family 4, FUNC table (§13.1) | **B** | – | proved (`step_call`, `call_rowfacts`) |
 | gas (instruction units `S`, `R·S ≤ g0`) | in every chip; per-segment invariant `WasmBase/Main/SegExec.lean`, `R/pq-host-gas` | **B** Wasm-internal; host resynchronisation (`g := remaining`) is **P** | – | Wasm-only proved; `H0`/`HoldRow` open |
-| segmentation of one call | spec: `NearSpecV3/Wasm/Segment.lean` `run_foldSegments` [K]; `wasmBaseSegAir` (`WasmBase/SegAir.lean`, E2E M4) | **B** (2026-11-03): mid-call cuts with SHA-384 `ctxDigest` + `memRoot` boundary; 1.13 M-step call proved as 5 chained segments | boundary per written 1 KiB block 50 SHA-512 compressions (`D = 16`); M4b multiproof (`wasmBaseSegAirMP`): 680 per 32-block segment, boundary 43 % | `exec_of_rows_cut`, `cuts_csteps` [K]; M4b: `seg_sound`, `wasmD_binding` [K]; M4c: `seg_chain_mem`/`seg_chain_k` (chained segments → `CSteps` or `Sha384Coll`; memory roots, CUTI side, halting, MP AIR default) [K]; host relies vacuous on host traces until M6's σ pinning |
+| segmentation of one call | spec: `NearSpecV3/Wasm/Segment.lean` `run_foldSegments` [K]; `wasmBaseSegAir` (`WasmBase/SegAir.lean`, E2E M4) | **B** (2026-11-03): mid-call cuts with SHA-384 `ctxDigest` + `memRoot` boundary; 1.13 M-step call proved as 5 chained segments | boundary per written 1 KiB block 50 SHA-512 compressions (`D = 16`); M4b multiproof (`wasmBaseSegAirMP`): 680 per 32-block segment, boundary 43 % | `exec_of_rows_cut`, `cuts_csteps` [K]; M4b: `seg_sound`, `wasmD_binding` [K]; M4c: `seg_chain_mem`/`seg_chain_k` (chained segments → `CSteps` or `Sha384Coll`; memory roots, CUTI side, halting, MP AIR default) [K]; host relies vacuous on host traces until M6's σ pinning; M6: σ-pinned `seg_chain_all_mp` and honest host premises (`callHost_two_run`, `seg_sound_hostIf_air`) relative to the producer contract `HostIf` [K] |
 
 ### 1.3 Host functions (HOST/HOSTO/HOSTT/HOSTB/REG chips, `WasmBase/HostChip.lean`)
 
@@ -792,16 +792,64 @@ See `research/near-compression/e2e-general/m1/README.md` for commands, logs and 
 * **M6 [S][K]:** scope (`m6/README.md`). `HostRely.sp` is a theorem; the host footprint is proved
   for all 89 arms (`callHost_hinv`); `RegWF` is preserved by every step.
 
+**Done 2026-11-21, sixth session (lane A): M6, lane-A side** (`m6/README.md` §5; log
+`docs/logs/e2e-laneA-wasm-2026-11-03.md`). The build is green (727 jobs, on main `7358a938d`) with
+standard axioms, `pin-check` passes, and `spec/` is unchanged.
+
+* **Honest host premises [K].**
+  * The two-run footprint `callHost_two_run` holds for all 75 + 14 arms. Low-equivalent states on
+    the arm's read set give one `HostEff` applied to both.
+  * A spec-level non-vacuity check (`pinned_cont_g`, `Vacuity2.twin_witness`) would have caught
+    HostVacuity.
+  * `rel_twin_post` and the page count on the thread (`SigP`) lead to `seg_sound_hostIf_air`:
+    segment soundness with every HOST-row premise discharged except the named ones —
+    * the producer contract `HostIf` + `HostAnsCov`;
+    * `HostWritesCovT` (the AIR gap below);
+    * `HostProdNodup`;
+    * `HostCallsNotLinear`.
+* **One chain [K].**
+  * `seg_chain_all_mp` (+ `_csteps`) carries the σ pin, the memory root and the key bus.
+  * Entry: the decidable `EntryPub` and `entry_inSA_mp`.
+  * Exit: `callResult_of_segments_mp` (M6.5 shape).
+  * `wasm_base_sound_m2σ`.
+* **Host answers ↔ tape [K][M].**
+  * The `HostIf` contract is indexed by host-call rank. `SigKeep`, the in/out pins and the bus
+    messages ↔ the thread's arm run are proved.
+  * `callResult_of_chainσ`.
+  * Lane B's obligations are stated as `ProducerObl`.
+  * Answer functions are proved for `register_len`, `input`, `read_register`.
+  * Corpus host frequency: `m6/host-freq.md`.
+* **Grow [K][M].**
+  * `M3Ctx`, size clause `SzC`, all MEMG rows, and `seg_sound_g`, the last relative to a named
+    non-MEMG action layer `SegGLayer`.
+  * Corpus `d3rich` grow calls: 1,309/1,309 segments pre-check; 215 + 25 grow segments proved and
+    verified (median 1.43 MB, 53 s); tampers 65/65.
+* **AIR fix [M][K]: bus 214, multi-group HOSTB.** HOSTB group bits; `hid` = base id. Before it,
+  every segment with a `storage_write` value group failed pre-check, also on the default MP AIR.
+  Re-proved, re-checked, and all tamper batteries rejected.
+* **Found, open:** the write-coverage AIR gap. Five `setU128H` hosts write memory with no
+  space-3 message: `account_balance`, `account_locked_balance`, `attached_deposit`,
+  `validator_stake`, `validator_total_stake`. All five are imported by `d3rich`. The proposed HOSTB
+  old-byte write pair is in `m6/README.md` §5.5.
+* **Proposed to lane E (route via integrator):** `WasmBnd.gasLeft` and the register-id order via
+  `registersDigest`. The diff is in `m6/README.md` §6.
+
 **Next (lane A):**
-* M6: the σ-pinned host-row premises, then `HostIf ⇒ HoldRowS ∧ HostRely` (M6.2) and the
-  noninterference half of the footprint (M6.1).
-* One combined chain statement (memory + key bus + MP); the first segment's `h0` from `enter`.
-* `seg_sound` for `wasmBaseSegAirG`; the corpus grow calls.
-* The generator limits (stack-budget trap row, out-of-gas row,
+* The write-coverage AIR change (HOSTB `ob` column and the space-3 write pair), with re-proof and
+  tampers.
+* Grow:
+  * `SegGLayer` (base-row FETCH under `CodeOK3`, MEMBG pairing, the CUT link);
+  * the grow memory root, halting case and chain;
+  * the fee bound on failed grows.
+* Answer functions for `storage_write`, `log_utf8`, `value_return`, `ed25519_verify`; `EntrySeed`.
+* With lane B: discharge `HostIf` from the state rows (M6.4, `ProducerObl`); pin the HOSTB group
+  index when the state side consumes wire ids.
+* The generator limits (i32 host signatures in segment AIRs, stack-budget trap row, out-of-gas row,
   `≥ 2^27` addresses).
-* **Distinguish the storage key and value bytes in-circuit** when the state side consumes bus 210
-  (the `hid + 256` wire convention, M6).
-* **M6.** Replace HOSTO so the tape is bound inside the proof.
+* **Next milestone, the aggregation-tree leaf (lane D §5.0.1.4; `m6/README.md` §5b):**
+  * fixed per-template heights;
+  * in-circuit CODE/FUNC roots, with touched-record multiproofs per segment;
+  * proof + vk on disk.
 
 The milestone-1 exit test (return bytes, logs and gas equal the chunk's outcome on T1 and T2, with
 mutants rejected) is met. The gas equality holds outside the proof (the tape) until M6. The
