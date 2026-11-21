@@ -4,6 +4,211 @@ Plan: `docs/zk-formal/E2E-GENERAL-CHUNK-PLAN.md` §3.2 (the `stRoot` working set
 Date 2026-11-03. Labels: **[M]** measured here, **[K]** kernel-checked Lean (std axioms),
 **[S]** stated / design only.
 
+## B-T1 (eleventh session, 2026-11-21): the state side as pinned-shape tree leaves; the HOST join
+
+Log `docs/logs/e2e-bt1-state-2026-11-21.md`. Milestone B-T1 of the M10 re-centring (T1 =
+`d3c8/d3/02-h10196-s3` end to end). Items 1–3 done; item 4 (completeness) not started.
+
+### Item 1: `FitsReach` in the `stOfK` form [K]
+
+`StateViewParams.FitsReach E κ R := ∀ I c, R I c → fitsB E (stOfK (κ I) c)` (was `∀ c, R c → fitsB E
+(stOf c)` with `stOf c = stOfK [] c`, unprovable on real runs). Lane E's `StViewE.FitsReachK κ R` is
+`FitsReach stViewE κ R` by `rfl`, so lane E's `fitsReachK_engine` discharges it for the engine
+(`lean/join-check/`: `run.sh` elaborates lane E's `join/StViewE.lean` with the two bridging
+theorems appended — that file is not a lake module; std axioms).
+
+### Item 2: the state segment as a tree leaf [M][K]
+
+**The cut [M].** Only `RCH` (the working-set root between segments) crosses the M5b AIR
+(README §M5a-3), so it splits into two templates of the same tables plus one boundary table
+(`lean/StateM5a/Tmpl.lean`, `m5a-tool tmpl-if|tmpl-seg D`):
+
+| template | tables | crosses on public values |
+|---|---|---|
+| `m5tIF D` (INTAKE + FINAL) | `SHA KEY BR SN KCMP WSB WSN SNC RNG WSX` + chip | `prev_state_root`, `wsLen`, `R_0` (after INTAKE), `R_n` (before FINAL), `post_state_root`, the change count `n` |
+| `m5tSeg D` (one STATE segment) | `SHA WSA WSL WSP RNG STB STW WSX` + chip + cached `HTAPE` | `wsLen`, `R_in`, `R_out` |
+
+* **`WSX`** extends a depth-`D` root to lane E's committed depth 24 (`Enc.wsDepth`): rows
+  `lvl = D … 23`, `x' = H(x, Z_lvl)`, `Z' = H(Z, Z)` from the constant `Z_D` (Lean computes it:
+  `Tmpl.zeroLimbs`, equal to Python's), for two roots per proof (3 compressions per row). The
+  `TCH` ends that were the public `TAPE` are public values of `WSX` in `m5tIF`: **the IF proof
+  has no cached table**.
+* **Public values** (one statement vector; every AIR reads a prefix of it and the prover's
+  statement check compares all of them): 0–15 `prev_state_root` (16-bit limbs), 16 `wsLen`,
+  17–34 / 35–52 the depth-24 roots A / B (18 limbs of 21 bits, the SHA-384 words), 53–68
+  `post_state_root`, 69 `n` (IF only). These are `StateView.StCommit`'s `ws` / `wsLen` / `trie`
+  fields (+ the post root for FINAL); `idx` is lane E's `idxOf = 0` (times restart per segment).
+* **Segments.** One proof per STATE segment; times restart at 1 and the segment is `seg = 0`
+  inside its proof (`HB(ts, …)` is then unambiguous: README §M5a-9); `--segs S` cuts evenly,
+  `--seg-cap N` cuts on overflow (a new segment when the next write's bytes would pass `N`). The
+  INTAKE find walks and the FINAL change walks stay in the IF proof (they share the pre-state
+  node store `VER`, keys and key order); the IF proof serves both the INTAKE leaf (statement
+  `prev_state_root, wsLen → R_0`) and the FINAL leaf (`R_n, wsLen, prev_state_root → post`):
+  each conjunct holds for its own public values, so two different IF proofs at the two leaves
+  are still sound. Splitting it would make FINAL re-hash the pre-state nodes it reads (the
+  batching gain, 47–82 % of FINAL's SHA-256 work on T1/T2) and duplicate `KEY`/`KCMP`.
+
+**Lean [K]** (std axioms): `Tmpl.m5tIF` / `m5tSeg` (tables = M5b tables + `WSX`: `m5tIF_tables`,
+`m5tSeg_tables`); `Merkle.root_pad` (the depth-`(D+k)` root of the leaves padded with zero digests
+= the depth-`D` root extended by `k` zero-sibling levels; no hash assumption), `ext_inj`
+(collision-free node hash ⇒ the extension is injective), `TmplView.wsRoot_ext` (**lane E's
+committed `wsRoot` at depth 24 is that extension of the circuit's depth-`D` root**),
+`zeroDig_eq`, `wsxChain_out` (a `WSX` row chain at record level computes `extUp`), and at field
+level **`FieldWsx.wsx_layout`** (from the constraints alone: rows `0 … 23 − D` active with
+`lvl = D + r`, `top` exactly on row `23 − D`, so the table has ≥ 24 − D rows), `wsx_link`
+(`z' = zo`, `a' = ao`, `b' = bo`), `wsx_first_z` (`z = Z_D`), `wsx_top_pub` (the public roots).
+**Open [S]:** the bus step joining these to `wsxChain_out` (each row's three compressions are in
+the chip's list: `IF384` balance + `Sha512If.comp_node`), and the per-template soundness theorems: the M5a/M5b theorems are stated about
+`m5bAir`'s table list (decoders pinned to its table indices); restating them for `m5tIF` /
+`m5tSeg` (the same tables, `WSX` on `RCH`/`TCH` in place of `WSP`/the tape) is mechanical but wide.
+
+**Prover [M]** (`prover/`, the same interpreter): now built against **the verifier's backend** (a
+frozen copy of lane D's `pq-e2e-d9` `stark-backend-unified` + `plonky3-ext12`; the recursion crate's
+own `sha384/{config,mb}.rs` copied unchanged), the CPU engine `Sha384CpuEngine`, and the cached
+table committed as `commit_program_part` does. A dump from `tracegen.py --split --template T`
+carries its template (`template.json`); then every table is padded to its pinned height (SHA-256
+table, SHA-512 chip and `HTAPE` included; zero rows), the tight-height floor is the full height (the
+proof's `(log_height, tight_height)` per AIR is the template's), and the parameters are **lane D's
+base configuration** (`pq-chunk-e2e/src/profile.rs::shaped_params_geom`: first-order certificates
+from `final-soundness/calc/dkt_certs_o2.json` minus `DKTCertsO2_big.keys`, list decoding m = 64,
+`k_first` 2, `domain_odd_factor` 15, logup message length 7, `zk = 0`) with **query grinding 24
+bits** and the template's `(n_stack, log_blowup, w_stack)`. `prove … OUT` saves `STATE.proof`
+(`Proof::encode`), `STATE.vk.json` (the `SavedVk` envelope with `domain_odd_factor`, as
+`pq-chunk-e2e` reads it) and `statement.json` (per AIR: public values, heights, cached roots).
+**Lane D's own driver reads and verifies them** (`nearproof-chunk-e2e fs-count VK PROOF 0` of the
+`pq-e2e-d9` build: `verify_with_points` succeeds on both T1 proofs).
+
+`leaf.sh STATE OUT TEMPLATE [check|prove]` runs the cut end to end and `leaf_chain.py` checks the
+proofs' public values: `if.R_0 = seg0.R_in`, `seg_k.R_out = seg_{k+1}.R_in`, last `R_out = if.R_n`,
+one `wsLen`, IF's `post_state_root` = the Lean spec oracle (`m5a-tool apply`).
+
+**Templates [M]** (`census_tmpl.py`, `templates/{S,M,L}.json`, `logs/BT1-template-census.{txt,jsonl}`).
+A census of the cut over all 19,007 `d3` cases (Lean run, extraction, `tracegen --split
+--stats-only` at the natural depth; 16,205 trace, the same 85.26 % as M5a-9) and three nested
+classes by working-set depth; per class every pinned height is the smallest common per-table
+quantile that keeps the class's joint coverage ≥ 99 %, D-dependent heights moved exactly to the
+class depth (a smaller case runs zero-padded):
+
+| class | D (≤ keys) | members | IF covers | IF cells / `n_stack` / `w_stack` | seg cells / `w_stack` | one STATE segment |
+|---|---|---|---|---|---|---|
+| S | 5 (32) | 13,594 | 13,580 (99.90 %) | 7.91 M / 18 / 10 | 5.03 M / 8 | 99.36 % (82 need 2, 5 need 3, cut on overflow) |
+| M | 6 (64) | 2,071 | 2,053 (99.13 %) | 15.81 M / 20 / 6 | 7.82 M / 5 | 99.28 % (4 need 2) |
+| L | 7 (128) | 572 | 570 (99.65 %) | 31.59 M / 20 / 10 | 15.63 M / 7 | 99.83 % |
+
+A case left out by its class falls to the next one: **16,203 / 16,205 trace-OK cases (99.99 %)
+fit a template**; the other 2,802 state cases are the M5a-9 completeness gaps (item 4), not
+heights. Every template: lb 1, grinding 24, 268.2-bit calculator, WHIR queries [100, 71, 45, 33]
+(k [2, 4, 4, 4]). Lane D's one-leaf-geometry-per-setup rule makes L's leaf the setup's.
+
+**T1 and T2 at their templates [M]** (8 threads, shared host; `logs/BT1-*-prove.log`,
+`logs/BT1-proofs.txt`):
+
+| case / template | proof | bytes | prove / verify | peak RSS | root (= Lean oracle) |
+|---|---|---|---|---|---|
+| T1 / S | IF | 490,156 | 39.1 s / 43 ms | 7.3 GB | post `1db48e38…249628` |
+| T1 / S | seg0 | 473,236 | 37.2 s / 28 ms | 7.7 GB | `R_0 ca91c86e…` → `R_n 2d2e132a…` |
+| T2 / M | IF | 516,654 | 123.4 s / 34 ms | 25.7 GB | post `61f5330a…07993006` |
+| T2 / M | seg0 | 510,652 | 121.9 s / 22 ms | 27.9 GB | `R_0 c99c4088…` → `R_n 4100fb37…` |
+
+Both chains check (`leaf_chain.py`: `R_0`, `R_n`, `wsLen`, post root = oracle). For comparison
+the M5b monolithic T1 proof was 1,476,227 B (seg-v1 parameters); the cut at the base
+configuration is 963 kB for both proofs together, and each leaf verifies a ≈ 480 kB child.
+T1 at its natural heights (`T1nat`): IF 482,746 B / seg 467,572 B. `--seg-cap 1500` cuts T2
+into two STATE segments (chain consistent, `R_1 f121ccb6…`).
+**Lane D's driver accepts the files:** `nearproof-chunk-e2e fs-count STATE.vk.json STATE.proof 0`
+(the `pq-e2e-d9` build, read only) verifies all four.
+
+**Mutants [M]** (`leaf_mutants.sh`, `logs/BT1-T1-mutants.txt`): **23 / 23 rejected** on T1 at S, every one with the full
+prover (precheck failure, then the prover's refusal or the native verifier's rejection):
+statement-level `postroot`, `wslen`, `nchange` (the `TCH` index), `ifr0` / `segrin` / `segrout`
+(a depth-24 root public value), the M5a/M5b row tampers `node`, `prevalue`, `omitwrite`, `wsstale`,
+`wssib`, `wsdrop`, `wsabsorb`, `wsleaf`, `stkbyte`, `stvbyte`, `stdrop`, `tbig`, `twrap`, and the new
+`WSX` ones: `wsxzero` (another `Z_D`), `wsxlvl` (the extension one level short), `wsxroot` (another
+incoming depth-`D` root: `RCH`), `wsxhash` (an extension step's output: the chip). The HOST-fed
+segment (`--host`): `stkbyte`, `stvbyte`, `stdrop`, `omitwrite`, `segrout` **5 / 5 rejected**
+(`HOSTB` / `HOSTQ` / `HOSTR` unbalanced).
+Plus the cross-proof mix: T1's IF proof with T2's segment fails the chain (`R_0`, `R_n`, `wsLen`
+mismatch) — the boundary equality the tree checks.
+
+### Item 3: the state side of the M6 join [M][K]
+
+Lane A's HOST chip (`wasm-base-lean/WasmBase/HostChip.lean`, read; m6/README §3 `HostIf`) sends
+`HOSTQ` (208) `[ts, hid, S, np, (aLo, aHi) × 9]` and the request bytes on `HOSTB` (210)
+`[ts, hid, dir, pos, byte]`, and receives `HOSTR` (209) `[ts, st, rLo, rHi, gLo, gHi, ar, 0]`; today
+its oracle `HOSTO` answers them. **`StHostIf.lean`** (`m5a-tool tmpl-segh D`) is the segment
+template with the STATE rows on those buses in place of `SREQ`/`HB`; every other table is the
+same, so the working set cannot tell who fed it:
+
+* `STWH` = `STW` + `S`, `rid`, `rlo/rhi/glo/ghi`: receives `HOSTQ [ts, 60 − 2·pr, S, 3 + 2·pr,
+  klen, 0, kptr, 0, pr·vlen + (1 − pr)·rid, 0, pr·vptr, 0, pr·rid, 0, 0, …]` — `storage_write`
+  (id 58, `key_len, key_ptr, value_len, value_ptr, register_id`) / `storage_remove` (id 60,
+  `key_len, key_ptr, register_id`), lane A's ids (`hostStorageFns`) — and sends `HOSTR [ts, 0,
+  rlo, rhi, glo, ghi, 1, 0]`; its `WRITE` carries `seg = 0` (one internal segment per proof, so the
+  `WM` chain orders all of the segment's writes by `ts`);
+* `STBH` = `STB` + a run-constant `hid ∈ {58, 60}`: receives `HOSTB [ts, hid, 0, base + j, b]`;
+  the run's descriptor carries `hid`, which `STWH` matches to its request.
+
+**Bus shape the state side needs from lane A (to coordinate; not edited here):** a
+`storage_write` reads two buffers in one call, so a request byte must name its buffer. The state
+side reads `HOSTB`'s 4th field as the **linear-memory address** `ptr + pos` (lane A's `memAddr`),
+not the offset `pos` its `msg` carries today (the byte calls lane A has — `log_utf8`, …,
+`value_return` — read one buffer, where the two differ by the constant `ptr`). Lane A's `HOSTO`
+must stop answering storage calls in a joined trace (the state rows answer them).
+
+**Not the state side's yet (M6.4):** the response values — the evicted-value flag needs the
+entry's value before the write (the `WM` read `WSA` already makes) and `g_after` the host-side
+state σ's gas; `rlo…ghi` are witness columns, a free oracle exactly as `HOSTO` is today.
+
+**Measured [M]:** `tracegen.py --split --host` writes the segment dumps with a cached
+`HOSTTAPE` standing in for lane A's rows (it sends `HOSTQ`/`HOSTB` and receives `HOSTR`, at lane
+A's widths 22 / 5 / 8; `S = 0`, `register_id = 0`, `r` = 1 iff the key held a value). T1's segment proves at S on `m5tSegH`: 476,698 B, 39.8 s,
+verify 29 ms, chain to the same IF proof OK (`logs/BT1-T1-SH-prove.log`).
+
+**Lean [K]:** `m5tSegH_tables` (the template differs from `m5tSeg` only in the two STATE tables),
+`stwH_hid` (id / argument count per call). The STATE rows' soundness on these buses (M5b's
+`StSound.write_sent` with `HOSTQ`/`HOSTB` in place of `SREQ`/`HB`) is open [S]; the request
+decoding is the same arithmetic.
+
+### Lane E's T1 template system (main `1461c97f6`, merged): where the state proofs sit [S]
+
+`E2E/Templates.lean` assigns lane B the **STATE** template: `MState (eng I c) (eng I c')` by
+VM-free engine steps (`VFSteps`), obligation `SegSoundState V A Bad` (rows open both 42-B boundary
+digests to such a pair), honest side `TmplComplete V A .state`; `mstate_trans` merges consecutive
+STATE segments. How this session's proofs map onto it:
+
+* **The STATE leaf's state component** is the `m5tSeg` proof: it moves `stRoot`'s working-set root
+  `R_in → R_out` (depth 24, `wsRoot_ext`) by the segment's storage requests, with `wsLen` and the
+  trie root unchanged. Which requests a VM-free engine step makes — and every other boundary
+  field (position, gas, outcome / receipt accumulators) — are the runtime's rows (lane F, `m5t1`),
+  not the state rows. So `SegSoundState` is a property of the **joined** STATE trace (engine rows
+  + state rows on `SREQ`/`HB`), as `SegSoundWasm` is of the Wasm rows + the state rows on the
+  HOST buses (item 3); lane B's part is the component statement "`stD (stOfK K c')` is `stD (stOfK
+  K c)` with the run's requests applied to the overlay" — **not built** (it needs the
+  per-template restatement of `StSound.write_sent` / `WsBus.seg_root` / `chain_sound` for
+  `m5tSeg`, open above, and lane E's overlay semantics of a VM-free run).
+* **`m5b_final`** concludes `applyChanges (some T) (sortKV (committedOf T reqs)) = some (some T')
+  ∧ rootHash T' = post` — the spec's `Ovl.finalize` fold, i.e. the state root that **FINAL**
+  (lane G, `SegSoundFinal`) outputs; the IF proof's FINAL half is that statement at `R_n`, and its
+  INTAKE half is the `stRoot` the **INIT** leaf (lane G) publishes. Connecting `m5b_final` to
+  `MFinal` needs lane G's FINAL relation (finalize as `CM` steps from `eng I ⟨.done out, _⟩`); not
+  done this session.
+* Proposal to lane E (the plan, §5.1): state lane B's STATE obligation as that component
+  statement over `stD`, joined with lane F's engine obligation in one `SegSoundState`; and let the
+  IF proof serve the INIT and FINAL leaves' `stRoot` / post-root fields.
+
+### Open after B-T1
+
+1. Lean: `WSX` at field level; the per-template soundness theorems (`m5tIF`, `m5tSeg`, `m5tSegH`)
+   restated from the M5b ones; a composition statement (IF ∧ segments ∧ matching public roots ⇒
+   the M5b conclusion).
+2. M6.4: the `HOSTR` answer (evicted-value flag from the `WM` read, `g_after` from the host-side
+   state σ), reads (`storage_read`/`has_key` + register fill bytes), and lane A's `HOSTB` address
+   field (above).
+3. Item 4 (completeness, census order): squash onto an extension sibling (M5a-8 design `RK_XD`),
+   the old-leaf-ends split, `VBITS` 7 → 9 — not started this session.
+4. A production class set per lane D's leaf geometry (one setup per leaf-geometry family), and the
+   IF / seg split if lane D prefers single-use proofs.
+
 ## M5a-9 (tenth session, 2026-11-03 … 11-21): corpus coverage census; extraction fix
 
 Log `docs/logs/e2e-m5a9-state-2026-11-21.md`. **No AIR change, no Lean change** this session (the

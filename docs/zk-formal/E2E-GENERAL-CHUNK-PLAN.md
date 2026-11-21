@@ -1807,6 +1807,38 @@ change.
 * **Not built:** branch-end split, `STB` packing. **Open:** as README "Open after M5a-9";
   `FitsReach` → lane E's `FitsReachK` after rebasing on main `7358a938d`; lane D leaf requirements.
 
+**B-T1 (eleventh session, 2026-11-21) [M][K]:** README §"B-T1", log
+[`docs/logs/e2e-bt1-state-2026-11-21.md`](../logs/e2e-bt1-state-2026-11-21.md). Items 1–3 done,
+item 4 (completeness) not started.
+* **`FitsReach` in the `stOfK` form [K]** (`∀ I c, R I c → fitsB E (stOfK (κ I) c)`); lane E's
+  `FitsReachK κ R = FitsReach stViewE κ R` by `rfl` (`lean/join-check/`), so `fitsReachK_engine`
+  discharges it.
+* **The state side as pinned-shape tree leaves [M][K].** The M5b AIR is cut at `RCH` into two
+  templates (`Tmpl.lean`): **`m5tIF D`** (INTAKE + FINAL; no cached table: the `TCH` ends are
+  public values) and **`m5tSeg D`** (one STATE segment; cached `HTAPE`), each with `WSX`, which
+  extends the depth-`D` root to lane E's depth-24 committed root in-circuit (`TmplView.wsRoot_ext`,
+  `Merkle.root_pad`, `FieldWsx.wsx_layout`). Public values = `StCommit`'s fields: `prev_state_root`,
+  `wsLen`, two depth-24 roots (`R_0`/`R_n`; `R_in`/`R_out`), `post_state_root`, the change count;
+  times restart per segment (`idxOf = 0`), cut evenly or on overflow (`--seg-cap`). Prover on the
+  **verifier's backend** at **lane D's base configuration** (first-order certificates, m = 64,
+  `domain_odd_factor` 15, grinding 24, tight heights floored to the pinned heights); proof + vk +
+  statement saved in `pq-chunk-e2e`'s format, which **lane D's `fs-count` verifies**.
+  Templates over the census of all 19,007 `d3` cases: **S / M / L** (D 5 / 6 / 7) cover
+  **16,203 / 16,205 (99.99 %)** of the trace-OK cases. **T1 at S:** IF 490,156 B + seg 473,236 B,
+  39 s / 37 s; **T2 at M:** 516,654 B + 510,652 B, 123 s / 122 s; chains and roots = Lean oracle.
+  Mutants on T1: see README.
+* **The M6 join, state side [M][K]:** `StHostIf.m5tSegH` — the STATE rows on lane A's `HOSTQ`
+  (208) / `HOSTR` (209) / `HOSTB` (210) (`storage_write` id 58, `storage_remove` id 60) in place of
+  `SREQ`/`HB`; either feeds the same working-set tables. Needs from lane A: `HOSTB`'s 4th field
+  as the linear-memory address (`memAddr`), and `HOSTO` not answering storage calls. The response
+  (`HOSTR` values) stays a witness (M6.4).
+* **Lane E's template system (main `1461c97f6`) [S]:** the `m5tSeg` proof is the state component
+  of a STATE leaf; `SegSoundState` needs the joined trace (lane F's engine rows + these rows);
+  `m5b_final` is FINAL's root (lane G). README §"Lane E's T1 template system" (proposal).
+* **Open:** per-template restatement of the M5b soundness theorems (`m5tIF`, `m5tSeg`,
+  `m5tSegH`) and the `WSX` bus step; lane B's component of `SegSoundState`; M6.4; item 4
+  (squash onto an extension sibling, old-leaf-ends split, `VBITS` 9).
+
 ### 5.2 M5-T1 runtime (lane F): status, 2026-11-21
 
 See `research/near-compression/e2e-general/m5t1/README.md`; log

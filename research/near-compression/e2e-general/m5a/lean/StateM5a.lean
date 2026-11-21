@@ -149,3 +149,7 @@ import StateM5a.SnContLocB
 import StateM5a.SnContLocX
 import StateM5a.SnContRestAll
 import StateM5a.StHost
+import StateM5a.Tmpl
+import StateM5a.TmplView
+import StateM5a.StHostIf
+import StateM5a.FieldWsx

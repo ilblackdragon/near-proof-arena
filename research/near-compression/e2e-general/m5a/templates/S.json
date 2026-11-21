@@ -1,0 +1,68 @@
+{
+ "name": "S",
+ "D": 5,
+ "if": {
+  "params": {
+   "n_stack": 18,
+   "log_blowup": 1,
+   "w_stack": 10,
+   "pow_bits": 24,
+   "degree": 9
+  },
+  "heights": {
+   "BR": 9,
+   "KCMP": 9,
+   "KEY": 10,
+   "RNG": 8,
+   "SHA": 13,
+   "SHA512": 15,
+   "SN": 8,
+   "SNC": 5,
+   "WSB": 6,
+   "WSN": 6,
+   "WSX": 5
+  }
+ },
+ "seg": {
+  "params": {
+   "n_stack": 18,
+   "log_blowup": 1,
+   "w_stack": 8,
+   "pow_bits": 24,
+   "degree": 9
+  },
+  "heights": {
+   "HTAPE": 13,
+   "RNG": 8,
+   "SHA": 12,
+   "SHA512": 15,
+   "STB": 13,
+   "STW": 5,
+   "WSA": 5,
+   "WSL": 5,
+   "WSP": 5,
+   "WSX": 5
+  }
+ },
+ "segh": {
+  "params": {
+   "n_stack": 18,
+   "log_blowup": 1,
+   "w_stack": 8,
+   "pow_bits": 24,
+   "degree": 9
+  },
+  "heights": {
+   "HOSTTAPE": 13,
+   "RNG": 8,
+   "SHA": 12,
+   "SHA512": 15,
+   "STBH": 13,
+   "STWH": 5,
+   "WSA": 5,
+   "WSL": 5,
+   "WSP": 5,
+   "WSX": 5
+  }
+ }
+}

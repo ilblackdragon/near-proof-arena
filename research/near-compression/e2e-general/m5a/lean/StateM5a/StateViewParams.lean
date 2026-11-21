@@ -59,7 +59,7 @@ receipt state's `o` at the positions `txs`/`locals`/`delayed`/`incoming`/`yields
    record), i.e. `keysOf (stOf c) = K(I)` for the run's intake `I`.
 3. **`idxOf`**, **`depth`** (`< 64`; the circuit's `IX_BYTES = 3` needs `depth ≤ 24`).
 4. **Not for binding** (segment soundness / completeness): every reached component is in the
-   circuit form, `FitsReach E R : ∀ c, R c → fitsB E (stOf c) = true` for lane E's reachability
+   circuit form, `FitsReach E κ R : ∀ I c, R I c → fitsB E (stOfK (κ I) c) = true` for lane E's reachability
    predicate `R` on `EConf` (`fitsB_of` splits it): in particular the **trie obligation** that
    replaces M5a-4's `trie_ok`: `(o.trie).wf = true` and `o.trie = t` for the trie `t` the engine
    starts from (`Ovl.ofTrie t` in `preludeK`; the trie `INTAKE` reveals from the witness, never
@@ -73,7 +73,7 @@ Axioms: `propext`, `Classical.choice`, `Quot.sound` only.
 namespace StateM5a.StateViewParams
 
 open NearSpec NearSpecV3 NearSpecV3.D2 NearSpecV3.E2E StateM5a.Walk StateM5a.SerInj StateM5a.StateView
-open NearSpecV3.E2E.Bnd (StV ViewImpl Coll Sha384Coll bdigest eposMap stOf)
+open NearSpecV3.E2E.Bnd (StV ViewImpl Coll Sha384Coll bdigest eposMap stOf stOfK)
 
 /-! ## Prefix-free byte encoders -/
 
@@ -618,9 +618,23 @@ theorem fitsB_of {v : StV} (h1 : (wsOfB E v).length ≤ 2 ^ E.depth)
   simp only [fitsB, Bool.and_eq_true, decide_eq_true_eq, List.all_eq_true]
   exact ⟨⟨⟨⟨h1, h2⟩, h3⟩, h4⟩, h5⟩
 
-/-- Every configuration of lane E's reachability predicate `R` has its state component in the
-circuit form (not needed for binding; the segment-soundness side of the state view). -/
-def FitsReach (R : EConf → Prop) : Prop := ∀ c, R c → fitsB E (stOf c) = true
+/-- Every configuration of lane E's reachability predicate `R` (indexed by the intake `I`) has its
+state component, **with the chunk's key list `κ I`** (`stOfK`, the form the view's `split` uses), in
+the circuit form (not needed for binding; the segment-soundness side of the state view).
+B-T1 item 1: this replaces the earlier `∀ c, R c → fitsB E (stOf c)`, whose `stOf c = stOfK [] c`
+has the empty key list (unprovable on real runs: lane E's `fitsB` counterexample). Lane E's
+`StViewE.FitsReachK κ R` is `FitsReach stViewE κ R` by `rfl` (`fitsReach_iff`). -/
+def FitsReach (κ : Intake → List Bytes) (R : Intake → EConf → Prop) : Prop :=
+  ∀ I c, R I c → fitsB E (stOfK (κ I) c) = true
+
+/-- `FitsReach` unfolds to the per-configuration statement (`Iff.rfl`). -/
+theorem fitsReach_iff (κ : Intake → List Bytes) (R : Intake → EConf → Prop) :
+    FitsReach E κ R ↔ ∀ I c, R I c → fitsB E (stOfK (κ I) c) = true := Iff.rfl
+
+/-- The key list `keysOf` sees is the one `FitsReach` names, when lane E's `keysOf` reads it from
+`StV.eng` (as `NearSpecV3.E2E.Bnd.keysOf` does). -/
+theorem keysOf_fitsReach (hk : ∀ K c, E.keysOf (stOfK K c) = K) (κ : Intake → List Bytes)
+    (I : Intake) (c : EConf) : E.keysOf (stOfK (κ I) c) = κ I := hk _ _
 
 theorem ovlInv_parts {v : StV} {o : Ovl} (h : ovlInv E v = true) (ho : ovlOf v = some o) :
     (o.committed.map Prod.fst).Nodup ∧ ∀ k ∈ o.committed.map Prod.fst, k ∈ E.keysOf v := by
