@@ -252,6 +252,61 @@ host context is carried in `B`.
 
   Its only public input is the statement of D-2. No boundary leaves the tree.
 
+#### 3.4.1 The canonical statement bytes `S` and `claimDigest` (lane E, M11h) [K]
+
+Fixed in Lean, `spec/lean/v3/NearSpecV3/E2E/StmtEnc.lean` (in `defaultTargets`); lanes D and I
+implement exactly this.
+
+* **`S = PublicStmt.encode s`** = the claim-v3 encoding (`spec/claim-v3.md` §2, `Claim.encode`) of
+  the claim with an **empty section B**: every field in claim order, the block vector replaced by
+  its empty encoding `u32 0` = `00 00 00 00`. Byte layout:
+  `S = stmtPre ‖ 00 00 00 00 ‖ stmtPost`, `stmtPre` = claim tag, statement id, `protocol_version`
+  (u32), `chain_id` (bytes), `epoch_id` (32 B), `chunk_inner` (bytes); `stmtPost` =
+  `rs_data_parts`, `rs_total_parts` (u16), `epochs`, `epoch_start_after`, `apply_facts`,
+  `tx_valid`, `genesis_chunk_extra` (all as in claim-v3). The claim the relation checks is the
+  same bytes with the private block vector (count included) in place of the four zero bytes:
+  `assemble ci secB secC = stmtPre ‖ encList BlockRec.encode secB ‖ stmtPost`
+  (`assemble_splice`, `encode_splice`).
+* **Canonical and injective.** `PublicStmt.decode` = the strict claim decoder (`decodeClaim`) then
+  `blocks = []`; `PublicStmt.decode_encode` on well-formed statements (`PublicStmt.wf` =
+  `Claim.wf` of the empty-B claim: field widths), hence `PublicStmt.encode_inj`. `assemble_wf`: a
+  well-formed assembled claim has a well-formed statement.
+* **`claimDigest s = bdigest S`** (SHA-384 truncated to 42 B, U-10). `claimDigest_binding`: equal
+  digests of well-formed statements are equal statements or a SHA-384 collision. Every
+  boundary's `claimDigest` field is this value; the wrap's `D_wrap = H(tag_wrap, SHA-384(S))`
+  (§5.0.1) hashes the same `S`.
+* **T1** (kernel-evaluated in `E2E/RealChunkT1.lean`): `|S| = 1,007 B` (`t1_S_len`; lane I's I-1
+  working encoding, the claim with the block vector *and its count* cut out, is these bytes
+  without the four zero bytes: 1,003 B, checked byte-for-byte against `e2e-t1/run3/S.bin`),
+  `claimDigest = bb5aad11ba6ba32d91739f13a2dbd544f2420d770bcd2c3fde9ddc0e1c02710caee28e5e9e4e299f2f01`
+  (`t1_claimDigest`; equals Python `hashlib.sha384(S)[:42]`). Lane I's `040290778c…` digest is of
+  the 1,003-B working encoding and must be replaced.
+* **Leaf statement.** A boundary is exposed as `bndOf V.bnd x = bdigest (BndRec.encode (V.bnd x))`
+  (`Boundary.lean`; `BndRec.codec` is fixed-width big-endian, §3.2) with the clear `phase` tag
+  (`View.split`: `init` 0, `eng` 1, `fin` 2, `gfin` 3, `done` 4, `doneG` 5, `inCall` 6), i.e.
+  lane D's `s = [phase, h(B)]` with `h(B) = bdigest (BndRec.encode B)`; the T1 system
+  (`Templates.lean`) is stated over exactly these digests.
+
+#### 3.4.2 Public fields the relation does not constrain (lane I's 33 accepted mutants) [M + spec]
+
+Lane I's T1 mutants (`t1.py mutants`, run `e2e-t1/run3/mutants.txt`): 33 one-field changes of
+`S` are **true statements** (the checker accepts them with T1's section B and witness). Checked
+against the spec and nearcore 2.13.4 (`/data/illia/nearproof-deps/nearcore`, `44f7ae6`):
+
+| field (mutants) | read by | why T1 accepts | verdict |
+|---|---|---|---|
+| `chunk_inner.height_created` (±1, with the witness's header copy patched) | nothing in the relation: decoded (`Wire.lean`, `heightCreated`) and only compared as part of the witness's header copy | nearcore's witness validation never reads it: `validate_chunk_state_witness_impl` (`chain/chain/src/stateless_validation/chunk_validation.rs:565`) uses it only as a log/span field; it is consumed by the consensus layer — chunk-producer selection and signature (`ChunkProductionKey`, `partial_witness_actor.rs:430–440`), the relevance window against the node's **local** head (`client/src/stateless_validation/validate.rs:253–320`, node state, not a validity predicate), and block inclusion. Already recorded as spec finding (1) in `spec/near-chunk-validation-v0.md` §(findings): nearcore accepts the same mutants | **unconstrained by design** (mirrors nearcore). Finding for the owner: an intrinsic constraint every honest chunk satisfies is `height_created > height(prev block)` (the prev block header is in section B); nearcore enforces it only through block inclusion. Adding it is a checker change (owner decision); not done. For M10 these are binding negatives (`D_wrap` binds `S`) |
+| `chain_id` | `Env.chainId`: ETH-implicit wallet hash (`D2/Actions.lean` `ethWalletHash`), global-contract resolution (`StorageExecutionOrig.lean:70`), the VM context | T1 has no ETH-implicit account, no global contract | constrained when read; unread by T1 |
+| `epochs[0].height` | host `epoch_height` (`Wasm/Host.lean:716`), epoch-switch rewards | `d3tiny.run` does not call `epoch_height`; no epoch switch | constrained when read |
+| `epochs[0].layout` (last byte) | `decodeLayout` (`Layout.lean:58`): T1's layout is V2 (tag 2, 293 B); its last byte is the high byte of the trailing `version: u32` (T1: `03 00 00 00`), parsed and discarded | nearcore uses `ShardLayout::version` only in `ShardUId` (DB key prefixes), never in a state root or receipt routing | unconstrained by design (semantically irrelevant); any change to boundaries / shard ids is rejected |
+| `epochs[0].validators[*]` (account, stake ±1, drop) | host `validator_stake` / `validator_total_stake`, epoch-switch validator updates | no such host call, no epoch switch, no validator update in T1 | constrained when read |
+| `apply_facts[0].minimum_stake` | the `Stake` action (`D2/Actions.lean:301`: `stake < env.minStake` fails), via `envOf` (`ChunkValidationD2.lean:228/250`) | T1 has no stake action | constrained when read |
+
+So no accepted mutant is a soundness gap of the relation for T1: each field is either never read
+by the chunk-validity relation (as in nearcore) or read only by paths T1 does not take, and section
+C is a **trusted** input (its correctness is the statement's premise, not proved). Lane I's doc
+(`E2E-T1-CRITICAL-PATH.md` §3) can cite this table.
+
 ### 3.5 The Lean theorem that closes it
 
 ```
