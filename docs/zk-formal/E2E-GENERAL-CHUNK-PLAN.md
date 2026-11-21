@@ -770,7 +770,12 @@ is green with the new files.
 * **Every layer at 274 bits per round, one S chunk** (`NEARPROOF_RBR_ALL=274`; measurement only).
   The packet grows by 6,130 B (329,357 → 335,487 B), confirming lane E's +6.3 KB estimate. Verify
   time is unchanged (≈ 69 ms). Tree proving is +12 % (loaded host). Base: see README §0.
-* **Throughput sample:** see README §0 (10 random corpus chunks under the production setup).
+* **Throughput sample, partial** (stopped on the M10 re-prioritisation).
+  * 10 random corpus chunks (6 S, 2 M, 2 L): all dumped and base-proved.
+  * 4 S chunks tree-proved under the production setup. Each reproduced the setup byte for byte.
+    Packets 328,866–330,591 B; tree 1,870–2,021 s; verify 48–55 ms.
+  * No failures. Something outside lane D's scripts deleted the driver binary mid-run; it was
+    rebuilt and the run resumed.
 * **Tidy.** Every run script fails on error, and every results directory carries `SHA256SUMS`
   (`scripts/sha256sums.sh`).
 * **Oversize policy (review-D8 L2).**

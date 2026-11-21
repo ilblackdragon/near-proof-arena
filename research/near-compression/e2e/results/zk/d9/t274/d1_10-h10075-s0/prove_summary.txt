@@ -1,0 +1,27 @@
+TREE_PARAMS n_stack=20 log_blowup=5 queries=[55, 43, 31, 25] sha_cap_log=22
+TREE_LEAF_PARAMS n_stack=20 log_blowup=2 queries=[83, 62, 41, 31]
+TREE_SHAPE arity=4 depth=1 node_margin=1.13
+TREE_LEAF_FAMILY_PROBE class=0 rows=208464 nv_tight=390788 -> leaf geometry (19,18,1)
+TREE_LEAF_FAMILIES [(19, 18, 1)] class_family=[0]
+TREE_TEMPLATE class=0 family=0 kind=base rows=206928 pin=[(19, Some(388484)), (21, Some(1196928)), (7, Some(128)), (16, Some(65536))] base_vk=311a56afc17060e3 s=6.0
+TREE_CLASS_KEY_REBUILT class=0
+TREE_TEMPLATE_CONFIRMED class=0 by=/data/illia/nearproof-deps/pq-e2e-d9/b274/d1_09-h10150-s3
+TREE_CHUNK_CLASS class=0 family=0 confirmations_per_class=[2]
+TREE_PAD_LEAF family=0 rows=1086 pin=[(19, Some(1648)), (8, Some(256)), (7, Some(128)), (16, Some(65536))]
+TREE_LEAF_HEIGHTS family=0 [(19, Some(388484)), (21, Some(1196928)), (7, Some(128)), (16, Some(65536))]
+TREE_LEAF 0 family=0 rows=206928 bytes=453277 seconds=217.8
+TREE_LEAF 1 family=0 rows=1086 bytes=453991 seconds=170.0
+TREE_LEAF 2 family=0 rows=1086 bytes=452353 seconds=222.5
+TREE_LEAF 3 family=0 rows=1086 bytes=452605 seconds=175.0
+TREE_NODE2_SIZES family=0 rows=823832 nv_used=1601992 sha_used=5593992
+TREE_NODE2_SIZES max rows=823832 nv_used=1601992 sha_used=5593992 -> geom=(21,20,2)
+TREE_NODE2_PROBE family=0 geom=(21,20,2) rows=821784 pin=[(21, Some(1611084)), (22, Some(4194304)), (7, Some(128)), (16, Some(65536)), (21, Some(1521664))] info=[2175, 21432, 238848, 1589652, 5477120]
+TREE_NODE_GEOM Geom { log_rows: 21, prog_log: 20, sha_instances: 2, heights: [(21, Some(1611084)), (22, Some(4194304)), (7, Some(128)), (16, Some(65536)), (21, Some(1521664))] }
+TREE_NODE2_PROGRAM family=0 root=[1154313471017412301, 15525129423251152947, 9132447890487099700, 11538144368172339775, 588519676388984819, 32829]
+TREE_PAD_NODE rows=2622
+TREE_NODE L2_0 kind=P2 rows=821784 shape_pin=[(21, Some(1611084)), (22, Some(4194304)), (7, Some(128)), (16, Some(65536)), (21, Some(1521664))] info=[2175, 21432, 238848, 1589652, 5477120]
+TREE_NODE_PROVED L2_0 bytes=489347 seconds=881.6
+WRAP_SHAPE_PIN [(20, Some(375096)), (21, Some(1303168)), (7, Some(128)), (16, Some(65536))] info=[802, 6318, 69632, 368777, 1233536]
+WRAP_NEGATIVE_CONTROLS_OK wrong_ctx wrong_class changed_program changed_heights changed_level
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 40:43.34
+	Maximum resident set size (kbytes): 28520212

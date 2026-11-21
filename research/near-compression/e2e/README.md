@@ -24,8 +24,9 @@ RESULT.json. No GPU was used; GPU latencies are model projections only
   fixtures of the D-8 review are rejected.
 * **274-bit run.** One chunk was proved with every layer at the 274-bit per-round target. The
   packet grows by 6.1 KB; verify time is unchanged.
-* **Throughput sample.** Ten randomly chosen corpus chunks (6 S, 2 M, 2 L) were proved through the
-  tree under the production setup.
+* **Throughput sample, partial.** Ten randomly chosen corpus chunks (6 S, 2 M, 2 L) were all
+  dumped and base-proved. Four of them (all S) were tree-proved under the production setup before
+  the run was stopped on re-prioritisation. There were no failures.
 
 **Where things are**
 * Deps tree `pq-e2e-d9`: `pq-e2e-d8` plus the D-9 circuit change. Applying `d4h +
@@ -50,9 +51,39 @@ RESULT.json. No GPU was used; GPU latencies are model projections only
 | review-D8 L1 (audit scope) | `tree-audit AIR SETUP …`: AIR hash; vk domain factor compared (not overwritten); tree geometry read from the setup (`TreeShape.tree_geom`); every class must be covered by a base dir, no base dirs fails; `C_padL` per family, `C_padN`, no `C_*` at depth 1; over a run dir: `C_2` of its family, the wrap program, its pinned heights, the final vk and the FINAL parameters regenerated; version-5 setups get the class-level checks | **yes** |
 | review-D8 L2, L3, I1, I4, I5 | L2: oversize policy stated (plan §5.0); pad keys still corpus-derived (open). L3 + I1: ZK-ARGUMENT §10.3 corrected (45 is a corpus statistic; the class reveals a size-threshold crossing; a prover may use a larger class; the TAPE pin adds no hiding, its benefit is one vk per class; `P_2`'s leaf parameters are program constants bound via `C_2`). I4: with M1. I5: flagged for lanes A/B in plan §5.0.1 (4) (seg-v1 at 32 grinding bits is 266.9 < 268) | **yes** (L2 keys open) |
 | 2. every layer at the 274-bit per-round target, one chunk | `NEARPROOF_RBR_ALL=274` (measurement lever, off by default): base, leaves, `P_2` and wrap recalibrated at 274 (S1, one-class setup confirmed by S2 at 274); table below. **Packet 329,357 → 335,487 B (+6,130 B, +1.9 %)** — lane E's +6.3 KB estimate (budget §9.3) confirmed; verify unchanged (68.6–69.5 ms vs 68.8–69.3 ms); proving +12 % on the tree (2,443 s vs 2,185 s, loaded host) and +1.8 % on the base (1,098 s vs a 268-bit control 1,079 s, 2 threads each; base proof 524,578 vs 518,214 B); bits per vk: wrap 274.0, node 274.0, leaf 275.6, base 276.3 (LogUp 321–324). No OOD sample was added (the stack's calibration reports `whir_ood` well above target; lane E's model shapes flagged final OOD r1/r3 short — not reproduced on the deployed vks) | **measured** |
-| 3. ~10 random corpus chunks through the tree under the production setup | SAMPLE_SUMMARY | SAMPLE_MET |
+| 3. ~10 random corpus chunks through the tree under the production setup | **Partial (4 of 10 trees), stopped on the integrator's re-prioritisation (M10/T1).** `pick_sample_d9.py` (seed 20261104) drew 6 S, 2 M and 2 L chunks from the census, all of them outside the D-8 members. **All 10 were dumped at their class and base-proved with no failure** (`BASE_CLASS_HEIGHTS_OK`, `BASE_CLASS_TAPE_PAD`). The base times are not comparable with each other: 6 S/M ran at 2 threads (1,046–1,765 s), 4 at 10 threads (S 296 s, M 307–368 s, L 318–319 s; L peak 24.9–26.5 GB). **4 S chunks were tree-proved against the production setup; each reproduced the setup byte for byte and verified 3/3 in fresh processes**: packets 328,866–330,591 B, tree prove 1,870–2,021 s on a quiet host (D-8 S: 2,139–2,270 s), verify 48–55 ms, peak 27.6–28.6 GB. **Findings:** none in the proof system. Operationally, the driver binary was **deleted mid-run by something outside these scripts** (this happened to `target-sd` twice before, and the whole `target*` / `sdbuild` set went this time). One verification failed with `rc=127`. The binary was rebuilt into `pq-e2e-d9/drv` (`DRIVER_TARGET`), and the run resumed with `KEEP_PROVED`; the completed proof was kept and re-verified. Untried: 2 S, 2 M and 2 L sample trees (their bases are in `pq-e2e-d9/bs`) | **partial** (4/10 trees, 10/10 bases) |
 | 4. tidy: scripts fail on error, results carry SHA256SUMS | every run script under `scripts/` exits non-zero on a failed step (`set -euo pipefail`, or a failure flag where a report line is kept; `zk128_sweep.sh` deliberately continues past a known-panicking configuration); `sha256sums.sh write|check`; every `results/zk/*` run directory (15 + d9) carries a `SHA256SUMS` that checks | **yes** |
-| delete superseded deps | `pq-e2e-d8` deleted after the D-8 review's `REPORT-DONE` (its results are in `results/zk/d8/`; the reviewer's `tamper/base0/public` link pointed into it, `tamper_d9.sh` relinks it); /data DISKPCT | **yes** |
+| delete superseded deps | `pq-e2e-d8` deleted after the D-8 review's `REPORT-DONE` (its results are in `results/zk/d8/`; the reviewer's `tamper/base0/public` link pointed into it, `tamper_d9.sh` relinks it); /data 86 % at the end | **yes** |
+
+**Measured: one setup with leaf families (`results/zk/d9/tree9/`, 8 threads, arity 4, depth 1).**
+
+| chunk (class / family) | packet B | prove s | leaves s | `P_2` s | wrap s | verify ms, 1 core | peak |
+|---|---:|---:|---|---:|---:|---|---:|
+| d1_10-h10075-s0 (S / 0; creates the setup, +239 s L-family `PAD_L` probe) | 329,357 | 2,424 (2,185 without the probe) | 158 / 136 / 136 / 207 | 796 | 546 | 68.8–69.3 (re-timed 54.7–70.4) | 28.8 GB |
+| d1_10-h10056-s2 (M / 0; fixed setup, reproduced) | 329,512 | 2,217 | 146 / 167 / 219 / 142 | 869 | 569 | 51.7–67.5 (53.0–53.8) | 27.8 GB |
+| d1_01-h10040-s3 (L / 1; fixed setup, reproduced) | 330,544 | 2,441 | 171 / 204 / 286 / 197 | 924 | 553 | 1,442–1,570 under host load 29; re-timed 62.4–83.4 | 29.7 GB |
+| sample: 4 S chunks (fixed setup, reproduced; quiet host) | 328,866–330,591 | 1,870–2,021 | 107–195 | 736–797 | 473–602 | 48.4–54.8 | 27.6–28.6 GB |
+
+The first three runs were made under host load 10–29 from other lanes. Re-timed verification is
+in `reverify.txt`. All runs set `zero_knowledge_established = true` with `A = 6`. Soundness per
+vk: wrap 268.2, node 268.2, leaf 268.5, bases S/M 269.6 and L 268.5.
+
+**Every layer at 274 bits per round (`results/zk/d9/t274/`, chunk S1).**
+
+| | 268 (production) | 274 | delta |
+|---|---:|---:|---:|
+| packet B | 329,357 | 335,487 | **+6,130 (+1.9 %)** |
+| verify ms (1 core) | 68.8–69.3 | 68.6–69.5 | ≈ 0 |
+| tree prove s (8 thr): leaves / `P_2` / wrap | 2,185: 637 / 796 / 546 | 2,443: 785 / 882 / 646 | +12 % (loaded host) |
+| base prove s (2 thr); base proof B | 1,079; 518,214 | 1,098; 524,578 | +1.8 %; +1.2 % |
+| queries / bits: wrap; node; leaf; base S | [46,41,31,25] 268.2; [54,41,31,25] 268.2; [81,60,40,30] 268.5; [44,35,27,23] 269.6 | [47,43,31,25] 274.0; [55,43,31,25] 274.0; [83,62,41,31] 275.6; [45,36,28,24] 276.3 | |
+
+**Not done / open.**
+* Owner decisions: `u` (QROM) and the per-round target (now measured).
+* 6 sample trees (bases ready).
+* The `PAD_L` cost in one-template trees.
+* TAPE pad keys derived from the AIR (L2).
+* An independent review of D-9.
 
 ## 0a. Update 2026-11-04 (late), milestone D-8 (lane E2E-D): production base-class set over the corpus, arity 4 by default, cheaper leaves, review-D7 folded
 
