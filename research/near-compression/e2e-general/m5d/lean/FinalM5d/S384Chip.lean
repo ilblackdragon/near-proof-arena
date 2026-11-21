@@ -71,4 +71,34 @@ theorem s384_comp (h : Holds finalAirS pub tr) {compress : List Nat → List Nat
   · simp only [tn, show 3 * (2 * m + 1) = 6 * m + 3 by omega,
       show 3 * (2 * m + 1) + 1 = 6 * m + 4 by omega, show 3 * (2 * m + 1) + 2 = 6 * m + 5 by omega]; rfl
 
+/-! ## Non-vacuity: precheck-accepted traces give `Holds finalAirS` with the chip's sends -/
+
+/-- `IF384` is receive-only in `finalAir`, with 8-element messages (lane B's `ifOK`). -/
+theorem final_ifOK : finalAir.tables.all (fun T => StateM5a.ChipStub.ifOK T.interactions) = true := by
+  decide +kernel
+
+/-- **The deployment** (lane B's `holds_of_holdsX` for the FINAL AIR): a trace of `finalAir`
+accepted by the prover's precheck — every bus but `IF384` balanced (`HoldsX … B_IF384`), the
+native chip's `IF384` sends `chip` a permutation of the receives — extends (Lean tables
+unchanged) to a trace satisfying `Holds finalAirS` whose stub sends are exactly `chip`. So
+`s384_comp`'s contract premise is the chip's faithfulness on its own sends. -/
+theorem precheck_holds_final {tr : Trace Fp}
+    (hX : StateM5a.ChipStub.HoldsX finalAir pub tr B_IF384)
+    (chip : List (List Fp)) (hchip : chip.Perm (busList finalAir tr pub B_IF384 false))
+    (hlen : chip.length ≤ 2 ^ 22) :
+    ∃ tr' : Trace Fp,
+      (∀ t < finalAir.tables.length, tr'.log t = tr.log t ∧ tr'.cell t = tr.cell t) ∧
+      Holds finalAirS pub tr' ∧ busList finalAirS tr' pub B_IF384 true = chip := by
+  have hok : ∀ T ∈ finalAir.tables, StateM5a.ChipStub.ifOK T.interactions = true :=
+    fun T hT => List.all_eq_true.1 final_ifOK T hT
+  have hns : ∀ T ∈ finalAir.tables, ∀ i ∈ T.interactions, ¬ (i.bus = B_IF384 ∧ i.send = true) :=
+    fun T hT i hi ⟨hb, hs⟩ => by
+      have := (StateM5a.ChipStub.of_ifOK (hok T hT) hi hb).1; rw [hs] at this; exact absurd this (by decide)
+  have h8 : ∀ m ∈ chip, m.length = 8 := fun m hm =>
+    StateM5a.ChipStub.busList_len _ tr pub B_IF384 false
+      (fun T hT i hi hb _ => (StateM5a.ChipStub.of_ifOK (hok T hT) hi hb).2) m (hchip.mem_iff.1 hm)
+  obtain ⟨tr', h1, h2, h3, -⟩ :=
+    StateM5a.ChipStub.holds_of_holdsX (by decide) hX hns chip hchip h8 hlen
+  exact ⟨tr', h1, h2, h3⟩
+
 end FinalM5d.S384Chip

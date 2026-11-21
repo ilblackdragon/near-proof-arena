@@ -47,3 +47,4 @@ import FinalM5d.S384Chip
 #print axioms FinalM5d.ShaWhole.sha_msg
 #print axioms FinalM5d.S384Rec.sha384_of_blocks
 #print axioms FinalM5d.S384Chip.s384_comp
+#print axioms FinalM5d.S384Chip.precheck_holds_final
