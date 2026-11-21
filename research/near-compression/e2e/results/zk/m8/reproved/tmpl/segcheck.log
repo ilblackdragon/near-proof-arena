@@ -1,0 +1,74 @@
+TRACE steps 26 cuts 1 tracegen 0.06s
+SEGBUILD 0 0.19s
+SEGBUILD 1 0.15s
+SEG 0 t (0, 13] steps 13 halted 0 | boundary: stream in 2 out 9 msgs, blocks 1 (read-only 0), drops 0 tombs 0, compressions 58 (stream 8, MEMB 18, MPATH 32)
+  TABLE SEGB     width    4 height        4 cells         16
+  TABLE ADD      width   30 height        4 cells        120
+  TABLE BIT      width   39 height        4 cells        156
+  TABLE MUL      width   45 height        4 cells        180
+  TABLE SHIFT    width   82 height        4 cells        328
+  TABLE CMP      width   44 height        4 cells        176
+  TABLE CONST    width   13 height        8 cells        104
+  TABLE STACK    width   30 height        4 cells        120
+  TABLE CTRL     width   18 height        4 cells         72
+  TABLE LOCAL    width   28 height        4 cells        112
+  TABLE DIV      width   97 height        4 cells        388
+  TABLE LOAD     width   58 height        4 cells        232
+  TABLE STORE    width   61 height        4 cells        244
+  TABLE CALL     width  218 height        4 cells        872
+  TABLE RET      width   27 height        4 cells        108
+  TABLE RANGE16  width    2 height    65536 cells     131072
+  TABLE BYTE     width   20 height    65536 cells    1310720
+  TABLE CODE     width    9 height       32 cells        288
+  TABLE DROP     width   11 height        4 cells         44
+  TABLE MEMB     width  558 height       16 cells       8928
+  TABLE MPATH    width  143 height       16 cells       2288
+  TABLE FUNC     width    9 height        4 cells         36
+  TABLE HOST     width  103 height        4 cells        412
+  TABLE HOSTO    width   33 height        4 cells        132
+  TABLE HOSTT    width    9 height       64 cells        576
+  TABLE HOSTB    width   16 height        8 cells        128
+  TABLE IF       width   14 height        4 cells         56
+  TABLE REG      width   22 height       16 cells        352
+  TABLE CONV     width   18 height        4 cells         72
+  TABLE UNREACH  width    8 height        4 cells         32
+  TABLE CUTI     width   47 height        4 cells        188
+  TABLE CUTO     width   66 height       16 cells       1056
+  CELLS instruction+lookup tables 1447088 | boundary tables 12520 | SHA-512 chip 681088 (height 8192) | total 2140696
+  PRECHECK OK (0.06s): every constraint on every row, every bus balanced incl. the chip's interface
+SEG 1 t (13, 26] steps 13 halted 1 | boundary: stream in 9 out 13 msgs, blocks 1 (read-only 1), drops 0 tombs 0, compressions 39 (stream 14, MEMB 9, MPATH 16)
+  TABLE SEGB     width    4 height        4 cells         16
+  TABLE ADD      width   30 height        4 cells        120
+  TABLE BIT      width   39 height        4 cells        156
+  TABLE MUL      width   45 height        4 cells        180
+  TABLE SHIFT    width   82 height        4 cells        328
+  TABLE CMP      width   44 height        4 cells        176
+  TABLE CONST    width   13 height        8 cells        104
+  TABLE STACK    width   30 height        4 cells        120
+  TABLE CTRL     width   18 height        4 cells         72
+  TABLE LOCAL    width   28 height        4 cells        112
+  TABLE DIV      width   97 height        4 cells        388
+  TABLE LOAD     width   58 height        4 cells        232
+  TABLE STORE    width   61 height        4 cells        244
+  TABLE CALL     width  218 height        4 cells        872
+  TABLE RET      width   27 height        4 cells        108
+  TABLE RANGE16  width    2 height    65536 cells     131072
+  TABLE BYTE     width   20 height    65536 cells    1310720
+  TABLE CODE     width    9 height       32 cells        288
+  TABLE DROP     width   11 height        4 cells         44
+  TABLE MEMB     width  558 height       16 cells       8928
+  TABLE MPATH    width  143 height       16 cells       2288
+  TABLE FUNC     width    9 height        4 cells         36
+  TABLE HOST     width  103 height        4 cells        412
+  TABLE HOSTO    width   33 height        4 cells        132
+  TABLE HOSTT    width    9 height       64 cells        576
+  TABLE HOSTB    width   16 height       32 cells        512
+  TABLE IF       width   14 height        4 cells         56
+  TABLE REG      width   22 height        8 cells        176
+  TABLE CONV     width   18 height        4 cells         72
+  TABLE UNREACH  width    8 height        4 cells         32
+  TABLE CUTI     width   47 height       16 cells        752
+  TABLE CUTO     width   66 height       16 cells       1056
+  CELLS instruction+lookup tables 1447296 | boundary tables 13084 | SHA-512 chip 681088 (height 8192) | total 2141468
+  PRECHECK OK (0.06s): every constraint on every row, every bus balanced incl. the chip's interface
+SEGCHECK OK 2 segments chained: B_out(k) = B_in(k+1) for every k

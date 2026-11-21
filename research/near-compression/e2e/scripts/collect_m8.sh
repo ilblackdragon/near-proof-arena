@@ -7,7 +7,7 @@ S=$(cd "$(dirname "$0")" && pwd)
 O=${1:?work}; N=${2:?name}
 R=$S/../results/zk/m8/$N
 mkdir -p "$R/tmpl" "$R/tree"
-cp "$O"/spec.json "$O"/spec.txt "$R/" 2>/dev/null || true
+for f in spec.json spec.txt imported.sha256; do [ -f "$O/$f" ] && cp "$O/$f" "$R/"; done
 for d in "$O"/tmpl/*/; do
   t=$(basename "$d"); mkdir -p "$R/tmpl/$t"
   cp "$d/INFO.json" "$R/tmpl/$t/"
@@ -18,7 +18,7 @@ cp "$O"/tmpl-*.log "$R/tmpl/" 2>/dev/null || true
 [ -f "$O/laneB/gen.txt" ] && cp "$O/laneB/gen.txt" "$R/tmpl/laneB-gen.txt" || true
 T=$O/tree
 if [ -d "$T" ]; then
-  cp "$T/RESULT.json" "$T/SETUP.sha256" "$T/SETUP.json" "$T/WRAP.bundle" "$R/tree/"
+  for f in RESULT.json SETUP.sha256 SETUP.json WRAP.bundle; do [ -f "$T/$f" ] && cp "$T/$f" "$R/tree/"; done
   cp "$O/tree.log" "$R/tree/prove.log"
   for f in verify.txt negatives.txt verify1.log; do [ -f "$O/$f" ] && cp "$O/$f" "$R/tree/"; done
 fi

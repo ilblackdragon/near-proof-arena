@@ -12,7 +12,78 @@ packets of shape-floored chains (`results/zk/shape/`, `results/zk/d6/classes/`);
 RESULT.json. No GPU was used; GPU latencies are model projections only
 (`../prover-budget/model.py`). No Lean spec or checker change.
 
-## 0. Update 2026-11-05, milestone D-9 (lane E2E-D): one leaf geometry per family under one wrap setup, review-D8 M1/M2 fixed, every layer at 274 bits measured, a random corpus throughput sample
+## 0. Update 2026-11-21, milestone M8 (lane E2E-D): the heterogeneous tree — a generic template leaf, real T1 leaves of lanes A and B aggregated under one wrap
+
+Status: **prototype.** `security_established = false`; `zero_knowledge_established = false` for
+the M8 packets (reasons below). Deps tree `pq-e2e-m8` = `pq-e2e-d9` + the M8 circuit change
+(`d4h + e2e-heights.patch + e2e-tree.patch` reproduces it, `scripts/regen_tree_patch_m8.sh`).
+Driver `pq-chunk-e2e/src/htree.rs`; circuit `nv/htree.rs` (+ `nv/htree_tests.rs`). Argument:
+ZK-ARGUMENT §10.5. Log: `docs/logs/e2e-zk-lane-d-2026-11-21-m8.md`.
+
+**What M8 delivers**
+* **A generic leaf wrapper for an arbitrary template** (`htree::build_tmpl_leaf`, `TemplateSpec`).
+  A template is declared, not coded: its coarse phases, the cells of its input / output boundary
+  record (child public values, limbs of the child's cached commitments, statement cells,
+  pass-through witnesses, constants), where `ctx` comes from, equality groups of the AIRs' public
+  vectors (prefix allowed: lane B's WSB reads the first 17 of WSX's 70) and pinned constants.
+  `TemplateSpec::check` refuses to generate a leaf that leaves **any** public value or cached
+  commitment of the child unbound. The leaf exposes `H9(ctx, a, a+1, [phase, h(B_in)],
+  [phase, h(B_out)])`, `h(B)` an in-circuit SHA-384 over `(ctx, record)` (18 limbs).
+* **Heterogeneous chaining with the existing nodes.** `P_2` is one program over any mix of
+  template leaves (its one-hot template set `{C_t} ∪ {C_padL}`); `P_*`, `PAD_N` and the wrap are the
+  D-9 programs at the wider state (`N_STATE` 19). Node continuity = boundary equality
+  `B_out(i) = B_in(i+1)` (phase and digest), index continuity, one `ctx`. Phases make the template
+  order `INIT · MID* · FINAL · PAD*`: the wrap requires INIT at the left edge and DONE at the right
+  edge; **no template takes a DONE input** (review-D7 I3), PAD only after DONE.
+* **`ctx` = lane E's `claimDigest`** (integrator, 2026-11-21; plan §3.4.1): the packet is
+  `S ‖ wrap proof`, `S` the canonical statement bytes (T1: 1,007 B), and V_d computes
+  `ctx = bdigest(S)` as 14 three-byte limbs + 4 zero cells — the form in which lane G's INIT / FINAL
+  expose it, so their leaf binds `ctx` by `CtxMode::Src(pv 0..14)` with no re-encoding. T1:
+  `bb5aad11…9f2f01` (checked against lane E's kernel value).
+* **Constraint-level negatives** (`htree_fib_end_to_end`, Fib fixture templates A, B of two vks +
+  statement stubs, `engine.debug`): template swap (a set without a child's program), boundary
+  mismatch, reordering, PAD in the middle / instead of FINAL, a leaf of another chunk's `ctx`, a
+  forged preimage, a pinned public value changed, PAD on a MID boundary, a root that never reaches
+  DONE; generation-level refusals (`htree_spec_checks`): a DONE input (I3), free public values,
+  another template's layout, malformed records / sources.
+* **D0a unchanged**: `regress_m8_d9.sh` rebuilds every D-9 class key and leaf program with the M8
+  circuit and matches the production setup (`TREE_TEMPLATES_MATCH_FIXED_SETUP`).
+
+**Prototype on T1** (`run_m8.sh import|spec|tree|verify WORK` with `SPEC=m8_spec_real.py`).
+Leaves, in order: INIT (stub) · STATE_IF (lane B B-T1 leaf, 491 KB) · WASM seg 0, seg 1 (lane A
+A-T1 pinned-shape leaves, 554 / 552 KB) · STATE_SEG (lane B, 473 KB; its HTAPE root bound) ·
+FINAL (stub) · 2 PAD_L; arity 4, depth 2. **The lanes' own saved proofs are used unchanged**
+(`m8-import`: verified natively by lane D's driver; `imported.sha256`). The boundary record is a
+prototype schema (173 cells: lane A's Wasm boundary fields + CODE/FUNC roots; lane B's prev root,
+wsLen, current / target working-set roots, post root, change count, HTAPE root). The chain is
+checked natively first (`M8_CHAIN_OK`), including lane B's `R_out(last seg) = R_n(IF)` (FINAL reads
+the current and the target root from the same cells).
+
+M8_REAL_TABLE_PLACEHOLDER
+
+**Findings**
+* **Lane A's pinned template does not pin the tight heights.** The two T1 segments share one vk
+  but differ in the tight height of CODE (16 vs 32 rows) and of the SHA-512 chip (7,424 vs 4,992):
+  heights are program constants, so they give **two WASM leaf programs** (two entries of the
+  template set). Lane B pins the tight height to the full height (`set_tight_floor`); lane A must do
+  the same, or the setup's template set grows with the segments.
+* **PAD_N costs a full node** (~880 s at the node geometry). A depth-2 tree over 5–8 leaves at
+  arity 4 proves 2 PAD_N. Item 4's "cheaper padding" applies to both PAD_L and PAD_N; see below.
+* **Lane G's INIT / FINAL proofs are not saved and are on the old backend copy** (m5d
+  `prove_both.sh`); the stubs stand in. Lane F's `rt` proof (seg-v1, 1.16 MB) is not saved either.
+
+**Item 4 (one-template trees), code only.** `tree-prove … DEPTH 0` with one leaf family: the wrap
+verifies the D0a template leaf itself (no `P_2`, no `PAD_L`): 1 leaf + wrap instead of 4 leaves +
+`P_2` + wrap. Not measured (host saturated by M8 runs); the wrap's root set is the classes' leaf
+programs at the one leaf geometry, so the wrap heights still hide the class.
+
+**Not done / open.** Lane G's INIT / FINAL as real leaves (`CtxMode::Src`, records per
+LEAF-TEMPLATE-SPEC: needs saved proofs on the stack backend); lane F's `rt`; lane E's `BndRec`
+digests as the record (the templates' public values must expose `bdigest(BndRec)`; the tree then
+carries them unchanged); pinned template shapes (lane A tight heights); a setup independent of the
+run; the 6 remaining D0a sample trees (host not idle); depth-0 measurement.
+
+## 0.9 Update 2026-11-05, milestone D-9 (lane E2E-D): one leaf geometry per family under one wrap setup, review-D8 M1/M2 fixed, every layer at 274 bits measured, a random corpus throughput sample
 
 **What D-9 delivers**
 * **Leaf families under one setup.** A setup now holds several leaf geometries ("families"). S and

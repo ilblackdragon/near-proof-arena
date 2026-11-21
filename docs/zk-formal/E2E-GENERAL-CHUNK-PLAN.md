@@ -1036,7 +1036,38 @@ ANS, CONN, JOIN.
 * The failed-grow fee bound.
 * A height-class menu over a corpus sample.
 
-### 5.0 Lane D (ZK wrap for M9): status, 2026-11-05 (milestone D-9)
+### 5.0 Lane D: status, 2026-11-21 (milestone M8, heterogeneous tree; prototype)
+
+**Where to read:** `research/near-compression/e2e/README.md` §0 (M8; D-9 is now §0.9),
+ZK-ARGUMENT §10.5, log `docs/logs/e2e-zk-lane-d-2026-11-21-m8.md`.
+
+**Done (M8):**
+* **Generic template leaf** (`nv/htree.rs`): a template is a declared layout (`TemplateSpec`:
+  phases; input / output boundary-record cells from child public values, cached-commitment limbs,
+  statement cells, pass-throughs, constants; `ctx` source; public-value equality / pins). Leaf
+  generation is refused unless every public value and cached commitment of the child is bound. The
+  leaf exposes `H9(ctx, a, a+1, [phase, h(B_in)], [phase, h(B_out)])`. Template set binding
+  (option A) over several kinds: `P_2`'s one-hot set holds every template's leaf program.
+* **Chaining rules in-circuit:** boundary equality (phase + digest), index continuity, one `ctx`,
+  INIT at the left edge and DONE at the right edge (wrap), no DONE input for any template (I3), PAD
+  only after DONE. Constraint-level negatives on the Fib fixture (template swap, boundary mismatch,
+  reordering, PAD misuse, foreign `ctx`, forged preimage, no FINAL).
+* **`ctx` = `claimDigest = bdigest(S)`** of §3.4.1 (14 three-byte limbs + 4 zeros, lane G's
+  exposed form); packet `S ‖ wrap`; V_d recomputes it from `S` alone. T1: `bb5aad11…9f2f01`.
+* **T1 prototype over the lanes' saved leaves:** stub INIT · lane B IF · lane A seg 0, seg 1 · lane
+  B seg · stub FINAL (+ PAD), arity 4 depth 2, one wrap (README §0 table).
+* D0a unchanged (`regress_m8_d9.sh`); depth-0 one-template D0a tree (code only).
+
+**Open (M8):**
+* Lane G's INIT / FINAL as real leaves: their proofs must be saved on the stack backend
+  (`CtxMode::Src(pv 0..14)` and the record of LEAF-TEMPLATE-SPEC §3 / §4 are ready to declare).
+* Lane A: pin the tight heights (two T1 segments give two leaf programs today).
+* Lane E's `BndRec` digests in place of the prototype record (the templates expose
+  `bdigest(BndRec)`; the leaf's record is then those 14 limbs).
+* Lane F's `rt` leaf; a run-independent setup (pinned template shapes); cheaper PAD_L / PAD_N;
+  the 6 D0a sample trees; the owner decisions (`u`, 268 vs 274).
+
+### 5.0-D9 Lane D (ZK wrap for M9): status, 2026-11-05 (milestone D-9)
 
 **Where to read**
 * `research/near-compression/e2e/README.md`: §0 is D-9; §0a is D-8, §0b D-7, §0c D-6, §0d D-5, …
@@ -1521,6 +1552,18 @@ NV children, the same verifier program shape).
 | 12 | **Lean:** `aggWrapV` `a = 0` and wrap tag; PAD-leaf soundness in `SegSound` | E | open (lane E); the D-5 wrap tag is `TAG_STATEMENT` with leading cell `WRAP_MARKER` |
 
 ##### 4. Lane A/B templates as tree leaves (D-6 plan; blockers 4, 5, 8, 9)
+
+**M8 additions (2026-11-21, the generic leaf is built: `nv/htree.rs`).** What a template must give
+lane D now:
+* proof + vk saved in the stack's forms (`SavedVk` envelope with the domain factor, `Proof::encode`),
+  verifiable by `nearproof-chunk-e2e m8-import` (lanes A and B: done for T1);
+* **every** public value and cached commitment accounted for in its layout (the leaf refuses free
+  ones); AIRs that read one public vector must hold the same values (a shorter vector = a prefix);
+* **pinned tight heights** as well as log heights (lane A's T1 segments differ in CODE / SHA-512 tight
+  heights: two leaf programs);
+* for INIT / FINAL (lane G): `claimDigest` as public values 0..14 (three-byte limbs), as specified;
+* target form of the boundary: `bdigest(BndRec)` as 14 limbs in, 14 out (lane E §3.4.1); until then
+  lane D's prototype record (README §0) maps the lanes' raw fields.
 
 **D-8 additions for lanes A/B (from lane D's measurements and review-D7).**
 * **Segment WHIR parameters set the leaf cost.** Every segment proof is verified in-circuit once,

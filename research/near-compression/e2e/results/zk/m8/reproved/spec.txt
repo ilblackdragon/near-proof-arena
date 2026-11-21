@@ -1,0 +1,1 @@
+M8_SPEC n_rec=138 (W 85: lane A cached 2 [CODE, FUNC]; S 53: lane B cached 2 [TAPE, HTAPE]) stmt=239 claim S=1007 B claimDigest=bb5aad11..9f2f01 leaves=['INIT', 'WASM', 'WASM', 'STATE', 'FINAL'] lane A pv groups=[0, 19, 20, 27, 30, 31] pinned=11 lane B pv groups=[5, 10]
