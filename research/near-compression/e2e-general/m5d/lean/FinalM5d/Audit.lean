@@ -8,6 +8,7 @@ import FinalM5d.Split
 import FinalM5d.BOut
 import FinalM5d.MrkWalk
 import FinalM5d.ShaWhole
+import FinalM5d.S384Rec
 
 /-! Axiom audit of the M5d headline results: each must depend on `propext`, `Classical.choice`,
 `Quot.sound` only (no `sorryAx`, no `Lean.ofReduceBool`). -/
@@ -43,3 +44,4 @@ import FinalM5d.ShaWhole
 #print axioms FinalM5d.Split.fin_split
 #print axioms FinalM5d.ShaWhole.sha_digest_recv
 #print axioms FinalM5d.ShaWhole.sha_msg
+#print axioms FinalM5d.S384Rec.sha384_of_blocks

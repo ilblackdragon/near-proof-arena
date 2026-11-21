@@ -6,7 +6,7 @@ that select a FINAL template class: header version, transactions, validator prop
 requests, proposed split, Reed-Solomon (d, t), shard count and id width, |chain_id|, receipts,
 outcomes, body length. Then tally the classes by corpus frequency.
 
-  shapes.py CORPUS_DIR[,DIR…] OUT.jsonl [--jobs 4] [--limit N]    # run
+  shapes.py CORPUS_DIR[,DIR…] OUT.jsonl [--jobs 4] [--limit N] [--resume]    # run
   shapes.py --report OUT.jsonl                              # tally only
 """
 import json, os, subprocess, sys, tempfile, collections
@@ -102,7 +102,11 @@ def main():
                    if os.path.isdir(os.path.join(cd, c)))
     if "--limit" in sys.argv:
         cases = cases[:int(sys.argv[sys.argv.index("--limit") + 1])]
-    with open(out, "w") as f, ThreadPoolExecutor(jobs) as ex:
+    done = set()
+    if "--resume" in sys.argv and os.path.exists(out):
+        done = {json.loads(l)["case"] for l in open(out) if l.strip()}
+        cases = [c for c in cases if c not in done]
+    with open(out, "a" if done else "w") as f, ThreadPoolExecutor(jobs) as ex:
         for s in ex.map(shape, cases):
             f.write(json.dumps(s) + "\n"); f.flush()
     report(out)
