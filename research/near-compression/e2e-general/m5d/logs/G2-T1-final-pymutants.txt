@@ -1,0 +1,37 @@
+# G-2 FINAL mutant battery on T1 at templates/F1.json, AIR with B_out, under pycheck.py (every constraint, every bus but the chip IF384, statement check; no proving: the shared zkbuild.slice was saturated), 2026-11-21
+honest: PYCHECK OK
+hdr_psr: CONSTRAINT FAIL FIN row 0 constraint 3 PYCHECK FAIL (1) 
+hdr_por: CONSTRAINT FAIL FIN row 0 constraint 35 PYCHECK FAIL (1) 
+hdr_emr: CONSTRAINT FAIL FIN row 0 constraint 67 PYCHECK FAIL (1) 
+hdr_el: CONSTRAINT FAIL FIN row 0 constraint 99 PYCHECK FAIL (1) 
+hdr_gu: CONSTRAINT FAIL FIN row 0 constraint 105 PYCHECK FAIL (1) 
+hdr_gl: CONSTRAINT FAIL FIN row 0 constraint 113 PYCHECK FAIL (1) 
+hdr_bb: CONSTRAINT FAIL FIN row 0 constraint 121 PYCHECK FAIL (1) 
+hdr_orr: CONSTRAINT FAIL FIN row 0 constraint 137 PYCHECK FAIL (1) 
+hdr_txr: CONSTRAINT FAIL FIN row 0 constraint 169 PYCHECK FAIL (1) 
+hdr_props: CONSTRAINT FAIL FIN row 0 constraint 202 PYCHECK FAIL (1) 
+hdr_cong: CONSTRAINT FAIL FIN row 0 constraint 210 PYCHECK FAIL (1) 
+hdr_bw: CONSTRAINT FAIL FIN row 0 constraint 254 PYCHECK FAIL (1) 
+hdr_split: CONSTRAINT FAIL FIN row 0 constraint 262 PYCHECK FAIL (1) 
+fin_root: CONSTRAINT FAIL FIN row 0 constraint 8 PYCHECK FAIL (1) 
+fin_cong: CONSTRAINT FAIL FIN row 0 constraint 212 PYCHECK FAIL (1) 
+fin_gas: CONSTRAINT FAIL FIN row 0 constraint 105 PYCHECK FAIL (1) 
+fin_bal: CONSTRAINT FAIL FIN row 0 constraint 121 PYCHECK FAIL (1) 
+fin_gl: CONSTRAINT FAIL FIN row 0 constraint 113 CONSTRAINT FAIL FIN row 0 constraint 114 PYCHECK FAIL (2) 
+leaf: CONSTRAINT FAIL FIN row 0 constraint 35 CONSTRAINT FAIL FIN row 0 constraint 36 CONSTRAINT FAIL FIN row 0 constraint 37 CONSTRAINT FAIL FIN row 0 constraint 38 CONSTRAINT FAIL FIN row 0 constraint 39 PYCHECK FAIL (32) 
+outcome_drop: CONSTRAINT FAIL FIN row 0 constraint 35 CONSTRAINT FAIL FIN row 0 constraint 36 CONSTRAINT FAIL FIN row 0 constraint 37 CONSTRAINT FAIL FIN row 0 constraint 38 CONSTRAINT FAIL FIN row 0 constraint 39 PYCHECK FAIL (32) 
+rcpt_byte: CONSTRAINT FAIL FIN row 0 constraint 67 CONSTRAINT FAIL FIN row 0 constraint 68 CONSTRAINT FAIL FIN row 0 constraint 69 CONSTRAINT FAIL FIN row 0 constraint 70 CONSTRAINT FAIL FIN row 0 constraint 71 PYCHECK FAIL (63) 
+rcpt_shard: CONSTRAINT FAIL FIN row 0 constraint 137 CONSTRAINT FAIL FIN row 0 constraint 138 CONSTRAINT FAIL FIN row 0 constraint 139 CONSTRAINT FAIL FIN row 0 constraint 140 CONSTRAINT FAIL FIN row 0 constraint 141 PYCHECK FAIL (32) 
+rcpt_drop: CONSTRAINT FAIL FIN row 0 constraint 67 CONSTRAINT FAIL FIN row 0 constraint 68 CONSTRAINT FAIL FIN row 0 constraint 69 CONSTRAINT FAIL FIN row 0 constraint 70 CONSTRAINT FAIL FIN row 0 constraint 71 PYCHECK FAIL (65) 
+rcpt_swap: CONSTRAINT FAIL FIN row 0 constraint 67 CONSTRAINT FAIL FIN row 0 constraint 68 CONSTRAINT FAIL FIN row 0 constraint 69 CONSTRAINT FAIL FIN row 0 constraint 70 CONSTRAINT FAIL FIN row 0 constraint 71 PYCHECK FAIL (32) 
+body_byte: BUS UNBALANCED 0 distinct differing messages 2 e.g. [((1048576, 24, 1), 1), ((1048576, 24, 0), 1)] BUS UNBALANCED 2 distinct differing messages 2 e.g. [((1048576, 66, 1), 1), ((1048576, 66, 0), 1)] BUS UNBALANCED 12 distinct diffe
+rs_par: CONSTRAINT FAIL RS row 5 constraint 137 BUS UNBALANCED 0 distinct differing messages 2 e.g. [((4194309, 9, 151), 1), ((4194309, 9, 159), 1)] PYCHECK FAIL (2) 
+mrk_node: CONSTRAINT FAIL FIN row 0 constraint 137 CONSTRAINT FAIL FIN row 0 constraint 138 CONSTRAINT FAIL FIN row 0 constraint 139 CONSTRAINT FAIL FIN row 0 constraint 140 CONSTRAINT FAIL FIN row 0 constraint 141 BUS UNBALANCED 1 distinct
+stmt_byte: BUS UNBALANCED 2 distinct differing messages 2 e.g. [((1, 154, 240), 1), ((1, 154, 241), 1)] BUS UNBALANCED 7 distinct differing messages 2 e.g. [((154, 240), 1), ((154, 241), 1)] PYCHECK FAIL (2) 
+fin_ro: CONSTRAINT FAIL FIN row 0 constraint 35 BUS UNBALANCED 2 distinct differing messages 2 e.g. [((4, 33, 72), 1), ((4, 33, 73), 1)] BUS UNBALANCED 10 distinct differing messages 2 e.g. [((1, 73, 190, 82, 92, 248, 19, 103, 77, 73, 120
+s384_pad: CONSTRAINT FAIL S384 row 0 constraint 332 BUS UNBALANCED 4 distinct differing messages 2 e.g. [((80,), 1), ((81,), 1)] PYCHECK FAIL (2) 
+pub_claim: CONSTRAINT FAIL FIN row 0 constraint 422 STATEMENT MISMATCH (public values differ from the statement) PYCHECK FAIL (2) 
+pub_n: CONSTRAINT FAIL FIN row 0 constraint 99 CONSTRAINT FAIL SEG row 6 constraint 33 CONSTRAINT FAIL SEG row 6 constraint 34 BUS UNBALANCED 4 distinct differing messages 4 e.g. [((0,), 1), ((251,), 1)] STATEMENT MISMATCH (public values
+bout_od: CONSTRAINT FAIL FIN row 0 constraint 462 BUS UNBALANCED 3 distinct differing messages 2 e.g. [((4, 253, 239, 125, 30, 78, 177, 78, 11, 0, 116, 135, 118, 193, 37, 46, 2, 196, 44, 146, 165, 20, 88, 226, 83, 220, 222, 160, 207, 21, 2
+pub_hdr: CONSTRAINT FAIL FIN row 0 constraint 449 STATEMENT MISMATCH (public values differ from the statement) PYCHECK FAIL (2) 
+pub_out: CONSTRAINT FAIL FIN row 0 constraint 466 STATEMENT MISMATCH (public values differ from the statement) PYCHECK FAIL (2) 

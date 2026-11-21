@@ -75,13 +75,18 @@ slot's `prev_state_root` exposed (public values 28..44; bus `PSR` = 22 in the `.
 leaf spec §6 (the slot *selection* `(b2i, mainIdx)` = the checker's `walkSegment` is open: mutant
 `psr_slot` is accepted by the AIR).
 
-**Mutants:** the batteries could not run in this session — the shared `zkbuild.slice` (the `heavy`
-wrapper's cgroup) sat at its 40 GB `memory.high` from other lanes' jobs, and every prover in it
-(even the precheck) stalled in page reclaim; only `hdr_psr` completed before (rejected, FIN constraint
-3 + native verifier). Re-run: `LEAN=0 ./run.sh CASE OUT mutants` and `TEMPLATE=init …` (the
-battery runs the precheck first, the full prover only for mutants passing it). New mutants:
-FINAL `bout_od`, `pub_hdr`, `pub_out`; INIT `lbshift`, `psr_slot` (expected: accepted — the open
-selection), `pub_psr`.
+**Mutants (T1, at the templates, on the G-2 AIRs with `B_out` / `BLK`):** the prover batteries
+could not run: the shared `zkbuild.slice` (the `heavy` wrapper's cgroup) sat at its 40 GB
+`memory.high` from other lanes' jobs and every prover in it stalled. So the batteries ran under
+**`pycheck.py`** (pure Python: every exported constraint on every row, multiplicity bits, every bus
+balanced as a multiset except the chip's `IF384`, then the statement check; `pymutants.sh`):
+**FINAL 35 / 35 rejected** (`logs/G2-T1-final-pymutants.txt`: the 32 of M5d-T1 + `bout_od`,
+`pub_hdr`, `pub_out`), **INIT 10 / 10 rejected** (`logs/G2-T1-init-pymutants.txt`: + `lbshift`
+(walk end differs from `|pre| + ℓ_B`), `psr_slot`, `pub_psr`), honest traces OK. `psr_slot` (another
+slot's `prev_state_root`) is rejected **only by the statement check**; the AIR accepts it (the slot
+selection is the open `walkSegment` obligation, leaf spec §6). Under the prover (before the AIR
+changes) `hdr_psr` was rejected (precheck + native verifier). Re-run with the prover:
+`LEAN=0 ./run.sh CASE OUT mutants` (+ `TEMPLATE=init`).
 
 ### Item 3 — the FINAL / INIT leaves as joins [K] (`Split.lean`; lane E's M11i split was not on main)
 
