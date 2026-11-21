@@ -1088,7 +1088,7 @@ class Gen:
             # B-T1: the depth-24 roots, `WSX` of every dump (INTAKE + FINAL: R_0 in, R_n out;
             # segment s: R_s out, R_{s+1} in), and one `RNG` per dump
             self.root24 = {}
-            self.root24['if'] = self.build_wsx(self.rch[0], self.rch[-1], self.nseg)
+            self.root24['if'] = self.build_wsx(self.rch[0], self.rch[-1], 1)  # B-T1b: `sb = 1` (`Tmpl.Wsx.sbPin`)
             for s in range(self.nseg):
                 self.set_role(('seg', s))
                 self.root24[('seg', s)] = self.build_wsx(self.rch[s], self.rch[s + 1], 1)
@@ -1265,7 +1265,7 @@ class Gen:
                     Tn.set(r, 'cid', cid)
                     Tn.setv(r, 'o', self.l18(out[:6])); Tn.setv(r, 'ox', self.l18(out[6:]))
                     if top and ph == 1:
-                        Tn.set(r, 'nw', self.nseg)
+                        Tn.set(r, 'nw', 1 if self.splitmode else self.nseg)  # IF: `RCH(1, R_n)`
                     nxt.append(out[:6])
                 lv = nxt
 
@@ -2118,7 +2118,19 @@ def _t_wsxlvl(g):
     T.rows.pop()
 
 
-TAMPERS = dict(wsxzero=_t_wsxzero, wsxroot=_t_wsxroot, wsxhash=_t_wsxhash, wsxlvl=_t_wsxlvl, hphshort=_t_hphshort, hphlong=_t_hphlong, kempty=_t_kempty,
+def _t_wsxsb(g):
+    # B-T1b: the IF's outgoing root at segment index 0 (`WSX` sb and `WSN` nw both 0, still
+    # balanced: the degenerate `RCH` matching the pin `isFirst·(sb − 1)` excludes)
+    T = g.R['if']['T']['WSX']
+    for r in T.rows:
+        T.set(r, 'sb', 0)
+    Tn = g.R['if']['T']['WSN']
+    for r in Tn.rows:
+        if Tn.get(r, 'top') == 1 and Tn.get(r, 'ph') == 1:
+            Tn.set(r, 'nw', 0)
+
+
+TAMPERS = dict(wsxsb=_t_wsxsb, wsxzero=_t_wsxzero, wsxroot=_t_wsxroot, wsxhash=_t_wsxhash, wsxlvl=_t_wsxlvl, hphshort=_t_hphshort, hphlong=_t_hphlong, kempty=_t_kempty,
                lmwrap=_t_lmwrap, vbyte=_t_vbyte, dmono=_t_dmono, bvwrap=_t_bvwrap, absent=_t_absent, extabsent=_t_extabsent, branchval=_t_branchval, split=_t_split,
                splitext=_t_splitext, absdel=_t_absdel, squash=_t_squash, chain=_t_chain,
                verslot=_t_verslot, vernid=_t_vernid, vmcount=_t_vmcount, finroot=_t_finroot,

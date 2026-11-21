@@ -49,7 +49,7 @@ section Wsx
 variable {D : Nat} {A : Air} {tr : Trace Fp} {pub : List Fp} {compress : List Nat → List Nat → List Nat}
   {t : Nat} {T : Table}
   (hH : Holds A pub tr) (ht : t < A.tables.length) (hT : A.tables[t]! = T)
-  (hTc : T.constraints = Wsx.constraints D) (hsub : ∀ i ∈ Wsx.comps, i ∈ T.interactions)
+  (hTc : ∀ e ∈ Wsx.constraints D, e ∈ T.constraints) (hsub : ∀ i ∈ Wsx.comps, i ∈ T.interactions)
   (hcomp : CompressOK compress) (hC : Sha512IfContract compress ((busList A tr pub B_IF384 true).map decIf))
 include hH ht hT hTc hsub hcomp hC
 
@@ -58,17 +58,22 @@ theorem wsx_ext (hml : T.maxLog ≤ 20) (hD : D ≤ 23) :
     rowDig tr t 0 pub (fun j => Wsx.c "z" j) = zD D ∧
     extUp (nodeH compress) (zD D) 0 (24 - D) (rowDig tr t 0 pub (fun j => Wsx.c "a" j)) = pubDig pub PUB_WSA ∧
     extUp (nodeH compress) (zD D) 0 (24 - D) (rowDig tr t 0 pub (fun j => Wsx.c "b" j)) = pubDig pub PUB_WSB := by
-  have hc : ∀ r, r < tr.height t → ∀ e ∈ T.constraints, e.eval tr t r pub = 0 := by
+  have hc0 : ∀ r, r < tr.height t → ∀ e ∈ T.constraints, e.eval tr t r pub = 0 := by
     intro r hr e he
     have h := hH.constr t ht r hr e
     rw [← getElem!_pos _ t ht, hT] at h
     exact h he
+  -- the `WSX` constraints alone (the IF table adds `sbPin`)
+  let T0 : Table := { width := 0, constraints := Wsx.constraints D, interactions := [], maxLog := 0 }
+  have hc : ∀ r, r < tr.height t → ∀ e ∈ T0.constraints, e.eval tr t r pub = 0 :=
+    fun r hr e he => hc0 r hr e (hTc e he)
+  have hTw : T0.constraints = Wsx.constraints D := rfl
   have hlog : tr.log t ≤ 20 := by
     have h := (hH.logBound t ht).2
     rw [← getElem!_pos _ t ht, hT] at h
     omega
   have hperm := holds_perm hH B_IF384
-  obtain ⟨hlt, hlay⟩ := FieldWsx.wsx_layout hTc hc hD hlog
+  obtain ⟨hlt, hlay⟩ := FieldWsx.wsx_layout hTw hc hD hlog
   let H := nodeH compress
   let dg := fun (s : String) (r : Nat) => rowDig tr t r pub (fun j => Wsx.c s j)
   -- the three compressions of an active row
@@ -92,16 +97,16 @@ theorem wsx_ext (hml : T.maxLog ≤ 20) (hD : D ≤ 23) :
     intro r hr
     have hr1 : r + 1 < tr.height t := by omega
     have h1 : ev tr t (r + 1) pub (Wsx.c "act") = 1 := ((hlay (r + 1) hr1).1).2 hr
-    exact ⟨rowDig_rows fun j hj => (FieldWsx.wsx_link hTc hc hj hr1 h1).1,
-      rowDig_rows fun j hj => (FieldWsx.wsx_link hTc hc hj hr1 h1).2.1,
-      rowDig_rows fun j hj => (FieldWsx.wsx_link hTc hc hj hr1 h1).2.2⟩
+    exact ⟨rowDig_rows fun j hj => (FieldWsx.wsx_link hTw hc hj hr1 h1).1,
+      rowDig_rows fun j hj => (FieldWsx.wsx_link hTw hc hj hr1 h1).2.1,
+      rowDig_rows fun j hj => (FieldWsx.wsx_link hTw hc hj hr1 h1).2.2⟩
   have hz0 : dg "z" 0 = zD D := by
     show rowDig tr t 0 pub (fun j => Wsx.c "z" j) = zD D
     unfold rowDig zD
     congr 1
     apply List.map_congr_left
     intro j hj
-    exact FieldWsx.wsx_first_z hTc hc (List.mem_range.1 hj)
+    exact FieldWsx.wsx_first_z hTw hc (List.mem_range.1 hj)
   -- the chain
   have chain : ∀ k, k ≤ 23 - D → dg "z" k = zd H (zD D) k ∧
       dg "a" k = extUp H (zD D) 0 k (dg "a" 0) ∧ dg "b" k = extUp H (zD D) 0 k (dg "b" 0) := by
@@ -129,14 +134,14 @@ theorem wsx_ext (hml : T.maxLog ≤ 20) (hD : D ≤ 23) :
     congr 1
     apply List.map_congr_left
     intro j hj
-    exact (FieldWsx.wsx_top_pub hTc hc (List.mem_range.1 hj) hT0 htop).1
+    exact (FieldWsx.wsx_top_pub hTw hc (List.mem_range.1 hj) hT0 htop).1
   have pB : dg "bo" (23 - D) = pubDig pub PUB_WSB := by
     show rowDig tr t (23 - D) pub (fun j => Wsx.c "bo" j) = _
     unfold rowDig pubDig
     congr 1
     apply List.map_congr_left
     intro j hj
-    exact (FieldWsx.wsx_top_pub hTc hc (List.mem_range.1 hj) hT0 htop).2
+    exact (FieldWsx.wsx_top_pub hTw hc (List.mem_range.1 hj) hT0 htop).2
   refine ⟨hz0, ?_, ?_⟩
   · rw [e24, ← pA, c2, i2, i1]; simp only [extUp, Nat.zero_add]; rfl
   · rw [e24, ← pB, c3, i3, i1]; simp only [extUp, Nat.zero_add]; rfl
@@ -163,7 +168,7 @@ theorem wsx_ext_seg (hH : Holds (segAir D extra nb np) pub tr) (hcomp : Compress
     rowDig tr 7 0 pub (fun j => Wsx.c "z" j) = zD D ∧
     extUp (nodeH compress) (zD D) 0 (24 - D) (rowDig tr 7 0 pub (fun j => Wsx.c "a" j)) = pubDig pub PUB_WSA ∧
     extUp (nodeH compress) (zD D) 0 (24 - D) (rowDig tr 7 0 pub (fun j => Wsx.c "b" j)) = pubDig pub PUB_WSB :=
-  wsx_ext hH (by rw [seg_len]; omega) seg_wsx rfl (fun i hi => List.mem_append_right _ hi) hcomp hC (by show (5 : Nat) ≤ 20; decide) hD
+  wsx_ext hH (by rw [seg_len]; omega) seg_wsx (fun e he => he) (fun i hi => List.mem_append_right _ hi) hcomp hC (by show (5 : Nat) ≤ 20; decide) hD
 
 /-- `WSX` of the INTAKE + FINAL template (table 9): `R_0`, `R_n` are the extended row-0 roots. -/
 theorem wsx_ext_if (hH : Holds (ifAir D extra nb np) pub tr) (hcomp : CompressOK compress)
@@ -171,7 +176,7 @@ theorem wsx_ext_if (hH : Holds (ifAir D extra nb np) pub tr) (hcomp : CompressOK
     rowDig tr 9 0 pub (fun j => Wsx.c "z" j) = zD D ∧
     extUp (nodeH compress) (zD D) 0 (24 - D) (rowDig tr 9 0 pub (fun j => Wsx.c "a" j)) = pubDig pub PUB_WSA ∧
     extUp (nodeH compress) (zD D) 0 (24 - D) (rowDig tr 9 0 pub (fun j => Wsx.c "b" j)) = pubDig pub PUB_WSB :=
-  wsx_ext hH (by rw [if_len]; omega) if_wsx rfl (fun i hi => List.mem_append_right _ hi) hcomp hC (by show (5 : Nat) ≤ 20; decide) hD
+  wsx_ext hH (by rw [if_len]; omega) if_wsx (fun e he => List.mem_append_left _ he) (fun i hi => List.mem_append_right _ hi) hcomp hC (by show (5 : Nat) ≤ 20; decide) hD
 
 /-- **The segment template at depth 24** (`R_in → R_out`): every depth-`D` working set whose
 zero-padded depth-24 root is the public `R_in` (`PUB_WSA`) becomes, after the segment's writes
