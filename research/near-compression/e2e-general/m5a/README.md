@@ -4,6 +4,128 @@ Plan: `docs/zk-formal/E2E-GENERAL-CHUNK-PLAN.md` §3.2 (the `stRoot` working set
 Date 2026-11-03. Labels: **[M]** measured here, **[K]** kernel-checked Lean (std axioms),
 **[S]** stated / design only.
 
+## B-T1b (twelfth session, 2026-11-21): per-template soundness, an IF soundness fix, the lane G / lane E interfaces
+
+Log `docs/logs/e2e-bt1b-state-2026-11-21.md`. Item 1 mostly done (the segment template end to end
+at digest level, the `WSX` bus step for both templates, the IF's roots; the IF's FINAL/INTAKE
+restatement is open, below), **one soundness fix found and fixed** (the IF `RCH` matching), items
+2–4 design only.
+
+### Item 1: the templates' soundness theorems [K] (std axioms, no `sorry`; `Audit.lean`)
+
+**How the M5a stack is reused (`TmplSeg.reix`).** The M5a decoders and field lemmas are pinned to
+`fullAir`'s table indices (`WSA 7`, `RNG 9`, `WSL 10`, `WSP 11`). `reix σ tr` reads table `σ t` of
+`tr` at index `t` (`Expr.eval e (reix σ tr) t r = Expr.eval e tr (σ t) r` by `rfl`), so with
+`trS tr := reix sigSeg tr` every row decoder (`wsl`, `wsa`, `wspF`) and row lemma (`wsp_rowF`,
+`WsCost.wsa_gap`, `WsLen.wsl_lt_wsLen`, …) applies verbatim to the template's tables. Only the
+lemmas that read `Holds` of the whole AIR (bus decomposition, `RNG`/`IF384` membership) are
+re-proved for the template (`segAir D extra = m5tSeg D ++ extra`):
+
+* `TmplSeg`: `busList_seg` (WM/PT/RCH only on `WSA`/`WSL`/`WSP`/`WSX`), `pt_traffic_seg`,
+  `wm_traffic_seg`, **`rch_traffic_seg`** (`WSX`'s `RCH(0, a₀)` / `RCH(sb₀, b₀)` in place of
+  `WSN`'s roots), `rng_send_lt_seg`, `wsa_gap_seg`, `wsl_ok_seg`, `wsp_ok_seg`, `node_comp` (any
+  AIR), **`ws_decoded_seg`** (= `WsDecode3.ws_decoded` for the template) and
+  **`m5tSeg_ws`**: for every depth-`D` working set `ws0` with root `a₀`, the working set after the
+  segment (`WsSeg.wsAt`: each touched leaf → its `WSL` row's new digest) has root `b₀`; every touched
+  leaf is a real entry (`i < wsLen`) whose old digest is `ws0`'s leaf; and, given distinct key
+  digests among a segment's touched leaves (`hkd` — the INTAKE-key property, which the IF proof
+  establishes for `ws0`), each closing value is its entry's latest write (the `WM` chain).
+* `TmplWsx`: **`wsx_ext`** (the `WSX` bus step, any AIR / table index): from the constraints
+  (`FieldWsx`) and the chip contract (each active row's `zo = H(z,z)`, `ao = H(a,z)`, `bo = H(b,z)`),
+  `z₀ = Z_D` and `extUp H Z_D 0 (24 − D) a₀ = pubDig pub 17`, the same for `b₀` and `pubDig pub 35`;
+  `wsx_ext_seg`, `wsx_ext_if`; **`seg_rin_rout`**: every working set whose depth-24 root is the
+  public `R_in` becomes, after the segment, one whose depth-24 root is the public `R_out`
+  (`ext_inj` under `NodeCR`).
+* `TmplIf`: `busList_if_rch` (RCH only on `WSN` 6 / `WSX` 9), `sb_one`, `rch_traffic_if`,
+  **`rch_if`** (with `WSN`'s root messages `[(0, r₀)]`, `[(nw, r_F)]`: `r₀ = a₀`, `r_F = b₀`,
+  `nw = 1`) and **`m5tIF_roots`**: the INTAKE tree's root extended to depth 24 is the public `R_0`,
+  the FINAL tree's the public `R_n`.
+* `TmplDeploy`: the deployed extra tables (cached `SREQ`/`HB` tape, `ChipStub.chipStub`) meet the
+  bus premises (`seg_extra_ok`, `if_extra_ok`), so with `ChipStub.holds_of_holdsX` (the prover's
+  precheck ⇒ `Holds`) the theorems apply to the saved T1 dumps.
+
+**Non-vacuity on T1 [M]:** the re-proved T1 dumps (below) pass the precheck (every constraint, every
+bus, the native chip's `IF384` sends a permutation of the receives), i.e. `HoldsX` + the chip list,
+which `holds_of_holdsX` turns into `Holds (segAir 5 [htape, chipStub])` /
+`Holds (ifAir 5 [chipStub])`; the premises `hx` hold by `TmplDeploy`; `ws0` = the INTAKE leaves
+(root `R_0 = ca91c86e…`, `leaf_chain.py`); the conclusions' roots are the dumps' public values
+(`R_in = ca91c86e…`, `R_out = 2d2e132a…`).
+
+**Open [S]:** (a) the IF's INTAKE / FINAL halves restated for `m5tIF` (`m5b_final`'s premises
+`ws_entries` / `final_key` cross the cut: a FINAL leaf has its INTAKE key only *because* the
+segments keep keys — so the IF statement must be conditional on the FINAL leaf list, `ws_final`'s
+shape, and `FinalOrder`/`SnFinal6` need that hypothesis in place of `ws_entries`; wide, not done);
+(b) `WsDecode4.wsn_roots` for `ifAir` (the singleton `WSN` root messages `rch_if` takes; same
+tables, same indices 5/6 — a port); (c) `hkd` from `ws0`'s distinct keys (`wsl_leaf` + `LeafCR`
+for the template); (d) the composition IF ∧ segments ∧ equal public roots ⇒ `m5b_final`'s
+conclusion, and `m5tSegH` (the HOST-fed tables at indices 5/6 change only `nb_seg`/`ns_seg`).
+
+### Soundness fix: the IF's `RCH` matching (`Tmpl.Wsx.sbPin`) [K][M]
+
+In `m5tIF` both `WSN` (INTAKE root `(0, r₀)` sent, FINAL root `(nw, r_F)` received) and `WSX`
+(`(0, a₀)` received, `(sb, b₀)` sent) use `RCH`, with `nw` and `sb` free columns. Besides the
+honest matching there was a second one: `nw = sb = 0`, `r_F = r₀` (a FINAL tree equal to the INTAKE
+tree: no changes, `post = prev`) and `WSX` closing itself (`a₀ = b₀ = X` for **any** `X`). So an IF
+proof could publish `R_0 = R_n = ext(X)` for an arbitrary working set `X` (fabricated pre-values),
+and segments whose writes leave `X` unchanged would chain to it. **Fix:** `WSX` of `m5tIF` pins
+`isFirst·(sb − 1)` (`sbPin`); `tracegen.py --split` sets the IF's `sb` and `WSN`'s `nw` to 1 (the
+segment template is unchanged: `sb` there is the top row's `seg + 1`). `TmplIf.rch_if` proves the
+matching is now unique. Mutant `wsxsb` (`sb = nw = 0` with honest roots, balanced): **accepted by
+the B-T1 AIR, rejected by B-T1b's** (`precheck: WSX: constraint 118 fails on row 0`,
+`logs/BT1b-wsxsb.txt`). The M5b monolithic AIR is not affected (no second `RCH` source).
+
+**Re-proved [M]** (the IF AIR changed; the segment AIR did not): T1 at S — IF **491,416 B**, 35.2 s,
+verify 44 ms, 7.3 GB; seg0 473,236 B (unchanged AIR, re-proved), 37.2 s; chain OK, post root
+`1db48e38…249628` = Lean oracle (`logs/BT1b-T1S-prove.log`). T2_PLACEHOLDER
+Mutants on T1 at S: MUT_PLACEHOLDER
+
+### Lane G's requests (coordinator, 2026-11-21) [S]
+
+1. **ℓ_B in INTAKE.** The IF template does **not** decode the claim today: `prev_state_root` is a
+   public value and the key list / pre-state nodes are witness; no AIR of any lane decodes
+   `decodeClaimE cb` (block list, chunk slots) yet, so neither the ℓ_B span check nor the binding of
+   `prev_state_root` to the claimed chunk's slot exists. Adding "an ℓ_B check" to the IF without a
+   claim decoder would check nothing. Design (for the `.init` leaf = lane G's INIT ∘ this INTAKE in
+   one trace): a `CLMW` framing walk over `cb` starting at `|pre|`, one row per field of
+   `encList BlockRec.encode` (`u8 headerVersion`, 32-byte `prevHash`, `borshBytes innerLite` /
+   `innerRest` = u32 length + bytes, `encList ChunkSlot.encode`), reading bytes by lookup on INIT's
+   `CLM` byte rows (`(pos, byte)`), each row's end = the next row's start, the last end
+   `= |pre| + ℓ_B` with ℓ_B the cell INIT hashes into `ctxRoot` (`u32 ℓ_B`); the slot rows expose
+   the chunk's `prev_state_root` to `WSB`'s public limbs 0–15. Mutant `lbshift` (ℓ_B ± 1, blocks
+   re-framed). Not built (a new decoder; lane E/G to confirm the `.init` join).
+2. **`SegSoundInit` / `SegSoundFinal` split.** Agreed with lane G's reading: `.init` = INIT ∘ INTAKE
+   (the IF proof's INTAKE half: `prev_state_root, wsLen → R_0`), `.final` = this FINAL (`R_n →
+   post_state_root`, `m5b_final`'s root) + M5c's implicit transitions + lane G's `tailNew` /
+   `headerOk`. **`FinIn` bus (option (a), lane G's recommendation):** the IF's `TCH(n, post)` end
+   becomes a send `FINB [k, byte]`, `k < 32`, of `post_state_root`'s bytes (limb `t` of `pack2` is
+   bytes `2t`, `2t+1`) received by lane G's `FIN` table at `FinIn` bytes 0..32 (lane G's layout,
+   m5d README / leaf spec §4), in place of the public values 53–68. Bus id: lane E's numbering (not
+   chosen here). Not built.
+
+### Item 2 (M6.4: `HOSTR` from the state side) [S]
+
+The evicted flag of `storage_write` is the entry's old present flag `cp`, which only `WSA` sees (its
+`WM` receive). Binding it needs `WSA` to export it — a new interaction `snd EVK (act) [seg, t, cp,
+cl]` on `WSA`, received by `STWH` as `rcv EVK (act) [0, ts, rlo, ecl]` with `rhi = 0` (`cl` = the
+evicted length, which the `storage_write_evicted_byte` gas cost needs). `g_after` is not the state
+side's to compute: `HOSTQ` carries no gas, so the state side should return the cost inputs
+(`klen`, `vlen`, evicted flag / length) and lane A's HOST chip compute `g_after` from its own
+gas-before. `WSA` is shared by the M5b and both templates (and `STW` must then receive `EVK`), so
+this is an AIR change to the M5b stack with its re-proofs and mutants: **not done this session**.
+
+### Item 3 (lane B's component of `SegSoundState`) [S]
+
+Lane E's split (`SegSoundState8`, plan §3.5 on lane E's branch `7cf7a4ad1`, not on main) lists the
+state field as `stRoot = stD (stOfK (κ I) c)`; who proves which part is not yet written. Against
+lane B's proposal (README §B-T1): lane B's component is `seg_rin_rout` — the `ws` field moves
+`R_in → R_out` by the segment's writes, `wsLen` and the trie root unchanged — and the IF's
+`m5tIF_roots` gives `.init`'s `R_0` and `.final`'s `R_n`. **Missing for a Lean statement over
+`stD`:** the bridge between the circuit digest `nodeH compress` on `Dig` and `StateView.nodeH =
+sha384 (l ‖ r)` on bytes (a 96-byte SHA-384 is one compression of `IV384`; `zD D` is then
+`zeroDig D`), and lane E's overlay of a VM-free run (which requests a run makes).
+
+### Item 4 (completeness): not started.
+
 ## B-T1 (eleventh session, 2026-11-21): the state side as pinned-shape tree leaves; the HOST join
 
 Log `docs/logs/e2e-bt1-state-2026-11-21.md`. Milestone B-T1 of the M10 re-centring (T1 =

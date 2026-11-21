@@ -2124,7 +2124,7 @@ def _t_wsxsb(g):
     T = g.R['if']['T']['WSX']
     for r in T.rows:
         T.set(r, 'sb', 0)
-    Tn = g.R['if']['T']['WSN']
+    Tn = g.T['WSN']
     for r in Tn.rows:
         if Tn.get(r, 'top') == 1 and Tn.get(r, 'ph') == 1:
             Tn.set(r, 'nw', 0)

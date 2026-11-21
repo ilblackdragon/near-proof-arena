@@ -1,0 +1,5 @@
+tracegen rc=0
+B-T1 AIR (no pin): PRECHECK OK: every constraint on every row
+B-T1b AIR (sbPin): precheck 1.81s
+precheck: WSX: constraint 118 fails on row 0
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
