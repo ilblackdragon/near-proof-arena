@@ -38,3 +38,5 @@ import FinalM5d.MrkWalk
 #print axioms FinalM5d.BOut.encCIF1_hdrF1
 #print axioms FinalM5d.MrkWalk.walkLevel_eq
 #print axioms FinalM5d.MrkWalk.walkRoot_eq
+#print axioms FinalM5d.Split.finK_bind
+#print axioms FinalM5d.Split.fin_split

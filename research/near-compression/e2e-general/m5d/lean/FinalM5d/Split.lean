@@ -15,7 +15,9 @@ intake step), joined by the claim / witness bytes.
 
 * `FinReach I out t`: `finK`, the checker's `FINAL` first part, succeeds and calls its
   continuation on `t = (root, congestion, outgoing)` (`∀ k, finK … k = k t`) — the split at `t`,
-  with no change to the checker.
+  with no change to the checker. `finK_bind` (any driver): `finK … k = finK … pure >>= k`, so
+  `finReach_of`: `finK … pure = .ok t → FinReach I out t`, and `fin_split`: every successful
+  non-genesis `FINAL` step factors through such a `t` (the split is not vacuous).
 * **FINAL.** Lane B's premise `FinalBPart`: an accepted joint trace opens its input digest to
   `fin I out` (a non-genesis segment, `I.d2 = none`), `FinReach I out t`, and its `FinIn` bus
   carries `fi` with `FinInOK fi I out t`. Lane G's premise `FinalGPart`: given the `FinIn` bus
@@ -46,6 +48,49 @@ obligation; it splits `finK` at `t` with no change to the checker. -/
 def FinReach (I : Intake) (out : MainOutD2) (t : Bytes × Congestion × List Rcpt) : Prop :=
   ∀ (β : Type) (k : Bytes × Congestion × List Rcpt → Except String β),
     finK afDriver afCfg.gasCap I out k = k t
+
+theorem ite_bindE {α β : Type} (c : Prop) [Decidable c] (x y : Except String α)
+    (k : α → Except String β) : (if c then x else y) >>= k = if c then x >>= k else y >>= k := by
+  split <;> rfl
+
+theorem throw_bindE {α β : Type} (e : String) (k : α → Except String β) :
+    (throw e : Except String α) >>= k = throw e := rfl
+
+/-- **`finK` splits at `t`** (any driver, any gas cap): it is `finK … pure` followed by the
+continuation. -/
+theorem finK_bind {β : Type} (driver : Successor.ExecutionDriver) (gasCap : Option Nat) (I : Intake)
+    (out : MainOutD2) (k : Bytes × Congestion × List Rcpt → Except String β) :
+    finK driver gasCap I out k = finK driver gasCap I out pure >>= k := by
+  cases gasCap <;> cases hc : I.L.childrenV3 I.wk.mainShard <;>
+    simp only [finK, bind_assoc, pure_bind, hc, ite_bindE, throw_bindE]
+
+/-- `FinReach` is what `finK … pure = .ok t` means. -/
+theorem finReach_of {I : Intake} {out : MainOutD2} {t : Bytes × Congestion × List Rcpt}
+    (h : finK afDriver afCfg.gasCap I out pure = .ok t) : FinReach I out t := by
+  intro β k
+  rw [finK_bind, h]; rfl
+
+/-- **Non-vacuity of the split on honest runs**: every successful non-genesis `FINAL` step
+factors through a `t` with `FinReach` and `tailNew`. -/
+theorem fin_split {I : Intake} {out : MainOutD2} {c : Conf} (hd : I.d2 = none)
+    (h : CM.step (.fin I out) = .ok c) :
+    ∃ t o, FinReach I out t ∧ tailNew afDriver I out t = .ok o ∧ c = .done I.H o := by
+  have h' : (finStep I out).map (Conf.done I.H) = .ok c := h
+  unfold finStep at h'
+  rw [hd] at h'
+  change (finK afDriver afCfg.gasCap I out (tailNew afDriver I out)).map (Conf.done I.H) = _ at h'
+  rw [finK_bind] at h'
+  cases hk : finK afDriver afCfg.gasCap I out pure with
+  | error e => rw [hk] at h'; cases h'
+  | ok t =>
+    rw [hk] at h'
+    change (tailNew afDriver I out t).map (Conf.done I.H) = _ at h'
+    cases ht : tailNew afDriver I out t with
+    | error e => rw [ht] at h'; cases h'
+    | ok o =>
+      rw [ht] at h'
+      cases h'
+      exact ⟨t, o, finReach_of hk, ht, rfl⟩
 
 /-- A non-genesis `fin` configuration steps to `done I.H o` when `finK` reaches `t` and
 `tailNew` computes `o` from it. -/
