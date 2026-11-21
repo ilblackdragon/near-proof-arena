@@ -689,6 +689,49 @@ Notes for the lanes:
   and a template must reject `B_in.phase ∈ {4, 5}` (review-D7 I3) — automatic from the meanings,
   which never start at `done`/`doneG` (`meaning_not_done_src` for `done`; `doneG` is not a `FinStart`).
 
+##### Split leaves: STATE = lane F ∧ lane B; INIT / FINAL = lane G ∧ lane B's IF proof (decision, M11i)
+
+Lane B's B-T1 note (`m5a/README` "Lane E's T1 template system") is right: `m5tSeg` moves only the
+working-set root `R_in → R_out`; *which* storage requests a VM-free engine step makes, and every
+other boundary field (position, queues, gas, accumulators, the `rest` part of `stD`), come from
+lane F's engine rows. **Decision:** a STATE leaf is one leaf proof whose trace is the **join** of
+lane F's engine rows and lane B's `m5tSeg` rows, balanced on the shared request bus
+(`SREQ`/`HB`); likewise an INIT (FINAL) leaf joins lane G's rows with the INTAKE (FINAL) half of
+lane B's `m5tIF` proof through the public roots `R_0` (`R_n`, `post_state_root`). The Lean
+obligation stays one per template (`TmplSound8`), and is **split** by `TreeM8.split_sound`
+(`defaultTargets`, std axioms):
+
+* `SplitAir A k`: the leaf's predicate gives an engine half `HoldsE ctx b b' q r r'` and a state
+  half `HoldsS q r r'` sharing the bus traffic `q` and the state pair `(r, r')` (the leaf AIR's
+  bus balance / equal public values — a property of the joined AIR, lane D / the integrator).
+* `SplitSem`: `wIn x` / `wOut x` (the state value a configuration carries in / out), `qOf x x'`
+  (the bus traffic of a meaning instance), `apply q r` (lane B's function).
+* **`EngHalf` (lane F for STATE; lane G for INIT, FINAL)**: the rows open `b` to `x` with
+  `wIn x = r`, `q = qOf x x'`, `Meaning k x x'`, `CtxLink k ctx x x'`, and *if* `wOut x' = r'` then
+  `b' = lbOf V x'` (the engine half fixes every field of `B_out` except the state value, which
+  it takes from the bus).
+* **`StHalf` (lane B)**: `HoldsS q r r' → Bad ∨ r' = apply q r` (the restated `m5tSeg` /
+  `m5tIF` soundness: `StSound.write_sent`, `WsBus.seg_root`, `chain_sound`, `m5b_final`).
+* **`SplitGlue` (lane E)**: `Meaning k x x' → wOut x' = apply (qOf x x') (wIn x)`.
+* `split_sound`: `EngHalf ∧ StHalf ∧ SplitGlue ⇒ TmplSound8 V A Bad k`.
+
+Instances (what each lane states):
+
+| leaf | `wIn` / `wOut` | `q` | `apply` (lane B) | glue (lane E, open) |
+|---|---|---|---|---|
+| STATE | the depth-24 working-set root of `stD (stOfK (κ I) c)` (`StateView.StCommit.ws`) | the run's storage requests (`SREQ`/`HB` messages: key, old / new value, presence) | `m5tSeg`: apply the requests to the working-set tree | the overlay after `VFSteps I c c'` is the overlay before with the run's requests applied (`Ovl` operations of the logged store; `OvlInv.lean` already walks them) |
+| INIT | — / the root `R_0` of `stD (stOfK (κ I) ⟨start, …⟩)` | the revealed pre-state trie and `prev_state_root` | IF-INTAKE: `R_0` from the authenticated partial trie | `Ovl.ofTrie` of the intake trie has working-set root `R_0` |
+| FINAL | the root `R_n` of the last engine state / `post_state_root` in `done H o` | the committed change list (`n`) | IF-FINAL (`m5b_final`): `applyChanges … = some T'`, `rootHash T' = post` | `finK`'s post-state root is `Ovl.finalize` of the overlay (`m5b_final`'s statement is the checker's fold) |
+
+* The **IF proof may be checked by both the INIT and the FINAL leaf**: its two halves are
+  independent statements linked to the rest only through the public roots, so each leaf can verify
+  the same IF proof and use its half; nothing requires the two uses to be the same instance
+  (soundness is per leaf). The double verification costs one extra IF verification per chunk.
+* RT (`resume`) is the same split as STATE (lane F's receipt rows + lane B's rows for the
+  receipt's storage requests); WASM's host storage calls join lane A's rows with lane B's on the
+  HOST buses (lane B item 3), with `wIn`/`wOut` the working-set root inside `B.wasm`'s host state.
+* Lane E owes the three glue lemmas (not done in M11i).
+
 ---
 
 ## 4. Milestones to a first general-chunk E2E proof

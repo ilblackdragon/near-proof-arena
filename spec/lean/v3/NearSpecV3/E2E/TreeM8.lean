@@ -519,6 +519,65 @@ theorem honest_tree (V : ViewImpl) (A : Airs8) (s : PublicStmt) (hwf : s.wf = tr
   | doneG => exact .inr rfl
   | _ => exact absurd hacc (by simp [FinalOutPub])
 
+/-! ## Split leaves: one template proved by two lanes' rows joined on a bus
+
+A leaf whose trace is the join of two row sets balanced on a shared bus (lane B's integrator note,
+`m5a/README` B-T1): the STATE leaf = lane F's engine rows + lane B's `m5tSeg` state rows (bus
+`SREQ`/`HB`: the storage requests); the INIT / FINAL leaves = lane G's rows + the INTAKE / FINAL
+half of lane B's IF proof (`m5tIF`: `R_0` after INTAKE, `post_state_root` from `R_n`). The joint
+predicate gives the two halves with the bus traffic `q` and the state-side pair `(r, r')`
+(`SplitAir.joint`). Each lane proves its half; lane E proves the glue (`SplitGlue`); `split_sound`
+composes them into `TmplSound8`. -/
+
+/-- A template's leaf AIR as the join of an engine half and a state half (bus traffic `Q`, state
+values `W`). -/
+structure SplitAir (A : Airs8) (k : Tmpl) where
+  Q : Type
+  W : Type
+  HoldsE : Bytes → LB → LB → Q → W → W → Prop
+  HoldsS : Q → W → W → Prop
+  joint : ∀ ctx b b' (tr : A.Tr (.tmpl k)), A.Holds (.tmpl k) ctx b b' tr →
+    ∃ q r r', HoldsE ctx b b' q r r' ∧ HoldsS q r r'
+
+/-- The state-side semantics the halves meet at: the input value of a configuration, the output
+value of a configuration, the bus traffic of a meaning instance, and the state lane's function. -/
+structure SplitSem {A : Airs8} {k : Tmpl} (S : SplitAir A k) where
+  wIn : RConf → S.W
+  wOut : RConf → S.W
+  qOf : RConf → RConf → S.Q
+  apply : S.Q → S.W → S.W
+
+/-- **The engine half (lane F for STATE; lane G for INIT / FINAL)**: the rows open the input
+boundary to `x` with state value `r`, the bus traffic is the meaning's, and **if** the state value
+of `x'` is `r'` then the output boundary is `x'`'s. -/
+def EngHalf (V : ViewImpl) {A : Airs8} {k : Tmpl} {S : SplitAir A k} (M : SplitSem S) (Bad : Prop) :
+    Prop :=
+  ∀ ctx b b' q r r', S.HoldsE ctx b b' q r r' → Bad ∨ ∃ x x', Meaning k x x' ∧ CtxLink k ctx x x' ∧
+    b = lbOf V x ∧ M.wIn x = r ∧ q = M.qOf x x' ∧ (M.wOut x' = r' → b' = lbOf V x')
+
+/-- **The state half (lane B)**: the state rows apply the bus traffic to the input value. -/
+def StHalf {A : Airs8} {k : Tmpl} {S : SplitAir A k} (M : SplitSem S) (Bad : Prop) : Prop :=
+  ∀ q r r', S.HoldsS q r r' → Bad ∨ r' = M.apply q r
+
+/-- **The glue (lane E)**: along a meaning instance, the output state value is the state
+function applied to the meaning's traffic and the input value. -/
+def SplitGlue {A : Airs8} {k : Tmpl} {S : SplitAir A k} (M : SplitSem S) : Prop :=
+  ∀ x x', Meaning k x x' → M.wOut x' = M.apply (M.qOf x x') (M.wIn x)
+
+/-- **A split leaf is sound** from its two halves and the glue. -/
+theorem split_sound (V : ViewImpl) {A : Airs8} {k : Tmpl} (S : SplitAir A k) (M : SplitSem S)
+    (Bad : Prop) (hE : EngHalf V M Bad) (hS : StHalf M Bad) (hg : SplitGlue M) :
+    TmplSound8 V A Bad k := by
+  intro ctx b b' tr hh
+  obtain ⟨q, r, r', h1, h2⟩ := S.joint ctx b b' tr hh
+  rcases hE ctx b b' q r r' h1 with hb | ⟨x, x', hm, hl, hb0, hr, hq, hout⟩
+  · exact .inl hb
+  rcases hS q r r' h2 with hb | hr'
+  · exact .inl hb
+  refine .inr ⟨x, x', hb0, hout ?_, hm, hl⟩
+  rw [hg x x' hm, ← hq, hr, hr']
+
+#print axioms split_sound
 #print axioms init_step_shape
 #print axioms walk
 #print axioms e2e_sound_m8
