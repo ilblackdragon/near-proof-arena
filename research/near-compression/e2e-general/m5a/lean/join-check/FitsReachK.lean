@@ -6,7 +6,8 @@ namespace LaneE.StViewEJoin
 open NearSpecV3.E2E NearSpecV3.E2E.Bnd StateM5a.StateViewParams
 theorem fitsReachK_eq (κ : Intake → List NearSpec.Bytes) (R : Intake → EConf → Prop) :
     FitsReachK κ R = FitsReach stViewE κ R := rfl
-theorem fitsReach_engine (κ : Intake → List NearSpec.Bytes) : FitsReach stViewE κ (RK κ) :=
+theorem fitsReach_engine (κ : Intake → List NearSpec.Bytes) [OvlVal.VmWritesShort] :
+    FitsReach stViewE κ (RK κ) :=
   fitsReachK_engine κ
 end LaneE.StViewEJoin
 #print axioms LaneE.StViewEJoin.fitsReachK_eq
