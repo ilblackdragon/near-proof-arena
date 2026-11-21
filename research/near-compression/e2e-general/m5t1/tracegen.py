@@ -263,6 +263,11 @@ def main():
         i = args.index("--mutant")
         mutant = args[i + 1]
         args = args[:i] + args[i + 2:]
+    plan = None
+    if "--plan" in args:
+        i = args.index("--plan")
+        plan = args[i + 1]
+        args = args[:i] + args[i + 2:]
     run_path, air_dir, out = args
     global STRICT
     STRICT = mutant is None
@@ -874,6 +879,19 @@ def main():
     for g, w in [("gout", 8), ("cout", 8), ("tbout", 16), ("othout", 16), ("sbout", 16), ("wgout", 16)]:
         setpub(g, le(want_out[g], w))
     setpub("noout", [int(last["nOutcomes"])]); setpub("ngout", [int(last["nOutgoing"])])
+    # F-2: the `rt` resume edge's boundary pair (lane I's driver plan), checked against the Lean run
+    assert plan, "--plan PLAN.json (lane I's driver plan) is required: the resume leaf's public values"
+    import rtbnd
+    b_in, b_out, e_in, e_out, d_in, d_out = rtbnd.pair(plan, "RT resume")
+    assert len(rxs) == 1, "one receipt per resume segment"
+    x0 = rxs[0]
+    check(b_in["phase"] == 6 and b_in["inCall"] and b_out["phase"] == 1 and not b_out["inCall"], "resume phases")
+    check(b_in["gasUsed"] == tot_in["gin"] == b_in["gasBurnt"] and b_in["compute"] == tot_in["cin"], "B_in totals = Lean RS before")
+    check(b_out["gasUsed"] == want_out["gout"] == b_out["gasBurnt"] and b_out["compute"] == want_out["cout"], "B_out totals = Lean RS after")
+    check(b_in["balanceBurnt"] == tot_in["tbin"] and b_out["balanceBurnt"] == want_out["tbout"], "balance burnt = RS txBurnt")
+    check(b_in["rPrepaid"] == x0["gas"] and b_out["rBurnt"] == x0["vb"] and b_out["rUsed"] == x0["vu"], "prepaid / VM burnt / used")
+    setpub("bin", list(e_in)); setpub("bout", list(e_out))
+    print(f"resume boundary: d_in {d_in[:16]}.. d_out {d_out[:16]}.. (lane I plan) = bdigest of the public records")
     pub_vals = [pubs[nm] for nm in pubnames]
     with open(f"{out}/expected_pubs.bin", "wb") as f:
         f.write(struct.pack(f"<{len(pub_vals)}I", *[v % P for v in pub_vals]))
