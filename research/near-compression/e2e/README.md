@@ -1,8 +1,9 @@
 # E2E: real D0a chunks → final PQ proof → fresh-process verification (2026-10-31, ZK updates 2026-11-03/05: D-1 … D-9)
 
 Status: **research run, owner's relaxed targets of 2026-10-31.** `security_established=false` in
-every RESULT.json. `zero_knowledge_established=true`, always scoped to the classical programmable
-ROM, in: the D-9 tree-wrap packets (`results/zk/d9/{tree9,t274,sample}/*`, §0; ZK-ARGUMENT §10.4: one
+every RESULT.json. The M8 heterogeneous-tree packets (`results/zk/m8/`, §0) are a prototype with
+`zero_knowledge_established=false`. `zero_knowledge_established=true`, always scoped to the classical programmable
+ROM, in: the D-9 tree-wrap packets (`results/zk/d9/{tree9,t274,sample}/*`, §0.9; ZK-ARGUMENT §10.4: one
 setup with leaf geometry families over classes S / M / L); the D-8 tree-wrap packets (`results/zk/d8/tree8/*`, §0a; ZK-ARGUMENT §10.3: chunks whose
 base is at one of the setup's classes S / M / L); the D-7 tree-wrap packets (`results/zk/d7/tree-*`, §0b; ZK-ARGUMENT §10.2: chunks whose
 base is at one of the setup's pinned base shape classes); the D-6 tree-wrap packets
