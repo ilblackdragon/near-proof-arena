@@ -517,6 +517,21 @@ pub fn build(seg: &AirSpec, m2: &AirSpec, g: &Gen, prep: &Prep, k: usize, tree: 
                 }
             }
         }
+        if name == "HOSTB" && spec.cols.iter().any(|c| c == "hg0") {
+            // E2E M6 FIX214: the full run's `hid` is the wire id `hid + 256·g` of a multi-group call
+            // (`storage_write`'s value group, `abort`'s strings); the segment AIR keeps the base `hid`
+            // (the call key on bus 214) and the group index `g ≤ 3` as the bits `hg0, hg1`
+            // (`Seg.HostBK.wire`).
+            let (ih, i0, i1) = (tb.col("hid"), tb.col("hg0"), tb.col("hg1"));
+            for r in tb.rows.iter_mut() {
+                let wire = r[ih].as_canonical_u32() as u64;
+                let g = wire >> 8;
+                assert!(g < 4, "HOSTB wire id {wire}: group index {g} > 3");
+                r[ih] = fe(wire & 0xff);
+                r[i0] = fe(g & 1);
+                r[i1] = fe(g >> 1);
+            }
+        }
         let (extra, pad): (usize, Vec<(&str, u64)>) = match name {
             "IF" => (1, vec![]),
             "HOSTB" => (1, vec![("f", 1)]),

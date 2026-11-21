@@ -1470,8 +1470,12 @@ chunk's messages are zero rows (count 0). Soundness: the TAPE's bus contribution
 `Σ_rows Σ_k count·sel_k·msg`, unchanged by zero selectors and zero counts, and V_d computes the
 padded TAPE itself (the prover cannot choose it); a packet proved under another pad has another
 `ctx` and fails V_d. ZK: the TAPE is a function of the public claim (it was never hidden); the
-pad is a setup constant of the class. What the packet reveals about the TAPE is the class's
-pinned log, not the chunk's own (review-D7 L5: in D-7 the natural TAPE log was a class key).
+pad is a setup constant of the class. *[Corrected in D-9, review-D8 I1.]* The pin therefore adds
+no hiding: V_d recomputes the TAPE from the public claim, so its natural shape is public either
+way. What the pin buys is one base vk per class (D-7 needed one class per TAPE shape). *[D-9,
+review-D8 M2.]* The pad is bound to the class's base vk: `tree-prove` and `tree-audit` rebuild the
+vk from the declared AIR plus the pad and compare it byte for byte (§10.4). A setup whose pad
+names other keys than the vk's TAPE interactions is rejected; D-8 checked only the TAPE width.
 
 **Generator growth (`statedump --class`).** Since D-8 any table can be cut at any class log ≥ its
 compact log: the padding progression (now only when it is well founded: a non-constant
@@ -1485,12 +1489,20 @@ chunk), so a class dump is an honest `HoldsP` trace by check.
 **The class set and the anonymity set (review-D7 L5).** Classes are chosen over a census of all
 1,311 D0a-compatible honest chunks of the d1/d2/d3 corpora (`classes_d8.py`, nested, 25 %
 headroom): S (83.4 % of the census), M (13.1 %), L (3.4 %, the tail, `n_stack` 22 at base rate
-lb 2). A packet reveals its class; within the census the smallest anonymity set is L's 45 chunks
-(D-7: classes of 2 and 5, which nearly identified the chunk). ZK statement unchanged otherwise.
+lb 2). A packet reveals its class. *[Corrected in D-9, review-D8 L3 / I1.]* "45 chunks" is a
+**corpus statistic**: L has 45 members in this census. It is not a guaranteed anonymity set for
+future chunks. What the class reveals is a size threshold: some table of the chunk exceeded the
+next smaller class's pinned rows (S → M → L). A prover who wants more privacy may prove at a
+larger class than its smallest admitting one. Any class that admits the chunk yields an honest
+proof, so the class is the prover's choice and not a function of the chunk. D-7 classes had 2
+and 5 members and nearly identified the chunk. ZK statement unchanged otherwise.
 
 **Leaves at their own rate (`NEARPROOF_TREE_LEAF_PARAMS`, D-8 default `ns20lb2`).** Leaf proofs
-(template leaves and `PAD_L`) are verified only by `P_2`, which reads the child's parameters
-from its vk; the leaf geometry is a setup constant (`TreeShape.leaf_params`, setup version 5).
+(template leaves and `PAD_L`) are verified only by `P_2`. *[Corrected in D-9, review-D8 I1.]*
+The leaf parameters are compile-time constants of `P_2`'s program: its in-circuit verifier is
+generated for the leaf vk, at the leaf parameters. They are bound through `P_2`'s program root
+`C_2`, which the wrap pins; the program does not read them from the child at run time. The leaf
+geometry is a setup constant (`TreeShape.leaf_params`, setup version 5).
 The leaf vk meets the 268-bit per-round target at `ns20lb2` (queries [81, 60, 40, 30]; each run's
 `soundness.txt`). Leaves are never published: no change to the wrap's ZK argument; `A` counts
 proofs, not their rate.
@@ -1515,4 +1527,98 @@ accept a `done` input boundary) is recorded for lanes A/B in plan §5.0.1 (4).
 
 **Scope.** Statistical ZK of the tree-wrap packet for `(claim, hint, class, setup)`, classical
 programmable ROM, `ε_ZK ≤ 2^-184.4 + A·2^-192`, for chunks whose base is at one of the setup's
-classes. QROM: `u` open (owner). `security_established = false`. Not independently reviewed (D-8).
+classes. QROM: the base-point `u` question is open, pending an owner decision; it is not
+accepted. `security_established = false`. Independently reviewed (D-8 review, main `af76221b7`):
+no Critical/High findings. Its Medium findings M1 (class vk not rebuilt) and M2 (pad not tied to
+the vk) are fixed in D-9 (§10.4).
+
+### 10.4 D-9: one leaf geometry per family under one wrap setup (and review-D8 M1 / M2)
+
+D-9 changes two things under the wrap and one constant of the wrap program. The wrap's AIR set,
+columns and parameters are unchanged.
+
+**Leaf geometry families.** In D-8 one setup had one leaf geometry, set by its largest class (L:
+NvAir 2^20, program 2^19), so S and M leaves were proved at about twice their own NvAir pin.
+D-9 groups the classes by the smallest leaf geometry that holds each class's leaf program
+(`NEARPROOF_TREE_LEAF_FAMILIES=auto`, the default): S and M form family 0 (NvAir 2^19, program
+2^18), and L forms family 1 (2^20 / 2^19). Each family has:
+* its own leaf heights `h_L^f` (the per-AIR maximum over its classes' leaf pins and its `PAD_L`
+  pin);
+* its own `PAD_L^f`;
+* its own first node program `P_2^f`. The template set of `P_2^f` is `{C_t : t ∈ f} ∪ {C_padL^f}`.
+
+Every `P_2^f` is proved at the **one** node geometry `h_N`: the shape pin is the maximum over the
+families' `P_2`, with the margin. So the wrap verifies a root at one geometry whatever the
+family. The setup records the families (`TreeShape.families`: geometry, heights, classes,
+`C_padL^f`, `C_2^f`). Setup version 6.
+
+**Soundness.** The changes are anchor sets, a mechanism the tree already used:
+* *The wrap.* At depth 1 the wrap binds the root's program to the set `{C_2^f}` instead of the
+  single `C_2` (`build_wrap_set`). This uses `Builder::anchor_set` at the forced root level: a
+  one-hot witness selector, `Σ_f s_f (root − C_2^f) = 0`, `Σ s_f = 1`, `s_f` boolean. This is the
+  constraint `P_2` has used since D-5 for its template set. Every `P_2^f` is an honest node
+  program, so a root accepted under any member is a valid tree over leaves of that family.
+* *`P_*` (depth ≥ 2).* The level-2 anchor set becomes `{C_2^f} ∪ {C_padN}`
+  (`build_node_star_set`).
+* *Constraint-level test.* `tree_d9_wrap_set_debug` (Fib fixture, `engine.debug`) accepts the root
+  at any position of the set. It rejects, by the constraints, a set without the root, a set of
+  one wrong root, and a wrong root level.
+* *Class to family.* A class's leaf program `C_t` is in exactly one `P_2^f` set, so a class-`t`
+  leaf is verified at its family's geometry. A leaf program proved at another geometry would still
+  verify the same base proof: the geometry is a cost choice, not a soundness one.
+* *A single family* (`c_roots.len() = 1`) gives the D-8 wrap program unchanged.
+
+**ZK.**
+* The wrap program is still a setup constant: it embeds the set `{C_2^f}`, and its pinned heights
+  do not depend on the family.
+* The packet already revealed the class, and so reveals the family.
+* `A` (the proof count in `ε_ZK`) is unchanged at depth 1 and arity 4: 4 leaves + `P_2` = 5 tree
+  proofs, `A = 6`.
+* The `P_2^f` of the other families are computed at setup creation from a `PAD_L^f` proof
+  (`P_2`'s program depends only on its children's geometry). A run of a chunk of family `f`
+  re-derives `C_2^f` from its real `P_2` and must match the setup's value. Over the D-9 runs
+  (README §0), the S chunk's real `P_2` matched its probe root and the L chunk's real `P_2`
+  matched the root the setup had computed from the probe.
+
+**Review-D8 M1 / M2 (class keys).** D-8 bound a class's base vk to the setup only by its sha256
+plus a TAPE-width check. With that check alone, a vk with AIR-0's constraints removed (`vkweak`)
+or a pad naming another bus (`padkeys`, `base0`) passed `tree-audit`. D-9 rebuilds the class
+key in both `tree-prove` (every class dir) and `tree-audit` (every shipped class vk), and compares
+byte for byte. The rebuild is `class_key_check`:
+* the pad is well formed: keys strictly increasing and non-empty, log in 2..=22;
+* the pad's log equals the class's TAPE log;
+* the base parameters equal the stack's calibration for the class shape: `n_stack`, `w_stack` and
+  the constraint degree are recomputed from the class log heights and the pad's TAPE width by
+  `params_for`'s rule, at the class's own log blowup and the pinned per-round target;
+* the vk equals the key of the declared AIR (its sha256 = the setup's `air_sha256`) plus the TAPE
+  spec built from the pad alone, at those parameters.
+
+The TAPE interactions in the vk are derived from the pad's keys, so a pad that does not match the
+vk's TAPE fails this comparison. All three tamper fixtures of the D-8 review are rejected
+(`tamper_d9.sh`), and the untampered D-8 setup passes. `validate-base` now uses the base dir's
+pad (I4). The D0a chain path refuses a padded base (its FINAL packet verifies the natural TAPE
+only).
+
+**Review-D8 L1 (audit scope).** `tree-audit AIR SETUP …` now also checks:
+* the AIR hash;
+* each shipped vk's domain factor, compared rather than overwritten;
+* the tree geometry, read from the setup (`TreeShape.tree_geom`);
+* every family's `C_padL`, and every class's leaf root from at least one base dir (every class
+  must be covered; no base dirs is a failure);
+* `C_padN`, and no `C_*` at depth 1;
+* over a run directory, the family's `C_2` (regenerated over the run's leaves), the wrap program,
+  its pinned heights and the final vk (regenerated over the run's root);
+* the final parameters against the FINAL calibration.
+
+The vks of the other families' `C_2` are covered by auditing a run of each family.
+
+**Review-D8 L2 (open).** The class bounds and the 7 pad keys are corpus-derived. The keys are not
+yet derived from the AIR's public buses. The oversize policy is stated in plan §5.0:
+* a chunk that no class admits is rejected by the prover (`class-admits` fails);
+* production either adds a larger class (a new family, at no change to the wrap's geometry while
+  its `P_2` fits `h_N`) or segments the chunk (lanes A/B).
+
+**Scope.** Statistical ZK of the tree-wrap packet for `(claim, hint, class, setup)`, classical
+programmable ROM, `ε_ZK ≤ 2^-184.4 + A·2^-192`, for chunks whose base is at one of the setup's
+classes. QROM: the base point `u` is open and pending an owner decision. `security_established =
+false`. D-9 is not independently reviewed.

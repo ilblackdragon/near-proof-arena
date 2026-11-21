@@ -1,0 +1,126 @@
+{
+  "arity": 4,
+  "bundle_bytes": 330544,
+  "class": 2,
+  "depth": 1,
+  "family": 1,
+  "hint_bytes": 155,
+  "leaf_families": 2,
+  "leaf_geom": {
+    "heights": [
+      [
+        20,
+        812648
+      ],
+      [
+        21,
+        1750912
+      ],
+      [
+        7,
+        128
+      ],
+      [
+        16,
+        65536
+      ]
+    ],
+    "log_rows": 20,
+    "prog_log": 19,
+    "sha_instances": 1
+  },
+  "node2_program_rows": 835144,
+  "node_geom": {
+    "heights": [
+      [
+        21,
+        1633584
+      ],
+      [
+        22,
+        4194304
+      ],
+      [
+        7,
+        128
+      ],
+      [
+        16,
+        65536
+      ],
+      [
+        21,
+        1540736
+      ]
+    ],
+    "log_rows": 21,
+    "prog_log": 20,
+    "sha_instances": 2
+  },
+  "node_star_program_rows": 0,
+  "scope": "D0a template classes, chunk-independent tree (two node shapes, PAD at any level, one leaf geometry per family: D-9) + wrap",
+  "seconds": {
+    "leaf0": 170.606071501,
+    "leaf1": 203.625825951,
+    "leaf2": 285.943157269,
+    "leaf3": 196.813147582,
+    "node2_0": 924.198167543,
+    "wrap": 553.405316654
+  },
+  "seconds_by_kind": {
+    "leaf_template": {
+      "mean_s": 170.606071501,
+      "n": 1
+    },
+    "node2": {
+      "mean_s": 924.198167543,
+      "n": 1
+    },
+    "pad_leaf": {
+      "mean_s": 228.79404360066664,
+      "n": 3
+    },
+    "wrap": {
+      "mean_s": 553.405316654,
+      "n": 1
+    }
+  },
+  "security_established": false,
+  "setup_bytes": 4927678,
+  "setup_sha256": "c0ff9f5e86c8be42de9c3c6dff1e5f7388b6b825eca2f452304434ae4ec81377",
+  "template_confirmations": [
+    2,
+    2,
+    2
+  ],
+  "template_kind": "base (the class base proof, build_base_leaf)",
+  "templates_shape_only": [
+    true,
+    true,
+    true
+  ],
+  "total_seconds": 2441.041750807,
+  "tree_proofs": 5,
+  "wrap_heights": [
+    [
+      20,
+      371688
+    ],
+    [
+      21,
+      1284352
+    ],
+    [
+      7,
+      128
+    ],
+    [
+      16,
+      65536
+    ]
+  ],
+  "wrap_program_rows": 190240,
+  "wrap_proof_bytes": 329261,
+  "zero_knowledge_established": true,
+  "zero_knowledge_scope": "statistical zero knowledge of the tree-wrap packet for the statement (claim, hint, class, setup), classical programmable ROM: eps_ZK <= 2^-184.4 + 6 x 2^-192 (shape-pin aborts), ZK-ARGUMENT.md 6.4, 7.1, 10.1; for chunks whose base was proved at one of the setup's pinned base shape classes (the setup is one for all such chunks: a function of the classes, the arity and the depth); the packet reveals the class, i.e. the pinned per-AIR base row counts of that class (not the chunk's own); QROM: ZK-ARGUMENT.md 6.5 (the base point u is open)"
+}

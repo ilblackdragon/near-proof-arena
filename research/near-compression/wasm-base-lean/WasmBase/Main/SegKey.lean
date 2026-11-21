@@ -92,8 +92,8 @@ theorem host_act_seg_bit {r : Nat} (hr : r < tr.height 22) : (tr.cell 22 r Host.
 
 theorem hostb_act_seg_bit {r : Nat} (hr : r < tr.height 25) : (tr.cell 25 r HostB.act).toNat ≤ 1 :=
   key_bit H (t := 25) (seg_t25_lt (nloc := nloc) (ngl := ngl)) hr (c := HostB.act) (by
-    show HostB.cAct ∈ HostB.constraints
-    simp [HostB.constraints])
+    show HostB.cAct ∈ HostBK.constraints
+    exact HostBK.constraints_prefix.subset (by simp [HostB.constraints]))
 
 theorem reg_act_seg_bit {r : Nat} (hr : r < tr.height 27) : (tr.cell 27 r Reg.act).toNat ≤ 1 :=
   key_bit H (t := 27) (seg_t27_lt' (nloc := nloc) (ngl := ngl)) hr (c := Reg.act)
@@ -160,7 +160,7 @@ theorem seg_hostBLinkedL : HostBLinkedL tr pub := by
       exact absurd this (by decide)
     · exact h
   have hi : HostBK.keySend ∈ ((wasmBaseSegAir nloc ngl).tables[25]'(seg_t25_lt (nloc := nloc) (ngl := ngl))).inters := by
-    show HostBK.keySend ∈ HostB.inters ++ [HostBK.keySend]; simp
+    show HostBK.keySend ∈ HostBK.wireInters ++ [HostBK.keySend]; simp
   obtain ⟨r, hr, hra, hm⟩ := seg_key_lookup H (seg_t25_lt (nloc := nloc) (ngl := ngl)) hr' hi rfl rfl (by
     simp only [HostBK.keySend, Chips.v, Expr.eval_col, Trace.row, hact]; decide)
   simp only [HostBK.keySend, Chips.v, Expr.eval_col, Trace.row, List.map_cons, List.map_nil,

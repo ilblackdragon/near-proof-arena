@@ -192,12 +192,58 @@ end HostG
 
 /-! ## HOSTB and REG-C with the call-key lookup (E2E M4c, LINK) -/
 
+/-! ### Multi-group host calls (E2E M6, FIX214)
+
+  A host call may move several byte groups at the
+same `ts`: `storage_write`'s value group, `abort`'s two length prefixes and two strings.  The groups
+are told apart on the wire (bus 210) by the *wire id* `hid + 256·g` (group index `g ≤ 3`), but the
+call key on `busHKey` is the call's own `[ts, hid]`.  So in the segment AIR `HOSTB.hid` is the
+**base** host id (the call's, `HostBLinked`) and the group index is two bit columns `hg0, hg1`
+(group-constant); the `busHostB` message carries the wire id `hid + 256·hg0 + 512·hg1`.  (Before
+the fix `hid` was the wire id itself, and a non-zero group's key lookup `[ts, hid + 256·g]` matched
+no HOST offer: every segment with a multi-group call failed bus 214.) -/
 namespace HostBK
-/-- An active `HOSTB` row looks its call key up. -/
+def hg0 : Nat := 14
+def hg1 : Nat := 15
+def cols : List String := HostB.cols ++ ["hg0", "hg1"]
+theorem hg0_name : cols[hg0]? = some "hg0" := by decide
+theorem hg1_name : cols[hg1]? = some "hg1" := by decide
+/-- The group's wire id on bus 210: `hid + 256·(hg0 + 2·hg1)`. -/
+def wire : Expr := v HostB.hid + 256 * v hg0 + 512 * v hg1
+/-- `HostB.msg` with the wire id in place of `hid`. -/
+def msgW : List Expr := [v HostB.ts, wire, v HostB.dir, v HostB.pos, v HostB.bv]
+def cHg0 : Expr := bool (v hg0)
+def cHg1 : Expr := bool (v hg1)
+/-- The group index is the same on every row of a group (so is the wire id, with `cHidConst`). -/
+def cHg0Const : Expr := (1 - nv HostB.f) * (nv hg0 - v hg0)
+def cHg1Const : Expr := (1 - nv HostB.f) * (nv hg1 - v hg1)
+def constraints : List Expr := HostB.constraints ++ [cHg0, cHg1, cHg0Const, cHg1Const]
+/-- `HostB.inters` with the wire message on the five `busHostB` interactions (the CH, BYTE and
+RANGE16 interactions are `HostB`'s, `HostB.inters.drop 5`). -/
+def wireInters : List Inter :=
+  [⟨busHostB, true, v HostB.act * (1 - v HostB.dir) * (1 - v HostB.reg), msgW⟩,
+   ⟨busHostB, false, v HostB.act * (1 - v HostB.dir) * (1 - v HostB.reg), msgW⟩,
+   ⟨busHostB, true, v HostB.act * v HostB.dir * (1 - v HostB.reg), msgW⟩,
+   ⟨busHostB, false, v HostB.act * v HostB.dir * (1 - v HostB.reg), msgW⟩,
+   ⟨busHostB, true, v HostB.act * v HostB.reg, msgW⟩] ++ HostB.inters.drop 5
+/-- An active `HOSTB` row looks its call key `[ts, hid]` (the base id) up. -/
 def keySend : Inter := ⟨busHKey, true, v HostB.act, [v HostB.ts, v HostB.hid]⟩
-def inters : List Inter := HostB.inters ++ [keySend]
-def table : Table := ⟨"HOSTB", HostB.cols, HostB.constraints, inters⟩
-theorem inters_prefix : HostB.inters <+: inters := List.prefix_append _ _
+def inters : List Inter := wireInters ++ [keySend]
+def table : Table := ⟨"HOSTB", cols, constraints, inters⟩
+theorem constraints_prefix : HostB.constraints <+: constraints := List.prefix_append _ _
+/-- Only the `busHostB` messages differ from `HostB`'s: every other bus sees the same interactions. -/
+theorem inters_filter (b : Nat) (s : Bool) (hb : b ≠ busHostB) (hk : b ≠ busHKey) :
+    inters.filter (fun i => i.bus = b ∧ i.send = s) = HostB.inters.filter (fun i => i.bus = b ∧ i.send = s) := by
+  have e : HostB.inters = (HostB.inters.take 5) ++ HostB.inters.drop 5 := (List.take_append_drop _ _).symm
+  simp only [inters, wireInters, List.filter_append]
+  conv => rhs; rw [e, List.filter_append]
+  have h1 : HostB.inters.take 5 = [⟨busHostB, true, v HostB.act * (1 - v HostB.dir) * (1 - v HostB.reg), HostB.msg⟩,
+      ⟨busHostB, false, v HostB.act * (1 - v HostB.dir) * (1 - v HostB.reg), HostB.msg⟩,
+      ⟨busHostB, true, v HostB.act * v HostB.dir * (1 - v HostB.reg), HostB.msg⟩,
+      ⟨busHostB, false, v HostB.act * v HostB.dir * (1 - v HostB.reg), HostB.msg⟩,
+      ⟨busHostB, true, v HostB.act * v HostB.reg, HostB.msg⟩] := rfl
+  rw [h1]
+  simp [keySend, Ne.symm hb, Ne.symm hk]
 end HostBK
 
 namespace RegCK

@@ -1,0 +1,5 @@
+CONTROL_ACCEPTED (expected)
+TAMPER_REJECTED vkweak: TREE_AUDIT_CHECK class 0 vk_sha=true params=true airs=true key=FAIL(base vk differs from the key of the declared AIR + TAPE pad at the class parameters) -> MISMATCH 
+TAMPER_REJECTED padkeys: TREE_AUDIT_CHECK class 0 vk_sha=true params=true airs=true key=FAIL(base vk differs from the key of the declared AIR + TAPE pad at the class parameters) -> MISMATCH TREE_AUDIT_CHECK class 1 vk_sha=true params=true airs=true key=FAIL(base vk differs from the key of the declared AIR + TAPE pad at the class parameters) -> MISMATCH 
+TAMPER_REJECTED base0: class 0 (/data/illia/nearproof-deps/pq-e2e-d9/tamper9/base0): base vk differs from the key of the declared AIR + TAPE pad at the class parameters
+TAMPER_D9_ALL_REJECTED

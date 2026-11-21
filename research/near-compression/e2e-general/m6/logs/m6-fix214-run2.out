@@ -1,0 +1,233 @@
+DUMP tinymp-0.bin: 32 tables (AIR segMP 0 0: 32), 105 publics (AIR: 105), 8 chip compressions, cells 1450968
+  heights [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 65536, 65536, 32, 4, 4, 4, 4, 4, 4, 64, 8, 4, 8, 4, 4, 4, 16]
+  widths match the AIR tables: true
+  pubLen true heights true busLoad<P true constraints true
+  occurrences 333008 (nonzero count 564)
+  Lean-tables-only balance: 128 unbalanced keys on buses [103]; first [(103, ([0, 0, 368344, 716296, 3337959, 1889543, 610739, 1615498], 2013265920)), (103, ([0, 1, 1105175, 708995, 2381376, 940345, 444344, 347131], 2013265920)), (103, ([0, 2, 2865, 1261566, 1690825, 1578257, 1325890, 2338066], 2013265920)), (103, ([0, 3, 1675175, 1076007, 3588875, 1724324, 60919, 1174866], 2013265920)), (103, ([0, 4, 5, 0, 1, 0, 0, 0], 2013265920)), (103, ([0, 5, 0, 0, 0, 65424, 0, 0], 2013265920))]
+RESULT Holds  (segMP 0 0): NOT satisfied  [checkHolds = false; checkHolds_sound]
+RESULT HoldsX (segMP 0 0): SATISFIED  [checkHoldsX = true; checkHoldsX_sound]
+  chip: 8 compressions, 128 bus-103 sends; contract shape/ids true
+RESULT HoldsX ∧ ChipIf compressW (segMP 0 0): SATISFIED  [checkSeg = true; checkSeg_sound]
+PREMISE CutoHiLimbs: holds
+PREMISE HostBLinked: holds
+PREMISE RegCLinked: holds
+PREMISE (initS tr pub).Nodup: holds
+PREMISE TombDead tr pub (finS tr pub): holds
+PREMISE hst0: pub[pubStatus] = 0: holds
+PREMISE hlen: |actListM2| < 2^28: holds
+PREMISE htin: pub[pubTIn] < 2^28: holds
+DUMP tiny-0.bin: 32 tables (AIR seg 0 0: 32), 105 publics (AIR: 105), 8 chip compressions, cells 1450996
+  heights [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 65536, 65536, 32, 4, 4, 4, 4, 4, 4, 64, 8, 4, 8, 4, 4, 4, 16]
+  widths match the AIR tables: true
+  pubLen true heights true busLoad<P true constraints true
+  occurrences 332992 (nonzero count 564)
+  Lean-tables-only balance: 128 unbalanced keys on buses [103]; first [(103, ([0, 0, 368344, 716296, 3337959, 1889543, 610739, 1615498], 2013265920)), (103, ([0, 1, 1105175, 708995, 2381376, 940345, 444344, 347131], 2013265920)), (103, ([0, 2, 2865, 1261566, 1690825, 1578257, 1325890, 2338066], 2013265920)), (103, ([0, 3, 1675175, 1076007, 3588875, 1724324, 60919, 1174866], 2013265920)), (103, ([0, 4, 5, 0, 1, 0, 0, 0], 2013265920)), (103, ([0, 5, 0, 0, 0, 65424, 0, 0], 2013265920))]
+RESULT Holds  (seg 0 0): NOT satisfied  [checkHolds = false; checkHolds_sound]
+RESULT HoldsX (seg 0 0): SATISFIED  [checkHoldsX = true; checkHoldsX_sound]
+  chip: 8 compressions, 128 bus-103 sends; contract shape/ids true
+RESULT HoldsX ∧ ChipIf compressW (seg 0 0): SATISFIED  [checkSeg = true; checkSeg_sound]
+PREMISE CutoHiLimbs: holds
+PREMISE HostBLinked: holds
+PREMISE RegCLinked: holds
+PREMISE (initS tr pub).Nodup: holds
+PREMISE TombDead tr pub (finS tr pub): holds
+PREMISE hst0: pub[pubStatus] = 0: holds
+PREMISE hlen: |actListM2| < 2^28: holds
+PREMISE htin: pub[pubTIn] < 2^28: holds
+DUMP refmp-0.bin: 32 tables (AIR segMP 0 0: 32), 105 publics (AIR: 105), 62 chip compressions, cells 1462524
+  heights [4, 4, 4, 4, 4, 4, 8, 4, 4, 16, 4, 4, 4, 4, 4, 65536, 65536, 256, 4, 16, 16, 4, 4, 4, 64, 8, 4, 16, 4, 4, 16, 16]
+  widths match the AIR tables: true
+  pubLen true heights true busLoad<P true constraints true
+  occurrences 340360 (nonzero count 5694)
+  Lean-tables-only balance: 992 unbalanced keys on buses [103]; first [(103, ([0, 0, 368344, 716296, 3337959, 1889543, 610739, 1615498], 2013265920)), (103, ([0, 1, 1105175, 708995, 2381376, 940345, 444344, 347131], 2013265920)), (103, ([0, 2, 2865, 1261566, 1690825, 1578257, 1325890, 2338066], 2013265920)), (103, ([0, 3, 1675175, 1076007, 3588875, 1724324, 60919, 1174866], 2013265920)), (103, ([0, 4, 2, 0, 1, 0, 0, 0], 2013265920)), (103, ([0, 5, 0, 0, 0, 0, 0, 0], 2013265920))]
+RESULT Holds  (segMP 0 0): NOT satisfied  [checkHolds = false; checkHolds_sound]
+RESULT HoldsX (segMP 0 0): SATISFIED  [checkHoldsX = true; checkHoldsX_sound]
+  chip: 62 compressions, 992 bus-103 sends; contract shape/ids true
+RESULT HoldsX ∧ ChipIf compressW (segMP 0 0): SATISFIED  [checkSeg = true; checkSeg_sound]
+PREMISE CutoHiLimbs: holds
+PREMISE HostBLinked: holds
+PREMISE RegCLinked: holds
+PREMISE (initS tr pub).Nodup: holds
+PREMISE TombDead tr pub (finS tr pub): holds
+PREMISE hst0: pub[pubStatus] = 0: holds
+PREMISE hlen: |actListM2| < 2^28: holds
+PREMISE htin: pub[pubTIn] < 2^28: holds
+DUMP tinymp-1.bin: 32 tables (AIR segMP 0 0: 32), 105 publics (AIR: 105), 63 chip compressions, cells 1459932
+  heights [4, 4, 4, 4, 4, 4, 8, 4, 4, 4, 4, 4, 4, 4, 4, 65536, 65536, 32, 4, 16, 16, 4, 4, 4, 64, 4, 4, 8, 4, 4, 16, 16]
+  widths match the AIR tables: true
+  pubLen true heights true busLoad<P true constraints true
+  occurrences 339764 (nonzero count 5333)
+  Lean-tables-only balance: 1008 unbalanced keys on buses [103]; first [(103, ([0, 0, 368344, 716296, 3337959, 1889543, 610739, 1615498], 2013265920)), (103, ([0, 1, 1105175, 708995, 2381376, 940345, 444344, 347131], 2013265920)), (103, ([0, 2, 2865, 1261566, 1690825, 1578257, 1325890, 2338066], 2013265920)), (103, ([0, 3, 1675175, 1076007, 3588875, 1724324, 60919, 1174866], 2013265920)), (103, ([0, 4, 0, 0, 1, 0, 0, 0], 2013265920)), (103, ([0, 5, 0, 0, 0, 0, 0, 0], 2013265920))]
+RESULT Holds  (segMP 0 0): NOT satisfied  [checkHolds = false; checkHolds_sound]
+RESULT HoldsX (segMP 0 0): SATISFIED  [checkHoldsX = true; checkHoldsX_sound]
+  chip: 63 compressions, 1008 bus-103 sends; contract shape/ids true
+RESULT HoldsX ∧ ChipIf compressW (segMP 0 0): SATISFIED  [checkSeg = true; checkSeg_sound]
+PREMISE CutoHiLimbs: holds
+PREMISE HostBLinked: holds
+PREMISE RegCLinked: holds
+PREMISE (initS tr pub).Nodup: holds
+PREMISE TombDead tr pub (finS tr pub): holds
+PREMISE hst0: pub[pubStatus] = 0: holds
+PREMISE hlen: |actListM2| < 2^28: holds
+PREMISE htin: pub[pubTIn] < 2^28: holds
+DUMP tiny-1.bin: 32 tables (AIR seg 0 0: 32), 105 publics (AIR: 105), 63 chip compressions, cells 1460044
+  heights [4, 4, 4, 4, 4, 4, 8, 4, 4, 4, 4, 4, 4, 4, 4, 65536, 65536, 32, 4, 16, 16, 4, 4, 4, 64, 4, 4, 8, 4, 4, 16, 16]
+  widths match the AIR tables: true
+  pubLen true heights true busLoad<P true constraints true
+  occurrences 339700 (nonzero count 5303)
+  Lean-tables-only balance: 1008 unbalanced keys on buses [103]; first [(103, ([0, 0, 368344, 716296, 3337959, 1889543, 610739, 1615498], 2013265920)), (103, ([0, 1, 1105175, 708995, 2381376, 940345, 444344, 347131], 2013265920)), (103, ([0, 2, 2865, 1261566, 1690825, 1578257, 1325890, 2338066], 2013265920)), (103, ([0, 3, 1675175, 1076007, 3588875, 1724324, 60919, 1174866], 2013265920)), (103, ([0, 4, 0, 0, 1, 0, 0, 0], 2013265920)), (103, ([0, 5, 0, 0, 0, 0, 0, 0], 2013265920))]
+RESULT Holds  (seg 0 0): NOT satisfied  [checkHolds = false; checkHolds_sound]
+RESULT HoldsX (seg 0 0): SATISFIED  [checkHoldsX = true; checkHoldsX_sound]
+  chip: 63 compressions, 1008 bus-103 sends; contract shape/ids true
+RESULT HoldsX ∧ ChipIf compressW (seg 0 0): SATISFIED  [checkSeg = true; checkSeg_sound]
+PREMISE CutoHiLimbs: holds
+PREMISE HostBLinked: holds
+PREMISE RegCLinked: holds
+PREMISE (initS tr pub).Nodup: holds
+PREMISE TombDead tr pub (finS tr pub): holds
+PREMISE hst0: pub[pubStatus] = 0: holds
+PREMISE hlen: |actListM2| < 2^28: holds
+PREMISE htin: pub[pubTIn] < 2^28: holds
+DUMP refmp-1.bin: 32 tables (AIR segMP 0 0: 32), 105 publics (AIR: 105), 41 chip compressions, cells 1463484
+  heights [4, 4, 4, 4, 4, 8, 8, 4, 4, 16, 4, 4, 4, 4, 4, 65536, 65536, 256, 4, 16, 16, 4, 4, 4, 64, 4, 8, 4, 4, 4, 16, 32]
+  widths match the AIR tables: true
+  pubLen true heights true busLoad<P true constraints true
+  occurrences 340680 (nonzero count 4525)
+  Lean-tables-only balance: 656 unbalanced keys on buses [103]; first [(103, ([0, 0, 368344, 716296, 3337959, 1889543, 610739, 1615498], 2013265920)), (103, ([0, 1, 1105175, 708995, 2381376, 940345, 444344, 347131], 2013265920)), (103, ([0, 2, 2865, 1261566, 1690825, 1578257, 1325890, 2338066], 2013265920)), (103, ([0, 3, 1675175, 1076007, 3588875, 1724324, 60919, 1174866], 2013265920)), (103, ([0, 4, 2, 0, 1, 0, 0, 0], 2013265920)), (103, ([0, 5, 0, 0, 0, 0, 0, 0], 2013265920))]
+RESULT Holds  (segMP 0 0): NOT satisfied  [checkHolds = false; checkHolds_sound]
+RESULT HoldsX (segMP 0 0): SATISFIED  [checkHoldsX = true; checkHoldsX_sound]
+  chip: 41 compressions, 656 bus-103 sends; contract shape/ids true
+RESULT HoldsX ∧ ChipIf compressW (segMP 0 0): SATISFIED  [checkSeg = true; checkSeg_sound]
+PREMISE CutoHiLimbs: holds
+PREMISE HostBLinked: holds
+PREMISE RegCLinked: holds
+PREMISE (initS tr pub).Nodup: holds
+PREMISE TombDead tr pub (finS tr pub): holds
+PREMISE hst0: pub[pubStatus] = 0: holds
+PREMISE hlen: |actListM2| < 2^28: holds
+PREMISE htin: pub[pubTIn] < 2^28: holds
+DUMP tinymp-2.bin: 32 tables (AIR segMP 0 0: 32), 105 publics (AIR: 105), 38 chip compressions, cells 1459984
+  heights [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 65536, 65536, 32, 4, 16, 16, 4, 4, 4, 64, 16, 4, 4, 4, 4, 16, 16]
+  widths match the AIR tables: true
+  pubLen true heights true busLoad<P true constraints true
+  occurrences 339852 (nonzero count 4388)
+  Lean-tables-only balance: 608 unbalanced keys on buses [103]; first [(103, ([0, 0, 368344, 716296, 3337959, 1889543, 610739, 1615498], 2013265920)), (103, ([0, 1, 1105175, 708995, 2381376, 940345, 444344, 347131], 2013265920)), (103, ([0, 2, 2865, 1261566, 1690825, 1578257, 1325890, 2338066], 2013265920)), (103, ([0, 3, 1675175, 1076007, 3588875, 1724324, 60919, 1174866], 2013265920)), (103, ([0, 4, 0, 0, 1, 0, 0, 0], 2013265920)), (103, ([0, 5, 1, 0, 0, 1, 0, 0], 2013265920))]
+RESULT Holds  (segMP 0 0): NOT satisfied  [checkHolds = false; checkHolds_sound]
+RESULT HoldsX (segMP 0 0): SATISFIED  [checkHoldsX = true; checkHoldsX_sound]
+  chip: 38 compressions, 608 bus-103 sends; contract shape/ids true
+RESULT HoldsX ∧ ChipIf compressW (segMP 0 0): SATISFIED  [checkSeg = true; checkSeg_sound]
+PREMISE CutoHiLimbs: holds
+PREMISE HostBLinked: holds
+PREMISE RegCLinked: holds
+PREMISE (initS tr pub).Nodup: holds
+PREMISE TombDead tr pub (finS tr pub): holds
+PREMISE hst0: pub[pubStatus] = 0: holds
+PREMISE hlen: |actListM2| < 2^28: holds
+PREMISE htin: pub[pubTIn] < 2^28: holds
+DUMP tiny-2.bin: 32 tables (AIR seg 0 0: 32), 105 publics (AIR: 105), 38 chip compressions, cells 1460096
+  heights [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 65536, 65536, 32, 4, 16, 16, 4, 4, 4, 64, 16, 4, 4, 4, 4, 16, 16]
+  widths match the AIR tables: true
+  pubLen true heights true busLoad<P true constraints true
+  occurrences 339788 (nonzero count 4358)
+  Lean-tables-only balance: 608 unbalanced keys on buses [103]; first [(103, ([0, 0, 368344, 716296, 3337959, 1889543, 610739, 1615498], 2013265920)), (103, ([0, 1, 1105175, 708995, 2381376, 940345, 444344, 347131], 2013265920)), (103, ([0, 2, 2865, 1261566, 1690825, 1578257, 1325890, 2338066], 2013265920)), (103, ([0, 3, 1675175, 1076007, 3588875, 1724324, 60919, 1174866], 2013265920)), (103, ([0, 4, 0, 0, 1, 0, 0, 0], 2013265920)), (103, ([0, 5, 1, 0, 0, 1, 0, 0], 2013265920))]
+RESULT Holds  (seg 0 0): NOT satisfied  [checkHolds = false; checkHolds_sound]
+RESULT HoldsX (seg 0 0): SATISFIED  [checkHoldsX = true; checkHoldsX_sound]
+  chip: 38 compressions, 608 bus-103 sends; contract shape/ids true
+RESULT HoldsX ∧ ChipIf compressW (seg 0 0): SATISFIED  [checkSeg = true; checkSeg_sound]
+PREMISE CutoHiLimbs: holds
+PREMISE HostBLinked: holds
+PREMISE RegCLinked: holds
+PREMISE (initS tr pub).Nodup: holds
+PREMISE TombDead tr pub (finS tr pub): holds
+PREMISE hst0: pub[pubStatus] = 0: holds
+PREMISE hlen: |actListM2| < 2^28: holds
+PREMISE htin: pub[pubTIn] < 2^28: holds
+DUMP refmp-2.bin: 32 tables (AIR segMP 0 0: 32), 105 publics (AIR: 105), 55 chip compressions, cells 1468396
+  heights [4, 8, 4, 4, 4, 4, 16, 4, 4, 8, 4, 4, 4, 4, 4, 65536, 65536, 256, 4, 16, 16, 4, 4, 4, 64, 64, 4, 64, 4, 4, 32, 64]
+  widths match the AIR tables: true
+  pubLen true heights true busLoad<P true constraints true
+  occurrences 344184 (nonzero count 5773)
+  Lean-tables-only balance: 880 unbalanced keys on buses [103]; first [(103, ([0, 0, 368344, 716296, 3337959, 1889543, 610739, 1615498], 2013265920)), (103, ([0, 1, 1105175, 708995, 2381376, 940345, 444344, 347131], 2013265920)), (103, ([0, 2, 2865, 1261566, 1690825, 1578257, 1325890, 2338066], 2013265920)), (103, ([0, 3, 1675175, 1076007, 3588875, 1724324, 60919, 1174866], 2013265920)), (103, ([0, 4, 0, 0, 1, 0, 0, 0], 2013265920)), (103, ([0, 5, 1, 0, 0, 2, 0, 0], 2013265920))]
+RESULT Holds  (segMP 0 0): NOT satisfied  [checkHolds = false; checkHolds_sound]
+RESULT HoldsX (segMP 0 0): SATISFIED  [checkHoldsX = true; checkHoldsX_sound]
+  chip: 55 compressions, 880 bus-103 sends; contract shape/ids true
+RESULT HoldsX ∧ ChipIf compressW (segMP 0 0): SATISFIED  [checkSeg = true; checkSeg_sound]
+PREMISE CutoHiLimbs: holds
+PREMISE HostBLinked: holds
+PREMISE RegCLinked: holds
+PREMISE (initS tr pub).Nodup: holds
+PREMISE TombDead tr pub (finS tr pub): holds
+PREMISE hst0: pub[pubStatus] = 0: holds
+PREMISE hlen: |actListM2| < 2^28: holds
+PREMISE htin: pub[pubTIn] < 2^28: holds
+DUMP tinymp-3.bin: 32 tables (AIR segMP 0 0: 32), 105 publics (AIR: 105), 36 chip compressions, cells 1459856
+  heights [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 65536, 65536, 32, 4, 16, 16, 4, 4, 4, 64, 8, 4, 4, 4, 4, 16, 16]
+  widths match the AIR tables: true
+  pubLen true heights true busLoad<P true constraints true
+  occurrences 339724 (nonzero count 4142)
+  Lean-tables-only balance: 576 unbalanced keys on buses [103]; first [(103, ([0, 0, 368344, 716296, 3337959, 1889543, 610739, 1615498], 2013265920)), (103, ([0, 1, 1105175, 708995, 2381376, 940345, 444344, 347131], 2013265920)), (103, ([0, 2, 2865, 1261566, 1690825, 1578257, 1325890, 2338066], 2013265920)), (103, ([0, 3, 1675175, 1076007, 3588875, 1724324, 60919, 1174866], 2013265920)), (103, ([0, 4, 0, 0, 1, 0, 0, 0], 2013265920)), (103, ([0, 5, 1, 0, 0, 5, 0, 0], 2013265920))]
+RESULT Holds  (segMP 0 0): NOT satisfied  [checkHolds = false; checkHolds_sound]
+RESULT HoldsX (segMP 0 0): SATISFIED  [checkHoldsX = true; checkHoldsX_sound]
+  chip: 36 compressions, 576 bus-103 sends; contract shape/ids true
+RESULT HoldsX ∧ ChipIf compressW (segMP 0 0): SATISFIED  [checkSeg = true; checkSeg_sound]
+PREMISE CutoHiLimbs: holds
+PREMISE HostBLinked: holds
+PREMISE RegCLinked: holds
+PREMISE (initS tr pub).Nodup: holds
+PREMISE TombDead tr pub (finS tr pub): holds
+PREMISE hst0: pub[pubStatus] = 0: FAILS
+PREMISE hlen: |actListM2| < 2^28: holds
+PREMISE htin: pub[pubTIn] < 2^28: holds
+DUMP tiny-3.bin: 32 tables (AIR seg 0 0: 32), 105 publics (AIR: 105), 36 chip compressions, cells 1459968
+  heights [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 65536, 65536, 32, 4, 16, 16, 4, 4, 4, 64, 8, 4, 4, 4, 4, 16, 16]
+  widths match the AIR tables: true
+  pubLen true heights true busLoad<P true constraints true
+  occurrences 339660 (nonzero count 4112)
+  Lean-tables-only balance: 576 unbalanced keys on buses [103]; first [(103, ([0, 0, 368344, 716296, 3337959, 1889543, 610739, 1615498], 2013265920)), (103, ([0, 1, 1105175, 708995, 2381376, 940345, 444344, 347131], 2013265920)), (103, ([0, 2, 2865, 1261566, 1690825, 1578257, 1325890, 2338066], 2013265920)), (103, ([0, 3, 1675175, 1076007, 3588875, 1724324, 60919, 1174866], 2013265920)), (103, ([0, 4, 0, 0, 1, 0, 0, 0], 2013265920)), (103, ([0, 5, 1, 0, 0, 5, 0, 0], 2013265920))]
+RESULT Holds  (seg 0 0): NOT satisfied  [checkHolds = false; checkHolds_sound]
+RESULT HoldsX (seg 0 0): SATISFIED  [checkHoldsX = true; checkHoldsX_sound]
+  chip: 36 compressions, 576 bus-103 sends; contract shape/ids true
+RESULT HoldsX ∧ ChipIf compressW (seg 0 0): SATISFIED  [checkSeg = true; checkSeg_sound]
+PREMISE CutoHiLimbs: holds
+PREMISE HostBLinked: holds
+PREMISE RegCLinked: holds
+PREMISE (initS tr pub).Nodup: holds
+PREMISE TombDead tr pub (finS tr pub): holds
+PREMISE hst0: pub[pubStatus] = 0: FAILS
+PREMISE hlen: |actListM2| < 2^28: holds
+PREMISE htin: pub[pubTIn] < 2^28: holds
+DUMP refmp-3.bin: 32 tables (AIR segMP 0 0: 32), 105 publics (AIR: 105), 42 chip compressions, cells 1458820
+  heights [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 65536, 65536, 256, 4, 4, 4, 4, 4, 4, 64, 4, 4, 4, 4, 4, 64, 64]
+  widths match the AIR tables: true
+  pubLen true heights true busLoad<P true constraints true
+  occurrences 335480 (nonzero count 1528)
+  Lean-tables-only balance: 672 unbalanced keys on buses [103]; first [(103, ([0, 0, 368344, 716296, 3337959, 1889543, 610739, 1615498], 2013265920)), (103, ([0, 1, 1105175, 708995, 2381376, 940345, 444344, 347131], 2013265920)), (103, ([0, 2, 2865, 1261566, 1690825, 1578257, 1325890, 2338066], 2013265920)), (103, ([0, 3, 1675175, 1076007, 3588875, 1724324, 60919, 1174866], 2013265920)), (103, ([0, 4, 2, 0, 1, 0, 0, 0], 2013265920)), (103, ([0, 5, 0, 0, 0, 1, 0, 0], 2013265920))]
+RESULT Holds  (segMP 0 0): NOT satisfied  [checkHolds = false; checkHolds_sound]
+RESULT HoldsX (segMP 0 0): SATISFIED  [checkHoldsX = true; checkHoldsX_sound]
+  chip: 42 compressions, 672 bus-103 sends; contract shape/ids true
+RESULT HoldsX ∧ ChipIf compressW (segMP 0 0): SATISFIED  [checkSeg = true; checkSeg_sound]
+PREMISE CutoHiLimbs: holds
+PREMISE HostBLinked: holds
+PREMISE RegCLinked: holds
+PREMISE (initS tr pub).Nodup: holds
+PREMISE TombDead tr pub (finS tr pub): holds
+PREMISE hst0: pub[pubStatus] = 0: FAILS
+PREMISE hlen: |actListM2| < 2^28: holds
+PREMISE htin: pub[pubTIn] < 2^28: holds
+bench segcheck exit 0
+  PRECHECK OK (0.77s): every constraint on every row, every bus balanced incl. the chip's interface
+SEGCHECK OK 5 segments chained: B_out(k) = B_in(k+1) for every k
+run_grow exit 0
+== grow/m4c-grow-segcheck.log
+  PRECHECK OK (0.05s): every constraint on every row, every bus balanced incl. the chip's interface
+SEGCHECK OK 7 segments chained: B_out(k) = B_in(k+1) for every k
+== grow/m4c-grow-segprove.log
+  CELLS instruction+lookup tables 1453276 | boundary tables 28056 | SHA-512 chip 681088 (height 8192) | total 2162420
+SEGPROVE OK 7 segments, chained by hand (B_out(k) = B_in(k+1)); total prove 112.2s
+== grow/m4c-grow-segtamper-s1.log
+REJECTED MEMG grow tz+1 (size message time): prover error [precheck: 4 unbalanced messages by bus {2: 2, 3: 2}; first [((2, [8, 0, 0, 1024, 0, 0, 0, 500]), 1, Some(("SEGG", 0))), ((2, [8, 0, 0, 1024, 0, 0, 0, ]
+SEGTAMPER 26 rejected, 0 accepted
+== grow/m4c-grow-segtamper-s4.log
+REJECTED MEMG memory.size old+1: prover error [precheck: 8 unbalanced messages by bus {2: 6, 3: 2}; first [((2, [0, 0, 0, 1025, 0, 0, 0, 2162]), -1, Some(("CONV", 2))), ((2, [0, 0, 0, 1026, 0, 0, 0]
+SEGTAMPER 23 rejected, 0 accepted
+RUN2 DONE

@@ -586,11 +586,7 @@ omit H in
 /-- HOSTB with the call-key lookup has HOSTB's CH traffic. -/
 theorem hostBK_part_stk (s : Bool) :
     part HostBK.table tr pub 25 busStk s = part HostB.table tr pub 25 busStk s :=
-  part_congr_filter (by
-    show (HostB.inters ++ [HostBK.keySend]).filter _ = HostB.inters.filter _
-    rw [List.filter_append]
-    have : [HostBK.keySend].filter (fun i => i.bus = busStk ∧ i.send = s) = [] := by cases s <;> decide +kernel
-    rw [this, List.append_nil])
+  part_congr_filter (HostBK.inters_filter busStk s (by decide) (by decide))
 
 omit H in
 /-- REG-C with the call-key lookup has REG-C's CH traffic. -/

@@ -1,0 +1,704 @@
+{
+ "tape": "/data/illia/nearproof-deps/e2e-laneA/m3/tape.jsonl",
+ "calls": 27197,
+ "eligible_calls": 3414,
+ "calls_by_code": {
+  "fbc015a8eda217bda1c44d4dae59545937ae438699c2d4647baa2991ce691a11": 18621,
+  "f1c929ab07d5d6829f54a23b94d5cb40cdac5786b2d9aa6a12e4736c1f01da2e": 172,
+  "3b1ad423845cb251e028ed2749518e755b8132e4263e064afe5fd3fa3e9b3491": 2413,
+  "8152bed25554d521d3fcdd919f4457b66e06b720906fdd40fd6fd0723ed36bf9": 1755,
+  "e1fe4f9c6bff1c74e2d4a4aa3a49f6977c27da8291a23a5d056832a4c3b7e14a": 4048,
+  "e564d5cf50083002e041080cd1a2847a063d018edcf15ab8d7642415c8b3526e": 17,
+  "25863ae63851748d1f1c8931f6cd7c583ef4404c68cd9b6ac39cdfeaa5a2e68a": 25,
+  "18d479bd29fc49c5a2b7902629d76f8dfc1b7b5f2ef9d424f4f443dc78956060": 19,
+  "b192c679376c6dcb61175951049d6a9b403c96a1e8e7004063ec2d997e6b20b0": 127
+ },
+ "eligible_by_code": {
+  "f1c929ab07d5d6829f54a23b94d5cb40cdac5786b2d9aa6a12e4736c1f01da2e": 172,
+  "fbc015a8eda217bda1c44d4dae59545937ae438699c2d4647baa2991ce691a11": 194,
+  "3b1ad423845cb251e028ed2749518e755b8132e4263e064afe5fd3fa3e9b3491": 1293,
+  "8152bed25554d521d3fcdd919f4457b66e06b720906fdd40fd6fd0723ed36bf9": 1755
+ },
+ "imports_by_code": {
+  "e1fe4f9c": [
+   "input",
+   "promise_create",
+   "promise_then",
+   "read_register",
+   "register_len",
+   "storage_has_key",
+   "storage_read",
+   "storage_remove",
+   "storage_write"
+  ],
+  "b192c679": [
+   "ed25519_verify",
+   "input",
+   "read_register",
+   "register_len",
+   "storage_write"
+  ],
+  "d3ed": [
+   "ed25519_verify",
+   "input",
+   "read_register",
+   "register_len",
+   "storage_write"
+  ],
+  "fbc015a8": [
+   "abort",
+   "account_balance",
+   "account_locked_balance",
+   "attached_deposit",
+   "block_index",
+   "block_timestamp",
+   "chain_id",
+   "current_account_id",
+   "epoch_height",
+   "input",
+   "keccak256",
+   "keccak512",
+   "log_utf16",
+   "log_utf8",
+   "panic",
+   "panic_utf8",
+   "predecessor_account_id",
+   "prepaid_gas",
+   "promise_and",
+   "promise_batch_action_add_key_with_full_access",
+   "promise_batch_action_add_key_with_function_call",
+   "promise_batch_action_create_account",
+   "promise_batch_action_delete_account",
+   "promise_batch_action_delete_key",
+   "promise_batch_action_deploy_contract",
+   "promise_batch_action_function_call",
+   "promise_batch_action_function_call_weight",
+   "promise_batch_action_stake",
+   "promise_batch_action_transfer",
+   "promise_batch_create",
+   "promise_batch_then",
+   "promise_create",
+   "promise_result",
+   "promise_results_count",
+   "promise_return",
+   "promise_then",
+   "promise_yield_create",
+   "promise_yield_resume",
+   "random_seed",
+   "read_register",
+   "register_len",
+   "ripemd160",
+   "sha256",
+   "signer_account_id",
+   "signer_account_pk",
+   "storage_has_key",
+   "storage_read",
+   "storage_remove",
+   "storage_usage",
+   "storage_write",
+   "used_gas",
+   "validator_stake",
+   "validator_total_stake",
+   "value_return",
+   "write_register"
+  ],
+  "d3rich": [
+   "abort",
+   "account_balance",
+   "account_locked_balance",
+   "attached_deposit",
+   "block_index",
+   "block_timestamp",
+   "chain_id",
+   "current_account_id",
+   "epoch_height",
+   "input",
+   "keccak256",
+   "keccak512",
+   "log_utf16",
+   "log_utf8",
+   "panic",
+   "panic_utf8",
+   "predecessor_account_id",
+   "prepaid_gas",
+   "promise_and",
+   "promise_batch_action_add_key_with_full_access",
+   "promise_batch_action_add_key_with_function_call",
+   "promise_batch_action_create_account",
+   "promise_batch_action_delete_account",
+   "promise_batch_action_delete_key",
+   "promise_batch_action_deploy_contract",
+   "promise_batch_action_function_call",
+   "promise_batch_action_function_call_weight",
+   "promise_batch_action_stake",
+   "promise_batch_action_transfer",
+   "promise_batch_create",
+   "promise_batch_then",
+   "promise_create",
+   "promise_result",
+   "promise_results_count",
+   "promise_return",
+   "promise_then",
+   "promise_yield_create",
+   "promise_yield_resume",
+   "random_seed",
+   "read_register",
+   "register_len",
+   "ripemd160",
+   "sha256",
+   "signer_account_id",
+   "signer_account_pk",
+   "storage_has_key",
+   "storage_read",
+   "storage_remove",
+   "storage_usage",
+   "storage_write",
+   "used_gas",
+   "validator_stake",
+   "validator_total_stake",
+   "value_return",
+   "write_register"
+  ],
+  "3b1ad423": [
+   "input",
+   "promise_and",
+   "promise_batch_action_add_key_with_full_access",
+   "promise_batch_action_create_account",
+   "promise_batch_action_transfer",
+   "promise_batch_create",
+   "promise_batch_then",
+   "promise_yield_create",
+   "read_register",
+   "register_len"
+  ],
+  "8152bed2": [
+   "input",
+   "log_utf8",
+   "read_register",
+   "register_len",
+   "storage_write",
+   "value_return"
+  ]
+ },
+ "codes_without_imports": {
+  "f1c929ab07d5d6829f54a23b94d5cb40cdac5786b2d9aa6a12e4736c1f01da2e": 172,
+  "e564d5cf50083002e041080cd1a2847a063d018edcf15ab8d7642415c8b3526e": 17,
+  "25863ae63851748d1f1c8931f6cd7c583ef4404c68cd9b6ac39cdfeaa5a2e68a": 25,
+  "18d479bd29fc49c5a2b7902629d76f8dfc1b7b5f2ef9d424f4f443dc78956060": 19
+ },
+ "eligible_without_host_events_by_code": {
+  "fbc015a8eda217bda1c44d4dae59545937ae438699c2d4647baa2991ce691a11": 194,
+  "3b1ad423845cb251e028ed2749518e755b8132e4263e064afe5fd3fa3e9b3491": 1293
+ },
+ "noneligible_dynamic_lower_bounds": {
+  "log_lines": 6201,
+  "calls_with_logs": 5774,
+  "calls_with_return_value": 2751
+ },
+ "hosts": [
+  {
+   "name": "input",
+   "hid": 48,
+   "in_table": true,
+   "eligible_calls_with": 1927,
+   "eligible_events": 1927,
+   "static_import_calls_all": 26964,
+   "static_import_calls_noneligible": 23722
+  },
+  {
+   "name": "read_register",
+   "hid": 49,
+   "in_table": true,
+   "eligible_calls_with": 1927,
+   "eligible_events": 1927,
+   "static_import_calls_all": 26964,
+   "static_import_calls_noneligible": 23722
+  },
+  {
+   "name": "register_len",
+   "hid": 6,
+   "in_table": true,
+   "eligible_calls_with": 1927,
+   "eligible_events": 1927,
+   "static_import_calls_all": 26964,
+   "static_import_calls_noneligible": 23722
+  },
+  {
+   "name": "storage_write",
+   "hid": 58,
+   "in_table": true,
+   "eligible_calls_with": 1927,
+   "eligible_events": 1927,
+   "static_import_calls_all": 24551,
+   "static_import_calls_noneligible": 22602
+  },
+  {
+   "name": "log_utf8",
+   "hid": 45,
+   "in_table": true,
+   "eligible_calls_with": 1755,
+   "eligible_events": 1755,
+   "static_import_calls_all": 20376,
+   "static_import_calls_noneligible": 18427
+  },
+  {
+   "name": "value_return",
+   "hid": 50,
+   "in_table": true,
+   "eligible_calls_with": 1755,
+   "eligible_events": 1755,
+   "static_import_calls_all": 20376,
+   "static_import_calls_noneligible": 18427
+  },
+  {
+   "name": "promise_create",
+   "hid": 8,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 22669,
+   "static_import_calls_noneligible": 22475
+  },
+  {
+   "name": "promise_then",
+   "hid": 9,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 22669,
+   "static_import_calls_noneligible": 22475
+  },
+  {
+   "name": "storage_has_key",
+   "hid": 59,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 22669,
+   "static_import_calls_noneligible": 22475
+  },
+  {
+   "name": "storage_read",
+   "hid": 57,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 22669,
+   "static_import_calls_noneligible": 22475
+  },
+  {
+   "name": "storage_remove",
+   "hid": 60,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 22669,
+   "static_import_calls_noneligible": 22475
+  },
+  {
+   "name": "promise_and",
+   "hid": 10,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 21034,
+   "static_import_calls_noneligible": 19547
+  },
+  {
+   "name": "promise_batch_action_add_key_with_full_access",
+   "hid": 20,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 21034,
+   "static_import_calls_noneligible": 19547
+  },
+  {
+   "name": "promise_batch_action_create_account",
+   "hid": 14,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 21034,
+   "static_import_calls_noneligible": 19547
+  },
+  {
+   "name": "promise_batch_action_transfer",
+   "hid": 18,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 21034,
+   "static_import_calls_noneligible": 19547
+  },
+  {
+   "name": "promise_batch_create",
+   "hid": 11,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 21034,
+   "static_import_calls_noneligible": 19547
+  },
+  {
+   "name": "promise_batch_then",
+   "hid": 12,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 21034,
+   "static_import_calls_noneligible": 19547
+  },
+  {
+   "name": "promise_yield_create",
+   "hid": 24,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 21034,
+   "static_import_calls_noneligible": 19547
+  },
+  {
+   "name": "abort",
+   "hid": 51,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 18621,
+   "static_import_calls_noneligible": 18427
+  },
+  {
+   "name": "account_balance",
+   "hid": 37,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 18621,
+   "static_import_calls_noneligible": 18427
+  },
+  {
+   "name": "account_locked_balance",
+   "hid": 38,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 18621,
+   "static_import_calls_noneligible": 18427
+  },
+  {
+   "name": "attached_deposit",
+   "hid": 39,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 18621,
+   "static_import_calls_noneligible": 18427
+  },
+  {
+   "name": "block_index",
+   "hid": 0,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 18621,
+   "static_import_calls_noneligible": 18427
+  },
+  {
+   "name": "block_timestamp",
+   "hid": 1,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 18621,
+   "static_import_calls_noneligible": 18427
+  },
+  {
+   "name": "chain_id",
+   "hid": 32,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 18621,
+   "static_import_calls_noneligible": 18427
+  },
+  {
+   "name": "current_account_id",
+   "hid": 31,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 18621,
+   "static_import_calls_noneligible": 18427
+  },
+  {
+   "name": "epoch_height",
+   "hid": 2,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 18621,
+   "static_import_calls_noneligible": 18427
+  },
+  {
+   "name": "keccak256",
+   "hid": 54,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 18621,
+   "static_import_calls_noneligible": 18427
+  },
+  {
+   "name": "keccak512",
+   "hid": 55,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 18621,
+   "static_import_calls_noneligible": 18427
+  },
+  {
+   "name": "log_utf16",
+   "hid": 46,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 18621,
+   "static_import_calls_noneligible": 18427
+  },
+  {
+   "name": "panic",
+   "hid": 7,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 18621,
+   "static_import_calls_noneligible": 18427
+  },
+  {
+   "name": "panic_utf8",
+   "hid": 47,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 18621,
+   "static_import_calls_noneligible": 18427
+  },
+  {
+   "name": "predecessor_account_id",
+   "hid": 35,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 18621,
+   "static_import_calls_noneligible": 18427
+  },
+  {
+   "name": "prepaid_gas",
+   "hid": 4,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 18621,
+   "static_import_calls_noneligible": 18427
+  },
+  {
+   "name": "promise_batch_action_add_key_with_function_call",
+   "hid": 21,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 18621,
+   "static_import_calls_noneligible": 18427
+  },
+  {
+   "name": "promise_batch_action_delete_account",
+   "hid": 23,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 18621,
+   "static_import_calls_noneligible": 18427
+  },
+  {
+   "name": "promise_batch_action_delete_key",
+   "hid": 22,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 18621,
+   "static_import_calls_noneligible": 18427
+  },
+  {
+   "name": "promise_batch_action_deploy_contract",
+   "hid": 15,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 18621,
+   "static_import_calls_noneligible": 18427
+  },
+  {
+   "name": "promise_batch_action_function_call",
+   "hid": 16,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 18621,
+   "static_import_calls_noneligible": 18427
+  },
+  {
+   "name": "promise_batch_action_function_call_weight",
+   "hid": 17,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 18621,
+   "static_import_calls_noneligible": 18427
+  },
+  {
+   "name": "promise_batch_action_stake",
+   "hid": 19,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 18621,
+   "static_import_calls_noneligible": 18427
+  },
+  {
+   "name": "promise_result",
+   "hid": 29,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 18621,
+   "static_import_calls_noneligible": 18427
+  },
+  {
+   "name": "promise_results_count",
+   "hid": 28,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 18621,
+   "static_import_calls_noneligible": 18427
+  },
+  {
+   "name": "promise_return",
+   "hid": 30,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 18621,
+   "static_import_calls_noneligible": 18427
+  },
+  {
+   "name": "promise_yield_resume",
+   "hid": 26,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 18621,
+   "static_import_calls_noneligible": 18427
+  },
+  {
+   "name": "random_seed",
+   "hid": 40,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 18621,
+   "static_import_calls_noneligible": 18427
+  },
+  {
+   "name": "ripemd160",
+   "hid": 56,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 18621,
+   "static_import_calls_noneligible": 18427
+  },
+  {
+   "name": "sha256",
+   "hid": 53,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 18621,
+   "static_import_calls_noneligible": 18427
+  },
+  {
+   "name": "signer_account_id",
+   "hid": 33,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 18621,
+   "static_import_calls_noneligible": 18427
+  },
+  {
+   "name": "signer_account_pk",
+   "hid": 34,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 18621,
+   "static_import_calls_noneligible": 18427
+  },
+  {
+   "name": "storage_usage",
+   "hid": 3,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 18621,
+   "static_import_calls_noneligible": 18427
+  },
+  {
+   "name": "used_gas",
+   "hid": 5,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 18621,
+   "static_import_calls_noneligible": 18427
+  },
+  {
+   "name": "validator_stake",
+   "hid": 44,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 18621,
+   "static_import_calls_noneligible": 18427
+  },
+  {
+   "name": "validator_total_stake",
+   "hid": 43,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 18621,
+   "static_import_calls_noneligible": 18427
+  },
+  {
+   "name": "write_register",
+   "hid": 52,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 18621,
+   "static_import_calls_noneligible": 18427
+  },
+  {
+   "name": "ed25519_verify",
+   "hid": 61,
+   "in_table": true,
+   "eligible_calls_with": 0,
+   "eligible_events": 0,
+   "static_import_calls_all": 127,
+   "static_import_calls_noneligible": 127
+  }
+ ]
+}

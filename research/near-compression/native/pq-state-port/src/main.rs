@@ -260,9 +260,29 @@ impl TapePad {
     pub fn to_json(&self) -> serde_json::Value {
         serde_json::json!({ "log": self.log, "keys": self.keys })
     }
+    /// Panics on a malformed pad (unsorted or duplicate keys, a log above 22: review-D8 M2 / I3).
     pub fn from_json(v: &serde_json::Value) -> Self {
         let keys = v["keys"].as_array().expect("tape pad keys").iter().map(|k| (k[0].as_u64().unwrap() as u16, k[1].as_u64().unwrap() as usize)).collect();
-        TapePad { log: v["log"].as_u64().expect("tape pad log") as usize, keys }
+        let p = TapePad { log: v["log"].as_u64().expect("tape pad log") as usize, keys };
+        p.validate().unwrap_or_else(|e| panic!("TAPE pad: {e}"));
+        p
+    }
+    /// [E2E-D D-9, review-D8 M2] Keys strictly increasing (sorted, no duplicates), non-empty,
+    /// message lengths >= 1, bus ids shiftable by `BUS_OFFSET`, log in 2..=22.
+    pub fn validate(&self) -> Result<(), String> {
+        if self.keys.is_empty() {
+            return Err("no keys".into());
+        }
+        if !self.keys.windows(2).all(|w| w[0] < w[1]) {
+            return Err(format!("keys not strictly increasing: {:?}", self.keys));
+        }
+        if self.keys.iter().any(|&(b, l)| l == 0 || b.checked_add(BUS_OFFSET).is_none()) {
+            return Err(format!("bad key in {:?}", self.keys));
+        }
+        if !(2..=22).contains(&self.log) {
+            return Err(format!("log {} outside 2..=22", self.log));
+        }
+        Ok(())
     }
     /// The pad a base proof directory carries (`TAPE_PAD.json`, written for a class with
     /// `tape_keys`), or `None` (natural TAPE).
@@ -556,29 +576,29 @@ fn airs(inst: &Inst) -> Vec<AirRef<Sha384Config>> {
 }
 
 fn params_for(inst: &Inst, which: &str) -> SystemParams {
-    let total: usize = inst.mats.iter().map(|m| m.values.len()).sum();
-    let maxh = inst
-        .mats
-        .iter()
-        .map(|m| m.values.len() / m.width.max(1))
-        .max()
-        .unwrap();
-    let n_stack = match which {
-        "pinned" => 22,
-        _ => [14, 18, 22]
+    let sizes: Vec<(usize, usize)> = inst.mats.iter().map(|m| (m.width.max(1), (m.values.len() / m.width.max(1)).trailing_zeros() as usize)).collect();
+    let (n_stack, w_stack, degree) = shape_of_at(&sizes, &inst.spec, (which == "pinned").then_some(22));
+    seg_v1_params(n_stack, w_stack, degree)
+}
+
+/// [E2E-D D-9] `params_for`'s shape rule on (width, log height) per AIR: `(n_stack, w_stack,
+/// max_constraint_degree)` (`w_stack` already floored at 8). Shared by `class_base_shape`.
+fn shape_of(sizes: &[(usize, usize)], spec: &[TableSpec]) -> (usize, usize, usize) {
+    shape_of_at(sizes, spec, None)
+}
+
+fn shape_of_at(sizes: &[(usize, usize)], spec: &[TableSpec], n_fixed: Option<usize>) -> (usize, usize, usize) {
+    let total: usize = sizes.iter().map(|&(w, l)| w << l).sum();
+    let maxh = sizes.iter().map(|&(_, l)| 1usize << l).max().unwrap();
+    let n_stack = n_fixed.unwrap_or_else(|| {
+        [14, 18, 22]
             .into_iter()
             .find(|&n| (1usize << (n + 2)) >= maxh && total.div_ceil(1 << (n + 2)) + 4 <= 24)
-            .unwrap_or(22),
-    };
+            .unwrap_or(22)
+    });
     let w_stack = total.div_ceil(1 << (n_stack + 2)) + 4;
-    let degree = inst
-        .spec
-        .iter()
-        .flat_map(|t| t.constraints.iter().map(deg))
-        .max()
-        .unwrap_or(2)
-        .max(2);
-    seg_v1_params(n_stack, w_stack.max(8), degree)
+    let degree = spec.iter().flat_map(|t| t.constraints.iter().map(deg)).max().unwrap_or(2).max(2);
+    (n_stack, w_stack.max(8), degree)
 }
 
 fn census(proof: &openvm_stark_backend::proof::Proof<Sha384Config>) -> String {

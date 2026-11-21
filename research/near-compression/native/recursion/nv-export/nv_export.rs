@@ -35,7 +35,7 @@ use openvm_stark_backend::{
     air_builders::symbolic::{symbolic_variable::Entry, SymbolicConstraintsDag, SymbolicExpressionNode},
     StarkEngine,
 };
-use p3_field::PrimeField32;
+use p3_field::{PrimeCharacteristicRing, PrimeField32};
 use sha2::{Digest as _, Sha256};
 
 use super::{
@@ -68,11 +68,16 @@ fn full_col(program_part: bool, part_index: usize, idx: usize) -> usize {
 }
 
 fn node_text(n: &SymbolicExpressionNode<F>, program_part: bool) -> String {
+    node_text_w(n, program_part, NV_WIDTH)
+}
+
+/// `node_text` for an AIR of main width `width` (the other AIRs: one unpartitioned main part).
+fn node_text_w(n: &SymbolicExpressionNode<F>, program_part: bool, width: usize) -> String {
     match n {
         SymbolicExpressionNode::Variable(var) => match var.entry {
             Entry::Main { part_index, offset } => {
                 let c = full_col(program_part, part_index, var.index);
-                assert!(c < NV_WIDTH);
+                assert!(c < width);
                 format!("v {} {}", c, if offset == 0 { "false" } else { "true" })
             }
             Entry::Public => format!("p {}", var.index),
@@ -340,4 +345,176 @@ fn nv_export() {
     s.push_str("end ZkFormal.PQ.NvAirExport\n");
     std::fs::write(&out, s).unwrap();
     println!("NV_EXPORT wrote {out}");
+}
+
+/// Lean text of one AIR's DAG (`<pre>Nodes`, `<pre>ConstraintIdx`, `<pre>InteractionIdx`,
+/// `<pre>CountWeights`, `<pre>Width`, `<pre>NumPub`), node chunks of 256.
+fn air_lean(pre: &str, name: &str, sc: &SymbolicConstraintsDag<F>, width: usize, npv: usize) -> String {
+    let nodes: Vec<String> = sc.constraints.nodes.iter().map(|n| node_text_w(n, false, width)).collect();
+    let mut s = String::new();
+    let nch = nodes.len().div_ceil(256);
+    for (ci, ch) in nodes.chunks(256).enumerate() {
+        s.push_str(&format!("def {pre}Nodes{ci} : List DagNode := [\n"));
+        let body: Vec<String> = ch.iter().map(|n| format!("  {n}")).collect();
+        s.push_str(&body.join(",\n"));
+        s.push_str("]\n\n");
+    }
+    let parts: Vec<String> = (0..nch).map(|i| format!("{pre}Nodes{i}")).collect();
+    s.push_str(&format!("/-- {name}: all {} DAG nodes. -/\ndef {pre}Nodes : List DagNode :=\n  {}\n\n", nodes.len(), parts.join(" ++ ")));
+    let cs: Vec<String> = sc.constraints.constraint_idx.iter().map(|c| c.to_string()).collect();
+    s.push_str(&format!("/-- {name}: node indices of the {} constraints. -/\ndef {pre}ConstraintIdx : List Nat := [{}]\n\n", cs.len(), cs.join(", ")));
+    let it: Vec<String> = sc
+        .interactions
+        .iter()
+        .map(|i| {
+            let m: Vec<String> = i.message.iter().map(|x| x.to_string()).collect();
+            format!("({}, {}, [{}])", i.bus_index, i.count, m.join(", "))
+        })
+        .collect();
+    s.push_str(&format!(
+        "/-- {name}: the {} interactions `(bus, count, message)` as node indices. -/\ndef {pre}InteractionIdx : List (Nat × Nat × List Nat) := [\n  {}]\n\n",
+        it.len(),
+        it.join(",\n  ")
+    ));
+    let ws: Vec<String> = sc.interactions.iter().map(|i| i.count_weight.to_string()).collect();
+    s.push_str(&format!("def {pre}CountWeights : List Nat := [{}]\n\n", ws.join(", ")));
+    s.push_str(&format!("def {pre}Width : Nat := {width}\ndef {pre}NumPub : Nat := {npv}\n\n"));
+    s
+}
+
+/// [lane E, M11g] Export the circuit's other three AIRs (Sha512Air4, TableAir4, ByteAir) in the
+/// format of `NvAirExport.lean`, so the whole pinned circuit (four tables) is Lean data.
+///
+///   NV_EXPORT_ALL_OUT=<file.lean> cargo test --release -p openvm-recursion-circuit --lib nv::nv_export::nv_export_all -- --nocapture
+#[test]
+fn nv_export_all() {
+    let Ok(out) = std::env::var("NV_EXPORT_ALL_OUT") else { return };
+    let header = std::env::var("NV_EXPORT_HEADER").unwrap_or_default();
+    let mut p = crate::sha384::e2e_tests::parent_params_debug();
+    p.max_constraint_degree = NvCircuit::new(3, 16, 1).layout().degree().max(6);
+    let engine = Sha384CpuEngine::new(p);
+    let circ = NvCircuit::new(3, 17, 1);
+    let airs = circ.airs::<Sha384Config>();
+    assert_eq!(airs.len(), 4, "one compression instance: four AIRs");
+    let (_, vk) = engine.keygen(&airs);
+    let mut s = String::new();
+    s.push_str("import ZkFormal.PQ.NvAirExport\n\n/-!\n# ZkFormal.PQ.NvCircuitExport — GENERATED, do not edit\n\n");
+    s.push_str("Tables 1..3 of the pinned NV circuit (`NvCircuit::new(3, 17, 1).airs()`: Sha512Air4, TableAir4,\n");
+    s.push_str("ByteAir), exported by `nv-export/nv_export.rs` (`nv_export_all`) in the format of\n");
+    s.push_str("`NvAirExport.lean` (table 0): the verifier's `SymbolicConstraintsDag` per AIR from keygen.\n\n");
+    s.push_str(&header);
+    s.push_str("\n\n");
+    let mut body = String::new();
+    for (ai, pre) in [(1usize, "sha"), (2, "tab"), (3, "byte")] {
+        let avk = &vk.inner.per_air[ai];
+        assert!(avk.params.width.cached_mains.is_empty() && avk.preprocessed_data.is_none());
+        let w = avk.params.width.common_main;
+        let sc = &avk.symbolic_constraints;
+        let line = format!(
+            "{}: width {} nodes {} constraints {} interactions {} pvs {} max_deg {}",
+            airs[ai].name(),
+            w,
+            sc.constraints.nodes.len(),
+            sc.constraints.constraint_idx.len(),
+            sc.interactions.len(),
+            avk.params.num_public_values,
+            avk.max_constraint_degree
+        );
+        println!("NV_EXPORT_ALL {line}");
+        s.push_str(&format!("* `{pre}`: {line}\n"));
+        body.push_str(&air_lean(pre, &airs[ai].name(), sc, w, avk.params.num_public_values));
+    }
+    s.push_str("-/\n\nnamespace ZkFormal.PQ.NvCircuitExport\n\nopen ZkFormal.PQ.NvAirExport DagNode\n\n");
+    s.push_str(&body);
+    s.push_str("end ZkFormal.PQ.NvCircuitExport\n");
+    std::fs::write(&out, s).unwrap();
+    println!("NV_EXPORT_ALL wrote {out}");
+}
+
+/// [lane E, M11g] An honest NvAir trace for non-vacuity: a small program (statement digest exposed by
+/// two `PvD` rows, constants, an `Add`, an `assert_eq` = `Sub` + `Zero`, the level `Pv`), executed
+/// by the circuit's own trace generator (`NvCircuit::generate_program`, i.e. `nv_trace`), proved and
+/// verified by the backend (`prove_mats`), then exported: NvAir's rows (dense, the used region; the
+/// rest is zero), the public values and the program.
+///
+///   NV_EXPORT_TRACE_OUT=<file.lean> cargo test --release -p openvm-recursion-circuit --lib nv::nv_export::nv_export_trace -- --nocapture
+#[test]
+fn nv_export_trace() {
+    let Ok(out) = std::env::var("NV_EXPORT_TRACE_OUT") else { return };
+    use p3_matrix::Matrix;
+    use super::builder::{digest_cells, ef_from, DigestCells};
+    let header = std::env::var("NV_EXPORT_HEADER").unwrap_or_default();
+    let mut p = crate::sha384::e2e_tests::parent_params_debug();
+    p.max_constraint_degree = NvCircuit::new(3, 16, 1).layout().degree().max(6);
+    let engine = Sha384CpuEngine::new(p);
+    let circ = NvCircuit::new(3, 12, 1);
+    let d: Digest = [
+        0x0123_4567_89ab_cdef,
+        0x1122_3344_5566_7788,
+        0x99aa_bbcc_ddee_ff00,
+        0x0f1e_2d3c_4b5a_6978,
+        0x8796_a5b4_c3d2_e1f0,
+        0xa1b2_0000_0000_0000,
+    ];
+    let (mats, b) = circ.generate_program(|b| {
+        let (lo, hi) = digest_cells(d);
+        let lo = b.load(ef_from(lo));
+        let hi = b.load(ef_from(hi));
+        b.pv_digest(&DigestCells { lo, hi, digest: d });
+        let z = b.c(F::ZERO);
+        b.pv_level(z);
+        let x = b.load_f(F::from_u32(5));
+        let y = b.c(F::from_u32(7));
+        let s = b.add(x, y);
+        let t = b.load_f(F::from_u32(12));
+        b.assert_eq(s, t, "demo");
+    });
+    assert!(b.failures.is_empty(), "{:?}", b.failures);
+    let nv = mats[0].clone();
+    let (_vk, _proof, shapes) = super::circuit::prove_mats(&circ, &engine, mats, &b);
+    println!("NV_EXPORT_TRACE proved and verified; shapes {shapes:?}");
+    let w = nv.width();
+    assert_eq!(w, NV_WIDTH);
+    let h = nv.height();
+    let used = (0..h)
+        .rev()
+        .find(|&r| nv.values[r * w..(r + 1) * w].iter().any(|x| *x != F::ZERO))
+        .map_or(0, |r| r + 1);
+    let pvs = b.public_values();
+    let mut s = String::new();
+    s.push_str("/-!\n# ZkFormal.PQ.NvHonestExport — GENERATED, do not edit\n\n");
+    s.push_str("An honest NvAir trace (table 0), exported by `nv-export/nv_export.rs` (`nv_export_trace`): the\n");
+    s.push_str("program of that test run by the circuit's trace generator (`NvCircuit::new(3, 12, 1)\n");
+    s.push_str(".generate_program`, `nv_trace`), proved and verified by the backend (`prove_mats`) before export.\n");
+    s.push_str("Rows `>= hUsed` are zero. Self-contained (core Lean only).\n\n");
+    s.push_str(&header);
+    s.push_str(&format!(
+        "\n\n* height {h} (log {}), width {w}, used rows {used}, program length {}\n-/\n\n",
+        h.trailing_zeros(),
+        b.instrs.len()
+    ));
+    s.push_str("namespace ZkFormal.PQ.NvHonestExport\n\n");
+    s.push_str(&format!("def hLog : Nat := {}\ndef hUsed : Nat := {used}\n\n", h.trailing_zeros()));
+    let pv: Vec<String> = pvs.iter().map(|x| x.as_canonical_u32().to_string()).collect();
+    s.push_str(&format!("/-- The public values. -/\ndef hPub : List Nat := [{}]\n\n", pv.join(", ")));
+    let rows: Vec<String> = (0..used)
+        .map(|r| {
+            let v: Vec<String> = nv.values[r * w..(r + 1) * w].iter().map(|x| x.as_canonical_u32().to_string()).collect();
+            format!("[{}]", v.join(", "))
+        })
+        .collect();
+    let nch = rows.len().div_ceil(32);
+    for (ci, ch) in rows.chunks(32).enumerate() {
+        s.push_str(&format!("def hRows{ci} : List (List Nat) := [\n  {}]\n\n", ch.join(",\n  ")));
+    }
+    let parts: Vec<String> = (0..nch).map(|i| format!("hRows{i}")).collect();
+    s.push_str(&format!("/-- Rows `0 .. hUsed` (dense). -/\ndef hRows : List (List Nat) :=\n  {}\n\n", parts.join(" ++ ")));
+    let pr: Vec<String> = b.instrs.iter().map(|i| format!("({}, {}, {}, {}, {})", i.op as u32, i.a, i.b, i.k1, i.k2)).collect();
+    s.push_str(&format!(
+        "/-- The program `(op, A, B, K1, K2)` (`isa.rs`). -/\ndef hProg : List (Nat × Nat × Nat × Nat × Nat) := [\n  {}]\n\n",
+        pr.join(",\n  ")
+    ));
+    s.push_str("end ZkFormal.PQ.NvHonestExport\n");
+    std::fs::write(&out, s).unwrap();
+    println!("NV_EXPORT_TRACE wrote {out} (used {used} of {h} rows, program {} instrs)", b.instrs.len());
 }

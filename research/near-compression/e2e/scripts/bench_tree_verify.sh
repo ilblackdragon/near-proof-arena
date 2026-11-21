@@ -2,7 +2,7 @@
 # E2E-D D-6: fresh-process tree-verify timing (1 thread, 1 core, 5 runs per packet) of every D-6
 # tree packet, with nothing else of this lane running.
 # usage: bench_tree_verify.sh [DEPS]
-set -uo pipefail
+set -euo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
 ROOT=$(cd "$HERE/../../../.." && pwd)
 D=${1:-/data/illia/nearproof-deps/pq-e2e-d6}

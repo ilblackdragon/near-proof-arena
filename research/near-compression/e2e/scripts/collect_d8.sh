@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Collect the D-8 runs (pq-e2e-d8) into results/zk/d8/ (small files only; proofs and setups stay in
 # the deps tree, hashed in manifest.sha256).
-set -uo pipefail
+set -euo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
 D=${NEARPROOF_PQ_DEPS:-/data/illia/nearproof-deps/pq-e2e-d8}
 O=$HERE/../results/zk/d8
@@ -19,7 +19,7 @@ print(json.dumps({'census': a['census'], 'headroom': a['headroom'], 'cuts': a['c
 EOF
 [ -f "$D/cover.txt" ] && cp "$D/cover.txt" "$O/classes/cover_done.txt"
 if [ -d "$D/cover" ]; then
-  cat "$D"/cover/*.ok 2>/dev/null | awk '{$1=""; print}' | sort | uniq -c > "$O/classes/cover_growth.txt"
+  cat "$D"/cover/*.ok 2>/dev/null | awk '{$1=""; print}' | sort | uniq -c > "$O/classes/cover_growth.txt" || true
   ls "$D"/cover/*.ok | wc -l > "$O/classes/cover_ok_count.txt"
   grep -h COVER_FAIL "$D/cover/cover.txt" > "$O/classes/cover_fail.txt" 2>/dev/null || true
 fi
@@ -35,7 +35,7 @@ for r in "$D"/tree8/*/; do
   for f in RESULT.json NEGATIVES.json SETUP.sha256 soundness.txt negatives.txt audit.txt audit_negative_swapped_vk.txt; do [ -f "$r/$f" ] && cp "$r/$f" "$t/"; done
   (cd "$r" && sha256sum SETUP.json WRAP.bundle WRAP.proof ./*.vk.json) > "$t/manifest.sha256"
   grep -h "TREE_PARAMS\|TREE_LEAF_PARAMS\|TREE_SHAPE\|TREE_TEMPLATE\|TREE_CHUNK_CLASS\|TREE_PAD_LEAF\|TREE_LEAF\|TREE_NODE\|TREE_PAD_NODE\|WRAP_SHAPE_PIN\|WRAP_NEGATIVE\|TREE_FIXED_SETUP_IDENTICAL\|Maximum resident\|Elapsed" "$r/prove.log" | cut -c1-600 > "$t/prove_summary.txt"
-  cat "$r"/verify*.log 2>/dev/null | grep -h "VERIFY_PROFILE_MS\|INDEPENDENT_TREE_VERIFY_OK" > "$t/verify.txt"
+  cat "$r"/verify*.log 2>/dev/null | grep -h "VERIFY_PROFILE_MS\|INDEPENDENT_TREE_VERIFY_OK" > "$t/verify.txt" || true
 done
 # leaf measurements
 for l in "$D"/leafab/leaf-* "$D"/leafL/leaf-*; do
