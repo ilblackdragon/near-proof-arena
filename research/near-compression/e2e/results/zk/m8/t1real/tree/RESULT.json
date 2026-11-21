@@ -1,0 +1,153 @@
+{
+  "arity": 4,
+  "bundle_bytes": 330648,
+  "depth": 2,
+  "leaf_geom": {
+    "heights": [
+      [
+        20,
+        530928
+      ],
+      [
+        21,
+        1819136
+      ],
+      [
+        7,
+        128
+      ],
+      [
+        16,
+        65536
+      ]
+    ],
+    "log_rows": 20,
+    "prog_log": 19,
+    "sha_instances": 1
+  },
+  "leaves": 8,
+  "node_geom": {
+    "heights": [
+      [
+        21,
+        1823044
+      ],
+      [
+        22,
+        4194304
+      ],
+      [
+        7,
+        128
+      ],
+      [
+        16,
+        65536
+      ],
+      [
+        22,
+        2286436
+      ]
+    ],
+    "log_rows": 21,
+    "prog_log": 20,
+    "sha_instances": 2
+  },
+  "scope": "E2E-D M8 prototype: heterogeneous tree (generic template leaf, template set of several kinds, stub INIT / FINAL) over T1-shaped segments (lane A Wasm segments, lane B state proof, re-proved under the verifier's backend at the stack's base configuration) + wrap",
+  "seconds": {
+    "leaf0_INIT": 150.21323645,
+    "leaf1_STATE_IF": 180.99621193,
+    "leaf2_WASM": 155.84296704,
+    "leaf3_WASM": 209.956061749,
+    "leaf4_STATE_SEG": 191.040287993,
+    "leaf5_FINAL": 204.794499699,
+    "leaf6_PAD": 147.678123946,
+    "leaf7_PAD": 169.668002486,
+    "node2_0": 808.129011319,
+    "node2_1": 779.728699088,
+    "node3_0": 766.23327713,
+    "padn2_2": 800.265247635,
+    "padn2_3": 805.179348445,
+    "wrap": 494.680072706
+  },
+  "seconds_by_kind": {
+    "leaf_FINAL": {
+      "mean_s": 204.794499699,
+      "n": 1
+    },
+    "leaf_INIT": {
+      "mean_s": 150.21323645,
+      "n": 1
+    },
+    "leaf_STATE_IF": {
+      "mean_s": 180.99621193,
+      "n": 1
+    },
+    "leaf_STATE_SEG": {
+      "mean_s": 191.040287993,
+      "n": 1
+    },
+    "leaf_WASM": {
+      "mean_s": 182.8995143945,
+      "n": 2
+    },
+    "node2": {
+      "mean_s": 793.9288552035,
+      "n": 2
+    },
+    "node_star": {
+      "mean_s": 766.23327713,
+      "n": 1
+    },
+    "pad_leaf": {
+      "mean_s": 158.673063216,
+      "n": 2
+    },
+    "pad_node": {
+      "mean_s": 802.7222980399999,
+      "n": 2
+    },
+    "wrap": {
+      "mean_s": 494.680072706,
+      "n": 1
+    }
+  },
+  "security_established": false,
+  "setup_bytes": 5031949,
+  "setup_sha256": "0da5d13f0321ebe136fdc1e7382c60f9d407ee373e85cad4818a34ac89c5ebed",
+  "statement_bytes": 1007,
+  "stub_statement_cells": 274,
+  "template_set_size": 7,
+  "templates": [
+    "INIT",
+    "STATE_IF",
+    "WASM",
+    "WASM",
+    "STATE_SEG",
+    "FINAL"
+  ],
+  "total_seconds": 5954.815176355,
+  "tree_proofs": 14,
+  "wrap_heights": [
+    [
+      20,
+      379708
+    ],
+    [
+      21,
+      1299200
+    ],
+    [
+      7,
+      128
+    ],
+    [
+      16,
+      65536
+    ]
+  ],
+  "wrap_program_rows": 194968,
+  "wrap_proof_bytes": 329629,
+  "zero_knowledge_established": false,
+  "zero_knowledge_scope": "not claimed for the prototype: the packet is S (plan 3.4.1) + the zk-masked wrap and nothing else leaves the tree, but the prototype's setup is per run (its template set lists this run's template leaf programs at the segments' natural heights, not pinned template shapes) and the stub INIT / FINAL are not sound templates"
+}

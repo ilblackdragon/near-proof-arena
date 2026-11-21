@@ -59,7 +59,27 @@ wsLen, current / target working-set roots, post root, change count, HTAPE root).
 checked natively first (`M8_CHAIN_OK`), including lane B's `R_out(last seg) = R_n(IF)` (FINAL reads
 the current and the target root from the same cells).
 
-M8_REAL_TABLE_PLACEHOLDER
+**Measured (`results/zk/m8/t1real/`, 8 threads, shared host at load 30–50, wrap `zk = 6` at
+`ns19lb6`, tree `ns20lb5`, leaves `ns20lb2`; the D-9 configuration).**
+
+| | value |
+|---|---|
+| **packet** (`S` 1,007 B + wrap proof 329,629 B + 12 B framing) | **330,648 B** (D-9 D0a: 329–331 KB) |
+| verify, fresh process, 1 core (3×) | **40.1–43.1 ms** (wrap 29.4–30.1 ms); peak 21.6 MB |
+| fresh-process negatives (`m8_negatives.py`) | **16/16 rejected** (4 `S` byte changes incl. a non-empty section-B count, `S` length ±1, 3 proof flips, truncation, trailing bytes, magic, pin, program / level / heights re-pinned); honest control accepted |
+| tree proofs | 14: 8 leaves, 2 `P_2`, 2 `PAD_N`, 1 `P_*`, wrap; template set 7 programs (INIT, STATE_IF, WASM ×2, STATE_SEG, FINAL, `PAD_L`) |
+| prove, total | **5,955 s**; peak RSS 33.1 GB |
+| per proof (s) | leaves: INIT 150, STATE_IF 181, WASM 156 / 210, STATE_SEG 191, FINAL 205, PAD_L 148 / 170; `P_2` 808 / 780; `PAD_N` 800 / 805; `P_*` 766; wrap 495 |
+| leaf geometry (one family) | NvAir 2^20 (tight 530,928) / SHA 2^21 (1,819,136); largest leaf program: STATE_IF 295,560 rows, WASM 243,306 (lane A's lb-1 leaves: [100, 71, 45, 33] queries; at lb 7 a lane A leaf was 191,538 rows, SHA 1.23 M) |
+| node geometry | NvAir 2^21 (1,823,044), 2 SHA instances (2^22 + 2,286,436); `P_2` / `P_*` 821,624 / 780,908 rows (D-9: one SHA instance at 1.63 M) |
+| wrap | heights (20, 379,708) / (21, 1,299,200), program 194,968 rows |
+| setup | 5,031,949 B (per run: the template set lists this run's leaf programs) |
+
+**First run** (`results/zk/m8/reproved/`, logs only): the same T1 shape with the segments
+re-proved by lane D (`m8-prove-a` / `-b` from the lanes' dumps at lb 7: 417 / 416 / 493 KB, 441 /
+405 / 344 s), leaves 185–247 s, `P_2` 877 / 1,128 s, `PAD_N` 878 s and 12,014 s (host starved),
+`P_*` 922 s; it died at the wrap (the run did not export the D-9 FINAL geometry), and its `ctx` was
+the earlier 18-limb form, so it was not resumed.
 
 **Findings**
 * **Lane A's pinned template does not pin the tight heights.** The two T1 segments share one vk
