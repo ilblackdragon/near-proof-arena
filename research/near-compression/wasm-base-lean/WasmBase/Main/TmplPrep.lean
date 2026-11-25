@@ -24,10 +24,14 @@ call-machine step `cstep q .pre = preConf q`, an `MWasm` instance, proved by a *
 * Named premises (`PrepNamed`), each true on an honest run (`prepNamed_honest`):
   * `win` — the ghost in-opening: `B_in.wasm` is the view of `(q, .pre)`;
   * `ghost` — the ghost intake: `B_in.ctxRoot = V.ctxD (.intake I)`, and `q` carries `sf I`;
-  * `cert` — **the decoder certificate** (`RecordsCert`): `cm`, `fm` are the padded CODE / FUNC
-    records of the checked module of the entry `preConf` reaches, for the query with the *hashed*
-    bytes as its code.  This is the part of PREP the AIR does not prove yet (decode, validate,
-    instrument: `a-t1/README.md` §4 steps 2–5);
+  * A-T4: the decoder certificate `RecordsCert` (`cm`, `fm` are the padded CODE / FUNC records of
+    the checked module of the entry `preConf` reaches, for the query with the *hashed* bytes as its
+    code) is no longer a premise: **`recordsCert_of`** derives it from the circuit field `dec`
+    (`PrepDec.DecodeCert`, what the decoder tables prove) and two named premises:
+    * `stat` — `StaticCert`: the static-analysis fields (`h`, `fee`, control targets and opcodes,
+      call fields, FUNC fields 1–7, the closure order of the FUNC rows);
+    * `df` — `PrepDec.DecFaithfulAt`: the reference decoder agrees with `prepare` on the hashed
+      code (trace-independent; `PrepT1.decFaithful_d3tiny` for T1);
   * `ent` — `preConf q` is an AIR-branch entry (the success path; the error branches of `runCall`'s
     prefix are a second PREP shape, not built);
   * `rest` — every field of `B_out.wasm` except the two roots is the record of `(q, preConf q)`

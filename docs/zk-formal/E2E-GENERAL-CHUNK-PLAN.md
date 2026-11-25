@@ -1576,6 +1576,39 @@ changed.
 `stackRem`/`gasLeft` publics (`RestOK`); `CodeOK`/`FuncOK` from S3; `Nd` in the segment `sha256`
 summary.
 
+**Done 2026-11-25, tenth session (lane A): milestone A-T4, the decoder certificate**
+(`e2e-general/a-t1/README.md` §11; log `docs/logs/e2e-laneA-wasm-2026-11-03.md`). `S`,
+`claimDigest` and the checker are unchanged.
+* **Design [S].** PREP decodes in-circuit every record field the bytes fix: opcode, indices,
+  constants, offsets, pc and layout. The static-analysis fields go to a named residual
+  (`StaticCert`): `h`, `fee`, control targets and halt/next choices, call fields, FUNC 1–7 and the
+  closure order. A full in-circuit `prepare` was judged several milestones of work (README §11.1).
+* **AIR [M].** New tables:
+  * `CB`: the code bytes, fed to the SHA slots;
+  * `HDR`: the section walk from byte 8, emitting each body's `(k, iS, bE)`.
+
+  CODE/FUNC keep their 8 cached columns and gain decoder columns: an 11-byte window, 13
+  opcode-class indicator polynomials, LEB chains, the pointer chain and a `busFn` permutation with
+  FUNC.
+  * T1 PREP leaf: **488,409 B, 268.2 bits**, 26 s, 12 ms, 7.7 GB, pinned heights. Its roots are
+    unchanged (= both segment leaves'), and `m8-import` verifies it.
+  * Mutants: **19/19**. Two other programs' records (`i64.gt_u → lt_u`; constant + 1) are rejected
+    **in-circuit**. A call's opcode is still rejected by R1 only (the residual).
+* **Lean [K].**
+  * `PrepDec`: the reference walk / decoder, `DecodeCert` and `DecFaithfulAt`.
+  * `PrepCert.recordAtM2_agree` / `checkModuleM2_agree`: the spec's records agree with the decoded
+    fields.
+  * **`TmplPrep.recordsCert_of`**: `RecordsCert` from `DecodeCert` + `StaticCert` +
+    `DecFaithfulAt` + `CtxIsM2`. `PrepNamed.cert` is replaced by `stat` + `df`; `PrepCirc` gains
+    `dec`.
+  * `PrepT1.decFaithful_d3tiny` (`decide +kernel`, on demand, 12 GB) and `PrepT1Ctx.ctxM2_isM2`.
+  * `PrepDecSound`: `PrepDecodeSound` is stated; the byte-read layer `lb_read_sound` is proved.
+  * `ShaAir.HashLenLink` states the `sh_len = Nd` obligation precisely. The AIR fix changes the
+    segment vk, so it is deferred.
+* **Open:** `PrepDecodeSound` beyond the byte reads (CB = SHA message, the HDR / CODE inductions,
+  the layout); `StaticCert` in-circuit; `DecFaithfulAt` in general; `PrepRest`; lane D's tree-spec
+  insertion of the PREP leaf (its new heights `CB` 512, `HDR` 16).
+
 ### 5.0 Lane D: status, 2026-11-21 (milestone M8, heterogeneous tree; prototype)
 
 **Where to read:** `research/near-compression/e2e/README.md` §0 (M8; D-9 is now §0.9),

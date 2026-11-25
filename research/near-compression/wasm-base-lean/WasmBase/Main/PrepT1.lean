@@ -1,13 +1,14 @@
-import WasmBase.Main.TmplPrep
-import WasmBase.Main.WasmViewT1
+import WasmBase.Main.PrepT1Ctx
 /-!
 # WasmBase.Main.PrepT1 — T1's PREP leaf: the trace-independent premises discharged (A-T4)
 
-* `ctxM2_isM2 : CtxIsM2 wasmViewParamsT1` — T1's static context is the M2 checker's.
+* (`PrepT1Ctx.lean`, default build) `ctxM2_isM2 : CtxIsM2 wasmViewParamsT1`.
 * `decFaithful_d3tiny` — `PrepDec.DecFaithfulAt` for T1's contract `d3tiny` (345 bytes, SHA-256
   `8152bed2…36bf9`), by kernel evaluation (`decide +kernel`: `prepare`, the reference walk and the
-  reference decoder all evaluated by the kernel), for every configuration that differs from `pv86`
-  only in `floats`, `curveHosts` and `globalActions`.
+  reference decoder all evaluated by the kernel), at `pv86`; `decFaithful_d3tiny_cfgs` for every
+  configuration that differs from `pv86` in `floats`, `curveHosts`, `globalActions`.
+  **On demand** (not a default target: the kernel evaluation needs more than a 4 GB job share;
+  measured 43 s under a 12 GB cap): `HEAVY_MEM=12G …/heavy lake build WasmBase.Main.PrepT1`.
 
 So for T1, `TmplPrep.RecordsCert` rests on the AIR's `DecodeCert` (`PrepDecSound.PrepDecodeSound`)
 and the static residual `StaticCert` only.
@@ -21,24 +22,20 @@ def d3tiny : ArenaCore.Bytes := [0, 97, 115, 109, 1, 0, 0, 0, 1, 27, 5, 96, 1, 1
 
 theorem d3tiny_len : d3tiny.length = 345 := by decide +kernel
 
-theorem ctxM2_isM2 : CtxIsM2 wasmViewParamsT1 := by
-  intro q p k X h
-  simp only [wasmViewParamsT1, ctxM2] at h
-  split at h
-  · cases h
-  · split at h
-    · rename_i MH hM
-      cases h
-      exact ⟨MH, hM, rfl⟩
-    · cases h
-
 /-- **Decoder faithfulness for `d3tiny`** at `pv86`, by kernel evaluation. -/
 theorem decFaithful_d3tiny : PrepDec.DecFaithfulAt pv86 d3tiny := by
   unfold PrepDec.DecFaithfulAt
   decide +kernel
 
-#print axioms ctxM2_isM2
+/-- The same for every configuration that differs from `pv86` in `floats`, `curveHosts` or
+`globalActions` (the switches T1's call configurations toggle). -/
+theorem decFaithful_d3tiny_cfgs : ∀ fl ch ga : Bool,
+    PrepDec.DecFaithfulAt { pv86 with floats := fl, curveHosts := ch, globalActions := ga } d3tiny := by
+  unfold PrepDec.DecFaithfulAt
+  decide +kernel
+
 #print axioms decFaithful_d3tiny
+#print axioms decFaithful_d3tiny_cfgs
 
 end PrepT1
 end WasmBase

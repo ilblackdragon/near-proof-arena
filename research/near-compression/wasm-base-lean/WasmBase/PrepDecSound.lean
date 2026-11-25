@@ -3,15 +3,16 @@ import WasmBase.PrepDec
 /-!
 # WasmBase.PrepDecSound — what the PREP AIR's decoder tables prove (A-T4)
 
-* **`cb_lookup_sound` [K]** — the byte link: every byte lookup on `busLB` with count 1 (the HDR and
-  CODE window reads) carries `[p, m[p]]` with `p < |m|`, for the SHA-256 table's message `m` (the
-  bytes the public code hash is the digest of).  Proof: `CB`'s `pos` column is the row index and
-  its live rows are exactly `pos < len`; each message byte is received by a SHA byte slot (the
-  classical frame contract, `sha_digest_contract_closed`) from `CB` on `busCB`, whose counts are bits,
-  so `CB` row `i` holds `m[i]`; `CB` answers `busLB` only on live rows (`mult · (1 − live) = 0`).
-* **`PrepDecodeSound`** — the full AIR obligation `Holds prepAir ⇒ DecodeCert` (the window decode
-  of each CODE row = `PrepDec.decInstr`, the HDR rows = `PrepDec.walk`, the CODE/FUNC layout).  Its
-  byte-link layer is `cb_lookup_sound`; the row-level layers are stated, not yet proved here.
+* **Proved [K], the byte-read layer:**
+  * `cb_pos`, `cb_live_of_lt`, `cb_live_lt`, `cb_last`, `cb_drop` — `CB`'s `pos` column is the row
+    index and its live rows are exactly `r < len` (public 32);
+  * `occLB`, `lb_read_sound` — every byte read on `busLB` with count 1 (the HDR and CODE window
+    reads, whose counts are boolean columns) carries `[r, byte_r]` for a live `CB` row `r < len`
+    (`CB` answers only on live rows: `mult · (1 − live) = 0`).
+* **`PrepDecodeSound`** — the full AIR obligation `Holds prepAir ⇒ DecodeCert` of the SHA message.
+  Still to prove: `CB` row `r` holds `m[r]` (the `busCB` permutation with the SHA byte slots, via the
+  classical frame contract `sha_digest_contract_closed`); the HDR induction (row `r` = `walk m r`);
+  the CODE window decode (= `decInstr`); the CODE / FUNC layout.
 -/
 namespace WasmBase
 namespace PrepDecSound
@@ -144,6 +145,105 @@ theorem cb_live_of_lt {pub : List F} {tr : Trace} (H : Holds prepAir pub tr) (hP
       rcases cb_live_bit H (r := r + 1) (by omega) with h0' | h1
       · exfalso; have := cb_drop H hP (by omega) hl h0'; omega
       · exact h1
+
+
+theorem bus_ne {T : Table} {b : Nat} (h : (T.inters.map (·.bus)).all (· != b) = true)
+    {i : Inter} (hi : i ∈ T.inters) : i.bus ≠ b := by
+  have := List.all_eq_true.1 h i.bus (List.mem_map_of_mem hi)
+  simpa using this
+
+/-! ## 2. `busLB`: every byte read is a live `CB` row -/
+
+theorem hdr_u_bit {pub : List F} {tr : Trace} (H : Holds prepAir pub tr) {r i : Nat}
+    (hr : r < tr.height 3) (hi : i < 6) :
+    tr.cell 3 r (Hdr.uc i) = 0 ∨ tr.cell 3 r (Hdr.uc i) = 1 := by
+  have hm : bool (v (Hdr.uc i)) ∈ Hdr.constraints := by
+    unfold Hdr.constraints
+    exact List.mem_append_right _ (List.mem_flatMap.2 ⟨i, List.mem_range.2 hi, List.mem_cons_self⟩)
+  have c := H.constr 3 (by decide) r hr _ (by show bool (v (Hdr.uc i)) ∈ Hdr.table.constraints; exact hm)
+  simp only [Chips.bool, Expr.eval_mul', Expr.eval_sub', Expr.eval_ofNat', Expr.eval_col, Trace.row, v] at c
+  exact bool_cases c
+
+theorem code_u_bit {pub : List F} {tr : Trace} (H : Holds prepAir pub tr) {r i : Nat}
+    (hr : r < tr.height 4) (hi : i < 11) :
+    tr.cell 4 r (CodeP.uc i) = 0 ∨ tr.cell 4 r (CodeP.uc i) = 1 := by
+  have hm : bool (v (CodeP.uc i)) ∈ CodeP.constraints := by
+    unfold CodeP.constraints
+    exact List.mem_append_right _ (List.mem_flatMap.2 ⟨i, List.mem_range.2 hi, List.mem_cons_self⟩)
+  have c := H.constr 4 (by decide) r hr _ (by show bool (v (CodeP.uc i)) ∈ CodeP.table.constraints; exact hm)
+  simp only [Chips.bool, Expr.eval_mul', Expr.eval_sub', Expr.eval_ofNat', Expr.eval_col, Trace.row, v] at c
+  exact bool_cases c
+
+theorem toNat_bit {x : F} (h : x = 0 ∨ x = 1) : x.toNat ≤ 1 := by rcases h with rfl | rfl <;> decide
+
+/-- **Every occurrence on `busLB`**: a `CB` answer `[pos, byte]` with count `mult`, or a read with a
+bit count. -/
+theorem occLB {pub : List F} {tr : Trace} (H : Holds prepAir pub tr) {o : Occ}
+    (ho : o ∈ occs prepAir tr pub) (hb : o.1 = busLB) :
+    (∃ r, r < tr.height 2 ∧
+      o = (busLB, false, [tr.cell 2 r CB.pos, tr.cell 2 r CB.byte], (tr.cell 2 r CB.mult).toNat)) ∨
+    (o.2.1 = true ∧ o.2.2.2 ≤ 1) := by
+  obtain ⟨t, ht, r, hr, i, hi, rfl⟩ := mem_occs.1 ho
+  simp only at hb
+  match t, ht with
+  | 0, _ =>
+    exact absurd hb (bus_ne (T := Prep.phdrTable) (by decide) hi)
+  | 1, _ =>
+    exact absurd hb (bus_ne (T := Prep.shaTableD) (by decide) hi)
+  | 2, _ =>
+    have hi' : i ∈ CB.inters := hi
+    simp only [CB.inters, List.mem_cons, List.mem_nil_iff, or_false] at hi'
+    rcases hi' with rfl | rfl
+    · simp [busCB, busLB] at hb
+    · exact .inl ⟨r, hr, by simp [Trace.row, v]⟩
+  | 3, _ =>
+    have hi' : i ∈ Hdr.inters := hi
+    simp only [Hdr.inters, List.mem_append, List.mem_map, List.mem_range, List.mem_cons,
+      List.mem_nil_iff, or_false] at hi'
+    rcases hi' with ⟨j, hj, rfl⟩ | rfl
+    · exact .inr ⟨rfl, by simpa [Trace.row, v] using toNat_bit (hdr_u_bit H hr hj)⟩
+    · simp [busBody, busLB] at hb
+  | 4, _ =>
+    have hi' : i ∈ CodeP.inters := hi
+    simp only [CodeP.inters, List.mem_append, List.mem_map, List.mem_range, List.mem_cons,
+      List.mem_nil_iff, or_false] at hi'
+    rcases hi' with ⟨j, hj, rfl⟩ | rfl
+    · exact .inr ⟨rfl, by simpa [Trace.row, v] using toNat_bit (code_u_bit H hr hj)⟩
+    · simp [busFn, busLB] at hb
+  | 5, _ =>
+    exact absurd hb (bus_ne (T := Prep.FuncP.table) (by decide) hi)
+  | n + 6, h => exact absurd h (by simp [prepAir])
+
+theorem cb_mult_live {pub : List F} {tr : Trace} (H : Holds prepAir pub tr) {r : Nat}
+    (hr : r < tr.height 2) (hm : tr.cell 2 r CB.mult ≠ 0) : tr.cell 2 r CB.live = 1 := by
+  have c := cbc H hr (e := v CB.mult * (1 - v CB.live)) (by simp [CB.constraints])
+  simp only [Expr.eval_mul', Expr.eval_sub', Expr.eval_ofNat', Expr.eval_col, Trace.row, v] at c
+  rcases mul_eq_zero' c with h | h
+  · exact absurd h hm
+  · grind
+
+/-- **The byte reads are code bytes**: every read on `busLB` with count 1 carries `[r, byte_r]` for
+a live `CB` row `r < len`. -/
+theorem lb_read_sound {pub : List F} {tr : Trace} (H : Holds prepAir pub tr)
+    (hP : tr.height 2 < P) {o : Occ} (ho : o ∈ occs prepAir tr pub) (hb : o.1 = busLB)
+    (hs : o.2.1 = true) (hc : o.2.2.2 = 1) :
+    ∃ r, r < lenOf pub ∧ r < tr.height 2 ∧ o.2.2.1 = [(r : F), tr.cell 2 r CB.byte] := by
+  refine lookup_sound H busLB
+    (fun msg => ∃ r, r < lenOf pub ∧ r < tr.height 2 ∧ msg = [(r : F), tr.cell 2 r CB.byte])
+    ?_ ?_ ho hb hs hc
+  · intro o' ho' hb' hs' hc'
+    rcases occLB H ho' hb' with ⟨r, hr, rfl⟩ | ⟨hs2, -⟩
+    · have hm : tr.cell 2 r CB.mult ≠ 0 := by
+        intro h0; apply hc'; show (tr.cell 2 r CB.mult).toNat = 0; rw [h0]; rfl
+      have hl := cb_mult_live H hr hm
+      have hlt : r < lenOf pub := by
+        have := cb_live_lt H hP (tr.height 2 - r - 1) r (by omega) hl; omega
+      exact ⟨r, hlt, hr, by simp [cb_pos H r hr]⟩
+    · simp [hs2] at hs'
+  · intro o' ho' hb' hs'
+    rcases occLB H ho' hb' with ⟨r, hr, rfl⟩ | ⟨-, h⟩
+    · simp at hs'
+    · exact h
 
 end PrepDecSound
 end WasmBase

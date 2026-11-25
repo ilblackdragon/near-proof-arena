@@ -7,6 +7,17 @@ T1 = `/data/illia/nearproof-deps/corpora/d3c8/d3/02-h10196-s3`: one FunctionCall
 (code `8152bed2…`, 345 B), method `run`, input `again`, 26 Wasm steps, six host calls:
 `input`, `register_len`, `read_register`, `storage_write` (existing key), `log_utf8`, `value_return`.
 
+**Update 2026-11-25 (A-T4, §11).**
+* PREP decodes the hashed code in-circuit. New tables: `CB` (code bytes, fed to the SHA slots),
+  `HDR` (the section walk) and the CODE/FUNC decoder columns. Every byte-determined record field is
+  constrained: opcode, indices, constants, offsets, pc and layout.
+* T1's PREP leaf is 488,409 B, 268.2 bits, and its roots are unchanged. Mutants: 19/19 rejected,
+  and another program's records are now rejected in-circuit.
+* Lean: `RecordsCert` is now a theorem (`TmplPrep.recordsCert_of`). It rests on the AIR's
+  `DecodeCert`, the named static residual `StaticCert` and the trace-independent `DecFaithfulAt`,
+  which is kernel-checked for d3tiny.
+* Of `Holds ⇒ DecodeCert`, only the byte-read layer is proved so far.
+
 **Update 2026-11-25 (A-T3, §10).**
 * Lane E's soundness fix S1–S3 is adopted on lane A's side. The Wasm view is store-blind,
   `WasmViewParams` is inhabited by T1's real record, and the Wasm template is restated and proved
@@ -735,3 +746,195 @@ message, as PREP now does.
 **Paths:** PREP leaf (`PREP.vk.json`, `prep.proof`, `prep.pubs.json`, `manifest.json`) at
 `/data/illia/nearproof-deps/e2e-laneA/at3/prep/leaf/`; lane D's import at `…/at3/prep/m8-tmpl/prep/`;
 logs `logs/t1-prep-*.txt`.
+
+## 11. Milestone A-T4 (2026-11-25): the decoder certificate (`RecordsCert`)
+
+**Goal.** Close the gap of §10.4: PREP must prove that its cached CODE / FUNC matrices are the
+records `checkModuleM2 (prepare c)` produces for the bytes `c` it hashes. Before A-T4 a prover could
+pair d3tiny's hash with another program's records, provided its segment leaves used the same
+records. `S`, `claimDigest` and the checker are unchanged, and nothing here needs them changed
+(stop rule not triggered).
+
+### 11.1 Design: an in-circuit decoder, with the static analysis left as a named residual [S]
+
+I compared the two options of the task.
+
+* **(a) A full in-circuit `prepare` + `checkModuleM2`.** This means decode, validate (operand-type
+  and control stacks), finite-wasm block metering (`gasTable`: loop pre/post re-kinding, two merge
+  passes), the operand-stack maximum in bytes, the closure BFS, method resolution through the
+  export names, and the host-name table. Each of these is an AIR *and* a Lean equivalence proof
+  against ~1,300 lines of spec. That is several milestones of work.
+* **(b) A certificate.** The circuit checks a witness cheaply. But a record has two kinds of field:
+  * fields the instruction's **bytes** fix: the opcode, local / global / label / function
+    indices, constants, memory offsets, the pc, the function layout;
+  * fields only the **static analysis** fixes: the stack height `h`, the block fee, control
+    targets, the halt/next choice of `end` / `br`, and call targets / host ids.
+
+  A certificate for the first kind is a byte-level decoder that is local and cheap. For the second
+  kind, a certificate still needs the analysis's invariants to be checked in-circuit (height
+  transitions with a label stack, block-fee sums), which is most of (a).
+
+**Chosen: (b) for the byte-determined fields, fully in-circuit, from byte 8 of the hashed code.**
+The static-analysis fields go to a narrower named residual. Concretely:
+
+* **Byte link.** A new `CB` table holds the code bytes (row `i` = byte `i`, live rows exactly
+  `i < len`). It feeds the SHA-256 table's 16 byte slots on `busCB`, using the classical frame's own
+  byte interactions. It answers every byte read on `busLB`, live rows only. So every byte the
+  decoder reads is a byte of the message whose SHA-256 is the public code hash.
+* **Coverage: the section walk (`HDR`, one row per item).** The walk starts at byte 8. Section
+  headers are id + size LEB; every section other than the code section (id 10, detected by an
+  inverse gadget) is skipped by its size. Then come the code section's count, each body's size
+  LEB, its local-group count and the local groups (count LEB + type byte). The number of groups is
+  tracked by a zero-tested register. At the end of a body's local groups the row *emits*
+  `(k, iS, bE)`: the body index, its first instruction byte and its end. Every transition is
+  forced by the bytes (`PrepDec.hrow` is a function). The prover can only stop early, which leaves
+  later bodies unemitted.
+* **Records: the CODE table's common columns decode.** Each live CODE row decodes one instruction.
+  It has a pointer `ptr`, an 11-byte window (8 bit columns per byte) and a class one-hot. The class
+  is an *indicator polynomial* of the opcode byte's bits, degree 8, 13 classes (the M2 subset with
+  record immediates; any other byte makes the trace unsatisfiable). Two LEB chains (continuation
+  bits, termination, exactness of the high groups) compute the immediate, and the immediate's bits
+  give the record limbs: unsigned 21-bit indices, the 28-bit memory offset split into 16-bit
+  halves, and `i32`/`i64` constants as 16-bit two's-complement limbs with the sign of the last
+  group. The row then constrains the cached record:
+  * the pc is the row index;
+  * the opcode (`= byte`, or the class constant: `next`, `if`, `else → jump`, `return → halt`,
+    `memory.size`/`grow`);
+  * every immediate field and every field that is 0 for the class.
+* **Coverage: the layout.**
+  * Inside a function, `ptr` steps by the instruction length.
+  * A function's last row ends exactly at `bE`, after `fsz` rows.
+  * Function starts are a permutation (`busFn`) of the live FUNC rows `[off, k, iS, bE, size]`.
+  * FUNC's offsets are prefix sums from 0.
+  * Each FUNC row looks its body up among the walk's emissions (`busBody`).
+  * Padding rows (CODE and FUNC) repeat the last record, which is `padRep`.
+
+  The cached CODE / FUNC columns are unchanged (first 8 columns, same names, height and
+  commitment parameters), so R1 still holds.
+* **Not in-circuit (the residual `StaticCert`, named):**
+  * which bodies the FUNC rows list, in closure order (`ks = X.M.fns`);
+  * CODE fields `h`, `fee`, the opcode of `end`/`br`/`br_if`/`call`, `x0` of
+    `if`/`else`/`br`/`br_if`/`call`, `x1`/`x2` of `call`;
+  * FUNC fields 1–7.
+* **Not in-circuit, but trace-independent (`DecFaithfulAt cfg c`, a `Bool` check).** If `prepare`
+  accepts `c`, every body the walk emits for a defined function decodes, by the reference decoder,
+  to that function's instructions. The adversary cannot choose its truth after the fact: it is a
+  property of the code, decided by evaluation per code, here by the kernel for d3tiny.
+
+Cost on T1: see §11.3. The decoder adds 4 tables. CB is 512 rows × 4 columns, HDR is 16 × 77, and
+the CODE / FUNC common mains grow to 133 / 5 columns.
+
+### 11.2 What is proved [K]
+
+Standard axioms only. No `sorry`, `native_decide` or `axiom`.
+
+* **`PrepDec.lean`.** The reference: `lebBytes`/`lebU`/`lebS`, `clsOf`, `decInstr`/`decBody`,
+  `hrow`/`walk`/`emits`, `dimg` (spec `Instr` → decoded `(byte, imm)`), `fieldsOf`/`decFields`,
+  `Agree`, `DecFaithfulAt`, and **`DecodeCert`**, the AIR's claim about its cached matrices.
+* **`PrepCert.lean`.** `recordAtM2_agree`: every record `recordAtM2` produces agrees with
+  `decFields (off + pc) (dimg ins)`, case by case over `Instr`. `checkModuleM2_agree` lifts this to
+  each checked function of a module. This is the *spec side*: the fields the AIR decodes are the
+  fields `checkModuleM2` writes.
+* **`TmplPrep.recordsCert_of`.** It proves `RecordsCert` from four premises:
+  * `CtxOK`;
+  * `CtxIsM2` (the context is `checkModuleM2`'s);
+  * `DecodeCert`;
+  * `StaticCert` and `DecFaithfulAt`.
+
+  The proof uses `preConf_ent` (the entry's `p` is `prepare q.code`), the prefix-sum layout of
+  `checkModuleM2` (`checkModuleM2_shape`, `layout_locate`), `agree_eq` (two records agreeing on
+  the fixed fields and equal on the free ones are equal) and `padRep_of`.
+* **`TmplPrep` restated.**
+  * `PrepCirc` gains `dec : DecodeCert …`.
+  * `PrepNamed.cert` (the whole `RecordsCert`) is replaced by `stat : StaticCert …` and
+    `df : DecFaithfulAt …`.
+  * `prep_relC` and `segSoundWasmPrepRelC_of` take `CtxIsM2`.
+  * `PTr` carries the FUNC body indices `ks`.
+* **`PrepT1Ctx.ctxM2_isM2`.** T1's context satisfies `CtxIsM2`.
+* **`PrepT1.decFaithful_d3tiny`.** `DecFaithfulAt pv86 d3tiny`, by `decide +kernel`: the kernel
+  runs `prepare`, the walk and the decoder on the 345 bytes. `decFaithful_d3tiny_cfgs` covers every configuration
+  that differs from `pv86` in `floats`, `curveHosts` or `globalActions`. The check is on demand,
+  outside the default build: 43 s under a 12 GB cap
+  (`HEAVY_MEM=12G … lake build WasmBase.Main.PrepT1`). It does not fit a 4 GB job.
+* **`PrepDecSound`.** The AIR obligation `PrepDecodeSound` (`Holds prepAir ⇒ DecodeCert` of the
+  SHA message) is **stated**. Its byte-read layer is proved:
+  * CB's `pos` is the row index (`cb_pos`), and its live rows are exactly `r < len`
+    (`cb_live_of_lt`, `cb_live_lt`, `cb_last`, `cb_drop`);
+  * **`lb_read_sound`**: every byte read on `busLB` with count 1 carries `[r, byte_r]` of a live CB
+    row `r < len`. It goes through `occLB` and `lookup_sound`; the read counts are boolean columns
+    `u_i`, added for this.
+* `PrepSound.prep_sha_sound` is re-proved for the 6-table AIR (`occ211`, with `bus_ne_of_all` for
+  the decoder tables).
+
+### 11.3 T1's PREP leaf [M]
+
+`run_prep.sh` with the A-T4 AIR (`wasmbase-tool airPrep`) and prover (`build_stack.sh`); the
+template adds `CB` 512 and `HDR` 16 (`PREP_CB`, `PREP_HDR`); 8 threads, `HEAVY_MEM=12G`. Logs:
+`logs/t1-prep-at4-*.txt`.
+
+| | A-T3 (§10.3) | A-T4 |
+|---|---|---|
+| tables | 4 | **6** (`CB`, `HDR` added; CODE / FUNC common mains 1 → 133 / 1 → 5 columns) |
+| pinned heights | `[(2,4),(7,128),(5,32),(2,4)]` | `[(2,4),(7,128),(9,512),(4,16),(5,32),(2,4)]` |
+| proof | 469,779 B | **488,409 B** (+18,630 B) |
+| prove, verify, peak RSS | 31.1 s, 13–14 ms, 7.7 GB | **26.1 s, 12 ms, 7.7 GB** |
+| soundness | 268.2 bits | **268.2 bits** (logup 324.4, proximity 295.1, query 268.2) |
+| pre-check of the honest trace | – | every constraint of every table and every bus balanced |
+| cached CODE / FUNC roots | = both A-T2 segment leaves' | **unchanged**: = A-T3's = both segment leaves' (`prepleafverify` R1) |
+| lane D format | `m8-import` OK | `m8-import` OK: `M8_TEMPLATE_PROVED wasm_prep bytes=488409 … bits=268.2`; the 18-limb `cached` cells = `wasm0`'s and `wasm1`'s |
+
+* vk sha256 `1cd98087…486d36`; lane D's `INFO.json` vk sha256 `7c2a48e1…579467`.
+* The AIR JSON the prover ran is the one `wasmbase-tool airPrep` prints from the final Lean
+  (byte-identical).
+* Paths: `/data/illia/nearproof-deps/e2e-laneA/at4/prep/` (`leaf/`, `m8-tmpl/prep/`,
+  `airPrep.json`, `prep-template.json`).
+
+### 11.4 Mutant battery
+
+**`preptamper`: 19/19 rejected** (`logs/t1-prep-at4-tamper.txt`). The battery is A-T3's 14, plus
+five A-T4 mutants that must be rejected **in-circuit**: the pre-check fails, and the proof fails in
+the prover or verifier, not at R1.
+
+| mutant | rejected by |
+|---|---|
+| **another program's records: `progB`** (d3tiny with `i64.gt_u` → `i64.lt_u`; records from `wasmbase-tool prepM2`, eligible) with d3tiny's bytes | **in-circuit**: CODE row 7, `op = byte` (0x54 ≠ 0x56) |
+| **another program's records: `progC`** (the constant 60000 → 60001) | **in-circuit**: CODE row 6, `x0 = limb 0` of the decoded `i64.const` |
+| the `i64.const` immediate of CODE row 6 + 1 | **in-circuit** (same constraint) |
+| the FUNC row-0 offset + 1 | **in-circuit**: `off₀ = 0` |
+| a CODE padding row ≠ the last record | **in-circuit**: the `padRep` copy constraint |
+| code records out of pc order (A-T3: R1 only) | now **in-circuit**: the pc / decode constraints |
+| swapped code root (A-T3: R1 only) | now **in-circuit** |
+| wrong FUNC charge (A-T3: R1 only) | now in-circuit, but through the FUNC padding copy: the charge itself is a `StaticCert` field |
+| wrong code record: CODE row 3's op + 1 (row 3 is a `call`) | **R1 only**: a call's opcode (host / internal / unchipped) is a `StaticCert` field. This is the residual, shown on purpose |
+| wrong code byte, wrong hash, wrong length | bus 211 / `CB`'s `len` (pre-check and prover) |
+| natural tight heights, saved-file mutants, another code's segment leaves | as in A-T3 |
+
+The two `progB` / `progC` preps are at `/data/illia/nearproof-deps/e2e-laneA/at4/other/`
+(`run_prep.sh` passes them via `PREP_OTHER`).
+
+### 11.5 The `sh_len` finding, stated
+
+`ShaAir.HashLenLink tr t` is the precise obligation: on every digest row with `Dmult = 1`,
+`sh_len = Nd`. It is part of `HashInputLink`: the consumed bytes are the call's input, and there
+are `len` of them. The AIR fix is to carry `Nd` in `callMsg` next to `sh_len`, as PREP's digest
+message does. That changes the segment AIR's vk and lane D's WASM leaf program (`59b572a7…`), so it
+is **not done here**. It belongs to the next segment-AIR revision.
+
+### 11.6 Open
+
+* **`PrepDecodeSound` beyond the byte-read layer.** Not yet proved: the `busCB` permutation with
+  the SHA byte slots (CB row `i` holds `m[i]`, from the classical frame contract); the HDR induction (HDR row `r` = `walk m r`); the CODE window decode (= `decInstr`); and the layout. All
+  are row facts and bus balances of the kind `prep_sha_sound` uses. The AIR they are about runs on
+  T1 (§11.3). This is the largest remaining Lean item of PREP.
+* **`StaticCert`.** The static analysis in-circuit: heights from the operand-stack transitions
+  and a label stack; block fees from `gasTable`'s metering; control targets from block matching;
+  call targets and host ids from the closure and import names; FUNC's `np`/`nl`/charge/prologue/
+  mask. With it, `RecordsCert` would rest on the AIR and `DecFaithfulAt` alone.
+* **`DecFaithfulAt` for all codes.** A general proof that the reference walk/decoder agree with
+  the spec's parser on accepted modules. Today it is decided per code (d3tiny). The decoder's
+  completeness limits: the AIR rejects LEBs whose high groups are non-zero (indices ≥ 2^21, sizes and
+  offsets ≥ 2^28), multi-byte alignment LEBs, and instructions outside the 13 classes (`nop`,
+  `br_table`, `call_indirect`, floats, bulk memory).
+* `PrepRest`, PREP's error branches, `CodeOK`/`FuncOK` from S3, and lane D's tree-spec insertion are
+  unchanged from §10.4.
+

@@ -9,27 +9,28 @@ PREP is the `.pre → preConf q` step of a call (`TmplPrep.lean`): it takes the 
 out-record's `codeRoot` / `funcRoot`, the cached-commitment roots of the padded CODE / FUNC record
 matrices that every Wasm segment leaf of the call commits (S3, R1 of `a-t1/README.md` §4).
 
-## Tables (`prepAir`, 4 tables, 33 public values)
+## Tables (`prepAir`, A-T4: 6 tables, 33 public values)
 
 | # | table | role |
 |---|---|---|
 | 0 | `PHDR` | one active row (`act`, first row only): **sends** the hash-call summary `[0, 53, len, 0, 1, 0, 0, 0]` and **receives** the digest `[0, 53, 1, len, h_0 … h_31]`, with `h_i` = public `i` (the 32 digest bytes) and `len` = public 32 |
-| 1 | `SHA256` | lane A's SHA-256 table (`Chips.Sha`: the classical `ZkFormal.Sha.Table` constraints, 549 columns) plus `Dmult ∈ {0, 1}`; its digest row **sends** `[ts, hid] ++` the classical digest message `[Id, Nd, digest bytes]` (`Table.interactions[16]`, embedded by `toW`) to `PHDR`, instead of `Chips.Sha`'s self-received 32-bit words (a 32-bit word is not injective mod p; bytes and `Nd` are) |
-| 2 | `CODE` | `Chips.Code.table` **verbatim** (the segment AIR's table: 8 cached record columns + `mult`) |
-| 3 | `FUNC` | `Chips.Func.table` **verbatim** |
+| 1 | `SHA256` | lane A's SHA-256 table (the classical `ZkFormal.Sha.Table` constraints, 549 columns) plus `Dmult ∈ {0, 1}`; its digest row **sends** `[ts, hid] ++` the classical digest message `[Id, Nd, digest bytes]` to `PHDR`; A-T4: its 16 byte slots **receive** `[Id, pos, byte]` from `CB` (`byteRecv`, the classical byte interactions) |
+| 2 | `CB` | the code bytes, row `i` = byte `i`, live rows exactly `i < len`; **sends** `[1, i, byte]` to the SHA byte slots (`busCB`) and **answers** byte reads `[i, byte]` (`busLB`, live rows only) |
+| 3 | `HDR` | the section walk (`PrepDec.hrow`): one row per section header / code count / body size / local-group count / local group; the code section entered by an `id = 10` test, others skipped by size; **emits** each body `(k, iS, bE)` at the end of its local groups (`busBody`) |
+| 4 | `CODE` | the 8 cached record columns of the segment AIR's `CODE`, then the decoder: pointer, 11-byte window, class one-hot (indicator polynomials of the opcode bits), LEB chains; each live row's record fields fixed by the bytes (`PrepDec.decFields`) are constrained, rows step by the instruction length, functions start at FUNC rows (`busFn`) and end at their body end |
+| 5 | `FUNC` | the 8 cached record columns of the segment AIR's `FUNC`, then `[live, k, iS, bE, size]`: offsets are prefix sums, each row's body is looked up among `HDR`'s emissions |
 
-So the PREP proof's cached CODE / FUNC commitments are made by the same table definitions, at the
-same template height and the same commitment parameters as the segment leaves' — equal matrices
-give equal roots (measured on T1, `a-t1/README.md` §10).
+The cached CODE / FUNC columns are the segment tables' (same names, first 8 columns, the template
+height and commitment parameters), so the PREP proof's cached commitments equal the segment leaves'
+for equal matrices (R1; measured on T1, `a-t1/README.md` §10–11).
 
-## What the AIR binds (A-T3)
+## What the AIR binds
 
 * **In-circuit, kernel-checked** (`PrepSound.prep_sha_sound`): the public values are
   `SHA-256(m)` and `|m|` for the message `m` the SHA table lays out.
-* **Not yet bound (named premise `TmplPrep.RecordsCert`):** that the CODE / FUNC matrices are the
-  records `checkModuleM2 cfg (prepare cfg m)` produces (decode, validate, instrument).  `CODE` /
-  `FUNC` keep their `mult` columns: the decoder certificate (`a-t1/README.md` §4 steps 2–5) will
-  *send* each decoded record on `busFetch` / `busFunc`, answered here.
+* **A-T4, in-circuit:** the decoder certificate `PrepDec.DecodeCert` (stated as the AIR obligation
+  `PrepDecSound.PrepDecodeSound`; its byte-read layer `PrepDecSound.lb_read_sound` is proved).
+* **Not in-circuit:** the static-analysis fields (`TmplPrep.StaticCert`).
 
 Finding (A-T3): `Chips.Sha`'s added `sh_len` column is not tied to the classical `Nd` by any
 constraint, so the segment AIR's `sha256` host summary does not bind the message length (it is
