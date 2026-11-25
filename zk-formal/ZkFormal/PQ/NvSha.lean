@@ -25,12 +25,10 @@ its limb 2 offset by `δ` with `4δ` a byte (C9.8: `lo6` is free in GLUE).
 
 ## Proved (standard axioms only)
 
-* `quiet_row`: an ALU row whose op is not a unit or job producer sends nothing on the job bus and
-  no channel-1 unit (partial evaluation of the exported interactions for 26 ops).
 * `offer_of_job`: for a `hash_range` job laid out at program rows (`RangeJob.OK`: one `Job` row,
   `Unit1` rows at unit indices `2 + i` in increasing row order, two `Dig` rows, and no other row
-  with `P2 = j` producing units or jobs), the ALU's offer is exactly `rangeUnits` of the cell
-  values (`job_sem`, `unit1_sem`, `alu_slot_job`, `alu_job_job`, `quiet_row`, the sparse
+  with `P2 = j`: a program fact), the ALU's offer is exactly `rangeUnits` of the cell
+  values (`job_sem`, `unit1_sem`, `alu_slot_job`, `alu_job_job`, `dig_sem`, the sparse
   concatenation `flatMap_range_sparse`).
 * **`range_cells`**: the two `Dig` cells of such a job are the canonical range digest cells
   `rangeLimbs pre vals`, given the contract and **`TailCanon`** at the high `Dig` row.
@@ -108,132 +106,6 @@ BIND / V_d evaluate the full `P0..P3` columns). -/
 def ProgFull (tr : Trace Fp) (prog : List Instr) : Prop :=
   ProgBound tr prog ∧ prog.length = tr.height 0
 
-/-! ## Quiet ops: no job, no channel-1 unit -/
-
-/-- The ops that produce SHA units or start jobs (from the exported interactions). -/
-def unitOps : List Nat := [7, 9, 12, 13, 14, 18, 23, 24, 30, 32, 33, 34, 35, 39]
-
-/-- A live slot-bus form whose first message field is a constant other than `1`. -/
-def headNot1 (p : Aff × List Aff) : Bool :=
-  match p.2 with
-  | m :: _ => m.vs.isEmpty && decide (m.c ≠ 1)
-  | [] => false
-
-/-- The check of a quiet op: no live job-bus form, every live slot-bus form off channel 1. -/
-def quietCheck (o : Nat) : Bool :=
-  match live (fxOp (o % 8) (o / 8)) (busIdx 0), live (fxOp (o % 8) (o / 8)) (busIdx 1) with
-  | some S0, some S1 => S1.isEmpty && S0.all headNot1
-  | _, _ => false
-
-/-- The quiet ops. -/
-def quietOps : List Nat := (List.range 40).filter fun o => !unitOps.contains o
-
-/-- One kernel check per quiet op (one check over all of them would exceed the memory cap;
-`NvOps`' per-op cost is about 26 s / 6-8 GB). -/
-theorem quiet_0 : quietCheck 0 = true := by decide +kernel
-theorem quiet_1 : quietCheck 1 = true := by decide +kernel
-theorem quiet_2 : quietCheck 2 = true := by decide +kernel
-theorem quiet_3 : quietCheck 3 = true := by decide +kernel
-theorem quiet_4 : quietCheck 4 = true := by decide +kernel
-theorem quiet_5 : quietCheck 5 = true := by decide +kernel
-theorem quiet_6 : quietCheck 6 = true := by decide +kernel
-theorem quiet_8 : quietCheck 8 = true := by decide +kernel
-theorem quiet_10 : quietCheck 10 = true := by decide +kernel
-theorem quiet_11 : quietCheck 11 = true := by decide +kernel
-theorem quiet_15 : quietCheck 15 = true := by decide +kernel
-theorem quiet_16 : quietCheck 16 = true := by decide +kernel
-theorem quiet_17 : quietCheck 17 = true := by decide +kernel
-theorem quiet_19 : quietCheck 19 = true := by decide +kernel
-theorem quiet_20 : quietCheck 20 = true := by decide +kernel
-theorem quiet_21 : quietCheck 21 = true := by decide +kernel
-theorem quiet_22 : quietCheck 22 = true := by decide +kernel
-theorem quiet_25 : quietCheck 25 = true := by decide +kernel
-theorem quiet_26 : quietCheck 26 = true := by decide +kernel
-theorem quiet_27 : quietCheck 27 = true := by decide +kernel
-theorem quiet_28 : quietCheck 28 = true := by decide +kernel
-theorem quiet_29 : quietCheck 29 = true := by decide +kernel
-theorem quiet_31 : quietCheck 31 = true := by decide +kernel
-theorem quiet_36 : quietCheck 36 = true := by decide +kernel
-theorem quiet_37 : quietCheck 37 = true := by decide +kernel
-theorem quiet_38 : quietCheck 38 = true := by decide +kernel
-
-theorem quiet_of : ∀ {o : Nat}, o < 40 → o ∉ unitOps → quietCheck o = true
-  | 0, _, _ => quiet_0
-  | 1, _, _ => quiet_1
-  | 2, _, _ => quiet_2
-  | 3, _, _ => quiet_3
-  | 4, _, _ => quiet_4
-  | 5, _, _ => quiet_5
-  | 6, _, _ => quiet_6
-  | 8, _, _ => quiet_8
-  | 10, _, _ => quiet_10
-  | 11, _, _ => quiet_11
-  | 15, _, _ => quiet_15
-  | 16, _, _ => quiet_16
-  | 17, _, _ => quiet_17
-  | 19, _, _ => quiet_19
-  | 20, _, _ => quiet_20
-  | 21, _, _ => quiet_21
-  | 22, _, _ => quiet_22
-  | 25, _, _ => quiet_25
-  | 26, _, _ => quiet_26
-  | 27, _, _ => quiet_27
-  | 28, _, _ => quiet_28
-  | 29, _, _ => quiet_29
-  | 31, _, _ => quiet_31
-  | 36, _, _ => quiet_36
-  | 37, _, _ => quiet_37
-  | 38, _, _ => quiet_38
-  | 7, _, hu => absurd (by decide) hu
-  | 9, _, hu => absurd (by decide) hu
-  | 12, _, hu => absurd (by decide) hu
-  | 13, _, hu => absurd (by decide) hu
-  | 14, _, hu => absurd (by decide) hu
-  | 18, _, hu => absurd (by decide) hu
-  | 23, _, hu => absurd (by decide) hu
-  | 24, _, hu => absurd (by decide) hu
-  | 30, _, hu => absurd (by decide) hu
-  | 32, _, hu => absurd (by decide) hu
-  | 33, _, hu => absurd (by decide) hu
-  | 34, _, hu => absurd (by decide) hu
-  | 35, _, hu => absurd (by decide) hu
-  | 39, _, hu => absurd (by decide) hu
-  | _ + 40, ho, _ => absurd ho (by omega)
-
-/-- **A quiet ALU row** sends nothing on the job bus and no channel-1 unit on the slot bus. -/
-theorem quiet_row {tr : Trace Fp} {pub : List Fp} (hh : NvHold pub tr) (hG : GlueByteBool tr pub)
-    {prog : List Instr} (hP : ProgBound tr prog) (hW : ProgWF prog) {y : Nat}
-    (hy : y < prog.length) (hka : cv tr 0 y 0 = 1) (hu : prog[y].op ∉ unitOps) :
-    (∀ e ∈ rowEnt tr pub y 0, e.1 ≠ 0 → e.2.head? ≠ some 1) ∧
-      (∀ e ∈ rowEnt tr pub y 1, e.1 = 0) := by
-  obtain ⟨hr, hag⟩ := prog_agrees (pub := pub) hh hG hP hW hy hka
-  obtain ⟨hop, -⟩ := hW _ (List.getElem_mem hy)
-  have hq := quiet_of hop hu
-  unfold quietCheck at hq
-  split at hq
-  · next S0 S1 h0 h1 =>
-    simp only [Bool.and_eq_true, List.isEmpty_iff] at hq
-    obtain ⟨hs1, hs0⟩ := hq
-    refine ⟨fun e he hz => ?_, fun e he => ?_⟩
-    · obtain ⟨q, hq, rfl⟩ := live_mem hag h0 he hz
-      have hn := List.all_eq_true.1 hs0 q hq
-      obtain ⟨c, ms⟩ := q
-      unfold headNot1 at hn
-      cases ms with
-      | nil => simp at hn
-      | cons m rest =>
-        simp only [Bool.and_eq_true, decide_eq_true_eq] at hn
-        simp only [evA, List.map_cons, List.head?_cons, ne_eq, Option.some.injEq]
-        rw [Aff.eval, sumV_nil_of _ hn.1]
-        intro e1
-        exact hn.2 (by rw [← e1]; grind)
-    · by_cases hz : e.1 = 0
-      · exact hz
-      · obtain ⟨q, hq, -⟩ := live_mem hag h1 he hz
-        rw [hs1] at hq
-        exact absurd hq (List.not_mem_nil)
-  · simp at hq
-
 /-! ## A `hash_range` job in the program -/
 
 /-- The program rows of one `hash_range` job (`agg.rs::hash_range`, `builder.rs` `job_start`,
@@ -262,19 +134,21 @@ structure RangeJob.OK (J : RangeJob) (prog : List Instr) : Prop where
   dlo : prog[J.dlo]'dlo_lt = ⟨17, 0, 2, J.j, 0⟩
   dhi_lt : J.dhi < prog.length
   dhi : prog[J.dhi]'dhi_lt = ⟨17, 0, 1, J.j, 2⟩
-  excl : ∀ y (h : y < prog.length), y ∉ J.y0 :: J.ys → prog[y].k1 = J.j → prog[y].op ∉ unitOps
+  excl : ∀ y (h : y < prog.length), y ∉ J.y0 :: J.ys → y ≠ J.dlo → y ≠ J.dhi → prog[y].k1 ≠ J.j
 
 /-- The unit values of a job: limb 0 of its unit cells. -/
 def RangeJob.vals (tr : Trace Fp) (J : RangeJob) : List Fp := J.cs.map fun c => cv tr 0 c 46
 
 /-! ## Helper lemmas -/
 
-theorem flatMap_idx {β γ : Type} (g : Nat → List γ) :
+theorem flatMap_idx {γ : Type} (g : Nat → List γ) :
     ∀ (ys : List Nat) (F : Nat → γ), (∀ i (h : i < ys.length), g ys[i] = [F i]) →
       ys.flatMap g = (List.range ys.length).map F
   | [], _, _ => rfl
   | y :: ys, F, h => by
-    rw [List.flatMap_cons, h 0 (by simp), List.length_cons, List.range_succ_eq_map,
+    have h0 := h 0 (by simp)
+    simp only [List.getElem_cons_zero] at h0
+    rw [List.flatMap_cons, h0, List.length_cons, List.range_succ_eq_map,
       List.map_cons, List.map_map]
     simp only [List.getElem_cons_zero, List.singleton_append, List.cons.injEq, true_and]
     exact flatMap_idx g ys (fun i => F (i + 1)) (fun i hi => by
@@ -310,7 +184,7 @@ theorem offer_job (hh : NvHold pub tr) (hG : GlueByteBool tr pub) (hP : ProgFull
   rw [List.filter_flatMap]
   rw [flatMap_range_sparse _ (tr.height 0) [J.y0] (by simp)
     (by intro y hy; simp at hy; subst hy; rw [← hP.2]; exact hJ.y0_lt)]
-  · have hka := ka_of_prog hh hG hP.1 hW hJ.y0_lt (by rw [hJ.job]; exact .inl (by decide))
+  · have hka := ka_of_prog hh hG hP.1 hW hJ.y0_lt (Or.inl (by rw [hJ.job]; simp))
     simp only [List.flatMap_cons, List.flatMap_nil, List.append_nil, hka, ite_true]
     rw [(job_sem hh hG hP.1 hW hJ.y0_lt hJ.job).2.1]
     simp
@@ -322,7 +196,7 @@ theorem offer_job (hh : NvHold pub tr) (hG : GlueByteBool tr pub) (hP : ProgFull
       rw [List.filter_filter, List.filter_eq_nil_iff]
       intro e he
       simp only [Bool.and_eq_true, decide_eq_true_eq, not_and]
-      intro hz hhd
+      intro hhd hz
       by_cases hk : prog[r].k1 = J.j
       · by_cases hu : r ∈ J.ys
         · obtain ⟨i, hi, rfl⟩ := List.getElem_of_mem hu
@@ -331,8 +205,19 @@ theorem offer_job (hh : NvHold pub tr) (hG : GlueByteBool tr pub) (hP : ProgFull
             List.mem_filter.2 ⟨he, by simpa using hz⟩
           rw [h1] at this
           exact absurd this (List.not_mem_nil)
-        · have hq := (quiet_row hh hG hP.1 hW hrp hka (hJ.excl r hrp (by simp [hrs, hu]) hk)).2 e he
-          exact hz hq
+        · have hd : r = J.dlo ∨ r = J.dhi := by
+            by_cases h1 : r = J.dlo
+            · exact .inl h1
+            by_cases h2 : r = J.dhi
+            · exact .inr h2
+            exact absurd hk (hJ.excl r hrp (by simp [hrs, hu]) h1 h2)
+          have hb1 : (rowEnt tr pub r 1).filter (·.1 ≠ 0) = [] := by
+            rcases hd with rfl | rfl
+            · exact (dig_sem hh hG hP.1 hW hJ.dlo_lt hJ.dlo (.inr rfl)).2.2.1
+            · exact (dig_sem hh hG hP.1 hW hJ.dhi_lt hJ.dhi (.inl rfl)).2.2.1
+          have : e ∈ (rowEnt tr pub r 1).filter (·.1 ≠ 0) := List.mem_filter.2 ⟨he, by simpa using hz⟩
+          rw [hb1] at this
+          exact absurd this (List.not_mem_nil)
       · have := alu_job_job hh hG hP.1 hW hrp (.inr (.inr hka)) e he hz
         rw [k1_cast hP hrp, hhd, Option.some.injEq] at this
         exact cast_ne (hJ.k1_lt _ (List.getElem_mem hrp)) hJ.j_lt hk this.symm
@@ -354,22 +239,22 @@ theorem offer_slot (hh : NvHold pub tr) (hG : GlueByteBool tr pub) (hP : ProgFul
       exact hJ.ys_lt i hi
   rw [flatMap_range_sparse _ (tr.height 0) (J.y0 :: J.ys) hJ.sorted hS]
   · rw [List.flatMap_cons]
-    have hka := ka_of_prog hh hG hP.1 hW hJ.y0_lt (by rw [hJ.job]; exact .inl (by decide))
+    have hka := ka_of_prog hh hG hP.1 hW hJ.y0_lt (Or.inl (by rw [hJ.job]; simp))
     simp only [hka, ite_true]
     rw [(job_sem hh hG hP.1 hW hJ.y0_lt hJ.job).1]
     rw [flatMap_idx _ J.ys (fun i => unitMsg ((J.j : Nat) : Fp) (rangeUnits (J.vals tr)) (i + 2))]
     · simp only [rangeUnits, List.length_cons, List.length_map, RangeJob.vals]
       rw [List.range_succ_eq_map, List.range_succ_eq_map, hJ.len]
       simp only [List.map_cons, List.map_map]
-      simp [unitMsg, List.filter, Function.comp_def]
+      simp [unitMsg, List.filter, Function.comp_def, natCast_zero, natCast_one]
     · intro i hi
       have hu := hJ.unit i hi
-      have hkay := ka_of_prog hh hG hP.1 hW (hJ.ys_lt i hi) (by rw [hu.1]; exact .inl (by decide))
+      have hkay := ka_of_prog hh hG hP.1 hW (hJ.ys_lt i hi) (Or.inl (by rw [hu.1]; simp))
       simp only [hkay, ite_true]
       rw [(unit1_sem hh hG hP.1 hW (hJ.ys_lt i hi) hu.1 hu.2).2.1]
       have hic : i < J.cs.length := hJ.len ▸ hi
-      simp [unitMsg, rangeUnits, RangeJob.vals, List.getD_eq_getElem?_getD, hic,
-        Nat.add_comm i 2]
+      rw [Nat.add_comm 2 i]
+      simp [unitMsg, rangeUnits, RangeJob.vals, List.getD_eq_getElem?_getD, hic]
   · intro r hr hrs
     by_cases hka : cv tr 0 r 0 = 1
     · simp only [hka, ite_true]
@@ -377,10 +262,22 @@ theorem offer_slot (hh : NvHold pub tr) (hG : GlueByteBool tr pub) (hP : ProgFul
       rw [List.filter_filter, List.filter_eq_nil_iff]
       intro e he
       simp only [Bool.and_eq_true, decide_eq_true_eq, not_and]
-      intro hz htk
+      intro htk hz
       obtain ⟨h1, h2⟩ := take2_eq htk
       by_cases hk : prog[r].k1 = J.j
-      · exact (quiet_row hh hG hP.1 hW hrp hka (hJ.excl r hrp hrs hk)).1 e he hz h1
+      · have hd : r = J.dlo ∨ r = J.dhi := by
+          by_cases h1 : r = J.dlo
+          · exact .inl h1
+          by_cases h2 : r = J.dhi
+          · exact .inr h2
+          exact absurd hk (hJ.excl r hrp hrs h1 h2)
+        have hb0 : (rowEnt tr pub r 0).filter (·.1 ≠ 0) = [] := by
+          rcases hd with rfl | rfl
+          · exact (dig_sem hh hG hP.1 hW hJ.dlo_lt hJ.dlo (.inr rfl)).2.1
+          · exact (dig_sem hh hG hP.1 hW hJ.dhi_lt hJ.dhi (.inl rfl)).2.1
+        have : e ∈ (rowEnt tr pub r 0).filter (·.1 ≠ 0) := List.mem_filter.2 ⟨he, by simpa using hz⟩
+        rw [hb0] at this
+        exact absurd this (List.not_mem_nil)
       · have := alu_slot_job hh hG hP.1 hW hrp (.inr (.inr hka)) e he hz h1
         rw [k1_cast hP hrp, h2, Option.some.injEq] at this
         exact cast_ne (hJ.k1_lt _ (List.getElem_mem hrp)) hJ.j_lt hk this.symm
@@ -403,7 +300,6 @@ theorem dig_in (hh : NvHold pub tr) (hG : GlueByteBool tr pub) (hP : ProgFull tr
 
 end Offer
 
-#print axioms quiet_row
 #print axioms offer_of_job
 
 /-! ## The digest cells of a `hash_range` job -/
@@ -435,18 +331,22 @@ theorem range_cells (pre : Bytes) (hh : NvHold pub tr) (hG : GlueByteBool tr pub
   simp only [ite_true] at hlo
   have e0 : ((-1 : Fp), [((J.j : Nat) : Fp), ((0 : Nat) : Fp)] ++ (cellOf tr J.dlo).take 6) ∈
       aluEnt tr pub 2 :=
-    dig_in hh hG hP hW hJ.dlo_lt (by rw [hJ.dlo]; decide) (by rw [hlo]; simp)
+    dig_in hh hG hP hW hJ.dlo_lt (by rw [hJ.dlo]; simp) (by rw [hlo]; simp)
   have e1 : ((-1 : Fp), [((J.j : Nat) : Fp), ((1 : Nat) : Fp)] ++ (cellOf tr J.dlo).drop 6) ∈
       aluEnt tr pub 2 :=
-    dig_in hh hG hP hW hJ.dlo_lt (by rw [hJ.dlo]; decide) (by rw [hlo]; simp)
+    dig_in hh hG hP hW hJ.dlo_lt (by rw [hJ.dlo]; simp) (by rw [hlo]; simp)
   have e2 : ((-1 : Fp), [((J.j : Nat) : Fp), ((2 : Nat) : Fp)] ++ (cellOf tr J.dhi).take 6) ∈
       aluEnt tr pub 2 :=
-    dig_in hh hG hP hW hJ.dhi_lt (by rw [hJ.dhi]; decide) (by rw [hhi.1]; simp)
+    dig_in hh hG hP hW hJ.dhi_lt (by rw [hJ.dhi]; simp) (by rw [hhi.1]; simp)
   have hz := hhi.2.2.2 rfl
-  obtain ⟨-, h0⟩ | ⟨h, -⟩ := hC _ _ _ hO 0 _ (by decide) e0
-  swap; · exact absurd h (by decide)
-  obtain ⟨-, h1⟩ | ⟨h, -⟩ := hC _ _ _ hO 1 _ (by decide) e1
-  swap; · exact absurd h (by decide)
+  have h0 : (cellOf tr J.dlo).take 6 = pairOf (jobLimbs pre 9 (rangeUnits (J.vals tr))) 0 := by
+    rcases hC _ _ _ hO 0 _ (by decide) e0 with ⟨-, h⟩ | ⟨h, -⟩
+    · exact h
+    · exact absurd h (by decide)
+  have h1 : (cellOf tr J.dlo).drop 6 = pairOf (jobLimbs pre 9 (rangeUnits (J.vals tr))) 1 := by
+    rcases hC _ _ _ hO 1 _ (by decide) e1 with ⟨-, h⟩ | ⟨h, -⟩
+    · exact h
+    · exact absurd h (by decide)
   obtain ⟨h, -⟩ | ⟨-, δ, ⟨v, hv, hδ⟩, h2⟩ := hC _ _ _ hO 2 _ (by decide) e2
   · exact absurd h (by decide)
   obtain ⟨t, ht, hT⟩ := hT
@@ -461,7 +361,7 @@ theorem range_cells (pre : Bytes) (hh : NvHold pub tr) (hG : GlueByteBool tr pub
   have hs5 := div42_lt h5
   rw [hL] at h0 h1 h2
   unfold rangeLimbs
-  rw [← hd, hL]
+  rw [hL]
   simp only [cellOf_eq, pairOf, wlimbs, List.take, List.drop, List.cons_append, List.nil_append,
     List.getD_cons_succ, List.getD_cons_zero, List.cons.injEq, and_true, List.drop_succ_cons,
     List.drop_zero, List.take_succ_cons, List.take_zero] at h0 h1 h2 hz ⊢
