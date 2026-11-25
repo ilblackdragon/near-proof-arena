@@ -64,7 +64,9 @@ def interactions : List Interaction :=
   [snd B_STMQ .isFirst (Rb.limbs (SI.b "stRoot") ++ [c "tgo"] ++ Rb.limbs (fun j => c "rso" j)),
    rcv B_STMA .isFirst (Rb.limbs (SO.b "stRoot") ++ [c "tgi"] ++ Rb.limbs (fun j => c "rsi" j))] ++
   ((List.range 42).map fun j => rcv B_RNG .isFirst [c "rso" j]) ++
-  ((List.range 42).map fun j => rcv B_RNG .isFirst [c "rsi" j])
+  ((List.range 42).map fun j => rcv B_RNG .isFirst [c "rsi" j]) ++
+  -- F-6: every public value (both records, 900 B) is a byte, in-circuit
+  pubBytes NUM_PUB
 
 def table : Table := { width := L.width, constraints := cons, interactions, maxLog := 2 }
 

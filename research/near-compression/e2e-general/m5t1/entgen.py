@@ -11,7 +11,10 @@ must be rejected): F-2's `phase` (B_out phase 1 instead of 6), `gas` (B_out gasU
 (B_out stRoot byte flipped), `clock` (B_out t = 1); F-3's `coderoot` (a pad byte of `codeRoot`
 nonzero), `prefuel` (`.pre` fuel 1), `gasleft` (`.pre` gasLeft 1), `framesdig` (`.pre`
 framesDigest byte flipped), `outrcpt` (the outgoing accumulator not carried), `inphase` (B_in
-phase 2)."""
+phase 2); F-6's `nonbyte` (claimDigest byte 0 of both records + 256: the copy holds, the value is
+not a byte).
+F-6: the AIR is `Ent.entAirB` = `ENT` + `RNG`: every public value is received on `RNG` (in-circuit
+byte range; lane D's F-M9-1), `RNG.bin` counts them."""
 import json
 import os
 import struct
@@ -65,19 +68,37 @@ def main():
             r["outRcptAcc"] = [bytes([o[0] ^ 1]) + o[1:]]
         elif m == "inphase":
             ri["phase"] = 2
+        elif m == "nonbyte":
+            pass
         else:
             raise SystemExit(f"unknown mutant {m}")
         pubs = list(rtbnd.bndrec.encode(ri)) + list(rtbnd.bndrec.encode(r))
+        if m == "nonbyte":
+            # F-6: claimDigest byte 0 of both records + 256 (a copied field: the copy holds; F-5's
+            # AIR accepted it, `pubBytes` must not)
+            pubs[0] += 256
+            pubs[450] += 256
         print(f"mutant applied: [{m}]")
         # the statement is the claimed (mutated) boundary: the proof must fail on the constraints
         expected = list(pubs)
     with open(f"{out}/ENT.bin", "wb") as f:
         f.write(struct.pack("<II", 2, 1))
         f.write(b"\0" * 16)
+    # F-6: `ENT` receives every public value on `RNG` (`Ids.pubBytes`); RNG row v counts them
+    rng = [0] * 256
+    for v in pubs:
+        if v < 256:
+            rng[v] += 1
+    with open(f"{out}/RNG.bin", "wb") as f:
+        f.write(struct.pack("<II", 8, 21))
+        cells = []
+        for v in range(256):
+            cells += [v] + [(rng[v] >> t) & 1 for t in range(20)]
+        f.write(struct.pack(f"<{len(cells)}I", *cells))
     for nm, vs in (("pubs.bin", pubs), ("expected_pubs.bin", expected)):
         with open(f"{out}/{nm}", "wb") as f:
             f.write(struct.pack(f"<{len(vs)}I", *[v % P for v in vs]))
-    json.dump(["ENT"], open(f"{out}/tables.json", "w"))
+    json.dump(["ENT", "RNG"], open(f"{out}/tables.json", "w"))
     json.dump([0, 450, 834], open(f"{out}/bnd.json", "w"))
     if "--template" in opt:
         json.dump(json.load(open(opt["--template"])), open(f"{out}/template.json", "w"), indent=1)

@@ -1,7 +1,7 @@
-# E2E lane F: the runtime rows of T1's FunctionCall receipt (M5-T1), the `rt` leaves (F-2), the relative store-canonical form (F-3), the resume leaf split with lane B (F-4), the chained leaves and the STATE engine half (F-5)
+# E2E lane F: the runtime rows of T1's FunctionCall receipt (M5-T1), the `rt` leaves (F-2), the relative store-canonical form (F-3), the resume leaf split with lane B (F-4), the chained leaves and the STATE engine half (F-5), the boundary pair in-circuit as bytes (F-6)
 
 Plan: `docs/zk-formal/E2E-GENERAL-CHUNK-PLAN.md` §3.3 (Wasm ↔ state join), §4.2 (M5), §5.2 (status).
-Date 2026-11-21 (F-3, F-4: 2026-11-25). Labels: **[M]** measured here, **[K]** kernel-checked Lean (std axioms, no `sorry`),
+Date 2026-11-21 (F-3 … F-6: 2026-11-25). Labels: **[M]** measured here, **[K]** kernel-checked Lean (std axioms, no `sorry`),
 **[S]** design / stated only.
 
 Target T1 = `d3c8/d3/02-h10196-s3`. Its one incoming receipt (`78c006d5…`, `s2a04 → s5k210.s2a00`,
@@ -388,13 +388,105 @@ and the counters / accumulators of `x'` = the output's bytes (`FreeOut`). Not do
 themselves (receipt 0, the three forwards, the finalize step), so `SeStep` is the STATE engine
 half's whole step content; `RsStep`'s `estepO` composition (F-2 item 1); `next` (`K ≠ []`).
 
+## F-6 (2026-11-25): every public value of a lane F leaf is in the proof and a byte, in-circuit
+
+Log: [`docs/logs/e2e-f6-runtime-2026-11-25.md`](../../../../docs/logs/e2e-f6-runtime-2026-11-25.md).
+`S`, `claimDigest`, the checker unchanged (no stop). Lane I's chain unchanged (digests = F-5's).
+
+**Lane D's F-M9-1.** The prover gives each AIR as many public values as its expressions read
+(`max pub index + 1`). Lane D's M9 tree imported the **F-2b** enter leaf, whose `ENT` read `B_in`
+and the first 408 bytes of `B_out`: 816 public values, `B_out`'s Wasm part not in the proof. The
+F-3 … F-5 leaves already carried the whole pair (`ENT` 1,284, `RB` 1,531, `SE` 900), but only
+because the last field's rule happened to read it; and on every lane F leaf the free and copied
+bytes were *not* range-checked: the leaf predicates (`EntHoldsC`, `RsHoldsC`, `SeHoldsC`) assumed
+`∀ i < N, pv i < 256` as a statement-side premise. A control run shows the gap (`logs/F6-mutants.txt`):
+`claimDigest` byte 0 of both records + 256 (a copied field, so the copy holds) is **ACCEPTED** by
+F-5's enter and `SE` AIRs.
+
+**Fix.**
+* **AIR** (`Ids.pubBytes n`): one `RNG` receive `[pub i]` on the boundary table's first row for
+  every public value `i < n` — `ENT` (1,284; the exported enter AIR is now `Ent.entAirB = [ENT,
+  RNG]`), `SE` (900), `RB` (1,531: both records and `RX`'s public totals). Every public value is read
+  by a constraint of the leaf's own AIR (the per-AIR count is the layout's width by construction,
+  not by coincidence) and is a byte in-circuit. Generators count the lookups (`entgen.py`,
+  `segen.py`, `tracegen.py`).
+* **Prover** (`main.rs`, `load`): refuses an instance unless some table reads all `numPub` declared
+  public values and the boundary pair (`bnd.json`) lies inside them (`PUBLIC VALUES numPub 1284
+  (boundary [0, 1284)) in full in ["ENT"]`, resume `[247, 1531)` in `RB`, `SE` `[0, 900)`).
+* **Lean** (`PubBytes.lean`, std axioms): `rng_recv_gen` (`RNG` receives are bytes in any AIR whose
+  table 1 is `RNG` and no other table sends on it), `pub_byte_gen`; **`ent_bytes`**, **`se_bytes`**
+  (`NoRng xtape`), **`rb_bytes`** (`NoRng` tapes): every public value of the three leaves is `< 256`
+  on every satisfying trace; `ent_core` (`Holds entAirB → Holds entAir`); the leaf predicates from
+  the circuit **without the byte premise**: `entHoldsC_of`, `seHoldsC_of`, `rsHolds_of_circuit`
+  (so `enter_relC8`, `finalize_relC8` / `stateSeg_relC8`, `resume_relC8` apply to the exported
+  AIRs with that premise discharged). Non-vacuity: T1's values are bytes (`T1Enter.t1_bytes`,
+  `T1Resume.t1_res_bytes`, `T1Se.t1_se_bytes`), and the leaves below prove.
+* **`chain.py`**: `SAVED` / `SAVED_F` point at the F-6 leaves; `full_pv` — every lane F row checks
+  that one AIR carries the leaf's whole public-value vector and that every value is a byte
+  (`test_chain_saved_leaves` asserts it).
+
+### The leaves, re-proved on the chain [M] (`logs/F6-leaves.txt`, `logs/F6-mutants.txt`, `results/f6/`)
+
+| leaf | AIR | cuts | `d_in` → `d_out` | public values (in one AIR) | proof | prove / RSS | mutants |
+|---|---|---|---|---|---|---|---|
+| RT enter | `ENT` + `RNG` (2,046 constraints incl. bits, 1,284 lookups) | c2 → c3 | `3d9f81b4` → `bff8b633` | 1,284 (`ENT`) | **101,127 B** (F-5 88,327) | 4.4 s / 1.2 GB | **11/11** (+ `nonbyte`) |
+| RT resume | F-5 + `RB` 1,531 lookups (1,619 interactions) | c6 → c7 | `10f87ec9` → `afe47194` | 1,531 (`RB`) | **472,712 B** (F-5 474,182) | 21.7 s / 9.6 GiB | **23/23** (+ `nonbyte`) |
+| STATE seg A, engine half | `SE` + 900 lookups | c1 → c2 | `4ae97236` → `3d9f81b4` | 900 (`SE`) | **134,509 B** (F-5 130,363) | 7.9 s / 1.4 GB | **10/10** |
+| STATE seg B, engine half | `SE` | c7 → c8 | `afe47194` → `afe47194` | 900 | **133,543 B** | 8.4 s / 1.4 GB | **10/10** |
+| finalize, engine half | `SE` | c8 → c9 | `afe47194` → `f7c8b2b6` | 900 | **133,627 B** | 4.2 s / 1.4 GB | **10/10** |
+
+All 268.3–268.8 bit, verified natively, `m8-import`ed (`M8_TEMPLATE_PROVED`) to
+`/data/illia/nearproof-deps/e2e-m5t1/f6/tmpl/{rt-enter,rt-resume,state-eng-*}/`; the three `SE` leaves
+are one program. New vks for all five (lane D re-imports; layouts and values unchanged). `STMQ` /
+`STMA` = lane B's B-T4 `htape.json` message for message (`stmcheck.py`, 8/8 EQUAL). `chain.py
+plan`: every lane F row in ✓ / out ✓, `full_pv` ✓. `nonbyte`: rejected by all three AIRs (`RNG`
+unbalanced); run separately through the prover, `ENT` and `SE` refuse it, while the F-5 `ENT` / `SE`
+AIRs ACCEPT it (control, `logs/F6-mutants.txt`).
+
+### Items 2–4 of the F-6 task: not done, and why (one blocker)
+
+**`SeStep` (the VM-free engine rows), `encRestI`, `RsStep`'s `estepO` composition all need the
+leaf to open the configuration it steps from, and no leaf on the chain can.** `SeStep` /
+`RsStep` quantify over the canonical opening `eng I c` / `call I c [] q (.fin r)` of the input
+digest; the step (receipt 0, a buffered-receipt forward, the finalize step, the receipt step of
+the resume) is a function of `c.pos` (which position kind — `txs` / `locals` / `incoming` /
+`yields _ _ 0` — and its pending queue), the receipt state, and the intake `I`. The record binds
+these only through `ctxRoot = ctxD (.intake I)` and `stRoot.rest`, and on the chain **both are `0^42`
+placeholders** (`chain.py PLACEHOLDERS`: `ctxRoot` needs lane E's `Ser Intake` closure; `rest`
+needs `encRestI`). Lane B's `STC` opens `(tag, ws, wsLen, trie, idx)` and passes `rest` through
+opaque, and `tag` does not tell `yields` from the other engine positions (`StateView.tagOf`: every
+non-`done` engine state is `1`). So engine rows built now would compute a step of a configuration
+that the record does not commit to: they could not discharge `SeStep` (its `FinPre` needs
+`c.pos = .yields _ _ 0`; its `Meaning .state` needs the step from *that* `c`), nor `RsStep` (the
+receipt `RX` executes must be `c`'s queue head: `encRestI`'s `d_queue` pop).
+* **Item 3 (`encRestI`)**, also not adopted: lane B's `STC` needs no change (`rest` is opaque to
+  it), but the value does — `rest = bdigest (d_static ‖ d_queue ‖ d_move)` per cut needs T1's state
+  component at each cut (lane E's `restOfB`, a Lean evaluation the chain's inputs do not have yet),
+  changes `stRoot` at c1 … c9, and so every B-T4 state half, all five lane F leaves and lane D's
+  running M10 tree (built on the current chain) would have to be re-proved; with `rest` a witnessed
+  meta (no lane F rows produce its preimage) it would add no soundness. Deferred to one coordinated
+  step (E: the per-cut `encRestI` values in `chain.py`; B: re-prove with them; F: the rows below).
+* **The rows, once `rest` opens** (design, [S]): per engine step, pop `d_queue` (one SHA-384 of
+  `42 + |item|` bytes, the `ACC` pattern reversed: the leaf gets the item and `d_tail`), recompute
+  `d_move` (`Ser.enc` of the blanked moving state: position kind, receipt state; one witness-sized
+  hash per step), append outcomes / outgoing receipts with `ACC` (as `RB`), counters by carry chains
+  (as `RB`'s `receiptIdx + 1`), the forwards' buffer writes on `SREQ` / `HB`; `ctxRoot`'s opening
+  (`ctxD (.intake I)`) for the intake facts the step reads. Lean: `SeStep` / `RsStep` from the rows
+  and lane E's `encRestI_bind`.
+
+Checks: `lake build M5T1 m5t1-tool` (507 jobs; std axioms only, no `sorryAx`), `join-check/run.sh`
+(`state_engHalf`, `stateSeg_relC8`), `spec/lean/v3`, `make pin-check`, `pytest -q oracle/tools tools
+research/near-compression/e2e-general/t1` — see the log.
+
 ## Open (M5-T1 list, updated)
 
 1. ~~MSG/DG row lemmas, RNG bus fact~~ (F-2); ~~enter view contract~~ (F-3: `enter_relC` from
    the circuit + named checks); ~~resume: F3-1~~ (F-4: split with lane B, `ACC` appends, `vmAcc`,
    M12 clear fields; `resume_relC8`); the `estepO` composition (`RsStep`); enter's
    `EntChecks.prepaid` / `code` (join with the receipt rows); ~~STATE engine half~~ (F-5: `SE` boundary rows, `EngHalfRCOn` on `StatePreW` / `FinPre` modulo `SeStep`; the VM-free step rows themselves: none yet); `RsFin` (A);
-   ~~F3-2~~ (lane E's M12).
+   ~~F3-2~~ (lane E's M12); ~~public values sized by the constraints (lane D's F-M9-1)~~ (F-6:
+   `Ids.pubBytes`, every public value read and byte-checked in-circuit, `PubBytes.lean`). `SeStep`,
+   `RsStep`, `encRestI`: blocked on opening `rest` / `ctxRoot` (§F-6).
 2. **Template coverage**: one FunctionCall per V1 action receipt, ED25519 signer, no inputs/outputs,
    successful call without promises, ≤ 4 non-empty logs, refund > 0, receiver exists with a local
    contract; account-id validity (`AccountId.valid`) and `softExceeded` (recorder size) not in the

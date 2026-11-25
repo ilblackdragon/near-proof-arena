@@ -32,11 +32,15 @@ def main (args : List String) : IO UInt32 := do
     IO.println s!"schema entries {schema.length}, public values {Rx.NUM_PUB}"
     return 0
   | ["air-ent", out, names] =>
-    IO.FS.writeFile out (ZkFormal.Air.Air.exportJson M5T1.Ent.entAir)
-    IO.FS.writeFile names ("{\"ENT\":[\"z\"],\"tables\":[\"ENT\"],\"pub\":[" ++
+    -- F-6: the exported enter AIR is `entAirB` (`ENT` + every public value a byte on `RNG`)
+    IO.FS.writeFile out (ZkFormal.Air.Air.exportJson M5T1.Ent.entAirB)
+    IO.FS.writeFile names ("{\"ENT\":[\"z\"],\"RNG\":[" ++
+      ",".intercalate (Rng.L.names.map q) ++ "],\"tables\":[\"ENT\",\"RNG\"],\"pub\":[" ++
       ",".intercalate (M5T1.Ent.PL.names.map q) ++ "]}")
-    let t := M5T1.Ent.table
-    IO.println s!"ENT: width {t.width}, constraints {t.allConstraints.length}, interactions 0, wf {ZkFormal.Air.Table.wf M5T1.Ent.entAir 4 t}, public values {M5T1.Ent.NUM_PUB}"
+    for (nm, t) in M5T1.Ent.tableNamesB.zip M5T1.Ent.entAirB.tables do
+      let deg := (t.allConstraints.map ZkFormal.Air.Expr.degree).foldl max 0
+      IO.println s!"{nm}: width {t.width}, constraints {t.allConstraints.length}, interactions {t.interactions.length}, degree {deg}, wf {ZkFormal.Air.Table.wf M5T1.Ent.entAirB 4 t}"
+    IO.println s!"enter leaf: public values {M5T1.Ent.NUM_PUB}"
     return 0
   | ["air-se", out, names] =>
     IO.FS.writeFile out (ZkFormal.Air.Air.exportJson M5T1.Se.seAir)

@@ -61,6 +61,15 @@ def NUM_BUSES : Nat := 21
 /-- The bus count of the F-2 / F-3 AIRs (the enter leaf keeps it: its AIR value is unchanged). -/
 def NUM_BUSES_F3 : Nat := 17
 
+open ZkFormal.Air in
+/-- **F-6: every public value is a byte, in-circuit.** One `RNG` receive per public value `i < n`
+on the boundary table's first row (lane D's F-M9-1: the leaf's public values are exactly the
+boundary records the tree hashes, each one bound by a constraint of the leaf's own AIR — a
+byte-range lookup — not merely present, and not sized by the largest index the other constraints
+happen to read). -/
+def pubBytes (n : Nat) : List Interaction :=
+  (List.range n).map fun i => rcv B_RNG .isFirst [.pub i]
+
 /-! ## Message types -/
 
 def MT_RL : Nat := 0

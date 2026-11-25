@@ -61,8 +61,8 @@ theorem lst_exists (hd1 : NoRecvOn B_ACCD tape) (hd2 : NoRecvOn B_ACCD xtape) (h
   have hi : snd B_ACCD .isFirst [K h] ∈ ((fullAir tape xtape).tables[6]'rb_lt').interactions := by
     show _ ∈ Rb.table.interactions
     rcases (by omega : h = 0 ∨ h = 1) with rfl | rfl
-    · exact List.mem_append_right _ (List.mem_cons_self ..)
-    · exact List.mem_append_right _ (List.mem_cons_of_mem _ (List.mem_cons_self ..))
+    · exact List.mem_append_left _ (List.mem_append_right _ (List.mem_cons_self ..))
+    · exact List.mem_append_left _ (List.mem_append_right _ (List.mem_cons_of_mem _ (List.mem_cons_self ..)))
   have h0 : 0 < tr.height 6 := by unfold Trace.height; exact Nat.two_pow_pos _
   have hm : 0 < (snd B_ACCD .isFirst [K h]).multNat tr 6 0 pub := by
     simp [snd, Interaction.multNat, Interaction.multNat.go, Expr.eval, Expr.evalWith, rowEnv]

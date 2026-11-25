@@ -59,3 +59,11 @@
 'M5T1.SeC.finalize_relC8' depends on axioms: [propext, Classical.choice, Quot.sound]
 'M5T1.T1Se.t1_se_constr' depends on axioms: [propext, Quot.sound]
 'M5T1.T1Se.t1_se_chain' does not depend on any axioms
+'M5T1.PubBytes.entHoldsC_of' depends on axioms: [propext, Classical.choice, Quot.sound]
+'M5T1.PubBytes.ent_bytes' depends on axioms: [propext, Classical.choice, Quot.sound]
+'M5T1.PubBytes.ent_core' depends on axioms: [propext, Quot.sound]
+'M5T1.PubBytes.rb_bytes' depends on axioms: [propext, Classical.choice, Quot.sound]
+'M5T1.PubBytes.rng_recv_gen' depends on axioms: [propext, Quot.sound]
+'M5T1.PubBytes.rsHolds_of_circuit' depends on axioms: [propext, Classical.choice, Quot.sound]
+'M5T1.PubBytes.seHoldsC_of' depends on axioms: [propext, Classical.choice, Quot.sound]
+'M5T1.PubBytes.se_bytes' depends on axioms: [propext, Classical.choice, Quot.sound]

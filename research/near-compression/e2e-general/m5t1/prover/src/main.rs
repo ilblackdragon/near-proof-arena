@@ -456,6 +456,19 @@ fn load(air_path: &str, dir: &str) -> Inst {
         }
         n_comps = comps.len();
     }
+    // [F-6] lane D's F-M9-1: the boundary pair must be in the proof. Each AIR gets as many public
+    // values as its expressions read (`max pub index + 1`); the boundary table must read every one
+    // of the AIR's declared public values (`numPub`, the Lean layout's width; F-6: one `RNG`
+    // receive per value, `Ids.pubBytes`), and the boundary pair (`bnd.json`) must lie inside them.
+    if let Ok(txt) = std::fs::read_to_string(d.join("bnd.json")) {
+        let bnd: Vec<usize> = serde_json::from_str(&txt).expect("bnd.json");
+        let end = bnd[0] + bnd[1] + bnd[2];
+        let full: Vec<&str> = spec.iter().filter(|t| t.num_pub == cl.num_pub).map(|t| t.name.as_str()).collect();
+        assert!(!full.is_empty(), "F-M9-1: no table reads all {} declared public values", cl.num_pub);
+        assert!(end <= cl.num_pub, "F-M9-1: the boundary pair [0, {end}) exceeds numPub {}", cl.num_pub);
+        assert_eq!(pubs.len(), cl.num_pub, "the dump's public values vs the AIR's numPub");
+        println!("PUBLIC VALUES numPub {} (boundary [{}, {end})) in full in {:?}", cl.num_pub, bnd[0], full);
+    }
     Inst { spec, mats, pubs, tapes, tmpl, native, chip_if, n_comps }
 }
 

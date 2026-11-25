@@ -1091,6 +1091,14 @@ def main():
         # the statement claims one more gas used by the chunk than the Lean run
         pub_vals[pubnames.index("gout.0")] += 1
         applied.append("statement")
+    if mut("nonbyte"):
+        # F-6: a non-byte public value in a copied field (claimDigest byte 0 of both records, + 256:
+        # the copy holds; F-5's AIR accepted it, F-6's `pubBytes` must not); the claim is the mutant's
+        pub_vals[pubnames.index("bin.0")] += 256
+        pub_vals[pubnames.index("bout.0")] += 256
+        with open(f"{out}/expected_pubs.bin", "wb") as f:
+            f.write(struct.pack(f"<{len(pub_vals)}I", *[v % P for v in pub_vals]))
+        applied.append("nonbyte")
 
     # ----- RNG ---------------------------------------------------------------------------------
     rng_count = Counter()
@@ -1109,6 +1117,10 @@ def main():
         rng_count[rx.get(rrow, "r10") + 246] += 1
     for v in rb_rng + acc_rng:
         rng_count[v] += 1
+    # F-6: `RB` receives every public value on `RNG` (`Ids.pubBytes`: in-circuit byte range)
+    for v in pub_vals:
+        if v < 256 or not mut("nonbyte"):
+            rng_count[v] += 1
     rng = Trace(names["RNG"])
     for v in range(256):
         row = rng.row()

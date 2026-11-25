@@ -16,6 +16,8 @@
 # are then the chain's c2 -> c3 / c6 -> c7 unchanged (`rtbnd.pair_chain`); `se-leaves` / `se-mutants`
 # prove / attack the STATE engine half (`SE`, `segen.py`) on the chain's c1 -> c2, c7 -> c8, c8 -> c9;
 # `stmcheck` compares the leaves' STMQ/STMA stand-in traffic with lane B's state halves (`LANEB_T1C`).
+# F-6: every public value is received on RNG by the boundary table (`Ids.pubBytes`); the enter AIR is
+# `ENT` + `RNG`; every battery adds `nonbyte` (a non-byte copied value).
 # MUTANTS="…" picks the mutant battery. Box rules: ≤ 8 threads, HEAVY_MEM ≤ 40G, temp files under
 # /data/illia/nearproof-deps.
 set -euo pipefail
@@ -38,7 +40,7 @@ BIN=$TARGET_DIR/release/nearproof-e2e-m5t1
 gen() { python3 "$HERE/tracegen.py" "$OUT/lean-run.json" "$OUT" "$1" --plan "$PLAN" "${@:2}"; }
 case "$MODE" in
   mutants)
-    for m in ${MUTANTS:-gasburnt refund status rcptid statement acctpost logbyte vmburnt bndgas bndprepaid bndburnt stcopy accnoappend rcptnoappend vmnoreset vminK ridxcopy prepaidout accitem finpre finpc finmem}; do
+    for m in ${MUTANTS:-gasburnt refund status rcptid statement acctpost logbyte vmburnt bndgas bndprepaid bndburnt stcopy accnoappend rcptnoappend vmnoreset vminK ridxcopy prepaidout accitem finpre finpc finmem nonbyte}; do
       rc=0; gen "$OUT/mut-$m" --mutant "$m" > "$OUT/mut-$m.gen.txt" || rc=$?
       if [ "$rc" = 3 ]; then echo "$m: NOT APPLICABLE"; continue; fi
       [ "$rc" = 0 ] || { echo "$m: tracegen failed (exit $rc)"; cat "$OUT/mut-$m.gen.txt"; exit "$rc"; }
@@ -53,7 +55,7 @@ case "$MODE" in
     gen "$OUT/resume" --template "$HERE/templates/rt-resume-T1.json" | tee "$OUT/resume.gen.txt"
     nice -n 10 $HEAVY "$BIN" "$OUT/m5t1.json" "$OUT/resume" prove "$OUT/resume-proof" | tee "$OUT/resume.log" ;;
   leaf-mutants)
-    for m in ${MUTANTS:-phase gas stroot clock coderoot prefuel gasleft framesdig outrcpt inphase}; do
+    for m in ${MUTANTS:-phase gas stroot clock coderoot prefuel gasleft framesdig outrcpt inphase nonbyte}; do
       python3 "$HERE/entgen.py" "$PLAN" "$OUT/ent-mut-$m" --run "$OUT/lean-run.json" --template "$HERE/templates/rt-enter.json" --mutant "$m" > /dev/null
       echo "== enter mutant $m"
       nice -n 10 $HEAVY "$BIN" "$OUT/ent.json" "$OUT/ent-mut-$m" mutant | tee "$OUT/ent-mut-$m.log" | grep -E "PRECHECK FAIL|REJECTED|ACCEPTED"
@@ -65,7 +67,7 @@ case "$MODE" in
       if [ "$MODE" = se-leaves ]; then
         nice -n 10 $HEAVY "$BIN" "$OUT/se.json" "$OUT/se-$s" prove "$OUT/se-$s-proof" | tee "$OUT/se-$s.log"
       else
-        for m in ${MUTANTS:-phase vmacc prepaid gasburnt ctxcopy claimcopy clock incall stroot}; do
+        for m in ${MUTANTS:-phase vmacc prepaid gasburnt ctxcopy claimcopy clock incall stroot nonbyte}; do
           python3 "$HERE/segen.py" "$PLAN" "$L" "$OUT/se-$s-mut-$m" --template "$HERE/templates/state-eng.json" --mutant "$m" > /dev/null
           echo "== [$L] mutant $m: $(nice -n 10 $HEAVY "$BIN" "$OUT/se.json" "$OUT/se-$s-mut-$m" mutant 2>&1 | grep -E 'PRECHECK FAIL|REJECTED|ACCEPTED' | head -1)"
         done

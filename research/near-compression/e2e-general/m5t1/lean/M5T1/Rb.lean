@@ -49,7 +49,9 @@ def interactions : List Interaction :=
    rcv B_STMA .isFirst (limbs (SO.b "stRoot") ++ [c "tgi"] ++ limbs (fun j => c "rsi" j))] ++
   ((List.range 42).map fun j => rcv B_RNG .isFirst [c "rso" j]) ++
   ((List.range 42).map fun j => rcv B_RNG .isFirst [c "rsi" j]) ++
-  [snd B_ACCD .isFirst [K 0], snd B_ACCD .isFirst [K 1]]
+  [snd B_ACCD .isFirst [K 0], snd B_ACCD .isFirst [K 1]] ++
+  -- F-6: every public value (both records and `RX`'s public totals, 1,531) is a byte, in-circuit
+  pubBytes Rx.NUM_PUB
 
 def table : Table := { width := L.width, constraints, interactions, maxLog := 2 }
 

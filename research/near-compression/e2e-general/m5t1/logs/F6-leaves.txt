@@ -1,0 +1,82 @@
+# F-6 (2026-11-25): lane F's T1 leaves on lane I's chain, every public value byte-checked in-circuit (Ids.pubBytes)
+== AIRs (m5t1-tool air / air-ent / air-se)
+SHA: width 544, constraints 1028, interactions 17, degree 4, wf true
+RNG: width 21, constraints 23, interactions 1, degree 2, wf true
+SCHT: width 44, constraints 21, interactions 1, degree 2, wf true
+MSG: width 54, constraints 79, interactions 15, degree 4, wf true
+DG: width 39, constraints 102, interactions 34, degree 2, wf true
+RX: width 1368, constraints 2552, interactions 1505, degree 4, wf true
+RB: width 93, constraints 2384, interactions 1619, degree 2, wf true
+ACC: width 317, constraints 573, interactions 369, degree 4, wf true
+schema entries 155, public values 1531
+ENT: width 1, constraints 2046, interactions 1284, degree 2, wf true
+RNG: width 21, constraints 23, interactions 1, degree 2, wf true
+enter leaf: public values 1284
+SE: width 86, constraints 1238, interactions 986, degree 2, wf true
+RNG: width 21, constraints 23, interactions 1, degree 2, wf true
+SE leaf: public values 900
+== enter
+PARAMS n_stack 10 w_stack 8 log_blowup 7 degree 2 pow 24 queries [45, 38]
+SOUNDNESS total=268.8 logup=321.4 proximity=300.1 query=268.8
+PROOF total=101127 gkr=9368 relations=2676 stacking=1408 whir=82448
+TIME prove 4.38s verify 0.0055s threads 8 peak_rss_kib 1249928 proof_bytes 101127
+SAVED /data/illia/nearproof-deps/e2e-m5t1/f6/enter-proof (RT.proof 101127 B, RT.vk.json 279330 B); boundary d_in "3d9f81b4513b3120c7490fbe2de0f649ecb70cd046e00b235306184580f549c9842317adc3c0df064e30" d_out "bff8b6336bebcedcba375be8fadb473c90e9eface5177ac0559366a3f25bfb2ccbc8db57fd06bc96bbef"
+VERIFY OK (native SWIRL verifier); statement check (tape roots + public values): OK
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:04.43
+	Maximum resident set size (kbytes): 1249928
+M8_TEMPLATE_PROVED rt-enter bytes=101127 seconds=0.0 params=(n_stack 10, w_stack 8, lb 7) queries=[45, 38] bits=268.8
+== resume
+PARAMS n_stack 14 w_stack 10 log_blowup 5 degree 9 pow 24 queries [55, 45, 33]
+SOUNDNESS total=268.3 logup=322.4 proximity=295.1 query=268.3
+PROOF total=472712 gkr=13832 relations=170048 stacking=2188 whir=272720
+TIME prove 21.65s verify 0.0322s threads 8 peak_rss_kib 10025256 proof_bytes 472712
+SAVED /data/illia/nearproof-deps/e2e-m5t1/f6/resume-proof (RT.proof 472712 B, RT.vk.json 2566459 B); boundary d_in "10f87ec90f71fc29c0893fc4a84d199a3a0c567bdc33adab5c93f58b762bf700986858ca9f947b52a0fa" d_out "afe47194b7e4566c8ca2113a87ec7b62df3e76dd2a18eee72d4963da023506efbc2350f63a10ac9a2fc0"
+VERIFY OK (native SWIRL verifier); statement check (tape roots + public values): OK
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:27.21
+	Maximum resident set size (kbytes): 10025256
+M8_TEMPLATE_PROVED rt-resume bytes=472712 seconds=0.0 params=(n_stack 14, w_stack 10, lb 5) queries=[55, 45, 33] bits=268.3
+== se-seg-a
+PARAMS n_stack 10 w_stack 8 log_blowup 7 degree 2 pow 24 queries [45, 38]
+SOUNDNESS total=268.8 logup=321.4 proximity=300.1 query=268.8
+PROOF total=134509 gkr=9368 relations=8448 stacking=1460 whir=111484
+TIME prove 7.94s verify 0.0066s threads 8 peak_rss_kib 1365444 proof_bytes 134509
+SAVED /data/illia/nearproof-deps/e2e-m5t1/f6/se-seg-a-proof (RT.proof 134509 B, RT.vk.json 190008 B); boundary d_in "4ae97236e9279de72d2e8897596ba29a6b815760389d87e76a749265de4b510d57b2446141b824108c0d" d_out "3d9f81b4513b3120c7490fbe2de0f649ecb70cd046e00b235306184580f549c9842317adc3c0df064e30"
+VERIFY OK (native SWIRL verifier); statement check (tape roots + public values): OK
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:08.46
+	Maximum resident set size (kbytes): 1365444
+M8_TEMPLATE_PROVED state-eng bytes=134509 seconds=0.0 params=(n_stack 10, w_stack 8, lb 7) queries=[45, 38] bits=268.8
+== se-seg-b
+PARAMS n_stack 10 w_stack 8 log_blowup 7 degree 2 pow 24 queries [45, 38]
+SOUNDNESS total=268.8 logup=321.4 proximity=300.1 query=268.8
+PROOF total=133543 gkr=9368 relations=8448 stacking=1460 whir=110518
+TIME prove 8.40s verify 0.0032s threads 8 peak_rss_kib 1450748 proof_bytes 133543
+SAVED /data/illia/nearproof-deps/e2e-m5t1/f6/se-seg-b-proof (RT.proof 133543 B, RT.vk.json 190008 B); boundary d_in "afe47194b7e4566c8ca2113a87ec7b62df3e76dd2a18eee72d4963da023506efbc2350f63a10ac9a2fc0" d_out "afe47194b7e4566c8ca2113a87ec7b62df3e76dd2a18eee72d4963da023506efbc2350f63a10ac9a2fc0"
+VERIFY OK (native SWIRL verifier); statement check (tape roots + public values): OK
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:08.82
+	Maximum resident set size (kbytes): 1450748
+M8_TEMPLATE_PROVED state-eng bytes=133543 seconds=0.0 params=(n_stack 10, w_stack 8, lb 7) queries=[45, 38] bits=268.8
+== se-finalize
+PARAMS n_stack 10 w_stack 8 log_blowup 7 degree 2 pow 24 queries [45, 38]
+SOUNDNESS total=268.8 logup=321.4 proximity=300.1 query=268.8
+PROOF total=133627 gkr=9368 relations=8448 stacking=1460 whir=110602
+TIME prove 4.17s verify 0.0044s threads 8 peak_rss_kib 1372308 proof_bytes 133627
+SAVED /data/illia/nearproof-deps/e2e-m5t1/f6/se-finalize-proof (RT.proof 133627 B, RT.vk.json 190008 B); boundary d_in "afe47194b7e4566c8ca2113a87ec7b62df3e76dd2a18eee72d4963da023506efbc2350f63a10ac9a2fc0" d_out "f7c8b2b65dc389570734629017c7b6896d0e4b88ce640efd3cdc54d04a1b02ee52ae507921e4da95ea53"
+VERIFY OK (native SWIRL verifier); statement check (tape roots + public values): OK
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:04.68
+	Maximum resident set size (kbytes): 1372308
+M8_TEMPLATE_PROVED state-eng bytes=133627 seconds=0.0 params=(n_stack 10, w_stack 8, lb 7) queries=[45, 38] bits=268.8
+== public values in the proof (statement.json: per-AIR num_public_values)
+enter 1284 [('ENT', 1284)]
+resume 1531 [('RX', 462), ('RB', 1531), ('ACC', 1404)]
+se-seg-a 900 [('SE', 900)]
+se-seg-b 900 [('SE', 900)]
+se-finalize 900 [('SE', 900)]
+== STMQ/STMA vs lane B's B-T4 state halves (stmcheck.py)
+se-seg-a:seg0 STMQ: EQUAL (tag 1)
+se-seg-a:seg0 STMA: EQUAL (tag 1)
+resume:seg1 STMQ: EQUAL (tag 1)
+resume:seg1 STMA: EQUAL (tag 1)
+se-seg-b:seg2 STMQ: EQUAL (tag 1)
+se-seg-b:seg2 STMA: EQUAL (tag 1)
+se-finalize:seg3 STMQ: EQUAL (tag 3)
+se-finalize:seg3 STMA: EQUAL (tag 1)

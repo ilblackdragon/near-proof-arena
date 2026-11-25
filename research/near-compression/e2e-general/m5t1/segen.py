@@ -14,7 +14,7 @@ output's). The engine half's rules (`Se.seRule`) are asserted on the pair before
 Mutants (each must be rejected by the leaf): `phase` (B_out phase 6), `vmacc` (B_out vmAcc not
 `bdigest []`), `prepaid` (B_out rPrepaid 1), `gasburnt` (B_out gasBurnt ≠ gasUsed), `ctxcopy`
 (B_out ctxRoot changed), `claimcopy` (B_out claimDigest changed), `clock` (B_out t = 1),
-`incall` (B_in a call record's inCall byte), `stroot` (B_out stRoot ≠ the STC answer).
+`incall` (B_in a call record's inCall byte), `stroot` (B_out stRoot ≠ the STC answer); F-6: `nonbyte` (claimDigest byte 0 of both records + 256).
 """
 import json
 import os
@@ -99,6 +99,8 @@ def main():
             ri["inCall"] = True
         elif m == "stroot":
             r["stRoot"] = bytes([r["stRoot"][0] ^ 1]) + r["stRoot"][1:]
+        elif m == "nonbyte":
+            pass
         else:
             raise SystemExit(f"unknown mutant {m}")
         b_in, b_out = ri, r
@@ -112,13 +114,18 @@ def main():
     e_out = bndrec.encode(b_out)
     assert len(e_in) == 450 and len(e_out) == 450
     pubs = list(e_in) + list(e_out)
+    if m == "nonbyte":
+        # F-6: claimDigest byte 0 of both records + 256 (copied: the copy holds; not a byte)
+        pubs[0] += 256
+        pubs[450] += 256
     os.makedirs(out, exist_ok=True)
     tgo, tgi = st_tag(h_out, ch, cb), st_tag(b_in, ch, ca)
     rso, rsi = [0] * 42, [0] * 42       # stand-in metas: rest = 0^42 (encRestI not adopted)
     row = [tgo] + rso + [tgi] + rsi
     rng = [0] * 256
-    for v in rso + rsi:
-        rng[v] += 1
+    for v in rso + rsi + pubs:          # F-6: + every public value (`Ids.pubBytes`)
+        if v < 256:
+            rng[v] += 1
     with open(f"{out}/SE.bin", "wb") as f:
         f.write(struct.pack("<II", 2, len(SE_NAMES)))
         cells = row + [0] * (3 * len(SE_NAMES))

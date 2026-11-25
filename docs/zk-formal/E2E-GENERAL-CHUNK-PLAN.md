@@ -933,6 +933,22 @@ named), `SeSem.se_out`, `SeC.se_engHalf` / `fin_engHalf` / `finalize_relC8`, `m5
 `state_engHalf` / `stateSeg_relC8`; the step content of the STATE leaves is the named `SeC.SeStep`
 (no VM-free engine rows). `rest` stays `0^42` on both sides. `S`, `claimDigest`, checker unchanged.
 
+**Lane F status (F-6, 2026-11-25) [K]/[M]** (`m5t1/README` §F-6; log
+[`e2e-f6-runtime-2026-11-25.md`](../logs/e2e-f6-runtime-2026-11-25.md)): **lane D's F-M9-1 fixed** —
+every public value of a lane F leaf is read and byte-checked by the leaf's own AIR (`Ids.pubBytes`:
+one `RNG` lookup per value on the boundary table; enter AIR `Ent.entAirB = [ENT, RNG]`), the prover
+refuses an instance whose boundary pair is not inside one table's public values, and the leaf
+predicates' byte premise is now a theorem (`PubBytes.ent_bytes` / `se_bytes` / `rb_bytes`;
+`entHoldsC_of`, `seHoldsC_of`, `rsHolds_of_circuit`). Control: a non-byte copied value was accepted
+by the F-5 AIRs, is rejected now. Re-proved on the chain (digests unchanged): enter 101,127 B, resume
+472,712 B, `SE` ≈134 KB ×3, new vks, `m8-import`ed (`e2e-m5t1/f6/tmpl`); `chain.py` `full_pv` ✓.
+**Not done (`SeStep` rows, `encRestI`, `RsStep`'s `estepO`)**: one blocker — no leaf opens the
+configuration it steps from (`ctxRoot` and `stRoot.rest` are `0^42` placeholders, `STC` passes `rest`
+opaque, `tag` does not distinguish `yields`); adopting `encRestI` moves every `stRoot` c1 … c9
+(B-T4 halves, lane F's leaves and lane D's M10 re-proved). Order proposed: E per-cut `encRestI`
+values → B re-prove → F rows (`d_queue` pops, `d_move`, `ACC`, counters, `SREQ`/`HB`) and `SeStep` /
+`RsStep` from them. `S`, `claimDigest`, checker unchanged.
+
 **Lane B status (B-T2, 2026-11-25) [K]** (`m5a/README` §B-T2; `m5a/lean/StateM5a/{WsBridge,StHalfC,T1Ws}.lean`):
 * **`ApplyFaithful` is unprovable as stated (finding B2-1)**: a *function* `apply` with
   `apply q (root ov) = root (upd q ov)` forces equal-root overlays to stay equal-root under every

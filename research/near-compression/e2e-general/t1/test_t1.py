@@ -213,6 +213,8 @@ def test_chain_saved_leaves():
         if k in r:
             assert r[k]["in_equal"] and r[k]["out_equal"], (k, r[k].get("diff_in"), r[k].get("diff_out"))
             assert not r[k]["diff_in"] and not r[k]["diff_out"], k
+            # F-6 (lane D's F-M9-1): the whole boundary pair is in the proof, in one AIR, as bytes
+            assert all(r[k]["checks"].values()), (k, r[k]["checks"])
 
 
 @pytest.mark.skipif(not (HAVE_T1 and HAVE_LEAN), reason="T1 case or Lean v3 package absent")
