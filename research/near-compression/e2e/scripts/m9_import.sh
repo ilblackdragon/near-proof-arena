@@ -22,5 +22,7 @@ for t in enter resume; do imp "$LF/$t-proof/RT.vk.json" "$LF/$t-proof/RT.proof" 
 INAMES=$(python3 -c "import json,sys; print(','.join(json.load(open(sys.argv[1]))['airs']))" "$LGI/init/INFO.json")
 imp "$LGI/init/TMPL.vk.json" "$LGI/init/TMPL.proof" "$O/tmpl/init" init "$INAMES"
 imp "$LG/final/TMPL.vk.json" "$LG/final/TMPL.proof" "$O/tmpl/final" final SHA,S384,RNG,STMT,FIN,BODY,SEG,RS,PART,SHD,OUTL,MRK,SHA512,SHA512T
+# M9b: lane A's PREP leaf (A-T3, wasm kind) when LANE_A_PREP is set (dir with PREP.vk.json + prep.proof)
+if [ -n "${LANE_A_PREP:-}" ]; then imp "$LANE_A_PREP/PREP.vk.json" "$LANE_A_PREP/prep.proof" "$O/tmpl/prep" wasm_prep PHDR,SHA256,CODE,FUNC; sha256sum "$LANE_A_PREP"/PREP.vk.json "$LANE_A_PREP"/prep.proof >> "$O/imported.sha256"; fi
 sha256sum "$LF"/{enter,resume}-proof/RT.* "$LGI"/init/TMPL.* "$LG"/final/TMPL.* >> "$O/imported.sha256"
 echo M9_IMPORT_OK

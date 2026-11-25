@@ -1,0 +1,9 @@
+VERIFY_PROFILE_MS total=41.67 wrap_verify=29.18
+INDEPENDENT_HTREE_VERIFY_OK bundle_bytes=329724
+	Maximum resident set size (kbytes): 21864
+VERIFY_PROFILE_MS total=40.10 wrap_verify=28.85
+INDEPENDENT_HTREE_VERIFY_OK bundle_bytes=329724
+	Maximum resident set size (kbytes): 21872
+VERIFY_PROFILE_MS total=40.33 wrap_verify=29.15
+INDEPENDENT_HTREE_VERIFY_OK bundle_bytes=329724
+	Maximum resident set size (kbytes): 22124

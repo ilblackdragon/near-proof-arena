@@ -27,6 +27,8 @@ case $STAGE in
   spec) python3 "$S/m9_spec.py" "$O" "${ARITY:-4}" "${DEPTH:-2}" > "$O/spec.txt" || die spec; cat "$O/spec.txt" ;;
   check) M8_CHECK_ONLY=1 heavy "$P" m8-tree "$O/spec.json" "$O/tree-check" "$CERTS" "$EXCL" > "$O/check.log" 2>&1 || die "check ($(grep -h -A2 panicked "$O/check.log" | head -3 | tr '\n' ' '))"
          grep -hE "M8_CHAIN_OK|M8_LEAF_PROBE|M8_LEAF_GEOM|Maximum resident" "$O/check.log"; rm -rf "$O/tree-check" ;;
+  programs) M8_PROGRAMS_ONLY=1 heavy "$P" m8-tree "$O/spec.json" "$O/tree-prog" "$CERTS" "$EXCL" > "$O/programs.log" 2>&1 || die "programs ($(grep -h -A2 panicked "$O/programs.log" | head -3 | tr '\n' ' '))"
+         grep -hE "M8_CHAIN_OK|M8_LEAF_GEOM|M8_LEAF_PROGRAM" "$O/programs.log"; rm -rf "$O/tree-prog" ;;
   swap) M9_SWAP_STUB=${SWAP:-0,5,7} M8_REUSE=${REUSE:-$O/tree} heavy "$P" m8-tree "$O/spec.json" "$O/tree-swap" "$CERTS" "$EXCL" > "$O/swap.log" 2>&1 || die "swap ($(grep -h -A2 panicked "$O/swap.log" | head -3 | tr '\n' ' '))"
         grep -hE "M9_|M8_REUSE|Maximum resident|Elapsed" "$O/swap.log"; grep -q M9_SWAP_STUB_ALL_REFUSED "$O/swap.log" || die "a stub was accepted"; rm -rf "$O/tree-swap" ;;
   tree) if [ -n "${REUSE:-}" ]; then export M8_REUSE=$REUSE; fi; heavy "$P" m8-tree "$O/spec.json" "$O/tree" "$CERTS" "$EXCL" > "$O/tree.log" 2>&1 || die "tree rc=$? ($(grep -h -A2 panicked "$O/tree.log" | head -3 | tr '\n' ' '))"

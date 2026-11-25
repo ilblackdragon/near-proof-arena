@@ -108,6 +108,18 @@ REGIONS = [
     ("XT", 36, "RT_RESUME TAPE / XTAPE roots (public stand-in tapes)"),
     ("F", 14, "FINAL finInDigest = bdigest(0x46 || FinIn)"),
 ]
+# M9b (M9_PREP=1): lane A's PREP leaf (A-T3) between RT_ENTER and WASM seg 0. Its 32 hash bytes are
+# B_in.wasm.codeRoot = preCodeRoot = SHA-256(code) || 0^10 of the `.pre` record's Wasm part (region
+# Wpre, BndRec WasmBnd bytes; RT_ENTER's proof does not carry that part, so it is introduced at INIT);
+# its CODE / FUNC commitments are the out W part's CODE / FUNC roots, which WASM seg 0 reads (R1).
+PREP = os.environ.get("M9_PREP") == "1"
+CODE_OFF = 8 * 4 + 42 * 2 + 8 + 42 * 4  # WasmBnd: pc sp stackRem fuel | frames mem | pages | globals regs vmCtx promises | codeRoot
+if PREP:
+    ip = I["prep"]
+    assert [len(v) for v in ip["public_values"]] == [33, 0, 0, 0] and [c[1] for c in ip["cached"]] == ["CODE", "FUNC"]
+    assert [c[2] for c in ip["cached"]] == [c[2] for c in ia["cached"]], "PREP CODE/FUNC roots != the Wasm segments' (R1)"
+    REGIONS += [("Wpre", CALL - ENG, "RT_ENTER B_out Wasm part (.pre record; codeRoot = PREP's hash || 0^10)"),
+                ("PLEN", 1, "PREP code length")]
 OFF, o = {}, 0
 for n, w, _ in REGIONS:
     OFF[n] = (o, w); o += w
@@ -147,7 +159,16 @@ for r in FREE_AT_INIT:
 st = lambda lo, n: [["stmt", lo + j] for j in range(n)]
 STMT_LEN = n_free + N_REC
 
+if PREP:
+    FREE_AT_INIT = FREE_AT_INIT + ["Wpre"]
+    n_free = sum(W_(r) for r in FREE_AT_INIT)
+    free_off["Wpre"] = n_free - W_("Wpre")
+    STMT_LEN = n_free + N_REC
 init_out = {r: st(free_off[r], W_(r)) for r in FREE_AT_INIT}
+NW_C = 36 * (1 if PREP else 0)  # with PREP the W part's CODE/FUNC cells start at 0 (PREP writes them)
+if PREP:
+    init_out["W"] = st(free_off["W"], W_("W") - 36) + Z(36)
+    init_out["PLEN"] = Z(1)
 init_out["S"] = P(iI, 28, 16) + Z(88 - 16)
 init_out["G"] = P(iI, 14, 14)
 for r in ["C", "Tpre", "Q", "X", "XT"]:
@@ -175,9 +196,14 @@ templates = [
           "Q": Z(ENG), "X": Z(R_BIN), "XT": Z(36)},
          {"C": Z(W_("C")), "Tfin": Z(T_W), "Wfin": Z(CALL - ENG), "Q": P(RX, R_BOUT, ENG), "X": P(RX, 0, R_BIN), "XT": C(0) + C(1)}),
     None,  # STATE_SEG, below (its S part keeps target / post / change count)
+] + ([] if not PREP else [
+    # PREP: W's CODE/FUNC cells 0 -> its cached CODE/FUNC; W's other cells pass; Wpre's codeRoot cells
+    # are its hash bytes + 10 zero bytes on both sides (the record is otherwise carried); PLEN out
+    None]) + [
     tmpl("FINAL", PH["eng"], PH["done"], fin_in, {}, stmt_len=STMT_LEN, ctx=ctx_src(iF), pv_equal=[gfin],
          pv_const=[[iF, j, gF["public_values"][iF][j]] for j in range(28, 58)]),
 ]
+templates = [t for t in templates if t is not None] if False else templates
 # STATE_SEG: S = prev, wsLen, cur (R_in -> R_out) from its pv; target, post, change count carried
 # (pass); HTAPE root out. Built by hand: a region touched partly.
 sg = tmpl("STATE_SEG", PH["eng"], PH["eng"], {"S": Z(88)}, {"S": Z(88)}, pv_equal=[gs])
@@ -191,9 +217,23 @@ sg["rec_in"][o_s:o_s + 88] = sS_in
 sg["rec_out"][o_s:o_s + 88] = sS_out
 sg["n_pass"] = np0 + 35
 templates[5] = sg
+if PREP:
+    pr = tmpl("PREP", PH["call"], PH["call"], {"W": Z(85), "Wpre": Z(CALL - ENG), "PLEN": Z(1)}, {"W": Z(85), "Wpre": Z(CALL - ENG), "PLEN": Z(1)})
+    q0 = pr["n_pass"]
+    pw = lambda lo, n: [["pass", q0 + lo + j] for j in range(n)]
+    o_w, o_p, o_l = OFF["W"][0], OFF["Wpre"][0], OFF["PLEN"][0]
+    pr["rec_in"][o_w:o_w + 85] = pw(0, 49) + Z(36)
+    pr["rec_out"][o_w:o_w + 85] = pw(0, 49) + C(0) + C(1)
+    hb = P(0, 0, 32) + Z(10)
+    pr["rec_in"][o_p:o_p + 376] = pw(49, CODE_OFF) + hb + pw(49 + CODE_OFF, 376 - CODE_OFF - 42)
+    pr["rec_out"][o_p:o_p + 376] = pw(49, CODE_OFF) + hb + pw(49 + CODE_OFF, 376 - CODE_OFF - 42)
+    pr["rec_in"][o_l:o_l + 1] = Z(1)
+    pr["rec_out"][o_l:o_l + 1] = P(0, 32, 1)
+    pr["n_pass"] = q0 + 49 + 376 - 42
+    templates[6] = pr
 
 # ---------------- leaves and the native chain (the driver re-checks it)
-order = [("INIT", "init"), ("STATE_IF", "state_if"), ("RT_ENTER", "rt_enter")] + [("WASM", n) for n in wasm_names] + \
+order = [("INIT", "init"), ("STATE_IF", "state_if"), ("RT_ENTER", "rt_enter")] + ([("PREP", "prep")] if PREP else []) + [("WASM", n) for n in wasm_names] + \
         [("RT_RESUME", "rt_resume"), ("STATE_SEG", "state_seg0"), ("FINAL", "final")]
 tm = {t["name"]: t for t in templates}
 stmt = [None] * STMT_LEN
@@ -215,8 +255,13 @@ need = {"W": [val(ia, s, None, None) for s in w_in],
         "Tfin": fr["public_values"][RX][R_BIN + T_OFF:R_BIN + T_OFF + T_W],
         "Wfin": fr["public_values"][RX][R_BIN + ENG:R_BIN + CALL],
         "F": gF["public_values"][iF][14:28]}
+if PREP:
+    need["W"] = need["W"][:49]
+    wp = [0] * (CALL - ENG)
+    wp[CODE_OFF:CODE_OFF + 32] = ip["public_values"][0][:32]
+    need["Wpre"] = wp
 for r in FREE_AT_INIT:
-    stmt[free_off[r]:free_off[r] + W_(r)] = need[r]
+    stmt[free_off[r]:free_off[r] + len(need[r])] = need[r]
 cur = None
 for name, d in order:
     t, info = tm[name], I[d]
@@ -255,6 +300,8 @@ edges = {
     "STATE_IF->RT_ENTER": {"bound": [], "free": ["E: RT_ENTER B_in (408 B, eng record): no leaf exposes the BndRec of eng I c"]},
     "RT_ENTER->WASM0": {"bound": [], "free": ["W: lane A entry state (seam .pre -> .ent, C7 PREP)"], "carried": ["C (400 B)", "Tpre"]},
     "WASM0->WASM1": {"bound": ["W: lane A boundary fields + CODE/FUNC roots"]},
+    **({"RT_ENTER->PREP": {"bound": [], "free": ["Wpre: the .pre record's Wasm part (not in RT_ENTER's proof); PREP binds its codeRoot cells = hash || 0^10"], "carried": ["C (400 B)", "Tpre"]},
+        "PREP->WASM0": {"bound": ["W: CODE / FUNC roots (PREP's cached commitments = segment 0's, R1 in-tree)"], "free": ["W: lane A entry state pc / ctx / mem (49 cells; .pre -> .ent entry not in PREP's publics)"]}} if PREP else {}),
     "WASM1->RT_RESUME": {"bound": ["C: 400 B of the call record (from RT_ENTER B_out, carried)"], "free": ["Tfin (t)", "Wfin (376 B Wasm part, lane A fin r record)"], "dropped_later": ["W (lane A final state)", "Tpre"]},
     "RT_RESUME->STATE_SEG": {"bound": [], "dropped_later": ["Q: RT_RESUME B_out (eng record)", "X: RX env / totals", "XT: TAPE / XTAPE roots"]},
     "STATE_SEG->FINAL": {"bound": ["S: last R_out = IF R_n (FINAL leaf, shared witness cell)"], "free": ["F: finInDigest (FinIn not opened by lane B; FINB bus = joint leaf)"], "dropped": ["W", "S (rest)", "G", "Tpre", "Q", "X", "XT", "C/E/Tfin/Wfin (zero)"]},
