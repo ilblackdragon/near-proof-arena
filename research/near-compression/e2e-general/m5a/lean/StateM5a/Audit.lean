@@ -66,6 +66,9 @@ import StateM5a.WalkEnd
 import StateM5a.BrOsl
 import StateM5a.BrOslSplit
 import StateM5a.StHost
+import StateM5a.WsBridge
+import StateM5a.StHalfC
+import StateM5a.T1Ws
 
 /-! Axiom audit of the M5a lemmas (`lake build StateM5a.Audit` prints them): every theorem must
 depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
@@ -740,3 +743,25 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.TmplIf.m5tIF_roots
 #print axioms StateM5a.TmplDeploy.seg_extra_ok
 #print axioms StateM5a.TmplDeploy.if_extra_ok
+#print axioms StateM5a.WsBridge.toB_nodeH
+#print axioms StateM5a.WsBridge.toB_leaf
+#print axioms StateM5a.WsBridge.wsRoot_dig
+#print axioms StateM5a.WsBridge.ws_moves_seg
+#print axioms StateM5a.StHalfC.posOK_sound
+#print axioms StateM5a.StHalfC.posOK_stOfK
+#print axioms StateM5a.StHalfC.rtPos
+#print axioms StateM5a.StHalfC.posOK_complete
+#print axioms StateM5a.StHalfC.st_step
+#print axioms StateM5a.StHalfC.split_sound_relC_rel
+#print axioms StateM5a.StHalfC.rel_of_fun
+#print axioms StateM5a.StHalfC.applyFaithful_coll
+#print axioms StateM5a.StHalfC.stHalf_inst
+#print axioms StateM5a.StHalfC.stHalf_inst'
+#print axioms StateM5a.StHalfC.wsOfB_upd
+#print axioms StateM5a.T1Ws.t1_pub_rin
+#print axioms StateM5a.T1Ws.t1_pub_rout
+#print axioms StateM5a.T1Ws.t1_rootL0
+#print axioms StateM5a.T1Ws.t1_rootL1
+#print axioms StateM5a.T1Ws.t1_upd
+#print axioms StateM5a.T1Ws.t1_ws_nonvac
+#print axioms StateM5a.T1Ws.t1_stc

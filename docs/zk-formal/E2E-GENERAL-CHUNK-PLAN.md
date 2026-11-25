@@ -791,6 +791,48 @@ laws `RtView` and the named checks `EntChecks` (README §F-3 lists them by owner
 STATE engine half are not (F3-1, no STATE engine rows); split leaves in the relative canonical form:
 `SplitC.split_sound_relC`.
 
+**Lane B status (B-T2, 2026-11-25) [K]** (`m5a/README` §B-T2; `m5a/lean/StateM5a/{WsBridge,StHalfC,T1Ws}.lean`):
+* **`ApplyFaithful` is unprovable as stated (finding B2-1)**: a *function* `apply` with
+  `apply q (root ov) = root (upd q ov)` forces equal-root overlays to stay equal-root under every
+  update (`applyFaithful_coll`). The circuit proves the relational form; lane B's half is
+  `StHalfRel`, lane F's `ReqsRel`, composed with lane F's `EngHalfRC` by **`split_sound_relC_rel`**
+  (⇒ `TmplSoundRel8C`; the functional split is `rel_of_fun`'s special case).
+* **The STATE / RT instance uses `W` = the 42-B `stRoot`** (not the working-set root): lane B's
+  rows own the commitment layout. `StcOK` (the new `STC` table's statement: open the input
+  `stRoot`, check `ws = R_in`, `wsLen`, exchange `(tag, rest)` with the engine half, close with
+  `R_out`), `st_step`, **`stHalf_inst` / `stHalf_inst'`** (`StcOK` ∧ `WsMoves` ⇒ `StHalfRel`;
+  with lane F's two premises ⇒ `TmplSoundRel8C`). `WsMoves` comes from `Holds` of `m5tSeg` by
+  **`WsBridge.ws_moves_seg`** (the circuit's `Dig` tree is the view's byte tree: `toB_nodeH`,
+  `toB_leaf`, `wsRoot_dig`), given the named `SegLeaves` (per-template restatement of M5b's
+  `write_sent` / `ws_final`, open) and `wsLen ≤ 2^D`.
+* **Non-final position check**: `stD` tags an engine state at `done` with `3`; `StPosOK` (an
+  opening with tag `1`), `posOK_sound`, **`rtPos`** = lane F's `RtView.pos` in the form
+  `Sha384Coll ∨ ∀ out, c.pos ≠ .done out` (lane F: add `Sha384Coll ∨` to the law; `enter_relC`'s
+  `Bad` already has it).
+* **Fix B2-2**: lane B's `cmp384` hashed the 16-word leaf block as 16 *bytes*; the view's `ws` could
+  not equal a leaf's `R_in`. Fixed; **non-vacuity on T1 in the kernel** (`T1Ws.t1_ws_nonvac`): the
+  view's depth-24 root of T1's INTAKE leaves = the segment proof's public `R_in` (`ca91c86e…`), of
+  `updE` (T1's change list) = `R_out` (`2d2e132a…`).
+
+**The `stRoot` interface for lane F's F3-1 (resume, STATE; decision proposed by lane B, B-T2).** A
+resume / STATE leaf is one trace = lane F's rows + lane B's `m5tSeg` tables + `STC`. Messages
+(cross-lane ids proposed for the integrator's numbering: `STMQ` 211, `STMA` 212, `SREQ` 213, `HB`
+214, after lane A's 208–210):
+* `STMQ` engine → state: `[r_in (14 limbs of 3 B), tag_out, rest_out (14 limbs)]` — `r_in` is the
+  input record's `stRoot`; `tag_out = tagOf (stOfK κ I c')` (`1`, or `3` at `done`), `rest_out =
+  bdigest (encRest (restOf (stOfK κ I c')))`.
+* `STMA` state → engine: `[r_out (14 limbs), tag_in, rest_in (14 limbs)]` — `r_out` goes into the
+  output record's `stRoot` (replaces the copy); `(tag_in, rest_in)` is the input's opening.
+* `SREQ [ts, pr, seg = 0, klen, kptr, vlen, vptr]`, `HB [ts, addr, byte]` (M5b); the step's
+  committed-change list is the requests' overlay (last request per key).
+* `wsLen`, `R_in`, `R_out` are internal to the joined leaf. Enter's position check: `STMP [r_in]`,
+  opened by an `STC` row with tag `1`.
+* Lean for lane F: `EngHalfRC` with `W = Bytes`, `Q = StQ`, `wIn x = V.stD (stV V x)`, `qOf` = (the
+  step's changes, `metaOf` of the two states); `ReqsRel` for `stRel` via `wsOfB_upd` (the overlay's
+  trie is unchanged, `committed` after = `w` over before), equal trie hash, `idxOf = 0`.
+* Open (lane E / F): `rest_out` is a witness-sized hash of the stripped engine state per step; a
+  `rest` encoding with O(1) parts per receipt step is lane E's choice. Not built: the `STC` table.
+
 
 Notes for the lanes:
 * **INIT must commit to the decoded intake** (`bdigest (1 ‖ Ser.enc I)`): every engine and call
@@ -2376,6 +2418,14 @@ item 4 (completeness) not started.
   joined T1 segment lacks are `StwH`/`StbH`'s, placed in the WASM leaf's trace (a storage call is in
   a WASM segment); building that joined trace and `StorageJoinObl` (`hb`, M6.4 `ans` in `SpecU` form,
   `regFill`) are open. T1 mutants 24 / 24 rejected; T2 IF re-proved at M (515,982 B).
+
+**B-T2 (thirteenth session, 2026-11-25) [K][M]:** README §"B-T2", log
+[`docs/logs/e2e-bt2-state-2026-11-25.md`](../logs/e2e-bt2-state-2026-11-25.md). Lane B's half of the
+STATE / RT split in lane E's relative canonical form (§3.5 "Lane B status (B-T2)"): `ws_moves_seg`,
+`st_step`, `stHalf_inst'`, `split_sound_relC_rel`, `rtPos`; findings B2-1 (`ApplyFaithful`
+unprovable → relational split) and B2-2 (view leaf digest, fixed); non-vacuity on T1 by the kernel
+(`t1_ws_nonvac`); the `stRoot` interface for lane F (`STMQ`/`STMA`/`SREQ`/`HB`, `STC`). M6.4: see
+README §B-T2 item 3. No AIR changed, nothing re-proved.
 
 ### 5.2 M5-T1 runtime (lane F): status, 2026-11-21
 

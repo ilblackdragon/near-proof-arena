@@ -19,7 +19,7 @@ A state commitment has two forms, chosen by the Boolean `P.fits v`:
 
 | field | width | value (`commitOf P v`) |
 |---|---|---|
-| `tag` | 1 B | the `StV` constructor (`none` 0, `eng` 1, `fin` 2), `tagOf` |
+| `tag` | 1 B | the `StV` constructor (`none` 0, `eng` 1 at a non-final position, `eng` at `done` 3, `fin` 2), `tagOf` (B-T2: the done tag makes the non-final position check one byte of the opening, `StHalfC.StPosOK`) |
 | `ws` | 48 B | the working-set root (`RCH`): `wsRoot P (P.wsOf v)` |
 | `wsLen` | `u64` | the number of working-set entries `(P.wsOf v).length` (public value 16) |
 | `trie` | 32 B | the root hash of the (partial) trie `(P.trieOf v).hashOf` (`TCH`; SHA-256, `RawTrieNodeWithSize`) |
@@ -120,10 +120,19 @@ theorem sha256CR_of_not (h : ¬ Sha256Coll) : Sha256CR := by
 theorem sha384_coll {a b : Bytes} (hne : a ≠ b) (h : sha384 a = sha384 b) : Sha384Coll :=
   ⟨a, b, hne, by simp only [bdigest, h]⟩
 
-/-- The working-set leaf digest: the first 48 bytes of one SHA-512 compression of a block from
-the SHA-384 initial value. -/
+/-- The 128 byte values of a block given as 64-bit words (big-endian), as `SHA512.compress` reads
+its block. -/
+def wbytes (ws : List Nat) : List Nat := ws.flatMap fun w => (ArenaCore.Bytes.beN 8 w).map UInt8.toNat
+
+/-- The working-set leaf digest: the first 48 bytes of one SHA-512 compression from the SHA-384
+initial value of a block given as **16 64-bit words** (`Ws.leafBlock`, `leafBlockN`).
+
+B-T2 fix: this was `SHA512.compress IV384 b` on the word list itself, which `SHA512.compress` reads
+as byte values (`SHA512.words` packs 8 entries per word), so the view's leaf digest was not the
+circuit's (binding was unaffected; the committed root could never equal a leaf proof's `R_in`).
+`T1Ws` now checks the view's root against T1's real roots in the kernel. -/
 def cmp384 (b : List Nat) : Bytes :=
-  (SHA512.digestBytes (SHA512.compress NearSpecV3.E2E.Bnd.IV384 b)).take 48
+  (SHA512.digestBytes (SHA512.compress NearSpecV3.E2E.Bnd.IV384 (wbytes b))).take 48
 
 theorem cmp384_length (b : List Nat) : (cmp384 b).length = 48 := by
   simp [cmp384, SHA512.digestBytes_length _ (SHA512.compress_length _ _)]
@@ -636,8 +645,12 @@ theorem ser_inj (c d : StCommit) (hc : c.WF) (hd : d.WF) (h : c.ser = d.ser) : c
 /-- The constructor of a state component. -/
 def tagOf : StV → Nat
   | .none => 0
+  | .eng (.done _) _ => 3
   | .eng .. => 1
   | .fin .. => 2
+
+theorem tagOf_le (v : StV) : tagOf v ≤ 3 := by
+  unfold tagOf; split <;> omega
 
 /-- **The parameters of the state view**: the projection of `StV` onto the state lane's parts and
 the remainder, with the obligations they carry.
@@ -723,7 +736,10 @@ theorem ser_ne_raw (v : StV) (r : Bytes) : (commitOf P v).ser ≠ (255 : UInt8) 
   simp only [List.cons.injEq] at h
   have := congrArg UInt8.toNat h.1
   rw [ofNat_toNat] at this
-  cases v <;> simp [commitOf, tagOf] at this
+  have h255 : (255 : UInt8).toNat = 255 := rfl
+  have := tagOf_le v
+  simp only [commitOf, h255] at *
+  omega
 
 theorem wsLeaves_length (es : List Entry) (h : es.length ≤ 2 ^ P.depth) :
     (wsLeaves P es).length = 2 ^ P.depth := by
@@ -753,7 +769,7 @@ theorem wsRoot_length (es : List Entry) (h : es.length ≤ 2 ^ P.depth) :
 
 theorem commitOf_wf (v : StV) (hf : P.fits v = true) : (commitOf P v).WF := by
   have hd : 2 ^ P.depth < 2 ^ 64 := Nat.pow_lt_pow_right (by decide) P.depth_lt
-  refine ⟨by cases v <;> simp [commitOf, tagOf], wsRoot_length P _ (P.fits_ws_len v hf), ?_,
+  refine ⟨by have := tagOf_le v; simp only [commitOf]; omega, wsRoot_length P _ (P.fits_ws_len v hf), ?_,
     hashOf_length _ (P.fits_trie v hf), P.fits_idx v hf, bdigest_length _⟩
   have := P.fits_ws_len v hf
   simp only [commitOf]; omega

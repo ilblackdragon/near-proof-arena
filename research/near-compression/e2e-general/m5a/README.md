@@ -4,6 +4,111 @@ Plan: `docs/zk-formal/E2E-GENERAL-CHUNK-PLAN.md` §3.2 (the `stRoot` working set
 Date 2026-11-03. Labels: **[M]** measured here, **[K]** kernel-checked Lean (std axioms),
 **[S]** stated / design only.
 
+## B-T2 (thirteenth session, 2026-11-25): lane B's half of the STATE split, the `stRoot` interface for lane F, the HOST join
+
+Log `docs/logs/e2e-bt2-state-2026-11-25.md`. Plan §3.5 ("Split leaves", lane B status) and §5.1.
+New Lean: `lean/StateM5a/{WsBridge,StHalfC,T1Ws,T1WsData}.lean` (std axioms, no `sorry`, no
+`native_decide`); changed: `StateView.lean` (two fixes below). Tools: `t1_leaves.py` (T1's leaves as
+Lean data), `join_laneA.py` + `tracegen.py --host-join` (lane A's messages in the state trace).
+
+### Findings and fixes
+
+* **B2-1 (lane F's `ApplyFaithful` is unprovable) [K].** `SplitC.ApplyFaithful` asks for a
+  *function* `apply` with `apply q (root ov) = root (upd q ov)`; that forces any two overlays with
+  one root to keep one root after every update (`StHalfC.applyFaithful_coll`) — a property of
+  SHA-384 on all overlays, not a consequence of collision resistance. The circuit establishes the
+  **relational** statement (every input whose root is `R_in` goes to `R_out`). Replaced by
+  `StHalfRel` (lane B) + `ReqsRel` (lane F) and **`split_sound_relC_rel`** (with lane F's
+  `EngHalfRC` restated verbatim) ⇒ `TmplSoundRel8C`; the functional split is the special case
+  (`rel_of_fun`). Lane F: use `split_sound_relC_rel` in place of `split_sound_relC` + `glue_of`.
+* **B2-2 (the view's leaf digest was not the circuit's) [K], fixed.** `StateView.cmp384` applied
+  `SHA512.compress` (which reads its block as 128 *byte* values) to `leafBlockN`'s 16 *words*, so
+  `stD`'s `ws` field could never equal a leaf proof's `R_in` (binding was unaffected). Now
+  `cmp384 b = … compress IV384 (wbytes b)`. Checked in the kernel against T1's real roots (`T1Ws`).
+* **B2-3 (non-final position check), design adopted [K].** `stD` tags an engine state at `done`
+  with `3` (`StateView.tagOf`; was `1` for every engine state), so "the position is not final" is
+  one byte of an opening of `stRoot`: `StPosOK d := ∃ c, c.WF ∧ c.tag = 1 ∧ bdigest c.ser = d`.
+  Not a change of `S`, `claimDigest` or the checker (a lane-B view commitment).
+
+### Item 1: the state half [K]
+
+| file | what is proved |
+|---|---|
+| `WsBridge.lean` | the circuit's digests are the view's: `cW` (the real compression on a word block), `cW_ok` (`CompressOK cW`, no assumption), `toB` / `toB_inj`, **`toB_nodeH`** (one compression of `a ‖ b ‖ padW` from `IV384` = SHA-384 of the 96 bytes, FIPS padding), **`toB_leaf`** (circuit leaf digest = `cmp384`), generic `root_map` / `extUp_map` / `extUp_shift`; **`wsRoot_dig`** (the view's depth-24 root = `toB` of the circuit's depth-`D` root extended by `24 − D` zero levels) and **`ws_moves_seg`**: from `Holds` of `m5tSeg` (+ the chip contract, `NodeCR cW`, the same premises as `seg_rin_rout`), `WsMoves P wsLen R_in R_out upd` — every entry list with the view root `R_in` (the public limbs as bytes) goes under `upd` to the view root `R_out` — given **`SegLeaves`** (named, open: the touched leaves' new digests are the leaves of `upd es`; the per-template restatement of M5b's `write_sent` / `ws_final` / `final_val`) and `wsLen ≤ 2^D` (named: not constrained by the segment template; the IF / `STC` must fix it) |
+| `StHalfC.lean` | **position**: `posOK_sound` (`StPosOK (stD P v)` ⇒ `v` an engine state at a non-final position, or `Sha384Coll`), `posOK_stOfK`, **`rtPos`** (lane F's `RtView.pos` in the form `Sha384Coll ∨ ∀ out, c.pos ≠ .done out`), `posOK_complete` (honest side). **`stRoot` step**: `StcOK` (the statement of the new `STC` table: open the input `stRoot` to a well-formed `c` with `c.ws = R_in`, `c.wsLen = wsLen`, hand `(c.tag, c.rest)` to the engine half, close `stRoot' = bdigest (ser {c with tag, ws := R_out, rest})` with the engine half's output meta), **`st_step`** (`StcOK` ∧ `WsMoves` ⇒ every `fits` state committed by `stRoot` and related to `v'` by the requests (`StepRel`: `wsOf v' = upd (wsOf v)`, same trie root and index, `metaOf v' = mo`) has `stD v' = stRoot'` and `metaOf v = mi`, or `Sha384Coll`). **Split**: `EngHalfRC` (lane F's, verbatim), `StHalfRel`, `ReqsRel`, **`split_sound_relC_rel`**, `rel_of_fun`, `applyFaithful_coll`; the STATE / RT instance (`StQ = (w, mi, mo)`, `W` = the 42-B `stRoot`, `stRel`, `HoldsSt`): **`stHalf_inst`** (`StHalfRel` from `StcOK` ∧ `WsMoves`, `Bad = Sha384Coll`) and **`stHalf_inst'`** (with lane F's `EngHalfRC` and `ReqsRel`: `TmplSoundRel8C`). **Overlay reduction for lane F**: `updE` (apply a committed-change list), `entryAt_upd`, **`wsOfB_upd`** (same trie, committed lookups = `w` over the old ones ⇒ working set = `updE w` of the old one). |
+| `T1Ws.lean` (+ `T1WsData`, generated) | **non-vacuity on T1's real state leaf, by the kernel**: the segment proof's public `R_in` / `R_out` limbs (`statement.json`) read as the circuit reads them are `ca91c86e…` / `2d2e132a…` (`t1_pub_rin/rout`), `wsLen = 17`; the view's depth-24 root of T1's INTAKE leaves is `R_in` and of the after-leaves `R_out` (`t1_rootL0/1`); T1's change list applied by `updE` gives exactly the after-leaves (SHA-256 of every written value in the kernel, `t1_upd`); **`t1_ws_nonvac`**: for every view with lane E's depth and lane B's leaf block and every entry list with T1's keys and leaves, the conclusion of `WsMoves` holds at the proof's public values; `t1_stc`: the honest commitment satisfies `StcOK`. 35 s under a 4 GB cap (`lake env lean`; the data are byte-list literals — the kernel evaluates `ofHex?` on long strings too deeply). |
+
+**What remains for lane B's half (open):** `SegLeaves` (the per-template restatement, wide but
+mechanical — the M5b proofs exist); the `STC` table itself (2 SHA-512 compressions per opening of the
+139-B preimage, a byte ↔ limb decomposition of the 48-B roots, `c.wsLen ≤ 2^D`) — the Lean
+statement it must meet is `StcOK`; nothing is re-proved this session because no AIR changed.
+
+### Item 2: the interface lane F's F3-1 needs (resume / STATE / enter) [S][K]
+
+Lane F's resume AIR copies `stRoot`; under this interface the output `stRoot` comes from lane B's
+rows in the same leaf. One joined leaf trace = lane F's rows + lane B's `m5tSeg` tables + `STC`:
+
+* **`STMQ`** (engine → state, one message, first row): `[r_in (14 limbs: the 42 B of the input
+  record's `stRoot`, 3 B per limb), tag_out, rest_out (14 limbs)]` — `r_in` copied from the input
+  record (`engF.off "stRoot"`), `(tag_out, rest_out) = metaOf (stOfK κ I c')` of the output engine
+  state (`tag_out ∈ {1, 3}`: `3` iff `c'.pos = done`; `rest_out = bdigest (encRest (restOf …))`).
+* **`STMA`** (state → engine): `[r_out (14 limbs), tag_in, rest_in (14 limbs)]` — `r_out` is
+  written into the output record's `stRoot`; `(tag_in, rest_in)` is the input's opening (the engine
+  rows may use `rest_in`'s preimage to open the input position).
+* **`SREQ` / `HB`** (engine → state, as M5b): `SREQ [ts, pr, seg = 0, klen, kptr, vlen, vptr]`, `HB
+  [ts, addr, byte]`; the committed-change list `w` of the step is the requests' overlay
+  (`StSoundF1.ovl`: last request per key, `none` for a remove).
+* `wsLen`, `R_in`, `R_out` stop being public values of a joined leaf (they are inside `stRoot`).
+* Proposed cross-lane bus ids (the integrator's joined numbering): `STMQ` 211, `STMA` 212, `SREQ`
+  213, `HB` 214 (after lane A's `HOSTQ/R/B` 208–210); lane F's local `B_SREQ 9`, `B_HB 8` and lane
+  B's local ids are renumbered by the AIR export.
+* **Enter's position check**: the enter leaf sends `STMP [r_in]` and lane B's `STC` row opens it with
+  `tag = 1` (`StPosOK`); Lean: `rtPos`, and `RtView.pos` takes `Sha384Coll ∨ _` (one line in
+  `EnterC.in_fields`; `enter_relC`'s `Bad` already contains `Sha384Coll`).
+* **Lean, lane F's side**: `EngHalfRC` with `W = Bytes`, `Q = StQ`, `wIn x = V.stD (stV V x)`,
+  `qOf x x' = ⟨changes of the step, metaOf (stV x), metaOf (stV x')⟩`; `ReqsRel` for `stRel`: both
+  states `fits`, `wsOf` updated by `updE w` (via `wsOfB_upd`: the overlay's trie is unchanged —
+  OvlInv's `reach_trie_nodup` — and `committed` after = `w` over before), trie hash and index
+  unchanged (`idxOf = 0`); then `stHalf_inst'` gives `TmplSoundRel8C`.
+* **Open for lane E / F**: `rest_out` is `bdigest (Enc.encStV (strip v'))`, a witness-sized hash
+  of the whole stripped engine state per step; a cheaper `rest` (a chain / tree of the position's
+  parts so one receipt step touches O(1) of them) is lane E's encoding choice.
+
+### Item 3 (M6.4): the HOST join on T1 [M]
+
+One joined trace (lane A's Wasm segment AIR + `m5tSegH` in one prover) is **not feasible this
+session**: lane A's segment trace is generated inside lane A's Rust prover (its own AIR JSON format,
+bus numbering and SHA-512 chip), and lane A's build worktree is gone. What was done instead is the
+message-level join: **lane A's own 8 messages for T1's `storage_write` fed into lane B's state rows**.
+
+* `join_laneA.py` reads lane A's `a-t1/logs/j-t1-segcheck.txt` (the 8 messages its joined AIR
+  leaves unbalanced on T1: HOSTQ, HOSTR and the key byte verbatim, the 5 value bytes at
+  `value_ptr + j` under wire 314 = T1's committed value `again`) and writes
+  `join/t1-laneA-storage-write.json`: `ts = 18`, `S = 18`, `register_id = 1`, `key_ptr = 0`,
+  `value_ptr = 16`, evicted `1`, `g_after` lane A's.
+* `tracegen.py --host --host-join FILE`: that write's `STWH` / `STBH` rows carry lane A's call
+  (time, scope, register, buffer addresses, answer), and the `HOSTTAPE` stand-in carries lane A's
+  messages verbatim for it (the other 9 writes are the runtime's, stand-in as before).
+* **Result [M]** (`logs/BT2-join-laneA.txt`, T1 at S, `m5tSegH`, prover pre-check): **18 unbalanced
+  messages, all on the key**: HOSTR and the 5 value bytes (wire 314, addresses 16..20) balance;
+  HOSTQ differs only in `key_len` (lane A 1, lane B 15) and the 16 `HOSTB` key bytes differ (lane A
+  sends the contract key `t` at address 0; lane B's rows read and hash the **trie key**
+  `0x09 ‖ "s5k210.s2a00" ‖ "," ‖ "t"`). Control (`logs/BT2-join-control.txt`): the same messages
+  with the key buffer replaced by the trie key **balance** (`PRECHECK OK`, 4,792 messages).
+* **Finding B2-4 (the trie-key prefix).** `storage_write(key)` names the contract-level key; the
+  working set is keyed by `TrieKey::ContractData { account_id, key }`. The state rows must hash
+  `0x09 ‖ receiver ‖ 0x2c ‖ key` with the receiver from the call's context, not from `HOSTB`.
+  **Precise remaining step:** `STBH`'s key run gets a prefix part — rows `j < 1 + |receiver| + 1`
+  read the bytes `0x09`, the receiver account id (a bytes run on a context bus the WASM leaf
+  exposes: lane A's `vmCtxDigest` remainder / lane F's `RX` receiver bytes) and `0x2c`, rows after
+  read `HOSTB [ts, 58, 0, key_ptr + j − p, b]`; `StwH`'s `HOSTQ` `key_len` becomes `klen − p`
+  (`p` = prefix length) and its `DESC` the whole trie key. Lean: `stwH_hid` and the `StSound`
+  restatement over the prefixed run. Then the joined trace itself needs one prover for lane A's AIR
+  + `m5tSegH` (lane D / integrator: a common AIR JSON, unified bus ids, one SHA-512 chip instance).
+* Still open from B-T1b: the HOSTR answer (evicted flag from `WSA`'s `WM` read via `EVK`; lane A
+  computes `g_after`), `storage_read` / `has_key` rows, `regFill`. Proving the joined segment
+  (7.7 GB) was not run: lane D's tree prover held the build slice (≤ 4 G rule).
+
 ## B-T1b (twelfth session, 2026-11-21): per-template soundness, an IF soundness fix, the lane G / lane E interfaces
 
 Log `docs/logs/e2e-bt1b-state-2026-11-21.md`. Item 1 mostly done (the segment template end to end
