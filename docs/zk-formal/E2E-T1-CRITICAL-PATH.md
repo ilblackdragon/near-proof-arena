@@ -2,7 +2,7 @@
 
 Status: **lane I, milestone I-2, 2026-11-21; §2 regenerated 2026-11-25** (I-2b: the leaf chain
 under lane E's M11i / M12 / M13 conventions, on main `5917c569c`: lanes A A-T4, B B-T3, E M13,
-F F-4, G G-4 merged). Plan: [`E2E-GENERAL-CHUNK-PLAN.md`](E2E-GENERAL-CHUNK-PLAN.md) §3 (interface;
+F F-4, G G-4 merged; **B-T4 (lane B, 2026-11-25)**: `stD .none`, `R_A` and lane B's five leaves in §2 / §2.1). Plan: [`E2E-GENERAL-CHUNK-PLAN.md`](E2E-GENERAL-CHUNK-PLAN.md) §3 (interface;
 §3.4.1 canonical `S`, §3.4.2 accepted mutants, §3.5 per-template obligations), §4 (M10), §5.0.1
 (wrap interface, leaf requirements). Driver: `research/near-compression/e2e-general/t1/`
 (`run_t1.sh`, `t1.py`, `chain.py`, `stmt.py`, `bndrec.py`, `data/t1-inputs.json`,
@@ -59,34 +59,35 @@ lane A's `wasmD`), with every convention adopted since I-2:
 
 | cut | configuration | phase | receiptIdx | gasUsed | compute | rPrepaid | `h(B)` |
 |---|---|---|---|---|---|---|---|
-| c0 | `init cb wb` (`B_0`) | 0 | 0 | 0 | 0 | 0 | `ac01792e46679f5f…` |
+| c0 | `init cb wb` (`B_0`) | 0 | 0 | 0 | 0 | 0 | `039f9e01ba1c3e6c…` (B-T4: `stD .none`) |
 | c1 | `eng I start` (commits `R_0`) | 1 | 0 | 0 | 0 | 0 | `4ae97236e9279de7…` |
-| c2 | `eng I c` at receipt 1's step | 1 | 1 | 568,551,750,000 | 568,551,750,000 | 0 | `5da6ab41d6bb0112…` |
-| c3 | `call I c [] q .pre` | 6 | 1 | 568,551,750,000 | 568,551,750,000 | 54 T | `adf08591c9b9994f…` |
-| c4 | `call … (preConf q)` (`.ent`) | 6 | 1 | ″ | ″ | 54 T | `e90f4a94653ebfae…` |
-| c5 | `call …` at t = 13 | 6 | 1 | ″ | ″ | 54 T | `b28bfa132ef88018…` |
-| c6 | `call … (.fin r)` | 6 | 1 | ″ | ″ | 54 T | `b31353870481c2b5…` |
+| c2 | `eng I c` at receipt 1's step | 1 | 1 | 568,551,750,000 | 568,551,750,000 | 0 | `3d9f81b4513b3120…` (B-T4: `R_A`) |
+| c3 | `call I c [] q .pre` | 6 | 1 | 568,551,750,000 | 568,551,750,000 | 54 T | `bff8b6336bebcedc…` |
+| c4 | `call … (preConf q)` (`.ent`) | 6 | 1 | ″ | ″ | 54 T | `4d961418b2fca6f1…` |
+| c5 | `call …` at t = 13 | 6 | 1 | ″ | ″ | 54 T | `de147d2dc6305e61…` |
+| c6 | `call … (.fin r)` | 6 | 1 | ″ | ″ | 54 T | `10f87ec90f71fc29…` |
 | c7 | `eng I c'` after receipt 1 | 1 | 2 | 1,577,739,758,301 | 1,732,463,022,301 | 0 | `afe47194b7e4566c…` |
 | c8 | `eng I ⟨yields _ _ 0⟩` | 1 | 2 | ″ | ″ | 0 | `afe47194b7e4566c…` (= c7: the position is only in `rest`) |
 | c9 | `eng I ⟨done out⟩` | 1 | 2 | ″ | ″ | 0 | `f7c8b2b65dc38957…` |
-| c10 | `done H o` | 4 | 0 | 1,577,739,758,301 | 0 | 0 | `d15c24388312dbb7…` |
+| c10 | `done H o` | 4 | 0 | 1,577,739,758,301 | 0 | 0 | `dfaf4cfeed1ca468…` (B-T4: `stD .none`) |
 
 | # | leaf | lanes | in → out | `d_in` → `d_out` |
 |---|---|---|---|---|
-| 1 | INIT ⊕ IF (split leaf, joined by the `CLM` bytes and `PSR`) | G ⊕ B | c0 → c1 | `ac01792e` → `4ae97236` |
-| 2 | STATE seg A (receipt 0, the 3 forwards; 8 of 10 changes) | B ⊕ F | c1 → c2 | `4ae97236` → `5da6ab41` |
-| 3 | RT enter | F | c2 → c3 | `5da6ab41` → `adf08591` |
-| 4 | PREP | A | c3 → c4 | `adf08591` → `e90f4a94` |
-| 5 | WASM seg 0 (steps (0, 13]) | A | c4 → c5 | `e90f4a94` → `b28bfa13` |
-| 6 | WASM seg 1 (steps (13, 26], halts) | A | c5 → c6 | `b28bfa13` → `b3135387` |
-| 7 | RT resume (`STMQ`/`STMA` to lane B's `STC`, `ACC`) | F ⊕ B | c6 → c7 | `b3135387` → `afe47194` |
+| 1 | INIT ⊕ IF (split leaf, joined by the `CLM` bytes and `PSR`) | G ⊕ B | c0 → c1 | `039f9e01` → `4ae97236` |
+| 2 | STATE seg A (receipt 0, the 3 forwards; 8 of 10 changes) | B ⊕ F | c1 → c2 | `4ae97236` → `3d9f81b4` |
+| 3 | RT enter | F | c2 → c3 | `3d9f81b4` → `bff8b633` |
+| 4 | PREP | A | c3 → c4 | `bff8b633` → `4d961418` |
+| 5 | WASM seg 0 (steps (0, 13]) | A | c4 → c5 | `4d961418` → `de147d2d` |
+| 6 | WASM seg 1 (steps (13, 26], halts) | A | c5 → c6 | `de147d2d` → `10f87ec9` |
+| 7 | RT resume (`STMQ`/`STMA` to lane B's `STC`, `ACC`) | F ⊕ B | c6 → c7 | `10f87ec9` → `afe47194` |
 | 8 | STATE seg B (VM-free steps to `yields _ _ 0`; may be empty) | B ⊕ F | c7 → c8 | `afe47194` → `afe47194` |
 | 9 | finalize (IF-FINAL, D-b) | B ⊕ F | c8 → c9 | `afe47194` → `f7c8b2b6` |
-| 10 | FINAL | G ⊕ B | c9 → c10 | `f7c8b2b6` → `d15c2438` |
+| 10 | FINAL | G ⊕ B | c9 → c10 | `f7c8b2b6` → `dfaf4cfe` |
 
 Every adjacent pair chains digest for digest (`chain.chain_ok`). **The records are the view's
 wherever a component computes the field; the rest are `0^42` placeholders** (`chain.PLACEHOLDERS`):
-`stD .none` (B), `stRoot.rest` everywhere and `stRoot.ws` at c2 (B, F, E), `ctxD (.intake I)` at
+`stRoot.rest` everywhere (F, E; B-T4: `stD .none` and `stRoot.ws` at c2 are lane B's values now),
+`ctxD (.intake I)` at
 every engine / call cut (E: `Ser Intake`; G), `ctxD (.header H)` and `bdigest (Ser.enc o)` at done
 (E: `Ser ChunkInner` / `Ser Outputs`; G), `wasm.vmCtxDigest` and `wasm.fuel` (A), the 42-B packing
 of the cached CODE / FUNC commitment (A; the driver packs 5 × u64be + u16be). A placeholder is
@@ -100,16 +101,18 @@ others expose components that lane D assembles into records (prototype regions, 
 
 | leaf (saved proof) | exposes | in / out vs the chain | why | who re-proves what |
 |---|---|---|---|---|
-| INIT, **G-5** (`e2e-m5d/g5/tmpl/init`) | `claimDigest` (leaf `ctx`), `ctxRoot(B_0)`, `prev_state_root` | **in ✓**: `ctxRoot` = `60498d85…` (big-endian), assembled `B_0` = **`h(c0)`** `ac01792e…`; out: not exposed (lane B's half) | I2b-1 resolved (G-5: `INI` hashes big-endian `u32`); `prev_state_root` = IF's ✓ | **B**: `B_1` (c1: `ctxD (.intake I)`, `R_0`) is INTAKE's half of the joined leaf (E: `Ser Intake`) |
-| IF, B-T1b (`laneB-t1/t1b/T1S/if/out`) | prev / post roots, `wsLen`, `R_0`, `R_n`, #changes | ws parts ✓ (`R_0 = ca91c86e…`, `R_n = 2d2e132a…`, post = header, 17, 10) | no `stRoot` (tag, idx, `rest` not opened) | **B**: `STC` on the IF halves — the INTAKE half's `R_0` commitment (c1, D-a) and the FINAL half as the finalize leaf (D-b) |
-| RT enter, F-3 (`e2e-m5t1/f3/enter-proof`) | `B_in` 450 B, `B_out` 834 B | `b850f1e5 → c320b92b` vs `5da6ab41 → adf08591`: **✗ / ✗** | pre-M12 record: real `claimDigest`; `outcomeAcc`, `outRcptAcc`, `proposalsAcc`, `bwAcc`, `vmAcc` = `0^42` (view: chains, `bdigest []`, `bdigest [1]`) | **F** re-proves enter from `plan.json` (2.4 s leaf). `stRoot` / `ctxRoot` placeholders shared with the chain |
+| INIT, **G-5** (`e2e-m5d/g5/tmpl/init`) | `claimDigest` (leaf `ctx`), `ctxRoot(B_0)`, `prev_state_root` | **in ✓**: `ctxRoot` = `60498d85…` (big-endian), assembled `B_0` = **`h(c0)`** `039f9e01…` (B-T4 `stD .none` in the wrapper); out: not exposed (lane B's half) | I2b-1 resolved (G-5: `INI` hashes big-endian `u32`); `prev_state_root` = IF's ✓ | **B**: `B_1` (c1: `ctxD (.intake I)`, `R_0`) is INTAKE's half of the joined leaf (E: `Ser Intake`) |
+| IF, **B-T4** (`laneB-t1/t4/T1C/if/out`, `m5tIFC`) | prev / post roots, `wsLen`, `R_0`, `R_n`, #changes; `STC`: `c1` / `c9` `stRoot` (`htape.json`) | **✓ / ✓**: `r_in` = `c1.stRoot`, `r_out` = `c9.stRoot`; assembled `h(c1)` `4ae97236`, `h(c9)` `f7c8b2b6`; ws parts, post = header, 17, 10 ✓ | B-T4: the INTAKE half's `stRoot` (`InitBOut`) and the FINAL half's (`FinPre`) are the `STC` row's; `Stc.trieEqs` ties the trie to `prev_state_root` | **D**: join `r_in` with INIT (`c1`), `r_out` with finalize / FINAL (`c9`); **E / G**: `ctxD (.intake I)` at `c1` |
+| RT enter, F-3 (`e2e-m5t1/f3/enter-proof`) | `B_in` 450 B, `B_out` 834 B | `b850f1e5 → c320b92b` vs `3d9f81b4 → bff8b633`: **✗ / ✗** | pre-M12 record: real `claimDigest`; `outcomeAcc`, `outRcptAcc`, `proposalsAcc`, `bwAcc`, `vmAcc` = `0^42` (view: chains, `bdigest []`, `bdigest [1]`) | **F** re-proves enter from `plan.json` (2.4 s leaf). `stRoot` / `ctxRoot` placeholders shared with the chain |
 | PREP, A-T4 (`e2e-laneA/at4/prep/leaf`) | code hash, `|code|`, cached CODE / FUNC | `.pre` `codeRoot` cells ✓; CODE / FUNC = both segments' (R1) ✓ | `B_in` / `B_out` not public: the rest of the `.pre` and `.ent` records is free | **A**: PREP's records (`PrepRest`), root packing; **D**: PREP between enter and WASM 0 (m9b has the older A-T3 PREP) |
-| WASM seg 0, **A-T5** (`e2e-laneA/at5/leaf-k13/leaf/seg-0`) | 117 publics (A-T5: `stackRem` halves, `g_out` limbs, `R` bytes) + cached CODE / FUNC | **✓ / ✓**: `h(c4) = e90f4a94` → `h(c5) = b28bfa13`, digest for digest | `gasLeft` = the public `g_out` (SEGB's gas gadget), `stackRem` public (CUTO's budget row) | **A**: `vmCtxDigest`, `fuel` not public (placeholders shared with the chain); the 42-B packing |
-| WASM seg 1, **A-T5** (`…/seg-1`) | same; out-record = the fin record | **✓ / ✓**: `b28bfa13` → `h(c6) = b3135387` | **I2b-2 closed (A-T5):** the halting leaf emits `fbBnd (q, .fin r)` (`TmplWasm.WasmHoldsF`, `wasm_fin_core`), the record lane F's resume reads | **A**: as seg 0 |
-| RT resume, F-4 (`e2e-m5t1/f4/resume-proof`) | `B_in` 834 B, `B_out` 450 B | `3a3862e9 → 50500c19` vs `b3135387 → afe47194`: **✗ / ✗** | counters, `receiptIdx + 1`, accumulators, `vmAcc` ✓; but `claimDigest` real, **`t = 26`** (run4's in-call clock; M12: 0), `proposalsAcc` / `bwAcc` `0^42`, `B_in.wasm` = run4's halted `airBnd` (view: fin record), `stRoot` out = the `STC` stand-in | **F** re-proves resume from `plan.json`; **B**: `STC` answers `stRoot` |
-| STATE seg, B-T1b (`laneB-t1/t1b/T1S/seg0/out`) | prev root, `wsLen`, `R_in`, `R_out` | `R_in = R_0` ✓, `R_out = R_n` ✓ | one segment over all 10 changes spans c1 → c9 across the call; no `stRoot` | **B**: split at the `rt` cuts (seg A ends after 8 changes, seg B starts after 10) and prove `m5tSegC` (`STC`, B-T3, not re-proved); **F**: STATE engine rows (none) |
-| finalize | — | missing | no leaf | **B** (IF-FINAL half with `STC`) + **F** (engine rows `yields → done`) |
-| FINAL, **G-5** (`e2e-m5d/g5/tmpl/final`) | `claimDigest`, `finInDigest`, n, L, `ctxD (.header H)`, `outD (.done o).1`, `gasUsed`, `balanceBurnt` | in: not exposed (lane B's half); **out ✓**: assembled `B_out` = **`h(c10)`** `bd9c8344…` | G-5: `ViewSer`'s fixed-width `Ser ChunkInner` / `Ser Outputs` (E ∧ G), FINAL recomputes `bdigest (3 ‖ Ser.enc H)`, `bdigest (Ser.enc o)`; the M12 counters are public values 58..82 | **B**: c9 (`B_in`, FINAL half; `finInDigest` is a join value) |
+| WASM seg 0, **A-T5** (`e2e-laneA/at5/leaf-k13/leaf/seg-0`) | 117 publics (A-T5: `stackRem` halves, `g_out` limbs, `R` bytes) + cached CODE / FUNC | **✓ / ✓**: `h(c4) = 4d961418` → `h(c5) = de147d2d` (B-T4 digests), digest for digest | `gasLeft` = the public `g_out` (SEGB's gas gadget), `stackRem` public (CUTO's budget row) | **A**: `vmCtxDigest`, `fuel` not public (placeholders shared with the chain); the 42-B packing |
+| WASM seg 1, **A-T5** (`…/seg-1`) | same; out-record = the fin record | **✓ / ✓**: `de147d2d` → `h(c6) = 10f87ec9` | **I2b-2 closed (A-T5):** the halting leaf emits `fbBnd (q, .fin r)` (`TmplWasm.WasmHoldsF`, `wasm_fin_core`), the record lane F's resume reads | **A**: as seg 0 |
+| RT resume, F-4 (`e2e-m5t1/f4/resume-proof`) | `B_in` 834 B, `B_out` 450 B | `3a3862e9 → 50500c19` vs `10f87ec9 → afe47194`: **✗ / ✗** | counters, `receiptIdx + 1`, accumulators, `vmAcc` ✓; but `claimDigest` real, **`t = 26`** (run4's in-call clock; M12: 0), `proposalsAcc` / `bwAcc` `0^42`, `B_in.wasm` = run4's halted `airBnd` (view: fin record), `stRoot` out = the `STC` stand-in | **F** re-proves resume from `plan.json`; **B**: `STC` answers `stRoot` |
+| STATE seg A, **B-T4** (`laneB-t1/t4/T1C/seg0/out`, `m5tSegC`) | `R_in`, `R_out`, `wsLen`, prev root; `STC` `r_in` / `r_out` | **✓ / ✓**: `4ae97236 → 3d9f81b4` (8 changes, `R_0 → R_A`) | stand-in `HTAPE` for lane F's rows | **F**: STATE engine rows (receipt 0's forwards) |
+| RT resume's state half, **B-T4** (`…/seg1/out`) | same | **✓ / ✓**: `10f87ec9 → afe47194` (2 changes, `R_A → R_n`) | joins lane F's resume leaf (`RB` speaks `STMQ` / `STMA`) | **F**: the joined resume leaf |
+| STATE seg B, **B-T4** (`…/seg2/out`) | same | **✓ / ✓**: `afe47194 → afe47194` (no change) | | **F**: engine rows (none on T1) |
+| finalize's state half, **B-T4** (`…/seg3/out`) | same | **✓ / ✓**: `afe47194 → f7c8b2b6` (tag 1 → 3) | IF-FINAL's batched FINAL is the IF proof's (same `c9` digest) | **F**: finalize engine rows (`yields → done`) |
+| FINAL, **G-5** (`e2e-m5d/g5/tmpl/final`) | `claimDigest`, `finInDigest`, n, L, `ctxD (.header H)`, `outD (.done o).1`, `gasUsed`, `balanceBurnt` | in: not exposed (lane B's half); **out ✓**: assembled `B_out` = **`h(c10)`** `dfaf4cfe…` (B-T4 `stD .none`) | G-5: `ViewSer`'s fixed-width `Ser ChunkInner` / `Ser Outputs` (E ∧ G), FINAL recomputes `bdigest (3 ‖ Ser.enc H)`, `bdigest (Ser.enc o)`; the M12 counters are public values 58..82 | **B**: c9 (`B_in`, FINAL half; `finInDigest` is a join value) |
 
 Lane D's M9 prototype tree (`tmp-laneD/m9b`, running) imports lane F's **F-2b** `rt` leaves (not
 F-3 / F-4), lane A's **A-T3** PREP (not A-T4), G-4 INIT, G-3 FINAL, B-T1b IF / seg0; it has no
@@ -122,9 +125,12 @@ digests (its `spec.edges` list the free cells).
    `Ser ChunkInner`, `Ser Outputs` closures (`ctxD (.intake I)`, `ctxD (.header H)`,
    `outD (.done o)`); adopt `encRestI` in lane B's default instance (D-d) and fix the per-position
    `rest` contents lane F's metas carry.
-2. **B**: `stD .none` constant; `STC` on IF-INTAKE (c1's `R_0` commitment) and IF-FINAL (the
-   finalize leaf, c8 → c9); split the STATE segment at the `rt` cuts (c1 → c2, c7 → c8) and prove
-   `m5tSegC`; `rest` per position.
+2. **B** — B-T4 done: `stD .none` = `799a6864…` (kernel, `StNoneE.stD_none_viewE`); `m5tIFC` (the IF's
+   `STC` row: `c1` / `c9` `stRoot`; `Stc.trieEqs` soundness fix); the STATE segment cut at the `rt`
+   cuts (seg A, the resume's state half, seg B, the finalize state half, `m5tSegC`); all five
+   re-proved, `m8-import`ed (`laneB-t1/t4/T1C/tmpl`), digests = the chain's. Header link:
+   `HeaderLink.init_header` (chain invariant from INIT). Left: `rest` per position (with F / E),
+   `SegLeavesN`'s `LastNew` / `Untouched`.
 3. **F**: re-prove RT enter and RT resume from the regenerated `plan.json` (`rtbnd.pair` reads it
    unchanged: template names `RT enter` / `RT resume`, `B_0`, `B_out`); STATE engine rows for
    seg A / seg B / finalize (`EngHalfRC`); the `STMQ`/`STMA` metas with real `rest`.

@@ -164,10 +164,15 @@ variable {D : Nat}
   (hLo : ∀ p ∈ Stc.loCols, ev tr t r pub p.1 < 256 ∧ ev tr t r pub (K (2 ^ (8 - p.2)) * p.1) < 256)
 
 include hc hA in
-theorem gated {e : Expr} (he : e ∈ Stc.splits ++ Stc.limbEqs ++ Stc.lenEqs D) : ev tr t r pub e = 0 := by
+theorem gatedT {e : Expr} (he : e ∈ Stc.splits ++ Stc.limbEqs ++ Stc.lenEqs D ++ Stc.trieEqs) :
+    ev tr t r pub e = 0 := by
   have hm : Stc.c "act" * e ∈ (Stc.table D).constraints :=
     List.mem_cons_of_mem _ (List.mem_map.2 ⟨e, he, rfl⟩)
   exact FieldWsb.wsb_gate hA (hc _ hm)
+
+include hc hA in
+theorem gated {e : Expr} (he : e ∈ Stc.splits ++ Stc.limbEqs ++ Stc.lenEqs D) : ev tr t r pub e = 0 :=
+  gatedT hc hA (List.mem_append_left _ he)
 
 theorem padByte_lt (p : Nat) : Stc.padByte p < 256 := by
   unfold Stc.padByte; split
@@ -429,6 +434,29 @@ theorem lenI (hD : D ≤ 20) :
       rw [m1, m2] at hg
       omega
     · exact hle
+
+include hc hA hB in
+/-- **B-T4: the opened trie bytes are the public `prev_state_root`** (`Stc.trieEqs`): byte pair
+`(57 + 2i, 58 + 2i)` is the 16-bit limb `pub[i]`, big-endian. -/
+theorem trieI {i : Nat} (hi : i < 16) :
+    FI tr t r pub (57 + 2 * i) = (pub.getD i 0).toNat / 256 ∧
+      FI tr t r pub (58 + 2 * i) = (pub.getD i 0).toNat % 256 := by
+  have hb : ∀ p, p < 139 → FI tr t r pub p = ev tr t r pub (Stc.c "b" p) := by
+    intro p hp; unfold FI Stc.mI Stc.NB; rw [if_pos hp]
+  have e1 : ev tr t r pub (Stc.c "b" (58 + 2 * i) + K 256 * Stc.c "b" (57 + 2 * i) - .pub i) = 0 :=
+    gatedT hc hA (List.mem_append_right _ (List.mem_map.2 ⟨i, List.mem_range.2 hi, rfl⟩))
+  have b1 := hB _ (mem_b (p := 57 + 2 * i) (by omega))
+  have b2 := hB _ (mem_b (p := 58 + 2 * i) (by omega))
+  have hl : ev tr t r pub (Stc.c "b" (58 + 2 * i) + K 256 * Stc.c "b" (57 + 2 * i)) =
+      ev tr t r pub (Stc.c "b" (58 + 2 * i)) + 256 * ev tr t r pub (Stc.c "b" (57 + 2 * i)) := by
+    rw [ev_add_nw, ev_kmul_nw 256 _ (by omega) (by decide)]
+    rw [ev_kmul_nw 256 _ (by omega) (by decide)]; omega
+  have e2 := sub0 e1
+  rw [hl] at e2
+  have e3 : ev tr t r pub (Expr.pub i) = (pub.getD i 0).toNat := rfl
+  rw [e3] at e2
+  rw [hb _ (by omega), hb _ (by omega), ← e2]
+  omega
 
 end Row
 

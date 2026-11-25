@@ -1,0 +1,99 @@
+# B-T4: T1's state leaves cut at the rt boundaries (template S, D = 5); HEAVY_MEM=8G, 8 threads, one proof at a time (lane D's m8-tree running)
+# dumps: leaf.sh STATE_JSON OUT templates/S.json check --seg-keys t1cut/seg-keys.json --stc-meta t1cut/stc-meta.json --ifc; proofs: the prover per dump (if: tmpl-ifc, seg*: tmpl-segc)
+== if 15:21:17 slice=23484596224
+rc=0
+PRECHECK OK: every constraint on every row; every bus balances (12452 distinct messages)
+SOUNDNESS total=268.2 logup=324.4 proximity=295.1 query=268.2
+PROOF total=592280 gkr=23192 relations=212928 stacking=2516 whir=352742
+TIME prove 30.86s verify 0.0383s threads 8 peak_rss_kib 8063476 proof_bytes 592280
+SAVED /data/illia/nearproof-deps/laneB-t1/t4/T1C/if/out (STATE.proof 592280 B, STATE.vk.json 3140173 B)
+VERIFY OK (native SWIRL verifier); statement check (cached roots + every AIR's public values): OK
+== seg0 15:22:10 slice=23249838080
+rc=0
+PRECHECK OK: every constraint on every row; every bus balances (4680 distinct messages)
+SOUNDNESS total=268.2 logup=324.4 proximity=295.1 query=268.2
+PROOF total=510342 gkr=21128 relations=136208 stacking=2372 whir=349832
+TIME prove 28.05s verify 0.0229s threads 8 peak_rss_kib 7649896 proof_bytes 510342
+SAVED /data/illia/nearproof-deps/laneB-t1/t4/T1C/seg0/out (STATE.proof 510342 B, STATE.vk.json 1712409 B)
+VERIFY OK (native SWIRL verifier); statement check (cached roots + every AIR's public values): OK
+== seg1 15:22:40 slice=23774347264
+rc=0
+PRECHECK OK: every constraint on every row; every bus balances (1743 distinct messages)
+SOUNDNESS total=268.2 logup=324.4 proximity=295.1 query=268.2
+PROOF total=509250 gkr=21128 relations=136208 stacking=2372 whir=348740
+TIME prove 26.54s verify 0.0228s threads 8 peak_rss_kib 7644876 proof_bytes 509250
+SAVED /data/illia/nearproof-deps/laneB-t1/t4/T1C/seg1/out (STATE.proof 509250 B, STATE.vk.json 1712409 B)
+VERIFY OK (native SWIRL verifier); statement check (cached roots + every AIR's public values): OK
+== seg2 15:23:09 slice=23416594432
+rc=0
+PRECHECK OK: every constraint on every row; every bus balances (1116 distinct messages)
+SOUNDNESS total=268.2 logup=324.4 proximity=295.1 query=268.2
+PROOF total=509502 gkr=21128 relations=136208 stacking=2372 whir=348992
+TIME prove 25.93s verify 0.0229s threads 8 peak_rss_kib 7621656 proof_bytes 509502
+SAVED /data/illia/nearproof-deps/laneB-t1/t4/T1C/seg2/out (STATE.proof 509502 B, STATE.vk.json 1712409 B)
+VERIFY OK (native SWIRL verifier); statement check (cached roots + every AIR's public values): OK
+== seg3 15:23:37 slice=23918084096
+rc=0
+PRECHECK OK: every constraint on every row; every bus balances (1143 distinct messages)
+SOUNDNESS total=268.2 logup=324.4 proximity=295.1 query=268.2
+PROOF total=509460 gkr=21128 relations=136208 stacking=2372 whir=348950
+TIME prove 26.96s verify 0.0235s threads 8 peak_rss_kib 7573240 proof_bytes 509460
+SAVED /data/illia/nearproof-deps/laneB-t1/t4/T1C/seg3/out (STATE.proof 509460 B, STATE.vk.json 1712409 B)
+VERIFY OK (native SWIRL verifier); statement check (cached roots + every AIR's public values): OK
+if: HEIGHTS {"SHA": 13, "KEY": 10, "BR": 9, "SN": 8, "KCMP": 9, "WSB": 6, "WSN": 6, "SNC": 5, "RNG": 8, "WSX": 5, "STC": 2, "SRNG": 8, "HTAPE": 2, "SHA512": 15}
+if: CELLS 7923072; compressions 157
+seg0: HEIGHTS {"SHA": 12, "WSA": 5, "WSL": 5, "WSP": 5, "RNG": 8, "STB": 13, "STW": 5, "WSX": 5, "STC": 2, "SRNG": 8, "HTAPE": 13, "SHA512": 15}
+seg0: CELLS 5316792; compressions 109
+seg1: HEIGHTS {"SHA": 12, "WSA": 5, "WSL": 5, "WSP": 5, "RNG": 8, "STB": 13, "STW": 5, "WSX": 5, "STC": 2, "SRNG": 8, "HTAPE": 13, "SHA512": 15}
+seg1: CELLS 5316792; compressions 79
+seg2: HEIGHTS {"SHA": 12, "WSA": 5, "WSL": 5, "WSP": 5, "RNG": 8, "STB": 13, "STW": 5, "WSX": 5, "STC": 2, "SRNG": 8, "HTAPE": 13, "SHA512": 15}
+seg2: CELLS 5316792; compressions 61
+seg3: HEIGHTS {"SHA": 12, "WSA": 5, "WSL": 5, "WSP": 5, "RNG": 8, "STB": 13, "STW": 5, "WSX": 5, "STC": 2, "SRNG": 8, "HTAPE": 13, "SHA512": 15}
+seg3: CELLS 5316792; compressions 61
+
+# leaf_chain.py OUT <Lean oracle post root>
+CHAIN if.R_0 = seg0.R_in: OK (ca91c86e35478585…)
+CHAIN seg0.R_out = seg1.R_in: OK (44e7e021b249bba4…)
+CHAIN seg1.R_out = seg2.R_in: OK (2d2e132a1af65a2f…)
+CHAIN seg2.R_out = seg3.R_in: OK (2d2e132a1af65a2f…)
+CHAIN seg3.R_out = if.R_n: OK (2d2e132a1af65a2f…)
+WSLEN [17]: OK
+POST 1db48e3883e462f12b761a81438bd145dfcc45ee5a7097acdf7b9b000a249628 = oracle 1db48e3883e462f12b761a81438bd145dfcc45ee5a7097acdf7b9b000a249628: OK
+PROOF if    from proof: 592280 B, vk sha256 c9bd05ae4e9b9e79
+PROOF seg0  from proof: 510342 B, vk sha256 c063cefec94aa5fe
+PROOF seg1  from proof: 509250 B, vk sha256 c063cefec94aa5fe
+PROOF seg2  from proof: 509502 B, vk sha256 c063cefec94aa5fe
+PROOF seg3  from proof: 509460 B, vk sha256 c063cefec94aa5fe
+LEAF CHAIN OK
+
+# STC stand-in messages (htape.json): stRoot in / out per dump (= chain.py c1/c2, c6/c7, c7/c8, c8/c9; IF: c1/c9)
+if ca91c86e35478585 2d2e132a1af65a2f 33b13fab19ca01d2 e433137fde8e8621 1 3 157
+seg0 ca91c86e35478585 44e7e021b249bba4 33b13fab19ca01d2 c6b5dacb210ab91d 1 1 109
+seg1 44e7e021b249bba4 2d2e132a1af65a2f c6b5dacb210ab91d de0249445960abd0 1 1 79
+seg2 2d2e132a1af65a2f 2d2e132a1af65a2f de0249445960abd0 de0249445960abd0 1 1 61
+seg3 2d2e132a1af65a2f 2d2e132a1af65a2f de0249445960abd0 e433137fde8e8621 1 3 61
+R_A 44e7e021b249bba469ffc58eeac68141f155c305015a05168d30d2fd35775b7c736378f857da5dc2038e1e57367f8ea3
+
+# t1cut/import.sh OUT (lane D's m8-import)
+M8_TEMPLATE_PROVED state-a bytes=510342 seconds=0.0 params=(n_stack 18, w_stack 8, lb 1) queries=[100, 71, 45, 33] bits=268.2
+M8_TEMPLATE_PROVED state-b bytes=509502 seconds=0.0 params=(n_stack 18, w_stack 8, lb 1) queries=[100, 71, 45, 33] bits=268.2
+M8_TEMPLATE_PROVED state-fin bytes=509460 seconds=0.0 params=(n_stack 18, w_stack 8, lb 1) queries=[100, 71, 45, 33] bits=268.2
+M8_TEMPLATE_PROVED state-if bytes=592280 seconds=0.0 params=(n_stack 18, w_stack 10, lb 1) queries=[100, 71, 45, 33] bits=268.2
+M8_TEMPLATE_PROVED state-resume bytes=509250 seconds=0.0 params=(n_stack 18, w_stack 8, lb 1) queries=[100, 71, 45, 33] bits=268.2
+
+# SHA256SUMS (OUT/tmpl)
+21ac5abe91278baf9c429f13ae5f1c6e9e455ac58f79fda12cf21eb9c0074271  state-a/TMPL.proof
+c063cefec94aa5fec876ecc1fe6e37933f9d92f9464cdcd292cfa67dbc557c07  state-a/TMPL.vk.json
+3632375822ecd54d9b88e8839f0d5d4ab88568b555d637dda12468e40d25342a  state-b/TMPL.proof
+c063cefec94aa5fec876ecc1fe6e37933f9d92f9464cdcd292cfa67dbc557c07  state-b/TMPL.vk.json
+81290cd01a50f3b40eeda641c86c1a9cb83330d1eec833d29620c74f3b607eed  state-fin/TMPL.proof
+c063cefec94aa5fec876ecc1fe6e37933f9d92f9464cdcd292cfa67dbc557c07  state-fin/TMPL.vk.json
+1c52bfc28e4f30090cc4114fa12633c9d568dca87457a94b40b639ceb0766bbb  state-if/TMPL.proof
+c9bd05ae4e9b9e79ea55b4d107f280f171389f9e63fb443f868db5f6ab960b80  state-if/TMPL.vk.json
+ea4b009dc98b0bc0c04c1185de1cdfa284dba4b927be217d32f631c85b13f948  state-resume/TMPL.proof
+c063cefec94aa5fec876ecc1fe6e37933f9d92f9464cdcd292cfa67dbc557c07  state-resume/TMPL.vk.json
+3b104fd2621c903e0859e33e02052aacf8a1a0058547a1be0a6d4fac36726905  state-a/htape.json
+1014719bb63aa31591d583ad8012f37c84219d5ad99758e6ccbeb1bf3c60a236  state-b/htape.json
+87868b26d1ff4734a02cd5058cd4e015bff83a0242c1f42265513e39642f51d3  state-fin/htape.json
+8eb7d1e8e55963d2f959654413c8208c0c063b5facb7cab2ea5ca35674cac406  state-if/htape.json
+34ca4167c1fe48c7b5c650c1497e6f9d598315274191908f1ba5e4cd2ccc438e  state-resume/htape.json

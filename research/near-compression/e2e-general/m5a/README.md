@@ -4,6 +4,113 @@ Plan: `docs/zk-formal/E2E-GENERAL-CHUNK-PLAN.md` §3.2 (the `stRoot` working set
 Date 2026-11-03. Labels: **[M]** measured here, **[K]** kernel-checked Lean (std axioms),
 **[S]** stated / design only.
 
+## B-T4 (fifteenth session, 2026-11-25): lane B's T1 leaves chain — `stD .none`, the IF's openings, the STATE cut at the `rt` boundaries
+
+Log `docs/logs/e2e-bt4-state-2026-11-25.md`. Plan §3.5 ("Lane B status (B-T4)"); tracker
+`docs/zk-formal/E2E-T1-CRITICAL-PATH.md` §2. Nothing here changes `S`, `claimDigest` or the checker
+(one circuit change, `STC`'s trie equations, is a soundness fix of lane B's own table).
+
+### Item 1: `stD .none` [K][M]
+
+`StNone.lean`: `.none` has no overlay, so it is in the circuit form for every lane-E part with
+`idxOf .none < 2^64` (`fitsB_none'`), its working set is empty and its commitment is
+**`stD_none_eq`**: `bdigest (ser ⟨0, zd nodeH zero48 depth, 0, hashOf (.hash 0³²), idxOf .none,
+bdigest (encRestB E (strip .none, none))⟩)` (`wsRoot_nil`: the empty tree's root is the zero-subtree
+digest). For lane E's `stViewE` the kernel evaluates it (`join-check/StNoneE.lean`,
+**`stD_none_viewE`**, run by `join-check/run.sh`):
+
+    stD .none = 799a6864c921b6955b6a85356d65c7a612fa488d824fcb1d79623dac5a750e820ff93e8510b26828fe9e
+
+(`rest` preimage `01 00 00`: `lp (encStV .none) ‖ optEnc none`; trie hash `0³²`). `t1/chain.py`
+`ST_NONE` (and `st_none()`, the record recomputed in Python) replaces the `0^42` placeholder at `c0`
+/ `c10`: **`h(c0)` `ac01792e…` → `039f9e01…`, `h(c10)` → `dfaf4cfe…`**. Lane G's INIT / FINAL wrappers
+take this constant (their T1 kernel lemmas `k0_viewE` / `k10_viewE` used `0^42`).
+
+### Item 2: the IF halves expose `stRoot` (`m5tIFC`) [M][K]
+
+* **`Stc.m5tIFC D` = `m5tIF D`'s tables ++ `[STC, SRNG]`** (`m5a-tool tmpl-ifc`; tracegen `--ifc`).
+  The IF's public values are the indices `STC` already reads (0–15 prev root, 16 `wsLen`, 17–34 /
+  35–52 the two `ws` roots), so one `STC` row opens **`c1`'s commitment** (tag 1, `ws = R_0`: the
+  INTAKE half's `stRoot`, `InitBOut`'s state part) and closes **`c9`'s** (tag 3, `ws = R_n`: the
+  FINAL half's `stRoot`, `FinPre`'s state part); `wsLen`, trie, `idx` shared.
+* **Soundness fix (`Stc.trieEqs`)**: B-T3's `STC` left the 32 opened trie bytes free (a segment never
+  reads the trie). The IF-FINAL half runs on the trie the commitment carries (lane E's `FinHalfB`:
+  `final_glue` when the IF's trie is `o.trie`), so `STC` now ties bytes 57–88 to the public
+  `prev_state_root` (16 constraints `b₅₈₊₂ᵢ + 256·b₅₇₊₂ᵢ = pub[i]`), in every template that has `STC`.
+  Lean: `StcRow.trieI`, `StcSound.comI_trie`, **`StcOKT`** (= `StcOK` with `c.trie = T`;
+  `stcOK_of_T`), `stc_row_okT`, **`stc_holdsT`** (any AIR), **`stc_ifc`** (`m5tIFC` from `Holds`:
+  `StcOKT r₁ r₉ R_0 R_n wsLen (pubTrie pub) mi mo ∧ wsLen ≤ 2^D`; `srng_send_ifc`, `rng_vT`).
+* **The header link** (`HeaderLink.lean`): lane G's named FINAL premise `decodeChunkInner window =
+  .ok I.H` is a chain invariant from INIT, not a state-lane row: **`init_header`** (a non-genesis
+  `CM.step (init cb wb) = .ok (eng I e)` gives `decodeClaimE cb = .ok I.c`, `decodeChunkInner
+  I.c.chunkInner = .ok I.H`, `e` at `start`; from the machine's `intakeK_post`), `header_link`. What
+  closes it in the tree: `ctxRoot = ctxD (.intake I)` copied `c1 … c9` (every leaf between copies it)
+  and INIT ∧ FINAL sharing `ctx = claimDigest s` with `cb = assemble s.ci secB s.secC` (lane G's
+  `InitDig`; `PublicStmt.decode_encode`), so the window FINAL reads is `I.c.chunkInner`.
+
+### Item 3: the STATE segment cut at the `rt` boundaries [M]
+
+`t1cut/make_cut.py` (from lane F's Lean run: `acc.before.committed` = the 8 changes before receipt
+1, `after` = all 10) writes `t1cut/seg-keys.json` (tracegen **`--seg-keys`**: segment `s` = the
+writes of the keys in entry `s`, ordered by segment; a segment may be empty) and
+`t1cut/stc-meta.json` (**`--stc-meta`**: per-dump tags / rests). A segment without writes closes
+`RCH(0, R_in)` with `RCH(0, R_out)` (`WSX` `sb = 0`, `R_out = R_in`; mutant `segsb0` shows a segment
+with writes cannot). `rest` = `0^42` everywhere (lane I's placeholder; **`encRestI` not adopted**:
+`rest` is the hash of the engine position, whose preimage only lane F's rows hold; `STC` is
+agnostic — B-T3 — so adopting it is lane F's `rest_out` change plus lane I's chain field).
+
+| dump | chain edge | template | changes | `R_in → R_out` | tags | `stRoot` in → out |
+|---|---|---|---|---|---|---|
+| `if` | `c1` / `c9` (INIT ⊕ IF, finalize / FINAL) | `m5tIFC` | INTAKE + FINAL (10) | `R_0 = ca91c86e…`, `R_n = 2d2e132a…` | 1 / 3 | `33b13fab…` / `e433137f…` |
+| `seg0` = STATE seg A | `c1 → c2` | `m5tSegC` | 8 | `R_0 → R_A = 44e7e021…` | 1 → 1 | `33b13fab… → c6b5dacb…` |
+| `seg1` = RT resume's state half | `c6 → c7` | `m5tSegC` | 2 (`t`, receiver account) | `R_A → R_n` | 1 → 1 | `c6b5dacb… → de024944…` |
+| `seg2` = STATE seg B | `c7 → c8` | `m5tSegC` | 0 | `R_n → R_n` | 1 → 1 | `de024944… → de024944…` |
+| `seg3` = finalize's state half | `c8 → c9` | `m5tSegC` | 0 | `R_n → R_n` | 1 → 3 | `de024944… → e433137f…` |
+
+**Proved on T1 at S** (`logs/BT4-T1-prove.txt`; 8 threads, `HEAVY_MEM=8G`, one at a time beside lane
+D's `m8-tree`), native verify + statement check OK, **`m8-import` OK** for all five
+(`t1cut/import.sh`: `state-if`, `state-a`, `state-resume`, `state-b`, `state-fin`), 268.2 bits:
+
+| leaf | proof | prove | peak RSS | compressions |
+|---|---|---|---|---|
+| IF (`m5tIFC`) | **592,280 B** (B-T1b `m5tIF`: 491,416) | 30.9 s | 7.69 GiB | 157 |
+| STATE seg A | **510,342 B** (B-T1b one segment: 473,236) | 28.1 s | 7.30 GiB | 109 |
+| RT resume, state half | **509,250 B** | 26.5 s | 7.29 GiB | 79 |
+| STATE seg B | **509,502 B** | 25.9 s | 7.27 GiB | 61 |
+| finalize, state half | **509,460 B** | 27.0 s | 7.22 GiB | 61 |
+
+Saved: **`/data/illia/nearproof-deps/laneB-t1/t4/T1C/{if,seg0,seg1,seg2,seg3}/out/`** (`STATE.proof`,
+`STATE.vk.json`, `statement.json`, `htape.json` = the `STC` stand-in's `STMQ` / `STMA`) and
+`…/T1C/tmpl/<name>/` (`TMPL.*`, `INFO.json`, `htape.json`; `SHA256SUMS`). The four segments share one
+vk (`c063cefe…`). `leaf_chain.py`: `R_0 → R_A → R_n → R_n → R_n = IF's R_n`, `wsLen` 17, IF post root
+= the Lean oracle's — **LEAF CHAIN OK**.
+
+**Against lane I's chain** (`t1/chain.py plan`, `leaf_table`): for every lane B leaf the `STC` row's
+`r_in` / `r_out` **is the cut's `stRoot`** and the records assembled with them (the other fields:
+lane F's engine half / lane D's wrapper) are the chain's **digest for digest**: IF `h(c1)` `4ae97236…` /
+`h(c9)` `f7c8b2b6…`; seg A `4ae97236… → 3d9f81b4…`; resume state half `10f87ec9… → afe47194…`; seg B
+`afe47194… → afe47194…`; finalize state half `afe47194… → f7c8b2b6…`. Placeholders removed:
+`stD .none`, `stRoot.ws` at `c2` (`R_A`, input field `R_A`). New cut digests: `c0` `039f9e01…`,
+`c2` `3d9f81b4…`, `c3` `bff8b633…`, `c4` `4d961418…`, `c5` `de147d2d…`, `c6` `10f87ec9…`, `c10`
+`dfaf4cfe…` (`c1`, `c7`–`c9` unchanged).
+
+**Mutants** (`t4_mutants.sh … check`, `logs/BT4-mutants-check.txt`): **13 / 13 rejected** —
+`stctrie` / `ifctrie` (a consistently hashed opening with another trie: only `trieEqs` fails),
+`ifcws` (the IF's opening with another `ws` than `R_0`), `ifcrout` (the FINAL half's `stRoot` not the
+closed one: `STMA` unbalanced), `segsb0` (a segment with writes closing like an empty one: `RCH`
+unbalanced), and B-T3's 8 `STC` mutants on the cut's seg A.
+
+### Item 4 (`SegLeavesN`'s content half): not done
+
+`LastNew` / `Untouched` from `Holds` stay open (B-T3 item 3).
+
+### Lean [K] (std axioms, no `sorry`; `logs/BT4-axioms.txt`)
+
+`StNone.lean` (`stD_none_eq`, `wsRoot_nil`, `fitsB_none'`), `join-check/StNoneE.lean`
+(`stD_none_viewE`, kernel), `Stc.lean` (`trieEqs`, `m5tIFC`), `StcRow.trieI`, `StcSound` (`pubTrie`,
+`comI_trie`, `stc_row_okT`, `stc_holdsT`, `ifc_*`, `ns_if`, `rng_vT`, `srng_send_ifc`, `stc_ifc`),
+`StHalfC` (`StcOKT`, `stcOK_of_T`), `HeaderLink.lean` (`init_header`, `header_link`).
+
 ## B-T3 (fourteenth session, 2026-11-25): the `STC` table, the HOST trie-key prefix (B2-4), `SegLeaves` restated
 
 Log `docs/logs/e2e-bt3-state-2026-11-25.md`. Plan §3.5 ("Lane B status (B-T3)", the `stRoot`

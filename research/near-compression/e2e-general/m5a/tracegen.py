@@ -64,9 +64,19 @@ Working-set segment mutants (M5a-3: write accesses on the `WM` memory chain, bat
   wsabsorb  an inactive path-node row absorbs a touched child without hashing it
   wsleaf    a touched leaf claims another pre-value length (consistently hashed)
 
+B-T4 mutants (`--ifc` / `--seg-keys`: the IF's own `STC` row, the cut at the `rt` boundaries):
+  stctrie   a segment's STC row opens (and honestly hashes) a commitment whose trie is not the public
+            prev_state_root (one byte; `Stc.trieEqs`)
+  ifctrie   the same on the IF's STC row
+  ifcws     the IF's STC row opens a commitment whose ws is not its public R_0 (honest hashes)
+  ifcrout   the FINAL half's stRoot the stand-in takes is not the IF's closed commitment
+  segsb0    a segment with writes closes like an empty one (`WSX` `sb = 0`, `R_out = R_in` claimed)
+
 Options: --segs S cuts the write log into S segments (default 1: the whole M5a write tape is one
 STATE segment); --extra-writes N writes an intermediate value to each of the first N written keys
-before its final one (exercises the memory chain).
+before its final one (exercises the memory chain). B-T4: --seg-keys FILE (segment s = the writes of
+the keys in entry s; a segment may be empty), --stc-meta FILE (per-dump STC tags / rests), --ifc (the
+IF dump gets its own STC row and `htape.json`: `Stc.m5tIFC`).
 """
 import hashlib
 import json
@@ -193,6 +203,12 @@ class Gen:
         # counts and tables; inside a segment dump the segment is `seg = 0` and times restart at 1
         self.splitmode = split
         self.seg_cap = getattr(Gen, 'SEG_CAP', None)
+        self.seg_keys = getattr(Gen, 'SEG_KEYS', None)
+        # B-T4: per-dump `STC` metas (`--stc-meta FILE`: {dump: {tag_in, tag_out, rest_in, rest_out}}) and
+        # the IF's own `STC` row (`--ifc`, `Stc.m5tIFC`: input = the INTAKE half's `stRoot` at `start`,
+        # output = the FINAL half's at `done`)
+        self.stc_meta = getattr(Gen, 'STC_META', {}) or {}
+        self.ifc = getattr(Gen, 'IFC', False)
         self.R = {}
         self.role = 'if'
         # Batched FINAL: `plan` (from a first pass, `make_plan`) says, for every node version,
@@ -1126,7 +1142,14 @@ class Gen:
             self.root24['if'] = self.build_wsx(self.rch[0], self.rch[-1], 1)  # B-T1b: `sb = 1` (`Tmpl.Wsx.sbPin`)
             for s in range(self.nseg):
                 self.set_role(('seg', s))
-                self.root24[('seg', s)] = self.build_wsx(self.rch[s], self.rch[s + 1], 1)
+                # B-T4: a segment without writes has no path rows; its `WSX` closes `RCH(0, R_in)`
+                # with `RCH(0, R_out)` (`sb = 0`, `R_out = R_in`)
+                empty = not any(w[1] == s for w in self.writes)
+                if s == 0 and self.mutant == 'segsb0':
+                    # a segment with writes closing as if empty: `sb = 0`, `R_out = R_in` claimed
+                    self.root24[('seg', s)] = self.build_wsx(self.rch[s], self.rch[s], 0)
+                else:
+                    self.root24[('seg', s)] = self.build_wsx(self.rch[s], self.rch[s + 1], 0 if empty else 1)
                 self.build_rng()
             self.set_role('if')
         self.build_rng()
@@ -1197,9 +1220,19 @@ class Gen:
                 ws.append((key, (1, len(v), sha(v)), v))
             ws.append((key, ref, chg[key]))
         S = min(self.segs, len(ws))
+        # B-T4 `--seg-keys FILE` (`SEG_KEYS`): segment s takes the writes of the keys listed in entry s
+        # (the cut at the `rt` boundaries: the changes committed before / by / after a receipt step);
+        # writes are ordered by segment, then by key; a segment may be empty (`R_out = R_in`)
+        if self.seg_keys is not None:
+            sk = {bytes.fromhex(k): i for i, ks in enumerate(self.seg_keys) for k in ks}
+            assert all(w[0] in sk for w in ws), 'every write is in one --seg-keys segment'
+            ws.sort(key=lambda w: sk[w[0]])
+            segof = [sk[w[0]] for w in ws]
+            S = len(self.seg_keys)
         # B-T1 `--seg-cap N`: cut on overflow — a new STATE segment whenever the next write's key +
         # value bytes (its `STB` rows) would push the segment past N bytes
-        segof = [t * S // len(ws) for t in range(len(ws))] if ws else []
+        if self.seg_keys is None:
+            segof = [t * S // len(ws) for t in range(len(ws))] if ws else []
         if self.seg_cap:
             segof, s, acc = [], 0, 0
             for key, ref, v in ws:
@@ -1665,15 +1698,39 @@ class Gen:
     def chip_rows(n):
         return 128 * n
 
-    STC_MUTANTS = ('stcrin', 'stcrout', 'stctag', 'stcrest', 'stcws', 'stclen', 'stcbig', 'stcbyte')
+    STC_MUTANTS = ('stcrin', 'stcrout', 'stctag', 'stcrest', 'stcws', 'stclen', 'stcbig', 'stcbyte', 'stctrie',
+                   'ifcws', 'ifctrie', 'ifcrout')
 
-    def build_stc(self, comp, a24, b24, wslen):
+    def build_stc(self, comp, a24, b24, wslen, name='seg0'):
         """B-T3: the `STC` row of a segment and the stand-in's `STMQ` / `STMA` (lane F's engine rows).
         Mutants (`--mutant stc*`) tamper one value after the honest row is built."""
         m = self.mutant
         # `stcbig`: the public count is `2^D + 1` (set with `pubs`); `2^D − wsLen` is no 3-byte number
-        rows, cnt, msgs, info = STC.build(self.names, comp, a24, b24, wslen, self.pre_root)
+        md = dict(self.stc_meta.get(name, {}))
+        for k in ('rest_in', 'rest_out'):
+            if k in md:
+                md[k] = bytes.fromhex(md[k])
+        if name == 'if':
+            md.setdefault('tag_in', 1)
+            md.setdefault('tag_out', 3)
+        trie = self.pre_root
+        # `stctrie` / `ifctrie`: the row opens (and honestly hashes) a commitment whose trie is not the
+        # public `prev_state_root` (one byte flipped): only `Stc.trieEqs` can reject it
+        if m == 'stctrie' and name != 'if' or m == 'ifctrie' and name == 'if':
+            trie = bytes([trie[0] ^ 1]) + trie[1:]
+        # `ifcws`: the IF's row opens a commitment with another `ws` than its `R_0` (honest hashes)
+        if m == 'ifcws' and name == 'if':
+            a24 = [a24[0] ^ 1] + list(a24[1:])
+        rows, cnt, msgs, info = STC.build(self.names, comp, a24, b24, wslen, trie, **md)
         r = rows[0]
+        if name == 'if':
+            if m == 'ifcrout':     # the FINAL half's stRoot the tape takes is not the closed commitment's
+                msgs[1][2][0] ^= 1
+            if m == 'ifcws':       # the bytes are a consistent opening of another ws; the public R_0 is kept
+                pass
+            return rows, cnt, msgs, info
+        if m in ('ifcws', 'ifctrie', 'ifcrout'):
+            return rows, cnt, msgs, info
         cols = {nm: i for i, nm in enumerate(self.names['STC'])}
         ix = lambda nm, j: cols['%s.%d' % (nm, j)]
         if m == 'stcrin':       # the engine claims another input stRoot
@@ -1738,14 +1795,14 @@ class Gen:
             else:
                 pubs = pack2(self.pre_root) + [wslen] + r24(a24) + r24(b24)
             stc_msgs, stc_info = [], None
-            if kind == 'seg' and 'STC' in self.names:
+            if 'STC' in self.names and (kind == 'seg' or self.ifc):
                 # B-T3: the `STC` row opens the input `stRoot` and closes the output's (`Stc.m5tSegC`);
                 # its 4 compressions go to this segment's chip, its lookups to `SRNG`
                 def rcomp(h, block, R=R):
                     cid = 128 * len(R['comps'])
                     R['comps'].append(dict(h=[str(x) for x in h], block=[str(x) for x in block]))
                     return cid, S5.compress(h, block)
-                stc_rows, srng_cnt, stc_msgs, stc_info = self.build_stc(rcomp, a24, b24, wslen)
+                stc_rows, srng_cnt, stc_msgs, stc_info = self.build_stc(rcomp, a24, b24, wslen, name)
                 T['STC'] = Table('STC', self.names['STC']); T['STC'].rows = stc_rows
                 T['SRNG'] = Table('SRNG', self.names['SRNG']); T['SRNG'].rows = STC.srng_rows(self.names, srng_cnt)
                 order = tuple(order) + ('STC', 'SRNG')
@@ -1784,6 +1841,8 @@ class Gen:
                 json.dump(self.host_tape(role[1]), open(os.path.join(d, 'hosttape.json'), 'w'))
             if role != 'if':
                 json.dump(self.st_tape(role[1]) + stc_msgs, open(os.path.join(d, 'htape.json'), 'w'))
+            elif stc_msgs:
+                json.dump(stc_msgs, open(os.path.join(d, 'htape.json'), 'w'))   # B-T4: the IF's STC stand-in
             if tmpl is not None:
                 json.dump(dict(name=tmpl.get('name'), kind=kind_t, D=self.D, **tmpl.get(kind_t, tmpl[kind])),
                           open(os.path.join(d, 'template.json'), 'w'), indent=1)
@@ -2359,6 +2418,11 @@ def main():
     assert split or not host, '--host needs --split'
     cap = int(args[args.index('--seg-cap') + 1]) if '--seg-cap' in args else None
     Gen.SEG_CAP = cap
+    if '--seg-keys' in args:
+        Gen.SEG_KEYS = json.load(open(args[args.index('--seg-keys') + 1]))
+    if '--stc-meta' in args:
+        Gen.STC_META = json.load(open(args[args.index('--stc-meta') + 1]))
+    Gen.IFC = '--ifc' in args
     if '--host-join' in args:
         Gen.HOST_JOIN = json.load(open(args[args.index('--host-join') + 1]))
     g = make_gen(st, names, mutant, None, segs, extra, split, host)

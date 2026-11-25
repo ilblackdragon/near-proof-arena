@@ -16,7 +16,8 @@ One active `STC` row does both:
   compressions (`ho`, `do ‖ xo`), digest bytes `ro`;
 * `ws` of the input = the segment's public `R_in` (values 17–34, the chip limbs of 6 words), `ws` of
   the output = `R_out` (35–52); `wsLen` (u64 LE, bytes 49–56) = public value 16, and
-  **`wsLen ≤ 2^D`**: `2^D − wsLen = g₀ + 256 g₁ + 65536 g₂` with bytes `g`;
+  **`wsLen ≤ 2^D`**: `2^D − wsLen = g₀ + 256 g₁ + 65536 g₂` with bytes `g`; B-T4: the opened `trie`
+  (bytes 57–88) = the public `prev_state_root` (values 0–15, `trieEqs`);
 * **`STMQ`** (211, engine → state, received): `[r_in (14 limbs), tag_out, rest_out (14 limbs)]` —
   `r_in` = the first 42 bytes of the input digest, `tag_out = ot`, `rest_out` = `or`;
 * **`STMA`** (212, state → engine, sent): `[r_out (14 limbs), tag_in, rest_in (14 limbs)]`.
@@ -135,8 +136,14 @@ def lenEqs (D : Nat) : List Expr :=
   [c "b" 49 + K 256 * c "b" 50 + K 65536 * c "b" 51 - .pub PUB_WSLEN,
    c "g" 0 + K 256 * c "g" 1 + K 65536 * c "g" 2 - (K (2 ^ D) - .pub PUB_WSLEN)]
 
+/-- B-T4: the opened `trie` bytes (57–88) are the public `prev_state_root` (values 0–15, 16-bit
+limbs big-endian, `pack2`): byte pair `(57 + 2i, 58 + 2i)` is limb `i`. A STATE leaf's trie is the
+one its INTAKE revealed, and the IF's FINAL (`FinHalfB`) runs on the trie the commitment carries. -/
+def trieEqs : List Expr :=
+  (List.range 16).map fun i => c "b" (58 + 2 * i) + K 256 * c "b" (57 + 2 * i) - .pub i
+
 def constraints (D : Nat) : List Expr :=
-  bool (c "act") :: (splits ++ limbEqs ++ lenEqs D).map fun e => c "act" * e
+  bool (c "act") :: (splits ++ limbEqs ++ lenEqs D ++ trieEqs).map fun e => c "act" * e
 
 /-- The byte columns (each looked up once). -/
 def byteCols : List Expr :=
@@ -203,13 +210,23 @@ def m5tSegC (D : Nat) : Air :=
 
 def tableNamesSegC : List String := tableNamesSeg ++ ["STC", "SRNG"]
 
-def namesJsonC (D : Nat) : String :=
+/-- **B-T4: INTAKE + FINAL with the `stRoot` openings** (`m5tIF D`'s tables, then `STC` and `SRNG`).
+The `STC` row's input is the commitment the INTAKE half closes at `start` (`c1`: tag 1, `ws = R_0`,
+public values 17–34) and its output the one the FINAL half opens at `done` (`c9`: tag 3,
+`ws = R_n`, values 35–52); `wsLen`, the trie (= `prev_state_root`, `trieEqs`) and `idx` are shared.
+The public values are `m5tIF`'s (the indices `STC` reads are the same: 0–15, 16, 17–34, 35–52). -/
+def m5tIFC (D : Nat) : Air :=
+  { tables := (m5tIF D).tables ++ stcTables D, numBuses := B_STMA + 1, numPub := NUM_PUB_IF }
+
+def tableNamesIFC : List String := tableNamesIF ++ ["STC", "SRNG"]
+
+def namesJsonC (D : Nat) (names : List String := tableNamesSegC) : String :=
   let q (s : String) := "\"" ++ s ++ "\""
   let ls := layoutsB D ++ [("WSX", Wsx.L), ("STC", Stc.L), ("SRNG", Srng.L)]
   "{" ++ ",".intercalate (ls.map fun (t, L) =>
     q t ++ ":[" ++ ",".intercalate (L.names.map q) ++ "]") ++
   s!",\"D\":{D},\"ws_depth\":{WS_DEPTH},\"zero_limbs\":[" ++
     ",".intercalate ((zeroLimbs D).map toString) ++ "],\"tables\":[" ++
-    ",".intercalate (tableNamesSegC.map q) ++ "]}"
+    ",".intercalate (names.map q) ++ "]}"
 
 end StateM5a

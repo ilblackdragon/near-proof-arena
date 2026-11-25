@@ -128,6 +128,14 @@ def test_chain_fixture_conventions():
     assert c[1]["stRoot"] == chain.st_commit(1, bytes.fromhex(inp["R_0"]), 17, bytes.fromhex(inp["prev_state_root"]),
                                              0, chain.ZERO)
     assert c[3]["wasm"]["codeRoot"].hex() == inp["call"]["code_sha256"] + "00" * 10
+    # B-T4: init / done carry stD .none (the kernel-evaluated constant = its record recomputed); c2 … c6
+    # carry R_A (STATE seg A's output root), c7 … c9 R_n; the finalize step changes only the tag (1 → 3)
+    assert c[0]["stRoot"] == c[10]["stRoot"] == chain.ST_NONE == chain.st_none()
+    ra, rn = bytes.fromhex(inp["R_A"]), bytes.fromhex(inp["R_n"])
+    tr = bytes.fromhex(inp["prev_state_root"])
+    assert all(c[k]["stRoot"] == chain.st_commit(1, ra, 17, tr, 0, chain.ZERO) for k in range(2, 7))
+    assert c[8]["stRoot"] == chain.st_commit(1, rn, 17, tr, 0, chain.ZERO)
+    assert c[9]["stRoot"] == chain.st_commit(3, rn, 17, tr, 0, chain.ZERO)
     assert c[4]["wasm"]["gasLeft"] == inp["call"]["g0"] and c[6]["wasm"]["gasLeft"] == 0
 
 
@@ -175,7 +183,7 @@ def test_chain_lean(tmp_path):
     assert cs["rows"]["u32_lB"]["lean"] == "00001367"     # ViewE.u32 is big-endian
 
 
-HAVE_LEAVES = all(os.path.exists(p) for p in chain.SAVED.values())
+HAVE_LEAVES = all(os.path.exists(p) for p in list(chain.SAVED.values()) + list(chain.SAVED_B.values()))
 
 
 @pytest.mark.skipif(not HAVE_LEAVES, reason="saved leaves absent")
@@ -186,7 +194,14 @@ def test_chain_saved_leaves():
     # G-5: INIT hashes big-endian u32 (I2b-1) and FINAL ViewE's done encodings; both match the chain
     assert all(r["INIT"]["checks"].values()) and r["INIT"]["in_equal"]
     assert all(r["FINAL"]["checks"].values()) and r["FINAL"]["out_equal"]
-    assert all(r["IF"]["checks"].values()) and all(r["PREP"]["checks"].values()) and all(r["STATE seg"]["checks"].values())
+    assert all(r["PREP"]["checks"].values())
+    # B-T4: lane B's leaves cut at the rt boundaries; every STC r_in / r_out is the chain's stRoot and the
+    # records assembled with them are the chain's cuts, digest for digest
+    for k in ("IF", "STATE seg A", "RT resume, state half", "STATE seg B", "finalize, state half"):
+        assert all(r[k]["checks"].values()), (k, r[k]["checks"])
+        assert r[k]["in_equal"] and r[k]["out_equal"], k
+    assert r["IF"]["d_in"] == r["STATE seg A"]["d_in"] and r["IF"]["d_out"] == r["finalize, state half"]["d_out"]
+    assert r["STATE seg A"]["d_out"] == chain.digests(chain.build(inp))[2]
     assert r["WASM seg 0"]["in_equal"] and r["WASM seg 0"]["out_equal"] and r["WASM seg 1"]["in_equal"]
     # A-T5: the halting segment's out-record is lane A's `.fin r` record (finding I2b-2 closed), and
     # every in/out digest of the two Wasm leaves is the chain's (c4 -> c5 -> c6)

@@ -1,0 +1,19 @@
+# B-T4: t4_mutants.sh STATE_JSON OUT BIN check (T1, template S, the rt cut: --ifc --seg-keys --stc-meta); prover pre-check (every constraint, every bus); 13/13 mutants rejected
+honest if: PRECHECK OK: every constraint on every row; every bus balances (12452 distinct messages) 
+honest seg0: PRECHECK OK: every constraint on every row; every bus balances (4680 distinct messages) 
+honest seg1: PRECHECK OK: every constraint on every row; every bus balances (1743 distinct messages) 
+honest seg2: PRECHECK OK: every constraint on every row; every bus balances (1116 distinct messages) 
+honest seg3: PRECHECK OK: every constraint on every row; every bus balances (1143 distinct messages) 
+stctrie (seg0): precheck: STC: constraint 200 fails on row 0 
+ifctrie (if): precheck: STC: constraint 200 fails on row 0 
+ifcws (if): precheck: STC: constraint 157 fails on row 0 
+ifcrout (if): precheck: 2 unbalanced messages by bus {212: 2}; first [((212, [14955282, 8380046, 8790330, 5774827, 14253357, 13016882, 6308428, 6698476, 3642915, 8991958, 13509775, 896 
+segsb0 (seg0): precheck: 2 unbalanced messages by bus {12: 2}; first [((12, [0, 812274, 882723, 436320, 555537, 929335, 1381616, 2007244, 2054349, 2412192, 1952369, 1092719, 126997, 889 
+stcrin (seg0): precheck: 2 unbalanced messages by bus {211: 2}; first [((211, [3387710, 11213258, 119492, 561571, 15427684, 3768296, 9080900, 3906294, 1434971, 9092935, 776892, 9239075, 
+stcrout (seg0): precheck: 2 unbalanced messages by bus {212: 2}; first [((212, [13022682, 13312266, 12131680, 14886122, 3576185, 6813269, 10528846, 11667167, 9477116, 15372879, 11923450, 
+stctag (seg0): precheck: 2 unbalanced messages by bus {212: 2}; first [((212, [13022682, 13312266, 12131680, 14886122, 3576185, 6813269, 10528846, 11667167, 9477116, 15372879, 11923450, 
+stcrest (seg0): precheck: 2 unbalanced messages by bus {211: 2}; first [((211, [3387711, 11213258, 119492, 561571, 15427684, 3768296, 9080900, 3906294, 1434971, 9092935, 776892, 9239075, 
+stcws (seg0): precheck: STC: constraint 98 fails on row 0 
+stclen (seg0): precheck: STC: constraint 198 fails on row 0 
+stcbig (seg0): precheck: 1 unbalanced messages by bus {31: 1}; first [((31, [2013265920]), 2013265920)] 
+stcbyte (seg0): precheck: STC: constraint 202 fails on row 0 
