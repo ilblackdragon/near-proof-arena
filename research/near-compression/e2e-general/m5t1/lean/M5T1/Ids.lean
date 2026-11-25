@@ -29,6 +29,8 @@ field `fid = 96 + mt` of the same family.
 | `STMA` | `(r_out 14 limbs, tag_in, rest_in 14 limbs)` | **F-4, lane B's `STMA`** (cross-lane id 212): the output `stRoot` and the input state's meta, from `STC` |
 | `IF384` | `(cid, pair, 3 limbs, 3 limbs)` | **F-4**: the native SHA-512 compression chip's interface (lane B's `IF384`; native bus 103) |
 | `ACCD` | `(hid)` | **F-4**: the resume edge demands one SHA-384 accumulator append per `hid` (0: outcomes, 1: outgoing receipts) from `ACC` |
+| `SHB` | `(hid, bi, 43 limbs of the block)` | **F-7**: block `bi` of a fixed-content SHA-384 `hid` of the STATE engine half (`SE` sends the padded block, `SH` receives it) |
+| `SHD` | `(hid, fx, nb − 1, 14 limbs of the digest)` | **F-7**: `SE` demands one SHA-384 per `hid` with this digest (`fx = 1`: fixed content of `nb` blocks; `fx = 0`: a witnessed message) from `SH` |
 
 Limbs of a 42-B digest on `STMQ`/`STMA`: limb `j < 14` is bytes `3j, 3j+1, 3j+2` big-endian
 (`65536·b₀ + 256·b₁ + b₂`, `< 2^24`).
@@ -58,6 +60,10 @@ def B_STMA : Nat := 18
 def B_IF384 : Nat := 19
 def B_ACCD : Nat := 20
 def NUM_BUSES : Nat := 21
+def B_SHB : Nat := 21
+def B_SHD : Nat := 22
+/-- F-7: the STATE engine half's AIR (`Se.seAir`) has two more buses (`SHB`, `SHD`). -/
+def NUM_BUSES_SE : Nat := 23
 /-- The bus count of the F-2 / F-3 AIRs (the enter leaf keeps it: its AIR value is unchanged). -/
 def NUM_BUSES_F3 : Nat := 17
 

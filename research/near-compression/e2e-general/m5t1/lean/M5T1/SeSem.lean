@@ -42,8 +42,8 @@ theorem se_row0 : ∀ e ∈ Se.table.constraints, ev tr 0 0 pub e = 0 := by
 omit H in
 theorem mem_field {p : String × Nat} (hp : p ∈ engF) {e : Expr}
     (he : e ∈ ruleCons Se.SI Se.SO p.1 p.2 (Se.seRule p.1)) : e ∈ Se.table.constraints := by
-  show e ∈ Se.cons
-  exact List.mem_append_left _ (List.mem_append_right _ (List.mem_flatMap.2 ⟨p, hp, he⟩))
+  show e ∈ Se.cons5 ++ Se.cons7
+  exact List.mem_append_left _ (List.mem_append_left _ (List.mem_append_right _ (List.mem_flatMap.2 ⟨p, hp, he⟩)))
 
 omit H in
 theorem si_b (f : String) (j : Nat) : Se.SI.b f j = .pub (engF.off f + j) := by
@@ -88,9 +88,9 @@ theorem in_phase : bytesOf pub 42 8 = beN 8 1 := by
   apply bytesOf_num
   intro k hk
   have hm : gate (Se.SI.le "phase" k - K (1 / 256 ^ k % 256)) ∈ Se.table.constraints := by
-    show _ ∈ Se.cons
-    exact List.mem_append_left _ (List.mem_append_left _ (List.mem_append_left _
-      (List.mem_append_left _ (List.mem_map.2 ⟨k, List.mem_range.2 hk, rfl⟩))))
+    show _ ∈ Se.cons5 ++ Se.cons7
+    exact List.mem_append_left _ (List.mem_append_left _ (List.mem_append_left _ (List.mem_append_left _
+      (List.mem_append_left _ (List.mem_map.2 ⟨k, List.mem_range.2 hk, rfl⟩)))))
   have h := se_row0 H _ hm
   simp only [Side.le, Side.b] at h
   have := gate_const_eq (by have := Nat.mod_lt (1 / 256 ^ k) (show 0 < 256 by decide); omega) h
@@ -106,8 +106,8 @@ theorem se_gas : bytesOf pub (450 + engF.off "gasUsed") 8 = bytesOf pub (450 + e
   apply bytesOf_congr
   intro j hj
   have hm : gate (Se.SO.b "gasUsed" j - Se.SO.b "gasBurnt" j) ∈ Se.table.constraints := by
-    show _ ∈ Se.cons
-    exact List.mem_append_right _ (List.mem_map.2 ⟨j, List.mem_range.2 hj, rfl⟩)
+    show _ ∈ Se.cons5 ++ Se.cons7
+    exact List.mem_append_left _ (List.mem_append_right _ (List.mem_map.2 ⟨j, List.mem_range.2 hj, rfl⟩))
   have h := se_row0 H _ hm
   rw [so_b, so_b] at h
   exact gate_pub_eq h

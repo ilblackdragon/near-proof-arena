@@ -1,4 +1,5 @@
 import M5T1.SeSem
+import M5T1.SeOpen
 import M5T1.ResumeC
 import NearSpecV3.E2E.GlueFin
 
@@ -78,10 +79,12 @@ def qOfS (w : SeW) : StQ := ⟨w.2.2.w, metaInS w.2.1, metaOutS w.2.1⟩
 def rInS (pub : List Fp) : Bytes := bytesOf pub (engF.off "stRoot") 42
 def rOutS (pub : List Fp) : Bytes := bytesOf pub (450 + engF.off "stRoot") 42
 
-/-- **The STATE engine half at digest boundaries.** -/
+/-- **The STATE engine half at digest boundaries.** F-7: with what the opening rows establish
+(`SeOpen.SeOpenOK`: the `SH` hashes, proved from the circuit and lane B's chip contract by
+`SeOpen.se_open`, as the resume leaf's `RsHoldsC` carries `AccOK`). -/
 def SeHoldsC (xtape : Tp) (d d' : Bytes) (w : SeW) : Prop :=
   Holds (Se.fullSe xtape) w.1 w.2.1 ∧ (∀ i < 900, pv w.1 i < 256) ∧
-    d = bdigest (bytesOf w.1 0 450) ∧ d' = bdigest (bytesOf w.1 450 450)
+    d = bdigest (bytesOf w.1 0 450) ∧ d' = bdigest (bytesOf w.1 450 450) ∧ SeOpen.SeOpenOK w.1 w.2.1
 
 /-- The M8 leaf statement `(phase, digest)`: phase `1` in and out. -/
 def SeHolds8 (xtape : Tp) (_ctx : Bytes) (b b' : LB) (w : SeW) : Prop :=
@@ -159,13 +162,13 @@ theorem se_engHalf {sf : Intake → TTN.Store} {V : ViewImpl} (hV : RsView V) {A
     Glue.EngHalfRCOn sf V M P Sha384Coll := by
   classical
   intro ctx b b' q r r' hh x _ hx
-  obtain ⟨⟨pub, tr, gh⟩, ⟨⟨H, hb, hd, hd'⟩, -, h1⟩, rfl, rfl, hro⟩ := hE ctx b b' q r r' hh
+  obtain ⟨⟨pub, tr, gh⟩, ⟨⟨H, hb, hd, hd', hO⟩, -, h1⟩, rfl, rfl, hro⟩ := hE ctx b b' q r r' hh
   by_cases he : (V.bnd x).encode = bytesOf pub 0 450
   case neg =>
     exact .inl ⟨_, _, he, by rw [← hd]; exact (congrArg Prod.snd hx).symm⟩
   have hph := se_phase H (hV.wf x) he
   obtain ⟨I, c, rfl⟩ := phase_eng hph
-  rcases hS b.2 b'.2 ⟨pub, tr, gh⟩ r' I c ⟨H, hb, hd, hd'⟩ hro he with hcol | ⟨c', hm, hp, hq, hlink, hfree⟩
+  rcases hS b.2 b'.2 ⟨pub, tr, gh⟩ r' I c ⟨H, hb, hd, hd', hO⟩ hro he with hcol | ⟨c', hm, hp, hq, hlink, hfree⟩
   · exact .inl hcol
   have hin := fields_eng (hV.wf _) (eng_wasm hV I c) (eng_out hV I c) he
   refine .inr ⟨.base (.eng I c'), trivial, hm, trivial, hp, ?_, hq, ?_⟩
@@ -236,6 +239,17 @@ theorem finalize_relC8 {sf : Intake → TTN.Store} {V : ViewImpl} (hV : RsView V
     TmplSoundRel8C sf V (seAirs xtape) Sha384Coll .state :=
   GlueFin.fin_sound_relC sf V _ Sha384Coll (fin_engHalf hV xtape HoldsS joint hS) hB
 
+/-- **The STATE engine half's leaf predicate from the circuit** (F-7: and lane B's chip contract,
+for the opening rows' hashes, `SeOpen.se_open`). -/
+theorem seHoldsC_of {xtape : Tp} {d d' : ArenaCore.Bytes} {w : SeW}
+    (H : Holds (Se.fullSe xtape) w.1 w.2.1) (h2 : Bus.NoRng xtape)
+    (hd : d = NearSpecV3.E2E.Bnd.bdigest (SegRt.bytesOf w.1 0 450))
+    (hd' : d' = NearSpecV3.E2E.Bnd.bdigest (SegRt.bytesOf w.1 450 450))
+    (hi2 : MsgRow.NoSendOn B_IF384 xtape) (hC : ShDef.ChipOK w.2.1)
+    (hr : AccSem.NoRecvOn B_SHD xtape) (hb : MsgRow.NoSendOn B_SHB xtape) : SeHoldsC xtape d d' w :=
+  ⟨H, PubBytes.se_bytes H h2, hd, hd', SeOpen.se_open H h2 hi2 hC hr hb⟩
+
+#print axioms seHoldsC_of
 #print axioms eng_copied
 #print axioms eng_consts
 #print axioms se_engHalf
