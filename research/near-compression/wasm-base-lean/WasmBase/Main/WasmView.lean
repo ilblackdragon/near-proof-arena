@@ -867,12 +867,12 @@ theorem wasmBnd_ok (w : CallArgs × CallConf) : WasmBnd.codec.ok (wasmBnd P w) :
     obtain ⟨l1, l2, l3, l4⟩ := hD.lt64
     simp only [WasmBnd.codec, NearSpecV3.E2E.Bnd.mapC, NearSpecV3.E2E.Bnd.pairC,
       NearSpecV3.E2E.Bnd.natC, NearSpecV3.E2E.Bnd.bytesC, airBnd]
-    refine ⟨l1, l2, l3, hn, bdigest_length _, ?_, l4, bdigest_length _, bdigest_length _,
+    refine ⟨l1, l2, l3, hn, by decide, bdigest_length _, ?_, l4, bdigest_length _, bdigest_length _,
       bdigest_length _, b0, P.codeRoot_len _ _, P.funcRoot_len _ _⟩
     simp only [List.length_take, memRootOf_length, digestLen]; decide
   · simp only [WasmBnd.codec, NearSpecV3.E2E.Bnd.mapC, NearSpecV3.E2E.Bnd.pairC,
       NearSpecV3.E2E.Bnd.natC, NearSpecV3.E2E.Bnd.bytesC, fbBnd]
-    exact ⟨by decide, by decide, by decide, by decide, b0, b0, by decide, b0, b0,
+    exact ⟨by decide, by decide, by decide, by decide, by decide, b0, b0, by decide, b0, b0,
       bdigest_length _, b0, b0, b0⟩
 
 /-! ## 8. Binding -/
@@ -914,7 +914,7 @@ theorem wasmBnd_binding {w w' : CallArgs × CallConf} (h : wasmBnd P w = wasmBnd
       rw [hq, hX'] at hX
       cases Option.some.inj hX
       simp only [airBnd, WasmBnd.mk.injEq] at h
-      obtain ⟨hpc, hsp, hrem, rfl, hfd, hmr, hmp, -, -, -, -, -, -⟩ := h
+      obtain ⟨hpc, hsp, hrem, rfl, -, hfd, hmr, hmp, -, -, -, -, -, -⟩ := h
       -- the boundary view
       by_cases hcb : cutBytes (cutView X s) = cutBytes (cutView X s')
       rotate_left

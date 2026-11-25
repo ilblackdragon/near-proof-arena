@@ -323,6 +323,117 @@ theorem e2e_sound_t1_bind (V : ViewImpl) (hV : ∀ x, (V.bnd x).WF) (A : Airs)
   · exact .inr (.inl h)
   · exact .inr (.inr (viewImpl_binding V hV h))
 
+/-! ## The official per-template obligation: the relative form (M11i)
+
+`TmplSound` (above) asks the rows to show that the **input** digest opens to some configuration.
+A segment sees its input digest only as public bytes, so no segment circuit can meet it (lane F's
+`M5T1.Obl.tmplSound_image`, lane A's `TmplWasm` §4: every input digest the AIR accepts would have to
+lie in the image of `bndOf`). The obligation the lanes discharge is therefore **relative**: if the
+input digest is the digest of `x`, the output digest is the digest of a successor of `x` under the
+template's meaning. The chain is opened at `B_0` by the wrap (`WrapInitSound`) and then segment by
+segment. `TmplRel` is definitionally lane F's `TmplSoundFrom` (same argument order) and lane A's
+`TmplSoundRel` up to argument order. -/
+
+/-- **The per-template obligation (official, relative form).** -/
+def TmplRel (V : ViewImpl) (A : Airs) (Bad : Prop) (k : Tmpl) : Prop :=
+  ∀ (d d' : Bytes) (tr : A.Tr k) (x : RConf), A.Holds k d d' tr → bndOf V.bnd x = d →
+    Bad ∨ ∃ x', bndOf V.bnd x' = d' ∧ Meaning k x x'
+
+/-- Lane G, `INTAKE` (relative). -/
+abbrev SegRelInit (V : ViewImpl) (A : Airs) (Bad : Prop) : Prop := TmplRel V A Bad .init
+/-- Lane B (with lane F's engine rows, `TreeM8.split_sound`), STATE (relative). -/
+abbrev SegRelState (V : ViewImpl) (A : Airs) (Bad : Prop) : Prop := TmplRel V A Bad .state
+/-- Lane F, receipt step (relative). -/
+abbrev SegRelRt (V : ViewImpl) (A : Airs) (Bad : Prop) : Prop := TmplRel V A Bad .rt
+/-- Lane A, Wasm segment (relative). -/
+abbrev SegRelWasm (V : ViewImpl) (A : Airs) (Bad : Prop) : Prop := TmplRel V A Bad .wasm
+/-- Lane G, `FINAL` (relative). -/
+abbrev SegRelFinal (V : ViewImpl) (A : Airs) (Bad : Prop) : Prop := TmplRel V A Bad .final
+
+/-- The absolute form implies the relative one, modulo a boundary collision. -/
+theorem tmplRel_of_sound {V : ViewImpl} {A : Airs} {Bad : Prop} {k : Tmpl}
+    (h : TmplSound V A Bad k) : TmplRel V A (Bad ∨ BndCollision V.bnd) k := by
+  classical
+  intro d d' tr x hh hx
+  rcases h d d' tr hh with hb | ⟨y, y', hy, hy', hm⟩
+  · exact .inl (.inl hb)
+  by_cases hxy : x = y
+  · subst hxy; exact .inr ⟨y', hy', hm⟩
+  · exact .inl (.inr ⟨x, y, hxy, by rw [hx, hy]⟩)
+
+/-- Along a chain of accepted segments from a digest that opens to `x`, the last digest opens to
+an `RSteps`-successor of `x`. -/
+theorem chain_rel {V : ViewImpl} {A : Airs} {Bad : Prop} (h : ∀ k, TmplRel V A Bad k)
+    (hbad : ¬ Bad) :
+    ∀ (segs : List (Tmpl × Bytes × Bytes × ATrace A)) (b bN : Bytes) (x : RConf),
+      (∀ s ∈ segs, sysHolds A s.1 s.2.1 s.2.2.1 s.2.2.2) →
+      BndChained b (segs.map fun s => (s.2.1, s.2.2.1)) bN → bndOf V.bnd x = b →
+      ∃ xN, bndOf V.bnd xN = bN ∧ RSteps x xN
+  | [], b, bN, x, _, hc, hx => by
+    cases hc; exact ⟨x, hx, .refl _⟩
+  | s :: rest, b, bN, x, hs, ⟨h1, h2⟩, hx => by
+    obtain ⟨k, d, d', ⟨k', tr⟩⟩ := s
+    obtain ⟨hk, hh⟩ := hs _ (List.mem_cons_self ..)
+    simp only at hk hh h1
+    subst hk
+    rcases h k' d d' tr x hh (hx.trans h1) with hb | ⟨x', hx', hm⟩
+    · exact absurd hb hbad
+    obtain ⟨xN, hN, hr⟩ := chain_rel h hbad rest d' bN x'
+      (fun s hs' => hs s (List.mem_cons_of_mem _ hs')) h2 hx'
+    exact ⟨xN, hN, (meaning_rsteps hm).trans hr⟩
+
+/-- **`e2e_sound_t1` from the five relative per-template obligations** (the official form;
+lane F's `e2e_sound_t1_from`, lane A's `e2e_sound_t1_wasmRel`). -/
+theorem e2e_sound_t1_rel (V : ViewImpl) (A : Airs) (W : WrapCheck (sys V A).toSeg) {Proof : Type}
+    (FinalVerify : PublicStmt → Proof → Bool) (Bad : Prop)
+    (ob1 : NvFaithfulE2E (sys V A).toSeg W FinalVerify Bad)
+    (hwi : WrapInitSound V A W Bad) (hwf : WrapFinalSound V A W Bad)
+    (hInit : SegRelInit V A Bad) (hState : SegRelState V A Bad) (hRt : SegRelRt V A Bad)
+    (hWasm : SegRelWasm V A Bad) (hFinal : SegRelFinal V A Bad)
+    (s : PublicStmt) (π : Proof) (hv : FinalVerify s π = true) :
+    E2EStmt s ∨ Bad ∨ BndCollision V.bnd := by
+  classical
+  have h : ∀ k, TmplRel V A Bad k
+    | .init => hInit
+    | .state => hState
+    | .rt => hRt
+    | .wasm => hWasm
+    | .final => hFinal
+  rcases ob1 s π hv with hb | ⟨ch, ⟨hholds, hchain⟩, hinit, hfin⟩
+  · exact .inr (.inl hb)
+  by_cases hbad : Bad
+  · exact .inr (.inl hbad)
+  rcases hwi s ch.b0 hinit with hb | ⟨secB, w, h0⟩
+  · exact absurd hb hbad
+  rcases hwf s ch.bN hfin with hb | ⟨cf, hN, hacc⟩
+  · exact absurd hb hbad
+  obtain ⟨xN, hxN, hrun⟩ := chain_rel h hbad ch.segs ch.b0 ch.bN _ hholds hchain h0.symm
+  by_cases hx : xN = .base cf
+  · subst hx
+    exact .inl ((e2e_stmt_iff_cm s).2
+      ⟨secB, w, cf, rsteps_sound hrun, finalOutPub_accepting s cf hacc⟩)
+  · exact .inr (.inr ⟨xN, .base cf, hx, by rw [hxN, hN]⟩)
+
+/-- `e2e_sound_t1` (absolute premises) is the special case `tmplRel_of_sound`. -/
+theorem e2e_sound_t1_of_abs (V : ViewImpl) (A : Airs) (W : WrapCheck (sys V A).toSeg)
+    {Proof : Type} (FinalVerify : PublicStmt → Proof → Bool) (Bad : Prop)
+    (ob1 : NvFaithfulE2E (sys V A).toSeg W FinalVerify Bad)
+    (hwi : WrapInitSound V A W Bad) (hwf : WrapFinalSound V A W Bad)
+    (h : ∀ k, TmplSound V A Bad k) (s : PublicStmt) (π : Proof) (hv : FinalVerify s π = true) :
+    E2EStmt s ∨ Bad ∨ BndCollision V.bnd := by
+  rcases e2e_sound_t1_rel V A W FinalVerify (Bad ∨ BndCollision V.bnd)
+    (fun s π hv => (ob1 s π hv).imp_left .inl) (fun s d h => (hwi s d h).imp_left .inl)
+    (fun s d h => (hwf s d h).imp_left .inl) (tmplRel_of_sound (h _)) (tmplRel_of_sound (h _))
+    (tmplRel_of_sound (h _)) (tmplRel_of_sound (h _)) (tmplRel_of_sound (h _)) s π hv with
+    h1 | (h2 | h2) | h3
+  · exact .inl h1
+  · exact .inr (.inl h2)
+  · exact .inr (.inr h2)
+  · exact .inr (.inr h3)
+
+#print axioms chain_rel
+#print axioms e2e_sound_t1_rel
+
 /-! ## The honest side: every `CM` run factors into template meanings -/
 
 /-- A chain of meaning instances: consecutive, each of its template's meaning. -/
