@@ -920,6 +920,16 @@ All three follow from `ViewE.viewE` (the concrete view; lane B's `stD`, lane A's
    b; simp_all` over 13 field equalities) needs a 14th hypothesis `a.gasLeft = b.gasLeft` (its
    callers have both records from `airBnd`, where it is `rfl` with the default), and any other
    positional `WasmBnd.mk.injEq` pattern in A-T1 / lane F / lane G files gains one `-`.
+5. **Lane A's side of S1–S3 is done (A-T3, 2026-11-25; `a-t1/README.md` §10) [K].**
+   * `WasmView` is store-blind. `wasmD_binding` is the restricted `CollOn WStripped` form that
+     `SB.bnd_eq_canon` needs. S2 is `fbCode`, and S3 is `codeRootOf` via `CodeCommit`.
+   * `WasmViewParams` is inhabited (`WasmViewT1.wasmViewParams_nonempty`, T1's real context).
+   * The Wasm template targets `TmplRelC`: `TmplWasm.segSoundWasmRelC_of`, with `Bad =
+     Sha384Coll ∨ Coll V.ctxD`, plus the named, honest-proved `GhostC`.
+   * PREP is a `wasm`-kind leaf: `TmplPrep.segSoundWasmPrepRelC_of` covers segments ⊕ PREP and
+     adds `Sha256Coll` to `Bad`.
+   * In the per-lane table, read lane A's row as: Lean tools `segSoundWasmRelC_of`,
+     `segSoundWasmPrepRelC_of`, `wasmD_binding` (restricted), `seg_setSt`, `preConf_canon`.
 
 ---
 
@@ -1387,9 +1397,47 @@ changed.
   * PREP's AIR then reads `B_in.wasm.codeRoot` and writes `B_out.wasm.codeRoot/funcRoot`, the cells
     lane D's record already carries. No AIR was built.
 
-**Next (lane A):** after the owner's S1–S3 decision, build PREP: CODEBYTES + SHA-256 under S2, then
-DECODE/RECORDS (README §4). Before it, `hostPost_of_answer`, the `stackRem` public, and the other
-items above.
+**Done 2026-11-25, ninth session (lane A): milestone A-T3** (`e2e-general/a-t1/README.md` §10; log
+`docs/logs/e2e-laneA-wasm-2026-11-03.md`). `S`, `claimDigest` and the checker are unchanged.
+* **S1–S3 adopted on lane A's side [K]:**
+  * `WasmView` is store-blind. `encRest_blind` and `encRest_inj` hold modulo stores, and
+    `ctxOf_blind` holds.
+  * S2: `.pre`'s `codeRoot = preCodeRoot q`.
+  * S3: `codeRootOf`/`funcRootOf` are `CodeCommit` roots of the padded records.
+  * `wasmD_binding : CollOn WStripped (wasmD P) → Sha384Coll`, and `wasmD_set` (the component is
+    store-blind).
+  * **`WasmViewT1.wasmViewParams_nonempty`**: T1's record uses the real `checkModuleM2` context
+    `ctxM2` and lane E's store-blind serialisers. `vT1` (lane E's `vSB` with lane A's component)
+    is `StoreBlind` and `ClearCall`.
+  * `SegStore.seg_setSt`: a segment keeps the store function.
+  * **`TmplWasm.segSoundWasmRelC_of`** proves `SB.TmplRelC sf V A (Sha384Coll ∨ Coll V.ctxD)
+    .wasm`. It adds one named premise, `GhostC`: the ghost carries the canonical store of the
+    intake pinned by `ctxRoot`. `GhostC` is honest-proved.
+* **PREP as a `wasm`-kind leaf [K][M]:**
+  * `PrepAir`: PHDR, SHA-256 over the code bytes, and the segment AIR's CODE/FUNC tables verbatim.
+  * **`PrepSound.prep_sha_sound`**: from `Holds prepAir`, the 32 public hash bytes are SHA-256 of
+    the SHA table's message, and the public length is its length.
+  * **`TmplPrep.segSoundWasmPrepRelC_of`**: the Wasm kind over segments ⊕ PREP meets `TmplRelC`
+    with `Bad = Sha384Coll ∨ Coll V.ctxD ∨ Sha256Coll`. It relies on `preConf_canon` and the named
+    premises `RecordsCert`, `PrepRest` and `ent`.
+  * T1's PREP leaf: **469,779 B, 268.2 bits**, prove 31 s, verify 13 ms, 7.7 GB, pinned heights.
+    Its cached CODE/FUNC roots equal both A-T2 segment leaves' roots (natively and in lane D's
+    `INFO.json` cells). `m8-import` verifies it.
+  * Mutants: 14/14 rejected. The record mutants are rejected only by the R1 comparison with
+    the segments.
+  * Finding: `Chips.Sha.sh_len` is not tied to `Nd`, so the segment `sha256` summary does not bind
+    the length.
+* **Open:**
+  * The decoder certificate `RecordsCert`. PREP does not yet tie the records to the code bytes;
+    this is the main Wasm-side gap.
+  * `PrepRest` (the entry record), and PREP's error branches.
+  * `CodeOK`/`FuncOK` from S3.
+  * Lane D: insert the PREP leaf into the tree spec, between RT `enter` and WASM 0, with a
+    normaliser from the hash bytes to `B_in.codeRoot`.
+
+**Next (lane A):** the decoder certificate (README §4 steps 2–5) for d3tiny's subset; the
+`stackRem`/`gasLeft` publics (`RestOK`); `CodeOK`/`FuncOK` from S3; `Nd` in the segment `sha256`
+summary.
 
 ### 5.0 Lane D: status, 2026-11-21 (milestone M8, heterogeneous tree; prototype)
 
@@ -2402,7 +2450,7 @@ See `research/near-compression/e2e-general/m5t1/README.md`; log
   counters — lane E / owner decision (no change of `S`, `claimDigest`, checker). Lane A's `fbBnd`
   does not yet write S2. Lane F has no STATE engine rows.
 
-### 5.3 M5d (FINAL and INIT templates, lane G): status, 2026-11-25 (G-3)
+### 5.3 M5d (FINAL and INIT templates, lane G): status, 2026-11-25 (G-4)
 
 See `research/near-compression/e2e-general/m5d/README.md` (commands, tables, costs) and
 `LEAF-TEMPLATE-SPEC.md` (for lane D); log `docs/logs/e2e-laneG-m5d-2026-11-21.md`.
@@ -2486,10 +2534,25 @@ T1's row values satisfy `RowOK`, the window is T1's `chunk_inner`, `headerOk` ho
   `B_out` lacks `V.clear (done …)` (gas burnt, compute, indices) — lane E to fix `clear` at `done`
   or the joint leaf passes them through. Owner/lane E decision, not taken here.
 
+**G-4 (lane G, 2026-11-25)** — log `docs/logs/e2e-laneG-g4-2026-11-25.md`, README §G-4, leaf spec §6.
+* **Soundness fix: INIT's main-slot selection is in-circuit** (was the open `walkSegment` item;
+  `psr_slot` was rejected only by the statement check). Class E1 (one epoch record; every `d3`
+  claim): `INI` reads the claim's shard id and checks `#epochs = 1`; new table `LAY` finds
+  `L.index shard` (first `id_to_index` match); `BLK` selects the first new slot at that index,
+  exactly one. No change to `S`, `claimDigest`, the checker or INIT's public values.
+* **[K]** `WalkSel.walk_single` / `main_slot_single` (the checker's `walkSegment` on a one-epoch
+  table = the first block whose slot `L.index shard0` is new), `InitSel.init_blk_main_slot`,
+  `init_lay_first_pair` (from `Holds initAir`: unique first selection / first matching pair). Std
+  axioms. Open [S]: the bus glue between the three tables and the walks' row ↔ decode correspondence.
+* **[M]** T1 INIT re-proved: **355,691 B**, 23.8 s, 6.27 GB, 268.2-bit, `fs-count` + `m8-import` OK,
+  saved at `/data/illia/nearproof-deps/e2e-m5d/g4/tmpl/init/` (new vk; AIR list gains `LAY`).
+  Battery **13/13**: `psr_slot`, new `psr_ix`, `sel_two`, `sel_none` rejected by the AIR.
+* Out of class (≥ 2 epoch records) INIT rejects; the general walk is not built.
+
 **Open, in order:** (1) `Computed` — the functional-sender facts per SHA-256 consumer (then
 `sha_msg`), the `MRK` rows ⇒ `walkLevel` (functional `NODE` bus), `BODY`/`SEG` ⇒ `encodeRcpts`,
 `S384` padding + digest bytes (then `s384_chain` + `sha384_of_blocks` give SHA-384); (2) lane B's
-`FinalBPart` / `InitBPart` (INTAKE's `ℓ_B` check); (3) transactions (81 % of cases), then proposals,
+`FinalBPart` / `InitBPart` (INTAKE's `ℓ_B` check); INIT's general walk (≥ 2 epochs); (3) transactions (81 % of cases), then proposals,
 bandwidth requests; templates per generated class; (4) lane D: `h(B_out)` assembly in the FINAL
 leaf from the exposed component digests.
 

@@ -1,0 +1,4 @@
+M8_TEMPLATE_PROVED wasm_prep bytes=469779 seconds=0.0 params=(n_stack 18, w_stack 8, lb 1) queries=[100, 71, 45, 33] bits=268.2
+# INFO.json: heights [[2, 4], [7, 128], [5, 32], [2, 4]] vk_sha256 d0e8cf0b08cc62838f998fd6ee1d7f5bc8d2c578213da9ed25ff5fec66ebc83d public values [129, 82, 190, 210, 85, 84, 213, 33, 211, 252, 221, 145, 159, 68, 87, 182, 110, 6, 183, 32, 144, 111, 221, 64, 253, 111, 208, 114, 62, 211, 107, 249, 345]
+# R1 in lane D cells: PREP cached CODE/FUNC 18-limb roots == A-T2 wasm0 (air17/air21): True
+# R1 in lane D cells: PREP cached CODE/FUNC 18-limb roots == A-T2 wasm1 (air17/air21): True

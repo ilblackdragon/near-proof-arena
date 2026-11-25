@@ -1,5 +1,6 @@
 import WasmBase.Main.SegCallSigma
 import WasmBase.Main.WasmView
+import WasmBase.Main.SegStore
 import NearSpecV3.E2E.Templates
 
 /-!
@@ -41,11 +42,16 @@ leaf wrapper's two witnessed boundary records `bIn`, `bOut` (plan §5.0.1.4 step
 ## 2. What is proved
 
 * **`wasm_core`**: `WasmHolds P d d' tr`, an opening `V.bnd (.call I c K q (.ent p k (.cont s) n0)) = bIn`,
-  and the view side conditions give `Sha384Coll ∨ ∃ x', bndOf V.bnd x' = d' ∧ MWasm x x'`.
-* **`segSoundWasmRel_of`** — the **relative** obligation `TmplSoundRel V A Sha384Coll .wasm`
-  (every opening `x` of `d` steps to an opening of `d'`) for any `A` with `A.Holds .wasm = wasmHolds P`:
-  no premise beyond the leaf predicate and the view side conditions (the opening of `d` is given;
-  the Wasm part of `x` is the ghost's by `wasmBnd_binding`, the rest by `BndRec.encode_inj`).
+  and the view side conditions give `Sha384Coll` or the successor `call … (.ent p k (.cont sN) m)`
+  (with `seg … s = .cont sN`) at digest `d'`, an `MWasm` step.
+* **`segSoundWasmRelC_of`** (A-T3) — lane E's **store-canonical** relative obligation
+  `SB.TmplRelC sf V A (Sha384Coll ∨ Coll V.ctxD) .wasm` for `A.Holds .wasm = wasmHoldsC sf V P`
+  (`WasmHolds` plus the named `GhostC`: the ghost carries the canonical store of the intake that
+  `ctxRoot` pins).  Every canonical opening of `d` is the ghost's configuration (`open_in`: the
+  Wasm part up to stores by `wasmBnd_binding`, the rest by `BndRec.encode_inj`; canonicity then
+  fixes the stores), and the successor is canonical (`SegStore.seg_setSt`).  The A-T1/A-T2
+  non-canonical `segSoundWasmRel_of` is gone: with a store-blind record it is not provable (the
+  opening's store and the ghost's may differ, and the σ-pinned host answers read the ghost's).
 * **`segSoundWasm_of`** — lane E's **absolute** `SegSoundWasm V A Sha384Coll` for
   `A.Holds .wasm = wasmHoldsO V P` (`wasmHolds` plus the named `InOpens`: the in-record is the view
   of some call configuration).  See §4 for why the absolute form needs `InOpens`.
@@ -457,8 +463,10 @@ theorem wasm_core {V : ViewImpl} {Pv : WasmViewParams} (hV : V.wasmD = wasmD Pv)
     (hctxP : CtxOK Pv) {d d' : ArenaCore.Bytes} {tr : WTr} (hh : WasmHolds Pv d d' tr)
     (I : Intake) (c : EConf) (K : VmV)
     (hx : V.bnd (.call I c K tr.q (.ent tr.p tr.k (.cont tr.s) tr.n0)) = tr.bIn) :
-    Sha384Coll ∨ ∃ x', bndOf V.bnd x' = d' ∧
-      MWasm (.call I c K tr.q (.ent tr.p tr.k (.cont tr.s) tr.n0)) x' := by
+    Sha384Coll ∨ ∃ sN m, NearSpecV3.Wasm.seg tr.X.toCtx.cfg tr.X.toCtx.p tr.seg.n tr.s = .cont sN ∧
+      bndOf V.bnd (.call I c K tr.q (.ent tr.p tr.k (.cont sN) m)) = d' ∧
+      MWasm (.call I c K tr.q (.ent tr.p tr.k (.cont tr.s) tr.n0))
+        (.call I c K tr.q (.ent tr.p tr.k (.cont sN) m)) := by
   have hP := P_val
   have hh0 := hh
   obtain ⟨hL, hp, hst, hwin, hseed, hrest⟩ := hh0
@@ -529,22 +537,25 @@ theorem wasm_core {V : ViewImpl} {Pv : WasmViewParams} (hV : V.wasmD = wasmD Pv)
       omega
     · rw [hout.code, ewi']; rfl
     · rw [hout.func, ewi']; rfl
-  refine .inr ⟨.call I c K tr.q (.ent tr.p tr.k (.cont sN) (tr.n0 - tr.seg.n)), ?_, .run hcs⟩
+  refine .inr ⟨sN, tr.n0 - tr.seg.n, hseg, ?_, .run hcs⟩
   have e := bnd_call_wasm hV hcl I c K tr.q (.ent tr.p tr.k (.cont tr.s) tr.n0)
     (.ent tr.p tr.k (.cont sN) (tr.n0 - tr.seg.n))
   rw [hx, ← ewo, ← hwo, ← hL.copy] at e
   show bdigest _ = d'
   rw [e, hL.dout]
 
-/-! ## 5. Opening an arbitrary in-digest (binding) -/
+/-! ## 5. Opening an arbitrary in-digest (binding modulo stores) -/
 
-/-- **Every opening of the in-digest is the ghost's call configuration** (with record `bIn`), or
-SHA-384 collides (`BndRec.encode_inj`, `wasmBnd_binding`). -/
+open NearSpecV3.E2E.SB (setArgs setSt setConf setRes setK setR Canon TmplRelC)
+open NearSpecV3.E2E.Enc (blankStore)
+
+/-- **Every opening of the in-digest is a call configuration with record `bIn` whose Wasm part is
+the ghost's up to stores**, or SHA-384 collides (`BndRec.encode_inj`, `wasmBnd_binding`). -/
 theorem open_in {V : ViewImpl} {Pv : WasmViewParams} (hV : V.wasmD = wasmD Pv)
     (hVwf : ∀ x, (V.bnd x).WF) {d d' : ArenaCore.Bytes} {tr : WTr} (hh : WasmHolds Pv d d' tr)
     (x : RConf) (hx : bndOf V.bnd x = d) :
-    Sha384Coll ∨ ∃ I c K, x = .call I c K tr.q (.ent tr.p tr.k (.cont tr.s) tr.n0) ∧
-      V.bnd x = tr.bIn := by
+    Sha384Coll ∨ ∃ I c K q cc, x = .call I c K q cc ∧ V.bnd x = tr.bIn ∧
+      setC blankStore (q, cc) = setC blankStore (tr.q, .ent tr.p tr.k (.cont tr.s) tr.n0) := by
   classical
   have hL := hh.leaf
   have h1 : bdigest (V.bnd x).encode = bdigest tr.bIn.encode := by rw [hL.din]; exact hx
@@ -563,30 +574,73 @@ theorem open_in {V : ViewImpl} {Pv : WasmViewParams} (hV : V.wasmD = wasmD Pv)
   | call I c K q cc =>
     simp only [ViewImpl.bnd, split, hV, wasmD, Option.map_some, Option.some.injEq] at hw
     rcases wasmBnd_binding Pv hw with he | hc
-    · simp only [Prod.mk.injEq] at he
-      obtain ⟨rfl, rfl⟩ := he
-      exact .inr ⟨I, c, K, rfl, hxb⟩
+    · exact .inr ⟨I, c, K, q, cc, rfl, hxb, he⟩
     · exact .inl hc
 
-/-- **The relative Wasm obligation for one leaf trace.** -/
-theorem wasm_rel {V : ViewImpl} {Pv : WasmViewParams} (hV : V.wasmD = wasmD Pv) (hcl : ClearCall V)
-    (hctxP : CtxOK Pv) (hVwf : ∀ x, (V.bnd x).WF) {d d' : ArenaCore.Bytes} {tr : WTr}
-    (hh : WasmHolds Pv d d' tr) (x : RConf) (hx : bndOf V.bnd x = d) :
-    Sha384Coll ∨ ∃ x', bndOf V.bnd x' = d' ∧ MWasm x x' := by
-  rcases open_in hV hVwf hh x hx with hc | ⟨I, c, K, rfl, hxb⟩
-  · exact .inl hc
-  · exact wasm_core hV hcl hctxP hh I c K hxb
+/-- **The ghost-canonicity premise** (A-T3, store-canonical obligation): the ghost in-state is the
+view of a configuration of a ghost intake `I` whose context digest is the in-record's
+`ctxRoot`, and the ghost query and state carry `I`'s canonical store `sf I`.  On an honest run the
+ghost *is* the cut configuration, which is canonical (`ghostC_honest`).  The record cannot carry
+the store (it is a function: A-T2's finding); the context digest pins `I`, `I` pins the store. -/
+def GhostC (sf : Intake → TTN.Store) (V : ViewImpl) (tr : WTr) : Prop :=
+  ∃ I, tr.bIn.ctxRoot = V.ctxD (.intake I) ∧ setArgs (sf I) tr.q = tr.q ∧ setSt (sf I) tr.s = tr.s
+
+/-- **Lane A's Wasm-template predicate, store-canonical form**: `WasmHolds` and `GhostC`. -/
+def wasmHoldsC (sf : Intake → TTN.Store) (V : ViewImpl) (Pv : WasmViewParams) :
+    ArenaCore.Bytes → ArenaCore.Bytes → WTr → Prop :=
+  fun d d' tr => WasmHolds Pv d d' tr ∧ GhostC sf V tr
+
+theorem setArgs_setArgs' (s t : TTN.Store) (q : CallArgs) : setArgs s (setArgs t q) = setArgs s q :=
+  rfl
+
+/-- **The store-canonical Wasm obligation for one leaf trace** (lane E's `TmplRelC` shape): every
+canonical opening `x` of the in-digest steps by `MWasm` to a canonical opening of the out-digest,
+or a SHA-384 collision, or a collision of the view's context commitment. -/
+theorem wasm_relC {sf : Intake → TTN.Store} {V : ViewImpl} {Pv : WasmViewParams}
+    (hV : V.wasmD = wasmD Pv) (hcl : ClearCall V) (hctxP : CtxOK Pv) (hVwf : ∀ x, (V.bnd x).WF)
+    {d d' : ArenaCore.Bytes} {tr : WTr} (hh : wasmHoldsC sf V Pv d d' tr) (x : RConf)
+    (hcx : Canon sf x) (hx : bndOf V.bnd x = d) :
+    (Sha384Coll ∨ Coll V.ctxD) ∨ ∃ x', Canon sf x' ∧ bndOf V.bnd x' = d' ∧ MWasm x x' := by
+  classical
+  obtain ⟨hw, I0, hctx0, hq0, hs0⟩ := hh
+  rcases open_in hV hVwf hw x hx with hc | ⟨I, c, K, q, cc, rfl, hxb, hstrip⟩
+  · exact .inl (.inl hc)
+  have hI : V.ctxD (.intake I) = V.ctxD (.intake I0) := by
+    rw [← hctx0, ← hxb]; rfl
+  by_cases hII : I = I0
+  rotate_left
+  · exact .inl (.inr ⟨_, _, fun e => hII (by cases e; rfl), hI⟩)
+  subst hII
+  simp only [Canon, setR, RConf.call.injEq, true_and] at hcx
+  obtain ⟨hK, hqc, hccc⟩ := hcx
+  simp only [setC, Prod.mk.injEq] at hstrip
+  obtain ⟨hsq, hscc⟩ := hstrip
+  have hq : q = tr.q := by
+    rw [← hqc, ← hq0, ← setArgs_setArgs' (sf I) blankStore q, hsq, setArgs_setArgs']
+  have hcc : cc = .ent tr.p tr.k (.cont tr.s) tr.n0 := by
+    rw [← hccc, ← NearSpecV3.E2E.SB.setConf_setConf (sf I) blankStore cc, hscc,
+      NearSpecV3.E2E.SB.setConf_setConf]
+    simp only [setConf, setRes, hs0]
+  subst hq hcc
+  rcases wasm_core hV hcl hctxP hw I c K hxb with hc | ⟨sN, m, hseg, hd', hm⟩
+  · exact .inl (.inl hc)
+  refine .inr ⟨_, ?_, hd', hm⟩
+  have hsN := SegStore.seg_setSt _ _ _ hs0 hseg
+  simp only [Canon, setR, setConf, setRes, hK, hq0, hsN]
 
 /-! ## 6. The template obligations -/
 
-/-- **`segSoundWasmRel_of`**: lane A's Wasm leaf discharges the relative Wasm obligation, with
-`Bad = Sha384Coll`, for any `Airs` whose Wasm traces decode (`emb`) to leaf traces satisfying
-`wasmHolds Pv`, and any view whose Wasm component is `wasmD Pv`. -/
-theorem segSoundWasmRel_of (V : ViewImpl) (Pv : WasmViewParams) (A : Airs) (emb : A.Tr .wasm → WTr)
-    (hA : ∀ d d' t, A.Holds .wasm d d' t → wasmHolds Pv d d' (emb t))
+/-- **`segSoundWasmRelC_of`** (A-T3): lane A's Wasm leaf discharges lane E's **store-canonical**
+relative Wasm obligation `SB.TmplRelC`, with `Bad = Sha384Coll ∨ Coll V.ctxD`, for any `Airs`
+whose Wasm traces decode (`emb`) to leaf traces satisfying `wasmHoldsC sf V Pv`, and any view whose
+Wasm component is `wasmD Pv`.  (With lane E's `ViewE` context commitment, `Coll V.ctxD` is itself a
+SHA-384 collision: `ViewSer.coll_ctxDEc`.) -/
+theorem segSoundWasmRelC_of (sf : Intake → TTN.Store) (V : ViewImpl) (Pv : WasmViewParams)
+    (A : Airs) (emb : A.Tr .wasm → WTr)
+    (hA : ∀ d d' t, A.Holds .wasm d d' t → wasmHoldsC sf V Pv d d' (emb t))
     (hV : V.wasmD = wasmD Pv) (hcl : ClearCall V) (hctxP : CtxOK Pv) (hVwf : ∀ x, (V.bnd x).WF) :
-    TmplSoundRel V A Sha384Coll .wasm :=
-  fun d d' t hh x hx => wasm_rel hV hcl hctxP hVwf (hA d d' t hh) x hx
+    TmplRelC sf V A (Sha384Coll ∨ Coll V.ctxD) .wasm :=
+  fun d d' t x hh hcx hx => wasm_relC hV hcl hctxP hVwf (hA d d' t hh) x hcx hx
 
 /-- **`segSoundWasm_of`**: lane E's `SegSoundWasm V A Sha384Coll` for any `Airs` whose Wasm traces
 decode to leaf traces satisfying `wasmHoldsO V Pv` (`wasmHolds` with the named `InOpens`). -/
@@ -596,9 +650,9 @@ theorem segSoundWasm_of (V : ViewImpl) (Pv : WasmViewParams) (A : Airs) (emb : A
     SegSoundWasm V A Sha384Coll := by
   intro d d' t hh
   obtain ⟨hw, I, c, K, hx⟩ := hA d d' t hh
-  rcases wasm_core hV hcl hctxP hw I c K hx with hc | ⟨x', hx', hm⟩
+  rcases wasm_core hV hcl hctxP hw I c K hx with hc | ⟨sN, m, -, hx', hm⟩
   · exact .inl hc
-  · refine .inr ⟨_, x', ?_, hx', hm⟩
+  · refine .inr ⟨_, _, ?_, hx', hm⟩
     show bdigest _ = d
     rw [hx, hw.leaf.din]
 
@@ -617,10 +671,26 @@ def airsW (A0 : Airs) (Pv : WasmViewParams) : Airs where
     | .rt => A0.Holds .rt
     | .final => A0.Holds .final
 
-theorem segSoundWasmRel_airsW (V : ViewImpl) (Pv : WasmViewParams) (A0 : Airs)
-    (hV : V.wasmD = wasmD Pv) (hcl : ClearCall V) (hctxP : CtxOK Pv) (hVwf : ∀ x, (V.bnd x).WF) :
-    TmplSoundRel V (airsW A0 Pv) Sha384Coll .wasm :=
-  segSoundWasmRel_of V Pv (airsW A0 Pv) id (fun _ _ _ h => h) hV hcl hctxP hVwf
+/-- **The system's `Airs` with lane A's store-canonical Wasm leaf**. -/
+def airsWC (A0 : Airs) (sf : Intake → TTN.Store) (V : ViewImpl) (Pv : WasmViewParams) : Airs where
+  Tr := fun k => match k with
+    | .wasm => WTr
+    | .init => A0.Tr .init
+    | .state => A0.Tr .state
+    | .rt => A0.Tr .rt
+    | .final => A0.Tr .final
+  Holds := fun k => match k with
+    | .wasm => wasmHoldsC sf V Pv
+    | .init => A0.Holds .init
+    | .state => A0.Holds .state
+    | .rt => A0.Holds .rt
+    | .final => A0.Holds .final
+
+theorem segSoundWasmRelC_airsWC (A0 : Airs) (sf : Intake → TTN.Store) (V : ViewImpl)
+    (Pv : WasmViewParams) (hV : V.wasmD = wasmD Pv) (hcl : ClearCall V) (hctxP : CtxOK Pv)
+    (hVwf : ∀ x, (V.bnd x).WF) :
+    TmplRelC sf V (airsWC A0 sf V Pv) (Sha384Coll ∨ Coll V.ctxD) .wasm :=
+  segSoundWasmRelC_of sf V Pv (airsWC A0 sf V Pv) id (fun _ _ _ h => h) hV hcl hctxP hVwf
 
 /-! ## 7. Completeness -/
 
@@ -632,9 +702,11 @@ def WasmTmplComplete (V : ViewImpl) (Pv : WasmViewParams) (A0 : Airs) : Prop :=
 theorem wasm_rejects_pre {V : ViewImpl} {Pv : WasmViewParams} (hV : V.wasmD = wasmD Pv)
     (hVwf : ∀ x, (V.bnd x).WF) {d' : ArenaCore.Bytes} {tr : WTr} (I : Intake) (c : EConf) (K : VmV)
     (q : CallArgs) (hh : WasmHolds Pv (bndOf V.bnd (.call I c K q .pre)) d' tr) : Sha384Coll := by
-  rcases open_in hV hVwf hh _ rfl with hc | ⟨I', c', K', he, -⟩
+  rcases open_in hV hVwf hh _ rfl with hc | ⟨I', c', K', q', cc', he, -, hs⟩
   · exact hc
-  · cases he
+  · simp only [RConf.call.injEq] at he
+    obtain ⟨-, -, -, -, rfl⟩ := he
+    simp only [setC, setConf, Prod.mk.injEq, reduceCtorEq, and_false] at hs
 
 /-- **`TmplComplete` for `.wasm` fails for a single mid-call leaf**: it would give a SHA-384
 collision (the `MWasm` instance `call … pre → call … pre`, `CSteps.refl`, has no accepting leaf).
@@ -755,7 +827,13 @@ noncomputable def ctxFix (f : CallArgs → Prepared → EntK → Option Ctx) :
     | some X => if X.p = p ∧ X.cfg = q.cfg then some X else none
     | none => none
 
-theorem ctxFix_ok (Pv : WasmViewParams) : CtxOK { Pv with ctxOf := ctxFix Pv.ctxOf } := by
+theorem ctxFix_blind (Pv : WasmViewParams) (t : TTN.Store) (q : CallArgs) (p : Prepared) (k : EntK) :
+    ctxFix Pv.ctxOf (setArgs t q) p k = ctxFix Pv.ctxOf q p k := by
+  simp only [ctxFix, Pv.ctxOf_blind]
+  rfl
+
+theorem ctxFix_ok (Pv : WasmViewParams) :
+    CtxOK { Pv with ctxOf := ctxFix Pv.ctxOf, ctxOf_blind := ctxFix_blind Pv } := by
   classical
   intro q p k X h
   simp only [ctxFix] at h
@@ -775,10 +853,10 @@ theorem ctxFix_ok (Pv : WasmViewParams) : CtxOK { Pv with ctxOf := ctxFix Pv.ctx
 #print axioms cut_inSA
 #print axioms wasm_core
 #print axioms open_in
-#print axioms wasm_rel
-#print axioms segSoundWasmRel_of
+#print axioms wasm_relC
+#print axioms segSoundWasmRelC_of
 #print axioms segSoundWasm_of
-#print axioms segSoundWasmRel_airsW
+#print axioms segSoundWasmRelC_airsWC
 #print axioms wasm_rejects_pre
 #print axioms wasm_not_complete_pre
 #print axioms cutSeed_of_out
@@ -852,6 +930,40 @@ theorem wasmHolds_honest {V : ViewImpl} {Pv : WasmViewParams} (hV : V.wasmD = wa
 
 #print axioms bnd_pc_sb
 #print axioms wasmHolds_honest
+
+/-- **`GhostC` holds for the honest ghost** (non-vacuity): when the in-record is the view of the
+ghost's own call configuration and that configuration is canonical, the ghost intake is the
+configuration's intake. -/
+theorem ghostC_honest {sf : Intake → TTN.Store} {V : ViewImpl} {tr : WTr} {I : Intake} {c : EConf}
+    {K : VmV} (hb : tr.bIn = V.bnd (.call I c K tr.q (.ent tr.p tr.k (.cont tr.s) tr.n0)))
+    (hc : Canon sf (.call I c K tr.q (.ent tr.p tr.k (.cont tr.s) tr.n0))) : GhostC sf V tr := by
+  simp only [Canon, setR, RConf.call.injEq, true_and] at hc
+  obtain ⟨-, hq, hcc⟩ := hc
+  simp only [setConf, setRes, CallConf.ent.injEq, Res.cont.injEq, true_and, and_true] at hcc
+  exact ⟨I, by rw [hb]; rfl, hq, hcc⟩
+
+/-- **The store-canonical leaf predicate holds on an honest run** (`wasmHolds_honest` for a
+canonical in-configuration). -/
+theorem wasmHoldsC_honest {sf : Intake → TTN.Store} {V : ViewImpl} {Pv : WasmViewParams}
+    (hV : V.wasmD = wasmD Pv) (hcl : ClearCall V) (hVwf : ∀ x, (V.bnd x).WF) (tr : WTr) (d0 : SegD)
+    (I : Intake) (c : EConf) (K : VmV) (sN : St)
+    (hp : SegPremAMP tr.X tr.nloc tr.ngl tr.sg tr.σ tr.seg) (hst : StaticOK tr.X tr.sg)
+    (hctx : Pv.ctxOf tr.q tr.p tr.k = some tr.X.toCtx)
+    (hL : LinkPubM d0.pub tr.seg.pub) (ho : OutSA tr.X tr.sg tr.σ d0 tr.s)
+    (hinS : InSA tr.X tr.sg tr.σ tr.seg tr.s)
+    (hseg : NearSpecV3.Wasm.seg tr.X.toCtx.cfg tr.X.toCtx.p tr.seg.n tr.s = .cont sN)
+    (hoN : OutSA tr.X tr.sg tr.σ tr.seg sN)
+    (hn64 : tr.n0 < 2 ^ 64) (hpos : 0 < tr.seg.n) (hn : tr.seg.n ≤ tr.n0)
+    (hbIn : tr.bIn = V.bnd (.call I c K tr.q (.ent tr.p tr.k (.cont tr.s) tr.n0)))
+    (hbOut : tr.bOut = V.bnd (.call I c K tr.q (.ent tr.p tr.k (.cont sN) (tr.n0 - tr.seg.n))))
+    (hcan : Canon sf (.call I c K tr.q (.ent tr.p tr.k (.cont tr.s) tr.n0))) :
+    wasmHoldsC sf V Pv (bndOf V.bnd (.call I c K tr.q (.ent tr.p tr.k (.cont tr.s) tr.n0)))
+      (bndOf V.bnd (.call I c K tr.q (.ent tr.p tr.k (.cont sN) (tr.n0 - tr.seg.n)))) tr :=
+  ⟨wasmHolds_honest hV hcl hVwf tr d0 I c K sN hp hst hctx hL ho hinS hseg hoN hn64 hpos hn hbIn hbOut,
+   ghostC_honest hbIn hcan⟩
+
+#print axioms ghostC_honest
+#print axioms wasmHoldsC_honest
 
 end TmplWasm
 end WasmBase

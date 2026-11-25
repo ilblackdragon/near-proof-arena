@@ -208,3 +208,8 @@ import WasmBase.Main.HostWriteCov
 import WasmBase.Main.HostWriteCovCheck
 import WasmBase.Main.HostJoin
 import WasmBase.Main.TmplWasm
+import WasmBase.Main.SegStore
+import WasmBase.Main.WasmViewT1
+import WasmBase.PrepAir
+import WasmBase.PrepSound
+import WasmBase.Main.TmplPrep

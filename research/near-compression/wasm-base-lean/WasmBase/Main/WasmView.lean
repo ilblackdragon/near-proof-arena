@@ -1,6 +1,7 @@
 import WasmBase.Main.SegRows
 import StateM5a.StateView
 import NearSpecV3.E2E.View
+import NearSpecV3.E2E.StoreBlind
 
 /-!
 # WasmBase.Main.WasmView — the Wasm component `wasmD` of lane E's `ViewImpl` (E2E M4b, sub-lane V)
@@ -31,7 +32,8 @@ collisions.  Pattern and reused lemmas: lane B's `StateM5a.StateView` (`nodeH`, 
 | `globalsDigest`, `registersDigest` | `fd` (derived: one digest covers stack, locals, call records, globals, budget, registers) | `bdigest []` |
 | `vmCtxDigest` | `bdigest (P.encRest (.air q p k (blank s)))` | `bdigest (P.encRest (.other w))` |
 | `promisesDigest` | `bdigest []` (promises are in the remainder) | `bdigest []` |
-| `codeRoot`, `funcRoot` | `P.codeRootOf q p`, `P.funcRootOf q p` | `bdigest []` |
+| `codeRoot` | `codeRootOf P q p k` = `codeC.root (codeRecs hCode X)` (S3) | `preCodeRoot q` = `SHA-256(q.code) ‖ 0^10` at `.pre` (S2), else `bdigest []` |
+| `funcRoot` | `funcRootOf P q p k` = `funcC.root (funcRecs hFunc X)` (S3) | `bdigest []` |
 
 `blank s` empties `stack`, `frames`, `pages`, `globals`, sets `stackRem := 0` and keeps the
 register **ids in order** with their data emptied (`regIds`): the view is a *set* of messages and
@@ -64,9 +66,14 @@ node = `nodeH l r = sha384 (l48 ‖ r48)` (`node_block`: 96 bytes + standard pad
   (`frm_top`), `(fn, pc)` from the global pc (`off_decode`, from the checker's `layoutOk`, and
   `fnOf_kOf`), labels from `FrameOK` (`frame_eq`, `frames_eq`), 6 (`regs_eq`: length and byte
   messages, `Register.byteSlot_inj`, distinct ids).
-* `wasmBnd_binding` / **`wasmD_binding : Coll (wasmD P) → Sha384Coll`**, and
-  **`viewImpl_hwasm`**: for any `V : ViewImpl` with `V.wasmD = wasmD P`, `Coll V.wasmD → Bad`
-  given `Sha384Coll → Bad` (the `hwasm` premise of `viewImpl_binding_bad`).
+* `wasmBnd_binding` (equal records: equal components **modulo stores**, or `Sha384Coll`) /
+  **`wasmD_binding : CollOn WStripped (wasmD P) → Sha384Coll`**, and **`viewImpl_hwasm`**: for any
+  `V : ViewImpl` with `V.wasmD = wasmD P`, `CollOn WStripped V.wasmD → Bad` given
+  `Sha384Coll → Bad` (the Wasm premise of lane E's `SB.e2e_sound_t1_relC_bind`).  A-T2's finding
+  (`a-t1/lean/PrepScope.lean`): the unrestricted `Coll (wasmD P)` is always true (Cantor), so the
+  binding can only hold on store-stripped components.
+* `wasmBnd_set` / **`wasmD_set`** — the component ignores stores (`setC t`), so a view with this
+  component is store-blind (lane E's `StoreBlind`).
 * `wasmD_air` — on the AIR branch, `framesDigest = (cutDigest (cutView X s)).take 42`,
   `memRoot = (memRootOf s).take 42`, `pc`, `sp`, `stackRem`, `fuel`, `memPages` as in the table:
   the equalities segment soundness uses to say the AIR's public `ctxDigest`/`memRoot` are this
@@ -76,11 +83,17 @@ node = `nodeH l r = sha384 (l48 ‖ r48)` (`node_block`: 96 bytes + standard pad
 
 ## Parameters (`WasmViewParams`)
 
-* `ctxOf : CallArgs → Prepared → EntK → Option Ctx` — the static context of an entry (lane A/E).
-* `codeRootOf`, `funcRootOf` with **`codeRoot_len`**, **`funcRoot_len`** (42 bytes); no binding
-  obligation (`q`, `p` are in the remainder).
-* `encRest : WRest → Bytes` with **`encRest_inj`** (lane E's `CallArgs`/`Prepared`/`EntK`/`St`
-  encoders).
+* `ctxOf : CallArgs → Prepared → EntK → Option Ctx` — the static context of an entry (lane A/E),
+  with `ctxOf_blind` (it does not read the query's store).
+* `codeC`, `funcC : SB.CodeCommit (List (List Nat))` and the template heights `hCode`, `hFunc`
+  (S3): `codeRootOf P q p k` / `funcRootOf P q p k` are the commitment roots of the entry module's
+  CODE / FUNC records padded to the template height (`codeRecs`, `funcRecs`; 42 bytes:
+  `codeRoot_len`, `funcRoot_len`).  No binding obligation here (`q`, `p` are in the remainder); the
+  commitment's own binding (`CodeCommit.Coll`) is used by PREP and by the leaf's cached-root check.
+* `encRest : WRest → Bytes` with **`encRest_blind`** (stores are not encoded) and
+  **`encRest_inj`** (injective modulo stores: `encRest a = encRest b → stripW a = stripW b`).  The
+  T1 instance (`WasmViewT1.wasmViewParamsT1`) uses lane E's store-blind serialisers
+  (`ViewSer.argsN`, `stN`, `confN`), so the structure is inhabited (`wasmViewParams_nonempty`).
 
 ## The domain (`InDom X s`, plus `n < 2^64` in `airOf`)
 
@@ -742,7 +755,21 @@ theorem reconstruct {X : Ctx} {s s' : St} (h : InDom X s) (h' : InDom X s')
   rw [ht, ht'] at hpc hsp
   exact frames_eq hV ht ht' h.frames h'.frames hpc hsp
 
-/-! ## 7. The Wasm view -/
+/-! ## 7. The Wasm view (store-blind: A-T3, lane E's soundness fix S1–S3)
+
+`TTN.RealStore.store` is a function, so no remainder encoder that sees it is injective (A-T2's
+finding, `a-t1/lean/PrepScope.lean`). The remainder `WRest` keeps the query and state, but the
+encoder is required to be **blind to stores** (`encRest_blind`) and **injective modulo stores**
+(`encRest_inj`: equal encodings mean equal remainders once every store is blanked, `stripW`).
+`wasmD_binding` is accordingly the restricted binding `CollOn WStripped (wasmD P) → Sha384Coll`
+(lane E's `StoreBlind.bnd_eq_canon` premise), and `wasmD_set` makes the component store-blind.
+S2: the `.pre` fallback record's `codeRoot` is `preCodeRoot q = SHA-256(q.code) ‖ 0^10`. S3: the
+AIR record's `codeRoot`/`funcRoot` are `CodeCommit` roots of the padded CODE/FUNC records of the
+entry's checked module (`codeRootOf`, `funcRootOf`). -/
+
+open NearSpecV3.E2E.SB (setArgs setSt setConf setRes CodeCommit preCodeRoot preCodeRoot_length CollOn
+  WStripped)
+open NearSpecV3.E2E.Enc (blankStore)
 
 /-- The remainder of a Wasm component: on the AIR branch the query, module, entry and the state
 with its viewed parts blanked; otherwise the whole component (a different constructor). -/
@@ -750,21 +777,80 @@ inductive WRest where
   | air (q : CallArgs) (p : Prepared) (k : EntK) (s : St)
   | other (w : CallArgs × CallConf)
 
-/-- **The parameters of the Wasm view.** -/
+/-- Every store of a remainder overwritten by `t`. -/
+def setW (t : TTN.Store) : WRest → WRest
+  | .air q p k s => .air (setArgs t q) p k (setSt t s)
+  | .other w => .other (setArgs t w.1, setConf t w.2)
+
+/-- The remainder with its stores blanked. -/
+def stripW (a : WRest) : WRest := setW blankStore a
+
+/-- A component with its stores overwritten by `t`. -/
+def setC (t : TTN.Store) (w : CallArgs × CallConf) : CallArgs × CallConf :=
+  (setArgs t w.1, setConf t w.2)
+
+/-- A record matrix padded to height `h` by repeating its last row (`seg.rs` `pad_rep`). -/
+def padRep (h : Nat) (l : List (List Nat)) : List (List Nat) :=
+  l ++ List.replicate (h - l.length) (l.getLast?.getD [])
+
+/-- The padded CODE records of a checked module (`Lookups.codeRec` rows, in pc order). -/
+def codeRecs (h : Nat) (X : Ctx) : List (List Nat) := padRep h X.M.records.toList
+
+/-- The padded FUNC records of a checked module (`Lookups.funcRec` rows, in checked order). -/
+def funcRecs (h : Nat) (X : Ctx) : List (List Nat) := padRep h X.M.funcs
+
+/-- **The parameters of the Wasm view** (store-blind form). -/
 structure WasmViewParams where
   /-- the static context (checked module, entry function) of an entry of a query -/
   ctxOf : CallArgs → Prepared → EntK → Option Ctx
-  /-- the code and function-table commitments (no binding needed: `q`, `p` are in the remainder) -/
-  codeRootOf : CallArgs → Prepared → ArenaCore.Bytes
-  funcRootOf : CallArgs → Prepared → ArenaCore.Bytes
-  /-- the remainder's byte encoder (lane E: `CallArgs`, `Prepared`, `EntK`, `St` encoders) -/
+  /-- the context does not read the query's store -/
+  ctxOf_blind : ∀ t q p k, ctxOf (setArgs t q) p k = ctxOf q p k
+  /-- S3: the cached-commitment roots of the padded CODE / FUNC records (the template's
+  commitment parameters; the stacked-PCS R1 root in the circuit) -/
+  codeC : CodeCommit (List (List Nat))
+  funcC : CodeCommit (List (List Nat))
+  /-- the template's CODE / FUNC heights (the contract-size class) -/
+  hCode : Nat
+  hFunc : Nat
+  /-- the remainder's byte encoder: blind to stores, injective modulo stores -/
   encRest : WRest → ArenaCore.Bytes
-  encRest_inj : ∀ a b, encRest a = encRest b → a = b
-  /-- digest widths (for `BndRec.WF`) -/
-  codeRoot_len : ∀ q p, (codeRootOf q p).length = digestLen
-  funcRoot_len : ∀ q p, (funcRootOf q p).length = digestLen
+  encRest_blind : ∀ t a, encRest (setW t a) = encRest a
+  encRest_inj : ∀ a b, encRest a = encRest b → stripW a = stripW b
 
 variable (P : WasmViewParams)
+
+/-- **S3.** The code root of an entry: the `CodeCommit` root of the padded CODE records of the
+entry's checked module. -/
+def codeRootOf (q : CallArgs) (p : Prepared) (k : EntK) : ArenaCore.Bytes :=
+  match P.ctxOf q p k with
+  | some X => P.codeC.root (codeRecs P.hCode X)
+  | none => bdigest []
+
+/-- **S3.** The function-table root of an entry. -/
+def funcRootOf (q : CallArgs) (p : Prepared) (k : EntK) : ArenaCore.Bytes :=
+  match P.ctxOf q p k with
+  | some X => P.funcC.root (funcRecs P.hFunc X)
+  | none => bdigest []
+
+theorem codeRoot_len (q : CallArgs) (p : Prepared) (k : EntK) :
+    (codeRootOf P q p k).length = digestLen := by
+  unfold codeRootOf; split
+  · exact P.codeC.root_len _
+  · exact bdigest_length _
+
+theorem funcRoot_len (q : CallArgs) (p : Prepared) (k : EntK) :
+    (funcRootOf P q p k).length = digestLen := by
+  unfold funcRootOf; split
+  · exact P.funcC.root_len _
+  · exact bdigest_length _
+
+theorem codeRootOf_set (t : TTN.Store) (q : CallArgs) (p : Prepared) (k : EntK) :
+    codeRootOf P (setArgs t q) p k = codeRootOf P q p k := by
+  unfold codeRootOf; rw [P.ctxOf_blind]
+
+theorem funcRootOf_set (t : TTN.Store) (q : CallArgs) (p : Prepared) (k : EntK) :
+    funcRootOf P (setArgs t q) p k = funcRootOf P q p k := by
+  unfold funcRootOf; rw [P.ctxOf_blind]
 
 open Classical in
 /-- The AIR branch: a running entry whose context is defined and whose state is in the domain. -/
@@ -808,14 +894,21 @@ def airBnd (q : CallArgs) (X : Ctx) (p : Prepared) (k : EntK) (s : St) (n : Nat)
   { pc := gpc X f, sp := f.base, stackRem := s.stackRem, fuel := n, framesDigest := fd,
     memRoot := (memRootOf s).take 42, memPages := s.pages.size, globalsDigest := fd,
     registersDigest := fd, vmCtxDigest := bdigest (P.encRest (.air q p k (blank s))),
-    promisesDigest := bdigest [], codeRoot := P.codeRootOf q p, funcRoot := P.funcRootOf q p }
+    promisesDigest := bdigest [], codeRoot := codeRootOf P q p k, funcRoot := funcRootOf P q p k }
 
-/-- The fallback record: only the remainder digest is not constant. -/
+/-- **S2.** The fallback record's code root: `preCodeRoot q` at `.pre` (lane F's enter leaf writes
+it, PREP reads it), `bdigest []` otherwise. -/
+def fbCode (w : CallArgs × CallConf) : ArenaCore.Bytes :=
+  match w.2 with
+  | .pre => preCodeRoot w.1
+  | _ => bdigest []
+
+/-- The fallback record: the remainder digest and, at `.pre`, the code hash. -/
 def fbBnd (w : CallArgs × CallConf) : WasmBnd :=
   { pc := 0, sp := 0, stackRem := 0, fuel := 0, framesDigest := bdigest [], memRoot := bdigest [],
     memPages := 0, globalsDigest := bdigest [], registersDigest := bdigest [],
     vmCtxDigest := bdigest (P.encRest (.other w)), promisesDigest := bdigest [],
-    codeRoot := bdigest [], funcRoot := bdigest [] }
+    codeRoot := fbCode w, funcRoot := bdigest [] }
 
 /-- The record of an in-call component. -/
 noncomputable def wasmBnd (w : CallArgs × CallConf) : WasmBnd :=
@@ -856,6 +949,11 @@ theorem memRootOf_length (s : St) : (memRootOf s).length = 48 := by
   obtain ⟨m, hm⟩ := memRoot_sha s
   simp only [memRootOf, hm, Option.getD_some, sha384_length]
 
+theorem fbCode_length (w : CallArgs × CallConf) : (fbCode w).length = digestLen := by
+  unfold fbCode; split
+  · exact preCodeRoot_length _
+  · exact bdigest_length _
+
 /-- **Every record is well-formed** (`WasmBnd.codec.ok`: counters `< 2^64`, digests 42 bytes), so
 `BndRec.WF` holds for the Wasm part of any configuration. -/
 theorem wasmBnd_ok (w : CallArgs × CallConf) : WasmBnd.codec.ok (wasmBnd P w) := by
@@ -868,18 +966,96 @@ theorem wasmBnd_ok (w : CallArgs × CallConf) : WasmBnd.codec.ok (wasmBnd P w) :
     simp only [WasmBnd.codec, NearSpecV3.E2E.Bnd.mapC, NearSpecV3.E2E.Bnd.pairC,
       NearSpecV3.E2E.Bnd.natC, NearSpecV3.E2E.Bnd.bytesC, airBnd]
     refine ⟨l1, l2, l3, hn, by decide, bdigest_length _, ?_, l4, bdigest_length _, bdigest_length _,
-      bdigest_length _, b0, P.codeRoot_len _ _, P.funcRoot_len _ _⟩
+      bdigest_length _, b0, codeRoot_len P _ _ _, funcRoot_len P _ _ _⟩
     simp only [List.length_take, memRootOf_length, digestLen]; decide
   · simp only [WasmBnd.codec, NearSpecV3.E2E.Bnd.mapC, NearSpecV3.E2E.Bnd.pairC,
       NearSpecV3.E2E.Bnd.natC, NearSpecV3.E2E.Bnd.bytesC, fbBnd]
     exact ⟨by decide, by decide, by decide, by decide, by decide, b0, b0, by decide, b0, b0,
-      bdigest_length _, b0, b0, b0⟩
+      bdigest_length _, b0, fbCode_length _, b0⟩
 
-/-! ## 8. Binding -/
+/-! ## 8. Store-blindness and binding modulo stores -/
 
-/-- **Binding of one in-call record**: equal records are equal components, or a `Sha384Coll`. -/
+theorem inDom_setSt (X : Ctx) (t : TTN.Store) (s : St) : InDom X (setSt t s) ↔ InDom X s :=
+  ⟨fun h => ⟨h.ne, h.wf, h.frames, h.numS, h.numG, h.pages, h.regs, h.lt64⟩,
+   fun h => ⟨h.ne, h.wf, h.frames, h.numS, h.numG, h.pages, h.regs, h.lt64⟩⟩
+
+theorem blank_setSt (t : TTN.Store) (s : St) : blank (setSt t s) = setSt t (blank s) := by
+  cases s; rfl
+
+/-- The AIR branch does not see stores. -/
+theorem airOf_setC (t : TTN.Store) (w : CallArgs × CallConf) :
+    airOf P (setC t w) =
+      (airOf P w).map (fun a => (a.1, a.2.1, a.2.2.1, setSt t a.2.2.2.1, a.2.2.2.2)) := by
+  obtain ⟨q, cc⟩ := w
+  cases cc with
+  | pre => rfl
+  | fin r => rfl
+  | ent p k r n =>
+    cases r with
+    | cont s =>
+      simp only [setC, setConf, setRes, airOf, P.ctxOf_blind]
+      cases hX : P.ctxOf q p k with
+      | none => rfl
+      | some X =>
+        by_cases hd : InDom X s ∧ n < 2 ^ 64
+        · have hd' : InDom X (setSt t s) ∧ n < 2 ^ 64 := ⟨(inDom_setSt X t s).2 hd.1, hd.2⟩
+          simp only [hd, hd', and_self, ↓reduceIte, Option.map_some]
+        · have hd' : ¬ (InDom X (setSt t s) ∧ n < 2 ^ 64) :=
+            fun h => hd ⟨(inDom_setSt X t s).1 h.1, h.2⟩
+          simp only [hd, hd', ↓reduceIte, Option.map_none]
+    | fin s => rfl
+    | abort s e => rfl
+    | unmodeled w => rfl
+
+theorem airBnd_set (t : TTN.Store) (q : CallArgs) (X : Ctx) (p : Prepared) (k : EntK) (s : St)
+    (n : Nat) : airBnd P (setArgs t q) X p k (setSt t s) n = airBnd P q X p k s n := by
+  have e : P.encRest (.air (setArgs t q) p k (blank (setSt t s))) =
+      P.encRest (.air q p k (blank s)) := by
+    rw [blank_setSt]; exact P.encRest_blind t (.air q p k (blank s))
+  unfold airBnd
+  rw [e, codeRootOf_set, funcRootOf_set]
+  rfl
+
+theorem fbCode_set (t : TTN.Store) (w : CallArgs × CallConf) : fbCode (setC t w) = fbCode w := by
+  obtain ⟨q, cc⟩ := w
+  cases cc <;> rfl
+
+theorem fbBnd_set (t : TTN.Store) (w : CallArgs × CallConf) : fbBnd P (setC t w) = fbBnd P w := by
+  have e : P.encRest (.other (setC t w)) = P.encRest (.other w) := P.encRest_blind t (.other w)
+  unfold fbBnd
+  rw [e, fbCode_set]
+
+/-- **The record does not see stores.** -/
+theorem wasmBnd_set (t : TTN.Store) (w : CallArgs × CallConf) :
+    wasmBnd P (setC t w) = wasmBnd P w := by
+  unfold wasmBnd
+  rw [airOf_setC]
+  cases airOf P w with
+  | none => exact fbBnd_set P t w
+  | some a =>
+    obtain ⟨X, p, k, s, n⟩ := a
+    exact airBnd_set P t w.1 X p k s n
+
+/-- **The Wasm component is store-blind.** -/
+theorem wasmD_set (t : TTN.Store) (c : WmV) : wasmD P (c.map (setC t)) = wasmD P c := by
+  cases c with
+  | none => rfl
+  | some w => simp only [wasmD, Option.map_some, wasmBnd_set]
+
+theorem blank_set_inj {s s' : St} (hb : setSt blankStore (blank s) = setSt blankStore (blank s'))
+    (h1 : s.stack = s'.stack) (h2 : s.frames = s'.frames) (h3 : s.pages = s'.pages)
+    (h4 : s.globals = s'.globals) (h5 : s.stackRem = s'.stackRem)
+    (h6 : s.registers = s'.registers) :
+    setSt blankStore s = setSt blankStore s' := by
+  cases s
+  cases s'
+  simp only [setSt, blank, St.mk.injEq] at hb h1 h2 h3 h4 h5 h6 ⊢
+  simp_all
+
+/-- **Binding of one in-call record, modulo stores**: equal records are equal components once
+their stores are blanked, or a `Sha384Coll`. -/
 theorem wasmBnd_binding {w w' : CallArgs × CallConf} (h : wasmBnd P w = wasmBnd P w') :
-    w = w' ∨ Sha384Coll := by
+    setC blankStore w = setC blankStore w' ∨ Sha384Coll := by
   classical
   have hr : bdigest (P.encRest (restOf P w)) = bdigest (P.encRest (restOf P w')) := by
     rw [← wasmBnd_rest, ← wasmBnd_rest, h]
@@ -908,32 +1084,35 @@ theorem wasmBnd_binding {w w' : CallArgs × CallConf} (h : wasmBnd P w = wasmBnd
     | some b =>
       obtain ⟨X', p', k', s', n'⟩ := b
       rw [ha, hb] at hR h
+      simp only [stripW, setW] at hR
       obtain ⟨hq, rfl, rfl, hbl⟩ := WRest.air.inj hR
       obtain ⟨hw, hX, hD, -⟩ := airOf_spec P ha
       obtain ⟨hw', hX', hD', -⟩ := airOf_spec P hb
-      rw [hq, hX'] at hX
+      have hXX : P.ctxOf w.1 p k = P.ctxOf w'.1 p k := by
+        rw [← P.ctxOf_blind blankStore w.1, hq, P.ctxOf_blind]
+      rw [hXX, hX'] at hX
       cases Option.some.inj hX
       simp only [airBnd, WasmBnd.mk.injEq] at h
       obtain ⟨hpc, hsp, hrem, rfl, -, hfd, hmr, hmp, -, -, -, -, -, -⟩ := h
-      -- the boundary view
       by_cases hcb : cutBytes (cutView X s) = cutBytes (cutView X s')
       rotate_left
       · exact .inr ⟨_, _, hcb, hfd⟩
       have hV := cutBytes_inj hD.wf hD'.wf hcb
-      -- the memory
       rcases memRoot_binding s s' hmp hmr with hblk | hc
       rotate_left
       · exact .inr hc
       have hpg := pages_eq hD.pages hD'.pages hmp hblk
-      obtain ⟨h1, h2, h3, h4⟩ :=
-        reconstruct hD hD' hV hpc hsp (congrArg St.registers hbl)
-      have hs := blank_inj hbl h1 h2 hpg h3 hrem h4
-      subst hs
-      exact .inl (by rw [hw, hw', hq])
+      have hid : regIds s.registers = regIds s'.registers := congrArg St.registers hbl
+      obtain ⟨h1, h2, h3, h4⟩ := reconstruct hD hD' hV hpc hsp hid
+      have hs := blank_set_inj hbl h1 h2 hpg h3 hrem h4
+      refine .inl ?_
+      rw [hw, hw']
+      simp only [setC, setConf, setRes, hq, hs]
 
-/-- **The binding theorem**: a collision of `wasmD` is a 42-byte SHA-384 (`bdigest`) collision. -/
-theorem wasmD_binding (h : Coll (wasmD P)) : Sha384Coll := by
-  obtain ⟨a, b, hne, he⟩ := h
+/-- **The binding theorem (restricted)**: a collision of `wasmD` on store-stripped components is a
+42-byte SHA-384 (`bdigest`) collision — lane E's `CollOn WStripped V.wasmD` event. -/
+theorem wasmD_binding (h : CollOn WStripped (wasmD P)) : Sha384Coll := by
+  obtain ⟨a, b, ha, hb, hne, he⟩ := h
   cases a with
   | none =>
     cases b with
@@ -944,14 +1123,15 @@ theorem wasmD_binding (h : Coll (wasmD P)) : Sha384Coll := by
     | none => simp [wasmD] at he
     | some w' =>
       simp only [wasmD, Option.map_some, Option.some.injEq] at he
+      simp only [WStripped, Option.map_some, Option.some.injEq] at ha hb
       rcases wasmBnd_binding P he with h | h
-      · exact absurd (by rw [h]) hne
+      · exact absurd (by rw [← ha, ← hb]; exact congrArg some h) hne
       · exact h
 
-/-- **The `hwasm` premise of `viewImpl_binding_bad`** for any view whose Wasm component is this
-instance. -/
+/-- **The `CollOn WStripped V.wasmD → Bad` premise of `SB.e2e_sound_t1_relC_bind`** for any view
+whose Wasm component is this instance. -/
 theorem viewImpl_hwasm (V : ViewImpl) (hV : V.wasmD = wasmD P) (Bad : Prop)
-    (hsha : Sha384Coll → Bad) : Coll V.wasmD → Bad := by
+    (hsha : Sha384Coll → Bad) : CollOn WStripped V.wasmD → Bad := by
   rw [hV]; exact fun h => hsha (wasmD_binding P h)
 
 #print axioms memRoot_binding
@@ -959,6 +1139,8 @@ theorem viewImpl_hwasm (V : ViewImpl) (hV : V.wasmD = wasmD P) (Bad : Prop)
 #print axioms reconstruct
 #print axioms wasmD_air
 #print axioms wasmBnd_ok
+#print axioms wasmBnd_set
+#print axioms wasmD_set
 #print axioms wasmBnd_binding
 #print axioms wasmD_binding
 #print axioms viewImpl_hwasm

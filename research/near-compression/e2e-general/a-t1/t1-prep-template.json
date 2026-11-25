@@ -1,0 +1,15 @@
+{
+ "certs": "/data/illia/nearproof/.claude/worktrees/agent-ac7a6f3c199144727/research/near-compression/e2e-general/a-t1/../../final-soundness/calc/dkt_certs_o2.json",
+ "exclusions": "/data/illia/nearproof/.claude/worktrees/agent-ac7a6f3c199144727/research/near-compression/e2e-general/a-t1/../../final-soundness/lean/DKTCertsO2_big.keys",
+ "heights": {
+  "CODE": 32,
+  "FUNC": 4,
+  "PHDR": 4,
+  "SHA256": 128
+ },
+ "log_blowup": 1,
+ "n_stack": 18,
+ "name": "t1-d3tiny-prep",
+ "pow": 24,
+ "w_stack": 8
+}

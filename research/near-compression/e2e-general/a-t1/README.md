@@ -7,6 +7,14 @@ T1 = `/data/illia/nearproof-deps/corpora/d3c8/d3/02-h10196-s3`: one FunctionCall
 (code `8152bed2…`, 345 B), method `run`, input `again`, 26 Wasm steps, six host calls:
 `input`, `register_len`, `read_register`, `storage_write` (existing key), `log_utf8`, `value_return`.
 
+**Update 2026-11-25 (A-T3, §10).**
+* Lane E's soundness fix S1–S3 is adopted on lane A's side. The Wasm view is store-blind,
+  `WasmViewParams` is inhabited by T1's real record, and the Wasm template is restated and proved
+  against lane E's store-canonical `TmplRelC`.
+* PREP is built as a `wasm`-kind leaf and proved for T1 in lane D's format: 469,779 B,
+  268.2 bits, pinned heights. Its CODE/FUNC roots equal the segment leaves'. Mutant battery: §10.3.
+* PREP does not yet bind the records to the code in-circuit (the decoder certificate, §10.4).
+
 **Update 2026-11-25 (A-T2, §9).**
 * The template now pins tight heights, so T1's two leaves give one lane D leaf program.
 * PREP is stopped at a statement change.
@@ -551,3 +559,179 @@ statement, no PREP leaf can bind the code.** Following the stop rule, I built no
 **T1 facts that hold today, whatever is decided:** the leaves' cached CODE/FUNC roots equal the
 native R1 roots of the records computed in Lean (`statement_ok`, manifest `code_root` /
 `func_root`), and `SHA-256(d3tiny) = 8152bed2…` is the account's code hash (lane I).
+
+## 10. Milestone A-T3 (2026-11-25): S1–S3 adopted; PREP as a `wasm`-kind leaf
+
+Lane E adopted A-T2's S1–S3 as a soundness fix (`spec/lean/v3/NearSpecV3/E2E/StoreBlind.lean`,
+`TreeM8C.lean`; plan §3.5 M11i). This milestone does lane A's part. `S`, `claimDigest` and the
+checker are unchanged, and nothing here needs them changed (stop rule not triggered). Lean: the
+`WasmBase` package builds (762 jobs, with `wasmbase-tool`) with standard axioms only, and there is no `sorry`,
+`native_decide` or `axiom`.
+
+### 10.1 The store-blind Wasm view and T1's parameter record [K]
+
+**`WasmView.lean` §7–8 (restated in place):**
+* `WasmViewParams` now asks for `encRest_blind` (`encRest (setW t a) = encRest a`: stores are not
+  encoded) and `encRest_inj` modulo stores (`encRest a = encRest b → stripW a = stripW b`). It also
+  asks for `ctxOf_blind`.
+* S2: the fallback record at `.pre` has `codeRoot = preCodeRoot q = SHA-256(q.code) ‖ 0^10`
+  (`fbCode`).
+* S3: `codeRootOf P q p k = codeC.root (codeRecs hCode X)` and
+  `funcRootOf P q p k = funcC.root (funcRecs hFunc X)`. Here `X = ctxOf q p k`, and `codeRecs` /
+  `funcRecs` are the entry module's records padded to the template height by repeating the last
+  row (`padRep`, as `seg.rs` `pad_rep`). The roots now take the entry `k`, because the checked
+  closure depends on the entry function.
+* `wasmBnd_set` / **`wasmD_set`**: the component ignores stores.
+* `wasmBnd_binding`: equal records give equal components up to stores, or `Sha384Coll`.
+* **`wasmD_binding : CollOn WStripped (wasmD P) → Sha384Coll`**, and `viewImpl_hwasm` (the Wasm
+  premise of lane E's `SB.e2e_sound_t1_relC_bind`).
+
+**`WasmViewT1.lean` (new): the explicit instance, so that the Cantor problem cannot recur.**
+* `ctxM2` is the real static context: the entry kind's function (`start`, or the resolved method),
+  then `checkModuleM2 cfg p (fi − |imports|)`, packed by `M2Ctx.toCtx`. `ctxM2_ok` proves `CtxOK`.
+* `encRestT1` encodes the remainder through lane E's store-blind serialisers (`argsN`, `stN`,
+  `confN`), tagged by constructor (`encRestT1_blind`, `encRestT1_inj`).
+* `ccT1` is a `CodeCommit` stand-in (`bdigest ∘ Ser.enc`). The circuit's root is the stacked-PCS
+  commitment, which has no Lean model.
+* T1's heights are CODE 32 and FUNC 4.
+* **`wasmViewParams_nonempty : Nonempty WasmViewParams`.**
+* `vT1` is lane E's store-blind view `SB.vSB` with lane A's Wasm component. It satisfies
+  `vT1_blind` (`StoreBlind`), `vT1_clear` (`ClearCall`) and `vT1_wasm` (the restricted Wasm
+  binding, with `Bad = Sha384Coll`).
+* `a-t1/lean/PrepScope.lean` keeps the finding as `encRest_total_empty`: no injective encoder of a
+  store-carrying remainder exists. It now also checks `wasmViewParams_nonempty`.
+
+### 10.2 The Wasm template against `TmplRelC` [K]
+
+**`SegStore.lean` (new):** a Wasm segment never writes the trie store function.
+* `step_resOK` covers one step. A non-storage step commutes with the store map (`Logged.W.E_step`).
+  A storage host call keeps the store (`callHostL_spec`, with a byte-list store `gOf σ` that agrees
+  with `σ`, `gOf_agrees`).
+* **`seg_setSt`** extends this to a segment, and `enter_setSt` to a function entry.
+
+**`TmplWasm.lean` (restated):**
+* `wasm_core` now returns the successor explicitly.
+* `open_in` opens the in-digest only up to stores, because the record cannot see stores.
+* New named premise **`GhostC sf V tr`**: there is a ghost intake `I` whose context digest is the
+  in-record's `ctxRoot`, and the ghost query and state carry `I`'s canonical store `sf I`. It is
+  needed because the AIR's σ-thread pins the ghost state's store: storage reads run against it.
+  The record carries no store (it is a function), but `ctxRoot` pins `I`, and `I` pins the store.
+* **`wasm_relC`** / **`segSoundWasmRelC_of`** prove `SB.TmplRelC sf V A (Sha384Coll ∨ Coll V.ctxD)
+  .wasm` for `A.Holds .wasm = wasmHoldsC sf V Pv` (`WasmHolds ∧ GhostC`). A canonical opening `x`
+  of `d` steps by `MWasm` to a canonical opening of `d'`; the output is canonical by `seg_setSt`.
+* `airsWC` / `segSoundWasmRelC_airsWC` give the system `Airs`.
+* Non-vacuity: `ghostC_honest`, and `wasmHoldsC_honest` (`wasmHolds_honest` plus canonicity).
+* The non-canonical `segSoundWasmRel_of` / `wasm_rel` are removed. Over a store-sensitive opening
+  they are not provable: the ghost's store and the opening's store can differ.
+
+**What the Wasm leaf's soundness still rests on** (each is a named premise, and each holds on an
+honest run):
+1. `SegPremAMP`, lane A's per-segment premises. These include `CodeOK`/`FuncOK`: the CODE/FUNC
+   rows are records of `X`. Under S3 these should follow from the leaf's in-circuit equality
+   *cached root = `B.codeRoot`* and `CodeCommit` binding (the matrix is `codeRecs hCode X`, and
+   `padRep` repeats a record). **Not formalised.**
+2. `CutSeed`, proved from the previous segment (`cutSeed_of_out`).
+3. `RestOK`: `stackRem` and `vmCtxDigest` of the out-record. No public binds them (§8).
+4. `win`, the ghost in-opening, and `GhostC`.
+
+### 10.3 PREP: AIR, T1 leaf, mutants [K][M]
+
+**AIR (`WasmBase/PrepAir.lean`, `wasmbase-tool airPrep`):** 4 tables and 33 public values (the 32
+hash bytes, then the length).
+* `PHDR` has one active row. It sends the hash-call summary and receives
+  `[0, 53, 1, len, h_0 … h_31]` on bus 211.
+* `SHA256` is lane A's SHA-256 table (the classical `ZkFormal.Sha.Table` constraints) plus
+  `Dmult ∈ {0,1}`. Its digest row sends `[ts, hid] ++` the classical digest message
+  `[Id, Nd, digest bytes]`, embedded by `toW`.
+* `CODE` and `FUNC` are the segment AIR's `Chips.Code.table` / `Chips.Func.table`, verbatim
+  (`prep_code_verbatim`, `prep_func_verbatim`).
+
+**Soundness of the hash part (`WasmBase/PrepSound.lean`) [K]:**
+* **`prep_sha_sound`**: from `Holds prepAir pub tr` (SHA table height a power of two in
+  `[2, 2^22]`) there is a message `m` with `pub[32] = |m|` and `pub[0..32) = SHA-256(m)`.
+  * PHDR's first row is active (`act_val`). Every count on bus 211 is a bit (`dmult_bit`), so the
+    balance is exact.
+  * The only 36-field sender on bus 211 is a SHA digest row (`occ211`).
+  * That row's message is `[Id, |m|] ++ sha256 m`, by the classical
+    `sha_digest_contract_closed` through `eval_z`.
+* `prep_hash_of_holds`: the 32 bytes the wrapper reads (`hashOf pub`) are `SHA-256(m)`.
+
+**The PREP template (`WasmBase/Main/TmplPrep.lean`) [K]:**
+* `prepHolds sf V Pv` is the circuit's checks (`PrepCirc`) plus the named premises (`PrepNamed`).
+  * `PrepCirc`: the record digests, WF, phase, the copy rule, `B_in.codeRoot = hash ‖ 0^10`, the
+    out roots = `codeC.root cm`, `funcC.root fm`, and `sha256 code = hash`. The last is a theorem
+    of the AIR: `prepCirc_sha_of_air`.
+  * `PrepNamed`: `win`, `ghost`, **`cert`** (`RecordsCert`, the decoder certificate), `ent` (the
+    success path) and `rest` (the entry record's other fields).
+* `preConf_canon`: `preConf` keeps a canonical query canonical (`adjustSt`, `enter_setSt`).
+* **`prep_relC`**: every canonical opening of `d` (necessarily `call I c K q .pre`) steps by one
+  `cstep` to the canonical `call I c K q (preConf q)` with digest `d'`. Otherwise there is a
+  `Sha384Coll`, a `Coll V.ctxD`, or a `Sha256Coll` (the circuit's bytes and `q.code` hash
+  equally).
+* **`segSoundWasmPrepRelC_of`**: the Wasm kind over both leaf types (`airsWP`: `WTr ⊕ PTr`, lane
+  E's decision) meets `SB.TmplRelC … (Sha384Coll ∨ Coll V.ctxD ∨ Sha256Coll) .wasm`.
+* `prepNamed_honest` proves `win`, `ghost` and `rest` for the honest records.
+
+**T1's PREP leaf [M]** (`run_prep.sh`; prover = the segment prover against the stack backend,
+`build_stack.sh`):
+
+| | |
+|---|---|
+| template | the segment template's commitment parameters (`n_stack` 18, `w_stack` 8, `log_blowup` 1, 24 grinding bits, DKT certificates); heights PHDR 4, SHA256 128 (103 live rows: 6 blocks), CODE 32, FUNC 4 |
+| pinned heights | `[(2, 4), (7, 128), (5, 32), (2, 4)]` (`set_tight_floor`, as `segleaf`); `prepleafverify` refuses any other |
+| proof | **469,779 B**, prove 31.1 s, verify 13–14 ms, peak RSS 7.7 GB, **268.2 bits** (logup 324.4, proximity 295.1, query 268.2), WHIR queries [100, 71, 45, 33] |
+| public values | `8152bed2…36bf9` (the account's code hash) and 345 |
+| R1 | PREP's cached CODE / FUNC commitments = the canonical `code_root` / `func_root` = **both A-T2 segment leaves' cached roots** (`prepleafverify` against `at2/leaf-k13p/leaf`), and in lane D's format the 18-limb `cached` cells of `INFO.json` are equal to `wasm0`'s and `wasm1`'s |
+| lane D format | `m8-import` (pq-e2e-m8 drv2) verifies it natively: `M8_TEMPLATE_PROVED wasm_prep bytes=469779 … bits=268.2` |
+
+**Mutant battery (`preptamper`): 14/14 rejected** (`logs/t1-prep-tamper.txt`):
+
+| mutant | rejected by |
+|---|---|
+| wrong code byte (byte 100 flipped, public hash kept) | bus 211 unbalanced: the prover fails (`LogupZerocheck(NonZeroRootSum)`) |
+| wrong hash (public byte 0 + 1) | the same |
+| wrong length (public length + 1) | the same (`Nd` is in the digest message; see the finding below) |
+| wrong func record (FUNC row 0 charge + 1) | R1: PREP's FUNC root ≠ the segments' FUNC root |
+| wrong code record (CODE row 3 op + 1) | R1: CODE root |
+| code records out of pc order | R1: CODE root |
+| swapped code root (CODE committed with the FUNC records, FUNC with CODE's) | R1: CODE root |
+| natural tight heights | pinned-heights rule |
+| saved proof byte flipped | the verifier (`WhirError(MerkleVerify)`) |
+| published code / func roots swapped | published root ≠ the proof's cached commitment |
+| `in_code_root` of another contract | ≠ the public hash |
+| a public hash byte edited | the public values |
+| vk query count edited | vk hash |
+| the segment leaves of another code (their CODE root edited) | R1 |
+
+The record mutants (func record, code record, order, swap) are rejected **only** by the R1
+comparison with the segment leaves. PREP itself accepts any CODE/FUNC matrix: nothing in the AIR
+yet ties the records to the hashed bytes (§10.4).
+
+**Finding: `Chips.Sha`'s `sh_len` is not tied to `Nd`.** A first PREP AIR took the length from
+the summary (`sh_len`), and the "wrong length" mutant was accepted. In the segment AIR, a
+`sha256` host call's summary therefore does not bind the message length. This is inside the
+stated `HashInputLink` obligation (`ShaAir.lean`), but the fix is cheap: carry `Nd` in the digest
+message, as PREP now does.
+
+### 10.4 Open
+
+* **The decoder certificate (`TmplPrep.RecordsCert`)**: the CODE/FUNC matrices are
+  `checkModuleM2 cfg (prepare cfg m)`'s records for the hashed bytes `m`. These are steps 2–5 of
+  §4 (DECODE rows with LEB128 and an opcode lookup over a CODEBYTES table byte-linked to the SHA
+  rows; VALIDATE; INSTRUMENT; RECORDS sent on `busFetch`/`busFunc` to the `mult` columns PREP's
+  CODE/FUNC already have). Until it exists, a prover may pair a contract's hash with records of a
+  different program, provided its segment leaves use the same records. The R1 comparison binds
+  PREP to the segments, not to the code. **This is the main gap of the Wasm side.**
+* `PrepRest` (§7 (c)–(f)): the entry record's pc, sp, stackRem, fuel, memory root and pages, the
+  frames digest and `vmCtxDigest`, all at `preConf q`. `PrepNamed.ent` covers the success path
+  only; the error branches of `runCall`'s prefix need a second PREP shape.
+* `CodeOK`/`FuncOK` from S3 (§10.2 item 1).
+* Lane D: put the PREP leaf into the tree spec, between RT `enter` and WASM segment 0. This needs
+  the W-part mapping and a normaliser from PREP's 32 hash bytes to `B_in.wasm.codeRoot`; then lane D
+  can report its leaf program root. The leaf is ready in lane D's format:
+  `/data/illia/nearproof-deps/e2e-laneA/at3/prep/m8-tmpl/prep/`.
+* The `gasLeft`/`stackRem` publics (m6 §6, §8) for `RestOK`.
+
+**Paths:** PREP leaf (`PREP.vk.json`, `prep.proof`, `prep.pubs.json`, `manifest.json`) at
+`/data/illia/nearproof-deps/e2e-laneA/at3/prep/leaf/`; lane D's import at `…/at3/prep/m8-tmpl/prep/`;
+logs `logs/t1-prep-*.txt`.

@@ -32,7 +32,7 @@ fn cont() -> bool {
     std::env::var("SEG_CONTINUE").is_ok_and(|v| !v.is_empty())
 }
 
-fn load(p: &str) -> AirSpec {
+pub(crate) fn load(p: &str) -> AirSpec {
     AirSpec::parse(&std::fs::read_to_string(p).unwrap())
 }
 
@@ -254,7 +254,7 @@ fn params_for(segs: &[SegInst]) -> SystemParams {
     crate::seg_v1_params(n_stack, w_stack, s384::air::DEGREE)
 }
 
-fn proof_size(p: &openvm_stark_backend::proof::Proof<Sha384Config>) -> usize {
+pub(crate) fn proof_size(p: &openvm_stark_backend::proof::Proof<Sha384Config>) -> usize {
     let mut b = Vec::new();
     p.encode(&mut b).unwrap();
     b.len()
@@ -983,17 +983,17 @@ pub fn cmd_segtemplate(a: &[String]) {
 }
 
 /// A template file: the pinned geometry and per-table heights of one segment template.
-struct Template {
-    n_stack: usize,
-    w_stack: usize,
-    log_blowup: usize,
-    pow: usize,
-    certs: String,
-    exclusions: String,
-    heights: std::collections::HashMap<String, usize>,
-    raw: serde_json::Value,
+pub(crate) struct Template {
+    pub(crate) n_stack: usize,
+    pub(crate) w_stack: usize,
+    pub(crate) log_blowup: usize,
+    pub(crate) pow: usize,
+    pub(crate) certs: String,
+    pub(crate) exclusions: String,
+    pub(crate) heights: std::collections::HashMap<String, usize>,
+    pub(crate) raw: serde_json::Value,
 }
-fn read_template(path: &str) -> Template {
+pub(crate) fn read_template(path: &str) -> Template {
     let v: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(path).unwrap()).unwrap();
     let u = |k: &str| v[k].as_u64().unwrap_or_else(|| panic!("template: {k}")) as usize;
     let s = |k: &str| v[k].as_str().unwrap_or_else(|| panic!("template: {k}")).to_string();
@@ -1001,26 +1001,26 @@ fn read_template(path: &str) -> Template {
     Template { n_stack: u("n_stack"), w_stack: u("w_stack"), log_blowup: u("log_blowup"), pow: u("pow"),
         certs: s("certs"), exclusions: s("exclusions"), heights, raw: v.clone() }
 }
-fn template_params(t: &Template) -> SystemParams {
+pub(crate) fn template_params(t: &Template) -> SystemParams {
     crate::seg_base_params(t.n_stack, t.w_stack, t.log_blowup, t.pow, s384::air::DEGREE, &t.certs, &t.exclusions)
 }
 
-fn sha256_hex(b: &[u8]) -> String {
+pub(crate) fn sha256_hex(b: &[u8]) -> String {
     use sha2::Digest;
     sha2::Sha256::digest(b).iter().map(|x| format!("{x:02x}")).collect()
 }
 
-type SegVk = openvm_stark_backend::keygen::types::MultiStarkVerifyingKey<Sha384Config>;
+pub(crate) type SegVk = openvm_stark_backend::keygen::types::MultiStarkVerifyingKey<Sha384Config>;
 
 /// Save a verifying key in the stack's envelope (`pq-chunk-e2e` `save_vk`: the extended-domain odd
 /// factor, which upstream VK serde skips, kept explicitly).
-fn save_vk(path: &std::path::Path, vk: &SegVk) -> Vec<u8> {
+pub(crate) fn save_vk(path: &std::path::Path, vk: &SegVk) -> Vec<u8> {
     let env = serde_json::json!({ "domain_odd_factor": vk.inner.params.whir.domain_odd_factor, "vk": vk });
     let b = serde_json::to_vec(&env).unwrap();
     std::fs::write(path, &b).unwrap();
     b
 }
-fn read_vk(path: &std::path::Path) -> SegVk {
+pub(crate) fn read_vk(path: &std::path::Path) -> SegVk {
     let mut v: serde_json::Value = serde_json::from_slice(&std::fs::read(path).unwrap()).unwrap();
     let odd = v["domain_odd_factor"].as_u64().unwrap() as usize;
     let mut vk: SegVk = serde_json::from_value(v["vk"].take()).unwrap();
@@ -1030,7 +1030,7 @@ fn read_vk(path: &std::path::Path) -> SegVk {
 
 /// A-T2: the prover-side tight-height floor that commits every common main at its full height:
 /// `(common-main width, log height, height)` per trace of the proving context.
-fn full_tight_floor(pc: &ProvingContext<CpuColMajorBackend<Sha384Config>>) -> Vec<(usize, usize, usize)> {
+pub(crate) fn full_tight_floor(pc: &ProvingContext<CpuColMajorBackend<Sha384Config>>) -> Vec<(usize, usize, usize)> {
     use openvm_stark_backend::prover::MatrixDimensions;
     pc.common_main_traces()
         .map(|(_, m)| (m.width(), m.height().trailing_zeros() as usize, m.height()))
@@ -1055,7 +1055,7 @@ fn template_heights(spec: &AirSpec, th: &std::collections::HashMap<String, usize
 }
 
 /// The `(log_height, tight_height)` per AIR a proof declares.
-fn proof_heights(p: &openvm_stark_backend::proof::Proof<Sha384Config>) -> Vec<(usize, Option<usize>)> {
+pub(crate) fn proof_heights(p: &openvm_stark_backend::proof::Proof<Sha384Config>) -> Vec<(usize, Option<usize>)> {
     p.trace_vdata.iter().map(|v| v.as_ref().map_or((usize::MAX, None), |v| (v.log_height, v.tight_height))).collect()
 }
 
