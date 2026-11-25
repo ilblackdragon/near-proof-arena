@@ -239,6 +239,10 @@ leaf). Log: [`docs/logs/e2e-f3-runtime-2026-11-25.md`](../../../../docs/logs/e2e
   clear fields carry the counters (driver view), or resume takes the totals from the `stRoot`
   opening (lane B's `rest`). Enter is neutral (`clearEnter` is parametric in `pre`). Not a change
   of `S`, `claimDigest` or the checker.
+  **Resolved by lane E's M12** (plan §3.5 "M12"): `ViewE.clearE` carries the counters (`gasUsed =
+  gasBurnt = rs.gas`, `compute`, `balanceBurnt = rs.txBurnt`, `receiptIdx = |outcomes|`; in a call
+  `rPrepaid = prepaidGas`; `clearE_enter`, `clearE_resume`). The resume AIR still needs three rule
+  changes to meet it: `receiptIdx` out = in + 1, and `rPrepaid`, `rBurnt`, `rUsed` out = 0.
 * **STATE.** Lane F has no engine rows for VM-free steps (T1's STATE segments: receipt 0, the
   forwards, the post-receipt steps), so `EngHalfRC` for STATE has no AIR to prove it from. The split
   instance and the glue are stated (`SplitC` header): `W` = working-set root, `Q` = the `SREQ`/`HB`

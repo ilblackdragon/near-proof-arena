@@ -402,6 +402,10 @@ def vSB (lB : Bytes → Nat) (κ : Intake → List Bytes) (stD : StV → Bytes) 
   vmD := vmSB
   wasmD := wasmSB
 
+/-- Stores do not touch the call context (so the clear fields, which read `q.ctx.prepaidGas`, are
+store-blind). -/
+@[simp] theorem setArgs_ctx (s : TTN.Store) (q : CallArgs) : (setArgs s q).ctx = q.ctx := rfl
+
 theorem argsN_setArgs (s : TTN.Store) (q : CallArgs) : argsN (setArgs s q) = argsN q := rfl
 
 set_option synthInstance.maxSize 4096 in
@@ -416,7 +420,7 @@ theorem vSB_blind (lB : Bytes → Nat) (κ : Intake → List Bytes) (stD : StV �
   cases x with
   | base c => rfl
   | call I c K q cc =>
-    simp only [ViewImpl.bnd, vSB, stripR, setR, split, vmSB_blind, wasmSB_strip, ViewE.clearE]
+    simp only [ViewImpl.bnd, vSB, stripR, setR, setArgs_ctx, split, vmSB_blind, wasmSB_strip, ViewE.clearE]
 
 /-! ## S2, S3: the code roots -/
 

@@ -29,7 +29,7 @@ arguments for the types whose `Ser` closure is not built yet (`Intake`, `GFin`, 
 | `outD (.eng (os, rs, ps))` | `(chainD enc os, [chainD enc rs], chainD enc ps, bdigest [1])` (lane G's M5d proposal (4): running list commitments) | STATE / RT (lanes B, F) append; FINAL reads |
 | `outD (.done o)` | `(bdigest (Ser.enc o), [], bdigest [], bdigest [2])` | FINAL (lane G) |
 | `vmD K` | `chainD enc K` over `(q, r)` pairs: `vmD [] = bdigest []`, `vmD (K ++ [(q, r)]) = bdigest (vmD K ‖ enc (q, r))` | RT (lane F): `next` appends, `resume` consumes |
-| clear fields | constants: `claimDigest = bdigest []`, every counter `0` | nobody (the leaf statement's `ctx` carries `claimDigest`) |
+| clear fields | `clearE` (M12, below): the **running counters are carried** (`receiptIdx`, `gasUsed`, `gasBurnt`, `balanceBurnt`, `compute` of the engine state, the call's `rPrepaid`); at `done H o` the header outputs `o.gasUsed`, `o.balanceBurnt`; every field that is not a function of the configuration is the constant `0` / `bdigest []` | every leaf: copies, or updates its own counters (RT resume: the `RX` totals) |
 
 The fourth output field (`bwAcc`) is the constructor tag; without it `outD .none` and
 `outD (.eng ([], [], []))` coincide (both `bdigest []` lists), which is a collision of `outD`
@@ -212,12 +212,200 @@ theorem coll_vmDE (h : Coll (vmDE : VmV → Bytes)) : Sha384Coll :=
 
 end Vm
 
-/-! ## The clear fields and the assembled view -/
+/-! ## The clear fields (M12: carried running counters) and the assembled view
 
-/-- **The clear fields**: constants (no lane computes them; the chunk context travels in the leaf
-statement's `ctx`). -/
-def clearE (_ : RConf) : ClearF :=
-  ⟨bdigest [], 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0⟩
+**Decision (integrator, M12; lane F's finding F3-2).** The clear fields are not hashed into any
+component and carry no binding obligation (`viewImpl_binding` never looks at them: they are
+functions of the configuration, which `split` already determines). M11i set them all to
+constants; lane F's resume leaf ties the gas totals to its `RX` row and lane I's driver fills the
+real counters, so under the constants an honest resume leaf could not satisfy its own boundary
+constraints. Now **every counter that is a function of the configuration is carried**, and only
+fields that are not are constants:
+
+| field | `eng I c` (positions with a receipt state `rs`) | `eng I ⟨done out⟩`, `fin I out` | `call I c K q cc` | `done H o` | `init`, `eng ⟨start⟩`, `gfin`, `doneG` |
+|---|---|---|---|---|---|
+| `receiptIdx` | `|rs.outcomes|` | `|out.outcomes|` | that of `eng I c` | `0` | `0` |
+| `gasUsed`, `gasBurnt` | `rs.gas` (lane F's `RX.gin`/`gout`) | `out.gasUsed` | that of `eng I c` | `o.gasUsed`, `0` | `0` |
+| `balanceBurnt` | `rs.txBurnt` (`RX.tbin`/`tbout`) | `out.balanceBurnt` | that of `eng I c` | `o.balanceBurnt` | `0` |
+| `compute` | `rs.compute` (`RX.cin`/`cout`) | `out.compute` (`0` if unreported) | that of `eng I c` | `0` | `0` |
+| `rPrepaid` | `0` | `0` | `q.ctx.prepaidGas` (`RX.gas`) | `0` | `0` |
+| `claimDigest` | `bdigest []` everywhere | | | | |
+| `blockIdx`, `actionIdx`, `t`, `rBurnt`, `rUsed` | `0` everywhere | | | | |
+
+Counters are reduced mod `2^64` (`2^128` for the balance), so every record is in range
+(`clearE_ok`); on an accepting run every counter is in range already (the checker's `add64` /
+`add128` overflow checks), so the reduction is the identity there.
+
+At `done H o` the counters are the **header outputs FINAL already binds** (`headerOk`:
+`H.prevGasUsed = o.gasUsed`, `H.prevBalanceBurnt = o.balanceBurnt`), the rest constants: the header
+carries no burnt-gas, compute or receipt count. This replaces M11i's "clear fields at `done` are
+constants"; FINAL stays a copying leaf for the two header counters (`clearE_final`: `tailNew`
+takes `gasUsed` / `balanceBurnt` from `out`).
+
+Why the constants are not carried (none is a function of `RConf`, so no view can carry it):
+* `claimDigest`: `Intake` holds the decoded claim, not the bytes `S`; the chunk context travels
+  in every leaf statement's `ctx` (`compose_ctx`), so a record copy would be redundant.
+* `blockIdx`: no engine step changes the main block; it is part of `I` (committed by `ctxRoot`).
+* `actionIdx`: the engine runs a receipt step atomically, and the call-machine configuration has
+  no action index (`|K|` counts answered VM calls, not actions); the call's progress is in
+  `vmAcc` and the Wasm part.
+* `t`: the AIRs' memory-checking clock restarts per segment (`StViewE.idxOf = 0`); inside a call
+  the progress is `wasm.fuel` (lane A's leaf proves `fuel_out + (t_out − t_in) = fuel_in` and copies
+  `t`; lane F's enter writes `t = 0`). Lane I's driver must write `t = 0` at every cut.
+* `rBurnt`, `rUsed`: the in-flight receipt's VM gas is in no configuration (inside a call it
+  changes with the Wasm state, which `ClearCall` forbids; it is `wasm.gasLeft`); after `resume`
+  the engine configuration no longer has it.
+-/
+
+/-- Reduction into a `u64` counter. -/
+def u64c (n : Nat) : Nat := n % 2 ^ 64
+
+/-- Reduction into a `u128` counter. -/
+def u128c (n : Nat) : Nat := n % 2 ^ 128
+
+/-- The all-constant clear record. -/
+def clear0 : ClearF := ⟨bdigest [], 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0⟩
+
+/-- The receipt state of an engine position (none at `start`, `done`). -/
+def eposRS : EPos → Option RS
+  | .txs _ _ rs | .locals _ rs | .delayed _ rs | .incoming _ rs | .yields _ _ _ _ _ rs => some rs
+  | _ => none
+
+/-- The counters of a receipt state. -/
+def rsClear (rs : RS) : ClearF :=
+  ⟨bdigest [], 0, u64c rs.outcomes.length, 0, 0, u64c rs.gas, u64c rs.gas, u128c rs.txBurnt,
+    u64c rs.compute, 0, 0, 0⟩
+
+/-- The counters of a main-transition output. -/
+def outClear (out : MainOutD2) : ClearF :=
+  ⟨bdigest [], 0, u64c out.outcomes.length, 0, 0, u64c out.gasUsed, u64c out.gasUsed,
+    u128c out.balanceBurnt, u64c (out.compute.getD 0), 0, 0, 0⟩
+
+/-- The counters of an engine position. -/
+def engClear (p : EPos) : ClearF :=
+  match p with
+  | .done out => outClear out
+  | p => match eposRS p with
+    | some rs => rsClear rs
+    | none => clear0
+
+/-- **The clear fields** (M12, the table above). -/
+def clearE : RConf → ClearF
+  | .base (.eng _ c) => engClear c.pos
+  | .base (.fin _ out) => outClear out
+  | .base (.done _ o) =>
+    ⟨bdigest [], 0, 0, 0, 0, u64c o.gasUsed, 0, u128c o.balanceBurnt, 0, 0, 0, 0⟩
+  | .base (.init _ _) => clear0
+  | .base (.gfin _) => clear0
+  | .base .doneG => clear0
+  | .call _ c _ q _ => { engClear c.pos with rPrepaid := u64c q.ctx.prepaidGas }
+
+/-! ### Laws of `clearE` -/
+
+theorem engClear_fixed (p : EPos) : (engClear p).claimDigest = bdigest [] ∧
+    (engClear p).blockIdx = 0 ∧ (engClear p).actionIdx = 0 ∧ (engClear p).t = 0 ∧
+    (engClear p).rPrepaid = 0 ∧ (engClear p).rBurnt = 0 ∧ (engClear p).rUsed = 0 := by
+  cases p <;> simp [engClear, eposRS, rsClear, outClear, clear0]
+
+theorem engClear_range (p : EPos) : (engClear p).receiptIdx < 2 ^ 64 ∧
+    (engClear p).gasUsed < 2 ^ 64 ∧ (engClear p).gasBurnt < 2 ^ 64 ∧
+    (engClear p).balanceBurnt < 2 ^ 128 ∧ (engClear p).compute < 2 ^ 64 := by
+  have h64 : ∀ n, u64c n < 2 ^ 64 := fun n => Nat.mod_lt _ (Nat.two_pow_pos 64)
+  have h128 : ∀ n, u128c n < 2 ^ 128 := fun n => Nat.mod_lt _ (Nat.two_pow_pos 128)
+  have z64 : (0 : Nat) < 2 ^ 64 := Nat.two_pow_pos 64
+  have z128 : (0 : Nat) < 2 ^ 128 := Nat.two_pow_pos 128
+  cases p <;> simp only [engClear, eposRS, rsClear, outClear, clear0, h64, h128, z64, z128,
+    and_self]
+
+/-- **`ClearCall`** (lane A's view side condition): the clear fields are constant inside a call. -/
+theorem clearE_call (I : Intake) (c : EConf) (K : VmV) (q : VmQ) (cc cc' : CallConf) :
+    clearE (.call I c K q cc) = clearE (.call I c K q cc') := rfl
+
+/-- The clear fields of a call depend only on the engine configuration and the query's context
+(not on the tape, the call-machine configuration or any store). -/
+theorem clearE_call_eq (I : Intake) (c : EConf) (K K' : VmV) (q q' : VmQ) (cc cc' : CallConf)
+    (hq : q.ctx = q'.ctx) : clearE (.call I c K q cc) = clearE (.call I c K' q' cc') := by
+  dsimp only [clearE]
+  rw [hq]
+
+/-- **Lane F's `RtView.clearEnter`**, with `pre q = u64c q.ctx.prepaidGas`: the call's clear fields
+are the engine's with the clock `0` and the query's prepaid gas. -/
+theorem clearE_enter (I : Intake) (c : EConf) (q : VmQ) :
+    clearE (.call I c [] q .pre) =
+      { clearE (.base (.eng I c)) with t := 0, rPrepaid := u64c q.ctx.prepaidGas } := by
+  have ht := (engClear_fixed c.pos).2.2.2.1
+  dsimp only [clearE]
+  generalize engClear c.pos = e at ht ⊢
+  cases e
+  simp only at ht
+  subst ht
+  rfl
+
+/-- **The resume edge's counters** (lane F's `resumeCons`): the call's `gasUsed`, `gasBurnt`,
+`balanceBurnt`, `compute` are those of the engine configuration the receipt step started from
+(`RX`'s totals in), `rPrepaid` is the query's (`RX.gas`); the output engine configuration has its
+own totals (`RX`'s totals out) and `rPrepaid = rBurnt = rUsed = 0`. -/
+theorem clearE_resume (I : Intake) (c c' : EConf) (K : VmV) (q : VmQ) (r : Run) :
+    (clearE (.call I c K q (.fin r))).gasUsed = (clearE (.base (.eng I c))).gasUsed ∧
+    (clearE (.call I c K q (.fin r))).gasBurnt = (clearE (.base (.eng I c))).gasBurnt ∧
+    (clearE (.call I c K q (.fin r))).compute = (clearE (.base (.eng I c))).compute ∧
+    (clearE (.call I c K q (.fin r))).balanceBurnt = (clearE (.base (.eng I c))).balanceBurnt ∧
+    (clearE (.call I c K q (.fin r))).rPrepaid = u64c q.ctx.prepaidGas ∧
+    (clearE (.base (.eng I c'))).rPrepaid = 0 ∧ (clearE (.base (.eng I c'))).rBurnt = 0 ∧
+    (clearE (.base (.eng I c'))).rUsed = 0 :=
+  ⟨rfl, rfl, rfl, rfl, rfl, (engClear_fixed c'.pos).2.2.2.2.1,
+    (engClear_fixed c'.pos).2.2.2.2.2.1, (engClear_fixed c'.pos).2.2.2.2.2.2⟩
+
+/-- **FINAL copies the two header counters**: the FINAL step `eng I ⟨done out⟩ → fin I out` keeps
+the clear fields, and `tailNew` takes `o.gasUsed`, `o.balanceBurnt` from `out`, which the `done`
+record carries. -/
+theorem clearE_final {driver : Successor.ExecutionDriver} {I : Intake} {out : MainOutD2}
+    {t : Bytes × Congestion × List Rcpt} {o : Outputs} (H : ChunkInner) (r : Recording)
+    (h : tailNew driver I out t = .ok o) :
+    clearE (.base (.eng I ⟨.done out, r⟩)) = clearE (.base (.fin I out)) ∧
+    (clearE (.base (.done H o))).gasUsed = (clearE (.base (.fin I out))).gasUsed ∧
+    (clearE (.base (.done H o))).balanceBurnt = (clearE (.base (.fin I out))).balanceBurnt := by
+  obtain ⟨root, cong, outg⟩ := t
+  simp only [tailNew] at h
+  split at h
+  · cases h
+  · cases h
+    exact ⟨rfl, rfl, rfl⟩
+
+/-- **The counters are in range** (`BndRec.WF`'s `u64`/`u128` widths), and the constant fields. -/
+theorem clearE_ok (x : RConf) : (clearE x).receiptIdx < 2 ^ 64 ∧ (clearE x).gasUsed < 2 ^ 64 ∧
+    (clearE x).gasBurnt < 2 ^ 64 ∧ (clearE x).balanceBurnt < 2 ^ 128 ∧
+    (clearE x).compute < 2 ^ 64 ∧ (clearE x).rPrepaid < 2 ^ 64 ∧
+    (clearE x).claimDigest = bdigest [] ∧ (clearE x).blockIdx = 0 ∧ (clearE x).actionIdx = 0 ∧
+    (clearE x).t = 0 ∧ (clearE x).rBurnt = 0 ∧ (clearE x).rUsed = 0 := by
+  have h64 : ∀ n, u64c n < 2 ^ 64 := fun n => Nat.mod_lt _ (Nat.two_pow_pos 64)
+  have h128 : ∀ n, u128c n < 2 ^ 128 := fun n => Nat.mod_lt _ (Nat.two_pow_pos 128)
+  have z64 : (0 : Nat) < 2 ^ 64 := Nat.two_pow_pos 64
+  have z128 : (0 : Nat) < 2 ^ 128 := Nat.two_pow_pos 128
+  cases x with
+  | base c =>
+    cases c with
+    | eng I e =>
+      have h1 := engClear_fixed e.pos; have h2 := engClear_range e.pos
+      show (engClear e.pos).receiptIdx < 2 ^ 64 ∧ _
+      exact ⟨h2.1, h2.2.1, h2.2.2.1, h2.2.2.2.1, h2.2.2.2.2,
+        by show (engClear e.pos).rPrepaid < _; rw [h1.2.2.2.2.1]; exact z64, h1.1,
+        h1.2.1, h1.2.2.1, h1.2.2.2.1, h1.2.2.2.2.2.1, h1.2.2.2.2.2.2⟩
+    | fin I out =>
+      refine ⟨h64 _, h64 _, h64 _, h128 _, h64 _, z64, ?_, ?_, ?_, ?_, ?_, ?_⟩ <;>
+        simp only [clearE, outClear]
+    | done H o =>
+      refine ⟨z64, h64 _, z64, h128 _, z64, z64, ?_, ?_, ?_, ?_, ?_, ?_⟩ <;> simp only [clearE]
+    | init =>
+      refine ⟨z64, z64, z64, z128, z64, z64, ?_, ?_, ?_, ?_, ?_, ?_⟩ <;> simp only [clearE, clear0]
+    | gfin =>
+      refine ⟨z64, z64, z64, z128, z64, z64, ?_, ?_, ?_, ?_, ?_, ?_⟩ <;> simp only [clearE, clear0]
+    | doneG =>
+      refine ⟨z64, z64, z64, z128, z64, z64, ?_, ?_, ?_, ?_, ?_, ?_⟩ <;> simp only [clearE, clear0]
+  | call I c K q cc =>
+    have h1 := engClear_fixed c.pos; have h2 := engClear_range c.pos
+    exact ⟨h2.1, h2.2.1, h2.2.2.1, h2.2.2.2.1, h2.2.2.2.2, h64 _, h1.1, h1.2.1, h1.2.2.1,
+      h1.2.2.2.1, h1.2.2.2.2.2.1, h1.2.2.2.2.2.2⟩
 
 /-- **Lane E's view**: lane E's context, output and VM-tape commitments and clear fields, lane B's
 state commitment `stD` (with the key function `κ`), lane A's Wasm commitment `wasmD`. -/
@@ -247,11 +435,63 @@ theorem viewE_binding (lB : Bytes → Nat) [Ser Intake] [Ser GFin] [Ser ChunkInn
   · exact .inl (coll_vmDE h)
   · exact .inr (.inr h)
 
+/-! ## M12: lane G's item encodings are not injective
+
+M11i left open whether lane G's in-circuit item encodings — the outcome Merkle leaf `OutD1.leaf`
+and `u32 ℓ ‖ Rcpt.encode r` (FINAL's `FinIn` accumulators, leaf spec §2) — may replace `Ser.enc`
+in `outDE`. They may not as they stand: `chainD_binding` needs an injective item encoding on
+**every** value (`Coll outD` ranges over all `OutV`), and both encodings identify distinct values
+without any hash collision:
+* `outD1_leaf_value`: `.value` and `.valueBytes []` have the same `partialEncode` (the spec says
+  so: "`.valueBytes []` encodes as `.value`"), hence the same leaf;
+* `rcpt_encode_refundTo`: a V1 action receipt (`v2 = false`) does not encode `refundTo`, so two
+  receipts differing only there encode equally.
+(Also `rid`, `dataId` and the output `data_id`s are not length-checked by the encoder, so the field
+boundaries move with their lengths.) **Decision (M12):** the engine-state accumulators keep the
+prefix-free `Ser.enc` items (as M11i); FINAL opens `B_in`'s accumulators by witnessing the lists
+and recomputing `chainD Ser.enc`, and builds its own `OutD1.leaf` / routed
+`u64 shard ‖ u32 ℓ ‖ Rcpt.encode r` chains internally (G-3 item 2). Replacing `Ser.enc` would need
+`CollOn` binding over canonical values (32-byte ids, `v2 = false → refundTo = none`, `.valueBytes
+[]` normalised to `.value`) plus a proof that reachable engine values are canonical. -/
+
+/-- `OutD1.leaf` identifies `SuccessValue([])` written two ways. -/
+theorem outD1_leaf_value (o : Outcome) (l : List Bytes) :
+    OutD1.leaf ⟨o, .value, l⟩ = OutD1.leaf ⟨o, .valueBytes [], l⟩ ∧
+      (⟨o, .value, l⟩ : OutD1) ≠ ⟨o, .valueBytes [], l⟩ := by
+  refine ⟨?_, fun h => by cases h⟩
+  simp [OutD1.leaf, OutD1.partialEncode, OStatus.encode]
+
+/-- `Rcpt.encode` ignores a V1 action receipt's `refundTo`. -/
+theorem rcpt_encode_refundTo (r : Rcpt) (y : Bool) (a : ActionR) (hv : a.v2 = false)
+    (ro ro' : Option Bytes) :
+    Rcpt.encode { r with body := .action y { a with refundTo := ro } } =
+      Rcpt.encode { r with body := .action y { a with refundTo := ro' } } := by
+  simp [Rcpt.encode, RBody.encode, ActionR.encode, hv]
+
+/-- Hence `u32 ℓ ‖ Rcpt.encode r` (lane G's outgoing item) is not injective either. -/
+theorem rcpt_item_not_inj (r : Rcpt) (y : Bool) (a : ActionR) (hv : a.v2 = false) :
+    let r1 := { r with body := .action y { a with refundTo := none } }
+    let r2 := { r with body := .action y { a with refundTo := some [] } }
+    r1 ≠ r2 ∧ u32 (Rcpt.encode r1).length ++ Rcpt.encode r1 =
+      u32 (Rcpt.encode r2).length ++ Rcpt.encode r2 := by
+  intro r1 r2
+  refine ⟨fun h => by simp [r1, r2] at h, ?_⟩
+  have := rcpt_encode_refundTo r y a hv none (some [])
+  simp only [r1, r2, this]
+
+#print axioms outD1_leaf_value
+#print axioms rcpt_encode_refundTo
+#print axioms rcpt_item_not_inj
 #print axioms ctxPre_inj
 #print axioms coll_ctxDE
 #print axioms coll_outDE
 #print axioms vmDE_snoc
 #print axioms coll_vmDE
 #print axioms viewE_binding
+#print axioms clearE_call
+#print axioms clearE_enter
+#print axioms clearE_resume
+#print axioms clearE_final
+#print axioms clearE_ok
 
 end NearSpecV3.E2E.ViewE
