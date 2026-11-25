@@ -37,7 +37,7 @@ receipt state's `o` at the positions `txs`/`locals`/`delayed`/`incoming`/`yields
   `x_{5..8}` the 6-bit chunks of the two lengths. Injective on `WsLeaf.WF` (32-byte hashes,
   lengths `< 2^24`); the 16-bit and flag ranges hold by construction (`be16_lt`, `xs_lt`) and the
   per-limb step is `WsCost.leafLimb_inj`'s arithmetic (`hi_inj`, `word_fields`).
-* **`encRestB_inj`** (`encRest_inj`), **`rawB_inj`** (`raw_inj`), **`rest_shapeB`**
+* **`encRestB_inj`** (`encRest_bind`, injective form), **`rawB_inj`** (`raw_inj`), **`rest_shapeB`**
   (`rest_shape`), **`proj_injB`** (`proj_inj`, through `kv_ext`: a list with distinct keys is
   determined by its key order and its lookups).
 
@@ -735,7 +735,7 @@ def stViewParams_B : StViewParams where
   fits_idx := fun _ h => (fitsB_parts E h).2.2.2.1
   raw := rawB E
   raw_inj := fun a b _ _ h => rawB_inj E a b h
-  encRest_inj := fun a b _ _ h => encRestB_inj E a b h
+  encRest_bind := fun a b _ _ h => .inr (encRestB_inj E a b h)
   rest_shape := fun a b _ _ h => rest_shapeB a b h
   proj_inj := fun a b fa fb _ hw ht _ hr => proj_injB E a b fa fb hw ht hr
 

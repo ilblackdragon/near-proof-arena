@@ -90,7 +90,7 @@ the shape are chunk constants.
 The projection `wsOf`, `trieOf`, `idxOf`, `restOf`/`encRest`, the leaf block, the predicate
 `fits` and the raw encoder, with: `leafBlock_inj`; `fits_*` (on `fits` states: the list fits the
 tree, value lengths `< 2^24`, the trie is well-formed, the index `< 2^64`); `raw_inj` (on
-non-`fits` states); `encRest_inj`, `rest_shape`, `proj_inj` (on `fits` states). All of them are
+non-`fits` states); `encRest_bind`, `rest_shape`, `proj_inj` (on `fits` states). All of them are
 discharged by `StateViewParams.stViewParams_B E` for **any** lane-E argument `E : StViewE`
 (`depth`, `keysOf`, `idxOf`, and an encoder `encE` of the stripped component with `encE_inj`);
 see that module for the projection and for what lane E must still provide.
@@ -689,9 +689,11 @@ structure StViewParams where
   /-- the raw form -/
   raw : StV → Bytes
   raw_inj : ∀ a b, fits a = false → fits b = false → raw a = raw b → a = b
-  /-- the remainder's encoder is injective on the remainders of `fits` states -/
-  encRest_inj : ∀ a b, fits a = true → fits b = true →
-    encRest (restOf a) = encRest (restOf b) → restOf a = restOf b
+  /-- the remainder's encoder is **binding** on the remainders of `fits` states: injective, or
+  modulo a SHA-384 collision (lane E's D-d: an incremental encoder of sub-digests,
+  `join/RestI.lean`; an injective encoder gives the right disjunct) -/
+  encRest_bind : ∀ a b, fits a = true → fits b = true →
+    encRest (restOf a) = encRest (restOf b) → Sha384Coll ∨ restOf a = restOf b
   /-- the remainder carries the trie's reveal shape -/
   rest_shape : ∀ a b, fits a = true → fits b = true → restOf a = restOf b →
     erase (trieOf a) = erase (trieOf b)
@@ -828,7 +830,8 @@ theorem circuit_binding (a b : StV) (fa : P.fits a = true) (fb : P.fits b = true
     congrArg StCommit.rest hc
   classical
   by_cases hr : P.encRest (P.restOf a) = P.encRest (P.restOf b)
-  · have hr := P.encRest_inj _ _ fa fb hr
+  · rcases P.encRest_bind _ _ fa fb hr with hr | hr
+    · exact .inr (.inl hr)
     rcases shape_binding _ _ (P.fits_trie a fa) (P.fits_trie b fb) (P.rest_shape a b fa fb hr) e4
       with ht | ht
     · rcases wsRoot_binding P _ _ (P.fits_ws_len a fa) (P.fits_ws_len b fb) (P.fits_ws_ok a fa)
