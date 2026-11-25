@@ -16,6 +16,7 @@
 # are then the chain's c2 -> c3 / c6 -> c7 unchanged (`rtbnd.pair_chain`); `se-leaves` / `se-mutants`
 # prove / attack the STATE engine half (`SE`, `segen.py`) on the chain's c1 -> c2, c7 -> c8, c8 -> c9;
 # `stmcheck` compares the leaves' STMQ/STMA stand-in traffic with lane B's state halves (`LANEB_T1C`).
+# F-7: `se-leaves` / `se-mutants` need F7EVAL (the opening rows' preimages, lean/join-check/f7-eval.sh).
 # F-6: every public value is received on RNG by the boundary table (`Ids.pubBytes`); the enter AIR is
 # `ENT` + `RNG`; every battery adds `nonbyte` (a non-byte copied value).
 # MUTANTS="…" picks the mutant battery. Box rules: ≤ 8 threads, HEAVY_MEM ≤ 40G, temp files under
@@ -61,14 +62,16 @@ case "$MODE" in
       nice -n 10 $HEAVY "$BIN" "$OUT/ent.json" "$OUT/ent-mut-$m" mutant | tee "$OUT/ent-mut-$m.log" | grep -E "PRECHECK FAIL|REJECTED|ACCEPTED"
     done ;;
   se-leaves|se-mutants)
+    # F-7: the opening rows' preimages (lean/join-check/f7-eval.sh CASE IN OUT) and the SE column names
+    SEARGS="--f7 ${F7EVAL:?set F7EVAL to the output of lean/join-check/f7-eval.sh} --names $OUT/se-names.json"
     for L in "STATE seg A" "STATE seg B" "finalize"; do
       s=$(echo "$L" | tr ' ' '-' | tr 'A-Z' 'a-z'); s=${s#state-}
-      python3 "$HERE/segen.py" "$PLAN" "$L" "$OUT/se-$s" --template "$HERE/templates/state-eng.json"
+      python3 "$HERE/segen.py" "$PLAN" "$L" "$OUT/se-$s" --template "$HERE/templates/state-eng.json" $SEARGS
       if [ "$MODE" = se-leaves ]; then
         nice -n 10 $HEAVY "$BIN" "$OUT/se.json" "$OUT/se-$s" prove "$OUT/se-$s-proof" | tee "$OUT/se-$s.log"
       else
-        for m in ${MUTANTS:-phase vmacc prepaid gasburnt ctxcopy claimcopy clock incall stroot nonbyte}; do
-          python3 "$HERE/segen.py" "$PLAN" "$L" "$OUT/se-$s-mut-$m" --template "$HERE/templates/state-eng.json" --mutant "$m" > /dev/null
+        for m in ${MUTANTS:-phase vmacc prepaid gasburnt ctxcopy claimcopy clock incall stroot nonbyte tagin wsopen restin queue movein moveout tagout static finqueue finkeys}; do
+          python3 "$HERE/segen.py" "$PLAN" "$L" "$OUT/se-$s-mut-$m" --template "$HERE/templates/state-eng.json" $SEARGS --mutant "$m" > /dev/null || continue
           echo "== [$L] mutant $m: $(nice -n 10 $HEAVY "$BIN" "$OUT/se.json" "$OUT/se-$s-mut-$m" mutant 2>&1 | grep -E 'PRECHECK FAIL|REJECTED|ACCEPTED' | head -1)"
         done
       fi

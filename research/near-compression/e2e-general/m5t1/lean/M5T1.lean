@@ -31,3 +31,7 @@ import M5T1.SeC
 import M5T1.T1SeData
 import M5T1.T1Se
 import M5T1.PubBytes
+import M5T1.Sh
+import M5T1.ShDef
+import M5T1.ShSem
+import M5T1.SeOpen

@@ -7,7 +7,8 @@ import M5T1.T1Resume
 
 T1's three STATE engine-half leaves (`segen.py`, lane D's base configuration; `logs/F5-leaves.txt`)
 have the public values `pubA` / `pubB` / `pubF` (900 bytes: lane I's chain records c1 → c2, c7 → c8,
-c8 → c9, `BndRec.encode`) and `SE` row 0 `rowA` / `rowB` / `rowF` (the `STMQ`/`STMA` metas). In the
+c8 → c9, `BndRec.encode`; F-7: the M14 chain) and `SE` row 0 `rowA` / `rowB` / `rowF` (the `STMQ`/`STMA`
+metas; F-7: and the opening rows' columns — the opened `stRoot`, the remainder digests, `fin`). In the
 kernel:
 
 * `t1_se_constr` — **every `SE` constraint vanishes on every row** of each leaf's 4-row trace (row 0
@@ -15,8 +16,8 @@ kernel:
   the circuit side (phase 1, out of a call, the copies, `vmAcc = bdigest []`, `rPrepaid = rBurnt =
   rUsed = 0`, `gasUsed = gasBurnt`) are satisfiable by T1's records;
 * `t1_se_bytes` — the public values are bytes;
-* `t1_se_chain` — the three leaves chain: seg B's output record is the finalize leaf's input record
-  byte for byte (c8), and seg B is the identity on the record (T1's seg B is empty).
+* `t1_se_chain` — the leaves chain: seg B's output record is the finalize leaf's input record
+  byte for byte (c8); F-7 (M14): seg B moves the record (c7 ≠ c8: the position tag and `rest`).
 
 Not checked here (stand-ins on T1): the step contract `SeC.SeStep` (no STATE engine rows) and the
 `STC` join (lane B's state halves are separate proofs whose `htape.json` traffic equals these
@@ -105,8 +106,9 @@ theorem t1_se_constr :
 theorem t1_se_bytes : (∀ x ∈ pubA, x < 256) ∧ (∀ x ∈ pubB, x < 256) ∧ (∀ x ∈ pubF, x < 256) := by
   decide +kernel
 
-/-- **The leaves chain** (c7 = c8 on T1: seg B is empty; seg B's output = the finalize input). -/
-theorem t1_se_chain : pubB.drop 450 = pubF.take 450 ∧ pubB.take 450 = pubB.drop 450 := by
+/-- **The leaves chain**: seg B's output record is the finalize leaf's input record (c8). F-7 (M14): seg B
+is no longer the identity on the record (c7 and c8 differ in `stRoot`: tags 7 → 8, lane E's `rest`). -/
+theorem t1_se_chain : pubB.drop 450 = pubF.take 450 ∧ pubB.take 450 ≠ pubB.drop 450 := by
   decide +kernel
 
 #print axioms t1_se_constr
