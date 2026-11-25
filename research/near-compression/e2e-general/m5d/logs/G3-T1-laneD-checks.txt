@@ -1,0 +1,4 @@
+FS_COUNT file=/data/illia/nearproof-deps/e2e-m5d/g3/t1f/proof-final/STATE.proof final=false total=690 flush=247 commit=5 squeeze_or_pow_run=434 pow=4 u_len=19
+FS_COUNT file=/data/illia/nearproof-deps/e2e-m5d/g3/t1i/proof-init/STATE.proof final=false total=687 flush=248 commit=5 squeeze_or_pow_run=430 pow=4 u_len=19
+M8_TEMPLATE_PROVED final bytes=485862 seconds=0.0 params=(n_stack 18, w_stack 8, lb 1) queries=[100, 71, 45, 33] bits=268.2
+M8_TEMPLATE_PROVED init bytes=350435 seconds=0.0 params=(n_stack 18, w_stack 4, lb 1) queries=[100, 71, 45, 33] bits=268.2

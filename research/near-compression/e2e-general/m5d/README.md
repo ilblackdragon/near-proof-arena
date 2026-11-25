@@ -5,6 +5,74 @@ Plan: `docs/zk-formal/E2E-GENERAL-CHUNK-PLAN.md` §1.1 ("outputs and roots"), §
 [`LEAF-TEMPLATE-SPEC.md`](LEAF-TEMPLATE-SPEC.md). Date 2026-11-21. Labels: **[M]** measured here,
 **[K]** kernel-checked Lean (std axioms), **[S]** stated / design only.
 
+## G-3 (2026-11-25): T1's INIT and FINAL re-proved on the current AIRs, saved in lane D's leaf format
+
+Log `docs/logs/e2e-laneG-g3-2026-11-25.md`. Plan §5.3. Reproduce: `./g3.sh OUT` (prove both,
+`m8-import`, both batteries). Nothing under `spec/` and no AIR changed in G-3.
+
+**What was proved [M]** — the G-2 AIRs as on main (`m5d-tool` export of this tree's Lean: INIT
+with `BLK` / `SLOT` `sel` bit / `ℓ_B` check / `PSR` public values; FINAL with the `B_out` digests,
+`FINB`/`PSR` bus ids fixed per leaf spec §5), lane D's base configuration (grinding 24), pinned
+templates `F1` / `INIT-14`, 8 threads, `heavy` slice at `HEAVY_MEM=18G`, host load ≈ 15:
+
+| T1 | FINAL (`F1`) | INIT (`INIT-14`) |
+|---|---|---|
+| tables / cells | 14 AIRs, 5,505,888 cells, 32 SHA-512 compressions (26 + the 2 `B_out` messages) | 7 AIRs, 1,698,776 cells, 124 compressions |
+| proof | **485,862 B** (G-2 before `B_out`: 480,428) | **350,435 B** (G-2 before `BLK`: 346,723) |
+| soundness | 268.2 bits (`query` bound) | 268.2 bits |
+| prove / verify | **21.8 s** / 26 ms | **19.0 s** / 10 ms |
+| peak RSS (prover) | **6.86 GB** | **6.24 GB** |
+| public values | 58: `claimDigest` (0..14), `finInDigest` (14..28), `n` = 990, `L` = 198, `ctxD(.header H)` (30..44) = `a1d33e43…`, `outD(.done o).1` (44..58) = `ef7d1e4e…` | 44: `claimDigest` (0..14), `ctxRoot = ctxD(.raw cb wb)` (14..28) = `0e790a2c…`, main slot `prev_state_root` (28..44, `pack2`) |
+| checks | native verifier + statement check OK; lane D `fs-count` OK; `m8-import` OK | same |
+
+Cross-checks: both `claimDigest` = `bb5aad11…9f2f01` (lane E's `t1_claimDigest`); FINAL's
+30..58 = the dump's Lean `ctxHeaderD` / `outDoneD`; INIT's 28..44 = **lane B's STATE_IF leaf's
+`WSB` public limbs 0..15 exactly** (lane D's `results/zk/m8/t1real/tmpl/state_if/INFO.json`), i.e.
+the standalone `PSR` link to lane B's intake holds on T1.
+
+**Saved (lane D's M8 leaf format)** — `/data/illia/nearproof-deps/e2e-m5d/g3/tmpl/{init,final}/`
+(`TMPL.proof`, `TMPL.vk.json`, `INFO.json`, written by lane D's own `m8-import`, which verifies
+natively); the prover's copies `…/g3/t1{i,f}/proof-{init,final}/STATE.{proof,vk.json}` +
+`statement.json`. In-repo: `results/g3/{init,final}/{INFO,statement}.json`, `results/g3/SHA256SUMS`.
+
+| file | sha256 |
+|---|---|
+| `final/TMPL.proof` (485,862 B) | `08f282a5…1c8dcd33` |
+| `final/TMPL.vk.json` | `eb0e7920…63a84a22` |
+| `init/TMPL.proof` (350,435 B) | `e88e84a2…35a99ac410` |
+| `init/TMPL.vk.json` | `982d4a91…379b0bf060` |
+
+For lane D's `TemplateSpec` (from `INFO.json`): INIT carries its 44 public values on `INI` only;
+FINAL carries 58 on `FIN` and the first 30 on `BODY`, `SEG`, `RS`, `PART` (the interpreter's
+"first `num_pub`" convention: one equality group, prefix form as lane B's WSB/WSX). No cached
+commitments. `ctx` = `CtxMode::Src(pv 0..14)` on both.
+
+**Mutant batteries with the prover [M]** (`logs/G3-T1-{final,init}-mutants.txt`; each mutant: the
+AIR precheck, and if it passes, the full prover + native verifier + statement check):
+* **FINAL 35 / 35 rejected**, all by the AIR precheck (the 32 of M5d-T1 + `bout_od`, `pub_hdr`,
+  `pub_out`). Same verdicts as G-2's `pycheck` run.
+* **INIT 10 / 10 rejected**: 6 by the AIR (`clm_kind`, `clm_byte`, `ini_lb`, `pub_ctx`, `lbshift`,
+  `pub_psr`); 4 prove and verify and are rejected by the **statement check** only: `pre_byte`,
+  `blk_byte`, `wit_byte` (honestly re-hashed changes of the claim / section B / witness: a
+  different chunk, so a different `claimDigest` / `ctxRoot` — the correct place to reject them),
+  and **`psr_slot`** (another slot's `prev_state_root`): the open slot-selection obligation
+  (`walkSegment`, leaf spec §6) — the AIR does not fix which slot is the main one.
+
+**`BndRec` gap (lane E, `E2E/Boundary.lean` + `View.lean`) — what the leaves expose vs. what
+`bdigest (V.bnd x).encode` needs.** Not resolved by a format here: lane E's `ViewImpl` is still a
+parameter (no concrete `clear`, `stD`, `outD`, `vmD`, `ctxD` in `spec/`), lane G's `ctxD` / `outD`
+encodings are proposals (`BOut.lean`, leaf spec §3/§4).
+
+| leaf boundary | `Templates` config | exposed today | missing |
+|---|---|---|---|
+| INIT `B_in` = `B_0` | `init cb wb` (phase 0) | `claimDigest`, `ctxRoot` (lane G's proposed `ctxD(.raw cb wb)`) | only view constants: `stD .none`, `outD .none` (4 accumulators), `vmD []`, `V.clear (init …)` (presumably 0) — lane E must fix them and adopt `ctxD(.raw)` |
+| INIT `B_out` | `eng I start` (phase 1) | nothing (INIT is `InitGPart` only) | `ctxD(.intake I)`, `stD(stOfK (κ I) start)`, `outD(.eng …)`: lane B's INTAKE (`InitBPart`). The standalone INIT can only end at `B_0`; `SegSoundInit` needs INIT ∘ INTAKE in one leaf (joined by the `CLM` bytes + `PSR` bus 22), or lane E's chain treats INIT as `→ B_0` and INTAKE as `B_0 → eng I start`. `prev_state_root` (28..44) is a join value, not a `BndRec` field |
+| FINAL `B_in` | `eng I ⟨done out⟩` / `fin I out` (phase 1/2) | `finInDigest = bdigest(0x46 ‖ FinIn)` — **not a `BndRec` field** | `ctxD(.intake I)`, `stD(…)`, `outD(.eng a)`, clear fields: lane B's FINAL + M5c `finK` (`FinalBPart`, `FINB` bus 23). Shape mismatch to resolve with lane E: `FinIn`'s outgoing accumulator is one `chainD` over `u64 shard ‖ u32 ℓ ‖ enc r`, `BndRec.outRcptAcc` is a `List` of digests; `FinIn`'s outcome accumulator (116..158) is `chainD` over `OutD1.leaf` — equal to `B_in.outcomeAcc` only if lane E's `outD(.eng)` is defined that way |
+| FINAL `B_out` | `done H o` (phase 4) | `claimDigest`, `ctxD(.header H)`, `outD(.done o).1` (proposals) | `outRcptAcc`, `proposalsAcc`, `bwAcc` of `outD(.done o)` (proposed `[]`, `bdigest []`, `bdigest []`), `stD .none`, `vmD []`, and **`V.clear (done H o)`**: lane I's plan carries `gasUsed`, `gasBurnt`, `compute`, `receiptIdx` into `done`; FINAL has `gasUsed` / `balanceBurnt` only inside `FinIn`, and `gasBurnt`, `compute`, `receiptIdx`, `rPrepaid/rBurnt/rUsed`, `blockIdx`, `actionIdx`, `t` not at all. Either lane E sets the clear fields of `done` to constants (outputs live in `o`), or they must come from `B_in` (pass-through cells), which needs the joint leaf |
+
+So the two proofs drop into the M8 tree as **template leaves with lane D's prototype records**
+(as the stubs: INIT's 44 / FINAL's 58 public values as record cells), not yet as `BndRec` digests.
+
 ## G-2 (2026-11-21): whole-AIR Lean, the leaf joins, `B_out`, pinned shapes, class census
 
 Log `docs/logs/e2e-laneG-g2-2026-11-21.md`. Plan §5.3.
