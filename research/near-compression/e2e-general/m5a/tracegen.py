@@ -87,6 +87,10 @@ B_WRITE, B_TCH, B_SREQ, B_HB, B_DESC = 13, 14, 28, 29, 30
 # lane A's cross-proof host buses (`StHostIf.lean`, `WasmBase.Chips.busHostQ/R/B`) and storage ids
 B_HOSTQ, B_HOSTR, B_HOSTB = 208, 209, 210
 HID_WRITE, HID_REMOVE = 58, 60
+# B-T3 (B2-4): the call context's receiver bytes / length (`StHostIf.B_CTXB` / `B_CTXL`) and the
+# HOST-fed STATE messages' SHA-256 ids (`ID_STH`)
+B_CTXB, B_CTXL = 215, 216
+ID_STH = 5 << 24
 W_FINAL = 1 << 20
 RK_ANS, RK_H, RK_HB, RK_HE, RK_LD, RK_NONE, RK_SAME = 0, 1, 2, 3, 4, 5, 6
 KMAX, HPMAX = 64, 33
@@ -208,7 +212,11 @@ class Gen:
         # M5a-8: without a `SHAS` table the STATE messages go to the M5a SHA-256 table (`sha_msgs.json`)
         self.sha_merged = self.m5b and 'SHAS' not in names.get('tables', [])
         self.T = {t: Table(t, names[t]) for t in ['KEY', 'BR', 'SN', 'KCMP', 'WSB', 'WSN', 'WSA', 'SNC', 'RNG', 'WSL', 'WSP']
-                  + (['STB', 'STW'] if self.m5b else []) + (['WSX'] if 'WSX' in names else [])}
+                  + (['STB', 'STW'] if self.m5b else []) + (['WSX'] if 'WSX' in names else [])
+                  + (['STBH', 'STWH'] if host else [])}
+        # B-T3 (B2-4): the storage calls' trie keys are `0x09 ‖ receiver ‖ 0x2c ‖ key`; the call's
+        # receiver comes from the context (`--receiver`, else the unique account of the 0x09 keys)
+        self.recv = None
         self.rng_count = {}
         self.sha_msgs = []
         self.comps = []
@@ -256,7 +264,7 @@ class Gen:
         self.rng_count[v] = self.rng_count.get(v, 0) + 1
 
     # ------------------------------------------------------------------ B-T1: template roles
-    SEG_TABLES = ('WSA', 'WSL', 'WSP', 'STB', 'STW', 'RNG', 'WSX')
+    SEG_TABLES = ('WSA', 'WSL', 'WSP', 'STB', 'STW', 'RNG', 'WSX', 'STBH', 'STWH')
 
     def set_role(self, role):
         """Route compressions, SHA-256 messages, `RNG` counts and the per-segment tables to the
@@ -275,8 +283,27 @@ class Gen:
         self.role = role
 
     def tname(self, t):
-        """The template table name of an internal table key (`--host`: `STBH` / `STWH`)."""
-        return {'STB': 'STBH', 'STW': 'STWH'}.get(t, t) if self.host else t
+        """The template table name of an internal table key (B-T3: the HOST-fed rows have their own
+        tables `STBH` / `STWH` next to the runtime's `STB` / `STW`)."""
+        return t
+
+    def receiver(self):
+        """B-T3: the call's receiver account (bytes) and the trie-key prefix of its storage."""
+        if self.recv is None:
+            accts = set()
+            for k, _ in self.changes:
+                if k[:1] == b'\x09' and b',' in k[1:]:
+                    accts.add(k[1:1 + k[1:].index(b',')])
+            assert len(accts) == 1, ('the receiver is not determined by the 0x09 keys', accts)
+            self.recv = accts.pop()
+        return self.recv
+
+    def host_key(self, key):
+        """B-T3: is this write a storage call of the receiver (`TrieKey::ContractData`)?"""
+        if not self.host:
+            return False
+        pre = b'\x09' + self.receiver() + b','
+        return key[:len(pre)] == pre and len(key) > len(pre)
 
     def sv(self, s):
         """The segment label a row carries: `s`, or 0 inside a split segment dump."""
@@ -1399,19 +1426,31 @@ class Gen:
         """Where the execution side holds a write's key / value (linear-memory addresses)."""
         return 0, len(key)
 
-    def st_run(self, m, ts, base, data, hid=None):
-        """`STB` rows of message `m`: the bytes of `data`, read by call `ts` at `base, ...`."""
-        Tb = self.T['STB']
+    def st_run(self, m, ts, base, data, hid=None, pl=None):
+        """`STB` rows of message `m`: the bytes of `data`, read by call `ts` at `base, ...`.
+        B-T3: `hid` set = a HOST-fed run (`STBH`, ids `ID_STH + m`); `pl` = the key run's prefix
+        length (rows `0`: `0x09`, `1 … pl-2`: receiver bytes, `pl-1`: `0x2c`, then the call's bytes)."""
+        Tb = self.T['STB' if hid is None else 'STBH']
+        idb = ID_ST if hid is None else ID_STH
         if self.splitmode:
-            self.sha_msg(ID_ST + m, data)       # the segment dump's own SHA-256 table
+            self.sha_msg(idb + m, data)       # the segment dump's own SHA-256 table
         else:
-            self.sha_st_msgs.append(dict(id=ID_ST + m, bytes=data.hex()))   # `SHAS`, or `SHA` (merged, M5a-8)
+            self.sha_st_msgs.append(dict(id=idb + m, bytes=data.hex()))   # `SHAS`, or `SHA` (merged, M5a-8)
         for j, b in enumerate(data):
             r = Tb.new()
             Tb.set(r, 'act', 1); Tb.set(r, 'm', m); Tb.set(r, 'j', j); Tb.set(r, 'b', b)
             Tb.set(r, 'ts', ts); Tb.set(r, 'base', base); Tb.set(r, 'last', int(j == len(data) - 1))
-            if self.host:
+            if hid is not None:
                 Tb.set(r, 'hid', hid)
+                if not pl or j >= pl:
+                    kind = 'kh'
+                elif j == 0:
+                    kind = 'k0'
+                elif j == pl - 1:
+                    kind = 'kc'
+                else:
+                    kind = 'kr'
+                Tb.set(r, kind, 1)
         return m + 1
 
     def build_st(self):
@@ -1422,42 +1461,62 @@ class Gen:
             return
         self.sha_st_msgs = []
         Tw = self.T['STW']
-        m = 0
+        m = mh = 0
         drop = self.writes[0][0] if self.mutant == 'stdrop' else None
         cur_seg = None
         for (t, seg, key, ref) in self.writes:
             if self.splitmode and seg != cur_seg:
                 # B-T1: each segment dump has its own `STB`/`STW` and messages from `m = 0`
                 self.set_role(('seg', seg))
-                Tw, m, cur_seg = self.T['STW'], 0, seg
+                m, mh, cur_seg = 0, 0, seg
             if t == drop:
                 continue      # the dishonest prover leaves a requested write out of the STATE rows
             v = self.raw[t]
             gt, t = t, self.tv(t)
             pr = int(v is not None)
-            kptr, vptr = self.st_layout(key, v)
-            J = self.HOST_JOIN.get(key.hex()) if self.host else None
-            if J is not None:
-                kptr, vptr = J['kptr'], J['vptr']
+            hk = self.host_key(key)
+            Tw = self.T['STWH' if hk else 'STW']
             vlen = len(v) if pr else 0
             assert (pr, vlen) == tuple(ref[:2]) and (not pr or sha(v) == ref[2])
-            mk = m
             ke = int(len(key) == 0)        # an empty key: no `STB` run, `dk = sha256 []` (M5a-8)
-            hid = HID_WRITE if pr else HID_REMOVE
-            if not ke:
-                m = self.st_run(m, t, kptr, key, hid)
             ve = int(pr and vlen == 0)
             mv = 0
-            if pr and vlen > 0:
-                mv = m
-                m = self.st_run(m, t, vptr, v, hid + 256)   # A-T1: the value buffer's wire id 314
+            hkey = key
+            if hk:
+                # B-T3: a storage call; the contract key `key[pl:]` at `kptr`, the trie key's run
+                # starts `pl` bytes before it (`base = kptr - pl`)
+                pl = 2 + len(self.receiver())
+                kptr, vptr = 0, len(key) - pl
+                J = self.HOST_JOIN.get(key.hex())
+                if J is not None:
+                    kptr, vptr = J['kptr'], J['vptr']
+                if self.mutant == 'hostnopfx':
+                    # B2-4's old shape: the rows hash the contract key alone (no prefix run)
+                    hkey, pl = key[pl:], 0
+                hid = HID_WRITE if pr else HID_REMOVE
+                mk = mh
+                mh = self.st_run(mh, t, kptr - pl, hkey, hid, pl)
+                if pr and vlen > 0:
+                    mv = mh
+                    mh = self.st_run(mh, t, vptr, v, hid + 256)   # A-T1: the value buffer's wire id 314
+            else:
+                J = None
+                kptr, vptr = self.st_layout(key, v)
+                mk = m
+                if not ke:
+                    m = self.st_run(m, t, kptr, key)
+                if pr and vlen > 0:
+                    mv = m
+                    m = self.st_run(m, t, vptr, v)
             r = Tw.new()
             Tw.set(r, 'act', 1); Tw.set(r, 'seg', self.sv(seg)); Tw.set(r, 'ts', t); Tw.set(r, 'pr', pr)
             Tw.set(r, 've', ve); Tw.set(r, 'ke', ke); Tw.set(r, 'klen', len(key)); Tw.set(r, 'kptr', kptr)
             Tw.set(r, 'vlen', vlen); Tw.set(r, 'vptr', vptr); Tw.set(r, 'mk', mk); Tw.set(r, 'mv', mv)
             Tw.setv(r, 'dk', list(sha(key)))
             Tw.setv(r, 'dv', list(sha(v)) if pr else [0] * 32)
-            if self.host:
+            if hk:
+                Tw.set(r, 'pl', pl)
+                Tw.set(r, 'klen', len(hkey)); Tw.setv(r, 'dk', list(sha(hkey)))
                 # the HOST stand-in's answer (`HOSTR`): r = 1 iff the key held a value before
                 Tw.set(r, 'rlo', self.host_r[gt])
                 if J is not None:
@@ -1469,26 +1528,34 @@ class Gen:
         """B-T1 item 3: the stand-in for lane A's HOST rows of segment `only_seg`: per storage call
         `HOSTQ [ts, hid, S, np, (aLo, aHi) x 9]` and its request bytes `HOSTB [ts, hid, 0, addr, b]`
         (sent), and the response `HOSTR [ts, 0, r, 0, 0, 0, 1, 0]` (received), `S = 0`,
-        `register_id = 0`, `g_after = 0` (the stand-in has no gas)."""
+        `register_id = 0`, `g_after = 0` (the stand-in has no gas).  B-T3 (B2-4): the call names the
+        **contract** key (`key_len = |trie key| - pl`), and the stand-in for the WASM leaf's context
+        sends the receiver's bytes `CTXB [i, b_i]` (once per storage call) and its length
+        `CTXL [|receiver|]` (twice per call: the `STWH` row and the separator row)."""
         tape = []
+        recv = self.receiver()
+        pl = 2 + len(recv)
         for (t, seg, key, ref) in self.writes:
-            if seg != only_seg:
+            if seg != only_seg or not self.host_key(key):
                 continue
+            tape += [[B_CTXB, True, [i, b]] for i, b in enumerate(recv)]
+            tape += [[B_CTXL, True, [len(recv)]]] * 2
             J = self.HOST_JOIN.get(key.hex())
             if J is not None:
                 tape += [list(m) for m in J['msgs']]     # lane A's messages, verbatim
                 continue
             v = self.raw[t]
             pr = int(v is not None)
-            kptr, vptr = self.st_layout(key, v)
+            ck = key[pl:]
+            kptr, vptr = 0, len(ck)
             vb = v if pr else b''
             hid = HID_WRITE if pr else HID_REMOVE
-            args = [len(key), kptr] + ([len(vb), vptr, 0] if pr else [0])
+            args = [len(ck), kptr] + ([len(vb), vptr, 0] if pr else [0])
             args += [0] * (9 - len(args))
             ts = self.tv(t)
             tape.append([B_HOSTQ, True, [ts, hid, 0, 3 + 2 * pr] + [x for a in args for x in (a, 0)]])
             tape.append([B_HOSTR, False, [ts, 0, self.host_r[t], 0, 0, 0, 1, 0]])
-            for j, b in enumerate(key):
+            for j, b in enumerate(ck):
                 tape.append([B_HOSTB, True, [ts, hid, 0, kptr + j, b]])
             for j, b in enumerate(vb):
                 tape.append([B_HOSTB, True, [ts, hid + 256, 0, vptr + j, b]])   # wire id 314
@@ -1502,6 +1569,8 @@ class Gen:
         for (t, seg, key, ref) in self.writes:
             if only_seg is not None and seg != only_seg:
                 continue
+            if self.host_key(key):
+                continue          # B-T3: a storage call (`host_tape`)
             v = self.raw[t]
             seg, t = self.sv(seg), self.tv(t)
             pr = int(v is not None)
@@ -1680,6 +1749,8 @@ class Gen:
                 T['STC'] = Table('STC', self.names['STC']); T['STC'].rows = stc_rows
                 T['SRNG'] = Table('SRNG', self.names['SRNG']); T['SRNG'].rows = STC.srng_rows(self.names, srng_cnt)
                 order = tuple(order) + ('STC', 'SRNG')
+            if kind == 'seg' and self.host:
+                order = tuple(order) + ('STBH', 'STWH')
                 nat['SHA512'] = max(2, (max(self.chip_rows(len(R['comps'])), 4) - 1).bit_length())
                 if 'SHA512' in pin and nat['SHA512'] > pin['SHA512']:
                     raise TemplateOverflow('%s SHA512: natural 2^%d > template 2^%d' % (name, nat['SHA512'], pin['SHA512']))
@@ -1711,7 +1782,7 @@ class Gen:
             json.dump(['SHA'] + [tn(t) for t in order], open(os.path.join(d, 'tables.json'), 'w'))
             if role != 'if' and self.host:
                 json.dump(self.host_tape(role[1]), open(os.path.join(d, 'hosttape.json'), 'w'))
-            elif role != 'if':
+            if role != 'if':
                 json.dump(self.st_tape(role[1]) + stc_msgs, open(os.path.join(d, 'htape.json'), 'w'))
             if tmpl is not None:
                 json.dump(dict(name=tmpl.get('name'), kind=kind_t, D=self.D, **tmpl.get(kind_t, tmpl[kind])),
@@ -2199,7 +2270,37 @@ def _t_wsxsb(g):
             Tn.set(r, 'nw', 0)
 
 
-TAMPERS = dict(wsxsb=_t_wsxsb, wsxzero=_t_wsxzero, wsxroot=_t_wsxroot, wsxhash=_t_wsxhash, wsxlvl=_t_wsxlvl, hphshort=_t_hphshort, hphlong=_t_hphlong, kempty=_t_kempty,
+def _host_run(g):
+    """B-T3: the first storage call's `STWH` row and its key run's `STBH` rows."""
+    Tb, Tw = g.T['STBH'], g.T['STWH']
+    w = Tw.rows[0]
+    m = Tw.get(w, 'mk')
+    return Tb, Tw, w, m, [r for r in Tb.rows if Tb.get(r, 'm') == m]
+
+
+def _t_hostrecv(g):
+    # a receiver byte of the trie-key prefix changed (consistently hashed): the rows hash another
+    # account's key; only the context lookup `CTXB` (and the working-set key) can catch it
+    Tb, Tw, w, m, rows = _host_run(g)
+    Tb.set(rows[1], 'b', Tb.get(rows[1], 'b') ^ 1)
+    data = bytes(Tb.get(r, 'b') for r in rows)
+    next(x for x in g.sha_msgs if x['id'] == ID_STH + m)['bytes'] = data.hex()
+    Tw.setv(w, 'dk', list(sha(data)))
+
+
+def _t_hostkind(g):
+    # the tag row `0x09` claimed as a receiver byte (`kr` at `j = 0`)
+    Tb, Tw, w, m, rows = _host_run(g)
+    Tb.set(rows[0], 'k0', 0); Tb.set(rows[0], 'kr', 1)
+
+
+def _t_hostpl(g):
+    # the call's prefix length one more than `2 + |receiver|`
+    Tb, Tw, w, m, rows = _host_run(g)
+    Tw.set(w, 'pl', Tw.get(w, 'pl') + 1)
+
+
+TAMPERS = dict(hostrecv=_t_hostrecv, hostkind=_t_hostkind, hostpl=_t_hostpl, wsxsb=_t_wsxsb, wsxzero=_t_wsxzero, wsxroot=_t_wsxroot, wsxhash=_t_wsxhash, wsxlvl=_t_wsxlvl, hphshort=_t_hphshort, hphlong=_t_hphlong, kempty=_t_kempty,
                lmwrap=_t_lmwrap, vbyte=_t_vbyte, dmono=_t_dmono, bvwrap=_t_bvwrap, absent=_t_absent, extabsent=_t_extabsent, branchval=_t_branchval, split=_t_split,
                splitext=_t_splitext, absdel=_t_absdel, squash=_t_squash, chain=_t_chain,
                verslot=_t_verslot, vernid=_t_vernid, vmcount=_t_vmcount, finroot=_t_finroot,

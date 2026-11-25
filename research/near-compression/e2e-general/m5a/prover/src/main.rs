@@ -268,6 +268,8 @@ fn harness(name: &str, map: &BTreeMap<Key, u64>, cached: bool) -> (TableSpec, Ro
     let fixed: Option<Vec<(u16, usize)>> = match name {
         "HTAPE" if stc => Some(vec![(B_SREQ, 7), (B_HB, 3), (B_STMQ, 29), (B_STMA, 29)]),
         "HTAPE" => Some(vec![(B_SREQ, 7), (B_HB, 3)]),
+        // [B-T3] (B2-4) with the call context: `CTXB` (215, 2 cells), `CTXL` (216, 1)
+        "HOSTTAPE" if keys.iter().any(|k| k.0 == 215) => Some(vec![(208, 22), (209, 8), (210, 5), (215, 2), (216, 1)]),
         "HOSTTAPE" => Some(vec![(208, 22), (209, 8), (210, 5)]),
         _ => None,
     };
@@ -322,8 +324,10 @@ struct Inst {
     mats: Vec<RowMajorMatrix<F>>,
     pubs: Vec<F>,
     tape: BTreeMap<Key, u64>,
-    /// M5b: the execution side's public messages (empty for the M5a AIR)
-    htape: BTreeMap<Key, u64>,
+    /// M5b: the execution side's public messages (empty for the M5a AIR); [B-T3] one map per cached
+    /// stand-in table (`HTAPE`: the runtime's `SREQ`/`HB` and lane F's `STMQ`/`STMA`; `HOSTTAPE`: lane
+    /// A's HOST rows and the call context)
+    htapes: Vec<(String, BTreeMap<Key, u64>)>,
     native: Vec<(Native, RowMajorMatrix<F>)>,
     /// expected interface traffic of the native chip (bus 103), for the precheck
     chip_if: BTreeMap<Key, u64>,
@@ -450,9 +454,13 @@ fn load(air_path: &str, dir: &str) -> Inst {
     }
     // M5b: the execution side's messages (`SREQ`, `HB`) on T1, a second public table (last);
     // [B-T1 item 3] or lane A's host-bus messages (`HOSTQ`/`HOSTR`/`HOSTB`, `hosttape.json`)
-    let mut htape = BTreeMap::new();
-    let (hname, hfile) = if d.join("hosttape.json").exists() { ("HOSTTAPE", "hosttape.json") } else { ("HTAPE", "htape.json") };
-    if let Ok(txt) = std::fs::read_to_string(d.join(hfile)) {
+    let mut htapes = vec![];
+    for (hname, hfile) in [("HTAPE", "htape.json"), ("HOSTTAPE", "hosttape.json")] {
+        let txt = match std::fs::read_to_string(d.join(hfile)) {
+            Ok(t) => t,
+            Err(_) => continue,
+        };
+        let mut htape = BTreeMap::new();
         let hv: serde_json::Value = serde_json::from_str(&txt).unwrap();
         for x in hv.as_array().unwrap() {
             let bus = map_bus(x[0].as_u64().unwrap() as u16);
@@ -467,8 +475,9 @@ fn load(air_path: &str, dir: &str) -> Inst {
         }
         spec.push(hs);
         mats.push(hm);
+        htapes.push((hname.to_string(), htape));
     }
-    Inst { spec, mats, pubs, tape, htape, native, chip_if, n_comps: comps.len(), tmpl }
+    Inst { spec, mats, pubs, tape, htapes, native, chip_if, n_comps: comps.len(), tmpl }
 }
 
 fn precheck(inst: &Inst) -> Result<(), String> {
@@ -483,7 +492,7 @@ fn precheck(inst: &Inst) -> Result<(), String> {
             traffic(t, m, &inst.pubs, &mut net);
         }
     }
-    for (k, c) in inst.tape.iter().chain(inst.htape.iter()) {
+    for (k, c) in inst.tape.iter().chain(inst.htapes.iter().flat_map(|h| h.1.iter())) {
         add(&mut net, k.clone(), *c);
     }
     let bad: Vec<_> = net.iter().filter(|(_, c)| **c != 0).collect();
@@ -572,10 +581,10 @@ fn check_statement(eng: &Sha384CpuEngine, inst: &Inst, want_pubs: &[F], proof: &
         let want = commit_cached(eng, &tm).0;
         tape_ok &= matches!(&proof.trace_vdata[ti], Some(v) if v.cached_commitments.len() == 1 && v.cached_commitments[0] == want);
     }
-    if let Some(hi) = inst.spec.iter().position(|t| t.name == "HTAPE" || t.name == "HOSTTAPE") {
-        let hname = inst.spec[hi].name.clone();
-        let (hs, mut hm) = harness(&hname, &inst.htape, true);
-        if let Some(p) = pin_of(&inst.tmpl, &hname) {
+    for (hname, htape) in &inst.htapes {
+        let hi = inst.spec.iter().position(|t| &t.name == hname).unwrap();
+        let (hs, mut hm) = harness(hname, htape, true);
+        if let Some(p) = pin_of(&inst.tmpl, hname) {
             hm = pad_harness(&hm, &hs, p);
         }
         let hw = commit_cached(eng, &hm).0;

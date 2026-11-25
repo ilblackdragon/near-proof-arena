@@ -56,66 +56,99 @@ def HID_WRITE_V : Nat := HID_WRITE + 256
 /-- The host chip's argument count (`Host.nArgs`). -/
 def HOST_NARGS : Nat := 9
 
+/-- B-T3 (B2-4): the call context's receiver account id, a lookup on the WASM leaf's context
+(provider: lane A's `vmCtxDigest` remainder / lane F's `RX` receiver bytes; the stand-in `HOSTTAPE`
+on T1): `CTXB [i, byte_i]` for `i < |receiver|` and `CTXL [|receiver|]`. Cross-lane ids proposed
+after `STMQ`/`STMA`/`SREQ`/`HB` (211–214). -/
+def B_CTXB : Nat := 215
+def B_CTXL : Nat := 216
+/-- SHA-256 message ids of the HOST-fed STATE messages (disjoint from `STB`'s `ID_ST + m`). -/
+def ID_STH : Nat := 5 * 2 ^ 24
+/-- The trie-key prefix bytes: `TrieKey::ContractData` = `0x09 ‖ account ‖ 0x2c ‖ key`. -/
+def TK_CONTRACT : Nat := 9
+def TK_SEP : Nat := 44
+
 namespace StbH
-def L : Layout := Stb.L ++ [("hid", 1)]
+/-- `Stb`'s columns, the call id `hid`, and B-T3's row kinds: `k0` the tag byte `0x09`, `kr` a
+receiver byte (`CTXB`), `kc` the separator `0x2c` (`CTXL`: its index is the receiver's length),
+`kh` a byte the call read (`HOSTB`). -/
+def L : Layout := Stb.L ++ [("hid", 1), ("k0", 1), ("kr", 1), ("kc", 1), ("kh", 1)]
 def T : Cols := ⟨L⟩
 def c (s : String) (j : Nat := 0) : Expr := T.c s j
 def nx (s : String) (j : Nat := 0) : Expr := T.n s j
 
 /-- `Stb`'s constraints (same columns, same offsets) plus: `hid` is constant on a run and is a
-storage call's id. -/
+storage call's id; **B2-4**: one kind per active row; `0x09` at `j = 0`, `0x2c` on the separator;
+inside a run the kinds go `k0 → kr* → kc → kh*` (a key run: `0x09 ‖ receiver ‖ 0x2c ‖ key`); a
+value run (`hid = 314`) is all `kh`. -/
 def constraints : List Expr :=
+  let na := nx "act"; let inRun := Expr.isTransition * na * (1 - c "last")
   Stb.constraints ++
   [.isTransition * nx "act" * (1 - c "last") * (nx "hid" - c "hid"),
-   c "act" * (c "hid" - K HID_WRITE) * (c "hid" - K HID_REMOVE) * (c "hid" - K HID_WRITE_V)]
+   c "act" * (c "hid" - K HID_WRITE) * (c "hid" - K HID_REMOVE) * (c "hid" - K HID_WRITE_V),
+   bool (c "k0"), bool (c "kr"), bool (c "kc"), bool (c "kh"),
+   c "act" - (c "k0" + c "kr" + c "kc" + c "kh"),
+   c "k0" * (c "b" - K TK_CONTRACT), c "kc" * (c "b" - K TK_SEP), c "k0" * c "j",
+   inRun * c "k0" * (nx "k0" + nx "kh"),
+   inRun * c "kr" * (nx "k0" + nx "kh"),
+   inRun * c "kc" * (1 - nx "kh"),
+   inRun * c "kh" * (1 - nx "kh"),
+   c "act" * (c "hid" - K HID_WRITE) * (c "hid" - K HID_REMOVE) * (1 - c "kh")]
 
 def interactions : List Interaction :=
   let A := c "act"
-  [snd B_SHA_BYTES A [K ID_ST + c "m", c "j", c "b"],
-   rcv B_HOSTB A [c "ts", c "hid", 0, c "base" + c "j", c "b"],
+  [snd B_SHA_BYTES A [K ID_STH + c "m", c "j", c "b"],
+   rcv B_HOSTB (c "kh") [c "ts", c "hid", 0, c "base" + c "j", c "b"],
+   rcv B_CTXB (c "kr") [c "j" - 1, c "b"],
+   rcv B_CTXL (c "kc") [c "j" - 1],
    snd B_DESC (c "last") [c "m", c "ts", c "base", c "j" + 1, c "hid"]]
 
 def table : Table := { width := L.width, constraints, interactions, maxLog := 20 }
 end StbH
 
 namespace StwH
-def L : Layout := Stw.L ++ [("S", 1), ("rid", 1), ("rlo", 1), ("rhi", 1), ("glo", 1), ("ghi", 1)]
+/-- `Stw`'s columns, lane A's call fields, and B-T3's prefix length `pl` (`= 2 + |receiver|`). -/
+def L : Layout := Stw.L ++ [("S", 1), ("rid", 1), ("rlo", 1), ("rhi", 1), ("glo", 1), ("ghi", 1), ("pl", 1)]
 def T : Cols := ⟨L⟩
 def c (s : String) (j : Nat := 0) : Expr := T.c s j
 
 def hidE : Expr := K HID_REMOVE - K 2 * c "pr"
 
-/-- The `HOSTQ` request of a storage call (`(lo, hi)` per argument). -/
+/-- The `HOSTQ` request of a storage call (`(lo, hi)` per argument). **B2-4**: `klen` is the trie
+key's length; the call's `key_len` is `klen − pl` (the contract key, after the prefix). -/
 def qMsg : List Expr :=
   let pr := c "pr"
   let args : List Expr :=
-    [c "klen", c "kptr", pr * c "vlen" + (1 - pr) * c "rid", pr * c "vptr", pr * c "rid"]
+    [c "klen" - c "pl", c "kptr", pr * c "vlen" + (1 - pr) * c "rid", pr * c "vptr", pr * c "rid"]
   [c "ts", hidE, c "S", K 3 + K 2 * pr] ++
     ((List.range HOST_NARGS).flatMap fun j => [args.getD j 0, 0])
 
-def constraints : List Expr := Stw.constraints
+/-- `Stw`'s constraints, and a storage call always has a key run (the trie key is never empty). -/
+def constraints : List Expr := Stw.constraints ++ [c "ke"]
 
+/-- **B2-4**: the key run's descriptor starts `pl` bytes before the call's key pointer (rows `j ≥ pl`
+read `HOSTB` at `kptr + j − pl`), and `pl − 2` is the receiver's length (`CTXL`). -/
 def interactions : List Interaction :=
-  let A := c "act"; let gv := c "pr" - c "ve"; let gk := c "act" - c "ke"
+  let A := c "act"; let gv := c "pr" - c "ve"
   [rcv B_HOSTQ A qMsg,
    snd B_HOSTR A [c "ts", 0, c "rlo", c "rhi", c "glo", c "ghi", 1, 0],
-   rcv B_DESC gk [c "mk", c "ts", c "kptr", c "klen", hidE],
-   rcv B_SHA_DIGEST gk ([K ID_ST + c "mk", c "klen"] ++ (List.range 32).map fun b => c "dk" b),
+   rcv B_CTXL A [c "pl" - 2],
+   rcv B_DESC A [c "mk", c "ts", c "kptr" - c "pl", c "klen", hidE],
+   rcv B_SHA_DIGEST A ([K ID_STH + c "mk", c "klen"] ++ (List.range 32).map fun b => c "dk" b),
    rcv B_DESC gv [c "mv", c "ts", c "vptr", c "vlen", hidE + K 256],
-   rcv B_SHA_DIGEST gv ([K ID_ST + c "mv", c "vlen"] ++ (List.range 32).map fun b => c "dv" b),
+   rcv B_SHA_DIGEST gv ([K ID_STH + c "mv", c "vlen"] ++ (List.range 32).map fun b => c "dv" b),
    snd B_WRITE A ([0, c "ts"] ++ pack2 (fun b => c "dk" b) ++ [c "pr", c "vlen"] ++
      pack2 (fun b => c "dv" b))]
 
 def table : Table := { width := L.width, constraints, interactions, maxLog := 20 }
 end StwH
 
-/-- One STATE segment fed by lane A's HOST rows. -/
+/-- One STATE segment of a WASM leaf (B-T3): the segment template's tables (the runtime's writes on
+`SREQ`/`HB` through `STB`/`STW`) and the storage calls' rows fed by lane A's HOST rows. -/
 def m5tSegH (D : Nat) : Air :=
-  { tables := [shaTable, Wsa.table, Wsl.table, Wsp.table D, Rng.table, StbH.table, StwH.table,
-      Wsx.tableSeg D],
-    numBuses := B_HOSTB + 1, numPub := NUM_PUB_SEG }
+  { tables := (m5tSeg D).tables ++ [StbH.table, StwH.table], numBuses := B_CTXL + 1, numPub := NUM_PUB_SEG }
 
-def tableNamesSegH : List String := ["SHA", "WSA", "WSL", "WSP", "RNG", "STBH", "STWH", "WSX"]
+def tableNamesSegH : List String := tableNamesSeg ++ ["STBH", "STWH"]
 
 def namesJsonH (D : Nat) : String :=
   let q (s : String) := "\"" ++ s ++ "\""
@@ -126,10 +159,9 @@ def namesJsonH (D : Nat) : String :=
     ",".intercalate ((zeroLimbs D).map toString) ++ "],\"tables\":[" ++
     ",".intercalate (tableNamesSegH.map q) ++ "]}"
 
-/-- The HOST-fed template differs from `m5tSeg` only in the two STATE tables. -/
+/-- The HOST-fed template is `m5tSeg` with the two HOST-fed STATE tables after it. -/
 theorem m5tSegH_tables (D : Nat) :
-    (m5tSegH D).tables = [shaTable, Wsa.table, Wsl.table, Wsp.table D, Rng.table] ++
-      [StbH.table, StwH.table] ++ [Wsx.tableSeg D] := rfl
+    (m5tSegH D).tables = (m5tSeg D).tables ++ [StbH.table, StwH.table] := rfl
 
 /-- The HOST request shape of a storage call: `storage_write` sends 5 arguments under id 58,
 `storage_remove` 3 under id 60 (`StwH.qMsg` at `pr = 1` / `pr = 0`). -/

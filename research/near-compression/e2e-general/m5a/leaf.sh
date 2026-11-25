@@ -24,6 +24,8 @@ TOOL=$HERE/lean/.lake/build/bin/m5a-tool
 "$TOOL" tmpl-if "$D" "$OUT/air/if.json" "$OUT/air/if.names.json" > "$OUT/air/if.txt"
 "$TOOL" tmpl-seg "$D" "$OUT/air/seg.json" "$OUT/air/seg.names.json" > "$OUT/air/seg.txt"
 "$TOOL" tmpl-segh "$D" "$OUT/air/segh.json" "$OUT/air/segh.names.json" > "$OUT/air/segh.txt"
+# B-T3: the STATE leaf with the `stRoot` opening (`Stc.m5tSegC`: + `STC`, `SRNG`)
+"$TOOL" tmpl-segc "$D" "$OUT/air/segc.json" "$OUT/air/segc.names.json" > "$OUT/air/segc.txt"
 WANT=$(python3 -c "import json,sys; print(json.load(open(sys.argv[1]))['post_root'])" "$ST")
 GOT=$("$TOOL" apply "$ST")
 [ "$GOT" = "$WANT" ] || { echo "spec oracle: $GOT != $WANT"; exit 1; }
@@ -31,8 +33,9 @@ echo "spec oracle: post-state root $GOT (Lean applyChanges)"
 ( cd "$HERE/prover" && CARGO_TARGET_DIR=$TARGET_DIR nice -n 10 cargo build --release --offline -j 8 2>/dev/null )
 BIN=$TARGET_DIR/release/nearproof-e2e-m5a
 rc=0
-NAMES=$OUT/air/if.names.json
+NAMES=$OUT/air/segc.names.json
 case " $* " in *" --host "*) NAMES=$OUT/air/segh.names.json ;; esac
+[ -n "${NO_STC:-}" ] && NAMES=$OUT/air/if.names.json
 python3 "$HERE/tracegen.py" "$ST" "$NAMES" "$OUT" --split --template "$TMPL" "$@" > "$OUT/gen.txt" || rc=$?
 [ "$rc" = 0 ] || { cat "$OUT/gen.txt"; exit "$rc"; }
 [ "$MODE" = stats ] && { cat "$OUT/gen.txt"; exit 0; }
@@ -40,6 +43,7 @@ for d in "$OUT"/if "$OUT"/seg*; do
   [ -d "$d" ] || continue
   air=$OUT/air/seg.json; [ "$(basename "$d")" = if ] && air=$OUT/air/if.json
   [ -f "$d/hosttape.json" ] && air=$OUT/air/segh.json
+  grep -q '"STC"' "$d/tables.json" && air=$OUT/air/segc.json
   echo "== $(basename "$d")"
   nice -n 10 $HEAVY "$BIN" "$air" "$d" "$MODE" "$d/out" > "$d/$MODE.log" 2>&1 || { tail -20 "$d/$MODE.log"; exit 1; }
   grep -E "PRECHECK|PARAMS|SOUNDNESS|PROOF |TIME prove|VERIFY|REJECTED|ACCEPTED|SAVED" "$d/$MODE.log" || true

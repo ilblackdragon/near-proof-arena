@@ -15,8 +15,9 @@ BIN=${TARGET_DIR:-$DEPS/target}/release/nearproof-e2e-m5a
 HEAVY="env HEAVY_MEM=${HEAVY_MEM:-40G} RAYON_NUM_THREADS=${RAYON_NUM_THREADS:-8} /data/illia/nearproof-deps/bin/heavy"
 TOOL=$HERE/lean/.lake/build/bin/m5a-tool
 ORACLE=$("$TOOL" apply "$ST")
-NAMES=$OUT/air/if.names.json
+NAMES=$OUT/air/segc.names.json
 case " $* " in *" --host "*) NAMES=$OUT/air/segh.names.json ;; esac
+[ -n "${NO_STC:-}" ] && NAMES=$OUT/air/if.names.json
 for m in $MUTS; do
   M=$OUT/mut-$m
   rm -rf "$M"; mkdir -p "$M"
@@ -29,6 +30,7 @@ for m in $MUTS; do
     [ -d "$d" ] || continue
     air=$OUT/air/seg.json; [ "$(basename "$d")" = if ] && air=$OUT/air/if.json
     [ -f "$d/hosttape.json" ] && air=$OUT/air/segh.json
+    grep -q '"STC"' "$d/tables.json" && air=$OUT/air/segc.json
     if [ "${MUT_MODE:-mutant}" = check ]; then
       # check only: the precheck (every constraint, every bus) without proving
       nice -n 10 $HEAVY "$BIN" "$air" "$d" check > "$d/mutant.log" 2>&1
