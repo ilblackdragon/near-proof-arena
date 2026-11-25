@@ -374,3 +374,45 @@ Details: `research/near-compression/e2e-general/a-t1/README.md` §9. Single agen
 * Operations: every prover / Lean / cargo job ran under `nearproof-deps/bin/heavy` (≤ 18 GB).
   Temporary files are in `nearproof-deps/tmp-laneA/` (deleted at the end); the A-T1 env file pointed
   at a removed worktree, so `run_leaf.sh` / `leaf_tamper.sh` take `LANEA_ENV`.
+
+## Ninth session: milestone A-T3 (2026-11-25)
+
+Details: `research/near-compression/e2e-general/a-t1/README.md` §10. Single agent, no sub-lanes.
+Branch base: main `9d38f908d`; main `25d3636a4` (lane G G-4) merged before the final builds.
+
+* **Task 1, S1–S3 on lane A's side [K]:**
+  * `WasmView.lean` §7–8 restated in place: `encRest_blind`, `encRest_inj` modulo stores,
+    `ctxOf_blind`; S2 `fbCode` (`preCodeRoot` at `.pre`); S3 `codeRootOf`/`funcRootOf` as
+    `CodeCommit` roots of the padded records (`padRep`); `wasmD_set` (store-blind);
+    `wasmD_binding : CollOn WStripped (wasmD P) → Sha384Coll`.
+  * `WasmViewT1.lean` (new): `ctxM2` (the real `checkModuleM2` context), `encRestT1` (lane E's
+    `argsN`/`stN`/`confN`), `wasmViewParams_nonempty`; `vT1` = lane E's `vSB` with lane A's Wasm
+    component, `StoreBlind` and `ClearCall`.
+  * `SegStore.lean` (new): `seg_setSt` (a segment keeps the store function; `Logged.W.E_step`,
+    `callHostL_spec`), `enter_setSt`.
+  * `TmplWasm.lean`: `GhostC` (named, honest-proved), `wasm_relC`, `segSoundWasmRelC_of`
+    (`SB.TmplRelC`, `Bad = Sha384Coll ∨ Coll V.ctxD`), `wasmHoldsC_honest`; the non-canonical
+    relative form removed (unprovable once the opening is only store-modulo).
+  * `PrepScope.lean` keeps the Cantor finding (`encRest_total_empty`) and checks
+    `wasmViewParams_nonempty`.
+* **Task 2, PREP [K][M]:**
+  * `PrepAir.lean` (new, `wasmbase-tool airPrep`): PHDR + SHA-256 (+ `Dmult` bit, the classical
+    digest message `[Id, Nd, bytes]` to PHDR) + the segment AIR's CODE/FUNC tables verbatim.
+  * `PrepSound.lean` (new): `prep_sha_sound` / `prep_hash_of_holds`: from `Holds prepAir`, the
+    public hash bytes are SHA-256 of the SHA table's message and the public length its length.
+  * `TmplPrep.lean` (new): `preConf_canon`, `prep_relC`, `segSoundWasmPrepRelC_of` (the Wasm kind
+    over segments ⊕ PREP, `Bad = Sha384Coll ∨ Coll V.ctxD ∨ Sha256Coll`), `prepNamed_honest`.
+    Named: `RecordsCert` (decoder certificate), `PrepRest`, `ent`.
+  * Native: `prepcmd.rs` (`prepleaf`, `prepleafverify`, `preptamper`), `run_prep.sh`.
+  * T1: 469,779 B, 31.1 s, 13 ms, 7.7 GB, 268.2 bits, pinned heights `[(2,4),(7,128),(5,32),(2,4)]`;
+    cached CODE/FUNC roots = both A-T2 segment leaves' (natively and in lane D's `INFO.json`);
+    `m8-import` verifies it. Mutants: 14/14 rejected.
+  * Finding: `Chips.Sha`'s `sh_len` is not tied to `Nd` (a "wrong length" mutant was accepted by a
+    first PREP AIR; the segment AIR's `sha256` summary does not bind the length).
+* **Task 3:** no change to `S`, `claimDigest` or the checker was needed.
+* Checks: `WasmBase wasmbase-tool` 762 jobs; `spec/lean/v3` 457 jobs; pytest
+  (`oracle/tools tools research/near-compression/e2e-general/t1`) 183 passed, 1 skipped.
+* Operations: all heavy jobs under `nearproof-deps/bin/heavy` at ≤ 12 GB; `.lake` copied from
+  main's checkout into the worktree (6.3 GB, removed at the end); temporary files in
+  `nearproof-deps/tmp-laneA/at3` (removed at the end); the PREP leaf kept at
+  `nearproof-deps/e2e-laneA/at3/prep/`.

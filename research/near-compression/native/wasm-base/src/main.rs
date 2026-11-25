@@ -15,6 +15,7 @@ mod tracegen;
 // E2E M4: the segment AIR's builder and commands, and the native SHA-512 compression chip (v4)
 mod seg;
 mod segcmd;
+mod prepcmd;
 mod dump;
 #[allow(dead_code, clippy::all)]
 mod s384 {
@@ -1644,6 +1645,9 @@ fn main() {
         Some("segleaf") => segcmd::cmd_segleaf(&a[2..]),
         Some("segleafverify") => segcmd::cmd_segleafverify(&a[2..]),
         Some("segdump") => segcmd::cmd_segdump(&a[2..]),
+        Some("prepleaf") => prepcmd::cmd_prepleaf(&a[2..]),
+        Some("prepleafverify") => prepcmd::cmd_prepleafverify(&a[2..]),
+        Some("preptamper") => prepcmd::cmd_preptamper(&a[2..]),
         Some("dump") => cmd_dump(&a[2], &a[3], &a[4]),
         _ => eprintln!("usage: see source header"),
     }

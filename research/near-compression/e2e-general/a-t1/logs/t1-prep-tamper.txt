@@ -1,0 +1,15 @@
+  MUTANT 0 wrong code byte (byte 100 flipped; public hash kept): precheck FAIL (2 unbalanced messages by bus {211: 2}; first [((211, [0, 53, 1, 345, 129, 82, 190, 210, 85); REJECTED: prover error LogupZerocheck(NonZeroRootSum)
+  MUTANT 1 wrong hash (public byte 0 + 1): precheck FAIL (2 unbalanced messages by bus {211: 2}; first [((211, [0, 53, 1, 345, 129, 82, 190, 210, 85); REJECTED: prover error LogupZerocheck(NonZeroRootSum)
+  MUTANT 2 wrong length (public length + 1): precheck FAIL (2 unbalanced messages by bus {211: 2}; first [((211, [0, 53, 1, 345, 129, 82, 190, 210, 85); REJECTED: prover error LogupZerocheck(NonZeroRootSum)
+  MUTANT 3 wrong func record (FUNC row 0 charge + 1): precheck ok; REJECTED: R1: PREP FUNC root != segment 0's cached FUNC root
+  MUTANT 4 wrong code record (CODE row 3 op + 1): precheck ok; REJECTED: R1: PREP CODE root != segment 0's cached CODE root
+  MUTANT 5 code records out of pc order (rows 0, 1 swapped): precheck ok; REJECTED: R1: PREP CODE root != segment 0's cached CODE root
+  MUTANT 6 swapped code root (CODE committed with the FUNC records, FUNC with CODE's): precheck ok; REJECTED: R1: PREP CODE root != segment 0's cached CODE root
+  MUTANT 7 natural tight heights (no pinned floor): precheck ok; REJECTED: heights are not the template's pinned heights
+  MUTANT f0 saved proof: one byte flipped: REJECTED: verifier WhirError(MerkleVerify)
+  MUTANT f1 saved pubs: published code / func roots swapped: REJECTED: published CODE root != proof's cached commitment
+  MUTANT f2 saved pubs: in_code_root of another contract: REJECTED: in_code_root != public hash
+  MUTANT f3 saved pubs: public hash byte 5 + 1: REJECTED: public values
+  MUTANT f4 saved vk: query count changed: REJECTED: vk hash
+  MUTANT f5 segment leaves of another code (segment CODE root word 0 + 1): REJECTED: R1: PREP CODE root != segment 0's cached CODE root
+PREPTAMPER 14/14 rejected

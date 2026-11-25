@@ -913,6 +913,16 @@ All three follow from `ViewE.viewE` (the concrete view; lane B's `stD`, lane A's
    b; simp_all` over 13 field equalities) needs a 14th hypothesis `a.gasLeft = b.gasLeft` (its
    callers have both records from `airBnd`, where it is `rfl` with the default), and any other
    positional `WasmBnd.mk.injEq` pattern in A-T1 / lane F / lane G files gains one `-`.
+5. **Lane A's side of S1–S3 is done (A-T3, 2026-11-25; `a-t1/README.md` §10) [K].**
+   * `WasmView` is store-blind. `wasmD_binding` is the restricted `CollOn WStripped` form that
+     `SB.bnd_eq_canon` needs. S2 is `fbCode`, and S3 is `codeRootOf` via `CodeCommit`.
+   * `WasmViewParams` is inhabited (`WasmViewT1.wasmViewParams_nonempty`, T1's real context).
+   * The Wasm template targets `TmplRelC`: `TmplWasm.segSoundWasmRelC_of`, with `Bad =
+     Sha384Coll ∨ Coll V.ctxD`, plus the named, honest-proved `GhostC`.
+   * PREP is a `wasm`-kind leaf: `TmplPrep.segSoundWasmPrepRelC_of` covers segments ⊕ PREP and
+     adds `Sha256Coll` to `Bad`.
+   * In the per-lane table, read lane A's row as: Lean tools `segSoundWasmRelC_of`,
+     `segSoundWasmPrepRelC_of`, `wasmD_binding` (restricted), `seg_setSt`, `preConf_canon`.
 
 ---
 
@@ -1380,9 +1390,47 @@ changed.
   * PREP's AIR then reads `B_in.wasm.codeRoot` and writes `B_out.wasm.codeRoot/funcRoot`, the cells
     lane D's record already carries. No AIR was built.
 
-**Next (lane A):** after the owner's S1–S3 decision, build PREP: CODEBYTES + SHA-256 under S2, then
-DECODE/RECORDS (README §4). Before it, `hostPost_of_answer`, the `stackRem` public, and the other
-items above.
+**Done 2026-11-25, ninth session (lane A): milestone A-T3** (`e2e-general/a-t1/README.md` §10; log
+`docs/logs/e2e-laneA-wasm-2026-11-03.md`). `S`, `claimDigest` and the checker are unchanged.
+* **S1–S3 adopted on lane A's side [K]:**
+  * `WasmView` is store-blind. `encRest_blind` and `encRest_inj` hold modulo stores, and
+    `ctxOf_blind` holds.
+  * S2: `.pre`'s `codeRoot = preCodeRoot q`.
+  * S3: `codeRootOf`/`funcRootOf` are `CodeCommit` roots of the padded records.
+  * `wasmD_binding : CollOn WStripped (wasmD P) → Sha384Coll`, and `wasmD_set` (the component is
+    store-blind).
+  * **`WasmViewT1.wasmViewParams_nonempty`**: T1's record uses the real `checkModuleM2` context
+    `ctxM2` and lane E's store-blind serialisers. `vT1` (lane E's `vSB` with lane A's component)
+    is `StoreBlind` and `ClearCall`.
+  * `SegStore.seg_setSt`: a segment keeps the store function.
+  * **`TmplWasm.segSoundWasmRelC_of`** proves `SB.TmplRelC sf V A (Sha384Coll ∨ Coll V.ctxD)
+    .wasm`. It adds one named premise, `GhostC`: the ghost carries the canonical store of the
+    intake pinned by `ctxRoot`. `GhostC` is honest-proved.
+* **PREP as a `wasm`-kind leaf [K][M]:**
+  * `PrepAir`: PHDR, SHA-256 over the code bytes, and the segment AIR's CODE/FUNC tables verbatim.
+  * **`PrepSound.prep_sha_sound`**: from `Holds prepAir`, the 32 public hash bytes are SHA-256 of
+    the SHA table's message, and the public length is its length.
+  * **`TmplPrep.segSoundWasmPrepRelC_of`**: the Wasm kind over segments ⊕ PREP meets `TmplRelC`
+    with `Bad = Sha384Coll ∨ Coll V.ctxD ∨ Sha256Coll`. It relies on `preConf_canon` and the named
+    premises `RecordsCert`, `PrepRest` and `ent`.
+  * T1's PREP leaf: **469,779 B, 268.2 bits**, prove 31 s, verify 13 ms, 7.7 GB, pinned heights.
+    Its cached CODE/FUNC roots equal both A-T2 segment leaves' roots (natively and in lane D's
+    `INFO.json` cells). `m8-import` verifies it.
+  * Mutants: 14/14 rejected. The record mutants are rejected only by the R1 comparison with
+    the segments.
+  * Finding: `Chips.Sha.sh_len` is not tied to `Nd`, so the segment `sha256` summary does not bind
+    the length.
+* **Open:**
+  * The decoder certificate `RecordsCert`. PREP does not yet tie the records to the code bytes;
+    this is the main Wasm-side gap.
+  * `PrepRest` (the entry record), and PREP's error branches.
+  * `CodeOK`/`FuncOK` from S3.
+  * Lane D: insert the PREP leaf into the tree spec, between RT `enter` and WASM 0, with a
+    normaliser from the hash bytes to `B_in.codeRoot`.
+
+**Next (lane A):** the decoder certificate (README §4 steps 2–5) for d3tiny's subset; the
+`stackRem`/`gasLeft` publics (`RestOK`); `CodeOK`/`FuncOK` from S3; `Nd` in the segment `sha256`
+summary.
 
 ### 5.0 Lane D: status, 2026-11-21 (milestone M8, heterogeneous tree; prototype)
 

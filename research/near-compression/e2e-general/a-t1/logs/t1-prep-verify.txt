@@ -1,0 +1,1 @@
+PREPLEAFVERIFY OK: 469779 B verified in 14 ms; heights = template's pinned; public values = saved, 32 bytes + length; roots = cached commitments; R1: = every segment leaf's CODE/FUNC roots

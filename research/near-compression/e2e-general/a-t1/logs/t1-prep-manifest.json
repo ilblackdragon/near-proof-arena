@@ -1,0 +1,58 @@
+{
+  "code_root": [
+    9222518703046826505,
+    2651504207013451294,
+    246627625208553625,
+    17572554510288209602,
+    16038372197112515757,
+    40959
+  ],
+  "func_root": [
+    14467547537345229192,
+    14156450685634643581,
+    7282698439347463273,
+    7814187258016737858,
+    3253048009232565580,
+    14110
+  ],
+  "pinned_heights": [
+    [
+      2,
+      4
+    ],
+    [
+      7,
+      128
+    ],
+    [
+      5,
+      32
+    ],
+    [
+      2,
+      4
+    ]
+  ],
+  "proof_bytes": 469779,
+  "proof_sha256": "bc4c8df8939c46d3a4f016937c240291183afa5617be0467e73f301c9aecd231",
+  "prove_s": 31.089995895,
+  "pubs_sha256": "b3630768d49c64379d914724845dd0ead6d3d0c3afc98e9e15b223b071e74627",
+  "soundness_bits": 268.2098245308336,
+  "template": {
+    "certs": "/data/illia/nearproof/.claude/worktrees/agent-ac7a6f3c199144727/research/near-compression/e2e-general/a-t1/../../final-soundness/calc/dkt_certs_o2.json",
+    "exclusions": "/data/illia/nearproof/.claude/worktrees/agent-ac7a6f3c199144727/research/near-compression/e2e-general/a-t1/../../final-soundness/lean/DKTCertsO2_big.keys",
+    "heights": {
+      "CODE": 32,
+      "FUNC": 4,
+      "PHDR": 4,
+      "SHA256": 128
+    },
+    "log_blowup": 1,
+    "n_stack": 18,
+    "name": "t1-d3tiny-prep",
+    "pow": 24,
+    "w_stack": 8
+  },
+  "verify_ms": 13.094623,
+  "vk_sha256": "635fed92a677e50aa95ed630dd633833a9f20831a84aef6f2c0d4b8f9732fb4a"
+}
