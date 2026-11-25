@@ -1,0 +1,16 @@
+== t1f
+TEMPLATE research/near-compression/e2e-general/m5d/templates/F1.json
+CELLS 5505888; compressions 33
+PROOF total=486168 gkr=19160 relations=180420 stacking=2368 whir=283128
+TIME prove 22.86s verify 0.0275s threads 8 peak_rss_kib 6843004 proof_bytes 486168
+VERIFY OK (native SWIRL verifier); statement check (public values): OK
+FS_COUNT file=/data/illia/nearproof-deps/e2e-m5d/g5/t1f/proof-final/STATE.proof final=false total=671 flush=247 commit=5 squeeze_or_pow_run=415 pow=4 u_len=19
+== t1i
+TEMPLATE research/near-compression/e2e-general/m5d/templates/INIT-14.json
+CELLS 1714696; compressions 124
+PROOF total=356405 gkr=19160 relations=57684 stacking=2176 whir=277022
+TIME prove 21.61s verify 0.0110s threads 8 peak_rss_kib 6246756 proof_bytes 356405
+VERIFY OK (native SWIRL verifier); statement check (public values): OK
+FS_COUNT file=/data/illia/nearproof-deps/e2e-m5d/g5/t1i/proof-init/STATE.proof final=false total=680 flush=248 commit=5 squeeze_or_pow_run=423 pow=4 u_len=19
+M8_TEMPLATE_PROVED final bytes=486168 seconds=0.0 params=(n_stack 18, w_stack 8, lb 1) queries=[100, 71, 45, 33] bits=268.2
+M8_TEMPLATE_PROVED init bytes=356405 seconds=0.0 params=(n_stack 18, w_stack 4, lb 1) queries=[100, 71, 45, 33] bits=268.2

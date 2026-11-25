@@ -24,4 +24,8 @@ import FinalM5d.S384Chip
 import FinalM5d.S384Out
 import FinalM5d.WalkSel
 import FinalM5d.InitSel
+import FinalM5d.InitBus
+import FinalM5d.Leaf
+import FinalM5d.T1G5Data
+import FinalM5d.T1G5
 import FinalM5d.Audit

@@ -105,8 +105,8 @@ def ID_CLAIM : Nat := 1
 def ID_FIN : Nat := 2
 def ID_HDR : Nat := 3
 def ID_OUT : Nat := 4
-def TAG_HDR : Nat := 4
-def TAG_OUT : Nat := 5
+/-- G-5: `ctxPre (.header H)`'s constructor byte (`ViewE`). -/
+def TAG_HDR : Nat := 3
 def RCH0 : Nat := 2 ^ 20
 def OCH0 : Nat := 2 ^ 21
 def CH_OUT : Nat := 1
@@ -119,11 +119,18 @@ def PV_CLAIM : Nat := 0
 def PV_FIN : Nat := 14
 def PV_N : Nat := 28
 def PV_L : Nat := 29
-/-- `ctxD (.header H)` = `bdigest (0x04 ‖ chunk_inner)` (`BOut.ctxHeaderD`), 14 limbs. -/
+/-- `ctxD (.header H)` = `bdigest (3 ‖ Ser.enc H)` (`ViewE.ctxDE`, G-5), 14 limbs. -/
 def PV_HDR : Nat := 30
-/-- `outD (.done o)`'s first component `bdigest (0x05 ‖ encOutputsF1 o)` (`BOut.outDoneD`), 14 limbs. -/
+/-- `outD (.done o)`'s first component `bdigest (Ser.enc o)` (`ViewE.outDE`, G-5), 14 limbs. -/
 def PV_OUT : Nat := 44
-def NUM_PUB : Nat := 58
+/-- G-5 (M12 clear fields of `done H o`): `o.gasUsed` as the 8 big-endian bytes of the boundary
+record's `u64` field (`BndRec.codec`'s `natC 8`), one byte per value; = `FinIn`'s gas bytes reversed
+(`FinIn` and the header carry them little-endian), hence `H.prev_gas_used` by `eqGu`. -/
+def PV_GU : Nat := 58
+/-- G-5: `o.balanceBurnt`, the 16 big-endian bytes of the record's `u128` field; = `FinIn`'s
+balance bytes reversed, hence `H.prev_balance_burnt` by `eqBb`. -/
+def PV_BB : Nat := 66
+def NUM_PUB : Nat := 82
 
 /-- Activity is a prefix of the rows, and the table's last row is inactive. -/
 def actPrefix (T : Cols) : List Expr :=
@@ -231,30 +238,57 @@ def interactions : List Interaction :=
    rcv B_R8 act [K RSD * P PV_L - P PV_N + K (256 - RSD)]] ++
   (List.range NS).map (fun q => snd B_SID act [K q, sidv q])
 
-/-! `B_out` (leaf spec §4): the two `done`-boundary component digests. -/
-/-- The 252 bytes of `BOut.encOutputsF1 (outputsOf …)`, from the row's cells. -/
+/-! `B_out` (leaf spec §4; G-5): the two `done`-boundary component digests in lane E's view encodings,
+`ctxDE (.header H) = bdigest (3 ‖ Ser.enc H)` and `outDE (.done o).1 = bdigest (Ser.enc o)` with
+`ViewSer`'s fixed-width `Ser ChunkInner` / `Ser Outputs` (`natW n = 0 ‖ beN 16 n`,
+`hashW b = 0 ‖ b`, empty lists / `none` = `[0]`). -/
+/-- `natW` of the little-endian `w`-byte field at `f a … f (a + w − 1)`: `0 ‖` 16 big-endian bytes. -/
+def natWE (f : Nat → Expr) (a w : Nat) : List Expr :=
+  K 0 :: (List.range 16).map fun j => if 16 - w ≤ j then f (a + 15 - j) else K 0
+/-- `hashW` of the 32 bytes at `f a … f (a + 31)`: `0 ‖ b`. -/
+def hashWE (f : Nat → Expr) (a : Nat) : List Expr := K 0 :: (List.range 32).map fun j => f (a + j)
+
+/-- The 389 bytes `3 ‖ Ser.enc H` of the window's class-F1 header (`hdrOf`), from the row's cells. -/
+def hdrBytes : List Expr :=
+  [K TAG_HDR] ++ natWE (fun _ => K 4) 0 1 ++ hashWE ci 1 ++ hashWE ci H_PSR ++ hashWE ci H_POR ++
+  hashWE ci H_EMR ++ natWE ci H_EL 8 ++ natWE ci (H_EL + 8) 8 ++ natWE ci (H_EL + 16) 8 ++
+  natWE ci H_GU 8 ++ natWE ci H_GL 8 ++ natWE ci H_BB 16 ++ hashWE ci H_ORR ++ hashWE ci H_TXR ++
+  [K 0] ++ natWE ci (H_CONG + 1) 16 ++ natWE ci (H_CONG + 17) 16 ++ natWE ci (H_CONG + 33) 8 ++
+  natWE ci (H_CONG + 41) 2 ++ [K 0] ++ [K 0]
+
+/-- The 304 bytes `Ser.enc (outputsOf …)`, from the row's cells. -/
 def outBytes : List Expr :=
-  (List.range 32).map (fun j => fi (FI_ROOT + j)) ++ T.cs "ro" 32 ++
-  (List.range 8).map (fun j => fi (FI_GL + j)) ++ (List.range 8).map (fun j => fi (FI_GAS + j)) ++
-  (List.range 16).map (fun j => fi (FI_BAL + j)) ++ T.cs "rsh" 32 ++
-  (List.range 43).map (fun j => fi (FI_CONG + j)) ++ (List.range 32).map (fun _ => K 0) ++
-  T.cs "rs" 32 ++ (List.range 8).map (fun j => ci (H_EL + j)) ++
-  (List.range 9).map (fun _ => K 0)
+  hashWE fi FI_ROOT ++ hashWE (fun j => T.c "ro" j) 0 ++ [K 0] ++ natWE fi FI_GL 8 ++
+  natWE fi FI_GAS 8 ++ natWE fi FI_BAL 16 ++ hashWE (fun j => T.c "rsh" j) 0 ++
+  natWE fi (FI_CONG + 1) 16 ++ natWE fi (FI_CONG + 17) 16 ++ natWE fi (FI_CONG + 33) 8 ++
+  natWE fi (FI_CONG + 41) 2 ++ [K 0] ++ [K 0] ++ hashWE (fun _ => K 0) 0 ++
+  hashWE (fun j => T.c "rs" j) 0 ++ natWE ci H_EL 8
+
+def HDR_LEN : Nat := 389
+def OUT_LEN : Nat := 304
 
 def boutInteractions : List Interaction :=
-  [snd B_SB act [K ID_HDR, K 0, K TAG_HDR]] ++
-  (List.range CI_LEN).map (fun j => snd B_SB act [K ID_HDR, K (1 + j), ci j]) ++
-  [rcv B_SD act ([K ID_HDR, K (1 + CI_LEN)] ++ T.cs "hd" 48),
-   snd B_SB act [K ID_OUT, K 0, K TAG_OUT]] ++
-  (List.range 252).map (fun j => snd B_SB act [K ID_OUT, K (1 + j), outBytes.getD j 0]) ++
-  [rcv B_SD act ([K ID_OUT, K 253] ++ T.cs "od" 48)]
+  (List.range HDR_LEN).map (fun j => snd B_SB act [K ID_HDR, K j, hdrBytes.getD j 0]) ++
+  [rcv B_SD act ([K ID_HDR, K HDR_LEN] ++ T.cs "hd" 48)] ++
+  (List.range OUT_LEN).map (fun j => snd B_SB act [K ID_OUT, K j, outBytes.getD j 0]) ++
+  [rcv B_SD act ([K ID_OUT, K OUT_LEN] ++ T.cs "od" 48)]
 
 def boutConstraints : List Expr :=
   eqs act ((List.range 14).map fun i => P (PV_HDR + i)) (limbs3 (T.cs "hd" 42)) ++
   eqs act ((List.range 14).map fun i => P (PV_OUT + i)) (limbs3 (T.cs "od" 42))
 
+/-- G-5: the two clear counters of `done H o` (M12 `clearE`): public values `PV_GU`, `PV_BB` are the
+big-endian bytes of `FinIn`'s `gasUsed` / `balanceBurnt` (the cells `eqGu` / `eqBb` equate to the
+header's `prev_gas_used` / `prev_balance_burnt`, i.e. what `headerOk` checks). -/
+def clearConstraints : List Expr :=
+  ((List.range 8).map fun j => act * (P (PV_GU + j) - fi (FI_GAS + 7 - j))) ++
+  ((List.range 16).map fun j => act * (P (PV_BB + j) - fi (FI_BAL + 15 - j)))
+
+/-- The constraints beyond the M5d-T1 row (`B_out` digests, G-5 clear counters). -/
+def extraConstraints : List Expr := boutConstraints ++ clearConstraints
+
 def table : Table :=
-  { width := L.width, constraints := constraints ++ boutConstraints,
+  { width := L.width, constraints := constraints ++ extraConstraints,
     interactions := interactions ++ boutInteractions, maxLog := 4 }
 end Fin
 
@@ -525,8 +559,9 @@ def finalConsts : List (String × String) :=
    ("FIN_TAG", toString FIN_TAG), ("SHM0", toString SHM0), ("SHL0", toString SHL0),
    ("PID0", toString PID0), ("MID0", toString MID0), ("ID_CLAIM", toString ID_CLAIM),
    ("ID_FIN", toString ID_FIN), ("ID_HDR", toString ID_HDR), ("ID_OUT", toString ID_OUT),
-   ("TAG_HDR", toString TAG_HDR), ("TAG_OUT", toString TAG_OUT), ("PV_HDR", toString PV_HDR),
-   ("PV_OUT", toString PV_OUT), ("RCH0", toString RCH0), ("OCH0", toString OCH0),
+   ("TAG_HDR", toString TAG_HDR), ("HDR_LEN", toString Fin.HDR_LEN), ("OUT_LEN", toString Fin.OUT_LEN), ("PV_HDR", toString PV_HDR),
+   ("PV_OUT", toString PV_OUT), ("PV_GU", toString PV_GU), ("PV_BB", toString PV_BB),
+   ("RCH0", toString RCH0), ("OCH0", toString OCH0),
    ("CH_OUT", toString CH_OUT), ("CH_RC", toString CH_RC), ("TR_OUT", toString TR_OUT),
    ("TR_SH", toString TR_SH), ("TR_RS", toString TR_RS), ("NUM_PUB", toString NUM_PUB),
    ("acc0", natList acc0), ("ivLimbs", natList S384.ivLimbs),

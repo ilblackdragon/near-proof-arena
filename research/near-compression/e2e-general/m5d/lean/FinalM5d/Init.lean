@@ -272,6 +272,10 @@ def T : Cols := ⟨L⟩
 def act := T.c "act"
 def le3 (s : String) : Expr := T.c s 0 + K 256 * T.c s 1 + K 65536 * T.c s 2
 def b4 (s : String) (j : Nat) : Expr := if j < 3 then T.c s j else 0
+/-- G-5: byte `j` of the **big-endian** `u32` of the 3-limb value `s` (top byte 0): lane E's
+`ViewE.rawPre` writes `u32 = beN 4` (G-4 sent the little-endian bytes, which do not meet
+`ctxDE (.raw cb wb)`). -/
+def b4be (s : String) (j : Nat) : Expr := if j == 0 then 0 else T.c s (3 - j)
 def constraints : List Expr :=
   [bool act, .isFirst * (act - 1), .isTransition * T.n "act",
    act * (T.c "na" - le3 "pa"), act * (T.c "nb" - le3 "lb"), act * (T.c "nc" - le3 "lc")] ++
@@ -289,8 +293,8 @@ def interactions : List Interaction :=
   [ rcv B_END act [T.c "na", T.c "nb", T.c "nc", T.c "nt", T.c "ns"] ] ++
   (List.range 4).map (fun j => snd B_SB act [K ID_CLAIM, T.c "na" + K j, K 0]) ++
   [ snd B_SB act [K ID_CTX, K 0, K CTX_TAG] ] ++
-  (List.range 4).map (fun j => snd B_SB act [K ID_CTX, K (1 + j), b4 "lb" j]) ++
-  (List.range 4).map (fun j => snd B_SB act [K ID_CTX, K (5 + j), b4 "lc" j]) ++
+  (List.range 4).map (fun j => snd B_SB act [K ID_CTX, K (1 + j), b4be "lb" j]) ++
+  (List.range 4).map (fun j => snd B_SB act [K ID_CTX, K (5 + j), b4be "lc" j]) ++
   [ rcv B_SD act ([K ID_CLAIM, K 4 + T.c "ns"] ++ T.cs "cd" 48),
     rcv B_SD act ([K ID_CTX, K 9 + T.c "nt"] ++ T.cs "xd" 48) ] ++
   (["pa", "lb", "lc"].flatMap fun s => (List.range 3).map fun j => rcv B_R8 act [T.c s j]) ++

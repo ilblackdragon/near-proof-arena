@@ -876,8 +876,8 @@ checker unchanged; standard axioms only.
 | RT enter `TmplSoundRel8C .rt` | F | `EnterC.enter_relC`, `enter_relC8`, non-vacuity `T1Enter.t1_enter_nonvac`; `RtView.clearEnter` met by `clearE` (`clearE_enter`, `pre = u64c ∘ prepaidGas`); F-4: `RtView.pos` in lane B's `Sha384Coll ∨ _` form = `StHalfC.rtPos` (`ResumeC.enter_pos_laneB`) | `EntChecks.vm` (A: remainder digest), `.pos` (B: `STC` opening with tag 1, `STMP`), `.prepaid`/`.code` (F: join with the `MSG`/`RX` rows) | — (`ResumeC.rt_relC8_full`: enter ∨ resume) |
 | RT resume | F ∧ B | F-4: `RbSem.rb_out` (boundary rules from `RB`), `AccSem.acc_sound` (`ACC` SHA-384 appends), `ResumeC.resume_engHalf`, **`resume_relC8`** (engine half ∧ lane B's `stHalf_inst`), `rt_relC8_full`; `rsView_viewE`; non-vacuity `T1Resume` (RB constraints and both appends on T1's leaf) | `RsStep` (A: `cc = .fin r`; F: `estepO` composition, totals, appended items, `ACC` message = `pad (X ‖ Ser.enc item)`; F/E: `stRel` for the pair), `RsJoint` (B: `HoldsSt` = `STC` ∧ `WsMoves`), `ChipOK` (native chip) | `RsStep`'s proof; `next` (`K ≠ []`); in-circuit `Ser.enc` items |
 | STATE `TmplSoundRel8C .state` | F ∧ B | glue: `Glue.state_reqs`; D-c: `split_sound_relC_relOn`, `StateW.reqsRel_state`, `state_sound_stRoot` (`W` = `stRoot`); D-a: `R_0` at `start` (`wsOf_start`); D-b: finalize leaf `GlueFin.fin_reqs`, `fin_sound_relC`, `finalizeAgree`; modes `tmplSoundRel8C_modes` | B: `HoldsSt` (`STC` ∧ `WsMoves`; `SegLeaves`), `FinHalfB` (IF-FINAL); F: `EngHalfRCOn` on `StatePreW` / `FinPre`; `IntakeTrie` | no STATE engine rows (lane F); `STC` table (B) |
-| INIT `SegSoundInit` / `SegSoundInit8` | G ∧ B | `Split.segSoundInit_join` (T1 form), G-4 `InitSel.init_blk_main_slot`, `init_lay_first_pair`, `WalkSel.walk_single` (E1 class: main-slot selection in-circuit); glue `Glue.init_glue` | `InitGPart` (from `Holds`: `BLK` row 0 active, `IX`/`LAY` bus glue, row ↔ decoded structure), `InitBPart` (lane B INTAKE) | M8 absolute form with the context link stated over lane D's leaf; epochs ≥ 2 (out of class E1) |
-| FINAL `SegSoundFinal` / `TmplSoundRel8C .final` | G ∧ B | `Split.segSoundFinal_join`, `final_join_headerOk` (T1 form), `final_template_sound_holds`; glue `Glue.final_glue`; `clearE_final` (FINAL copies `gasUsed`/`balanceBurnt`) | `FinalBPart` (lane B FINAL root + M5c `FinReach`), `FinalGPart` (`ClassF1`/`Computed` from `Holds`, `B_out` digest incl. the two counters); `FinalizeAgree` proved in its precise form (D-b, `GlueFin.finalizeAgree`; the post-state root is now proved in the finalize STATE leaf) | the relative canonical M8 form for lane G's leaf (their joins target the T1 absolute form) |
+| INIT `SegSoundInit` / `SegSoundInit8` | G ∧ B | `Split.segSoundInit_join` (T1 form); G-5 `Leaf.init_g_half`, **`init_sound8`** (`SegSoundInit8`), `init_soundRel8C`; `InitBus.init_blk_act0`, `init_main_index` (main index across `BLK`/`INI`/`LAY` from `Holds initAirS`); view laws for `viewE`; T1 `T1G5.t1_init_c0` (= `h(c0)`); glue `Glue.init_glue` | G: `InitDig` (SHA-384 messages, `CLM` stream, `lB`); B: `InitBOut` (INTAKE, `c1`) | epochs ≥ 2 (out of class E1); row ↔ decoded structure of the walks |
+| FINAL `SegSoundFinal` / `TmplSoundRel8C .final` | G ∧ B | `Split.segSoundFinal_join` (T1 form); G-5 **`Leaf.final_soundRel8C`** (relative canonical M8 form) from `fin_g_half` (lane G's rows: `tailNew`, `headerOk`, `B_out` = `done I.H o` in `viewE`'s encodings, `FinalOutPub`), `fin_clear` (the two counters from `Holds`); T1 `T1G5.t1_final_c10` (= `h(c10)`), `t1_fin_dig`; `clearE_final`; `GlueFin.finalizeAgree` | G: `FinDig` (SHA-384 messages), `Computed` (FINAL tables' roots); B: `FinPre` (`c9` opens to a run to `fin I out`, `FinReach`, `FinIn` bus, class F1) and the header link `decodeChunkInner window = .ok I.H` | `stD .none` constant (B) |
 | `TreeFaithful`, `PadSound8`, `NodeExecV` | D | `treeFaithful_of_aggH`, `nodeExecV_of_contracts`, `nodeSha_of`, `nodeLink_*` (M11g–i) | `ProgFull`/`ProgBound`, `GlueByteBool`, `ShaContract`, `PackOK`, `NodeInner`, `TailCanon` | `TailCanon` fix in GLUE (lane D), PREP in the tree spec |
 | driver (M10) | I | — | — | M12 clear convention in `t1.py` (above); `B_out`/`plan.json` re-cut with PREP as a `wasm` leaf and the singleton `outRcptAcc` |
 
@@ -2714,7 +2714,7 @@ See `research/near-compression/e2e-general/m5t1/README.md`; log
   `fbBnd` writes S2, so `RtView.preW` is its `.pre` branch (definitional, not cross-checked in
   Lean). Lane F has no STATE engine rows.
 
-### 5.3 M5d (FINAL and INIT templates, lane G): status, 2026-11-25 (G-4)
+### 5.3 M5d (FINAL and INIT templates, lane G): status, 2026-11-25 (G-5)
 
 See `research/near-compression/e2e-general/m5d/README.md` (commands, tables, costs) and
 `LEAF-TEMPLATE-SPEC.md` (for lane D); log `docs/logs/e2e-laneG-m5d-2026-11-21.md`.
@@ -2819,4 +2819,26 @@ T1's row values satisfy `RowOK`, the window is T1's `chunk_inner`, `headerOk` ho
 `FinalBPart` / `InitBPart` (INTAKE's `ℓ_B` check); INIT's general walk (≥ 2 epochs); (3) transactions (81 % of cases), then proposals,
 bandwidth requests; templates per generated class; (4) lane D: `h(B_out)` assembly in the FINAL
 leaf from the exposed component digests.
+
+**G-5 (lane G, 2026-11-25)** — log `docs/logs/e2e-laneG-g5-2026-11-25.md`, README §G-5, leaf spec
+§3 / §4. `S`, `claimDigest`, the checker unchanged.
+* **[M] circuits:** FINAL exposes the M12 clear fields of `done H o` (public values 58..82:
+  `o.gasUsed`, `o.balanceBurnt`, big-endian, bound to the `FinIn` cells `headerOk` compares) and
+  computes `B_out`'s commitments in lane E's view encodings — `bdigest (3 ‖ Ser.enc H)`,
+  `bdigest (Ser.enc o)` — with `ViewSer`'s new fixed-width `Ser ChunkInner` / `Ser Outputs`
+  (decision I2b, lanes E ∧ G; view data only); INIT hashes `u32 ℓ_B`, `u32 |cb|` big-endian (I2b-1).
+  T1: FINAL **486,168 B** (22.9 s), INIT **356,405 B** (21.6 s), 268.2-bit, `m8-import`ed
+  (`/data/illia/nearproof-deps/e2e-m5d/g5/tmpl/`); batteries **38/38**, **13/13**. Against lane I's
+  chain: INIT's assembled `B_0` = `h(c0)`, FINAL's `B_out` = `h(c10)` (`chain.py` fills `c10`'s
+  `ctxRoot` / `outcomeAcc`).
+* **[K]** `InitBus`: G-4's open INIT premises from `Holds initAirS` — `BLK` row 0 active, the main
+  index agrees across `BLK` / `INI` / `LAY` (`IX`, `LAY`, `SLOT`), `init_main_index`. `Leaf`: INIT /
+  FINAL as joined leaves (`join_sound_abs` / `join_sound_relC`: `split_sound`'s `EngHalf` cannot be
+  met by either half of these two leaves); `init_g_half` / `init_sound8` (`SegSoundInit8`),
+  `fin_clear` (counters from `Holds`), `fin_g_half` / **`final_soundRel8C`** (`TmplSoundRel8C
+  .final`), view laws proved for `viewE`. `T1G5`: non-vacuity on T1 (wrapper records = `c0`, `c10`;
+  the leaf's digests = Lean's `ctxHeaderD` / `outDoneD` of T1's row, kernel SHA-384).
+* **Open (named):** lane G `InitDig` / `FinDig` / `Computed` (SHA-384 message contract, walks ↔
+  decoded structures, the FINAL tables' roots); lane B `InitBOut` (INTAKE, `c1`), `FinPre` (FINAL
+  half, `c9`) incl. the header link `decodeChunkInner window = .ok I.H`; lane D the joint AIRs.
 

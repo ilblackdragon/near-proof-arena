@@ -183,9 +183,9 @@ def test_chain_saved_leaves():
     inp = t1_inputs()
     rows, _ = chain.leaf_table(chain.build(inp), inp)
     r = {x["leaf"].split(" (")[0]: x for x in rows}
-    ck = r["INIT"]["checks"]
-    assert ck["ctxRoot = the same preimage with u32 little-endian"]
-    assert not ck["ctxRoot = plan B_0.ctxRoot (ViewE, u32 big-endian)"]
+    # G-5: INIT hashes big-endian u32 (I2b-1) and FINAL ViewE's done encodings; both match the chain
+    assert all(r["INIT"]["checks"].values()) and r["INIT"]["in_equal"]
+    assert all(r["FINAL"]["checks"].values()) and r["FINAL"]["out_equal"]
     assert all(r["IF"]["checks"].values()) and all(r["PREP"]["checks"].values()) and all(r["STATE seg"]["checks"].values())
     assert r["WASM seg 0"]["in_equal"] and r["WASM seg 0"]["out_equal"] and r["WASM seg 1"]["in_equal"]
     # A-T5: the halting segment's out-record is lane A's `.fin r` record (finding I2b-2 closed), and

@@ -36,6 +36,14 @@ The fourth output field (`bwAcc`) is the constructor tag; without it `outD .none
 for honest values and makes `Coll outD → Bad` unsatisfiable. Likewise `ctxD (.raw …)` with a
 `u32` length alone is not injective for `|cb| ≥ 2^32`.
 
+**G-5 (lanes E ∧ G, I2b): the `done` serialisers.** `Ser ChunkInner` and `Ser Outputs` (the
+instances `ViewSer` supplies) are fixed-width and prefix-free so that FINAL can recompute them
+in-circuit: a natural is `natW n = 0 ‖ beN 16 n` (`n < 2^128`; `1 ‖ vnat n` otherwise), a byte
+string `hashW b = 0 ‖ b` (`|b| = 32`; `1 ‖ Ser.enc b` otherwise), lists / options `Ser.enc`; fields
+in structure order (`ViewSer.ciW`, `ViewSer.outW`, `natW_pf`, `hashW_pf`). Domain separation is
+`ctxPre`'s constructor byte (`3` for a header) and `outDE`'s constructor tag, as before; nothing in
+this file changes.
+
 ## Proved
 
 * `ctxPre_inj`, `coll_ctxDE`: a collision of `ctxDE` is a `bdigest` collision.

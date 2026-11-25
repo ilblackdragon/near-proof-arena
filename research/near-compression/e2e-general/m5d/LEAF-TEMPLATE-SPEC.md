@@ -36,14 +36,16 @@ private.
 **Lane E target:** `SegSoundInit` (meaning `MInit` = the whole intake step). INIT supplies `B_0`'s
 digests; the step itself is lane B's INTAKE, so the `.init` leaf is INIT ∘ INTAKE.
 
-**Public values (28):** `[claimDigest (14 limbs), ctxRoot (14 limbs)]`.
+**Public values (44):** `[claimDigest (14 limbs), ctxRoot (14 limbs), prev_state_root (16 pairs)]`.
+**G-5:** `u32 ℓ_B` and `u32 |cb|` are **big-endian** (`ViewE.u32 = beN 4`, integrator decision I2b-1;
+G-2 – G-4 hashed them little-endian: T1 `ctxRoot` `0e790a2c…` → `60498d85…`).
 
-**Leaf (lane D):** check `pv[0..14) = ctx`; build `B_0` = lane E's `view (init cb wb)`:
-`claimDigest = ctx`, `phase 0`, all indices / clock / counters `0`, `ctxRoot = pv[14..28)`,
-`stRoot = stD(.none)`, `outcomeAcc, outRcptAcc, proposalsAcc, bwAcc = outD(.none)`,
-`vmAcc = vmD([])`, `wasm = none` — the `.none` components are view constants (lane B / M5d / lane E
-fix them; for the M5d accumulators `outD(.none) = (bdigest [], [bdigest []], bdigest [], bdigest [])`
-**[S]**); expose `s_out = [init, h(B_0)]`, `a = 0`.
+**Leaf (lane D):** check `pv[0..14) = ctx`; `h(B_0) = bdigest(BndRec.encode R)` with `R` lane E's
+`init` record (`claimDigest = bdigest []`, phase 0, counters 0, `stRoot = stD(.none)`,
+`outD(.none) = (bdigest [], [], bdigest [], bdigest [0])`, `vmAcc = bdigest []`, `wasm = none`)
+and `ctxRoot = pv[14..28)` (`Leaf.InitWrap`); expose `s_in = [0, h(B_0)]`. On T1 this is lane I's
+`h(c0)` (`T1G5.t1_init_c0`). `B_1` (= `c1`: `ctxD(.intake I)`, `R_0`) is lane B's INTAKE half of the
+joined leaf.
 
 **Obligation on INTAKE (lane B) [S]:** INTAKE opens `ctxRoot` (re-hashing `cb ‖ wb`) and must check
 that `decodeClaimE cb`'s block list spans exactly `ℓ_B` bytes after `pre`. Without it a prover could
@@ -110,10 +112,30 @@ Earlier options:
 * (b) *a cut at `finK`*: a boundary with `phase = fin2` and `stRoot = finInDigest`; this needs lane E
   to split `CM`'s `fin → done` step at `finK` (a new configuration `fin2 I out t`).
 
-**`B_out` [S].** `done H o`: the wrap reads only `phase`. For lane E's view: `ctxRoot =
-ctxD(.header H)`, proposed `bdigest(0x04 ‖ chunk_inner)`; `outD(.done o)`, proposed
-`(bdigest(0x05 ‖ encOutputs o), [], bdigest [], bdigest [])` — two more `S384` messages in the
-template (not built; the template has the bytes).
+**`B_out` (G-2, re-encoded in G-5) [M].** `done H o` in lane E's view `ViewE.viewE`:
+`ctxRoot = ctxDE(.header H) = bdigest(3 ‖ Ser.enc H)`, `outcomeAcc = outDE(.done o).1 =
+bdigest(Ser.enc o)`, `outRcptAcc = []`, `proposalsAcc = bdigest []`, `bwAcc = bdigest [2]`,
+`stRoot = stD .none`, `vmAcc = bdigest []`, `wasm = none`, `claimDigest = bdigest []`, and the M12
+clear fields `gasUsed = o.gasUsed`, `balanceBurnt = o.balanceBurnt`, every other counter `0`.
+`Ser ChunkInner` / `Ser Outputs` are `ViewSer`'s fixed-width serialisers (G-5, lanes E ∧ G): a
+natural is `natW n = 0 ‖ beN 16 n` (`n < 2^128`; `1 ‖ vnat n` otherwise), a 32-byte string
+`hashW b = 0 ‖ b` (`1 ‖ Ser.enc b` otherwise), lists and options `Ser.enc` (`[0]` when empty);
+field order = the structure's. On class F1 the template sends `3 ‖ Ser.enc H` (389 B, from the
+statement window: `Fin.hdrBytes`) and `Ser.enc o` (304 B, from the `FinIn` cells and the computed
+roots: `Fin.outBytes`) through `S384`; on T1 both equal Lean's `BOut.encHdr` / `encOut` byte for
+byte (the trace generator asserts it against `m5d-tool dump`).
+
+**Public values (82, G-5):** `[claimDigest (14), finInDigest (14), n, L, ctxD(.header H) (14),
+outD(.done o).1 (14), gasUsed (8 bytes, big-endian), balanceBurnt (16 bytes, big-endian)]` —
+digests as 14 limbs of 3 bytes big-endian; the two counters one byte per value, in the boundary
+record's `natC 8` / `natC 16` byte order, constrained (`Fin.clearConstraints`) to the `FinIn` gas /
+balance cells reversed, which `eqGu` / `eqBb` equate to the header's `prev_gas_used` /
+`prev_balance_burnt` (Lean `Leaf.fin_clear`).
+
+**Leaf (lane D), G-5:** check `pv[0..14) = ctx`; `h(B_out) = bdigest(BndRec.encode R)` with `R` the
+view's `done` constants with `ctxRoot = pv[30..44)`, `outcomeAcc = pv[44..58)`,
+`gasUsed = beToNat pv[58..66)`, `balanceBurnt = beToNat pv[66..82)` (`Leaf.FinWrap`); expose
+`s_out = [4, h(B_out)]`. On T1 this is lane I's `h(c10)` (`t1/chain.py`, Lean `T1G5.t1_final_c10`).
 
 **Class F1 pins** (fixed in the AIR; another class = another template in `{C_t}`): V5 header, no
 proposals / bandwidth requests / split / transactions, 6 shards with `u16` ids, `|chain_id| = 14`,

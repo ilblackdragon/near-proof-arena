@@ -150,7 +150,22 @@ def inputs_from(case, full, calls, comps, prep, lean_run, laneb_if=None):
         s = json.load(open(laneb_if))["statement"]
         inp["R_0"], inp["R_n"] = dig48(s[17:35]).hex(), dig48(s[35:53]).hex()
         assert root16(s[0:16]).hex() == st["pre_root"] and s[16] == st["wsLen"]
+    done_digests(inp)
     return inp
+
+
+def done_digests(inp):
+    """G-5: `ctxD (.header H)`, `outD (.done o).1` of the done cut (lane E's view, ViewSer's fixed-width
+    serialisers), Lean-evaluated by lane G's `m5d-tool dump` (M5D_DUMP); for T1's claim without the dump,
+    the committed inputs' values."""
+    m5d = os.environ.get("M5D_DUMP", f"{DEPS}/e2e-m5d/g5/t1f/dump.json")
+    if os.path.exists(m5d):
+        bo = json.load(open(m5d))["bout"]
+        inp["ctx_header"], inp["out_done"] = bo["ctxHeaderD"], bo["outDoneD"]
+    elif os.path.exists(INPUTS):
+        fx = json.load(open(INPUTS))
+        if fx.get("claim_sha256") == inp.get("claim_sha256") and fx.get("ctx_header"):
+            inp["ctx_header"], inp["out_done"] = fx["ctx_header"], fx["out_done"]
 
 
 LANEB_IF = f"{DEPS}/laneB-t1/t1b/T1S/if/out/statement.json"
@@ -179,8 +194,6 @@ PLACEHOLDERS = [
      "B: split the STATE segment at the RT cuts"),
     ("ctxRoot at engine / call cuts", "ctxD (.intake I) = bdigest (1 ‖ Ser.enc I)",
      "E: Ser Intake closure (ViewSer); G: INIT computes it (B_1)"),
-    ("ctxRoot at done", "ctxD (.header H) = bdigest (3 ‖ Ser.enc H)", "E: Ser ChunkInner; G: FINAL recomputes"),
-    ("outcomeAcc at done", "bdigest (Ser.enc o)", "E: Ser Outputs; G: FINAL recomputes"),
     ("wasm.vmCtxDigest", "bdigest (encRest (.other (q, cc)) / (.air …))", "A (m6 §6; needs gasLeft + σ at host rows)"),
     ("wasm.fuel", "the call machine's n (fuel_out = fuel_in − Δt)", "A: expose fuel_in of segment 0 / PREP"),
     ("wasm.codeRoot / funcRoot packing", "codeC.root (codeRecs …) (stand-in ccT1 in Lean)",
@@ -286,8 +299,12 @@ def build(inp):
     c[8] = dict(c[7])
     c[9] = dict(c[7], stRoot=st(3, rn), receiptIdx=inp["n_outcomes"], gasUsed=inp["gasUsed"],
                 gasBurnt=inp["gasUsed"], balanceBurnt=inp["balanceBurnt"], compute=inp["computeUsage"])
-    c[10] = _rec("done", ctxRoot=ZERO, stRoot=st_none, gasUsed=inp["gasUsed"], balanceBurnt=inp["balanceBurnt"],
-                 outcomeAcc=ZERO, outRcptAcc=[], proposalsAcc=E, bwAcc=tagd(2))
+    # G-5: ctxD (.header H) = bdigest (3 ‖ Ser.enc H), outD (.done o).1 = bdigest (Ser.enc o) with ViewSer's
+    # fixed-width Ser ChunkInner / Ser Outputs (Lean-evaluated by `m5d-tool dump`: inputs ctx_header / out_done)
+    c[10] = _rec("done", ctxRoot=bytes.fromhex(inp["ctx_header"]) if inp.get("ctx_header") else ZERO, stRoot=st_none,
+                 gasUsed=inp["gasUsed"], balanceBurnt=inp["balanceBurnt"],
+                 outcomeAcc=bytes.fromhex(inp["out_done"]) if inp.get("out_done") else ZERO, outRcptAcc=[],
+                 proposalsAcc=E, bwAcc=tagd(2))
     for r in c:
         if r["wasm"] is not None:
             r["wasm"] = dict(r["wasm"])
@@ -397,14 +414,14 @@ def lean_consts(inp, cb, wb, workdir, pkg=bndrec.LEAN_PKG):
 # saved leaves vs the chain
 # ---------------------------------------------------------------------------
 SAVED = {
-    "INIT": f"{DEPS}/e2e-m5d/g4/tmpl/init",
+    "INIT": f"{DEPS}/e2e-m5d/g5/tmpl/init",
     "IF": f"{DEPS}/laneB-t1/t1b/T1S/if/out",
     "STATE": f"{DEPS}/laneB-t1/t1b/T1S/seg0/out",
     "RT enter": f"{DEPS}/e2e-m5t1/f3/enter-proof",
     "PREP": f"{DEPS}/e2e-laneA/at4/prep/leaf",
     "WASM": f"{DEPS}/e2e-laneA/at5/leaf-k13/leaf",
     "RT resume": f"{DEPS}/e2e-m5t1/f4/resume-proof",
-    "FINAL": f"{DEPS}/e2e-m5d/g3/tmpl/final",
+    "FINAL": f"{DEPS}/e2e-m5d/g5/tmpl/final",
 }
 TREE = f"{DEPS}/tmp-laneD/m9b"   # lane D's M9 prototype tree (the leaves it imported: imported.sha256)
 
@@ -434,19 +451,20 @@ def _rec_row(leaf, path, rec_in, rec_out, c_in, c_out, owner, why):
 def leaf_table(c, inp, saved=SAVED):
     rows = []
     ex = os.path.exists
-    # INIT (G-4): claimDigest (leaf ctx), ctxRoot of B_0, prev_state_root (join value with IF)
+    # INIT (G-5): claimDigest (leaf ctx), ctxRoot of B_0 (u32 big-endian), prev_state_root (join value with IF)
     p = saved["INIT"]
     if ex(p):
         pv = json.load(open(f"{p}/INFO.json"))["public_values"][4]
         ctx = limbs3(pv[14:28])
-        rows.append({"leaf": "INIT (G-4)", "path": p, "exposes": "claimDigest (leaf ctx), ctxRoot(B_0), prev_state_root (PSR)",
+        b0 = dict(c[0], ctxRoot=ctx)     # lane D's wrapper: the view's init constants + the leaf's ctxRoot
+        rows.append({"leaf": "INIT (G-5)", "path": p, "exposes": "claimDigest (leaf ctx), ctxRoot(B_0), prev_state_root (PSR)",
                      "checks": {"claimDigest = bdigest(S) (leaf ctx, not a BndRec field)": limbs3(pv[0:14]).hex() == inp.get("claimDigest_S"),
                                 "ctxRoot = plan B_0.ctxRoot (ViewE, u32 big-endian)": ctx.hex() == c[0]["ctxRoot"].hex(),
-                                "ctxRoot = the same preimage with u32 little-endian": ctx.hex() == inp["ctx_raw_le"],
+                                "h(B_0) assembled from the leaf = h(c0)": bndrec.digest(b0) == bndrec.digest(c[0]),
                                 "prev_state_root = IF's": root16(pv[28:44]).hex() == inp["prev_state_root"]},
-                     "in_equal": ctx.hex() == c[0]["ctxRoot"].hex(), "out_equal": False,
-                     "owner": "G (re-prove INIT with u32 big-endian lengths) or E (ViewE.u32 → little-endian); G: B_1 (ctxD (.intake I)) — INIT exposes no B_out",
-                     "why": "ctxD(.raw): lane G's INI hashes `0 ‖ u32le ℓ_B ‖ u32le |cb| ‖ cb ‖ wb`, ViewE.rawPre uses `Bytes.beN 4` (big-endian; Lean-checked here); B_1 = eng I start not exposed (ctxD (.intake I) needs Ser Intake)"})
+                     "in_equal": bndrec.digest(b0) == bndrec.digest(c[0]), "out_equal": False,
+                     "owner": "B: B_1 (ctxD (.intake I), R_0) is INTAKE's (the joined INIT + IF leaf); INIT exposes B_0 only",
+                     "why": "INIT's B_0 = the chain's c0 (stD .none at the placeholder); B_1 = eng I start is lane B's half"})
     # IF (B-T1b): R_0, R_n, prev / post roots, wsLen, change count
     p = saved["IF"]
     if ex(p):
@@ -530,17 +548,22 @@ def leaf_table(c, inp, saved=SAVED):
     # finalize (none)
     rows.append({"leaf": "finalize (STATE, D-b)", "path": None, "exposes": "—", "in_equal": False, "out_equal": False,
                  "owner": "B (IF-FINAL half as a leaf with STC) + F (engine rows yields → done)", "why": "no leaf exists"})
-    # FINAL (G-3)
+    # FINAL (G-5): B_out = done H o from ctxD (.header H), outD (.done o).1 and the two counters
     p = saved["FINAL"]
     if ex(p):
         pv = json.load(open(f"{p}/INFO.json"))["public_values"][4]
-        rows.append({"leaf": "FINAL (G-3)", "path": p,
-                     "exposes": "claimDigest (leaf ctx), finInDigest (join value), n, L, lane G's ctxHeaderD, outDoneD",
+        bo = dict(c[10], ctxRoot=limbs3(pv[30:44]), outcomeAcc=limbs3(pv[44:58]),
+                  gasUsed=int.from_bytes(bytes(pv[58:66]), "big"), balanceBurnt=int.from_bytes(bytes(pv[66:82]), "big"))
+        rows.append({"leaf": "FINAL (G-5)", "path": p,
+                     "exposes": "claimDigest (leaf ctx), finInDigest (join value), n, L, ctxD (.header H), outD (.done o).1, gasUsed, balanceBurnt",
                      "checks": {"claimDigest = bdigest(S)": limbs3(pv[0:14]).hex() == inp.get("claimDigest_S"),
-                                "ctxHeaderD = ViewE ctxD (.header H)": False, "outDoneD = ViewE outD (.done o).1": False},
-                     "in_equal": False, "out_equal": False,
-                     "owner": "G: recompute with ViewE's encodings (bdigest (3 ‖ Ser.enc H), bdigest (Ser.enc o)) once E closes Ser ChunkInner / Ser Outputs; G ⊕ B: B_in = eng I ⟨done out⟩ (finInDigest is a join value, not a BndRec field)",
-                     "why": f"lane G's own encodings (ctxHeaderD {limbs3(pv[30:44]).hex()[:16]}…, outDoneD {limbs3(pv[44:58]).hex()[:16]}…: bdigest (0x04 ‖ chunk_inner), bdigest (0x05 ‖ encOutputsF1 o))"})
+                                "ctxHeaderD = ViewE ctxD (.header H)": bo["ctxRoot"] == c[10]["ctxRoot"],
+                                "outDoneD = ViewE outD (.done o).1": bo["outcomeAcc"] == c[10]["outcomeAcc"],
+                                "gasUsed / balanceBurnt = done's clear fields": (bo["gasUsed"], bo["balanceBurnt"]) == (c[10]["gasUsed"], c[10]["balanceBurnt"]),
+                                "h(B_out) assembled from the leaf = h(c10)": bndrec.digest(bo) == bndrec.digest(c[10])},
+                     "in_equal": False, "out_equal": bndrec.digest(bo) == bndrec.digest(c[10]),
+                     "owner": "B: B_in = c9 (eng I <done out>) is lane B's FINAL half's (finInDigest is a join value, not a BndRec field)",
+                     "why": "FINAL's B_out = the chain's c10 (stD .none at the placeholder); B_in is the other half's"})
     tree = None
     if ex(f"{TREE}/imported.sha256"):
         tree = [ln.split()[1] for ln in open(f"{TREE}/imported.sha256") if ln.strip()]
