@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # E2E-D M8: import the lanes' own saved T1 leaves (no re-proving) into WORK/tmpl/:
-#   lane A A-T1 (pinned-shape Wasm segments, stack backend): SEG.vk.json + seg-<i>.proof
+#   lane A A-T2 (pinned-shape Wasm segments, tight heights pinned, stack backend): SEG.vk.json + seg-<i>.proof
 #   lane B B-T1 (pinned-shape state leaves, template T1/S): IF and seg0 STATE.{vk.json,proof}
 # Each is verified natively by the driver and described in INFO.json (m8-import).
 #   usage: m8_import_real.sh WORK
 set -euo pipefail
 O=${1:?work}
 P=${PROVER:-/data/illia/nearproof-deps/pq-e2e-m8/drv2/release/nearproof-chunk-e2e}
-LA=${LANE_A_LEAF:-/data/illia/nearproof-deps/e2e-laneA/at1/leaf-k13c/leaf}
+LA=${LANE_A_LEAF:-/data/illia/nearproof-deps/e2e-laneA/at2/leaf-k13p/leaf}  # A-T2: tight heights pinned (A-T1: at1/leaf-k13c/leaf)
 LB=${LANE_B_LEAF:-/data/illia/nearproof-deps/laneB-t1/t1b/T1S}
 names() { python3 -c "import json,sys; print(','.join(a['name'] for a in json.load(open(sys.argv[1]))['airs']))" "$1"; }
 mkdir -p "$O/tmpl"

@@ -619,6 +619,21 @@ pub fn tree_prove(spec_path: &str, out: &Path, certs: &str, exclusions: &str) {
         return;
     }
     let lc = super::tree::circ(k, lr, pl, 1, cap_log, Some(&h_l));
+    // M8_PROGRAMS_ONLY=1 (lane A A-T2): print every template leaf's program root at the leaf
+    // geometry and stop (no proof): leaves of one template with equal child heights share a program
+    if std::env::var("M8_PROGRAMS_ONLY").is_ok_and(|v| v == "1") {
+        for (i, l) in leaves.iter().enumerate() {
+            let (mats, b) = lc.generate_with(|b| {
+                l.body(b);
+            });
+            assert!(b.failures.is_empty(), "leaf {i}: {:?}", b.failures);
+            let c = program_commitment(leaf_engine.config(), &mats[0]);
+            let name = l.spec.as_ref().map_or("PAD".to_string(), |s| s.name.clone());
+            println!("M8_LEAF_PROGRAM {i} template={name} rows={} root={:x}{:x}", b.instrs.len(), c[0], c[1]);
+        }
+        println!("M8_PROGRAMS_ONLY_DONE");
+        return;
+    }
     // M8_REUSE=DIR: take a proof from an earlier run of the same spec when it is the same proof
     // (native verification under the vk of this circuit, pinned heights, statement, program root
     // checked by the caller); a measurement aid after a failure late in a run

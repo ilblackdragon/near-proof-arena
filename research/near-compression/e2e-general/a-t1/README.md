@@ -7,6 +7,12 @@ T1 = `/data/illia/nearproof-deps/corpora/d3c8/d3/02-h10196-s3`: one FunctionCall
 (code `8152bed2…`, 345 B), method `run`, input `again`, 26 Wasm steps, six host calls:
 `input`, `register_len`, `read_register`, `storage_write` (existing key), `log_utf8`, `value_return`.
 
+**Update 2026-11-25 (A-T2, §9).**
+* The template now pins tight heights, so T1's two leaves give one lane D leaf program.
+* PREP is stopped at a statement change.
+* Finding: `WasmViewParams` is uninhabited, so §6's theorems are vacuous until the remainder
+  encoder is restated (§9.2).
+
 ## 0. T1's call segments pre-check and prove at lane A's head [M] (2026-11-21)
 
 Lane I reported that T1's only call could not be cut into segments on `wasmBaseSegAirMP` at any cut
@@ -425,3 +431,123 @@ digest. Add two public values `rem_in`/`rem_out` and equate them with the budget
 CUTI's and CUTO's space-5 row. A space-5 row needs a selector column `isBud` with
 `isBud·(space − 5) = 0`, and the count must force exactly one budget row per stream. Then
 `RestOK.stackRem` becomes an AIR fact.
+
+## 9. Milestone A-T2 (2026-11-25): pinned tight heights; PREP stopped at a statement change
+
+### 9.1 Task 1: the Wasm template pins its tight heights [M]
+
+**Finding (lane D, M8):** A-T1's template pinned every table's *log* height but not its *tight*
+height (the backend's committed rows = rows up to the last non-zero row). T1's two segments
+differed in CODE's common main (16 vs 32 rows) and the SHA-512 chip (7,424 vs 4,992), and other
+tables sat below their template height (MEMB 12 of 16 in both), so lane D's leaf, which takes the child's `(log, tight)` heights as program
+constants, gave **two WASM leaf programs** for one template.
+
+**Change (`native/wasm-base/src/segcmd.rs`, `segleaf` / `segleafverify`):**
+* `segleaf` commits every common main at its full template height
+  (`stacked_pcs::set_tight_floor`, the floor lanes B and G use). The floor is set after the cached
+  CODE/FUNC commitments are made, so those are unchanged.
+* `template_heights` computes the pinned `(log_height, tight_height)` per AIR from the template file
+  alone: each JSON table at its template height, the SHA-512 chip at `SHA512` and its table at 128,
+  tight = full. `segleaf` asserts that every proof declares exactly these heights, and the
+  manifest records them (`pinned_heights`).
+* `segleafverify` recomputes them from the manifest's template and refuses any proof that declares
+  other heights.
+* `SEG_TIGHT_NATURAL=1` restores the old behaviour, for tampers only.
+* The vk is unchanged (`b1eed0ca…`): tight heights are proof data, not key data.
+
+**T1 re-proved** (`run_leaf.sh … 13 1 24`, stack backend, base configuration, 8 threads,
+`HEAVY_MEM=18G`; `logs/t1-leaf-k13p*.txt`):
+
+| | A-T1 (`at1/leaf-k13c`) | A-T2 (`at2/leaf-k13p`) |
+|---|---|---|
+| seg 0 / seg 1 proof | 553,859 / 551,549 B | **554,709 / 553,071 B** |
+| prove (s), verify (ms), peak RSS | 51 / 53, 44 / 38, 8.1 GB | 25.7 / 28.3, 17 / 17, 8.2 GB |
+| queries, soundness | [100, 71, 45, 33], 268.2 bits | same |
+| heights, seg 0 vs seg 1 | CODE 16 / 32, SHA-512 7,424 / 4,992 (MEMB 12 / 12 of 16) | **identical**, every table at its template height (`logs/t1-leaf-k13p-heights.txt`) |
+| lane D leaf programs (`m8-import`, then the M8 probe) | 2 (`779e31f6…`, `d921c4c2…`; 244,330 / 244,190 rows) | **1** (`59b572a7…`, 238,436 rows, both leaves) |
+
+* **Saved-leaf tampers: 14/14 rejected** (`logs/t1-leaf-k13p-tamper.txt`). These are A-T1's 11 plus
+  three new ones:
+  * seg 0, and separately seg 1, replaced by the A-T1 proof of the *same* segment under the *same*
+    vk at natural tight heights (it verifies under the backend and is refused only by the pinned
+    heights rule);
+  * the manifest's template `SHA512` height halved.
+* **Lane D's format:**
+  * `m8-import` verifies both proofs natively; their `INFO.json` `heights` and `vk_sha256` are equal.
+  * `m8_spec_real.py` and `M8_CHECK_ONLY` pass: the native chain over the 8 leaves holds and the
+    probes are equal.
+  * The new `M8_PROGRAMS_ONLY=1` (`pq-chunk-e2e/src/htree.rs`, a measurement aid) prints the
+    program root of every leaf at the leaf geometry. It reports one WASM root, and the other
+    templates' roots equal `results/zk/m8/t1real`'s (`logs/t1-leaf-k13p-m8.txt`).
+  * `e2e/scripts/m8_import_real.sh` now defaults to the A-T2 leaves.
+* **Paths:**
+  * proofs, vk, pubs, manifest: `/data/illia/nearproof-deps/e2e-laneA/at2/leaf-k13p/leaf/`;
+  * lane D's imported form (`TMPL.proof`, `TMPL.vk.json`, `INFO.json`):
+    `/data/illia/nearproof-deps/e2e-laneA/at2/m8-tmpl/wasm{0,1}/`.
+* **Not done:** lane D's tree-leaf *proofs* of these two children. A full M8 tree run is
+  ~6,000 s at 33 GB peak, above this lane's 18 GB share of the slice. The leaf program is fixed (one
+  root, measured), so lane D's next `run_m8.sh import|spec|tree` picks them up unchanged.
+
+### 9.2 Task 2: PREP — stopped, it needs a statement change [K][S]
+
+PREP is the `.pre → preConf q` template (§7). It must take the contract code hash to the CODE/FUNC
+roots that the Wasm leaves' cached commitments are compared with. Before building its AIR, I
+checked what its input and output boundary records can carry. **Under the current boundary
+statement, no PREP leaf can bind the code.** Following the stop rule, I built no AIR. The findings:
+
+* **(P1) The `.pre` record has no code field.** For `(q, .pre)`, `WasmView.fbBnd` sets
+  `codeRoot = funcRoot = bdigest []`. Its only non-constant field is
+  `vmCtxDigest = bdigest (encRest (.other (q, .pre)))`. No `BndRec` field carries the code hash.
+  Lane F's enter leaf reads the code hash on `FB`, but its output's Wasm part is this carried
+  record: `EnterView` is owed to PREP (`m5t1/lean/M5T1/SegRt.lean`).
+* **(P2) The encoder PREP would have to open cannot exist [K]** (`lean/PrepScope.lean`, checked by
+  `lake env lean` against the built `WasmBase`; axioms `propext`, `Classical.choice`, `Quot.sound`):
+  * `wasmViewParams_empty : WasmViewParams → False`. `encRest_inj` asks for an injective byte
+    encoding of `WRest`, which contains `q.real.store : ByteArray → Option ByteArray`. Cantor's
+    argument rules that out.
+  * Consequence: every theorem over `Pv : WasmViewParams` is vacuous. That includes
+    `wasmD_binding`, `viewImpl_hwasm`, `segSoundWasmRel_of`, and the honest non-vacuity results
+    (`wasmHolds_honest`, §6). This is a finding against lane A's own §6.
+  * `vmD_coll : ∀ V : ViewImpl, Coll V.vmD`. `VmV = List (VmQ × Run)` carries the same store, so
+    lane E's `viewImpl_binding_bad` premise `hvm : Coll V.vmD → Bad` holds only with a provable
+    `Bad`. Every `V.wasmD` collides as well, because its codomain is countable. That case is not
+    formalised.
+  * Lane B's `StViewParams.encRest_inj` should be checked for the same pattern.
+* **(P3) Where the code hash lives.** In the spec, `q.code = codeOf st h`: `h` is the account's
+  code hash and `st` is the hash-keyed recorded store (`TrieRecorder.codeOf`, `TTN.mkStore`). So
+  `SHA-256(q.code) = h` is a state-side fact, and the binding starts at lane F's enter leaf.
+* **(P4) The output side is unbound too.**
+  * `airBnd.codeRoot = Pv.codeRootOf q p` is a free parameter.
+  * The Wasm leaf's link from its cached CODE/FUNC matrices to `p` is the named premise
+    `CutSeed.ctx`.
+  * `vmCtxDigest` at `preConf q` (and the segments' `RestOK`) needs the same impossible encoder.
+
+**Proposed statement change** (owner / integrator; lanes A, E, F; nothing was changed):
+* **S1. Take the function-typed store out of the Wasm remainder.**
+  * `WRest`/`encRest` should cover `q` with `real.store` dropped. The store is committed by the
+    state side (`stRoot`; `RealStore.root` is already in `q.real`).
+  * Lane E's `ViewImpl` binding would then be stated modulo equal stores: `Coll V.wasmD` and
+    `Coll V.vmD` relative to `q.real.store` (`spec/lean/v3/NearSpecV3/E2E/View.lean`).
+  * Alternative: restrict configurations to finitely supported stores (`mkStore values`).
+* **S2. The `.pre` record exposes the code hash.** Set `fbBnd (q, .pre)` `codeRoot :=
+  SHA-256(q.code) ‖ 0¹⁰` (42 B). Lane F's enter leaf writes it from the `FB` code-hash field it
+  already reads. Binding is unchanged, because the fallback record is fixed by `vmCtxDigest` once
+  S1 holds.
+* **S3. Fix `codeRootOf q p`** as the R1 root of the padded CODE/FUNC matrices of `checkModuleM2`
+  at the template's commitment parameters (§4). Add a named commitment-binding event (one
+  stacked-PCS root for two matrices). `CutSeed.ctx` then follows from the leaf's in-circuit
+  equality *cached root = `B.codeRoot`*.
+
+**What PREP then binds** (the statement to build after S1–S3):
+* in: `B_in.wasm.codeRoot` = the code hash, set by RT enter;
+* the code `c` with `SHA-256(c)` equal to it (lane A's `ShaAir` SHA-256 table over a CODEBYTES
+  table; `HashInputLink` becomes a lookup);
+* the `prepare`/`checkModuleM2` certificate of §4;
+* out: `B_out.wasm.codeRoot`/`funcRoot` = PREP's own cached CODE/FUNC roots. These are the 2 × 18
+  limbs that lane D's M8 record already carries in its W part, next to the segments' cached roots.
+* also out: the entry `pc`/`sp`/`stackRem`/`fuel`/`memRoot`/`memPages`/`framesDigest`, and
+  `vmCtxDigest` under S1.
+
+**T1 facts that hold today, whatever is decided:** the leaves' cached CODE/FUNC roots equal the
+native R1 roots of the records computed in Lean (`statement_ok`, manifest `code_root` /
+`func_root`), and `SHA-256(d3tiny) = 8152bed2…` is the account's code hash (lane I).

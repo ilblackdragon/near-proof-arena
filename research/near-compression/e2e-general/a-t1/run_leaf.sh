@@ -11,7 +11,7 @@
 set -euo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
 ROOT=$(cd "$HERE/../../../.." && pwd)
-. /data/illia/nearproof-deps/e2e-laneA/at1/env.sh
+. "${LANEA_ENV:-/data/illia/nearproof-deps/e2e-laneA/at1/env.sh}"
 BS=${WB_STACK:-/data/illia/nearproof-deps/e2e-laneA/at1/target-stack/release/nearproof-wasm-base}
 WD=${1:?work dir}; K=${2:-13}; LB=${3:-1}; POW=${4:-24}
 PREP=${T1_PREP:-/data/illia/nearproof-deps/e2e-laneA/T1tape/prep.json}

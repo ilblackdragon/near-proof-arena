@@ -1036,6 +1036,49 @@ ANS, CONN, JOIN.
 * The failed-grow fee bound.
 * A height-class menu over a corpus sample.
 
+**Done 2026-11-25, eighth session (lane A): milestone A-T2** (`e2e-general/a-t1/README.md` §9; log
+`docs/logs/e2e-laneA-wasm-2026-11-03.md`). `spec/` is unchanged; no Lean definition of the repo
+changed.
+* **Pinned tight heights [M]:**
+  * `segleaf` commits every common main at its template height (`set_tight_floor`, as lanes B and
+    G do).
+  * `template_heights` gives the pinned `(log, tight)` per AIR from the template file alone.
+    `segleaf` asserts it, and `segleafverify` refuses any other heights. The vk is unchanged
+    (`b1eed0ca…`).
+  * T1 re-proved: 554,709 / 553,071 B, 268.2 bits, prove 25.7 / 28.3 s, verify 17 ms, 8.2 GB.
+    Both segments now declare identical heights.
+  * Lane D's `m8-import` gives equal `INFO.json` heights, and the leaf program is **one WASM
+    program** (`59b572a7…`, 238,436 rows; it was two). Measured with the new `M8_PROGRAMS_ONLY=1`;
+    the other templates' roots are unchanged.
+  * Saved-leaf tampers: 14/14 rejected. New cases: the A-T1 proof of the same segment under the
+    same vk at natural tight heights, and a changed template height.
+  * Proofs: `/data/illia/nearproof-deps/e2e-laneA/at2/leaf-k13p/leaf/`; `m8_import_real.sh`
+    defaults to them.
+  * Lane D's tree-leaf proofs of the two children are not run (~33 GB).
+* **PREP stopped: it needs a statement change [K][S].**
+  * (P1) The `.pre` record (`fbBnd`) has no code field. The code is reachable only through
+    `vmCtxDigest = bdigest (encRest (.other (q, .pre)))`, and no `BndRec` field carries the code
+    hash.
+  * (P2) **`WasmViewParams` is uninhabited** (`a-t1/lean/PrepScope.lean`, `wasmViewParams_empty`,
+    standard axioms). `encRest_inj` would inject `q.real.store : ByteArray → Option ByteArray`
+    into `Bytes`, which Cantor's argument rules out. So every lane A theorem over `Pv` is vacuous
+    (`wasmD_binding`, `segSoundWasmRel_of`, `wasmHolds_honest`).
+  * (P2, lane E side) `vmD_coll : ∀ V, Coll V.vmD` is proved, so lane E's `hvm` premise holds only
+    with a provable `Bad`; `Coll V.wasmD` likewise, not formalised.
+  * (P4) `codeRootOf` is a free parameter, and `CutSeed.ctx` is a named premise.
+  * Proposal (lanes A, E, F; owner):
+    * S1: the Wasm and VM remainders exclude the function-typed store (committed by `stRoot`),
+      and lane E's component bindings become modulo the store (`E2E/View.lean`).
+    * S2: `fbBnd (q, .pre).codeRoot := SHA-256(q.code) ‖ 0¹⁰`, written by lane F's enter leaf from
+      `FB`.
+    * S3: `codeRootOf` = the R1 root, plus a named commitment-binding event.
+  * PREP's AIR then reads `B_in.wasm.codeRoot` and writes `B_out.wasm.codeRoot/funcRoot`, the cells
+    lane D's record already carries. No AIR was built.
+
+**Next (lane A):** after the owner's S1–S3 decision, build PREP: CODEBYTES + SHA-256 under S2, then
+DECODE/RECORDS (README §4). Before it, `hostPost_of_answer`, the `stackRem` public, and the other
+items above.
+
 ### 5.0 Lane D: status, 2026-11-21 (milestone M8, heterogeneous tree; prototype)
 
 **Where to read:** `research/near-compression/e2e/README.md` §0 (M8; D-9 is now §0.9),
@@ -1061,7 +1104,9 @@ ZK-ARGUMENT §10.5, log `docs/logs/e2e-zk-lane-d-2026-11-21-m8.md`.
 **Open (M8):**
 * Lane G's INIT / FINAL as real leaves: their proofs must be saved on the stack backend
   (`CtxMode::Src(pv 0..14)` and the record of LEAF-TEMPLATE-SPEC §3 / §4 are ready to declare).
-* Lane A: pin the tight heights (two T1 segments give two leaf programs today).
+* ~~Lane A: pin the tight heights (two T1 segments give two leaf programs today).~~ Done by lane A
+  A-T2 (2026-11-25). The leaves are at `e2e-laneA/at2/leaf-k13p/leaf` and give one WASM program
+  `59b572a7…`. `m8_import_real.sh` defaults to them.
 * Lane E's `BndRec` digests in place of the prototype record (the templates expose
   `bdigest(BndRec)`; the leaf's record is then those 14 limbs).
 * Lane F's `rt` leaf; a run-independent setup (pinned template shapes); cheaper PAD_L / PAD_N;

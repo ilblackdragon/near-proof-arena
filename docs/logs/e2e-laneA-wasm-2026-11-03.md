@@ -348,3 +348,29 @@ leaves, checks and scopes. Sub-lanes ran in worktrees; the lead cherry-picked th
   * Heavy jobs ran in `systemd-run` scopes of ≤ 22 GB.
   * The WCOV, CONN and JOIN worktrees were removed after merge. ANS's worktree is still locked by
     its agent process.
+
+## Eighth session: milestone A-T2 (2026-11-25)
+
+Details: `research/near-compression/e2e-general/a-t1/README.md` §9. Single agent, no sub-lanes.
+
+* **Task 1, pinned tight heights [M]:**
+  * `segleaf` floors every common main at its template height (`set_tight_floor`).
+  * `template_heights` gives the pinned `(log, tight)` per AIR; `segleaf` asserts it and
+    `segleafverify` refuses other heights.
+  * Prover rebuilt against the stack backend (`build_stack.sh`, 29 s incremental).
+  * T1 at K = 13: 554,709 / 553,071 B, 268.2 bits, 25.7 / 28.3 s, 17 ms, 8.2 GB; vk unchanged.
+  * Tampers 14/14 (A-T1's 11, the A-T1 proofs at natural tight heights under the same vk, a changed
+    template height).
+  * Lane D: `m8-import` heights equal. The M8 probe gives equal rows (239,460 / 239,460).
+    `M8_PROGRAMS_ONLY=1` (new in `htree.rs`, built into a private copy of `drv2`) gives one WASM
+    root `59b572a7…` (238,436 rows) for both leaves, against two before.
+  * Logs: `a-t1/logs/t1-leaf-k13p*.txt`. Proofs: `/data/illia/nearproof-deps/e2e-laneA/at2/`.
+* **Task 2, PREP [K][S]: stopped at a statement change.**
+  * The `.pre` record carries no code field; the code is reachable only through `vmCtxDigest`.
+  * Its encoder cannot exist: `PrepScope.wasmViewParams_empty` (Cantor through
+    `q.real.store`; also `vmD_coll`). Standard axioms; checked with `lake env lean` against main's
+    built `WasmBase`.
+  * Proposal S1–S3 (README §9.2) is for the owner. No AIR was built and no definition was changed.
+* Operations: every prover / Lean / cargo job ran under `nearproof-deps/bin/heavy` (≤ 18 GB).
+  Temporary files are in `nearproof-deps/tmp-laneA/` (deleted at the end); the A-T1 env file pointed
+  at a removed worktree, so `run_leaf.sh` / `leaf_tamper.sh` take `LANEA_ENV`.
