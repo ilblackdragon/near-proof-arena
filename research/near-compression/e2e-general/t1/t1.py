@@ -21,12 +21,13 @@
                  on each dumped segment, `segprove`); lane B state (M5b AIR: `pubs.bin`, `TAPE`).
                  Each component boundary is compared with the Lean run's value where the Lean run
                  (checker output or Lean host tape) fixes it; a disagreement is a MISMATCH;
-  5. plan        cut the run into lane E's T1 templates (`E2E/Templates.lean`: INIT, STATE, RT
-                 enter, WASM per segment, RT resume, STATE, FINAL), fill each cut's `BndRec` from the
-                 component boundaries (provenance per field: real / partial / placeholder), encode
-                 with `bndrec.py`, check every cut against a Lean evaluation of `BndRec.encode` /
-                 `bdigest`, and check the WASM cuts' chain independently (B_in(k) built from
-                 segment k's own public values = B_out(k-1));
+  5. plan        (I-2, `chain.py`) cut the run into T1's leaves (INIT ⊕ IF, STATE, RT enter, PREP,
+                 WASM 0 / 1, RT resume, STATE, finalize, FINAL), fill each cut's `BndRec` as lane
+                 E's view `ViewE.viewE` defines it under the M11i / M12 / M13 conventions (0^42
+                 placeholders where no component computes a field, `chain.PLACEHOLDERS`), encode
+                 with `bndrec.py`, check every record and the view constants (`rawPre`, `chainD`,
+                 tags) against a Lean evaluation, and compare every saved leaf's public values with
+                 the cuts it spans (`chain.leaf_table`);
   6. report      OUT/report.json + OUT/report.md (per-component pass / fail / blocked / missing,
                  boundary checks). Exit status 1 on any MISMATCH (printed to stderr).
 
@@ -233,165 +234,72 @@ def step_calls(case, out):
 
 
 # ---------------------------------------------------------------------------
-# 5. the segment plan: lane E's T1 templates, each cut a BndRec filled from the components
+# 5. the leaf plan: lane E's T1 templates under the current boundary conventions (`chain.py`)
 # ---------------------------------------------------------------------------
-# Templates.lean (`NearSpecV3.E2E.T1.Tmpl`) and the lane that owns each premise (plan §3.5)
-TMPL_OWNER = {"INIT": "G (SegSoundInit)", "STATE": "B (SegSoundState)", "RT": "F (SegSoundRt)",
-              "WASM": "A (SegSoundWasm)", "FINAL": "G (SegSoundFinal)"}
-# lane I's I-1 7-segment plan -> the templates (plan §3.5, cm_decomp)
-I1_MAP = [("INTAKE", "INIT"), ("STATE(r0)", "STATE (every VM-free engine step up to receipt 1's step)"),
-          ("STATE(r1 up to VM call)", "RT enter"), ("WASM(0,13] WASM(13,26]", "WASM (cuts anywhere: MWasm)"),
-          ("STATE(r1 resume)", "RT resume"), ("(inside FINAL)", "STATE (VM-free engine steps after receipt 1, to eng done)"),
-          ("FINAL", "FINAL")]
-
-ZERO48 = b"\x00" * 48
-
-
-def st_partial(tag, st_bnd):
-    """lane B's state commitment in its circuit form (`StateM5a.StateView.stD`: `bdigest (ser
-    StCommit)`, `ser = [tag] ‖ ws(48) ‖ u64le wsLen ‖ trie(32) ‖ u64le idx ‖ rest(42)`) with the
-    fields M5b exposes publicly (`trie` = prev_state_root: the overlay never modifies the trie before
-    FINAL; `wsLen`) and placeholders for the rest (`ws` = the RCH root and `rest` = the remainder
-    digest are not public; `idx` = 0, lane E M11i item 5)."""
-    ser = bytes([tag]) + ZERO48 + st_bnd["wsLen"].to_bytes(8, "little") + bytes.fromhex(st_bnd["pre_root"]) \
-        + (0).to_bytes(8, "little") + bndrec.ZERO
-    return bndrec.bdigest(ser)
-
-
-def wasm_of(b):
-    """lane A's `WasmView.airBnd` from one side of a segment's public boundary (`segdump` publics):
-    pc = global pc, sp = sb, framesDigest = globalsDigest = registersDigest = ctxDigest[:42],
-    memRoot = memRoot[:42], memPages = nblk / 64, promisesDigest = bdigest []. Not public (placeholders):
-    stackRem, fuel (the call machine's `n`), vmCtxDigest (bdigest of lane E's `encRest`), codeRoot /
-    funcRoot (`P.codeRootOf`; the proof's CODE/FUNC commitments are checked natively, not exposed)."""
-    w = bndrec.wasm_blank()
-    fd = bytes.fromhex(b["ctx"])[:42]
-    w.update(pc=b["pc"], sp=b["sb"], framesDigest=fd, globalsDigest=fd, registersDigest=fd,
-             memRoot=bytes.fromhex(b["mem"])[:42], memPages=b["nblk"] // 64, promisesDigest=bndrec.bdigest(b""))
-    return w
-
-
-WASM_REAL = ["pc", "sp", "framesDigest", "memRoot", "memPages", "globalsDigest", "registersDigest", "promisesDigest"]
-
-
-def step_plan(out, cd, full, calls, comps, k_steps):
-    """Cut the run into the T1 templates and fill each cut's BndRec.
-
-    Clear fields: phase (`View.split` tags), receipt index, cumulative gas/compute (the Lean run's
-    outcomes), `t` (lane A's in-call clock). Digests: `claimDigest` (statement, Lean-checked), `stRoot`
-    (lane B public values, partial StCommit), `wasm` (lane A segment publics); every other digest is a
-    0^42 placeholder (`provenance` says which, `producer` who must fill it)."""
-    o = full["outputs"]
-    outcomes = o["outcomes"]
-    st = comps.get("state", {}).get("bnd")
-    wsegs = {c["call"]: c for c in comps.get("wasm-seg", {}).get("calls", []) if c.get("plan")}
-    segs = []
-    rec = bndrec.blank(cd)
-    rec["phase"] = bndrec.PHASE["init"]
-    prov_st = "partial: lane B M5b public (trie = prev_state_root, wsLen); ws/rest placeholders" if st else "placeholder"
-
-    def cut(template, what, **upd):
-        nonlocal rec
-        b_in = rec
-        b_out = dict(rec)
-        b_out.update(upd)
-        segs.append({"template": template, "owner": TMPL_OWNER[template.split()[0]], "what": what,
-                     "B_in": b_in, "B_out": b_out})
-        rec = b_out
-
-    eng_st = st_partial(1, st) if st else bndrec.ZERO
-    cut("INIT", "init cb wb -> eng I start (CM.step: decode claim + witness, intake; M5b INTAKE: pre-state trie)",
-        phase=bndrec.PHASE["eng"], stRoot=eng_st)
-    gas = burnt = comp = 0
-    call_by_exec = {c["index"]: c for c in calls}
-    ci = 0
-    pending = []   # VM-free receipts not yet closed into a STATE segment
-    seams = []
-    for ri, oc in enumerate(outcomes):
-        has_call = bool(oc["logs"]) or oc["status"]["kind"] == "value"
-        g, cu = int(oc["gasBurnt"]), int(oc["computeUsage"])
-        ex = bytes.fromhex(oc["executor"]).decode()
-        if not (has_call and ci in call_by_exec):
-            gas, burnt, comp = gas + g, burnt + g, comp + cu
-            pending.append(f"r{ri} {ex} ({oc['status']['kind']})")
-            continue
-        c = call_by_exec[ci]
-        ci += 1
-        cut("STATE", "VM-free engine steps: " + (", ".join(pending) or "start") + f"; up to receipt {ri}'s step",
-            receiptIdx=ri, gasUsed=gas, gasBurnt=burnt, compute=comp)
-        pending = []
-        ws = wsegs.get(c["index"], {})
-        bnds = ws.get("bnd") or []
-        w0 = wasm_of(bnds[0]["in"]) if bnds else bndrec.wasm_blank()
-        cut("RT enter", f"receipt {ri} ({ex}): enter call {c['index']} {c['method']} (eng I c -> call I c [] q .pre)",
-            phase=bndrec.PHASE["call"], inCall=True, wasm=w0, rPrepaid=c["prepaid"], t=0)
-        if bnds:
-            seams.append(f"call {c['index']}: RT enter ends at `.pre` (lane A WasmView: fbBnd), lane A's segment 0 "
-                         "starts at the entry state (airBnd); the `.pre -> .ent` step (PREP, C7) is in no AIR. "
-                         "The plan puts segment 0's entry boundary at the RT enter cut.")
-        steps = c["steps"] or 0
-        if bnds:
-            for k, b in enumerate(bnds):
-                # the chain, independently: B_in(k) from segment k's own publics = B_out(k-1)
-                w_in = wasm_of(b["in"])
-                if w_in != rec["wasm"] or b["in"]["t"] != rec["t"]:
-                    mismatch("plan", f"call {c['index']} WASM segment {k}: B_in from its own public values "
-                             f"!= B_out of the previous cut")
-                cut("WASM", f"call {c['index']} {c['method']} steps ({b['in']['t']}, {b['out']['t']}] of {steps}"
-                    f"{' (halts)' if b['halted'] else ''}: lane A wasmBaseSegAirMP segment {k}",
-                    t=b["out"]["t"], wasm=wasm_of(b["out"]))
-        else:
-            t = 0
-            while t < steps:
-                t2 = min(steps, t + k_steps)
-                cut("WASM", f"call {c['index']} {c['method']} steps ({t}, {t2}] of {steps} (no segment boundary)", t=t2)
-                t = t2
-        gas, burnt, comp = gas + g, burnt + g, comp + cu
-        cut("RT resume", f"receipt {ri}: the receipt step with the VM answered from the tape (refund, outcome)",
-            phase=bndrec.PHASE["eng"], inCall=False, wasm=None, gasUsed=gas, gasBurnt=burnt, compute=comp,
-            rBurnt=int(c["real"]["burnt"]), rUsed=int(c["real"]["used"]))
-    cut("STATE", "VM-free engine steps: " + (", ".join(pending) or "(none of the outcomes)")
-        + " -> eng I <done out> (yields, delayed queue, ...)", gasUsed=gas, gasBurnt=burnt, compute=comp)
-    cut("FINAL", "eng done -> fin -> done H o: implicit transitions, outputs, headerOk (M5b FINAL: post-state root)",
-        phase=bndrec.PHASE["done"], stRoot=bndrec.ZERO)
-    # encode every cut, check the chain as digests and every record against Lean
-    chain_ok = True
-    for i, s in enumerate(segs):
-        s["d_in"], s["d_out"] = bndrec.digest(s["B_in"]).hex(), bndrec.digest(s["B_out"]).hex()
-        if i and segs[i - 1]["d_out"] != s["d_in"]:
-            chain_ok = False
-    recs = [segs[0]["B_in"]] + [s["B_out"] for s in segs]
+def step_plan(out, cd, full, calls, comps, case):
+    """Cut the run into T1's leaves (`chain.LEAVES`: INIT ⊕ IF, STATE, RT enter, PREP, WASM 0/1, RT
+    resume, STATE, finalize, FINAL) and fill each cut's BndRec by lane E's view `ViewE.viewE` with
+    the M11i / M12 / M13 conventions (`chain.py` module doc); every record and the view constants are
+    checked against a Lean evaluation, the conventions asserted, the chain checked digest for digest.
+    The receipt-step accumulators come from lane F's Lean engine dump (`LEAN_RUN`; for T1 the
+    committed `data/t1-inputs.json` stands in when the dump is absent)."""
+    import chain
+    ws = [c for c in comps.get("wasm-seg", {}).get("calls", []) if c.get("plan")]
+    fail = {"status": "fail", "n_segments": 0, "templates": [], "digest_chain_ok": False, "lean_bndrec_equal": None}
+    if not (len(calls) == 1 and len(ws) == 1 and len(ws[0].get("bnd") or []) == 2 and comps.get("state", {}).get("bnd")):
+        mismatch("plan", "the leaf plan covers T1's shape only (one call cut into 2 segments, lane B's state boundary)")
+        return fail
+    prep = json.load(open(calls[0]["prep"]))
+    lean_run = chain.LEAN_RUN
+    if not os.path.exists(lean_run):
+        fx = json.load(open(chain.INPUTS))
+        if fx["claim_sha256"] != sha256f(os.path.join(case, "claim.bin")):
+            mismatch("plan", f"no Lean engine dump ({lean_run}) and the case is not T1's fixture")
+            return fail
+        lean_run = os.path.join(out, "lean-run.fixture.json")
+        acc = fx["acc"]
+        wjson(lean_run, {"receipts": [{s: {"outcomes": [{"ser": x} for x in acc[s]["outcomes"]],
+                                            "outgoing": [{"ser": x} for x in acc[s]["outgoing"]],
+                                            **{k: str(v) if isinstance(v, int) else v for k, v in acc[s].items()
+                                               if k not in ("outcomes", "outgoing")}} for s in ("before", "after")}]})
+    laneb = chain.LANEB_IF if os.path.exists(chain.LANEB_IF) else None
+    inp = chain.inputs_from(case, full, calls, comps, prep, lean_run, laneb)
+    inp["case"] = os.path.relpath(case, f"{DEPS}/corpora")
+    inp["claimDigest_S"] = cd.hex()
+    wsl = os.path.join(chain.SAVED["WASM"], "seg-0.pubs.json")
+    if os.path.exists(wsl):
+        wf = json.load(open(wsl))["wasm_fields"]
+        inp["prep"] = {"code_root_words": wf["code_root_words"], "func_root_words": wf["func_root_words"]}
+    c = chain.build(inp)
+    for v in chain.check_conventions(c, inp):
+        mismatch("plan", f"boundary convention: {v}")
+    ds = chain.digests(c)
+    chain_ok = chain.chain_ok(chain.leaf_pairs(c), ds[0], ds[-1])
     ldir = os.path.join(out, "lean-bnd")
     os.makedirs(ldir, exist_ok=True)
-    lc = bndrec.lean_check(recs, ldir)
+    lc = bndrec.lean_check(c, ldir)
     if lc["ok"] is not True:
         mismatch("plan", f"BndRec encode/bdigest differ from the Lean evaluation (or Lean not run): "
                  f"{lc.get('error') or [i for i, r in enumerate(lc['rows']) if not (r['encode_equal'] and r['digest_equal'])]}")
-    gas_ok = gas == int(o["gasUsed"]) and comp == int(o["computeUsage"])
-    if not gas_ok:
-        mismatch("plan", f"sum of outcome gas/compute {gas}/{comp} != Lean gasUsed/computeUsage")
-    prov = {"claimDigest": "real: bdigest(S), S = StmtEnc (Lean-checked)",
-            "phase/receiptIdx/inCall/gasUsed/gasBurnt/compute/rPrepaid/rBurnt/rUsed": "clear: the Lean run's outcomes",
-            "t": "clear: lane A's in-call clock (segment publics) inside a call, else 0",
-            "stRoot": prov_st,
-            "wasm." + "/".join(WASM_REAL): "real: lane A segment publics (WasmView.airBnd)" if wsegs else "placeholder",
-            "wasm.stackRem/fuel/vmCtxDigest/codeRoot/funcRoot": "placeholder (not in lane A's public values)",
-            "ctxRoot/outcomeAcc/outRcptAcc/proposalsAcc/bwAcc/vmAcc/balanceBurnt/blockIdx/actionIdx":
-                "placeholder (no component: lanes F/G, A/E)"}
-    j = [{"index": i, "template": s["template"], "owner": s["owner"], "what": s["what"],
-          "d_in": s["d_in"], "d_out": s["d_out"], "lean_d_out": lc["rows"][i + 1]["digest"] if lc.get("rows") else None,
-          "B_out": bndrec.to_json(s["B_out"])} for i, s in enumerate(segs)]
-    wjson(os.path.join(out, "plan.json"), {"segments": j, "B_0": bndrec.to_json(segs[0]["B_in"]),
-                                           "provenance": prov, "seams": seams, "i1_mapping": I1_MAP,
-                                           "placeholder_fields": bndrec.PRODUCER,
-                                           "lean_bndrec": {k: v for k, v in lc.items() if k != "rows"}})
-    ok = chain_ok and gas_ok and lc["ok"] is True
-    return {"status": "pass" if ok else "fail", "n_segments": len(segs),
-            "templates": [s["template"] for s in segs], "digest_chain_ok": chain_ok,
-            "lean_bndrec_equal": lc["ok"], "lean_bndrec_records": lc.get("n"),
-            "record_bytes": sorted({r["len"] for r in lc.get("rows", [])}),
-            "gas_compute_sum_equals_header": gas_ok, "complete": False, "provenance": prov, "seams": seams,
-            "note": "digests real where a component publishes the field; the rest are 0^42 placeholders"}
+    consts = chain.lean_consts(inp, open(os.path.join(case, "claim.bin"), "rb").read(),
+                               open(os.path.join(case, "witness.bin"), "rb").read(), ldir)
+    if consts["ok"] is not True:
+        mismatch("plan", f"ViewE constants differ from the Lean evaluation (or Lean not run): {consts.get('error') or consts['rows']}")
+    gas_ok = c[7]["gasUsed"] == int(full["outputs"]["gasUsed"]) and c[7]["compute"] == int(full["outputs"]["computeUsage"])
+    rows, tree = chain.leaf_table(c, inp)
+    j = [{"index": i, "template": n, "owner": lanes, "what": w, "in": f"c{a}", "out": f"c{b}",
+          "d_in": ds[a], "d_out": ds[b], "lean_d_out": lc["rows"][b]["digest"] if lc.get("rows") else None,
+          "B_out": bndrec.to_json(c[b])} for i, (n, lanes, a, b, w) in enumerate(chain.LEAVES)]
+    wjson(os.path.join(out, "plan.json"), {"segments": j, "B_0": bndrec.to_json(c[0]), "cuts": [bndrec.to_json(r) for r in c],
+                                           "placeholders": chain.PLACEHOLDERS, "saved_leaves": rows, "tree_imports": tree,
+                                           "lean_bndrec": {k: v for k, v in lc.items() if k != "rows"},
+                                           "lean_consts": consts, "inputs": inp})
+    ok = chain_ok and gas_ok and lc["ok"] is True and consts["ok"] is True
+    return {"status": "pass" if ok else "fail", "n_segments": len(j), "templates": [x["template"] for x in j],
+            "digest_chain_ok": chain_ok, "lean_bndrec_equal": lc["ok"], "lean_bndrec_records": lc.get("n"),
+            "lean_view_constants_equal": consts["ok"], "gas_compute_equal_header": gas_ok, "complete": False,
+            "leaves_matching": [r["leaf"] for r in rows if r.get("in_equal") and r.get("out_equal")],
+            "note": "records by ViewE (M11i / M12 / M13); 0^42 placeholders where no component computes the field (chain.PLACEHOLDERS)"}
 
 
 # ---------------------------------------------------------------------------
@@ -737,7 +645,7 @@ def cmd_run(a):
     comps["wasm-seg"] = comp_wasm_seg(out, calls, ks, a.prove)
     comps["state"] = comp_state(case, out, full, a.prove)
     rep["components"] = comps
-    rep["steps"]["plan"] = step_plan(out, cd, full, calls, comps, ks[0])
+    rep["steps"]["plan"] = step_plan(out, cd, full, calls, comps, case)
     ex, pl = rep["steps"]["extract"], rep["steps"]["plan"]
     T = [("Lean checker (allFeatures) + FinalOut reference", "spec", rep["steps"]["lean"]["status"],
           f"verdict {rep['steps']['lean']['verdict']}, FinalOut {rep['steps']['lean']['finalout_equal']}/{rep['steps']['lean']['finalout_rows']} header fields = run outputs"),
@@ -748,7 +656,7 @@ def cmd_run(a):
           f"{rep['steps']['calls']['n_calls']} call(s); {rep['steps']['calls']['source'][:60]}"),
          ("segment plan (BndRec cuts, Templates.lean)", "I/E", pl["status"],
           f"{pl['n_segments']} segments {' / '.join(pl['templates'])}; digest chain {pl['digest_chain_ok']}; "
-          f"{pl['lean_bndrec_records']} records = Lean BndRec.encode/bdigest {pl['lean_bndrec_equal']}; placeholders remain")]
+          f"{pl.get('lean_bndrec_records')} records = Lean BndRec.encode/bdigest {pl['lean_bndrec_equal']}; ViewE constants = Lean {pl.get('lean_view_constants_equal')}; placeholders remain")]
     wc = comps["wasm-call"]
     T.append(("Wasm whole call (wasmBaseM2Air)", "A", wc["status"],
               "; ".join(f"call {c['call']}: check {c.get('check_ok')}, return/logs equal {c.get('return_equal')}/{c.get('logs_equal')}"

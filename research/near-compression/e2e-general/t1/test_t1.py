@@ -6,6 +6,8 @@ The Lean cross-checks run `lake env lean --run` in the main checkout's v3 packag
 no build) and are skipped when that package or T1's corpus case is absent.
 """
 import copy
+import hashlib
+import json
 import os
 import shutil
 import sys
@@ -15,6 +17,7 @@ import pytest
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import bndrec  # noqa: E402
+import chain  # noqa: E402
 import stmt  # noqa: E402
 import t1  # noqa: E402
 
@@ -92,3 +95,122 @@ def test_wasm_boundary_mismatch_is_loud():
     t1.wasm_lean_checks({"index": 0}, prep, bad, 2)
     assert len(t1.MISMATCHES) == 2
     t1.MISMATCHES.clear()
+
+
+# ---------------------------------------------------------------------------
+# I-2 (2026-11-25): the leaf chain under the current boundary conventions (`chain.py`)
+# ---------------------------------------------------------------------------
+def t1_inputs():
+    return json.load(open(chain.INPUTS))
+
+
+def test_chain_fixture_conventions():
+    inp = t1_inputs()
+    c = chain.build(inp)
+    assert len(c) == 11 and chain.check_conventions(c, inp) == []
+    ds = chain.digests(c)
+    assert chain.chain_ok(chain.leaf_pairs(c), ds[0], ds[-1])
+    for r in c:
+        assert bndrec.decode(bndrec.encode(r)) == r
+    # record sizes: init / done (empty outRcptAcc) 408 B, engine 450 B, call 834 B (lane F's engF / callF)
+    assert [len(bndrec.encode(r)) for r in c] == [408, 450, 450, 834, 834, 834, 834, 450, 450, 450, 408]
+    # every cut distinct except c7 = c8 (the engine position is only in stRoot's `rest`: a placeholder)
+    assert len(set(ds)) == 10 and ds[7] == ds[8]
+    # the accumulators are the Lean run's chainD Ser.enc; FunctionCall receipt = one append each
+    b, a = inp["acc"]["before"], inp["acc"]["after"]
+    assert c[2]["outcomeAcc"].hex() == b["outcomesChain"] and c[7]["outRcptAcc"] == [bytes.fromhex(a["outgoingChain"])]
+    assert bndrec.bdigest(c[6]["outcomeAcc"] + bytes.fromhex(a["outcomes"][-1])) == c[7]["outcomeAcc"]
+    assert bndrec.bdigest(c[6]["outRcptAcc"][0] + bytes.fromhex(a["outgoing"][-1])) == c[7]["outRcptAcc"][0]
+    # M12: resume outputs receiptIdx + 1 and clears the call fields; done carries the header outputs
+    assert (c[6]["receiptIdx"], c[7]["receiptIdx"]) == (1, 2) and c[7]["rPrepaid"] == 0
+    assert c[10]["gasUsed"] == inp["gasUsed"] == 1577739758301 and c[10]["compute"] == 0
+    # M13: start commits R_0 (lane B's IF R_in) through stRoot; S2 at the enter output
+    assert c[1]["stRoot"] == chain.st_commit(1, bytes.fromhex(inp["R_0"]), 17, bytes.fromhex(inp["prev_state_root"]),
+                                             0, chain.ZERO)
+    assert c[3]["wasm"]["codeRoot"].hex() == inp["call"]["code_sha256"] + "00" * 10
+    assert c[4]["wasm"]["gasLeft"] == inp["call"]["g0"] and c[6]["wasm"]["gasLeft"] == 0
+
+
+def test_chain_violations_are_loud():
+    inp = t1_inputs()
+    c = chain.build(inp)
+    bad = copy.deepcopy(c)
+    bad[7]["receiptIdx"] = bad[6]["receiptIdx"]          # F-3's copying resume
+    bad[5]["t"] = 13                                     # run4's in-call clock
+    bad[0]["claimDigest"] = bytes.fromhex(inp["claimDigest_S"])
+    v = chain.check_conventions(bad, inp)
+    assert any("receiptIdx + 1" in x for x in v) and any(x.startswith("c5: M12") for x in v)
+    assert any(x.startswith("c0: M12") for x in v)
+    pairs = chain.leaf_pairs(c)
+    pairs[4] = (pairs[4][0], "00" * 42)                  # a leaf whose output does not open the next input
+    assert not chain.chain_ok(pairs)
+    # the saved F-3 enter leaf's digests (pre-M12 record) do not chain with the plan's neighbours
+    pairs = chain.leaf_pairs(c)
+    pairs[2] = ("b850f1e5389c5fba6ebbcd4d0abf7c81c54b49a7ef69bc55fee6fa7879d394f7a944be77eb29e574c39c",
+                "c320b92b892d0f60463568e636a10e36d663e338addac886ec9a2863f4653c70778fe6ac08a90facfb50")
+    assert not chain.chain_ok(pairs)
+    # a leaf exposing a pre-M12 record is reported field by field
+    old = dict(c[2], claimDigest=bytes.fromhex(inp["claimDigest_S"]), bwAcc=bndrec.ZERO)
+    row = chain._rec_row("x", None, old, c[3], c[2], c[3], "", "")
+    assert not row["in_equal"] and row["out_equal"] and row["diff_in"] == ["claimDigest", "bwAcc"]
+
+
+@pytest.mark.skipif(not HAVE_T1, reason="T1 corpus case absent")
+def test_chain_ctx_raw():
+    inp = t1_inputs()
+    cb, wb = t1_claim(), open(os.path.join(T1_CASE, "witness.bin"), "rb").read()
+    assert hashlib.sha256(cb).hexdigest() == inp["claim_sha256"]
+    assert bndrec.bdigest(chain.raw_pre(cb, wb, inp["lB"])).hex() == inp["ctx_raw_be"]
+    assert bndrec.bdigest(chain.raw_pre(cb, wb, inp["lB"], "little")).hex() == inp["ctx_raw_le"] != inp["ctx_raw_be"]
+
+
+@pytest.mark.skipif(not (HAVE_T1 and HAVE_LEAN), reason="T1 case or Lean v3 package absent")
+def test_chain_lean(tmp_path):
+    inp = t1_inputs()
+    c = chain.build(inp)
+    res = bndrec.lean_check(c, str(tmp_path))
+    assert res["ok"] is True and [r["digest"] for r in res["rows"]] == chain.digests(c)
+    cs = chain.lean_consts(inp, t1_claim(), open(os.path.join(T1_CASE, "witness.bin"), "rb").read(), str(tmp_path))
+    assert cs["ok"] is True, cs
+    assert cs["rows"]["u32_lB"]["lean"] == "00001367"     # ViewE.u32 is big-endian
+
+
+HAVE_LEAVES = all(os.path.exists(p) for p in chain.SAVED.values())
+
+
+@pytest.mark.skipif(not HAVE_LEAVES, reason="saved leaves absent")
+def test_chain_saved_leaves():
+    inp = t1_inputs()
+    rows, _ = chain.leaf_table(chain.build(inp), inp)
+    r = {x["leaf"].split(" (")[0]: x for x in rows}
+    ck = r["INIT"]["checks"]
+    assert ck["ctxRoot = the same preimage with u32 little-endian"]
+    assert not ck["ctxRoot = plan B_0.ctxRoot (ViewE, u32 big-endian)"]
+    assert all(r["IF"]["checks"].values()) and all(r["PREP"]["checks"].values()) and all(r["STATE seg"]["checks"].values())
+    assert r["WASM seg 0"]["in_equal"] and r["WASM seg 0"]["out_equal"] and r["WASM seg 1"]["in_equal"]
+    assert not r["WASM seg 1"]["out_equal"]                # the halted state, not lane A's `.fin r` record
+    assert {"claimDigest", "bwAcc", "vmAcc", "outcomeAcc"} <= set(r["RT enter"]["diff_in"])
+    assert {"claimDigest", "t", "bwAcc", "proposalsAcc"} <= set(r["RT resume"]["diff_in"])
+    assert "receiptIdx" not in r["RT resume"]["diff_out"] and "outcomeAcc" not in r["RT resume"]["diff_out"]
+
+
+@pytest.mark.skipif(not (HAVE_T1 and HAVE_LEAN), reason="T1 case or Lean v3 package absent")
+def test_step_plan_fixture_fallback(tmp_path, monkeypatch):
+    """`t1.py run`'s plan step on T1 without lane F's dump: the committed fixture stands in."""
+    inp = t1_inputs()
+    monkeypatch.setattr(chain, "LEAN_RUN", str(tmp_path / "absent.json"))
+    calls = [{"prep": str(tmp_path / "prep.json"), "method": inp["call"]["method"], "prepaid": inp["call"]["prepaid"],
+              "code_sha256": inp["call"]["code_sha256"], "steps": inp["call"]["steps"],
+              "real": {"burnt": inp["call"]["burnt"], "used": inp["call"]["used"]}}]
+    json.dump({"regularOpCost": inp["call"]["R"], "stackRem": inp["call"]["stackRem"], "g0": inp["call"]["g0"],
+               "gFinal": inp["call"]["gFinal"]}, open(calls[0]["prep"], "w"))
+    comps = {"state": {"bnd": {"pre_root": inp["prev_state_root"], "wsLen": inp["wsLen"]}},
+             "wasm-seg": {"calls": [{"plan": True, "bnd": inp["segments"]}]}}
+    full = {"outputs": {"stateRoot": inp["post_state_root"], "gasUsed": str(inp["gasUsed"]),
+                        "balanceBurnt": str(inp["balanceBurnt"]), "computeUsage": str(inp["computeUsage"]),
+                        "outcomes": [0] * inp["n_outcomes"], "outgoingReceipts": [0] * inp["n_outgoing"], "proposals": []}}
+    t1.MISMATCHES.clear()
+    r = t1.step_plan(str(tmp_path), bytes.fromhex(inp["claimDigest_S"]), full, calls, comps, T1_CASE)
+    assert r["status"] == "pass" and r["digest_chain_ok"] and not t1.MISMATCHES, (r, t1.MISMATCHES)
+    p = json.load(open(tmp_path / "plan.json"))
+    assert [s["d_out"] for s in p["segments"]] == chain.digests(chain.build(inp))[1:]
