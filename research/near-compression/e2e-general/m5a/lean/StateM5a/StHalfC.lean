@@ -219,6 +219,81 @@ theorem st_step {r r' RIn ROut : Bytes} {n : Nat} {mi mo : StMeta} {upd : List E
       | mk t rs => exact (StMeta.mk.injEq _ _ _ _).mpr ⟨hct, hcr⟩
   · exact .inl ⟨_, _, hs, by rw [hv, hcd]⟩
 
+/-! ## 2b. B-T5: the `done` close (finding M14-1)
+
+At `done` the view's state component has no overlay (`ovlOf (.eng (.done _) _) = none`), so its
+commitment is the record `⟨3, wsRoot P [], 0, 0^32, idx, rest⟩` — not `close c R_out mo`. `STC`'s
+`done` mode (`Stc.modeEqs`, selected by the output tag `3`) closes that record (`closeFin`);
+**`st_step_fin`** is the state half of the finalize leaf (`yields _ _ 0 → done`) and of the IF's
+`c9` output. -/
+
+/-- The no-overlay output record: the input's `idx`, the engine's tag / `rest`, the empty working
+set's root `E`, `wsLen = 0`, trie `0^32`. -/
+def closeFin (c : StCommit) (E : Bytes) (m : StMeta) : StCommit :=
+  { c with tag := m.tag, ws := E, wsLen := 0, trie := StateViewParams.zero32, rest := m.rest }
+
+/-- **`STC`'s `done` mode**: the opening as in `StcOKT`, the output tag is `3`, and the output
+`stRoot` is the no-overlay record's digest. -/
+def StcOKFin (r r' RIn : Bytes) (n : Nat) (T E : Bytes) (mi mo : StMeta) : Prop :=
+  ∃ c : StCommit, c.WF ∧ bdigest c.ser = r ∧ c.ws = RIn ∧ c.wsLen = n ∧ c.trie = T ∧ c.tag = mi.tag ∧
+    c.rest = mi.rest ∧ mo.tag = 3 ∧ r' = bdigest (closeFin c E mo).ser
+
+/-- **The `STC` row's statement with both modes** (B-T5): the step mode (output tag `≠ 3`,
+`StcOKT`) or the `done` mode (output tag `3`, `StcOKFin`). The mode is the output tag's, not the
+prover's choice. -/
+def StcOKM (r r' RIn ROut : Bytes) (n : Nat) (T E : Bytes) (mi mo : StMeta) : Prop :=
+  (mo.tag ≠ 3 ∧ StcOKT r r' RIn ROut n T mi mo) ∨ StcOKFin r r' RIn n T E mi mo
+
+theorem stcOKM_step {r r' RIn ROut : Bytes} {n : Nat} {T E : Bytes} {mi mo : StMeta}
+    (h : StcOKM r r' RIn ROut n T E mi mo) (ht : mo.tag ≠ 3) : StcOKT r r' RIn ROut n T mi mo := by
+  rcases h with ⟨-, h⟩ | ⟨_, -, -, -, -, -, -, -, h3, -⟩
+  · exact h
+  · exact absurd h3 ht
+
+theorem stcOKM_fin {r r' RIn ROut : Bytes} {n : Nat} {T E : Bytes} {mi mo : StMeta}
+    (h : StcOKM r r' RIn ROut n T E mi mo) (ht : mo.tag = 3) : StcOKFin r r' RIn n T E mi mo := by
+  rcases h with ⟨h3, -⟩ | h
+  · exact absurd ht h3
+  · exact h
+
+/-- **`v'` is the `done` successor of `v`** (the finalize step, the state side): both `fits`, `v'`
+has an empty working set and trie hash `0^32` (no overlay: `stepRelFin_noOvl`), the index is kept,
+the output meta is `mo`. -/
+def StepRelFin (mo : StMeta) (v v' : StV) : Prop :=
+  P.fits v = true ∧ P.fits v' = true ∧ P.wsOf v' = [] ∧ (P.trieOf v').hashOf = StateViewParams.zero32 ∧
+    P.idxOf v' = P.idxOf v ∧ metaOf P v' = mo
+
+/-- **The state half's `done` close**: from `STC`'s `done` mode, every state committed by the input
+`stRoot` whose `done` successor is `v'` has `v'` committed by the output `stRoot` (no working-set
+rows needed: the output has no overlay) — or a SHA-384 collision. -/
+theorem st_step_fin {r r' RIn : Bytes} {n : Nat} {T : Bytes} {mi mo : StMeta}
+    (hS : StcOKFin r r' RIn n T (wsRoot P []) mi mo) (v v' : StV) (hv : stD P v = r)
+    (hr : StepRelFin P mo v v') : Sha384Coll ∨ (stD P v' = r' ∧ metaOf P v = mi) := by
+  obtain ⟨c, hcw, hcd, -, -, -, hct, hcr, -, hr'⟩ := hS
+  obtain ⟨hf, hf', hws, htr, hix, hmo⟩ := hr
+  simp only [stD, hf, ite_true] at hv
+  classical
+  by_cases hs : (commitOf P v).ser = c.ser
+  · have e := ser_inj _ _ (commitOf_wf P v hf) hcw hs
+    subst e
+    have hc' : commitOf P v' = closeFin (commitOf P v) (wsRoot P []) mo := by
+      simp only [commitOf, closeFin, ← hmo, metaOf, hws, htr, hix, List.length_nil]
+    refine .inr ⟨?_, ?_⟩
+    · simp only [stD, hf', ite_true, hc', hr']
+    · cases mi with
+      | mk t rs => exact (StMeta.mk.injEq _ _ _ _).mpr ⟨hct, hcr⟩
+  · exact .inl ⟨_, _, hs, by rw [hv, hcd]⟩
+
+/-- Lane B's view (`stViewParams_B`): a component without overlay (`done`, `none`, `fin`) has an
+empty working set and trie hash `0^32` — `StepRelFin`'s two structural premises. -/
+theorem stepRelFin_noOvl (E : StateViewParams.StViewE) (v : StV) (h : StateViewParams.ovlOf v = none) :
+    StateViewParams.wsOfB E v = [] ∧ (StateViewParams.trieOfB v).hashOf = StateViewParams.zero32 := by
+  simp only [StateViewParams.wsOfB, StateViewParams.trieOfB, h]
+  exact ⟨trivial, rfl⟩
+
+/-- An engine state at `done` has no overlay. -/
+theorem ovlOf_done (out : MainOutD2) (st : EngSt) : StateViewParams.ovlOf (.eng (.done out) st) = none := rfl
+
 /-! ## 3. The relational split -/
 
 section Split
@@ -340,6 +415,37 @@ theorem stHalf_inst' {A : Airs8} {k : Tmpl} (V : ViewImpl) (hV : V.stD = stD P)
   · exact .inl (hBad hb)
   · exact .inr h
 
+/-- **B-T5: the finalize leaf's state relation** (`done` mode): the output component is the input's
+`done` successor with the traffic's output meta. -/
+def stRelFin (V : ViewImpl) (q : StQ) (x x' : RConf) : Prop :=
+  StepRelFin P q.mo (stV V x) (stV V x')
+
+/-- **The finalize leaf's state-half predicate**: `STC` in the `done` mode for some opened
+segment root / count / trie (no working-set step). -/
+def HoldsStFin (q : StQ) (r r' : Bytes) : Prop :=
+  ∃ RIn n T, StcOKFin r r' RIn n T (wsRoot P []) q.mi q.mo
+
+/-- **`StHalfRel` for the finalize leaf** (`W` = `stRoot` on both sides, M14-1's `done` record at
+the output). -/
+theorem stHalf_fin_inst {A : Airs8} {k : Tmpl} (S : SplitAir A k) (V : ViewImpl) (hV : V.stD = stD P)
+    (M : SplitSem S) (eW : S.W = Bytes) (eQ : S.Q = StQ)
+    (hin : ∀ x, cast eW (M.wIn x) = V.stD (stV V x)) (hout : ∀ x, cast eW (M.wOut x) = V.stD (stV V x))
+    (hS : ∀ q r r', S.HoldsS q r r' → HoldsStFin P (cast eQ q) (cast eW r) (cast eW r')) :
+    StHalfRel M (fun q x x' => stRelFin P V (cast eQ q) x x') Sha384Coll := by
+  intro q r r' h
+  obtain ⟨RIn, n, T, hc⟩ := hS q r r' h
+  classical
+  by_cases hb : Sha384Coll
+  · exact .inl hb
+  refine .inr fun x x' hx hr => ?_
+  have hx' : stD P (stV V x) = cast eW r := by rw [← hV, ← hin, hx]
+  rcases st_step_fin P hc _ _ hx' hr with h | ⟨e, -⟩
+  · exact absurd h hb
+  · have ci : ∀ a b : S.W, cast eW a = cast eW b → a = b := by
+      intro a b h; have := congrArg (cast eW.symm) h; simpa using this
+    apply ci
+    rw [hout, hV]; exact e
+
 /-! ## 5. The overlay-level reduction for lane F -/
 
 open StateM5a.StateViewParams in
@@ -385,5 +491,10 @@ theorem wsOfB_upd (E : StViewE) (v v' : StV) (o o' : Ovl) (hv : ovlOf v = some o
 #print axioms stHalf_inst
 #print axioms stHalf_inst'
 #print axioms wsOfB_upd
+#print axioms stcOKM_step
+#print axioms stcOKM_fin
+#print axioms st_step_fin
+#print axioms stepRelFin_noOvl
+#print axioms stHalf_fin_inst
 
 end StateM5a.StHalfC

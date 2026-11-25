@@ -215,12 +215,13 @@ theorem stHalf_segN (Pv : StViewParams) (hH : Holds (segAir D (stcTables D ++ ex
     {upd : List Entry → List Entry} (hupd : ∀ es, (upd es).length = es.length)
     (hLN : LastNew Pv tr pub upd) (hU : Untouched Pv tr pub upd)
     {r : Nat} (hr : r < tr.height 8) (hA : ev tr 8 r pub (Stc.c "act") = 1)
+    (hN : (decM (qv tr 8 r pub)).tag ≠ 3)
     (v v' : NearSpecV3.E2E.Bnd.StV) (hv : StateView.stD Pv v = decR (qv tr 8 r pub))
     (hnd : ((Pv.wsOf v).map Prod.fst).Nodup)
     (hrel : StepRel Pv upd (decM (qv tr 8 r pub)) v v') :
     NearSpecV3.E2E.Bnd.Sha384Coll ∨
       (StateView.stD Pv v' = decR (av tr 8 r pub) ∧ metaOf Pv v = decM (av tr 8 r pub)) := by
-  obtain ⟨hS, hn⟩ := stc_seg hH (fun T hT i hi => hxs T hT i hi) hC hD hr hA
+  obtain ⟨hS, hn⟩ := stc_seg hH (fun T hT i hi => hxs T hT i hi) hC hD hr hA hN
   have hx' : ∀ T ∈ stcTables D ++ extra, ∀ i ∈ T.interactions,
       i.bus ≠ B_WM ∧ i.bus ≠ B_PT ∧ i.bus ≠ B_RCH ∧ i.bus ≠ B_RNG := by
     intro T hT

@@ -8,7 +8,9 @@
 set -euo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
 ST=$1; OUT=$2; BIN=$3; MODE=${4:-check}; shift 4 || true
-MUTS=${*:-"stctrie ifctrie ifcws ifcrout segsb0 stcrin stcrout stctag stcrest stcws stclen stcbig stcbyte"}
+# B-T5: + the `done`-close mutants (finding M14-1): fin* on the finalize leaf (seg3), finstep on seg2,
+# iffin* on the IF's c9 output
+MUTS=${*:-"stctrie ifctrie ifcws ifcrout segsb0 stcrin stcrout stctag stcrest stcws stclen stcbig stcbyte finold0 finold1 finws finlen finstep iffinold0 iffinold1 iffinws iffinlen"}
 MEM=${HEAVY_MEM:-$([ "$MODE" = check ] && echo 4G || echo 12G)}
 CUT="--seg-keys $HERE/t1cut/seg-keys.json --stc-meta $HERE/t1cut/stc-meta.json --ifc"
 mkdir -p "$OUT/air"
@@ -25,7 +27,7 @@ python3 "$HERE/tracegen.py" "$ST" "$OUT/air/segc.names.json" "$OUT/honest" --spl
 for dump in if seg0 seg1 seg2 seg3; do echo "honest $dump: $(run "$OUT/honest" $dump)"; done
 rm -rf "$OUT/honest"
 for m in $MUTS; do
-  dump=seg0; case $m in if*) dump=if ;; esac
+  dump=seg0; case $m in if*) dump=if ;; finstep) dump=seg2 ;; fin*) dump=seg3 ;; esac
   python3 "$HERE/tracegen.py" "$ST" "$OUT/air/segc.names.json" "$OUT/m-$m" --split --template "$HERE/templates/S.json" $CUT --mutant "$m" > /dev/null
   echo "$m ($dump): $(run "$OUT/m-$m" $dump)"
   rm -rf "$OUT/m-$m"

@@ -205,8 +205,8 @@ def done_digests(inp):
             inp["ctx_header"], inp["out_done"] = fx["ctx_header"], fx["out_done"]
 
 
-LANEB_IF = f"{DEPS}/laneB-t1/t4/T1C/if/out/statement.json"      # B-T4 (m5tIFC); B-T1b: t1b/T1S/if/out
-LANEB_SEGA = f"{DEPS}/laneB-t1/t4/T1C/seg0/out/statement.json"    # B-T4: STATE seg A (R_A = its R_out)
+LANEB_IF = f"{DEPS}/laneB-t1/t5/T1C/if/out/statement.json"      # B-T5 (m5tIFC, done close); B-T4: t4/T1C/if/out
+LANEB_SEGA = f"{DEPS}/laneB-t1/t5/T1C/seg0/out/statement.json"    # B-T5: STATE seg A (R_A = its R_out)
 
 
 def inputs_from_run(run_dir, lean_run=LEAN_RUN, laneb_if=LANEB_IF):
@@ -581,7 +581,9 @@ def lean_consts(inp, cb, wb, workdir, pkg=bndrec.LEAN_PKG):
 # ---------------------------------------------------------------------------
 # saved leaves vs the chain
 # ---------------------------------------------------------------------------
-T4 = f"{DEPS}/laneB-t1/t4/T1C"   # B-T4: lane B's leaves cut at the rt boundaries (m5a/leaf.sh --ifc --seg-keys)
+# B-T5: lane B's leaves cut at the rt boundaries (m5a/leaf.sh --ifc --seg-keys --stc-meta), re-proved on the M14
+# chain (tags / rests from `m14`, the done close of M14-1); B-T4's (pre-M14) are in t4/T1C
+T4 = f"{DEPS}/laneB-t1/t5/T1C"
 SAVED = {
     "INIT": f"{DEPS}/e2e-m5d/g5/tmpl/init",
     "IF": f"{T4}/if/out",
@@ -592,7 +594,7 @@ SAVED = {
     "RT resume": f"{DEPS}/e2e-m5t1/f6/resume-proof",     # F-6: c6 -> c7 (as enter)
     "FINAL": f"{DEPS}/e2e-m5d/g5/tmpl/final",
 }
-# B-T4: the other three state halves (out/ = proof + statement + htape.json, the STC stand-in's messages)
+# B-T4 / B-T5: the other three state halves (out/ = proof + statement + htape.json, the STC stand-in's messages)
 SAVED_B = {"STATE R": f"{T4}/seg1/out", "STATE B": f"{T4}/seg2/out", "STATE fin": f"{T4}/seg3/out"}
 # F-5: lane F's STATE engine halves (`SE`, proof + statement: the two records' BndRec.encode bytes);
 # F-6: re-proved with every public value byte-checked in-circuit (`Ids.pubBytes`)
@@ -604,11 +606,11 @@ TREE = f"{DEPS}/tmp-laneD/m9b"   # lane D's M9 prototype tree (the leaves it imp
 # E2E-M14: the leaves whose exposed records / STC messages carry c1 … c9's stRoot or ctxRoot; each must be
 # re-proved on the M14 chain (until then its row differs exactly in those fields: `test_chain_saved_leaves`)
 M14_REPROVE = {
-    "IF (B-T4, m5tIFC)": "B: STC r_in = c1 (tag 1, encRestI rest), r_out = c9 (tag 3, done: empty ws, wsLen 0, trie 0^32)",
-    "STATE seg A (B-T4)": "B: STC c1 → c2 (tags 1 → 7, rests)",
-    "RT resume, state half (B-T4)": "B: STC c6 → c7 (tags 7 → 7, rests)",
-    "STATE seg B (B-T4)": "B: STC c7 → c8 (tags 7 → 8, rests)",
-    "finalize, state half (B-T4)": "B: STC c8 → c9 (tags 8 → 3; the done close: empty ws, wsLen 0, trie 0^32)",
+    "IF (B-T5, m5tIFC)": "B: STC r_in = c1 (tag 1, encRestI rest), r_out = c9 (tag 3, done: empty ws, wsLen 0, trie 0^32)",
+    "STATE seg A (B-T5)": "B: STC c1 → c2 (tags 1 → 7, rests)",
+    "RT resume, state half (B-T5)": "B: STC c6 → c7 (tags 7 → 7, rests)",
+    "STATE seg B (B-T5)": "B: STC c7 → c8 (tags 7 → 8, rests)",
+    "finalize, state half (B-T5)": "B: STC c8 → c9 (tags 8 → 3; the done close: empty ws, wsLen 0, trie 0^32)",
     "RT enter (F-6)": "F: records c2 → c3 (stRoot, ctxRoot)",
     "RT resume (F-6)": "F: records c6 → c7 (stRoot, ctxRoot)",
     "STATE seg A, engine half (F-6 SE)": "F: records c1 → c2",
@@ -720,12 +722,15 @@ def leaf_table(c, inp, saved=SAVED, saved_b=SAVED_B):
                      "in_equal": bndrec.digest(b0) == bndrec.digest(c[0]), "out_equal": False,
                      "owner": "B-T4: B_1's stRoot is the IF's STC r_in (c1); G: B_1's ctxRoot = ctxD (.intake I) in-circuit (M14: the value is on the chain, Lean-evaluated; preimage 1 ‖ Ser.enc I); D: the joined INIT + IF leaf; INIT exposes B_0 only",
                      "why": "INIT's B_0 = the chain's c0 (lane G's wrapper takes stD .none: B-T4's constant); B_1 = eng I start: its stRoot is the IF's STC r_in (B-T4), its ctxRoot ctxD (.intake I) (M14)"})
-    # IF (B-T4, m5tIFC): the INTAKE half closes c1's stRoot (R_0, tag 1), the FINAL half opens c9's (R_n, tag 3)
+    # IF (B-T4 / B-T5, m5tIFC): the INTAKE half closes c1's stRoot (R_0, tag 1); the STC output is c9's done record
+    # (B-T5, M14-1: tag 3, empty tree, wsLen 0, trie 0^32); the FINAL half's R_n is c8's working set (FinPre)
     p = saved["IF"]
     if ex(p):
-        row, st = _state_row("IF (B-T4, m5tIFC)", p, c, 1, 9, inp, inp.get("R_0"), inp.get("R_n"), _tags(inp, "c1", "c9"),
-                             "G / D: c1's ctxRoot (ctxD (.intake I)) from the joined INIT leaf; F: the engine rows that open / close rest (encRestI, M14)",
-                             "the INTAKE half's stRoot (InitBOut's state part) is c1's and the FINAL half's (FinPre's) is c9's")
+        row, st = _state_row("IF (B-T5, m5tIFC)", p, c, 1, 9, inp, inp.get("R_0"), inp.get("R_n"), _tags(inp, "c1", "c9"),
+                             "G / D: c1's ctxRoot (ctxD (.intake I)) from the joined INIT leaf; F: the engine rows that open / close rest (encRestI, M14); "
+                             "D: join the IF's R_n (values 35-52) with the finalize leaf's R_in (c8's ws, FinPre)",
+                             "the INTAKE half's stRoot (InitBOut's state part) is c1's; the STC output is c9's done record (B-T5); "
+                             "the FINAL half's R_n is c8's working set, opened by the finalize leaf")
         row["checks"].update({"post_state_root = header": root16(st[53:69]).hex() == inp["post_state_root"],
                               "#changes = 10": st[69] == 10})
         row["exposes"] = "STC (c1 / c9 stRoot), prev_state_root, wsLen, R_0, R_n, post_state_root, #changes"
@@ -791,24 +796,29 @@ def leaf_table(c, inp, saved=SAVED, saved_b=SAVED_B):
     # STATE (B-T4): the segment cut at the rt boundaries, m5tSegC
     p = saved["STATE"]
     if ex(p):
-        rows.append(_state_row("STATE seg A (B-T4)", p, c, 1, 2, inp, inp.get("R_0"), inp.get("R_A"), _tags(inp, "c1", "c2"),
+        rows.append(_state_row("STATE seg A (B-T5)", p, c, 1, 2, inp, inp.get("R_0"), inp.get("R_A"), _tags(inp, "c1", "c2"),
                                "F: STATE engine rows (receipt 0's three forwards: counters, outcome / outgoing appends)",
                                "the 8 changes before receipt 1; stRoot in / out = c1 / c2")[0])
     p = saved_b["STATE R"]
     if ex(p):
-        rows.append(_state_row("RT resume, state half (B-T4)", p, c, 6, 7, inp, inp.get("R_A"), inp.get("R_n"), _tags(inp, "c2", "c7"),
+        rows.append(_state_row("RT resume, state half (B-T5)", p, c, 6, 7, inp, inp.get("R_A"), inp.get("R_n"), _tags(inp, "c2", "c7"),
                                "F: join with the resume leaf (its RB rows send STMQ / take STMA in STC's layout; XTAPE stand-in today)",
                                "receipt 1's 2 changes; stRoot in / out = c6 / c7")[0])
     p = saved_b["STATE B"]
     if ex(p):
-        rows.append(_state_row("STATE seg B (B-T4)", p, c, 7, 8, inp, inp.get("R_n"), inp.get("R_n"), _tags(inp, "c7", "c8"),
+        rows.append(_state_row("STATE seg B (B-T5)", p, c, 7, 8, inp, inp.get("R_n"), inp.get("R_n"), _tags(inp, "c7", "c8"),
                                "F: STATE engine rows (two VM-free steps on T1: incoming [] → yields → yields _ _ 0)",
                                "no working-set change; M14: c7 ≠ c8 (tag 7 → 8, rest)")[0])
     p = saved_b["STATE fin"]
     if ex(p):
-        rows.append(_state_row("finalize, state half (B-T4)", p, c, 8, 9, inp, inp.get("R_n"), inp.get("R_n"), _tags(inp, "c8", "c9"),
-                               "F: finalize engine rows (yields → done: counters, rest); the IF's FINAL half closes the same c9 stRoot (join value)",
-                               "opens c8's stRoot, closes c9's (tag 3); FinHalfB's batched FINAL is the IF proof's")[0])
+        fr, fst = _state_row("finalize, state half (B-T5)", p, c, 8, 9, inp, inp.get("R_n"), inp.get("R_n"), _tags(inp, "c8", "c9"),
+                             "F: finalize engine rows (yields → done: counters, rest); D: the IF's R_n = this leaf's R_in (FinPre's link)",
+                             "opens c8's stRoot (ws = R_n), closes c9's done record (B-T5: tag 3, empty tree, wsLen 0, trie 0^32); "
+                             "FinHalfB's batched FINAL is the IF proof's, on R_n = c8's working set")
+        if ex(saved["IF"]):
+            ist = json.load(open(f"{saved['IF']}/statement.json"))["statement"]
+            fr["checks"]["R_in = the IF's R_n (FinPre: c8's ws is the IF-FINAL's input, B-T5)"] = fst[17:35] == ist[35:53]
+        rows.append(fr)
     else:
         rows.append({"leaf": "finalize (STATE, D-b)", "path": None, "exposes": "—", "in_equal": False, "out_equal": False,
                      "owner": "B (IF-FINAL half as a leaf with STC) + F (engine rows yields → done)", "why": "no leaf exists"})
@@ -835,7 +845,7 @@ def leaf_table(c, inp, saved=SAVED, saved_b=SAVED_B):
                                 "gasUsed / balanceBurnt = done's clear fields": (bo["gasUsed"], bo["balanceBurnt"]) == (c[10]["gasUsed"], c[10]["balanceBurnt"]),
                                 "h(B_out) assembled from the leaf = h(c10)": bndrec.digest(bo) == bndrec.digest(c[10])},
                      "in_equal": False, "out_equal": bndrec.digest(bo) == bndrec.digest(c[10]),
-                     "owner": "B-T4: c9's stRoot = the IF's STC r_out (FinPre's state part); D: B_in = c9 in the joined FINAL leaf (finInDigest is a join value, not a BndRec field)",
+                     "owner": "B-T5: c9's stRoot = the IF's STC r_out = the finalize leaf's (the done record, M14-1); D: B_in = c9 in the joined FINAL leaf (finInDigest is a join value, not a BndRec field)",
                      "why": "FINAL's B_out = the chain's c10 (stD .none: B-T4's constant); B_in = c9, whose stRoot is the IF's STC r_out (B-T4)"})
     for r in rows:
         r["m14_stale"] = m14_stale(r)

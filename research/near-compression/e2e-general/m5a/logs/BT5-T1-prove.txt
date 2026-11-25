@@ -1,0 +1,66 @@
+== seg3 20:14:03 slice=13983698944
+rc=0
+PRECHECK OK: every constraint on every row; every bus balances (1175 distinct messages)
+SOUNDNESS total=268.2 logup=324.4 proximity=295.1 query=268.2
+PROOF total=510804 gkr=21128 relations=138224 stacking=2372 whir=348278
+TIME prove 28.08s verify 0.0288s threads 8 peak_rss_kib 7639836 proof_bytes 510804
+SAVED seg3/out (STATE.proof 510804 B, STATE.vk.json 1736431 B)
+VERIFY OK (native SWIRL verifier); statement check (cached roots + every AIR's public values): OK
+== seg2 20:14:53 slice=13475762176
+rc=0
+PRECHECK OK: every constraint on every row; every bus balances (1161 distinct messages)
+SOUNDNESS total=268.2 logup=324.4 proximity=295.1 query=268.2
+PROOF total=510678 gkr=21128 relations=138224 stacking=2372 whir=348152
+TIME prove 29.64s verify 0.0243s threads 8 peak_rss_kib 7645984 proof_bytes 510678
+SAVED seg2/out (STATE.proof 510678 B, STATE.vk.json 1736431 B)
+VERIFY OK (native SWIRL verifier); statement check (cached roots + every AIR's public values): OK
+== seg1 20:15:45 slice=6062596096
+rc=0
+PRECHECK OK: every constraint on every row; every bus balances (1760 distinct messages)
+SOUNDNESS total=268.2 logup=324.4 proximity=295.1 query=268.2
+PROOF total=510132 gkr=21128 relations=138224 stacking=2372 whir=347606
+TIME prove 25.65s verify 0.0213s threads 8 peak_rss_kib 7644868 proof_bytes 510132
+SAVED seg1/out (STATE.proof 510132 B, STATE.vk.json 1736431 B)
+VERIFY OK (native SWIRL verifier); statement check (cached roots + every AIR's public values): OK
+== seg0 20:16:32 slice=6018232320
+rc=0
+PRECHECK OK: every constraint on every row; every bus balances (4706 distinct messages)
+SOUNDNESS total=268.2 logup=324.4 proximity=295.1 query=268.2
+PROOF total=512232 gkr=21128 relations=138224 stacking=2372 whir=349706
+TIME prove 26.43s verify 0.0225s threads 8 peak_rss_kib 7684192 proof_bytes 512232
+SAVED seg0/out (STATE.proof 512232 B, STATE.vk.json 1736431 B)
+VERIFY OK (native SWIRL verifier); statement check (cached roots + every AIR's public values): OK
+== if 20:17:20 slice=15811350528
+rc=0
+PRECHECK OK: every constraint on every row; every bus balances (12476 distinct messages)
+SOUNDNESS total=268.2 logup=324.4 proximity=295.1 query=268.2
+PROOF total=594128 gkr=23192 relations=214944 stacking=2516 whir=352574
+TIME prove 32.15s verify 0.0351s threads 8 peak_rss_kib 8148168 proof_bytes 594128
+SAVED if/out (STATE.proof 594128 B, STATE.vk.json 3164194 B)
+VERIFY OK (native SWIRL verifier); statement check (cached roots + every AIR's public values): OK
+ALLDONE
+CHAIN if.R_0 = seg0.R_in: OK (ca91c86e35478585…)
+CHAIN seg0.R_out = seg1.R_in: OK (44e7e021b249bba4…)
+CHAIN seg1.R_out = seg2.R_in: OK (2d2e132a1af65a2f…)
+CHAIN seg2.R_out = seg3.R_in: OK (2d2e132a1af65a2f…)
+CHAIN seg3.R_out = if.R_n: OK (2d2e132a1af65a2f…)
+WSLEN [17]: OK
+POST 1db48e3883e462f12b761a81438bd145dfcc45ee5a7097acdf7b9b000a249628 = oracle 1db48e3883e462f12b761a81438bd145dfcc45ee5a7097acdf7b9b000a249628: OK
+PROOF if    from proof: 594128 B, vk sha256 9ca9677ee1596ba9
+PROOF seg0  from proof: 512232 B, vk sha256 011321fa4da4f921
+PROOF seg1  from proof: 510132 B, vk sha256 011321fa4da4f921
+PROOF seg2  from proof: 510678 B, vk sha256 011321fa4da4f921
+PROOF seg3  from proof: 510804 B, vk sha256 011321fa4da4f921
+LEAF CHAIN OK
+if    c1 -> c9: r_in 2940b6ddaa29af08… = c1.stRoot, r_out 82205155a575782f… = c9.stRoot, tags 1 -> 3 OK, rests OK
+seg0  c1 -> c2: r_in 2940b6ddaa29af08… = c1.stRoot, r_out 5a9d5644792e97b4… = c2.stRoot, tags 1 -> 7 OK, rests OK
+seg1  c2 -> c7: r_in 5a9d5644792e97b4… = c2.stRoot, r_out 4ee7c62e888e06df… = c7.stRoot, tags 7 -> 7 OK, rests OK
+seg2  c7 -> c8: r_in 4ee7c62e888e06df… = c7.stRoot, r_out 0ecab49581b631a5… = c8.stRoot, tags 7 -> 8 OK, rests OK
+seg3  c8 -> c9: r_in 0ecab49581b631a5… = c8.stRoot, r_out 82205155a575782f… = c9.stRoot, tags 8 -> 3 OK, rests OK
+c9 = bdigest <3, empty root, 0, 0^32, 0, rest> = 82205155a575782f… (recomputed)
+STC vs chain (m14): OK
+M8_TEMPLATE_PROVED state-b bytes=510678 seconds=0.0 params=(n_stack 18, w_stack 8, lb 1) queries=[100, 71, 45, 33] bits=268.2
+M8_TEMPLATE_PROVED state-a bytes=512232 seconds=0.0 params=(n_stack 18, w_stack 8, lb 1) queries=[100, 71, 45, 33] bits=268.2
+M8_TEMPLATE_PROVED state-if bytes=594128 seconds=0.0 params=(n_stack 18, w_stack 10, lb 1) queries=[100, 71, 45, 33] bits=268.2
+M8_TEMPLATE_PROVED state-fin bytes=510804 seconds=0.0 params=(n_stack 18, w_stack 8, lb 1) queries=[100, 71, 45, 33] bits=268.2
+M8_TEMPLATE_PROVED state-resume bytes=510132 seconds=0.0 params=(n_stack 18, w_stack 8, lb 1) queries=[100, 71, 45, 33] bits=268.2

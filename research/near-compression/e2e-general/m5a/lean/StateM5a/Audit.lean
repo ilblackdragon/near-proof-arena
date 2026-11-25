@@ -811,3 +811,22 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.StHalfC.stcOK_of_T
 #print axioms StateM5a.HeaderLink.init_header
 #print axioms StateM5a.HeaderLink.header_link
+-- B-T5: the done close (finding M14-1): STC's two modes, StcOKM / StcOKFin, the finalize state half
+#print axioms StateM5a.StcRow.fin01
+#print axioms StateM5a.StcRow.fin_tag
+#print axioms StateM5a.StcRow.step_tag
+#print axioms StateM5a.StcRow.om_val
+#print axioms StateM5a.StcRow.ow_fin
+#print axioms StateM5a.StcRow.wsO
+#print axioms StateM5a.StcSound.ser_closeFin
+#print axioms StateM5a.StcSound.stc_row_okM
+#print axioms StateM5a.StcSound.stc_holdsM
+#print axioms StateM5a.StcSound.stc_holdsFin
+#print axioms StateM5a.StcSound.stc_segFin
+#print axioms StateM5a.StcSound.stHalf_segFin
+#print axioms StateM5a.StcSound.stc_ifcM
+#print axioms StateM5a.StHalfC.stcOKM_step
+#print axioms StateM5a.StHalfC.stcOKM_fin
+#print axioms StateM5a.StHalfC.st_step_fin
+#print axioms StateM5a.StHalfC.stepRelFin_noOvl
+#print axioms StateM5a.StHalfC.stHalf_fin_inst

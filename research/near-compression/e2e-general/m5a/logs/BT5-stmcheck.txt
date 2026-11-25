@@ -1,0 +1,8 @@
+/data/illia/nearproof-deps/tmp-laneF/f7/se-seg-a:seg0 STMQ: EQUAL (tag 7)
+/data/illia/nearproof-deps/tmp-laneF/f7/se-seg-a:seg0 STMA: EQUAL (tag 1)
+/data/illia/nearproof-deps/tmp-laneF/f7/resume:seg1 STMQ: EQUAL (tag 7)
+/data/illia/nearproof-deps/tmp-laneF/f7/resume:seg1 STMA: EQUAL (tag 7)
+/data/illia/nearproof-deps/tmp-laneF/f7/se-seg-b:seg2 STMQ: EQUAL (tag 8)
+/data/illia/nearproof-deps/tmp-laneF/f7/se-seg-b:seg2 STMA: EQUAL (tag 7)
+/data/illia/nearproof-deps/tmp-laneF/f7/se-finalize:seg3 STMQ: EQUAL (tag 3)
+/data/illia/nearproof-deps/tmp-laneF/f7/se-finalize:seg3 STMA: EQUAL (tag 8)

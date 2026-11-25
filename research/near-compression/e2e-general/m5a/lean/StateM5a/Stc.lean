@@ -18,6 +18,10 @@ One active `STC` row does both:
   the output = `R_out` (35–52); `wsLen` (u64 LE, bytes 49–56) = public value 16, and
   **`wsLen ≤ 2^D`**: `2^D − wsLen = g₀ + 256 g₁ + 65536 g₂` with bytes `g`; B-T4: the opened `trie`
   (bytes 57–88) = the public `prev_state_root` (values 0–15, `trieEqs`);
+* **B-T5: the `done` close** (finding M14-1; `modeEqs`): a boolean `fin` is `1` exactly when the
+  output tag is `3`; then the output record is the no-overlay one — `ws` = the empty depth-24 tree's
+  root (constant bytes `emptyB`), `wsLen = 0`, trie `0^32` (the output's bytes 49–88 are the columns
+  `om` = `(act − fin) · b`), `idx` and `rest` as before — instead of `close c R_out`;
 * **`STMQ`** (211, engine → state, received): `[r_in (14 limbs), tag_out, rest_out (14 limbs)]` —
   `r_in` = the first 42 bytes of the input digest, `tag_out = ot`, `rest_out` = `or`;
 * **`STMA`** (212, state → engine, sent): `[r_out (14 limbs), tag_in, rest_in (14 limbs)]`.
@@ -69,7 +73,8 @@ def L : Layout :=
    ("hi", 24), ("di", 18), ("xi", 6), ("ho", 24), ("do", 18), ("xo", 6),
    ("ci1", 1), ("ci2", 1), ("co1", 1), ("co2", 1),
    ("ri", 48), ("rsi", 24), ("ro", 48), ("rso", 24),
-   ("wsi", 24), ("wso", 24), ("g", 3)]
+   ("wsi", 24), ("wso", 24), ("g", 3),
+   ("fin", 1), ("tinv", 1), ("om", 40)]
 def T : Cols := ⟨L⟩
 def c (s : String) (j : Nat := 0) : Expr := T.c s j
 
@@ -86,10 +91,11 @@ def w3l (x : W3) (l : Nat) : Expr := if l = 0 then x.1 else if l = 1 then x.2.1 
 /-- The input message byte at position `p` of the padded message. -/
 def mI (p : Nat) : Expr := if p < NB then c "b" p else K (padByte p)
 
-/-- The output message byte: tag `ot`, `ws` = `ow`, bytes 49–96 shared with the input, `rest` = `or`. -/
+/-- The output message byte: tag `ot`, `ws` = `ow`, `u64 wsLen ‖ trie` (bytes 49–88) = `om` (B-T5: the
+input's bytes, or zeros in the `done` mode), `u64 idx` (89–96) shared with the input, `rest` = `or`. -/
 def mO (p : Nat) : Expr :=
-  if p = 0 then c "ot" else if p < 49 then c "ow" (p - 1) else if p < 97 then c "b" p
-  else if p < NB then c "or" (p - 97) else K (padByte p)
+  if p = 0 then c "ot" else if p < 49 then c "ow" (p - 1) else if p < 89 then c "om" (p - 49)
+  else if p < 97 then c "b" p else if p < NB then c "or" (p - 97) else K (padByte p)
 
 /-- Split parts of message word `w` (columns `s` for `w < 18`, constants after). -/
 def spM (s : String) (w q : Nat) : Expr := if w < NWD then c s (4 * w + q) else K (padSplit w q)
@@ -117,17 +123,15 @@ def splits : List Expr :=
   ((List.range 6).flatMap fun k => splitEqs (fun j => mI (1 + 8 * k + j)) (fun q => c "wsi" (4 * k + q))) ++
   ((List.range 6).flatMap fun k => splitEqs (fun j => mO (1 + 8 * k + j)) (fun q => c "wso" (4 * k + q)))
 
-/-- The limb equations: each digest limb column is its bytes' limb; the public roots are the `ws`
-bytes' limbs. -/
+/-- The limb equations: each digest limb column is its bytes' limb; the public `R_in` is the opened
+`ws` bytes' limbs (the output's `ws`: `wsOutEqs`, mode-dependent). -/
 def limbEqs : List Expr :=
   ((List.range 18).map fun t => c "di" t -
     w3l (wordW (fun j => c "ri" (8 * (t / 3) + j)) (fun q => c "rsi" (4 * (t / 3) + q))) (t % 3)) ++
   ((List.range 18).map fun t => c "do" t -
     w3l (wordW (fun j => c "ro" (8 * (t / 3) + j)) (fun q => c "rso" (4 * (t / 3) + q))) (t % 3)) ++
   ((List.range 18).map fun t => Expr.pub (PUB_WSA + t) -
-    w3l (wordW (fun j => mI (1 + 8 * (t / 3) + j)) (fun q => c "wsi" (4 * (t / 3) + q))) (t % 3)) ++
-  ((List.range 18).map fun t => Expr.pub (PUB_WSB + t) -
-    w3l (wordW (fun j => mO (1 + 8 * (t / 3) + j)) (fun q => c "wso" (4 * (t / 3) + q))) (t % 3))
+    w3l (wordW (fun j => mI (1 + 8 * (t / 3) + j)) (fun q => c "wsi" (4 * (t / 3) + q))) (t % 3))
 
 /-- `wsLen`: bytes 49–56 are the public count (little-endian, `< 2^24`), and `2^D − wsLen` is three
 bytes `g`. -/
@@ -142,14 +146,33 @@ one its INTAKE revealed, and the IF's FINAL (`FinHalfB`) runs on the trie the co
 def trieEqs : List Expr :=
   (List.range 16).map fun i => c "b" (58 + 2 * i) + K 256 * c "b" (57 + 2 * i) - .pub i
 
+/-- B-T5 (finding M14-1): the empty depth-24 working-set tree's root, byte `j` (`zeroDig 24`,
+`= zd nodeH zero48 24`: the `ws` of a commitment without overlay). -/
+def emptyB (j : Nat) : Nat := ((zeroDig WS_DEPTH).getD j 0).toNat
+
+/-- **B-T5: the two close modes** (degree 2, ungated; all-zero padding rows satisfy them). `fin`
+(boolean) is `1` exactly when the output tag `ot` is `3` (`done`): `fin · (ot − 3) = 0` and
+`(ot − 3) · tinv = act − fin`. In the **step mode** (`fin = 0`) the output is `close c R_out`:
+`ws` = the public `R_out` (values 35–52) and `om` = the input's `u64 wsLen ‖ trie`; in the **`done`
+mode** (`fin = 1`, M14-1: at `done` the view has no overlay) the output is the no-overlay record:
+`ws` = the empty tree's root (`emptyB`), `wsLen = 0`, trie `0^32` (`om = 0`); `idx` and the
+input side are the same in both modes. -/
+def modeEqs : List Expr :=
+  [bool (c "fin"), c "fin" * (c "ot" - K 3), (c "ot" - K 3) * c "tinv" - (c "act" - c "fin")] ++
+  ((List.range 18).map fun t => (c "act" - c "fin") * (Expr.pub (PUB_WSB + t) -
+    w3l (wordW (fun j => mO (1 + 8 * (t / 3) + j)) (fun q => c "wso" (4 * (t / 3) + q))) (t % 3))) ++
+  ((List.range 48).map fun j => c "fin" * (c "ow" j - K (emptyB j))) ++
+  ((List.range 40).map fun j => c "om" j - (c "act" - c "fin") * c "b" (49 + j))
+
 def constraints (D : Nat) : List Expr :=
-  bool (c "act") :: (splits ++ limbEqs ++ lenEqs D ++ trieEqs).map fun e => c "act" * e
+  bool (c "act") :: ((splits ++ limbEqs ++ lenEqs D ++ trieEqs).map fun e => c "act" * e) ++ modeEqs
 
 /-- The byte columns (each looked up once). -/
 def byteCols : List Expr :=
   ((List.range NB).map fun p => c "b" p) ++ [c "ot"] ++ ((List.range 48).map fun j => c "ow" j) ++
   ((List.range 42).map fun j => c "or" j) ++ ((List.range 48).map fun j => c "ri" j) ++
-  ((List.range 48).map fun j => c "ro" j) ++ ((List.range 3).map fun j => c "g" j)
+  ((List.range 48).map fun j => c "ro" j) ++ ((List.range 3).map fun j => c "g" j) ++
+  ((List.range 40).map fun j => c "om" j)
 
 /-- The split column groups (name, words). -/
 def grps : List (String × Nat) :=
@@ -212,8 +235,9 @@ def tableNamesSegC : List String := tableNamesSeg ++ ["STC", "SRNG"]
 
 /-- **B-T4: INTAKE + FINAL with the `stRoot` openings** (`m5tIF D`'s tables, then `STC` and `SRNG`).
 The `STC` row's input is the commitment the INTAKE half closes at `start` (`c1`: tag 1, `ws = R_0`,
-public values 17–34) and its output the one the FINAL half opens at `done` (`c9`: tag 3,
-`ws = R_n`, values 35–52); `wsLen`, the trie (= `prev_state_root`, `trieEqs`) and `idx` are shared.
+public values 17–34) and its output the `done` record `c9` (B-T5: tag 3, the `done` mode — empty
+tree, `wsLen 0`, trie `0^32`; the FINAL half's working-set root `R_n`, values 35–52, is committed
+by `c8`'s `stRoot`, which the finalize leaf opens with `ws = R_in = R_n`, not by `c9`).
 The public values are `m5tIF`'s (the indices `STC` reads are the same: 0–15, 16, 17–34, 35–52). -/
 def m5tIFC (D : Nat) : Air :=
   { tables := (m5tIF D).tables ++ stcTables D, numBuses := B_STMA + 1, numPub := NUM_PUB_IF }

@@ -209,13 +209,42 @@ theorem comI_wf (hD : D ≤ 20) : (comI tr t r pub).WF := by
   · have := leNat_lt ((List.range 8).map fun k => UInt8.ofNat (FI tr t r pub (89 + k)))
     simpa [comI] using this
 
-theorem FO_mid {p : Nat} (h1 : 49 ≤ p) (h2 : p < 97) : FO tr t r pub p = FI tr t r pub p := by
+/-- The output's `u64 idx` bytes (89–96) are the input's (both modes). -/
+theorem FO_idx {p : Nat} (h1 : 89 ≤ p) (h2 : p < 97) : FO tr t r pub p = FI tr t r pub p := by
   unfold FO FI Stc.mO Stc.mI Stc.NB
-  rw [if_neg (by omega), if_neg (by omega), if_pos h2, if_pos (by omega)]
+  rw [if_neg (by omega), if_neg (by omega), if_neg (by omega), if_pos h2, if_pos (by omega)]
+
+theorem FO_om {p : Nat} (h1 : 49 ≤ p) (h2 : p < 89) : FO tr t r pub p = ev tr t r pub (Stc.c "om" (p - 49)) := by
+  unfold FO Stc.mO
+  rw [if_neg (by omega), if_neg (by omega), if_pos h2]
+
+theorem FI_b {p : Nat} (h : p < 139) : FI tr t r pub p = ev tr t r pub (Stc.c "b" p) := by
+  unfold FI Stc.mI Stc.NB; rw [if_pos h]
+
+include hc hA in
+/-- B-T5: in the step mode the output's `u64 wsLen ‖ trie` bytes (49–88) are the input's. -/
+theorem FO_step (hf : ev tr t r pub (Stc.c "fin") = 0) {p : Nat} (h1 : 49 ≤ p) (h2 : p < 89) :
+    FO tr t r pub p = FI tr t r pub p := by
+  rw [FO_om h1 h2, om_val hc hA (by omega), hf, FI_b (by omega)]
+  simp only [Nat.zero_ne_one, ite_false]
+  congr 2; omega
+
+include hc hA in
+/-- B-T5: in the `done` mode the output's bytes 49–88 are `0`. -/
+theorem FO_fin0 (hf : ev tr t r pub (Stc.c "fin") = 1) {p : Nat} (h1 : 49 ≤ p) (h2 : p < 89) :
+    FO tr t r pub p = 0 := by
+  rw [FO_om h1 h2, om_val hc hA (by omega), hf]; rfl
+
+include hc in
+/-- B-T5: in the `done` mode the output's `ws` bytes are the empty tree's root. -/
+theorem FO_ws_fin (hf : ev tr t r pub (Stc.c "fin") = 1) {j : Nat} (hj : j < 48) :
+    FO tr t r pub (1 + j) = Stc.emptyB j := by
+  unfold FO Stc.mO
+  rw [if_neg (by omega), if_pos (by omega), show 1 + j - 1 = j by omega, ow_fin hc hf hj]
 
 include hc hA hB in
-/-- **The closed commitment serializes to the output message.** -/
-theorem ser_close (hD : D ≤ 20) (R : ArenaCore.Bytes) (m : StMeta)
+/-- **The closed commitment serializes to the output message** (the step mode, `fin = 0`). -/
+theorem ser_close (hD : D ≤ 20) (hf : ev tr t r pub (Stc.c "fin") = 0) (R : ArenaCore.Bytes) (m : StMeta)
     (hR : R = (List.range 48).map fun j => UInt8.ofNat (FO tr t r pub (1 + j)))
     (ht : m.tag = FO tr t r pub 0)
     (hr : m.rest = (List.range 42).map fun j => UInt8.ofNat (FO tr t r pub (97 + j))) :
@@ -226,14 +255,56 @@ theorem ser_close (hD : D ≤ 20) (R : ArenaCore.Bytes) (m : StMeta)
   rw [u64_len hc hA hB hD, u64_idx _ (by simp), hR, ht, hr]
   have e1 : ((List.range 8).map fun i => UInt8.ofNat (FI tr t r pub (49 + i))) =
       (List.range 8).map fun i => UInt8.ofNat (FO tr t r pub (49 + i)) := by
-    apply List.map_congr_left; intro i hi; have := List.mem_range.1 hi; rw [FO_mid (by omega) (by omega)]
+    apply List.map_congr_left; intro i hi; have := List.mem_range.1 hi; rw [FO_step hc hA hf (by omega) (by omega)]
   have e2 : ((List.range 32).map fun i => UInt8.ofNat (FI tr t r pub (57 + i))) =
       (List.range 32).map fun i => UInt8.ofNat (FO tr t r pub (57 + i)) := by
-    apply List.map_congr_left; intro i hi; have := List.mem_range.1 hi; rw [FO_mid (by omega) (by omega)]
+    apply List.map_congr_left; intro i hi; have := List.mem_range.1 hi; rw [FO_step hc hA hf (by omega) (by omega)]
   have e3 : ((List.range 8).map fun i => UInt8.ofNat (FI tr t r pub (89 + i))) =
       (List.range 8).map fun i => UInt8.ofNat (FO tr t r pub (89 + i)) := by
-    apply List.map_congr_left; intro i hi; have := List.mem_range.1 hi; rw [FO_mid (by omega) (by omega)]
+    apply List.map_congr_left; intro i hi; have := List.mem_range.1 hi; rw [FO_idx (by omega) (by omega)]
   rw [e1, e2, e3]
+
+/-- `zeroDig d` is 48 bytes. -/
+theorem zeroDig_len : ∀ d, (zeroDig d).length = 48
+  | 0 => rfl
+  | d + 1 => by simp only [zeroDig, StateView.nodeH, NearSpecV3.E2E.Bnd.sha384_length]
+
+/-- The empty tree's root as the bytes `Stc.emptyB`. -/
+theorem emptyB_bytes : ((List.range 48).map fun j => UInt8.ofNat (Stc.emptyB j)) = zeroDig WS_DEPTH := by
+  apply List.ext_getElem (by simp [zeroDig_len])
+  intro j h1 h2
+  simp only [List.getElem_map, List.getElem_range, Stc.emptyB]
+  simp [List.getD, List.getElem?_eq_getElem h2]
+
+include hc hA in
+/-- **B-T5: the no-overlay record serializes to the output message** (the `done` mode, `fin = 1`). -/
+theorem ser_closeFin (hf : ev tr t r pub (Stc.c "fin") = 1) (m : StMeta)
+    (ht : m.tag = FO tr t r pub 0)
+    (hr : m.rest = (List.range 42).map fun j => UInt8.ofNat (FO tr t r pub (97 + j))) :
+    (closeFin (comI tr t r pub) (zeroDig WS_DEPTH) m).ser = msgO tr t r pub := by
+  unfold msgO
+  rw [range139, StCommit.ser, closeFin, comI]
+  simp only
+  rw [u64_idx _ (by simp), ht, hr]
+  have e0 : (zeroDig WS_DEPTH) = (List.range 48).map fun i => UInt8.ofNat (FO tr t r pub (1 + i)) := by
+    rw [← emptyB_bytes]
+    apply List.map_congr_left; intro i hi; have := List.mem_range.1 hi; rw [FO_ws_fin hc hf this]
+  have e1 : NearSpec.u64 0 = (List.range 8).map fun i => UInt8.ofNat (FO tr t r pub (49 + i)) := by
+    rw [show ((List.range 8).map fun i => UInt8.ofNat (FO tr t r pub (49 + i))) =
+        (List.range 8).map fun _ => (0 : UInt8) by
+      apply List.map_congr_left; intro i hi; have := List.mem_range.1 hi
+      rw [FO_fin0 hc hA hf (by omega) (by omega)]; rfl]
+    decide
+  have e2 : StateViewParams.zero32 = (List.range 32).map fun i => UInt8.ofNat (FO tr t r pub (57 + i)) := by
+    rw [show ((List.range 32).map fun i => UInt8.ofNat (FO tr t r pub (57 + i))) =
+        (List.range 32).map fun _ => (0 : UInt8) by
+      apply List.map_congr_left; intro i hi; have := List.mem_range.1 hi
+      rw [FO_fin0 hc hA hf (by omega) (by omega)]; rfl]
+    decide
+  have e3 : ((List.range 8).map fun i => UInt8.ofNat (FI tr t r pub (89 + i))) =
+      (List.range 8).map fun i => UInt8.ofNat (FO tr t r pub (89 + i)) := by
+    apply List.map_congr_left; intro i hi; have := List.mem_range.1 hi; rw [FO_idx (by omega) (by omega)]
+  rw [e0, e1, e2, e3]
 
 theorem ev_limb3 (byte : Nat → Expr) (i : Nat) (h0 : ev tr t r pub (byte (3 * i)) < 256)
     (h1 : ev tr t r pub (byte (3 * i + 1)) < 256) (h2 : ev tr t r pub (byte (3 * i + 2)) < 256) :
@@ -281,7 +352,8 @@ theorem qv_dec : decR (qv tr t r pub) = (List.range 42).map (fun j => UInt8.ofNa
       limbs14_dec _ (fun j hj => hB _ (mem_or (by omega)))]
     apply List.map_congr_left; intro j hj; have := List.mem_range.1 hj
     show UInt8.ofNat (ev tr t r pub (Stc.c "or" j)) = UInt8.ofNat (ev tr t r pub (Stc.mO (97 + j)))
-    unfold Stc.mO Stc.NB; rw [if_neg (by omega), if_neg (by omega), if_neg (by omega), if_pos (by omega)]
+    unfold Stc.mO Stc.NB
+    rw [if_neg (by omega), if_neg (by omega), if_neg (by omega), if_neg (by omega), if_pos (by omega)]
     congr 3; omega
 
 include hB in
@@ -310,7 +382,7 @@ theorem take42 (f : Nat → Nat) :
 
 include hc hA hB hHi hLo hC in
 /-- **`StcOK` for an active `STC` row** (and `wsLen ≤ 2^D`). -/
-theorem stc_row_ok (hD : D ≤ 20)
+theorem stc_row_ok (hD : D ≤ 20) (hf : ev tr t r pub (Stc.c "fin") = 0)
     (h1 : ∀ x ∈ compRecv (ev tr t r pub (Stc.c "ci1"))
       ((ivW ++ Stc.blockW Stc.mI "si" 0 ++ wordsOf (fun u => Stc.c "hi" u) 8).map (dec3 tr t r pub)), x ∈ chip)
     (h2 : ∀ x ∈ compRecv (ev tr t r pub (Stc.c "ci2"))
@@ -329,12 +401,12 @@ theorem stc_row_ok (hD : D ≤ 20)
   have hin : toB (TmplWsx.pubDig pub PUB_WSA) = (List.range 48).map fun j => UInt8.ofNat (FI tr t r pub (1 + j)) :=
     toB_dig _ _ (wsI hc hA hB hHi hLo)
   have hout : toB (TmplWsx.pubDig pub PUB_WSB) = (List.range 48).map fun j => UInt8.ofNat (FO tr t r pub (1 + j)) :=
-    toB_dig _ _ (wsO hc hA hB hHi hLo)
+    toB_dig _ _ (wsO hc hA hB hHi hLo hf)
   refine ⟨⟨comI tr t r pub, comI_wf hc hA hB hD, ?_, hin.symm, rfl, a2.symm, a3.symm, ?_⟩,
     (lenI hc hA hB hD).2.2⟩
   · rw [ser_comI hc hA hB hD, NearSpecV3.E2E.Bnd.bdigest, sha_in hc hA hB hHi hLo hC h1 h2, q1]
     exact take42 _
-  · rw [ser_close hc hA hB hD _ _ hout q2 q3, NearSpecV3.E2E.Bnd.bdigest, sha_out hc hA hB hHi hLo hC h3 h4, a1]
+  · rw [ser_close hc hA hB hD hf _ _ hout q2 q3, NearSpecV3.E2E.Bnd.bdigest, sha_out hc hA hB hHi hLo hC h3 h4, a1]
     exact (take42 _).symm
 
 /-- B-T4: the public `prev_state_root` (values 0–15, 16-bit limbs big-endian) as 32 bytes. -/
@@ -356,7 +428,7 @@ theorem comI_trie : (comI tr t r pub).trie = pubTrie pub := by
 
 include hc hA hB hHi hLo hC in
 /-- **`StcOKT` for an active `STC` row**: `stc_row_ok` with the opened trie = `prev_state_root`. -/
-theorem stc_row_okT (hD : D ≤ 20)
+theorem stc_row_okT (hD : D ≤ 20) (hf : ev tr t r pub (Stc.c "fin") = 0)
     (h1 : ∀ x ∈ compRecv (ev tr t r pub (Stc.c "ci1"))
       ((ivW ++ Stc.blockW Stc.mI "si" 0 ++ wordsOf (fun u => Stc.c "hi" u) 8).map (dec3 tr t r pub)), x ∈ chip)
     (h2 : ∀ x ∈ compRecv (ev tr t r pub (Stc.c "ci2"))
@@ -375,13 +447,46 @@ theorem stc_row_okT (hD : D ≤ 20)
   have hin : toB (TmplWsx.pubDig pub PUB_WSA) = (List.range 48).map fun j => UInt8.ofNat (FI tr t r pub (1 + j)) :=
     toB_dig _ _ (wsI hc hA hB hHi hLo)
   have hout : toB (TmplWsx.pubDig pub PUB_WSB) = (List.range 48).map fun j => UInt8.ofNat (FO tr t r pub (1 + j)) :=
-    toB_dig _ _ (wsO hc hA hB hHi hLo)
+    toB_dig _ _ (wsO hc hA hB hHi hLo hf)
   refine ⟨⟨comI tr t r pub, comI_wf hc hA hB hD, ?_, hin.symm, rfl, comI_trie hc hA hB, a2.symm, a3.symm, ?_⟩,
     (lenI hc hA hB hD).2.2⟩
   · rw [ser_comI hc hA hB hD, NearSpecV3.E2E.Bnd.bdigest, sha_in hc hA hB hHi hLo hC h1 h2, q1]
     exact take42 _
-  · rw [ser_close hc hA hB hD _ _ hout q2 q3, NearSpecV3.E2E.Bnd.bdigest, sha_out hc hA hB hHi hLo hC h3 h4, a1]
+  · rw [ser_close hc hA hB hD hf _ _ hout q2 q3, NearSpecV3.E2E.Bnd.bdigest, sha_out hc hA hB hHi hLo hC h3 h4, a1]
     exact (take42 _).symm
+
+include hc hA hB hHi hLo hC in
+/-- **B-T5: an active `STC` row in either mode** (`StcOKM`: the step mode when the output tag is not
+`3`, else the `done` mode with the empty tree's root `zeroDig 24`); `wsLen ≤ 2^D`. -/
+theorem stc_row_okM (hD : D ≤ 20)
+    (h1 : ∀ x ∈ compRecv (ev tr t r pub (Stc.c "ci1"))
+      ((ivW ++ Stc.blockW Stc.mI "si" 0 ++ wordsOf (fun u => Stc.c "hi" u) 8).map (dec3 tr t r pub)), x ∈ chip)
+    (h2 : ∀ x ∈ compRecv (ev tr t r pub (Stc.c "ci2"))
+      ((wordsOf (fun u => Stc.c "hi" u) 8 ++ Stc.blockW Stc.mI "si" 1 ++ digW (fun u => Stc.c "di" u) ++
+        wordsOf (fun u => Stc.c "xi" u) 2).map (dec3 tr t r pub)), x ∈ chip)
+    (h3 : ∀ x ∈ compRecv (ev tr t r pub (Stc.c "co1"))
+      ((ivW ++ Stc.blockW Stc.mO "so" 0 ++ wordsOf (fun u => Stc.c "ho" u) 8).map (dec3 tr t r pub)), x ∈ chip)
+    (h4 : ∀ x ∈ compRecv (ev tr t r pub (Stc.c "co2"))
+      ((wordsOf (fun u => Stc.c "ho" u) 8 ++ Stc.blockW Stc.mO "so" 1 ++ digW (fun u => Stc.c "do" u) ++
+        wordsOf (fun u => Stc.c "xo" u) 2).map (dec3 tr t r pub)), x ∈ chip) :
+    StcOKM (decR (qv tr t r pub)) (decR (av tr t r pub)) (toB (TmplWsx.pubDig pub PUB_WSA))
+      (toB (TmplWsx.pubDig pub PUB_WSB)) (WsLen.wsLen pub) (pubTrie pub) (zeroDig WS_DEPTH)
+      (decM (av tr t r pub)) (decM (qv tr t r pub)) ∧ WsLen.wsLen pub ≤ 2 ^ D := by
+  obtain ⟨q1, q2, q3⟩ := qv_dec (tr := tr) (t := t) (r := r) (pub := pub) hB
+  have hot : FO tr t r pub 0 = ev tr t r pub (Stc.c "ot") := rfl
+  rcases fin01 hc with hf | hf
+  · obtain ⟨h, hn⟩ := stc_row_okT hc hA hB hHi hLo hC hD hf h1 h2 h3 h4
+    refine ⟨.inl ⟨?_, h⟩, hn⟩
+    rw [q2, hot]; exact step_tag hc hA hf
+  · obtain ⟨a1, a2, a3⟩ := av_dec (tr := tr) (t := t) (r := r) (pub := pub) hB
+    have hin : toB (TmplWsx.pubDig pub PUB_WSA) = (List.range 48).map fun j => UInt8.ofNat (FI tr t r pub (1 + j)) :=
+      toB_dig _ _ (wsI hc hA hB hHi hLo)
+    refine ⟨.inr ⟨comI tr t r pub, comI_wf hc hA hB hD, ?_, hin.symm, rfl, comI_trie hc hA hB, a2.symm, a3.symm,
+      by rw [q2, hot]; exact fin_tag hc hf, ?_⟩, (lenI hc hA hB hD).2.2⟩
+    · rw [ser_comI hc hA hB hD, NearSpecV3.E2E.Bnd.bdigest, sha_in hc hA hB hHi hLo hC h1 h2, q1]
+      exact take42 _
+    · rw [ser_closeFin hc hA hf _ q2 q3, NearSpecV3.E2E.Bnd.bdigest, sha_out hc hA hB hHi hLo hC h3 h4, a1]
+      exact (take42 _).symm
 
 end Row
 
@@ -407,10 +512,12 @@ theorem comps_mem {i : Interaction} (h : i ∈ Stc.comps) : i ∈ (Stc.table D).
   List.mem_append_left _ (List.mem_append_right _ h)
 
 include hH ht hT hR hC in
-/-- **`StcOK` from `Holds`**, for every active `STC` row. -/
-theorem stc_holds (hD : D ≤ 20) {r : Nat} (hr : r < tr.height t) (hA : ev tr t r pub (Stc.c "act") = 1) :
-    StcOK (decR (qv tr t r pub)) (decR (av tr t r pub)) (toB (TmplWsx.pubDig pub PUB_WSA))
-      (toB (TmplWsx.pubDig pub PUB_WSB)) (WsLen.wsLen pub) (decM (av tr t r pub)) (decM (qv tr t r pub)) ∧
+/-- **B-T5: `StcOKM` from `Holds`** (both close modes; the opened trie = `prev_state_root`), every
+active `STC` row. -/
+theorem stc_holdsM (hD : D ≤ 20) {r : Nat} (hr : r < tr.height t) (hA : ev tr t r pub (Stc.c "act") = 1) :
+    StcOKM (decR (qv tr t r pub)) (decR (av tr t r pub)) (toB (TmplWsx.pubDig pub PUB_WSA))
+      (toB (TmplWsx.pubDig pub PUB_WSB)) (WsLen.wsLen pub) (pubTrie pub) (zeroDig WS_DEPTH)
+      (decM (av tr t r pub)) (decM (qv tr t r pub)) ∧
       WsLen.wsLen pub ≤ 2 ^ D := by
   have hc : ∀ e ∈ (Stc.table D).constraints, ev tr t r pub e = 0 := by
     intro e he
@@ -429,7 +536,7 @@ theorem stc_holds (hD : D ≤ 20) {r : Nat} (hr : r < tr.height t) (hA : ev tr t
   have hA' : (Stc.c "act").eval tr t r pub = 1 := DecodeM5a.ev_one_eval hA
   have sub : ∀ L : List Interaction, (∀ i ∈ L, i ∈ Stc.comps) → ∀ i ∈ L, i ∈ (A.tables[t]!).interactions :=
     fun L hL i hi => by rw [hT]; exact comps_mem (hL i hi)
-  refine stc_row_ok hc hA hB hHi hLo hC hD
+  refine stc_row_okM hc hA hB hHi hLo hC hD
     (comp_mem hperm ht (sub _ fun i hi => ?_) hr hA') (comp_mem hperm ht (sub _ fun i hi => ?_) hr hA')
     (comp_mem hperm ht (sub _ fun i hi => ?_) hr hA') (comp_mem hperm ht (sub _ fun i hi => ?_) hr hA')
   · unfold Stc.comps
@@ -442,40 +549,36 @@ theorem stc_holds (hD : D ≤ 20) {r : Nat} (hr : r < tr.height t) (hA : ev tr t
     exact List.mem_append_right _ hi
 
 include hH ht hT hR hC in
-/-- **B-T4: `StcOKT` from `Holds`** (the opened trie = `prev_state_root`), every active `STC` row. -/
-theorem stc_holdsT (hD : D ≤ 20) {r : Nat} (hr : r < tr.height t) (hA : ev tr t r pub (Stc.c "act") = 1) :
+/-- **B-T4: `StcOKT` from `Holds`** (the opened trie = `prev_state_root`), every active `STC` row
+in the step mode (B-T5: the engine's output tag is not `3`). -/
+theorem stc_holdsT (hD : D ≤ 20) {r : Nat} (hr : r < tr.height t) (hA : ev tr t r pub (Stc.c "act") = 1)
+    (hN : (decM (qv tr t r pub)).tag ≠ 3) :
     StcOKT (decR (qv tr t r pub)) (decR (av tr t r pub)) (toB (TmplWsx.pubDig pub PUB_WSA))
       (toB (TmplWsx.pubDig pub PUB_WSB)) (WsLen.wsLen pub) (pubTrie pub) (decM (av tr t r pub))
       (decM (qv tr t r pub)) ∧
       WsLen.wsLen pub ≤ 2 ^ D := by
-  have hc : ∀ e ∈ (Stc.table D).constraints, ev tr t r pub e = 0 := by
-    intro e he
-    have h := hH.constr t ht r hr e
-    rw [← getElem!_pos _ t ht, hT] at h
-    exact ev_of_eval (h he)
-  have hB : ∀ x ∈ Stc.byteCols, ev tr t r pub x < 256 := fun x hx =>
-    srng_rcv hH ht hT hR hr hA (rng_mem (List.mem_append_left _ (List.mem_append_left _ (List.mem_map.2 ⟨x, hx, rfl⟩))))
-  have hHi : ∀ x ∈ Stc.hiCols, ev tr t r pub x < 256 := fun x hx =>
-    srng_rcv hH ht hT hR hr hA (rng_mem (List.mem_append_left _ (List.mem_append_right _ (List.mem_map.2 ⟨x, hx, rfl⟩))))
-  have hLo : ∀ p ∈ Stc.loCols, ev tr t r pub p.1 < 256 ∧ ev tr t r pub (K (2 ^ (8 - p.2)) * p.1) < 256 := by
-    intro p hp
-    refine ⟨srng_rcv hH ht hT hR hr hA (rng_mem (List.mem_append_right _ (List.mem_flatMap.2 ⟨p, hp, ?_⟩))),
-      srng_rcv hH ht hT hR hr hA (rng_mem (List.mem_append_right _ (List.mem_flatMap.2 ⟨p, hp, ?_⟩)))⟩ <;> simp
-  have hperm := holds_perm hH B_IF384
-  have hA' : (Stc.c "act").eval tr t r pub = 1 := DecodeM5a.ev_one_eval hA
-  have sub : ∀ L : List Interaction, (∀ i ∈ L, i ∈ Stc.comps) → ∀ i ∈ L, i ∈ (A.tables[t]!).interactions :=
-    fun L hL i hi => by rw [hT]; exact comps_mem (hL i hi)
-  refine stc_row_okT hc hA hB hHi hLo hC hD
-    (comp_mem hperm ht (sub _ fun i hi => ?_) hr hA') (comp_mem hperm ht (sub _ fun i hi => ?_) hr hA')
-    (comp_mem hperm ht (sub _ fun i hi => ?_) hr hA') (comp_mem hperm ht (sub _ fun i hi => ?_) hr hA')
-  · unfold Stc.comps
-    exact List.mem_append_left _ (List.mem_append_left _ (List.mem_append_left _ hi))
-  · unfold Stc.comps
-    exact List.mem_append_left _ (List.mem_append_left _ (List.mem_append_right _ hi))
-  · unfold Stc.comps
-    exact List.mem_append_left _ (List.mem_append_right _ hi)
-  · unfold Stc.comps
-    exact List.mem_append_right _ hi
+  obtain ⟨h, hn⟩ := stc_holdsM hH ht hT hR hC hD hr hA
+  exact ⟨stcOKM_step h hN, hn⟩
+
+include hH ht hT hR hC in
+/-- **`StcOK` from `Holds`**, for every active `STC` row in the step mode. -/
+theorem stc_holds (hD : D ≤ 20) {r : Nat} (hr : r < tr.height t) (hA : ev tr t r pub (Stc.c "act") = 1)
+    (hN : (decM (qv tr t r pub)).tag ≠ 3) :
+    StcOK (decR (qv tr t r pub)) (decR (av tr t r pub)) (toB (TmplWsx.pubDig pub PUB_WSA))
+      (toB (TmplWsx.pubDig pub PUB_WSB)) (WsLen.wsLen pub) (decM (av tr t r pub)) (decM (qv tr t r pub)) ∧
+      WsLen.wsLen pub ≤ 2 ^ D := by
+  obtain ⟨h, hn⟩ := stc_holdsT hH ht hT hR hC hD hr hA hN
+  exact ⟨stcOK_of_T h, hn⟩
+
+include hH ht hT hR hC in
+/-- **B-T5: the `done` close from `Holds`** (the engine's output tag is `3`): `StcOKFin` with the
+empty tree's root. -/
+theorem stc_holdsFin (hD : D ≤ 20) {r : Nat} (hr : r < tr.height t) (hA : ev tr t r pub (Stc.c "act") = 1)
+    (h3 : (decM (qv tr t r pub)).tag = 3) :
+    StcOKFin (decR (qv tr t r pub)) (decR (av tr t r pub)) (toB (TmplWsx.pubDig pub PUB_WSA))
+      (WsLen.wsLen pub) (pubTrie pub) (zeroDig WS_DEPTH) (decM (av tr t r pub)) (decM (qv tr t r pub)) := by
+  obtain ⟨h, -⟩ := stc_holdsM hH ht hT hR hC hD hr hA
+  exact stcOKM_fin h h3
 
 end Holds
 
@@ -556,11 +659,40 @@ theorem srng_send_lt (hH : Holds (segAir D (stcTables D ++ extra) nb np) pub tr)
 theorem stc_seg (hH : Holds (segAir D (stcTables D ++ extra) nb np) pub tr)
     (hxs : ∀ T ∈ extra, ∀ i ∈ T.interactions, ¬ (i.bus = B_SRNG ∧ i.send = true))
     (hC : Sha512IfContract cW ((busList (segAir D (stcTables D ++ extra) nb np) tr pub B_IF384 true).map decIf))
-    (hD : D ≤ 20) {r : Nat} (hr : r < tr.height 8) (hA : ev tr 8 r pub (Stc.c "act") = 1) :
+    (hD : D ≤ 20) {r : Nat} (hr : r < tr.height 8) (hA : ev tr 8 r pub (Stc.c "act") = 1)
+    (hN : (decM (qv tr 8 r pub)).tag ≠ 3) :
     StcOK (decR (qv tr 8 r pub)) (decR (av tr 8 r pub)) (toB (TmplWsx.pubDig pub PUB_WSA))
       (toB (TmplWsx.pubDig pub PUB_WSB)) (WsLen.wsLen pub) (decM (av tr 8 r pub)) (decM (qv tr 8 r pub)) ∧
       WsLen.wsLen pub ≤ 2 ^ D :=
-  stc_holds hH (by rw [segc_len]; omega) segc_stc (fun m hm => srng_send_lt hH hxs hm) hC hD hr hA
+  stc_holds hH (by rw [segc_len]; omega) segc_stc (fun m hm => srng_send_lt hH hxs hm) hC hD hr hA hN
+
+/-- **B-T5: the `done` close on the STATE template** (the finalize leaf's state half: the engine's
+output tag is `3`). -/
+theorem stc_segFin (hH : Holds (segAir D (stcTables D ++ extra) nb np) pub tr)
+    (hxs : ∀ T ∈ extra, ∀ i ∈ T.interactions, ¬ (i.bus = B_SRNG ∧ i.send = true))
+    (hC : Sha512IfContract cW ((busList (segAir D (stcTables D ++ extra) nb np) tr pub B_IF384 true).map decIf))
+    (hD : D ≤ 20) {r : Nat} (hr : r < tr.height 8) (hA : ev tr 8 r pub (Stc.c "act") = 1)
+    (h3 : (decM (qv tr 8 r pub)).tag = 3) :
+    StcOKFin (decR (qv tr 8 r pub)) (decR (av tr 8 r pub)) (toB (TmplWsx.pubDig pub PUB_WSA))
+      (WsLen.wsLen pub) (pubTrie pub) (zeroDig WS_DEPTH) (decM (av tr 8 r pub)) (decM (qv tr 8 r pub)) :=
+  stc_holdsFin hH (by rw [segc_len]; omega) segc_stc (fun m hm => srng_send_lt hH hxs hm) hC hD hr hA h3
+
+/-- **B-T5: lane B's state half of the finalize leaf, from `Holds`**: for an active `STC` row whose
+engine output tag is `3`, every `fits` state committed by the input `stRoot` whose `done`
+successor is `v'` (`StepRelFin`) has `v'` committed by the output `stRoot` (M14-1's no-overlay
+record) — or a SHA-384 collision. Premise: the view's empty-tree root is the circuit's constant
+(`wsRoot Pv [] = zeroDig 24`, `wsRoot_nil_B` for lane B's instance at depth 24). -/
+theorem stHalf_segFin (Pv : StateView.StViewParams) (hH : Holds (segAir D (stcTables D ++ extra) nb np) pub tr)
+    (hxs : ∀ T ∈ extra, ∀ i ∈ T.interactions, ¬ (i.bus = B_SRNG ∧ i.send = true))
+    (hC : Sha512IfContract cW ((busList (segAir D (stcTables D ++ extra) nb np) tr pub B_IF384 true).map decIf))
+    (hD : D ≤ 20) (hE : StateView.wsRoot Pv [] = zeroDig WS_DEPTH) {r : Nat} (hr : r < tr.height 8)
+    (hA : ev tr 8 r pub (Stc.c "act") = 1) (h3 : (decM (qv tr 8 r pub)).tag = 3)
+    (v v' : NearSpecV3.E2E.Bnd.StV) (hv : StateView.stD Pv v = decR (qv tr 8 r pub))
+    (hrel : StepRelFin Pv (decM (qv tr 8 r pub)) v v') :
+    NearSpecV3.E2E.Bnd.Sha384Coll ∨ (StateView.stD Pv v' = decR (av tr 8 r pub) ∧ metaOf Pv v = decM (av tr 8 r pub)) := by
+  have hS := stc_segFin hH hxs hC hD hr hA h3
+  rw [← hE] at hS
+  exact st_step_fin Pv hS v v' hv hrel
 
 set_option maxRecDepth 100000 in
 theorem stc_buses (D : Nat) : ∀ T ∈ stcTables D, ∀ i ∈ T.interactions,
@@ -586,10 +718,11 @@ theorem stHalf_seg (Pv : StateView.StViewParams) (hH : Holds (segAir D (stcTable
     (hz : toB (TmplWsx.zD D) = Merkle.zd StateView.nodeH StateView.zero48 D)
     {upd : List StateView.Entry → List StateView.Entry} (hupd : ∀ es, (upd es).length = es.length)
     (hSL : SegLeaves Pv D tr pub upd) {r : Nat} (hr : r < tr.height 8) (hA : ev tr 8 r pub (Stc.c "act") = 1)
+    (hN : (decM (qv tr 8 r pub)).tag ≠ 3)
     (v v' : NearSpecV3.E2E.Bnd.StV) (hv : StateView.stD Pv v = decR (qv tr 8 r pub))
     (hrel : StepRel Pv upd (decM (qv tr 8 r pub)) v v') :
     NearSpecV3.E2E.Bnd.Sha384Coll ∨ (StateView.stD Pv v' = decR (av tr 8 r pub) ∧ metaOf Pv v = decM (av tr 8 r pub)) := by
-  obtain ⟨hS, hn⟩ := stc_seg hH (fun T hT i hi => hxs T hT i hi) hC hD hr hA
+  obtain ⟨hS, hn⟩ := stc_seg hH (fun T hT i hi => hxs T hT i hi) hC hD hr hA hN
   have hx' : ∀ T ∈ stcTables D ++ extra, ∀ i ∈ T.interactions,
       i.bus ≠ B_WM ∧ i.bus ≠ B_PT ∧ i.bus ≠ B_RCH ∧ i.bus ≠ B_RNG := by
     intro T hT
@@ -609,10 +742,10 @@ theorem holdsSt_seg (Pv : StateView.StViewParams) (hH : Holds (segAir D (stcTabl
     (hD1 : 1 ≤ D) (hD : D ≤ 20) (hCR : NodeCR cW) (hdep : Pv.depth = 24)
     (hz : toB (TmplWsx.zD D) = Merkle.zd StateView.nodeH StateView.zero48 D)
     {r : Nat} (hr : r < tr.height 8) (hA : ev tr 8 r pub (Stc.c "act") = 1) (q : StQ)
-    (hmi : q.mi = decM (av tr 8 r pub)) (hmo : q.mo = decM (qv tr 8 r pub))
+    (hmi : q.mi = decM (av tr 8 r pub)) (hmo : q.mo = decM (qv tr 8 r pub)) (hN : q.mo.tag ≠ 3)
     (hSL : SegLeaves Pv D tr pub (updE q.w)) :
     HoldsSt Pv q (decR (qv tr 8 r pub)) (decR (av tr 8 r pub)) := by
-  obtain ⟨hS, hn⟩ := stc_seg hH (fun T hT i hi => hxs T hT i hi) hC hD hr hA
+  obtain ⟨hS, hn⟩ := stc_seg hH (fun T hT i hi => hxs T hT i hi) hC hD hr hA (by rw [← hmo]; exact hN)
   have hx' : ∀ T ∈ stcTables D ++ extra, ∀ i ∈ T.interactions,
       i.bus ≠ B_WM ∧ i.bus ≠ B_PT ∧ i.bus ≠ B_RCH ∧ i.bus ≠ B_RNG := by
     intro T hT
@@ -699,22 +832,40 @@ theorem srng_send_ifc (hH : Holds (m5tIFC D) pub tr) {m : List Fp}
       have : ev tr 11 r pub (Srng.c "v") = r := hv
       omega
 
-/-- **B-T4: the IF's openings from `Holds`** (`m5tIFC`): an active `STC` row's `STMQ` digest is the
-commitment `c` with `c.ws = R_0` (values 17–34), `c.wsLen` = value 16, `c.trie` = `prev_state_root`
-(values 0–15) and tag / rest = the `STMA` meta (the INTAKE half's `stRoot` at `start`, `c1`), and its
-`STMA` digest is `c` closed with `R_n` (values 35–52) and the `STMQ` meta (the FINAL half's `stRoot`
-at `done`, `c9`, whose `ws` is the root the IF's batched FINAL consumes); `wsLen ≤ 2^D`. -/
+/-- **B-T4 / B-T5: the IF's openings from `Holds`** (`m5tIFC`): an active `STC` row's `STMQ` digest is
+the commitment `c` with `c.ws = R_0` (values 17–34), `c.wsLen` = value 16, `c.trie` =
+`prev_state_root` (values 0–15) and tag / rest = the `STMA` meta (the INTAKE half's `stRoot` at
+`start`, `c1`); its `STMA` digest is the `done` record (B-T5, finding M14-1: the engine's output tag
+`3`, the empty tree's root, `wsLen 0`, trie `0^32`, `c`'s `idx`, the `STMQ` rest: `c9`). `R_n`
+(values 35–52), the root the IF's batched FINAL consumes, is **not** in `c9`: it is `c8`'s working
+set, which the finalize leaf's `STC` opens with `ws = R_in` (lane D joins the IF's values 35–52 with
+the finalize leaf's 17–34). `wsLen ≤ 2^D`. -/
 theorem stc_ifc (hH : Holds (m5tIFC D) pub tr)
     (hC : Sha512IfContract cW ((busList (m5tIFC D) tr pub B_IF384 true).map decIf))
+    (hD : D ≤ 20) {r : Nat} (hr : r < tr.height 10) (hA : ev tr 10 r pub (Stc.c "act") = 1)
+    (h3 : (decM (qv tr 10 r pub)).tag = 3) :
+    StcOKFin (decR (qv tr 10 r pub)) (decR (av tr 10 r pub)) (toB (TmplWsx.pubDig pub PUB_WSA))
+      (WsLen.wsLen pub) (pubTrie pub) (zeroDig WS_DEPTH) (decM (av tr 10 r pub)) (decM (qv tr 10 r pub)) :=
+  stc_holdsFin hH (by rw [ifc_len]; omega) ifc_stc (fun m hm => srng_send_ifc hH hm) hC hD hr hA h3
+
+/-- **The IF's `STC` row in either mode** (`StcOKM`). -/
+theorem stc_ifcM (hH : Holds (m5tIFC D) pub tr)
+    (hC : Sha512IfContract cW ((busList (m5tIFC D) tr pub B_IF384 true).map decIf))
     (hD : D ≤ 20) {r : Nat} (hr : r < tr.height 10) (hA : ev tr 10 r pub (Stc.c "act") = 1) :
-    StcOKT (decR (qv tr 10 r pub)) (decR (av tr 10 r pub)) (toB (TmplWsx.pubDig pub PUB_WSA))
-      (toB (TmplWsx.pubDig pub PUB_WSB)) (WsLen.wsLen pub) (pubTrie pub) (decM (av tr 10 r pub))
-      (decM (qv tr 10 r pub)) ∧ WsLen.wsLen pub ≤ 2 ^ D :=
-  stc_holdsT hH (by rw [ifc_len]; omega) ifc_stc (fun m hm => srng_send_ifc hH hm) hC hD hr hA
+    StcOKM (decR (qv tr 10 r pub)) (decR (av tr 10 r pub)) (toB (TmplWsx.pubDig pub PUB_WSA))
+      (toB (TmplWsx.pubDig pub PUB_WSB)) (WsLen.wsLen pub) (pubTrie pub) (zeroDig WS_DEPTH)
+      (decM (av tr 10 r pub)) (decM (qv tr 10 r pub)) ∧ WsLen.wsLen pub ≤ 2 ^ D :=
+  stc_holdsM hH (by rw [ifc_len]; omega) ifc_stc (fun m hm => srng_send_ifc hH hm) hC hD hr hA
 
 end IFC
 
 #print axioms stc_ifc
+#print axioms stc_ifcM
+#print axioms stc_holdsM
+#print axioms stc_holdsFin
+#print axioms stc_segFin
+#print axioms stHalf_segFin
+#print axioms ser_closeFin
 #print axioms holdsSt_seg
 #print axioms stc_holds
 #print axioms stc_holdsT

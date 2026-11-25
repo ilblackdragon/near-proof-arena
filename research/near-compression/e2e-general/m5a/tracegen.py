@@ -72,6 +72,14 @@ B-T4 mutants (`--ifc` / `--seg-keys`: the IF's own `STC` row, the cut at the `rt
   ifcrout   the FINAL half's stRoot the stand-in takes is not the IF's closed commitment
   segsb0    a segment with writes closes like an empty one (`WSX` `sb = 0`, `R_out = R_in` claimed)
 
+B-T5 mutants (the `done` close, finding M14-1; `Stc.modeEqs`; each row hashes its record honestly):
+  finold0   the finalize leaf (seg3) closes tag 3 as B-T4's `close c R_n` (wsLen 17, trie kept), fin = 0
+  finold1   the same old record with fin = 1
+  finws     the `done` record with ws = R_n instead of the empty tree's root
+  finlen    the `done` record keeping the input's wsLen / trie
+  finstep   a non-`done` output (seg2, tag 8) closed in the `done` mode
+  iffinold0 / iffinold1 / iffinws / iffinlen   the same on the IF's `c9` output
+
 Options: --segs S cuts the write log into S segments (default 1: the whole M5a write tape is one
 STATE segment); --extra-writes N writes an intermediate value to each of the first N written keys
 before its final one (exercises the memory chain). B-T4: --seg-keys FILE (segment s = the writes of
@@ -1699,7 +1707,10 @@ class Gen:
         return 128 * n
 
     STC_MUTANTS = ('stcrin', 'stcrout', 'stctag', 'stcrest', 'stcws', 'stclen', 'stcbig', 'stcbyte', 'stctrie',
-                   'ifcws', 'ifctrie', 'ifcrout')
+                   'ifcws', 'ifctrie', 'ifcrout',
+                   # B-T5: the `done` close (finding M14-1), `stc.build`'s mutants on the finalize leaf (seg3),
+                   # the IF (`iffin*`) or, for `finstep`, a non-`done` leaf (seg2)
+                   'finold0', 'finold1', 'finws', 'finlen', 'finstep', 'iffinold0', 'iffinold1', 'iffinws', 'iffinlen')
 
     def build_stc(self, comp, a24, b24, wslen, name='seg0'):
         """B-T3: the `STC` row of a segment and the stand-in's `STMQ` / `STMA` (lane F's engine rows).
@@ -1721,7 +1732,12 @@ class Gen:
         # `ifcws`: the IF's row opens a commitment with another `ws` than its `R_0` (honest hashes)
         if m == 'ifcws' and name == 'if':
             a24 = [a24[0] ^ 1] + list(a24[1:])
-        rows, cnt, msgs, info = STC.build(self.names, comp, a24, b24, wslen, trie, **md)
+        fm = None
+        if m in ('finold0', 'finold1', 'finws', 'finlen') and name == 'seg3' or m == 'finstep' and name == 'seg2':
+            fm = m
+        if m and m.startswith('iffin') and name == 'if':
+            fm = m[2:]
+        rows, cnt, msgs, info = STC.build(self.names, comp, a24, b24, wslen, trie, mutant=fm, **md)
         r = rows[0]
         if name == 'if':
             if m == 'ifcrout':     # the FINAL half's stRoot the tape takes is not the closed commitment's

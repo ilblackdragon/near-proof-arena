@@ -1041,6 +1041,28 @@ values → B re-prove → F rows (`d_queue` pops, `d_move`, `ACC`, counters, `SR
   tables; lane F's stand-in `RsJoint` (the `STC` side) is what `StcSound.stc_holds` / `holdsSt_seg`
   give from `Holds` (the joined AIR and its bus ids: integrator). Lane A / F: provide `CTXB` / `CTXL`.
 
+**Lane B status (B-T5, 2026-11-25) [K][M]** (`m5a/README` §B-T5; log
+[`e2e-bt5-state-2026-11-25.md`](../logs/e2e-bt5-state-2026-11-25.md)): **M14-1 closed.**
+* **`STC`'s `done` mode** (`Stc.modeEqs`): `fin = 1` ⇔ the engine's output tag is `3` (`fin·(ot−3) =
+  0`, `(ot−3)·tinv = act − fin`); then the output record is the no-overlay one — `ws` = the empty
+  depth-24 root (constant), `wsLen 0`, trie `0^32`, `idx` and `rest` as before; otherwise
+  `close c R_out` as in B-T4. Lean: `StcOKFin` / `StcOKM` (`StHalfC`), `stc_holdsM` (both modes from
+  `Holds`), `st_step_fin` / **`stHalf_segFin`** / **`stHalf_fin_inst`** (the finalize leaf's state
+  half with `W` = `stRoot` on both sides: relation `StepRelFin` = `done` successor, empty working
+  set, trie hash `0^32`), `stc_ifc` (the IF's `c9` = the `done` record). The step-mode theorems
+  (`stc_seg`, `holdsSt_seg`, `stHalf_seg`) take `mo.tag ≠ 3`.
+* **`R_n` link for `FinHalfB`**: no longer through `c9`. The IF-FINAL's input root (IF values 35–52)
+  is `c8`'s working set (`FinPre`), opened by the finalize leaf's `STC` as its `R_in` (values 17–34):
+  **lane D joins IF.35–52 = finalize.17–34**. The post-state root reaches `c9` as `out.root` in `rest`
+  (lane F's finalize rows). **For lane E**: `GlueFin.finSem`'s `wOut = finW` (post root) should become
+  the view's `stRoot` with `stHalf_fin_inst` as the state half, `FinHalfB` (post root of `c8`'s overlay,
+  the IF's) staying the second conjunct.
+* **Tag**: lane B's AIRs read the tag only for the mode; `StPosOK` (1 or 4–9) is lane E's M14 change.
+* **Re-proved on the M14 cuts** (lane D's format, `m8-import`ed; `t1cut/stc_check.py`: every `STC`
+  in / out = `m14`'s `stRoot`, tags, rests): IF c1 / c9, seg A c1 → c2, resume half c6 → c7, seg B
+  c7 → c8, finalize half c8 → c9 (`laneB-t1/t5/T1C`). Mutants 22 / 22 (9 new `done`-close).
+  `STMQ` / `STMA` for lane F: each dump's `htape.json` (tags 1→7, 7→7, 7→8, 8→3; rests from `m14`).
+
 **Lane B status (B-T4, 2026-11-25) [K][M]** (`m5a/README` §B-T4; log
 [`e2e-bt4-state-2026-11-25.md`](../logs/e2e-bt4-state-2026-11-25.md)):
 * **`stD .none` published**: `StNone.stD_none_eq`; for `stViewE` the kernel-evaluated constant

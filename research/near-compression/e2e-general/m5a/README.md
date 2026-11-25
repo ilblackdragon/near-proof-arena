@@ -4,6 +4,98 @@ Plan: `docs/zk-formal/E2E-GENERAL-CHUNK-PLAN.md` §3.2 (the `stRoot` working set
 Date 2026-11-03. Labels: **[M]** measured here, **[K]** kernel-checked Lean (std axioms),
 **[S]** stated / design only.
 
+## B-T5 (sixteenth session, 2026-11-25): the `done` close (finding M14-1) and the re-proof on lane E's M14 cuts
+
+Log `docs/logs/e2e-bt5-state-2026-11-25.md`. Plan §3.5 ("Lane B status (B-T5)"); tracker
+`docs/zk-formal/E2E-T1-CRITICAL-PATH.md` §2. Nothing here changes `S`, `claimDigest` or the checker;
+the one circuit change (the `done` mode of lane B's own `STC` table) is the fix lane E's finding
+M14-1 asks for.
+
+### Item 1: `STC`'s `done` mode [K][M]
+
+At `done` the view's state component has no overlay, so `c9`'s commitment is
+`⟨3, empty depth-24 root, wsLen 0, trie 0^32, idx, rest⟩` — B-T4's finalize half and the IF closed
+`close c R_n mo` instead (wsLen 17, trie kept), a record no `StV` commits to.
+
+* **AIR (`Stc.lean`, `Stc.modeEqs`, all degree 2, ungated)**: columns `fin`, `tinv`, `om` (40);
+  `bool fin`, `fin · (ot − 3) = 0`, `(ot − 3) · tinv = act − fin` — **`fin = 1` exactly when the
+  engine's output tag is `3`** (not the prover's choice); the output's `ws` limbs equal the public
+  `R_out` only in the step mode (`(act − fin) · (R_out − w)`), in the `done` mode its bytes are the
+  constant `emptyB` (`zeroDig 24` = `d8b364ef…`, = `m14.ws_empty`); the output's bytes 49–88
+  (`u64 wsLen ‖ trie`) are `om = (act − fin) · b` (the input's, or `0`); `idx` (89–96) shared. `om` is
+  byte-looked-up with the other byte columns.
+* **Lean**: `StHalfC.closeFin`, **`StcOKFin`** (the opening as in `StcOKT`, `mo.tag = 3`, output =
+  the no-overlay record), **`StcOKM`** (step mode with `mo.tag ≠ 3` ∨ `done` mode), `stcOKM_step` /
+  `stcOKM_fin`; **`StepRelFin`** + **`st_step_fin`** (from `StcOKFin` with `E = wsRoot P []`: every
+  state committed by the input `stRoot` whose `done` successor is `v'` has `v'` committed by the
+  output, or `Sha384Coll`; no working-set rows needed), `stepRelFin_noOvl` / `ovlOf_done` (lane B's
+  view: no overlay ⇒ `wsOfB = []`, trie hash `0^32`), **`stHalf_fin_inst`** (`StHalfRel` of the
+  finalize leaf, `W` = `stRoot` both sides, `HoldsStFin`). Circuit: `StcRow` (`fin01`, `fin_tag`,
+  `step_tag`, `om_val`, `ow_fin`, `wsO` now in the step mode), `StcSound` (`ser_closeFin`,
+  **`stc_row_okM`**, **`stc_holdsM`**, `stc_holdsFin`, `stc_segFin`, **`stHalf_segFin`**,
+  **`stc_ifc`** = the `done` mode for `m5tIFC`, `stc_ifcM`); the step-mode theorems (`stc_holds`,
+  `stc_holdsT`, `stc_seg`, `stHalf_seg`, `holdsSt_seg`, `SegLeavesN.stHalf_segN`) take
+  `(decM qv).tag ≠ 3`. Axioms `logs/BT5-axioms.txt` (std only).
+* **The `R_n` link (FinHalfB)**: `c9` no longer carries `R_n`. The IF-FINAL's input root (the IF's
+  public values 35–52) is `c8`'s working set — `FinPre`'s state — which the finalize leaf's `STC`
+  opens with `ws = R_in` (its values 17–34): lane D joins IF.35–52 = finalize.17–34 (a public-value
+  equality, like `prev_state_root`); `chain.leaf_table` checks it. The post-state root the IF proves
+  enters `c9` through `out.root` in `rest` (lane F's finalize engine half).
+
+### Item 2: the position tag
+
+Lane B's AIRs never read the tag's value except for the mode (`ot = 3`); `STC` passes `tag_in` /
+`tag_out` through `STMA` / `STMQ`. `StPosOK` (1 or 4–9) is lane E's M14 change of `StHalfC` (no AIR
+change; the enter leaf's check is lane F's). `stc-meta.json` = the M14 tags 1 → 7 → 7 → 8 → 3.
+
+### Item 3: re-proved on the M14 cuts [M]
+
+`t1cut/stc_check.py OUT` compares every `STC` input / output with `m14`: **all five equal**
+(`r_in` / `r_out` = the cuts' `stRoot`, tags, rests; `c9` recomputed as
+`bdigest ⟨3, empty, 0, 0^32, 0, rest⟩` = `82205155…`).
+
+| leaf | cut | tags | `r_in` → `r_out` |
+|---|---|---|---|
+| IF (`m5tIFC`) | c1 / c9 | 1 → 3 (done mode) | `2940b6dd…` → `82205155…` |
+| STATE seg A | c1 → c2 | 1 → 7 | `2940b6dd…` → `5a9d5644…` |
+| RT resume, state half | c6 (= c2) → c7 | 7 → 7 | `5a9d5644…` → `4ee7c62e…` |
+| STATE seg B | c7 → c8 | 7 → 8 | `4ee7c62e…` → `0ecab495…` |
+| finalize, state half | c8 → c9 | 8 → 3 (done mode) | `0ecab495…` → `82205155…` |
+
+**Proved on T1 at S** (`logs/BT5-T1-prove.txt`; 8 threads, `HEAVY_MEM=8G`, one at a time, between
+lane D's tree runs and lane F's proofs), native verify + statement check OK, **`m8-import` OK** for all
+five (`t1cut/import.sh` with lane D's `bin-m9`: `state-if`, `state-a`, `state-resume`, `state-b`,
+`state-fin`), 268.2 bits; `leaf_chain.py`: **LEAF CHAIN OK** (`R_0 → R_A → R_n → R_n → R_n` = the IF's
+`R_n`, post root = the Lean oracle's):
+
+| leaf | proof (B-T4) | prove | peak RSS |
+|---|---|---|---|
+| IF (`m5tIFC`) | **594,128 B** (592,280) | 32.2 s | 7.77 GiB |
+| STATE seg A | **512,232 B** (510,342) | 26.4 s | 7.33 GiB |
+| RT resume, state half | **510,132 B** (509,250) | 25.7 s | 7.29 GiB |
+| STATE seg B | **510,678 B** (509,502) | 29.6 s | 7.29 GiB |
+| finalize, state half | **510,804 B** (509,460) | 28.1 s | 7.29 GiB |
+
+(+≈1.9 KB each: the 42 new `STC` columns.) The four segments share one vk (`011321fa…`), IF
+`9ca9677e…`. Saved **`/data/illia/nearproof-deps/laneB-t1/t5/T1C/{if,seg0,…,seg3}/out/`** (`STATE.proof`,
+`STATE.vk.json`, `statement.json`, `htape.json`) and `…/T1C/tmpl/<name>/` (`SHA256SUMS`); the dumps and
+`air/` there are lane D's `LANE_B_DUMPS`. **Against `chain.py`** (`leaf_table`): all five rows equal the
+chain digest for digest (`h(c1)` `6a39043b`, `h(c2)` `1a491f96`, `h(c6)` `05601a54` → `h(c7)`
+`46558b74`, `h(c8)` `58bd7101`, `h(c9)` `a4522258`), every check ✓ incl. the finalize leaf's `R_in` = the
+IF's `R_n`; `test_chain_saved_leaves` now requires it. **`STMQ` / `STMA` vs lane F's M14 dumps**
+(`m5t1/stmcheck.py` against `tmp-laneF/f7`, in progress): 8 / 8 EQUAL, incl. the finalize leaf's
+`tag_out = 3` and `c9`'s `done` record (`logs/BT5-stmcheck.txt`).
+
+**Mutants** (`t4_mutants.sh … check`, `logs/BT5-mutants-check.txt`): **22 / 22 rejected** — B-T4's 13
+and 9 new `done`-close mutants: `finold0` / `iffinold0` (tag 3 closed as B-T4's `close c R_n` with
+`fin = 0`: the `tinv` equation), `finold1` / `iffinold1` (the same record with `fin = 1`: `ow ≠
+emptyB`), `finws` / `iffinws` (`ws = R_n`), `finlen` / `iffinlen` (wsLen / trie kept: `om`),
+`finstep` (seg B's tag 8 closed in the `done` mode: `fin · (ot − 3)`).
+
+### Item 4 (`SegLeavesN`'s content half): not done
+
+`LastNew` / `Untouched` from `Holds` stay open (B-T3 item 3).
+
 ## B-T4 (fifteenth session, 2026-11-25): lane B's T1 leaves chain — `stD .none`, the IF's openings, the STATE cut at the `rt` boundaries
 
 Log `docs/logs/e2e-bt4-state-2026-11-25.md`. Plan §3.5 ("Lane B status (B-T4)"); tracker
