@@ -113,8 +113,11 @@ cells and the tree 12 leaves (9 + 3 PAD_L). PREP's leaf program root is `7688789
 * A byte → limb record source so the rt leaves' `claimDigest` bytes are tied to `ctx`.
 * A run-independent setup.
 * Node memory: 32 GB, cheaper PAD_N.
-* The Fib-fixture end-to-end test on `pq-e2e-m9` (`htree_spec_checks` passes; the end-to-end test
-  was killed at a 14G cap).
+
+**Tests on `pq-e2e-m9`** (`results/zk/m9/tests/`, `tests_m8.sh` with `NEARPROOF_PQ_DEPS`, 34G cap; the
+end-to-end test was OOM-killed at 14G and at 26G): `htree_spec_checks` (with the new phase-code
+refusals: doneG input, unknown code), `htree_fib_end_to_end` (5 positives, the 10 constraint-level
+negatives rejected, wrap OK), `tree_d9_wrap_set_debug`, agg / tree 6/6: all pass.
 
 ## 0.1 Update 2026-11-21, milestone M8 (lane E2E-D): the heterogeneous tree — a generic template leaf, real T1 leaves of lanes A and B aggregated under one wrap
 

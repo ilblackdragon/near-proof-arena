@@ -1128,7 +1128,8 @@ items above.
 * The joint INIT / FINAL leaves (`PSR` / `FINB` buses).
 * A run-independent setup.
 * Node memory and PAD_N cost.
-* The Fib-fixture end-to-end test re-run on `pq-e2e-m9`.
+
+The Fib-fixture tests pass on `pq-e2e-m9` (`results/zk/m9/tests/`).
 
 ### 5.0-M8 Lane D: status, 2026-11-21 (milestone M8, heterogeneous tree; prototype)
 
