@@ -105,7 +105,15 @@ only on `SRNG`. The B-T1 battery (23 mutants) re-run at `m5tSegC`: 23/23 rejecte
 
 ### Proofs
 
-PROOFS_PLACEHOLDER
+**Not re-proved this session.** Lane D's `m8-tree` prover held the box the whole session (≤ 5 G
+rule); a `m5tSegC` segment proof needs ~7.6 GB (B-T1b: 7.6 GB peak for `m5tSeg`) and an attempt under
+`HEAVY_MEM=5G` was killed after keygen. Everything above is pre-checked (every constraint, every
+bus, on T1's real traces). To re-prove in lane D's leaf format (saved `STATE.proof`,
+`STATE.vk.json`, `statement.json` per dump, `m8-import`):
+`TARGET_DIR=… HEAVY_MEM=12G ./leaf.sh STATE_JSON OUT templates/S.json prove` (STATE leaf at
+`m5tSegC`; the IF leaf's AIR is unchanged), and the HOST segment with
+`--host --host-join join/t1-laneA-storage-write.json`. Lane D's STATE_SEG template spec must bind
+the new `HTAPE` root (it now carries `STMQ`/`STMA`) — the leaf's public values are unchanged.
 
 ## B-T2 (thirteenth session, 2026-11-25): lane B's half of the STATE split, the `stRoot` interface for lane F, the HOST join
 
