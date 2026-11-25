@@ -402,7 +402,7 @@ SAVED = {
     "STATE": f"{DEPS}/laneB-t1/t1b/T1S/seg0/out",
     "RT enter": f"{DEPS}/e2e-m5t1/f3/enter-proof",
     "PREP": f"{DEPS}/e2e-laneA/at4/prep/leaf",
-    "WASM": f"{DEPS}/e2e-laneA/at2/leaf-k13p/leaf",
+    "WASM": f"{DEPS}/e2e-laneA/at5/leaf-k13/leaf",
     "RT resume": f"{DEPS}/e2e-m5t1/f4/resume-proof",
     "FINAL": f"{DEPS}/e2e-m5d/g3/tmpl/final",
 }
@@ -478,7 +478,7 @@ def leaf_table(c, inp, saved=SAVED):
                      "checks": chk, "in_equal": None, "out_equal": None,
                      "owner": "A: PREP's B_in / B_out are not public (`.pre` record from enter, `.ent` = airBnd of the entry); PrepRest; the 42-B root packing; D: insert PREP between enter and WASM 0",
                      "why": "binds the .pre codeRoot cells and the out roots only; the rest of the .ent record is free in lane D's tree"})
-    # WASM segments (A-T2)
+    # WASM segments (A-T5: stackRem / gasLeft public, the halting segment emits the fin record)
     p = saved["WASM"]
     if ex(p):
         for k in range(2):
@@ -486,17 +486,30 @@ def leaf_table(c, inp, saved=SAVED):
             b = seg_publics(pj["pubs"], inp["call"]["R"])
             wf = pj["wasm_fields"]
             cr, fr = root42(wf["code_root_words"]), root42(wf["func_root_words"])
+            at5 = "gas_left_out" in wf
+            # the in-record's stackRem / gasLeft are the previous leaf's out (bound there); the
+            # out-record's are the leaf's publics (A-T5), or the fin record for a halting segment
             w_in = wasm_air(b["in"], cr, fr, wf["stack_rem_in_unbound"])
-            w_out = wasm_air(b["out"], cr, fr, wf["stack_rem_out_unbound"])
+            if wf.get("out_record") == "fin":
+                w_out = wasm_fin()
+            else:
+                w_out = wasm_air(b["out"], cr, fr, wf["stack_rem_out"] if at5 else wf["stack_rem_out_unbound"])
+                if at5:
+                    w_out["gasLeft"] = wf["gas_left_out"]
             plan_in, plan_out = c[4 + k]["wasm"], c[5 + k]["wasm"]
             d_in, d_out = _fdiff(w_in, plan_in, "wasm."), _fdiff(w_out, plan_out, "wasm.")
-            rows.append({"leaf": f"WASM seg {k} (A-T2)", "path": f"{p}/seg-{k}.proof",
-                         "exposes": "105 segment publics (pc, sb, clock, gas, ctxDigest, memRoot, depth, nblk) + cached CODE / FUNC",
+            dg_in = bndrec.digest(dict(c[4 + k], wasm=w_in)).hex()
+            dg_out = bndrec.digest(dict(c[5 + k], wasm=w_out)).hex()
+            rows.append({"leaf": f"WASM seg {k} ({'A-T5' if at5 else 'A-T2'})", "path": f"{p}/seg-{k}.proof",
+                         "exposes": "117 segment publics (pc, sb, clock, gas register, ctxDigest, memRoot, depth, nblk; A-T5: "
+                                    "stackRem halves, g_out limbs, R bytes) + cached CODE / FUNC"
+                                    + ("; out-record = the fin record" if wf.get("out_record") == "fin" else ""),
                          "diff_in": d_in, "diff_out": d_out, "in_equal": not d_in, "out_equal": not d_out,
-                         "owner": "A" + (": the halting segment must end at lane A's fin record fbBnd (q, .fin r) (lane F's resume reads it); " if k == 1 else ": ")
-                                  + "airBnd must set gasLeft = s.gas.g (M11i); vmCtxDigest / fuel / stackRem not public",
-                         "why": "the Wasm part matches the plan where public; the leaf exposes no BndRec (lane D assembles W cells)"
-                                + ("; out: the AIR's halted state ≠ the view's `.fin r` record" if k == 1 else "")})
+                         "d_in": dg_in, "d_out": dg_out,
+                         "d_in_equal": dg_in == bndrec.digest(c[4 + k]).hex(), "d_out_equal": dg_out == bndrec.digest(c[5 + k]).hex(),
+                         "owner": "A: vmCtxDigest, fuel not public (placeholders shared with the chain); the 42-B packing of the "
+                                  "cached CODE / FUNC commitment",
+                         "why": "the Wasm part matches the plan field by field; the leaf exposes no BndRec (lane D assembles W cells)"})
     # RT resume (F-4)
     p = saved["RT resume"]
     if ex(p):

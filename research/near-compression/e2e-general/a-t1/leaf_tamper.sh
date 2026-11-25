@@ -18,10 +18,15 @@ try "proof 1 truncated by one byte" "
 b=open('X/seg-1.proof','rb').read(); open('X/seg-1.proof','wb').write(b[:-1])"
 try "proofs swapped (seg-0 <-> seg-1, public files kept)" "
 import os; os.rename('X/seg-0.proof','X/t'); os.rename('X/seg-1.proof','X/seg-0.proof'); os.rename('X/t','X/seg-1.proof')"
-for idx in 11 12 13 31 67 85 8; do
+for idx in 11 12 13 31 67 85 8 108 109 110 113 114; do   # A-T5: 108/109 stackRem, 110-113 g_out, 114 R byte
 try "seg-1 public value [$idx] + 1 (proof unchanged)" "
 import json; p=json.load(open('X/seg-1.pubs.json')); p['pubs'][$idx]+=1; json.dump(p,open('X/seg-1.pubs.json','w'))"
 done
+# A-T5: the halting segment's out-record kind (the fin record) is part of the leaf's statement
+try "seg-1 out_record 'fin' -> 'air' (halting segment claims the AIR state)" "
+import json; p=json.load(open('X/seg-1.pubs.json')); p['wasm_fields']['out_record']='air'; json.dump(p,open('X/seg-1.pubs.json','w'))"
+try "seg-0 out_record 'air' -> 'fin' (a cut claims the fin record)" "
+import json; p=json.load(open('X/seg-0.pubs.json')); p['wasm_fields']['out_record']='fin'; json.dump(p,open('X/seg-0.pubs.json','w'))"
 try "vk: one WHIR query fewer in round 0" "
 import json; v=json.load(open('X/SEG.vk.json'))
 def walk(o):

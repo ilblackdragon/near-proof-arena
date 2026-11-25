@@ -85,7 +85,19 @@ def pubMemIn : Nat := 67
 def pubMemOut : Nat := 85
 def pubDepth : Nat := 103
 def pubNblk : Nat := 104
-def numPub : Nat := 105
+/-! A-T5 (2026-11-25): the out-boundary's stack budget and gas register as public values (after
+`wasmBaseSegAirG`'s 105–107, which stay reserved).
+* `pubRemLo`, `pubRemHi` (108, 109): the halves `[rem mod 2^16, rem / 2^16]` of the stack budget
+  message (space 5) that `CUTO` hashes (`k5 · (F₃ − rem_lo)`, `k5 · (F₄ − rem_hi)`);
+* `pubGOut` (110–113): the four 16-bit limbs of `g_out = segb_out − R·(S_out − S_seg,out)`, the
+  spec's `s.gas.g` at the out-cut (`SEGB`'s gas gadget below);
+* `pubRop` (114–116): the three bytes of `R = regularOpCost` the gadget multiplies by (a wrapper
+  check pins them to the template's constant). -/
+def pubRemLo : Nat := 108
+def pubRemHi : Nat := 109
+def pubGOut : Nat := 110
+def pubRop : Nat := 114
+def numPub : Nat := 117
 
 /-- The chip's limbs of a 64-bit word. -/
 def wl (x : Nat) : List Nat := [x % 2 ^ 21, x / 2 ^ 21 % 2 ^ 21, x / 2 ^ 42]
@@ -124,7 +136,11 @@ def sumE (l : List Expr) : Expr := l.foldl (· + ·) 0
 /-! ## SEGB: the boundary row (height 4, interactions on the first row) -/
 
 namespace Segb
-def cols : List String := ["cidf", "m0", "gtpf", "nbt"]
+/-- A-T5: `gd0 … gd29` are the bits of `d = S_out − S_seg,out` (bytes `δ₀ δ₁ δ₂` of 8 bits, `δ₃` of
+6, so `d < 2^30 < P`); `gc0 … gc32` the bits of the three 11-bit carries of the gas gadget. -/
+def gdN : Nat := 30
+def gcN : Nat := 33
+def cols : List String := ["cidf", "m0", "gtpf", "nbt"] ++ names "gd" gdN ++ names "gc" gcN
 def c (n : String) : Expr := v (ix cols n)
 def pubs (b n : Nat) : List Expr := (List.range n).map fun i => pv (b + i)
 def inters : List Inter :=
@@ -137,7 +153,38 @@ def inters : List Inter :=
    chRecv (Expr.c spaceGas) 0 (pv pubSsegOut) (pubs pubGbOut 4) (c "gtpf") .first,
    ⟨busRch, true, .first, [0] ++ pubs pubMemIn 18⟩,
    ⟨busRch, false, .first, [c "nbt"] ++ pubs pubMemOut 18⟩]
-def table : Table := ⟨"SEGB", cols, [], inters⟩
+/-! ### A-T5: the gas gadget (`g_out + R·d = segb_out`, all in 16-bit limbs)
+
+Every row of `SEGB` repeats the gadget's columns (the honest prover fills all four rows alike), so
+the constraints need no selector and stay of degree 2.  With `ρᵢ` the bytes of `R` (publics
+`pubRop + i`), `δₘ` the bytes of `d` and `gₖ`, `Bₖ` the 16-bit limbs of `g_out`, `segb_out`:
+
+* `δ₀ + 2^8 δ₁ + 2^16 δ₂ + 2^24 δ₃ = S_out − S_seg,out`;
+* `gₖ + Uₖ + c_{k−1} = Bₖ + 2^16 cₖ` for `k = 0 … 3` (`c_{−1} = c₃ = 0`), where `Uₖ` collects the
+  byte products `ρᵢ δₘ` of weight `2^{16k}` and `2^{16k+8}`:
+  `U₀ = ρ₀δ₀ + 2^8(ρ₀δ₁ + ρ₁δ₀)`, `U₁ = ρ₀δ₂ + ρ₁δ₁ + ρ₂δ₀ + 2^8(ρ₀δ₃ + ρ₁δ₂ + ρ₂δ₁)`,
+  `U₂ = ρ₁δ₃ + ρ₂δ₂ + 2^8 ρ₂δ₃`, `U₃ = 0`.
+
+So `Σₖ 2^{16k} Uₖ = R·d` and the limb equations sum to `g_out + R·d = segb_out` (no wrap: each side
+of a limb equation is `< 2^28`, `WasmBase.Main.SegGasRem`). -/
+def bitsAt (p : String) (off len : Nat) : Expr :=
+  sumE ((List.range len).map fun j => Expr.c (2 ^ j) * c s!"{p}{off + j}")
+def dB (m : Nat) : Expr := if m < 3 then bitsAt "gd" (8 * m) 8 else bitsAt "gd" 24 6
+def cK (k : Nat) : Expr := bitsAt "gc" (11 * k) 11
+def rho (i : Nat) : Expr := pv (pubRop + i)
+def gL (k : Nat) : Expr := pv (pubGOut + k)
+def bL (k : Nat) : Expr := pv (pubGbOut + k)
+def U0 : Expr := rho 0 * dB 0 + 256 * (rho 0 * dB 1 + rho 1 * dB 0)
+def U1 : Expr := rho 0 * dB 2 + rho 1 * dB 1 + rho 2 * dB 0 + 256 * (rho 0 * dB 3 + rho 1 * dB 2 + rho 2 * dB 1)
+def U2 : Expr := rho 1 * dB 3 + rho 2 * dB 2 + 256 * (rho 2 * dB 3)
+def gasD : Expr := dB 0 + 256 * dB 1 + 65536 * dB 2 + 16777216 * dB 3 - (pv pubSOut - pv pubSsegOut)
+def gas0 : Expr := gL 0 + U0 - bL 0 - 65536 * cK 0
+def gas1 : Expr := gL 1 + U1 + cK 0 - bL 1 - 65536 * cK 1
+def gas2 : Expr := gL 2 + U2 + cK 1 - bL 2 - 65536 * cK 2
+def gas3 : Expr := gL 3 + cK 2 - bL 3
+def constraints : List Expr :=
+  (names "gd" gdN ++ names "gc" gcN).map (fun s => bool (c s)) ++ [gasD, gas0, gas1, gas2, gas3]
+def table : Table := ⟨"SEGB", cols, constraints, inters⟩
 end Segb
 
 /-! ## RET with the tombstone -/
@@ -417,7 +464,10 @@ def constraints : List Expr :=
    (1 - k4) * c "mm",
    act * n "act" * c "same" * (Fn 0 - F 0),
    act * n "act" * (c "same" * (Fn 1 - F 1 - 1) + (1 - c "same") * (Fn 0 - F 0 - 1) - c "dlo" - 65536 * c "dhi"),
-   k4 * n "k4" * (n "slot" - c "slot" - 1 - c "rlo" - 65536 * c "rhi")]
+   k4 * n "k4" * (n "slot" - c "slot" - 1 - c "rlo" - 65536 * c "rhi"),
+   -- A-T5: the stack budget (the one space-5 message) is public
+   c "k5" * (F 3 - pv pubRemLo),
+   c "k5" * (F 4 - pv pubRemHi)]
 def inters : List Inter :=
   let act := c "act"; let kL := c "kL"; let k4 := c "k4"
   [chRecv (c "space") (c "slot") (F 2) [F 3, F 4, c "x2", F 6] (c "tp") act,

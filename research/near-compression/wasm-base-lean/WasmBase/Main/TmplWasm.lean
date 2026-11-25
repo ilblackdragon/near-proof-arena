@@ -1,4 +1,5 @@
 import WasmBase.Main.SegCallSigma
+import WasmBase.Main.SegGasRem
 import WasmBase.Main.WasmView
 import WasmBase.Main.SegStore
 import NearSpecV3.E2E.Templates
@@ -28,8 +29,9 @@ leaf wrapper's two witnessed boundary records `bIn`, `bOut` (plan §5.0.1.4 step
   `mem_in`), `memPages` (`nblk = 64·memPages`, `depth = bitlen (max nblk 2 − 1)`) equal to the
   segment's in-publics (`WIn`); the out-part's `pc`, `sp`, `framesDigest`/`globalsDigest`/
   `registersDigest` (`ctx_out`), `memRoot` (`mem_out`), `memPages`, `promisesDigest = bdigest []`,
-  `fuel_out + (t_out − t_in) = fuel_in`, and `codeRoot`/`funcRoot` carried from `bIn` (`WOut`); and
-  a non-empty segment `t_in < t_out`.
+  `fuel_out + (t_out − t_in) = fuel_in`, and `codeRoot`/`funcRoot` carried from `bIn`; **A-T5:**
+  `gasLeft` = the public `g_out` (`SEGB`'s gas gadget), `stackRem` = the public budget (`CUTO`'s
+  space-5 row), the range checks on the gas publics (`GasPubOK`) (`WOut`); and a non-empty segment.
 * **`SegPremAMP`** — the AIR (`HoldsX (wasmBaseSegAirMP …)`) and lane A's named per-segment premises,
   unchanged (the σ-pinned host contract, `CodeOK`/`FuncOK`, gas thread, chip interface, bounds).
 * **`StaticOK`** — static facts of the ghost context: `hstepgas`, `hg64` (as in `seg_chain_all_mp`),
@@ -37,7 +39,13 @@ leaf wrapper's two witnessed boundary records `bIn`, `bOut` (plan §5.0.1.4 step
 * **the in-opening ghost** (`win`): `bIn.wasm = wasmD P (some (q, .ent p k (.cont s) n0))` for ghost
   `q p k s n0` — the in-record's Wasm part is the view of a running entry;
 * **`CutSeed`** — the honest-cut facts about that ghost state that the record does not carry;
-* **`RestOK`** — the out-record's two fields the segment's publics do not determine.
+* **`RestOK`** — the out-record's remainder digest, and the gas-thread pin at `t_out + 1` (A-T5);
+* **`rop`** (A-T5) — the public `R` bytes are the context's `regularOpCost` (template constant).
+
+**A-T5, the halting segment (§9):** `WasmHoldsF` — the wrapper `LeafWF` (status `∈ {1, 2}`,
+`n ≤ fuel_in`, the out-record is the fin record `WOutFin`), `SegPremHMP`, `meth : k = .method`,
+`FinRest` (the fin record's `vmCtxDigest`); `wasm_fin_core`, `wasm_relC_fin`,
+`segSoundWasmFinRelC_of`, the two-kind system `airsWF` / `segSoundWasmRelC_airsWF`.
 
 ## 2. What is proved
 
@@ -81,10 +89,13 @@ leaf wrapper's two witnessed boundary records `bIn`, `bOut` (plan §5.0.1.4 step
   `σ (t_in + 1) := sideR s`), `memIn` (the 48-byte `mem_in` public is `memRootOf s`; the record has
   only 42 bytes and the AIR's root can be a stub when no memory is touched, so the 42→48 lift is not
   derivable from the AIR; for `ctx_in` it is: `pubDigIs_of_42` with `cuti_streamS`).
-* `RestOK` (out-side): `wo.stackRem = sN.stackRem` (the stack budget is in the hashed view but not a
-  public) and `wo.vmCtxDigest` = the remainder digest of `sN` (`blank sN` contains `gas.g` and the
-  register-id order, which move inside a segment: m6 §6; with the σ-thread the remainder is a
-  function of the host side, produced by the state side at HOST rows, M6.4).
+* `RestOK` (out-side, A-T5): `wo.vmCtxDigest` = the remainder digest of `sN` (`blank sN` no longer
+  contains `gas.g`, m6 §6.2; it still contains the register-id order and the host side, produced by
+  the state side at HOST rows, M6.4), and the **gas pin** `sg (t_out + 1) = (S_seg,out, segb_out)`:
+  the AIR binds the public out gas register to the channel's last space-7 message (`SEGB`'s receive;
+  tamper "S_seg_out+1 re-solved"), but `RelW` does not interpret space-7 messages, so the link to the
+  ghost thread `sg` is named.  `stackRem` and `gasLeft` are public values (A-T5): `cuto_rem_sound`,
+  `segb_gas_sound` (`Main/SegGasRem.lean`).
 * View side conditions: `ClearCall V` (the clear fields are constant inside a call: the leaf copies
   them), `CtxOK P` (`ctxOf q p k = some X → X.p = p ∧ X.cfg = q.cfg`), `hV : V.wasmD = wasmD P`, and
   (relative form) `∀ x, (V.bnd x).WF`.
@@ -243,8 +254,12 @@ structure WOut (pub : List F) (wi w : WasmBnd) : Prop where
   pc : w.pc = (pub.getD pubPcOut 0).toNat
   sp : w.sp = (pub.getD pubSbOut 0).toNat
   fuel : w.fuel + segLenP pub = wi.fuel
-  /-- `gasLeft` is `0` until lane A's `WasmView` sets it (`WasmBnd.gasLeft`, M11i). -/
-  gas : w.gasLeft = 0
+  /-- A-T5: `gasLeft` is the public `g_out` (`SEGB`'s gas gadget, `SegGasRem.segb_gas_sound`). -/
+  gas : w.gasLeft = gOutN pub
+  /-- A-T5: the wrapper's range checks on the gas publics (`g`/`segb` limbs, `R` bytes). -/
+  gok : GasPubOK pub
+  /-- A-T5: `stackRem` is the public budget (`CUTO`'s space-5 row, `SegGasRem.cuto_rem_sound`). -/
+  rem : w.stackRem = remN pub
   fd : PubDig42 pub pubCtxOut w.framesDigest
   gd : w.globalsDigest = w.framesDigest
   rd : w.registersDigest = w.framesDigest
@@ -302,12 +317,16 @@ structure CutSeed (Pv : WasmViewParams) (tr : WTr) : Prop where
   pin : sideR tr.s = tr.σ (tr.seg.tIn + 1)
   memIn : MemRootIn tr.seg.pub tr.s
 
-/-- **The named out-rest**: the out-record's stack budget and remainder digest are those of the
-segment's successor state (no public carries them). -/
+/-- **The named out-rest** (A-T5): the gas thread passes through the public out gas register
+(`(S_seg, segb)` at `t_out + 1` are the publics `pubSsegOut`, `pubGbOut`: the honest thread is the
+register, but the channel's space-7 messages are not tied to the ghost thread `sg` by `RelW`), and
+the out-record's remainder digest is the successor's (no public carries it).  `stackRem` and
+`gasLeft` are no longer here: they are public values (`WOut.rem`, `WOut.gas`). -/
 def RestOK (Pv : WasmViewParams) (tr : WTr) : Prop :=
+  ((tr.sg (tr.seg.tOut + 1)).1 = (tr.seg.pub.getD pubSsegOut 0).toNat ∧
+    (tr.sg (tr.seg.tOut + 1)).2 = gbOutN tr.seg.pub) ∧
   ∀ sN wo, NearSpecV3.Wasm.seg tr.X.toCtx.cfg tr.X.toCtx.p tr.seg.n tr.s = .cont sN →
-    tr.bOut.wasm = some wo →
-    wo.stackRem = sN.stackRem ∧ wo.vmCtxDigest = bdigest (Pv.encRest (.air tr.q tr.p tr.k (blank sN)))
+    tr.bOut.wasm = some wo → wo.vmCtxDigest = bdigest (Pv.encRest (.air tr.q tr.p tr.k (blank sN)))
 
 /-- **Lane A's Wasm-template predicate** (module §1). -/
 structure WasmHolds (Pv : WasmViewParams) (d d' : ArenaCore.Bytes) (tr : WTr) : Prop where
@@ -317,6 +336,10 @@ structure WasmHolds (Pv : WasmViewParams) (d d' : ArenaCore.Bytes) (tr : WTr) : 
   win : tr.bIn.wasm = wasmD Pv (some (tr.q, .ent tr.p tr.k (.cont tr.s) tr.n0))
   seed : CutSeed Pv tr
   rest : RestOK Pv tr
+  /-- A-T5 (named, static): the public `R` bytes are the call context's `regularOpCost`.  The
+  wrapper checks them against the template's constant (T1: 822,756); this premise says the template
+  is used for calls with that constant (the context is pinned by the in-record, `CutSeed.ctx`). -/
+  rop : ropN tr.seg.pub = tr.X.toCtx.R
 
 /-- `wasmHolds Pv : Bytes → Bytes → Tr → Prop`, lane E's `Airs.Holds .wasm` shape. -/
 def wasmHolds (Pv : WasmViewParams) : ArenaCore.Bytes → ArenaCore.Bytes → WTr → Prop := WasmHolds Pv
@@ -399,15 +422,17 @@ theorem segN_eq {X : M2Ctx} {nloc ngl : Nat} {sg : Nat → Nat × Nat} {σ : Nat
 
 /-- **The first segment's in-relation at a mid-call cut** (the analogue of `entry_inSA_mp`): the
 leaf's in-checks on an AIR-branch record of the ghost state, with the named seed, give `InSA`. -/
-theorem cut_inSA (Pv : WasmViewParams) {d d' : ArenaCore.Bytes} {tr : WTr} (hh : WasmHolds Pv d d' tr)
+theorem cut_inSA' (Pv : WasmViewParams) {tr : WTr}
+    (hH : HoldsX (wasmBaseSegAirMP tr.nloc tr.ngl) tr.seg.pub tr.seg.tr)
+    (hCC : SegSha.ChipIf SegSha.compressW (wasmBaseSegAirMP tr.nloc tr.ngl) tr.seg.pub tr.seg.tr tr.seg.chip)
+    (hD30 : Dn tr.seg.pub ≤ 30) (hseed : CutSeed Pv tr)
     {wi : WasmBnd} (hwi : wi = airBnd Pv tr.q tr.X.toCtx tr.p tr.k tr.s tr.n0) (hin : WIn tr.seg.pub wi)
     (hD : InDom tr.X.toCtx tr.s) :
     Sha384Coll ∨ InSA tr.X tr.sg tr.σ tr.seg tr.s := by
   have hP := P_val
-  obtain ⟨-, hp, hst, -, hseed, -⟩ := hh
   obtain ⟨-, hbnd, hcid, hw, hpin, hroot⟩ := hseed
-  have H' := hp.H.toSMP
-  have hC' := SegSha.ChipIf.toSMP hp.H hp.hC
+  have H' := hH.toSMP
+  have hC' := SegSha.ChipIf.toSMP hH hCC
   have hvwf := hD.wf
   -- ctx_in: 42 → 48 bytes through CUTI's in-circuit digest
   obtain ⟨B, -, hdig, -⟩ := cuti_streamS H' hC'
@@ -423,7 +448,7 @@ theorem cut_inSA (Pv : WasmViewParams) {d d' : ArenaCore.Bytes} {tr : WTr} (hh :
     · rw [hin.nblk, hpg]; rfl
   rcases cuti_viewS H' hC' hvwf hctx with hc | hcuti
   · exact .inl hc
-  rcases MemRoot.seg_membIn_mp hp.H hp.hC hp.hD30 hG hroot with hmb | hc
+  rcases MemRoot.seg_membIn_mp hH hCC hD30 hG hroot with hmb | hc
   case inr => exact .inl hc
   obtain ⟨m, L0, hB⟩ := hbnd
   have hB0 := hB
@@ -454,6 +479,12 @@ theorem cut_inSA (Pv : WasmViewParams) {d d' : ArenaCore.Bytes} {tr : WTr} (hh :
   have hB' := seg_reentryS_bnd hnd hB H' hcuti hmb rfl rfl hm
   exact .inr ⟨⟨⟨hB', hw, initS_nodupS H' hw hvwf hcuti, hroot⟩, hG, hctx, hvwf⟩, hpin⟩
 
+theorem cut_inSA (Pv : WasmViewParams) {d d' : ArenaCore.Bytes} {tr : WTr} (hh : WasmHolds Pv d d' tr)
+    {wi : WasmBnd} (hwi : wi = airBnd Pv tr.q tr.X.toCtx tr.p tr.k tr.s tr.n0) (hin : WIn tr.seg.pub wi)
+    (hD : InDom tr.X.toCtx tr.s) :
+    Sha384Coll ∨ InSA tr.X tr.sg tr.σ tr.seg tr.s :=
+  cut_inSA' Pv hh.air.H hh.air.hC hh.air.hD30 hh.seed hwi hin hD
+
 /-! ## 4. The core: an opened in-record steps to an opened out-record -/
 
 /-- **The Wasm leaf's core soundness**: a leaf trace whose in-record is the view of the call
@@ -469,7 +500,7 @@ theorem wasm_core {V : ViewImpl} {Pv : WasmViewParams} (hV : V.wasmD = wasmD Pv)
         (.call I c K tr.q (.ent tr.p tr.k (.cont sN) m)) := by
   have hP := P_val
   have hh0 := hh
-  obtain ⟨hL, hp, hst, hwin, hseed, hrest⟩ := hh0
+  obtain ⟨hL, hp, hst, hwin, hseed, ⟨hpin, hvmR⟩, hrop⟩ := hh0
   obtain ⟨wi, wo, hwi, hwo, hin, hout⟩ := hL.wasm
   have hne := hL.ne
   have ewi : wi = wasmBnd Pv (tr.q, .ent tr.p tr.k (.cont tr.s) tr.n0) := by
@@ -515,12 +546,29 @@ theorem wasm_core {V : ViewImpl} {Pv : WasmViewParams} (hV : V.wasmD = wasmD Pv)
   have hk2' : k2 < tr.X.toCtx.nf := hk2 ▸ R2.kLt
   have hpcl : pc2 < (tr.X.toCtx.pfOf k2).code.size := by
     have := R2.pcLt; rw [hk2] at this; exact this
+  -- A-T5: the stack budget and the gas register from the out-publics
+  have hsr : wo.stackRem = sN.stackRem := by
+    rw [hout.rem]
+    exact cuto_rem_sound hp.H.toSMP hp.hl (seg_cutoView_AMP tr.X hst.stepgas hst.g64 hp hinS hseg)
+  have hgl : wo.gasLeft = sN.gas.g := by
+    have hg := R2.gas
+    have hlt := R2.segLt
+    rw [hpin.1, hpin.2] at hg
+    rw [hpin.1] at hlt
+    have hs := segb_gas_sound hp.H.toSMP hout.gok hlt
+    rw [hrop] at hs
+    rw [hout.gas]
+    have eS : tr.seg.SOut = (tr.seg.pub.getD pubSOut 0).toNat := rfl
+    rw [eS] at hg
+    generalize tr.X.toCtx.R * ((tr.seg.pub.getD pubSOut 0).toNat - (tr.seg.pub.getD pubSsegOut 0).toNat) = M
+      at hg hs
+    omega
   have ewo : wo = wasmBnd Pv (tr.q, .ent tr.p tr.k (.cont sN) (tr.n0 - tr.seg.n)) := by
     unfold wasmBnd; rw [hAN]
-    obtain ⟨hsr, hvm⟩ := hrest sN wo hseg hwo
+    have hvm := hvmR sN wo hseg hwo
     have hfdo := pubDig42_of_full hctxO hout.fd
     have hmro := pubDig42_of_full hroO hout.mr
-    refine wb_ext ?_ ?_ hsr ?_ (by rw [hout.gas]; rfl) hfdo hmro ?_ (by rw [hout.gd]; exact hfdo) (by rw [hout.rd]; exact hfdo)
+    refine wb_ext ?_ ?_ hsr ?_ (by rw [hgl]; rfl) hfdo hmro ?_ (by rw [hout.gd]; exact hfdo) (by rw [hout.rd]; exact hfdo)
       hvm hout.prom ?_ ?_
     · rw [hout.pc, hpc2, Fp.toNat_cast_of_lt (hst.off k2 pc2 hk2' hpcl)]
       show _ = gpc tr.X.toCtx (sN.frames.headD default)
@@ -754,17 +802,19 @@ theorem cutSeed_of_out {Pv : WasmViewParams} {tr : WTr} {d0 : SegD}
 /-- **`RestOK` holds for the honest out-record** (the view of the successor configuration). -/
 theorem restOK_honest {V : ViewImpl} {Pv : WasmViewParams} (hV : V.wasmD = wasmD Pv) {tr : WTr}
     {I : Intake} {c : EConf} {K : VmV} {sN' : St} {m : Nat}
+    (hpin : (tr.sg (tr.seg.tOut + 1)).1 = (tr.seg.pub.getD pubSsegOut 0).toNat ∧
+      (tr.sg (tr.seg.tOut + 1)).2 = gbOutN tr.seg.pub)
     (hseg : NearSpecV3.Wasm.seg tr.X.toCtx.cfg tr.X.toCtx.p tr.seg.n tr.s = .cont sN')
     (hA : airOf Pv (tr.q, .ent tr.p tr.k (.cont sN') m) = some (tr.X.toCtx, tr.p, tr.k, sN', m))
     (hb : tr.bOut = V.bnd (.call I c K tr.q (.ent tr.p tr.k (.cont sN') m))) : RestOK Pv tr := by
+  refine ⟨hpin, ?_⟩
   intro sN wo h hwo
   rw [hseg] at h
   cases h
   rw [hb] at hwo
   simp only [ViewImpl.bnd, split, hV, wasmD, Option.map_some, Option.some.injEq] at hwo
   subst hwo
-  unfold wasmBnd; rw [hA]
-  exact ⟨rfl, rfl⟩
+  unfold wasmBnd; rw [hA]; rfl
 
 /-- **The wrapper checks hold for the honest records** (`LeafW` is satisfiable): for an AIR-branch
 in-configuration `x` and its successor `x'`, with the segment's honest publics (the in/out
@@ -782,7 +832,8 @@ theorem leafW_honest {V : ViewImpl} {Pv : WasmViewParams} (hV : V.wasmD = wasmD 
     (hpcO : (pub.getD pubPcOut 0).toNat = gpc X (sN.frames.headD default))
     (hsbO : (pub.getD pubSbOut 0).toNat = (sN.frames.headD default).base)
     (hco : PubDigIs pub pubCtxOut (cutDigest (cutView X sN))) (hmo : MemRootOut pub sN)
-    (hG : MemGeom pub s) (hGN : MemGeom pub sN) :
+    (hG : MemGeom pub s) (hGN : MemGeom pub sN)
+    (hgO : gOutN pub = sN.gas.g) (hgok : GasPubOK pub) (hremO : remN pub = sN.stackRem) :
     LeafW (V.bnd (.call I c K q (.ent p k (.cont s) n)))
       (V.bnd (.call I c K q (.ent p k (.cont sN) (n - segLenP pub)))) pub
       (bndOf V.bnd (.call I c K q (.ent p k (.cont s) n)))
@@ -804,7 +855,8 @@ theorem leafW_honest {V : ViewImpl} {Pv : WasmViewParams} (hV : V.wasmD = wasmD 
     · rw [hG.2]; rfl
     · rw [hG.1, hG.2]; rfl
   · rw [hwi, hwo]
-    refine ⟨hpcO.symm, hsbO.symm, ?_, rfl, e42 hco, rfl, rfl, e42 hmo, ?_, rfl, rfl, rfl⟩
+    refine ⟨hpcO.symm, hsbO.symm, ?_, hgO.symm, hgok, hremO.symm, e42 hco, rfl, rfl, e42 hmo, ?_, rfl, rfl,
+      rfl⟩
     · show n - segLenP pub + segLenP pub = n
       omega
     · rw [hGN.2]; rfl
@@ -901,7 +953,11 @@ theorem wasmHolds_honest {V : ViewImpl} {Pv : WasmViewParams} (hV : V.wasmD = wa
     (hoN : OutSA tr.X tr.sg tr.σ tr.seg sN)
     (hn64 : tr.n0 < 2 ^ 64) (hpos : 0 < tr.seg.n) (hn : tr.seg.n ≤ tr.n0)
     (hbIn : tr.bIn = V.bnd (.call I c K tr.q (.ent tr.p tr.k (.cont tr.s) tr.n0)))
-    (hbOut : tr.bOut = V.bnd (.call I c K tr.q (.ent tr.p tr.k (.cont sN) (tr.n0 - tr.seg.n)))) :
+    (hbOut : tr.bOut = V.bnd (.call I c K tr.q (.ent tr.p tr.k (.cont sN) (tr.n0 - tr.seg.n))))
+    (hgO : gOutN tr.seg.pub = sN.gas.g) (hgok : GasPubOK tr.seg.pub) (hremO : remN tr.seg.pub = sN.stackRem)
+    (hpin : (tr.sg (tr.seg.tOut + 1)).1 = (tr.seg.pub.getD pubSsegOut 0).toNat ∧
+      (tr.sg (tr.seg.tOut + 1)).2 = gbOutN tr.seg.pub)
+    (hrop : ropN tr.seg.pub = tr.X.toCtx.R) :
     WasmHolds Pv (bndOf V.bnd (.call I c K tr.q (.ent tr.p tr.k (.cont tr.s) tr.n0)))
       (bndOf V.bnd (.call I c K tr.q (.ent tr.p tr.k (.cont sN) (tr.n0 - tr.seg.n)))) tr := by
   have hlen := segN_eq hp hst hinS
@@ -921,11 +977,11 @@ theorem wasmHolds_honest {V : ViewImpl} {Pv : WasmViewParams} (hV : V.wasmD = wa
   obtain ⟨hpcO, hsbO⟩ := bnd_pc_sb hst.off hB2'
   have hne : (tr.seg.pub.getD pubTIn 0).toNat < (tr.seg.pub.getD pubTOut 0).toNat := by
     unfold segLenP at hlen; omega
-  refine ⟨?_, hp, hst, ?_, cutSeed_of_out hctx hL ho, restOK_honest hV hseg hAN hbOut⟩
+  refine ⟨?_, hp, hst, ?_, cutSeed_of_out hctx hL ho, restOK_honest hV hpin hseg hAN hbOut, hrop⟩
   · rw [hbIn, hbOut, hlen]
     rw [hlen] at hAN
     exact leafW_honest hV hcl hVwf I c K tr.q tr.p tr.k tr.s sN tr.n0 hA hAN hne (by omega)
-      hpc hsb hci hmi hpcO hsbO hco hmo hG hGN
+      hpc hsb hci hmi hpcO hsbO hco hmo hG hGN hgO hgok hremO
   · rw [hbIn]; simp only [ViewImpl.bnd, split, hV, wasmD, Option.map_some]
 
 #print axioms bnd_pc_sb
@@ -956,14 +1012,392 @@ theorem wasmHoldsC_honest {sf : Intake → TTN.Store} {V : ViewImpl} {Pv : WasmV
     (hn64 : tr.n0 < 2 ^ 64) (hpos : 0 < tr.seg.n) (hn : tr.seg.n ≤ tr.n0)
     (hbIn : tr.bIn = V.bnd (.call I c K tr.q (.ent tr.p tr.k (.cont tr.s) tr.n0)))
     (hbOut : tr.bOut = V.bnd (.call I c K tr.q (.ent tr.p tr.k (.cont sN) (tr.n0 - tr.seg.n))))
+    (hgO : gOutN tr.seg.pub = sN.gas.g) (hgok : GasPubOK tr.seg.pub) (hremO : remN tr.seg.pub = sN.stackRem)
+    (hpin : (tr.sg (tr.seg.tOut + 1)).1 = (tr.seg.pub.getD pubSsegOut 0).toNat ∧
+      (tr.sg (tr.seg.tOut + 1)).2 = gbOutN tr.seg.pub)
+    (hrop : ropN tr.seg.pub = tr.X.toCtx.R)
     (hcan : Canon sf (.call I c K tr.q (.ent tr.p tr.k (.cont tr.s) tr.n0))) :
     wasmHoldsC sf V Pv (bndOf V.bnd (.call I c K tr.q (.ent tr.p tr.k (.cont tr.s) tr.n0)))
       (bndOf V.bnd (.call I c K tr.q (.ent tr.p tr.k (.cont sN) (tr.n0 - tr.seg.n)))) tr :=
-  ⟨wasmHolds_honest hV hcl hVwf tr d0 I c K sN hp hst hctx hL ho hinS hseg hoN hn64 hpos hn hbIn hbOut,
-   ghostC_honest hbIn hcan⟩
+  ⟨wasmHolds_honest hV hcl hVwf tr d0 I c K sN hp hst hctx hL ho hinS hseg hoN hn64 hpos hn hbIn hbOut
+    hgO hgok hremO hpin hrop, ghostC_honest hbIn hcan⟩
 
 #print axioms ghostC_honest
 #print axioms wasmHoldsC_honest
+
+/-! ## 9. The halting segment: its out-record is the view's `.fin r` record (A-T5, finding I2b-2)
+
+The last segment of a call ends in the terminal step of the entry function (`halted ∈ {1, 2}`,
+`SegCallSigma.seg_sound_haltσ_mp`).  On lane E's call machine the configuration after it is not an
+AIR state: `.ent p .method r m` with `r` terminal steps (one `cstep`) to `.fin (afterMethod (entPost r))`,
+whose record is lane A's fallback `fbBnd (q, .fin r')` — every counter `0`, every digest
+`bdigest []` but the remainder digest `vmCtxDigest = bdigest (encRest (.other (q, .fin r')))`.  That
+is the record lane F's resume leaf reads (`RsStep`: `cc = .fin r`).  So the halting leaf:
+
+* checks the in-record against the in-publics (`WIn`, as a cut leaf) and `n ≤ fuel_in`;
+* checks the published status `halted ∈ {1, 2}`;
+* **emits the fin record** (`WOutFin`: the constant fields) — not the AIR's halted state;
+* names the remainder digest (`FinRest`: the fin record's `vmCtxDigest` is the call result's, the
+  analogue of `RestOK`'s `vmCtxDigest` part).
+
+**`wasm_fin_core`**: an opened in-record steps by `CSteps` (the segment's `n − 1` steps, the terminal
+step, the exit `cstep`) to `.fin (afterMethod (entPost (step s')))`, at digest `d'`.
+**`wasm_relC_fin`** / **`segSoundWasmFinRelC_of`**: the store-canonical relative obligation
+`SB.TmplRelC` for the halting leaf; the successor is canonical (`afterMethod_setRun`).  The system
+with both Wasm leaf kinds is `airsWF` (`WTr ⊕ WTr`), `segSoundWasmRelC_airsWF`.
+Non-vacuity: `leafWF_honest` (the wrapper accepts the honest records), `finRest_honest`. -/
+
+/-- **The halting leaf's checks on the out-record**: the constant fields of `fbBnd (q, .fin r)`. -/
+structure WOutFin (w : WasmBnd) : Prop where
+  pc : w.pc = 0
+  sp : w.sp = 0
+  rem : w.stackRem = 0
+  fuel : w.fuel = 0
+  gas : w.gasLeft = 0
+  fd : w.framesDigest = bdigest []
+  mr : w.memRoot = bdigest []
+  mp : w.memPages = 0
+  gd : w.globalsDigest = bdigest []
+  rd : w.registersDigest = bdigest []
+  prom : w.promisesDigest = bdigest []
+  code : w.codeRoot = bdigest []
+  func : w.funcRoot = bdigest []
+
+/-- **The halting leaf's wrapper** (all circuit checks): as `LeafW`, but the published status is a
+halt and the out-record is the fin record. -/
+structure LeafWF (bIn bOut : BndRec) (pub : List F) (d d' : ArenaCore.Bytes) : Prop where
+  din : bdigest bIn.encode = d
+  dout : bdigest bOut.encode = d'
+  wfIn : bIn.WF
+  wfOut : bOut.WF
+  phase : bIn.phase = 6
+  copy : bOut = { bIn with wasm := bOut.wasm }
+  ne : (pub.getD pubTIn 0).toNat < (pub.getD pubTOut 0).toNat
+  halt : pub.getD Boundary.pubStatus 0 = 1 ∨ pub.getD Boundary.pubStatus 0 = 2
+  wasm : ∃ wi wo, bIn.wasm = some wi ∧ bOut.wasm = some wo ∧ WIn pub wi ∧ segLenP pub ≤ wi.fuel ∧
+    WOutFin wo
+
+/-- **The named fin rest**: the fin record's remainder digest is that of the call's result after
+the terminal step of the last pre-state `s'` (no public carries it). -/
+def FinRest (Pv : WasmViewParams) (tr : WTr) : Prop :=
+  ∀ s' wo, NearSpecV3.Wasm.seg tr.X.toCtx.cfg tr.X.toCtx.p (tr.seg.n - 1) tr.s = .cont s' →
+    tr.bOut.wasm = some wo →
+    wo.vmCtxDigest = bdigest (Pv.encRest (.other (tr.q,
+      .fin (afterMethod (entPost (step tr.X.toCtx.cfg tr.X.toCtx.p s'))))))
+
+/-- **Lane A's halting-segment predicate.** -/
+structure WasmHoldsF (Pv : WasmViewParams) (d d' : ArenaCore.Bytes) (tr : WTr) : Prop where
+  leaf : LeafWF tr.bIn tr.bOut tr.seg.pub d d'
+  air : SegPremHMP tr.X tr.nloc tr.ngl tr.sg tr.σ (tr.seg.pub.getD Boundary.pubStatus 0).toNat tr.seg
+  stat : StaticOK tr.X tr.sg
+  /-- the halting segment ends the method entry (the `start` entry continues into the method). -/
+  meth : tr.k = .method
+  win : tr.bIn.wasm = wasmD Pv (some (tr.q, .ent tr.p tr.k (.cont tr.s) tr.n0))
+  seed : CutSeed Pv tr
+  rest : FinRest Pv tr
+
+theorem wb_ext_fb {Pv : WasmViewParams} {w : WasmBnd} {x : CallArgs × CallConf} (h : WOutFin w)
+    (hvm : w.vmCtxDigest = bdigest (Pv.encRest (.other x))) (hx : fbCode x = bdigest []) :
+    w = fbBnd Pv x :=
+  wb_ext h.pc h.sp h.rem h.fuel h.gas h.fd h.mr h.mp h.gd h.rd hvm h.prom (by rw [h.code]; exact hx.symm) h.func
+
+/-- The halting segment's length is its public time difference. -/
+theorem segN_eq_halt {X : M2Ctx} {nloc ngl : Nat} {sg : Nat → Nat × Nat} {σ : Nat → St} {st : Nat}
+    {d : SegD} (hp : SegPremHMP X nloc ngl sg σ st d) (hst : StaticOK X sg) {s : St}
+    (hin : InSA X sg σ d s) : d.n = segLenP d.pub := by
+  obtain ⟨⟨⟨h0, -, hinit, -⟩, -⟩, hσ0⟩ := hin
+  have H := hp.H.toSMP
+  obtain ⟨hlen, -⟩ := seg_sound_haltσS X H (SegSha.ChipIf.toSMP hp.H hp.hC) hp.hl hp.hcode hp.hfunc
+    (seg_hostBLinkedL H) (seg_regCLinked H) hp.hkeep hp.hsk hp.hhold st hp.hst12 hp.hstN hp.hlen hp.htin
+    hp.hfeeN hst.stepgas hst.g64 hinit h0.1 hσ0
+  unfold SegD.n segLenP; omega
+
+/-- The exit of the method entry: one `cstep` from a terminal result. -/
+theorem csteps_exit (q : CallArgs) (p : Prepared) {r : Res} (m : Nat)
+    (hr : (∃ sN, r = .fin sN) ∨ (∃ sN e, r = .abort sN e)) :
+    CSteps q (.ent p .method r m) (.fin (afterMethod (entPost r))) := by
+  have e : cstep q (.ent p .method r m) = .fin (afterMethod (entPost r)) := by
+    rcases hr with ⟨sN, rfl⟩ | ⟨sN, e, rfl⟩ <;> cases m <;> rfl
+  exact .step (e ▸ .refl _)
+
+/-- **The halting leaf's core soundness**: an opened in-record (the view of `call I c K q (ent p
+.method (cont s) n0)`) gives `Sha384Coll`, or the last pre-state `s'` and the configuration
+`call I c K q (.fin (afterMethod (entPost (step s'))))` at digest `d'`, an `MWasm` step. -/
+theorem wasm_fin_core {V : ViewImpl} {Pv : WasmViewParams} (hV : V.wasmD = wasmD Pv) (hcl : ClearCall V)
+    (hctxP : CtxOK Pv) {d d' : ArenaCore.Bytes} {tr : WTr} (hh : WasmHoldsF Pv d d' tr)
+    (I : Intake) (c : EConf) (K : VmV)
+    (hx : V.bnd (.call I c K tr.q (.ent tr.p tr.k (.cont tr.s) tr.n0)) = tr.bIn) :
+    Sha384Coll ∨ ∃ s', NearSpecV3.Wasm.seg tr.X.toCtx.cfg tr.X.toCtx.p (tr.seg.n - 1) tr.s = .cont s' ∧
+      bndOf V.bnd (.call I c K tr.q (.fin (afterMethod (entPost (step tr.X.toCtx.cfg tr.X.toCtx.p s'))))) = d' ∧
+      MWasm (.call I c K tr.q (.ent tr.p tr.k (.cont tr.s) tr.n0))
+        (.call I c K tr.q (.fin (afterMethod (entPost (step tr.X.toCtx.cfg tr.X.toCtx.p s'))))) := by
+  have hP := P_val
+  obtain ⟨hL, hp, hst, hk, hwin, hseed, hrest⟩ := hh
+  obtain ⟨wi, wo, hwi, hwo, hin, hfu, hout⟩ := hL.wasm
+  have hne := hL.ne
+  have ewi : wi = wasmBnd Pv (tr.q, .ent tr.p tr.k (.cont tr.s) tr.n0) := by
+    rw [hwi] at hwin; simpa [wasmD] using hwin
+  -- the AIR branch (the fallback has fuel 0, and the segment is not empty)
+  rcases hA : airOf Pv (tr.q, .ent tr.p tr.k (.cont tr.s) tr.n0) with _ | ⟨X', p', k', s', n'⟩
+  · exfalso
+    have : wi.fuel = 0 := by rw [ewi]; unfold wasmBnd; rw [hA]; rfl
+    unfold segLenP at hfu
+    omega
+  obtain ⟨he, hX', hD, hn64⟩ := airOf_spec Pv hA
+  simp only [CallConf.ent.injEq, Res.cont.injEq, Prod.mk.injEq] at he
+  obtain ⟨-, rfl, rfl, rfl, rfl⟩ := he
+  have hX : X' = tr.X.toCtx := by
+    rw [hseed.ctx] at hX'; exact (Option.some.inj hX').symm
+  subst hX
+  have ewi' : wi = airBnd Pv tr.q tr.X.toCtx tr.p tr.k tr.s tr.n0 := by
+    rw [ewi]; unfold wasmBnd; rw [hA]
+  rcases cut_inSA' Pv hp.H hp.hC hp.hD30 hseed ewi' hin hD with hc | hinS
+  · exact .inl hc
+  have hlen := segN_eq_halt hp hst hinS
+  obtain ⟨hpX, hcfgX⟩ := hctxP _ _ _ _ hseed.ctx
+  have hn0 : tr.seg.n ≤ tr.n0 := by
+    have : wi.fuel = tr.n0 := by rw [ewi']; rfl
+    omega
+  obtain ⟨hpos, s', r, hrun, hO⟩ := seg_sound_haltσ_mp tr.X hst.stepgas hst.g64 hp hinS
+  have hr : (∃ sN, r = .fin sN) ∨ (∃ sN e, r = .abort sN e) := by
+    rcases hp.hst12 with h | h
+    · obtain ⟨sN, e, -⟩ := hO.2.2.1 h; exact .inl ⟨sN, e⟩
+    · obtain ⟨sN, e, e', -⟩ := hO.2.2.2 h; exact .inr ⟨sN, e, e'⟩
+  have hstep : step tr.X.toCtx.cfg tr.X.toCtx.p s' = r := hO.2.1
+  -- the call machine: `n − 1` steps, the terminal step, the exit
+  have h1 := csteps_seg tr.q tr.p .method (tr.seg.n - 1) tr.s s' tr.n0 (by rw [← hcfgX, ← hpX]; exact hrun)
+    (by omega)
+  have e1 : tr.n0 - (tr.seg.n - 1) = (tr.n0 - tr.seg.n) + 1 := by omega
+  rw [e1] at h1
+  have h2 := csteps_last tr.q tr.p .method s' (tr.n0 - tr.seg.n)
+  have hstep' : step tr.q.cfg tr.p s' = r := by rw [← hcfgX, ← hpX]; exact hstep
+  rw [hstep'] at h2
+  have h3 := csteps_exit tr.q tr.p (tr.n0 - tr.seg.n) hr
+  have hcs := (h1.trans h2).trans h3
+  rw [← hk] at hcs
+  -- the out-record is the fin record
+  have ewo : wo = wasmBnd Pv (tr.q, .fin (afterMethod (entPost (step tr.X.toCtx.cfg tr.X.toCtx.p s')))) := by
+    unfold wasmBnd
+    exact wb_ext_fb hout (hrest s' wo hrun hwo) rfl
+  refine .inr ⟨s', hrun, ?_, .run (by rw [hstep]; exact hcs)⟩
+  have e := bnd_call_wasm hV hcl I c K tr.q (.ent tr.p tr.k (.cont tr.s) tr.n0)
+    (.fin (afterMethod (entPost (step tr.X.toCtx.cfg tr.X.toCtx.p s'))))
+  rw [hx, ← ewo, ← hwo, ← hL.copy] at e
+  show bdigest _ = d'
+  rw [e, hL.dout]
+
+/-- **Opening the in-digest** from the wrapper's in-checks (`open_in` for any leaf whose in-record is
+hashed to `d`, well-formed, and the ghost's view). -/
+theorem open_in' {V : ViewImpl} {Pv : WasmViewParams} (hV : V.wasmD = wasmD Pv)
+    (hVwf : ∀ x, (V.bnd x).WF) {d : ArenaCore.Bytes} {tr : WTr} (hdin : bdigest tr.bIn.encode = d)
+    (hwf : tr.bIn.WF) (hwin : tr.bIn.wasm = wasmD Pv (some (tr.q, .ent tr.p tr.k (.cont tr.s) tr.n0)))
+    (x : RConf) (hx : bndOf V.bnd x = d) :
+    Sha384Coll ∨ ∃ I c K q cc, x = .call I c K q cc ∧ V.bnd x = tr.bIn ∧
+      setC blankStore (q, cc) = setC blankStore (tr.q, .ent tr.p tr.k (.cont tr.s) tr.n0) := by
+  classical
+  have h1 : bdigest (V.bnd x).encode = bdigest tr.bIn.encode := by rw [hdin]; exact hx
+  by_cases e : (V.bnd x).encode = tr.bIn.encode
+  rotate_left
+  · exact .inl ⟨_, _, e, h1⟩
+  have hxb := BndRec.encode_inj (hVwf x) hwf e
+  have hw := congrArg BndRec.wasm hxb
+  rw [hwin] at hw
+  cases x with
+  | base c =>
+    exfalso
+    simp only [ViewImpl.bnd] at hw
+    rw [split_base_wm, hV] at hw
+    simp [wasmD] at hw
+  | call I c K q cc =>
+    simp only [ViewImpl.bnd, split, hV, wasmD, Option.map_some, Option.some.injEq] at hw
+    rcases wasmBnd_binding Pv hw with he | hc
+    · exact .inr ⟨I, c, K, q, cc, rfl, hxb, he⟩
+    · exact .inl hc
+
+/-! ### The call's exit keeps a canonical store (lane E's `join/CanonH2.lean`, restated here) -/
+
+open NearSpecV3.E2E.SB (setRun) in
+theorem sync_setSt {σ : TTN.Store} {s s' : St} (hs : setSt σ s = s) (h : sync s = .ok s') :
+    setSt σ s' = s' := by
+  unfold sync at h
+  dsimp only at h
+  split at h
+  · cases h; exact hs
+  · split at h
+    · cases h
+      have hr : s.real.map (NearSpecV3.E2E.SB.setRS σ) = s.real := congrArg St.real hs
+      simp only [setSt, hr]
+    · cases h
+
+theorem entPost_setSt {σ : TTN.Store} {r : Res} (hr : setRes σ r = r) {s : St} {e : Option String}
+    (h : entPost r = .ok (s, e)) : setSt σ s = s := by
+  unfold entPost at h
+  split at h
+  · rename_i s0
+    have hs0 : setSt σ s0 = s0 := by simp only [setRes] at hr; injection hr
+    cases hsy : sync s0 with
+    | error _ => rw [hsy] at h; cases h
+    | ok s1 =>
+      rw [hsy] at h; cases h
+      exact sync_setSt hs0 hsy
+  · rename_i s0 e0
+    have hs0 : setSt σ s0 = s0 := by simp only [setRes] at hr; injection hr
+    cases hsy : sync s0 with
+    | error _ => rw [hsy] at h; cases h
+    | ok s1 =>
+      rw [hsy] at h; cases h
+      exact sync_setSt hs0 hsy
+  · cases h
+  · cases h
+
+open NearSpecV3.E2E.SB (setRun) in
+theorem afterMethod_setRun {σ : TTN.Store} {er : Except String (St × Option String)}
+    (h : ∀ s e, er = .ok (s, e) → setSt σ s = s) : setRun σ (afterMethod er) = afterMethod er := by
+  unfold afterMethod
+  split
+  · rfl
+  · rename_i s e
+    simp only [setRun, h s e rfl]
+
+/-- **The halting leaf, store-canonical form**: `WasmHoldsF` and `GhostC`. -/
+def wasmHoldsFC (sf : Intake → TTN.Store) (V : ViewImpl) (Pv : WasmViewParams) :
+    ArenaCore.Bytes → ArenaCore.Bytes → WTr → Prop :=
+  fun d d' tr => WasmHoldsF Pv d d' tr ∧ GhostC sf V tr
+
+/-- **The store-canonical obligation for one halting leaf trace.** -/
+theorem wasm_relC_fin {sf : Intake → TTN.Store} {V : ViewImpl} {Pv : WasmViewParams}
+    (hV : V.wasmD = wasmD Pv) (hcl : ClearCall V) (hctxP : CtxOK Pv) (hVwf : ∀ x, (V.bnd x).WF)
+    {d d' : ArenaCore.Bytes} {tr : WTr} (hh : wasmHoldsFC sf V Pv d d' tr) (x : RConf)
+    (hcx : Canon sf x) (hx : bndOf V.bnd x = d) :
+    (Sha384Coll ∨ Coll V.ctxD) ∨ ∃ x', Canon sf x' ∧ bndOf V.bnd x' = d' ∧ MWasm x x' := by
+  classical
+  obtain ⟨hw, I0, hctx0, hq0, hs0⟩ := hh
+  rcases open_in' hV hVwf hw.leaf.din hw.leaf.wfIn hw.win x hx with hc | ⟨I, c, K, q, cc, rfl, hxb, hstrip⟩
+  · exact .inl (.inl hc)
+  have hI : V.ctxD (.intake I) = V.ctxD (.intake I0) := by
+    rw [← hctx0, ← hxb]; rfl
+  by_cases hII : I = I0
+  rotate_left
+  · exact .inl (.inr ⟨_, _, fun e => hII (by cases e; rfl), hI⟩)
+  subst hII
+  simp only [Canon, setR, RConf.call.injEq, true_and] at hcx
+  obtain ⟨hK, hqc, hccc⟩ := hcx
+  simp only [setC, Prod.mk.injEq] at hstrip
+  obtain ⟨hsq, hscc⟩ := hstrip
+  have hq : q = tr.q := by
+    rw [← hqc, ← hq0, ← setArgs_setArgs' (sf I) blankStore q, hsq, setArgs_setArgs']
+  have hcc : cc = .ent tr.p tr.k (.cont tr.s) tr.n0 := by
+    rw [← hccc, ← NearSpecV3.E2E.SB.setConf_setConf (sf I) blankStore cc, hscc,
+      NearSpecV3.E2E.SB.setConf_setConf]
+    simp only [setConf, setRes, hs0]
+  subst hq hcc
+  rcases wasm_fin_core hV hcl hctxP hw I c K hxb with hc | ⟨s', hrun, hd', hm⟩
+  · exact .inl (.inl hc)
+  refine .inr ⟨_, ?_, hd', hm⟩
+  have hs' := SegStore.seg_setSt _ _ _ hs0 hrun
+  have hstep : setRes (sf I) (step tr.X.toCtx.cfg tr.X.toCtx.p s') = step tr.X.toCtx.cfg tr.X.toCtx.p s' := by
+    rw [SegStore.setRes_eq_mapRes]
+    exact SegStore.step_resOK _ _ (SegStore.stOK_of (sf I) hs')
+  have hrun' := afterMethod_setRun (σ := sf I) (er := entPost (step tr.X.toCtx.cfg tr.X.toCtx.p s'))
+    (fun s e h => entPost_setSt hstep h)
+  simp only [Canon, setR, setConf, hK, hq0, hrun']
+
+/-- **`segSoundWasmFinRelC_of`**: the halting leaf discharges lane E's store-canonical relative Wasm
+obligation for any `Airs` whose Wasm traces decode to halting leaf traces. -/
+theorem segSoundWasmFinRelC_of (sf : Intake → TTN.Store) (V : ViewImpl) (Pv : WasmViewParams)
+    (A : Airs) (emb : A.Tr .wasm → WTr)
+    (hA : ∀ d d' t, A.Holds .wasm d d' t → wasmHoldsFC sf V Pv d d' (emb t))
+    (hV : V.wasmD = wasmD Pv) (hcl : ClearCall V) (hctxP : CtxOK Pv) (hVwf : ∀ x, (V.bnd x).WF) :
+    TmplRelC sf V A (Sha384Coll ∨ Coll V.ctxD) .wasm :=
+  fun d d' t x hh hcx hx => wasm_relC_fin hV hcl hctxP hVwf (hA d d' t hh) x hcx hx
+
+/-- **The system's `Airs` with both Wasm leaf kinds** (cut segments `inl`, the halting segment `inr`). -/
+def airsWF (A0 : Airs) (sf : Intake → TTN.Store) (V : ViewImpl) (Pv : WasmViewParams) : Airs where
+  Tr := fun k => match k with
+    | .wasm => WTr ⊕ WTr
+    | .init => A0.Tr .init
+    | .state => A0.Tr .state
+    | .rt => A0.Tr .rt
+    | .final => A0.Tr .final
+  Holds := fun k => match k with
+    | .wasm => fun d d' t => match t with
+      | .inl w => wasmHoldsC sf V Pv d d' w
+      | .inr w => wasmHoldsFC sf V Pv d d' w
+    | .init => A0.Holds .init
+    | .state => A0.Holds .state
+    | .rt => A0.Holds .rt
+    | .final => A0.Holds .final
+
+theorem segSoundWasmRelC_airsWF (A0 : Airs) (sf : Intake → TTN.Store) (V : ViewImpl)
+    (Pv : WasmViewParams) (hV : V.wasmD = wasmD Pv) (hcl : ClearCall V) (hctxP : CtxOK Pv)
+    (hVwf : ∀ x, (V.bnd x).WF) :
+    TmplRelC sf V (airsWF A0 sf V Pv) (Sha384Coll ∨ Coll V.ctxD) .wasm := by
+  intro d d' t x hh hcx hx
+  cases t with
+  | inl w => exact wasm_relC hV hcl hctxP hVwf hh x hcx hx
+  | inr w => exact wasm_relC_fin hV hcl hctxP hVwf hh x hcx hx
+
+/-! ### Non-vacuity of the halting leaf's wrapper and named rest -/
+
+/-- **The halting wrapper accepts the honest records**: the in-record of an AIR-branch method entry
+and the fin record of the call's result, at their digests, with the segment's honest in-publics and a
+halt status. -/
+theorem leafWF_honest {V : ViewImpl} {Pv : WasmViewParams} (hV : V.wasmD = wasmD Pv)
+    (hcl : ClearCall V) (hVwf : ∀ x, (V.bnd x).WF) {pub : List F} {X : Ctx}
+    (I : Intake) (c : EConf) (K : VmV) (q : CallArgs) (p : Prepared) (s : St) (n : Nat) (rr : Run)
+    (hA : airOf Pv (q, .ent p .method (.cont s) n) = some (X, p, .method, s, n))
+    (hne : (pub.getD pubTIn 0).toNat < (pub.getD pubTOut 0).toNat) (hn : segLenP pub ≤ n)
+    (hhalt : pub.getD Boundary.pubStatus 0 = 1 ∨ pub.getD Boundary.pubStatus 0 = 2)
+    (hpc : (pub.getD pubPcIn 0).toNat = gpc X (s.frames.headD default))
+    (hsb : (pub.getD pubSbIn 0).toNat = (s.frames.headD default).base)
+    (hci : PubDigIs pub pubCtxIn (cutDigest (cutView X s))) (hmi : MemRootIn pub s) (hG : MemGeom pub s) :
+    LeafWF (V.bnd (.call I c K q (.ent p .method (.cont s) n))) (V.bnd (.call I c K q (.fin rr))) pub
+      (bndOf V.bnd (.call I c K q (.ent p .method (.cont s) n))) (bndOf V.bnd (.call I c K q (.fin rr))) := by
+  have e42 : ∀ {b : Nat} {x : ArenaCore.Bytes}, PubDigIs pub b x → PubDig42 pub b (x.take digestLen) := by
+    rintro b x ⟨d, h6, hW, hp, hs⟩
+    exact ⟨d, h6, hW, hp, by rw [hs]⟩
+  have ew : ∀ cc, (V.bnd (.call I c K q cc)).wasm = some (wasmBnd Pv (q, cc)) := by
+    intro cc; simp only [ViewImpl.bnd, split, hV, wasmD, Option.map_some]
+  have hwi : wasmBnd Pv (q, .ent p .method (.cont s) n) = airBnd Pv q X p .method s n := by
+    unfold wasmBnd; rw [hA]
+  have hwo : wasmBnd Pv (q, .fin rr) = fbBnd Pv (q, .fin rr) := rfl
+  refine ⟨rfl, rfl, hVwf _, hVwf _, rfl, ?_, hne, hhalt, ⟨_, _, ew _, ew _, ?_, ?_, ?_⟩⟩
+  · rw [bnd_call_wasm hV hcl I c K q (.ent p .method (.cont s) n)]
+  · rw [hwi]
+    refine ⟨hpc.symm, hsb.symm, e42 hci, e42 hmi, ?_, ?_⟩
+    · rw [hG.2]; rfl
+    · rw [hG.1, hG.2]; rfl
+  · rw [hwi]; exact hn
+  · rw [hwo]
+    exact ⟨rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl⟩
+
+/-- **`FinRest` holds for the honest out-record** (the view of the call's result). -/
+theorem finRest_honest {V : ViewImpl} {Pv : WasmViewParams} (hV : V.wasmD = wasmD Pv) {tr : WTr}
+    {I : Intake} {c : EConf} {K : VmV} {s' : St}
+    (hrun : NearSpecV3.Wasm.seg tr.X.toCtx.cfg tr.X.toCtx.p (tr.seg.n - 1) tr.s = .cont s')
+    (hb : tr.bOut = V.bnd (.call I c K tr.q (.fin (afterMethod (entPost (step tr.X.toCtx.cfg tr.X.toCtx.p s')))))) :
+    FinRest Pv tr := by
+  intro s'' wo h hwo
+  rw [hrun] at h
+  cases h
+  rw [hb] at hwo
+  simp only [ViewImpl.bnd, split, hV, wasmD, Option.map_some, Option.some.injEq] at hwo
+  subst hwo
+  rfl
+
+#print axioms wb_ext_fb
+#print axioms segN_eq_halt
+#print axioms csteps_exit
+#print axioms wasm_fin_core
+#print axioms open_in'
+#print axioms sync_setSt
+#print axioms entPost_setSt
+#print axioms afterMethod_setRun
+#print axioms wasm_relC_fin
+#print axioms segSoundWasmFinRelC_of
+#print axioms segSoundWasmRelC_airsWF
+#print axioms leafWF_honest
+#print axioms finRest_honest
 
 end TmplWasm
 end WasmBase

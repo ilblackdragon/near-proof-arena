@@ -62,12 +62,18 @@ pub const PUB_MEM_IN: usize = 67;
 pub const PUB_MEM_OUT: usize = 85;
 pub const PUB_DEPTH: usize = 103;
 pub const PUB_NBLK: usize = 104;
-pub const NUM_PUB: usize = 105;
 // `wasmBaseSegAirG` (`WasmBase/SegAirG.lean`, E2E M4c): pub 103 is `D_out`, 104 `min(nblk_in, 2^16)`
 pub const PUB_NBLK_IN: usize = 105;
 pub const PUB_NBLK_OUT: usize = 106;
 pub const PUB_DEPTH_IN: usize = 107;
-pub const NUM_PUB_G: usize = 108;
+// A-T5 (`Seg.pubRemLo` …): the out-cut's stack budget halves, the 16-bit limbs of the gas register
+// `g_out = segb_out - R·(S_out - S_seg,out)` and the bytes of `R` (SEGB's gas gadget)
+pub const PUB_REM_LO: usize = 108;
+pub const PUB_REM_HI: usize = 109;
+pub const PUB_GOUT: usize = 110;
+pub const PUB_ROP: usize = 114;
+pub const NUM_PUB: usize = 117;
+pub const NUM_PUB_G: usize = NUM_PUB;
 
 /// The boundary a segment starts or ends at (the public values' content).
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -962,6 +968,19 @@ pub fn build(seg: &AirSpec, m2: &AirSpec, g: &Gen, prep: &Prep, k: usize, tree: 
     sb.u("gtpf", if c1.gas.2 <= t_in { t_in } else { c1.gas.2 });
     // the multiproof's root row closes RCH with `[1] ++ memOut`
     sb.u("nbt", if multiproof { (nb > 0 || lift) as u64 } else { nb as u64 });
+    // A-T5: the gas gadget `g_out + R·d = segb_out` (`Seg.Segb.gas0..3`), on every SEGB row
+    let gas = gas_gadget(prep.regular as u64, c1.s, c1.gas.0, c1.gas.1);
+    for row in 0..4 {
+        if row > 0 {
+            sb.push();
+        }
+        for (j, &b) in gas.d_bits.iter().enumerate() {
+            sb.u(&format!("gd{j}"), b);
+        }
+        for (j, &b) in gas.c_bits.iter().enumerate() {
+            sb.u(&format!("gc{j}"), b);
+        }
+    }
     mats[si("SEGB")] = Some(sb.finish(0, &[]));
 
     let depth_in = c0.depth_of.iter().find(|x| x.0 == c0.cid).map(|x| x.1).unwrap();
@@ -973,10 +992,21 @@ pub fn build(seg: &AirSpec, m2: &AirSpec, g: &Gen, prep: &Prep, k: usize, tree: 
     let mut pubs = pubs_of(&b_in, &b_out, c1.halted, prep, tree.d as u64);
     if grow_air {
         pubs[PUB_NBLK] = fe(nblk_in.min(1 << 16));
-        pubs.push(fe(nblk_in));
-        pubs.push(fe(nblk_out));
-        pubs.push(fe(d_in as u64));
+        pubs[PUB_NBLK_IN] = fe(nblk_in);
+        pubs[PUB_NBLK_OUT] = fe(nblk_out);
+        pubs[PUB_DEPTH_IN] = fe(d_in as u64);
         assert_eq!(pubs.len(), NUM_PUB_G);
+    }
+    // A-T5: the out-cut's stack budget (CUTO's space-5 row) and the gas gadget's publics
+    if let Some((e, _)) = eout.iter().find(|(e, _)| e[0] == 5) {
+        pubs[PUB_REM_LO] = fe(e[3]);
+        pubs[PUB_REM_HI] = fe(e[4]);
+    }
+    for (k, l) in limbs(gas.g_out).into_iter().enumerate() {
+        pubs[PUB_GOUT + k] = fe(l);
+    }
+    for i in 0..3 {
+        pubs[PUB_ROP + i] = fe((prep.regular as u64 >> (8 * i)) & 0xff);
     }
     assert_eq!(pubs.len(), seg.num_pub);
 
@@ -1110,6 +1140,49 @@ pub struct LiftRoot {
     pub new: [[u64; 6]; 2],
     pub cid: u64,
     pub out: [u64; 8],
+}
+
+/// A-T5: the witness of SEGB's gas gadget (`Seg.Segb` in `SegAir.lean`): the 30 bits of
+/// `d = S_out − S_seg,out` (bytes `δ0..δ2`, 6-bit `δ3`), the 33 bits of the three 11-bit carries,
+/// and `g_out = segb_out − R·d`.
+pub struct GasGadget {
+    pub d_bits: Vec<u64>,
+    pub c_bits: Vec<u64>,
+    pub g_out: u64,
+}
+
+pub fn gas_gadget(r: u64, s_out: u64, sseg_out: u64, segb_out: u64) -> GasGadget {
+    assert!(r < 1 << 24, "R = {r} >= 2^24");
+    assert!(sseg_out <= s_out, "S_seg {sseg_out} > S {s_out}");
+    let d = s_out - sseg_out;
+    assert!(d < 1 << 30, "S - S_seg = {d} >= 2^30");
+    let rd = r as u128 * d as u128;
+    assert!(rd <= segb_out as u128, "R·d > segb");
+    let g_out = segb_out - rd as u64;
+    let rho = [r & 0xff, (r >> 8) & 0xff, (r >> 16) & 0xff];
+    let de = [d & 0xff, (d >> 8) & 0xff, (d >> 16) & 0xff, d >> 24];
+    let u = [
+        rho[0] * de[0] + 256 * (rho[0] * de[1] + rho[1] * de[0]),
+        rho[0] * de[2] + rho[1] * de[1] + rho[2] * de[0] + 256 * (rho[0] * de[3] + rho[1] * de[2] + rho[2] * de[1]),
+        rho[1] * de[3] + rho[2] * de[2] + 256 * (rho[2] * de[3]),
+        0,
+    ];
+    let (gl, bl) = (limbs(g_out), limbs(segb_out));
+    let mut c = [0u64; 4];
+    let mut cin = 0u64;
+    for k in 0..4 {
+        let lhs = gl[k] + u[k] + cin;
+        assert!(lhs >= bl[k] && (lhs - bl[k]) % 65536 == 0, "gas gadget limb {k}");
+        c[k] = (lhs - bl[k]) / 65536;
+        cin = c[k];
+    }
+    assert_eq!(c[3], 0, "gas gadget: carry out of limb 3");
+    let d_bits = (0..30).map(|j| (d >> j) & 1).collect();
+    let c_bits = (0..33).map(|j| (c[j / 11] >> (j % 11)) & 1).collect();
+    for k in 0..3 {
+        assert!(c[k] < 1 << 11, "carry {k}");
+    }
+    GasGadget { d_bits, c_bits, g_out }
 }
 
 pub fn pubs_of(b_in: &Bnd, b_out: &Bnd, halted: u64, prep: &Prep, depth: u64) -> Vec<F> {

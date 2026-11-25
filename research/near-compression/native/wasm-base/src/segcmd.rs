@@ -398,7 +398,10 @@ fn tampers(spec: &AirSpec, s: &SegInst, segs: &[SegInst], which: usize) -> Vec<C
     for (name, idx) in [("pub ctx_out limb", seg::PUB_CTX_OUT + 3), ("pub ctx_in limb", seg::PUB_CTX_IN),
         ("pub mem_out limb", seg::PUB_MEM_OUT + 5), ("pub mem_in limb", seg::PUB_MEM_IN + 1), ("pub pc_out", seg::PUB_PC_OUT),
         ("pub S_out", seg::PUB_S_OUT), ("pub t_out", seg::PUB_T_OUT), ("pub segb_out limb", seg::PUB_GB_OUT),
-        ("pub cid_in", seg::PUB_CID_IN), ("pub sb_in", seg::PUB_SB_IN), ("pub halted", seg::PUB_STATUS)] {
+        ("pub cid_in", seg::PUB_CID_IN), ("pub sb_in", seg::PUB_SB_IN), ("pub halted", seg::PUB_STATUS),
+        // A-T5: the gas gadget's and the stack budget's publics are bound in-circuit
+        ("pub g_out limb 0", seg::PUB_GOUT), ("pub g_out limb 3", seg::PUB_GOUT + 3), ("pub R byte 0", seg::PUB_ROP),
+        ("pub S_seg_out", seg::PUB_SSEG_OUT), ("pub rem_lo", seg::PUB_REM_LO), ("pub rem_hi", seg::PUB_REM_HI)] {
         let mut p = s.pubs.clone();
         p[idx] += one;
         // (a1) honest prover rows, forged statement: the proof must not verify against it
@@ -415,6 +418,41 @@ fn tampers(spec: &AirSpec, s: &SegInst, segs: &[SegInst], which: usize) -> Vec<C
             let mut m = s.mats.clone();
             set(&mut m, "CUTI", r, "lo3", &|v| v + one);
             out.push(("CUTI message value+1 (digest unchanged)".into(), m, s.pubs.clone(), s.comps.clone(), s.pubs.clone()));
+        }
+        // A-T5: SEGB's gas gadget witness (bit 0 of d; carry bit 0) flipped on every row
+        for c in ["gd0", "gc0"] {
+            let mut m = s.mats.clone();
+            for r in 0..4 {
+                set(&mut m, "SEGB", r, c, &|v| one - v);
+            }
+            out.push((format!("SEGB gas gadget {c} flipped"), m, s.pubs.clone(), s.comps.clone(), s.pubs.clone()));
+        }
+        // A-T5: a forged g_out with the gadget re-solved for it would need d' = d - 1, i.e. a forged
+        // S_seg_out: rows and publics consistent, but the published S_seg no longer links (statement)
+        {
+            let mut p = s.pubs.clone();
+            p[seg::PUB_SSEG_OUT] += one;
+            let ok = p[seg::PUB_SSEG_OUT].as_canonical_u32() as u64 <= p[seg::PUB_S_OUT].as_canonical_u32() as u64;
+            if ok {
+                let r = (0..3).map(|i| (s.pubs[seg::PUB_ROP + i].as_canonical_u32() as u64) << (8 * i)).sum::<u64>();
+                let sseg = p[seg::PUB_SSEG_OUT].as_canonical_u32() as u64;
+                let segb: u64 = (0..4).map(|i| (s.pubs[seg::PUB_GB_OUT + i].as_canonical_u32() as u64) << (16 * i)).sum();
+                let gg = seg::gas_gadget(r, s.pubs[seg::PUB_S_OUT].as_canonical_u32() as u64, sseg, segb);
+                for (k, l) in tracegen::limbs(gg.g_out).into_iter().enumerate() {
+                    p[seg::PUB_GOUT + k] = F::from_u64(l);
+                }
+                let mut m = s.mats.clone();
+                for r in 0..4 {
+                    for (j, &b) in gg.d_bits.iter().enumerate() {
+                        set(&mut m, "SEGB", r, &format!("gd{j}"), &|_| F::from_u64(b));
+                    }
+                    for (j, &b) in gg.c_bits.iter().enumerate() {
+                        set(&mut m, "SEGB", r, &format!("gc{j}"), &|_| F::from_u64(b));
+                    }
+                }
+                out.push(("S_seg_out+1 with g_out and the gadget re-solved (gas register forged)".into(), m, p.clone(),
+                    s.comps.clone(), p));
+            }
         }
         let _ = which;
         let _ = segs;
@@ -1131,10 +1169,20 @@ pub fn cmd_segleaf(a: &[String]) {
         // not rely on it until the AIR exposes it.  `vm_ctx_digest`: not available (the remainder
         // `blank s` moves with `gas.g`; m6 §6, TmplWasm `RestOK`).
         let cc = |name: &str| proof.trace_vdata[seg_air.index(name)].as_ref().map(|v| v.cached_commitments[0].to_vec());
+        // A-T5: `stackRem` and `gasLeft` of the out-record are public values (CUTO's budget row,
+        // SEGB's gas gadget); a halting segment's out-record is the fin record `fbBnd (q, .fin r)`
+        // (every counter 0, every digest `bdigest []` but `vmCtxDigest`), not the AIR's halted state.
+        let pu = |i: usize| s.pubs[i].as_canonical_u32() as u64;
+        let gas_out: u64 = (0..4).map(|k| pu(seg::PUB_GOUT + k) << (16 * k)).sum();
+        let rop: u64 = (0..3).map(|k| pu(seg::PUB_ROP + k) << (8 * k)).sum();
+        let rem_out = pu(seg::PUB_REM_LO) + 65536 * pu(seg::PUB_REM_HI);
+        assert_eq!(rop as u128, prep.regular, "segment {i}: published R");
         let wf = serde_json::json!({
             "code_root_words": cc("CODE"), "func_root_words": cc("FUNC"),
             "fuel_rule": "fuel_out = fuel_in - (t_out - t_in)", "steps": s.b_out.t - s.b_in.t,
             "stack_rem_in_unbound": stack_rem(&g.cuts[i]), "stack_rem_out_unbound": stack_rem(&g.cuts[i + 1]),
+            "stack_rem_out": rem_out, "gas_left_out": gas_out, "regular_op_cost": rop,
+            "out_record": if s.halted == 0 { "air" } else { "fin" },
             "vm_ctx_digest": serde_json::Value::Null,
         });
         let pj = serde_json::to_vec(&serde_json::json!({ "segment": i, "halted": s.halted, "pubs": pubs, "wasm_fields": wf })).unwrap();
@@ -1203,6 +1251,11 @@ pub fn cmd_segleafverify(a: &[String]) {
             proof.public_values[ti] == want
         });
         assert!(pv_ok, "segment {i}: public values");
+        // A-T5: only the last segment halts (status 1 / 2), and its out-record is the fin record
+        let st = pubs[seg::PUB_STATUS].as_canonical_u32();
+        assert!(if i + 1 == n { st == 1 || st == 2 } else { st == 0 }, "segment {i}: status {st}");
+        let kind = pj["wasm_fields"]["out_record"].as_str().unwrap_or("air");
+        assert_eq!(kind, if st == 0 { "air" } else { "fin" }, "segment {i}: out-record kind");
         // the published CODE/FUNC roots are the proof's own cached commitments
         for (name, key) in [("CODE", "code_root_words"), ("FUNC", "func_root_words")] {
             let want: Vec<u64> = proof.trace_vdata[spec.index(name)].as_ref().expect("cached").cached_commitments[0].to_vec();

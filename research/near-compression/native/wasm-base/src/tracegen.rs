@@ -940,10 +940,14 @@ pub fn generate_cuts(air: &AirSpec, prep: &Prep, cut_at: &[u64]) -> Gen {
                     // `sha` is 1 exactly on the four hash ids: the oracle states what the call did
                     let is_hash = [53u64, 54, 55, 56].contains(&hid);
                     o.u("sha", is_hash as u64);
+                    // A-T5 (`HostOH.elen`): the effective input length; `len` except on the register
+                    // branch `len = u64Bound - 1`, where it is the input register's length
+                    o.u("elen", args[0]);
                     if hid == 53 && ev.st == 0 {
                         // `sha256(len, ptr, reg)`: hash the spec's input bytes
                         let (len, ptr, reg) = (args[0], args[1], args[2]);
                         let input = hash_input(&mut mem, len, ptr, &ev);
+                        o.u("elen", input.len() as u64);
                         sha_calls.push(sha::rows(
                             &[sha::Msg { id: reg, bytes: input, dmult: true }],
                             ts, 0, hid, ptr, len,

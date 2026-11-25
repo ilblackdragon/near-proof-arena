@@ -724,19 +724,29 @@ structure InDom (X : Ctx) (s : St) : Prop where
   regs : RegOK s
   /-- the record's counters are `u64`s -/
   lt64 : gpc X (s.frames.headD default) < 2 ^ 64 ∧ (s.frames.headD default).base < 2 ^ 64 ∧
-    s.stackRem < 2 ^ 64 ∧ s.pages.size < 2 ^ 64
+    s.stackRem < 2 ^ 64 ∧ s.pages.size < 2 ^ 64 ∧ s.gas.g < 2 ^ 64
 
-/-- The state with its viewed parts blanked (the register ids are kept, in order). -/
+/-- The state with its viewed parts blanked (the register ids are kept, in order).  A-T5 (m6 §6.2):
+the gas register `gas.g` is blanked too — the record carries it as `gasLeft`, so the remainder
+digest does not move with it. -/
 def blank (s : St) : St :=
   { s with stack := #[], frames := [], pages := #[], globals := #[], stackRem := 0,
-           registers := regIds s.registers }
+           registers := regIds s.registers, gas := { s.gas with g := 0 } }
+
+theorem gas_eq_of_blank {a b : Gas} (h : ({ a with g := 0 } : Gas) = { b with g := 0 }) (hg : a.g = b.g) :
+    a = b := by
+  cases a; cases b
+  simp only [Gas.mk.injEq] at h hg ⊢
+  simp_all
 
 theorem blank_inj {s s' : St} (hb : blank s = blank s') (h1 : s.stack = s'.stack)
     (h2 : s.frames = s'.frames) (h3 : s.pages = s'.pages) (h4 : s.globals = s'.globals)
-    (h5 : s.stackRem = s'.stackRem) (h6 : s.registers = s'.registers) : s = s' := by
+    (h5 : s.stackRem = s'.stackRem) (h6 : s.registers = s'.registers) (h7 : s.gas.g = s'.gas.g) :
+    s = s' := by
+  have hg := gas_eq_of_blank (congrArg St.gas hb) h7
   cases s
   cases s'
-  simp only [blank, St.mk.injEq] at hb h1 h2 h3 h4 h5 h6 ⊢
+  simp only [blank, St.mk.injEq] at hb h1 h2 h3 h4 h5 h6 hg ⊢
   simp_all
 
 /-- **The reconstruction lemma.** Two domain states with the same boundary view, the same top
@@ -891,7 +901,7 @@ theorem airOf_some {q : CallArgs} {p : Prepared} {k : EntK} {s : St} {n : Nat} {
 def airBnd (q : CallArgs) (X : Ctx) (p : Prepared) (k : EntK) (s : St) (n : Nat) : WasmBnd :=
   let f := s.frames.headD default
   let fd := bdigest (cutBytes (cutView X s))
-  { pc := gpc X f, sp := f.base, stackRem := s.stackRem, fuel := n, framesDigest := fd,
+  { pc := gpc X f, sp := f.base, stackRem := s.stackRem, fuel := n, gasLeft := s.gas.g, framesDigest := fd,
     memRoot := (memRootOf s).take 42, memPages := s.pages.size, globalsDigest := fd,
     registersDigest := fd, vmCtxDigest := bdigest (P.encRest (.air q p k (blank s))),
     promisesDigest := bdigest [], codeRoot := codeRootOf P q p k, funcRoot := funcRootOf P q p k }
@@ -962,10 +972,10 @@ theorem wasmBnd_ok (w : CallArgs × CallConf) : WasmBnd.codec.ok (wasmBnd P w) :
   split
   · rename_i X p k s n ha
     obtain ⟨-, -, hD, hn⟩ := airOf_spec P ha
-    obtain ⟨l1, l2, l3, l4⟩ := hD.lt64
+    obtain ⟨l1, l2, l3, l4, l5⟩ := hD.lt64
     simp only [WasmBnd.codec, NearSpecV3.E2E.Bnd.mapC, NearSpecV3.E2E.Bnd.pairC,
       NearSpecV3.E2E.Bnd.natC, NearSpecV3.E2E.Bnd.bytesC, airBnd]
-    refine ⟨l1, l2, l3, hn, by decide, bdigest_length _, ?_, l4, bdigest_length _, bdigest_length _,
+    refine ⟨l1, l2, l3, hn, l5, bdigest_length _, ?_, l4, bdigest_length _, bdigest_length _,
       bdigest_length _, b0, codeRoot_len P _ _ _, funcRoot_len P _ _ _⟩
     simp only [List.length_take, memRootOf_length, digestLen]; decide
   · simp only [WasmBnd.codec, NearSpecV3.E2E.Bnd.mapC, NearSpecV3.E2E.Bnd.pairC,
@@ -1045,11 +1055,12 @@ theorem wasmD_set (t : TTN.Store) (c : WmV) : wasmD P (c.map (setC t)) = wasmD P
 theorem blank_set_inj {s s' : St} (hb : setSt blankStore (blank s) = setSt blankStore (blank s'))
     (h1 : s.stack = s'.stack) (h2 : s.frames = s'.frames) (h3 : s.pages = s'.pages)
     (h4 : s.globals = s'.globals) (h5 : s.stackRem = s'.stackRem)
-    (h6 : s.registers = s'.registers) :
+    (h6 : s.registers = s'.registers) (h7 : s.gas.g = s'.gas.g) :
     setSt blankStore s = setSt blankStore s' := by
+  have hg := gas_eq_of_blank (congrArg St.gas hb) h7
   cases s
   cases s'
-  simp only [setSt, blank, St.mk.injEq] at hb h1 h2 h3 h4 h5 h6 ⊢
+  simp only [setSt, blank, St.mk.injEq] at hb h1 h2 h3 h4 h5 h6 hg ⊢
   simp_all
 
 /-- **Binding of one in-call record, modulo stores**: equal records are equal components once
@@ -1093,7 +1104,7 @@ theorem wasmBnd_binding {w w' : CallArgs × CallConf} (h : wasmBnd P w = wasmBnd
       rw [hXX, hX'] at hX
       cases Option.some.inj hX
       simp only [airBnd, WasmBnd.mk.injEq] at h
-      obtain ⟨hpc, hsp, hrem, rfl, -, hfd, hmr, hmp, -, -, -, -, -, -⟩ := h
+      obtain ⟨hpc, hsp, hrem, rfl, hgl, hfd, hmr, hmp, -, -, -, -, -, -⟩ := h
       by_cases hcb : cutBytes (cutView X s) = cutBytes (cutView X s')
       rotate_left
       · exact .inr ⟨_, _, hcb, hfd⟩
@@ -1104,7 +1115,7 @@ theorem wasmBnd_binding {w w' : CallArgs × CallConf} (h : wasmBnd P w = wasmBnd
       have hpg := pages_eq hD.pages hD'.pages hmp hblk
       have hid : regIds s.registers = regIds s'.registers := congrArg St.registers hbl
       obtain ⟨h1, h2, h3, h4⟩ := reconstruct hD hD' hV hpc hsp hid
-      have hs := blank_set_inj hbl h1 h2 hpg h3 hrem h4
+      have hs := blank_set_inj hbl h1 h2 hpg h3 hrem h4 hgl
       refine .inl ?_
       rw [hw, hw']
       simp only [setC, setConf, setRes, hq, hs]

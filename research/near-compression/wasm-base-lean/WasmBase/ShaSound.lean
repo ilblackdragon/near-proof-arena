@@ -83,7 +83,7 @@ theorem sha_constr_of_holds {A : Air} {pub : List F} {tr : Trace} {t : Nat}
   have hmem : toW e ∈ constraints := by
     simp only [constraints]
     exact List.mem_append_left _ (List.mem_map_of_mem he)
-  have hc := h.constr t ht r hr (toW e) (by rw [hT]; exact hmem)
+  have hc := h.constr t ht r hr (toW e) (by rw [hT]; exact List.mem_append_left _ hmem)
   rw [eval_z tr pub t r hpow]
   exact hc
 

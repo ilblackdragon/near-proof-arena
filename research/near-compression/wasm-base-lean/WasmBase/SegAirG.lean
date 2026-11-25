@@ -125,7 +125,8 @@ open Expr
 def pubNblkIn : Nat := 105
 def pubNblkOut : Nat := 106
 def pubDepthIn : Nat := 107
-def numPubG : Nat := 108
+/-- A-T5: the segment publics 108–116 are shared (`Seg.numPub`). -/
+def numPubG : Nat := numPub
 
 namespace Grow
 

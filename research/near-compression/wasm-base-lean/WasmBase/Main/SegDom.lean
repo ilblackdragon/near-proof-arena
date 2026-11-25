@@ -84,7 +84,7 @@ theorem seg_inDom (X : M2Ctx) {sg : Nat → Nat × Nat} {s : St} {t S : Nat} {m 
     have hob := X.off_bound hkL
     have htot : X.M.codeSize < 2 ^ 20 := X.mf.total
     have hsb := R.sbLt
-    refine ⟨?_, by rw [R.base]; omega, by omega, hpg⟩
+    refine ⟨?_, by rw [R.base]; omega, by omega, hpg, by have := R.gas; have := R.segbLt; omega⟩
     unfold WasmView.gpc
     rw [hkf]
     have : f.pc < (X.pfOf E.k).code.size := by rw [hkf] at hpc; exact hpc

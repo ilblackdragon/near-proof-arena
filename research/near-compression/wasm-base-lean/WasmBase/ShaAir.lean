@@ -221,6 +221,12 @@ def digestWord (w : Nat) : Expr := bitsE (fun b => v (ZkFormal.Sha.Layout.colSt 
 `Host.hashHost` argument order). -/
 def callMsg : List Expr := [tsE, hidE, lenE, rinE, idE, 0, 0, 0]
 
+/-- **A-T5 (`HashLenLink`)**: the summary the digest row receives, with the classical byte counter
+`Nd` next to `sh_len`.  The sender (`HostOH.callMsg`) repeats the call's `len` there, so balance
+forces `sh_len = Nd` on every claiming digest row (`ShaLenSound.hashLenLink_of_holds`).  PREP keeps
+`callMsg` (it binds the length through its digest message `[ts, hid, Id, Nd, …]`). -/
+def callMsgL : List Expr := [tsE, hidE, lenE, rinE, idE, v ZkFormal.Sha.Layout.colNd, 0, 0]
+
 /-- The digest `[ts, hid, reg, w0 … w7]`. -/
 def digMsg : List Expr := [tsE, hidE, idE] ++ (List.range 8).map digestWord
 
@@ -237,9 +243,13 @@ def inters : List Inter :=
    -- announced call: a trace cannot suppress the digest by setting `dmult = 0`, because then the
    -- call summary it announced would be unconsumed.  (The classical table leaves `dmult` free --
    -- `cFrame` only gives `dmult → D` and `dmult → Last` -- so this is the constraint that pins it.)
-   ⟨busHashCall, false, dmultE, callMsg⟩]
+   -- A-T5: the summary carries `Nd` next to `len` (`callMsgL`).
+   ⟨busHashCall, false, dmultE, callMsgL⟩]
 
-def table : Table := ⟨"SHA256", cols, constraints, inters⟩
+/-- A-T5: `Dmult` is a bit (as in PREP's table), so the counts on bus 211 are bits. -/
+def cDmultB : Expr := bool dmultE
+
+def table : Table := ⟨"SHA256", cols, constraints ++ [cDmultB], inters⟩
 
 /-! ## The wire is the register write
 
@@ -264,13 +274,14 @@ theorem sha_wire_diglen (rid ts : Nat) :
 /-! ## Message lengths inside the NV envelope -/
 
 theorem callMsg_len : callMsg.length = 8 := by simp [callMsg]
+theorem callMsgL_len : callMsgL.length = 8 := by simp [callMsgL]
 theorem digMsg_len : digMsg.length = 11 := by
   simp [digMsg, digestWord, bitsE, List.length_map]
 
 /-- Every message of the SHA table is at most 11 fields, so `len + 1 = 12 ≤ 128`: the whole wire
 fits `log_max_message_length = 7`, the envelope the 23-field `HOSTQ` already uses. -/
 theorem sha_msg_len : inters.all (fun i => i.msg.length ≤ 11) = true := by
-  simp only [inters, List.all_cons, List.all_nil, Bool.and_true, callMsg_len, digMsg_len]
+  simp only [inters, List.all_cons, List.all_nil, Bool.and_true, callMsgL_len, digMsg_len]
   rfl
 
 end Sha
@@ -302,7 +313,12 @@ def argE (j : Nat) : Expr :=
 own outcome; a joined proof replaces this table by the state side.) -/
 def sha : Nat := WasmBase.Chips.HostO.cols.length
 
-def cols : List String := WasmBase.Chips.HostO.cols ++ ["sha"]
+/-- A-T5: the call's **effective** input length (a witness of the oracle): `len`, or — on
+`memOrRegH`'s register branch `len = u64Bound − 1` — the input register's length (the state side
+knows it; binding it to the register file is the join obligation `HashRegLen`). -/
+def elen : Nat := WasmBase.Chips.HostO.cols.length + 1
+
+def cols : List String := WasmBase.Chips.HostO.cols ++ ["sha", "elen"]
 
 def cSha : Expr := bool (v sha)
 
@@ -317,7 +333,11 @@ the join obligation `HashAnnounced` below, next to `Register.RegBusSound`. -/
 def cShaGate : Expr := v sha * ((List.range 4).map (fun j => v (WasmBase.Chips.HostO.q 1) - Expr.c (53 + j))
   |>.foldl (· * ·) 1)
 
-def callMsg : List Expr := [tsE, hidE, argE 0, argE 1, argE 2, 0, 0, 0]
+/-- A-T5: the summary carries the effective length `elen` in the `Nd` slot of `Sha.callMsgL`. -/
+def callMsg : List Expr := [tsE, hidE, argE 0, argE 1, argE 2, v elen, 0, 0]
+
+/-- A-T5: `elen = len` unless `len` is the register sentinel `u64Bound − 1` (as a field element). -/
+def cElen : Expr := (argE 0 - Expr.c (2 ^ 64 - 1)) * (v elen - argE 0)
 
 def inters : List Inter :=
   WasmBase.Chips.HostO.inters ++
@@ -325,7 +345,7 @@ def inters : List Inter :=
 
 /-- `HOSTO` plus the summary, under the same name: `wasmBaseHashAir` substitutes it for the `HOSTO`
 entry, so the trace generator and every consumer see one oracle table, on the same buses. -/
-def constraints : List Expr := [cSha, cShaGate]
+def constraints : List Expr := [cSha, cShaGate, cElen]
 
 def table : Table := ⟨"HOSTO", cols, constraints, inters⟩
 
@@ -420,8 +440,12 @@ call's input, *and there are `len` of them*); the AIR fix is to carry `Nd` in `c
 `sh_len` (as PREP's digest message does, `PrepAir.Prep.digMsgP`), which changes the segment AIR's
 vk and lane D's WASM leaf program, so it is left to the next segment-AIR revision. -/
 def HashLenLink (tr : WasmBase.Trace) (t : Nat) : Prop :=
+  -- A-T5: now a theorem of `wasmBaseHashAir` (`ShaLenSound.hashLenLink_of_holds`), restated: on the
+  -- register branch (`len = u64Bound − 1`, `memOrRegH`) the hashed length is the input register's,
+  -- not `len` (KAT `sharegkat`), so the link is `sh_len = Nd` or `sh_len` is the sentinel.
   ∀ r, r < tr.height t → tr.cell t r ZkFormal.Sha.Layout.colDmult = 1 →
-    tr.cell t r shLen = tr.cell t r ZkFormal.Sha.Layout.colNd
+    tr.cell t r shLen = tr.cell t r ZkFormal.Sha.Layout.colNd ∨
+      tr.cell t r shLen = (((2 ^ 64 - 1 : Nat) : F))
 
 /-- **Stated, not proved (a join obligation).**  The digest message of a hash call is the register
 `regSetH reg (Crypto.sha256 v)` writes: `(reg, ts)`, length `32`, and `32` bytes.  That is what

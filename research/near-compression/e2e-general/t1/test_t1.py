@@ -188,7 +188,10 @@ def test_chain_saved_leaves():
     assert not ck["ctxRoot = plan B_0.ctxRoot (ViewE, u32 big-endian)"]
     assert all(r["IF"]["checks"].values()) and all(r["PREP"]["checks"].values()) and all(r["STATE seg"]["checks"].values())
     assert r["WASM seg 0"]["in_equal"] and r["WASM seg 0"]["out_equal"] and r["WASM seg 1"]["in_equal"]
-    assert not r["WASM seg 1"]["out_equal"]                # the halted state, not lane A's `.fin r` record
+    # A-T5: the halting segment's out-record is lane A's `.fin r` record (finding I2b-2 closed), and
+    # every in/out digest of the two Wasm leaves is the chain's (c4 -> c5 -> c6)
+    assert r["WASM seg 1"]["out_equal"]
+    assert all(r[f"WASM seg {k}"][f"d_{s}_equal"] for k in (0, 1) for s in ("in", "out"))
     assert {"claimDigest", "bwAcc", "vmAcc", "outcomeAcc"} <= set(r["RT enter"]["diff_in"])
     assert {"claimDigest", "t", "bwAcc", "proposalsAcc"} <= set(r["RT resume"]["diff_in"])
     assert "receiptIdx" not in r["RT resume"]["diff_out"] and "outcomeAcc" not in r["RT resume"]["diff_out"]
