@@ -517,8 +517,32 @@ theorem stHalf_seg (Pv : StateView.StViewParams) (hH : Holds (segAir D (stcTable
   have hW := ws_moves_seg Pv hH hx' hC hD1 hD hCR hdep hz hn hupd hSL
   exact st_step Pv hS hW hupd v v' hv hrel
 
+/-- **Lane B's `HoldsSt` from `Holds`** (the premise of `StHalfC.stHalf_inst` and of lane E's M13
+`StateW.state_sound_stRoot`): an active `STC` row whose `STMQ` / `STMA` carry `(r, q.mo)` /
+`(r', q.mi)`, with the leaf content `SegLeaves` for `updE q.w` (open; see `SegLeavesN`, B3-1). -/
+theorem holdsSt_seg (Pv : StateView.StViewParams) (hH : Holds (segAir D (stcTables D ++ extra) nb np) pub tr)
+    (hx : ∀ T ∈ extra, ∀ i ∈ T.interactions, i.bus ≠ B_WM ∧ i.bus ≠ B_PT ∧ i.bus ≠ B_RCH ∧ i.bus ≠ B_RNG)
+    (hxs : ∀ T ∈ extra, ∀ i ∈ T.interactions, ¬ (i.bus = B_SRNG ∧ i.send = true))
+    (hC : Sha512IfContract cW ((busList (segAir D (stcTables D ++ extra) nb np) tr pub B_IF384 true).map decIf))
+    (hD1 : 1 ≤ D) (hD : D ≤ 20) (hCR : NodeCR cW) (hdep : Pv.depth = 24)
+    (hz : toB (TmplWsx.zD D) = Merkle.zd StateView.nodeH StateView.zero48 D)
+    {r : Nat} (hr : r < tr.height 8) (hA : ev tr 8 r pub (Stc.c "act") = 1) (q : StQ)
+    (hmi : q.mi = decM (av tr 8 r pub)) (hmo : q.mo = decM (qv tr 8 r pub))
+    (hSL : SegLeaves Pv D tr pub (updE q.w)) :
+    HoldsSt Pv q (decR (qv tr 8 r pub)) (decR (av tr 8 r pub)) := by
+  obtain ⟨hS, hn⟩ := stc_seg hH (fun T hT i hi => hxs T hT i hi) hC hD hr hA
+  have hx' : ∀ T ∈ stcTables D ++ extra, ∀ i ∈ T.interactions,
+      i.bus ≠ B_WM ∧ i.bus ≠ B_PT ∧ i.bus ≠ B_RCH ∧ i.bus ≠ B_RNG := by
+    intro T hT
+    rcases List.mem_append.1 hT with h | h
+    · exact stc_buses D T h
+    · exact hx T h
+  refine ⟨_, _, _, by rw [hmi, hmo]; exact hS, ?_⟩
+  exact ws_moves_seg Pv hH hx' hC hD1 hD hCR hdep hz hn (updE_length _) hSL
+
 end Seg
 
+#print axioms holdsSt_seg
 #print axioms stc_holds
 #print axioms stc_seg
 #print axioms stHalf_seg

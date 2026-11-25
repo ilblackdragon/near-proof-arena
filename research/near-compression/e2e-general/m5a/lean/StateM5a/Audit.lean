@@ -797,3 +797,4 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.SegLeavesN.ws_moves_segN
 #print axioms StateM5a.SegLeavesN.st_stepN
 #print axioms StateM5a.SegLeavesN.stHalf_segN
+#print axioms StateM5a.StcSound.holdsSt_seg
