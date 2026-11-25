@@ -4,6 +4,109 @@ Plan: `docs/zk-formal/E2E-GENERAL-CHUNK-PLAN.md` §3.2 (the `stRoot` working set
 Date 2026-11-03. Labels: **[M]** measured here, **[K]** kernel-checked Lean (std axioms),
 **[S]** stated / design only.
 
+## B-T3 (fourteenth session, 2026-11-25): the `STC` table, the HOST trie-key prefix (B2-4), `SegLeaves` restated
+
+Log `docs/logs/e2e-bt3-state-2026-11-25.md`. Plan §3.5 ("Lane B status (B-T3)", the `stRoot`
+interface) and §5.1; tracker C4 / C5. Merged main (lane E M13) mid-session; nothing here changes
+`S`, `claimDigest` or the checker.
+
+### Item 1: the `STC` table [M][K]
+
+`lean/StateM5a/Stc.lean` (AIR), `m5a-tool tmpl-segc` exports **`m5tSegC D`** = `m5tSeg D`'s tables
+++ `[STC, SRNG]`; `stc.py` + `tracegen.py` build the row; the prover's `HTAPE` stand-in also plays
+lane F's side (`STMQ` sent, `STMA` received). `leaf.sh` now proves STATE segments at `m5tSegC`
+(`NO_STC=1`: the B-T2 template).
+
+* **One active row** opens the input `stRoot` and closes the output's: the 139 message bytes of
+  `ser c` (`[tag] ‖ ws ‖ u64 wsLen ‖ trie ‖ u64 idx ‖ rest`) are columns; the padded message's 32
+  words are built from them in the chip's limb form (`wordW`: bytes 5 and 2 of a word straddle the
+  21/42-bit limb cuts, split as `lo5 + 32·hi3`, `lo2 + 4·hi6`); **two SHA-512 compressions per
+  opening** on `IF384` (`IV384 → hi → di ‖ xi`); the digest's 48 bytes `ri` are the limbs `di`. The
+  output message shares bytes 49–96 (`u64 wsLen ‖ trie ‖ u64 idx`) with the input and has its own
+  tag / `ws` / `rest` (`ot`, `ow`, `or`), two more compressions, digest bytes `ro`.
+* `ws` of the input = public `R_in` (values 17–34), of the output = `R_out` (35–52); `wsLen` (bytes
+  49–56, little-endian) = public value 16, bytes 52–56 zero; **`wsLen ≤ 2^D` in-circuit**:
+  `2^D − wsLen = g₀ + 256 g₁ + 65536 g₂` with bytes `g`.
+* **`STMQ` (211)** received `[r_in (14 limbs), tag_out, rest_out (14 limbs)]`, **`STMA` (212)** sent
+  `[r_out (14 limbs), tag_in, rest_in (14 limbs)]`; a limb is 3 bytes big-endian
+  (`65536·b₃ᵢ + 256·b₃ᵢ₊₁ + b₃ᵢ₊₂`). `SRNG` (bus 31) is `RNG`'s byte table on its own bus (the M5a
+  premise "extra tables never touch `RNG`" is kept): a byte cell and a high split part are looked
+  up once, a low split part twice (`x`, `2^(8−k)·x`).
+* Size: `STC` width 670, 955 constraints (degree 2), 755 interactions, height 4 (1 active row);
+  `SRNG` 256 rows; 4 more compressions in the segment's chip (T1: 111 → 115).
+* **`rest`**: opaque 42 bytes to the table. Lane E's M13 `encRestI` (`join/RestI.lean`: `rest =
+  bdigest(d_static ‖ d_queue ‖ d_move)`) changes what lane F hashes into `rest_out`, not the
+  opening, so it is adopted by lane F's rows without a change here.
+
+**Lean [K]** (std axioms, no `sorry`; `logs/BT3-axioms.txt`):
+
+| file | what is proved |
+|---|---|
+| `StcBytes.lean` | `beN_beToNat`, `wbytes_words` (the bytes of consecutive words), **`limbs_word`** (a word's chip limbs from its bytes and split parts), `pad_stc` (FIPS padding of 139 bytes), `blocks_two`, **`sha384_stc`** (SHA-384 of the message = `toB` of the two-compression chain over its 32 words), `limbBytes_limbs`, `u64_bytes`, `leN_leNat` |
+| `StcRow.lean` | an active row from its constraints and lookups: `dec3_wordW` / `word_split` / `word_pad`, `wordI` / `wordO` / `blockI` / `blockO` (message words), `digI` / `digO` (digest limbs = digest bytes), **`wsI` / `wsO`** (the opened `ws` bytes = the public `R_in` / `R_out`), **`lenI`** (the opened `wsLen` = public value 16, **`wsLen ≤ 2^D`**) |
+| `StcSound.lean` | `two_comps` (chip contract over two chained compressions), `sha_in` / `sha_out`, `comI` (the opened commitment), `ser_comI`, `ser_close`, `qv_dec` / `av_dec` (the `STMQ` / `STMA` limbs as bytes); **`stc_row_ok`**, **`stc_holds`** (any AIR, `STC` at any index, `SRNG` sends bytes): `StcOK r_in r_out R_in R_out wsLen mi mo ∧ wsLen ≤ 2^D` — `r_in`, `mo` from `STMQ`, `r_out`, `mi` from `STMA`; `srng_send_lt`, **`stc_seg`** (the template `segAir D (stcTables D ++ extra)`), **`stHalf_seg`** (with `ws_moves_seg`: lane B's state half of a STATE leaf from `Holds`, `wsLen ≤ 2^D` no longer a premise), **`holdsSt_seg`** (`StHalfC.HoldsSt`, the premise of `stHalf_inst` and of lane E's M13 `StateW.state_sound_stRoot`) |
+
+**Measured on T1 at S [M]** (`leaf.sh … check`, `logs/BT3-stc-mutants-check.txt`): the IF and the
+`m5tSegC` segment pre-check OK (5,041 messages), leaf chain OK. **STC mutants** (`stc_mutants.sh`,
+precheck): 8/8 rejected — the engine's input `stRoot` (`stcrin`), the taken output `stRoot`
+(`stcrout`), the input tag (`stctag`), the output rest (`stcrest`) all leave `STMQ` / `STMA`
+unbalanced; an opened `ws` byte ≠ `R_in` (`stcws`) and an opened `wsLen` byte (`stclen`) fail
+constraints; **`wsLen = 2^D + 1` with consistent `WSL` rows (`stcbig`) fails only on the `g` byte
+lookup**; a non-byte message cell with the same chip limb (`stcbyte`: `b₆₃ + 256`, `b₆₂ − 1`) fails
+only on `SRNG`. The B-T1 battery (23 mutants) re-run at `m5tSegC`: 23/23 rejected (precheck).
+
+### Item 2: B2-4, the HOST join key [M][K]
+
+`StHostIf.lean` (changed), `StHostPfx.lean` (new); `tracegen.py --host` routes each write.
+
+* **`StbH`'s key run is the trie key**: row kinds `k0` (`0x09`, only at `j = 0`), `kr` (a receiver
+  byte, `CTXB [j − 1, b]`), `kc` (`0x2c`, `CTXL [j − 1]`: its index is the receiver's length),
+  `kh` (`HOSTB [ts, hid, 0, base + j, b]`); inside a run `k0 → kr* → kc → kh*`, a run does not end
+  in the prefix, a value run (`hid = 314`) is all `kh`. `StwH` gets `pl` with `CTXL [pl − 2]`,
+  `HOSTQ` `key_len = klen − pl`, key descriptor `base = kptr − pl` (so `HOSTB` rows `j ≥ pl` read
+  `kptr + j − pl`), `ke = 0`. SHA-256 ids `ID_STH = 5·2^24 + m` (disjoint from `STB`'s).
+* **`m5tSegH D` = `m5tSeg D` ++ `[STBH, STWH]`**: the runtime's writes (account / access-key
+  records, T1's 9 other changes) stay on `SREQ`/`HB` (`STB`/`STW`), only the receiver's
+  `ContractData` keys go through the HOST rows. The prover loads both cached stand-ins (`HTAPE`,
+  `HOSTTAPE`; the latter also plays the WASM leaf's context: `CTXB`, `CTXL`).
+* **Proposed cross-lane ids**: `CTXB` 215 `[i, byte_i]`, `CTXL` 216 `[|receiver|]` (lookups;
+  provider: lane A's `vmCtxDigest` remainder / lane F's `RX` receiver bytes).
+* **Result [M]** (`logs/BT3-join-laneA.txt`): lane A's 8 `storage_write` messages **verbatim**
+  (`HOSTQ` with `key_len = 1`, the key byte `t` at address 0, `HOSTR`, the 5 value bytes) in
+  `m5tSegH` on T1: **`PRECHECK OK`, 4,782 messages, no control hack**; the run is `0x09 ‖
+  "s5k210.s2a00" ‖ 0x2c ‖ t`, the `t` row reading address 0. Mutants (precheck, 4/4 rejected,
+  `logs/BT3-host-mutants-check.txt`): no prefix (`hostnopfx`: the contract key hashed alone —
+  `WRITE` and the context lookups unbalanced), a receiver byte changed and consistently hashed
+  (`hostrecv`), the tag row claimed as a receiver byte (`hostkind`), `pl` off by one (`hostpl`).
+* **Lean [K]** (`StHostPfx`): **`prefix_run`** — if row 0 is not a `HOSTB` row, the kinds follow the
+  automaton and the lookups are the receiver's, then the run's bytes are `0x09 :: recv ++ 0x2c ::
+  rest` and the `HOSTB` rows are exactly `j ≥ |recv| + 2`; `prefix_kinds`; row facts from
+  `StbH.constraints` (`stbh_tag`, `stbh_sep`, `stbh_last`). Open: the cross-table step (row 0 not a
+  `HOSTB` row: `HOSTB` rows are `j ≥ pl` by lane A's `HostIf` sends), the `StSound` restatement over
+  `m5tSegH`, `stwH_hid` unchanged.
+
+### Item 3: `SegLeaves` (finding B3-1) [K]
+
+* **B3-1**: B-T2's `WsBridge.SegLeaves` quantifies over every `wsLen`-long `Ok` entry list; with a
+  repeated key `updE` updates every copy while the rows touch one leaf per key, so it is false in
+  general (`ws_final` itself needs distinct key digests). **`SegLeavesN`** (`SegLeavesN.lean`) adds
+  distinct keys and the input root; `WsMovesN`, `ws_moves_segN`, `st_stepN` (the view's working set
+  key-distinct: lane E's `keysOf` is the chunk's key set) and **`stHalf_segN`** are the results over
+  it.
+* **Reduction proved**: `segLeavesN_of` — `SegLeavesN` from `l.i < wsLen` (`wsl_ok_seg`) and two
+  per-index content facts, `LastNew` (a latest touching row writes the updated entry's leaf) and
+  `Untouched` (an untouched index keeps its entry); `wsAt_cases` (what the batched update holds at
+  an index). **Open**: `LastNew` / `Untouched` from `Holds` — the M5b chain `write_sent` → `WRITE` →
+  `WSA` chain (`ws_final`) → `WSL` leaf (`LeafCR`) restated on the template's indices.
+
+### Item 4: not done
+
+`HOSTR` answer (`EVK`), `storage_read` / `has_key` rows, `regFill`.
+
+### Proofs
+
+PROOFS_PLACEHOLDER
+
 ## B-T2 (thirteenth session, 2026-11-25): lane B's half of the STATE split, the `stRoot` interface for lane F, the HOST join
 
 Log `docs/logs/e2e-bt2-state-2026-11-25.md`. Plan §3.5 ("Split leaves", lane B status) and §5.1.

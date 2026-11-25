@@ -938,6 +938,28 @@ STATE engine half are not (F3-1, no STATE engine rows); split leaves in the rela
   `wsLen` and the value bounds the circuit statement needs are not carried; lane B recommends
   `W = stRoot` (above).
 
+**Lane B status (B-T3, 2026-11-25) [K][M]** (`m5a/README` §B-T3; `m5a/lean/StateM5a/{Stc,StcBytes,StcRow,StcSound,StHostPfx,SegLeavesN}.lean`):
+* **`STC` built** (`Stc.m5tSegC D` = `m5tSeg D` ++ `[STC, SRNG]`, one active row, 4 SHA-512
+  compressions): opens the input `stRoot` and closes the output's; **`STMQ` (211) received `[r_in,
+  tag_out, rest_out]`, `STMA` (212) sent `[r_out, tag_in, rest_in]`, digests as 14 limbs of 3 bytes
+  big-endian**; `wsLen ≤ 2^D` in-circuit. **`StcSound.stc_holds` / `stc_seg` [K]**: from `Holds`,
+  `StcOK r_in r_out R_in R_out wsLen mi mo ∧ wsLen ≤ 2^D` with the messages' values; `stHalf_seg`
+  (lane B's state half from `Holds`, given `SegLeaves`), **`holdsSt_seg`** (`HoldsSt`, the lane B
+  premise of lane E's M13 `StateW.state_sound_stRoot`). T1 pre-check OK; STC mutants 8/8, B-T1
+  battery 23/23 rejected (precheck). `rest` is opaque to the table: lane E's `encRestI` is adopted
+  by lane F's `rest_out` without a change here.
+* **B2-4 fixed**: `StbH`'s key run = `0x09 ‖ receiver ‖ 0x2c ‖ key` (receiver bytes from the call
+  context: **`CTXB` 215 `[i, b_i]`, `CTXL` 216 `[|receiver|]`**, proposed ids; provider: the WASM
+  leaf's context rows), `HOSTQ` `key_len = klen − pl`; `m5tSegH` = `m5tSeg` ++ `[STBH, STWH]` (runtime
+  writes stay on `SREQ`/`HB`). Lane A's 8 T1 messages verbatim: **pre-check OK, no control hack**;
+  `StHostPfx.prefix_run` [K].
+* **Finding B3-1**: B-T2's `SegLeaves` is false for entry lists with a repeated key; restated as
+  `SegLeavesN` (distinct keys, input root), reduced (`segLeavesN_of` [K]) to two per-index content
+  facts `LastNew` / `Untouched` (open: M5b's `write_sent` / `ws_final` / `LeafCR` chain per
+  template). New obligation on the view: `((P.wsOf v).map Prod.fst).Nodup` (lane E's `keysOf`).
+* Lane F: compute the 14 `r_in` limbs from `engF`'s `stRoot` bytes, send `STMQ`, receive `STMA`
+  into the output record's `stRoot`; lane A / F: provide `CTXB` / `CTXL`.
+
 **The `stRoot` interface for lane F's F3-1 (resume, STATE; decision proposed by lane B, B-T2).** A
 resume / STATE leaf is one trace = lane F's rows + lane B's `m5tSeg` tables + `STC`. Messages
 (cross-lane ids proposed for the integrator's numbering: `STMQ` 211, `STMA` 212, `SREQ` 213, `HB`
@@ -2599,6 +2621,12 @@ STATE / RT split in lane E's relative canonical form (§3.5 "Lane B status (B-T2
 unprovable → relational split) and B2-2 (view leaf digest, fixed); non-vacuity on T1 by the kernel
 (`t1_ws_nonvac`); the `stRoot` interface for lane F (`STMQ`/`STMA`/`SREQ`/`HB`, `STC`). M6.4: see
 README §B-T2 item 3. No AIR changed, nothing re-proved.
+
+**B-T3 (fourteenth session, 2026-11-25) [K][M]:** README §"B-T3", log
+[`docs/logs/e2e-bt3-state-2026-11-25.md`](../logs/e2e-bt3-state-2026-11-25.md) (§3.5 "Lane B status
+(B-T3)"): the `STC` table and `StcOK` from `Holds` (`stc_holds`, `holdsSt_seg`), `wsLen ≤ 2^D`
+in-circuit, B2-4's trie-key prefix run (lane A's T1 messages balance verbatim), B3-1 (`SegLeavesN`,
+reduction to the leaf content).
 
 ### 5.2 M5-T1 runtime (lane F): status, 2026-11-21
 
