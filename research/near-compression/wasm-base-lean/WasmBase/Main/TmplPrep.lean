@@ -1,5 +1,6 @@
 import WasmBase.Main.TmplWasm
 import WasmBase.PrepSound
+import WasmBase.PrepCert
 
 /-!
 # WasmBase.Main.TmplPrep — PREP as a `wasm`-kind template (A-T3)
@@ -116,6 +117,8 @@ structure PTr where
   code : ArenaCore.Bytes
   cm : List (List Nat)
   fm : List (List Nat)
+  /-- A-T4: the body index of each FUNC row (the FUNC table's `kk` column) -/
+  ks : List Nat
   q : CallArgs
 
 /-- **The circuit's checks** (leaf wrapper + `prepAir`). -/
@@ -131,6 +134,9 @@ structure PrepCirc (Pv : WasmViewParams) (d d' : ArenaCore.Bytes) (tr : PTr) : P
     wo.codeRoot = Pv.codeC.root tr.cm ∧ wo.funcRoot = Pv.funcC.root tr.fm
   /-- `prepAir`: the SHA-256 table's digest of the code bytes is the public hash -/
   sha : ArenaCore.sha256 tr.code = tr.hash
+  /-- A-T4, `prepAir`'s decoder tables: the cached matrices are the hashed code's decoded bodies
+  (`PrepDec.DecodeCert`; the AIR obligation `PrepDecSound.PrepDecodeSound`) -/
+  dec : PrepDec.DecodeCert (tr.code.map (·.toNat)) Pv.hCode Pv.hFunc tr.cm tr.fm tr.ks
 
 /-- **`PrepCirc.sha` is met by the real AIR** (`PrepSound.prep_hash_of_holds`): an accepted PREP
 trace has a code message whose SHA-256 is the hash the wrapper reads off the public values. -/
@@ -156,12 +162,311 @@ def PrepRest (Pv : WasmViewParams) (tr : PTr) : Prop :=
     { wo with codeRoot := bdigest [], funcRoot := bdigest [] } =
       { wasmBnd Pv (tr.q, preConf tr.q) with codeRoot := bdigest [], funcRoot := bdigest [] }
 
+/-! ## 6. The decoder certificate: `RecordsCert` from the AIR's `DecodeCert` (A-T4) -/
+
+/-- `checkModuleM2`'s layout fields are the literal prefix sums. -/
+theorem checkModuleM2_shape {cfg : NearCfg} {p : Prepared} {e : Nat} {MH : ModOutH}
+    (h : checkModuleM2 cfg p e = some MH) :
+    MH.mod.offs = prefixOffs MH.mod.sizes 0 ∧ MH.mod.sizes.length = MH.mod.fns.length ∧
+      MH.mod.codeSize = MH.mod.sizes.foldl (· + ·) 0 := by
+  unfold checkModuleM2 at h
+  dsimp only at h
+  split at h
+  · simp at h
+  · rename_i pfs hp
+    split at h
+    · simp at h
+    · split at h
+      · simp only [Option.some.injEq] at h
+        subst h
+        refine ⟨rfl, ?_, rfl⟩
+        simp only [List.length_map]
+        exact (mapM_some _ _ _ hp).1
+      · simp at h
+
+theorem prefixOffs_length (l : List Nat) (o : Nat) : (prefixOffs l o).length = l.length := by
+  induction l generalizing o with
+  | nil => rfl
+  | cons a l ih => simp [prefixOffs, ih]
+
+theorem prefixOffs_zero (l : List Nat) (o : Nat) (h : 0 < l.length) : (prefixOffs l o).getD 0 0 = o := by
+  cases l with
+  | nil => simp at h
+  | cons a l => rfl
+
+theorem prefixOffs_succ (l : List Nat) (o : Nat) : ∀ i, i + 1 < l.length →
+    (prefixOffs l o).getD (i + 1) 0 = (prefixOffs l o).getD i 0 + l.getD i 0 := by
+  induction l generalizing o with
+  | nil => intro i h; simp at h
+  | cons a l ih =>
+    intro i h
+    cases i with
+    | zero =>
+      cases l with
+      | nil => simp at h
+      | cons b l => simp [prefixOffs]
+    | succ i =>
+      have := ih (o + a) i (by simp at h; omega)
+      simpa [prefixOffs] using this
+
+/-- Two equal-length lists are equal if they agree at every `getD` index. -/
+theorem list_ext_getD {α : Type} (d : α) {a b : List α} (hl : a.length = b.length)
+    (h : ∀ i, i < a.length → a.getD i d = b.getD i d) : a = b := by
+  apply List.ext_getElem hl
+  intro i h1 h2
+  have := h i h1
+  simpa [List.getD_eq_getElem?_getD, List.getElem?_eq_getElem h1, List.getElem?_eq_getElem h2] using this
+
+theorem agree_len {fs : List (Option Nat)} {r : List Nat} (h : PrepDec.Agree fs r) : r.length = 8 := by
+  simp only [PrepDec.Agree, PrepDec.agreeB, Bool.and_eq_true, beq_iff_eq] at h
+  exact h.1
+
+theorem agree_field {fs : List (Option Nat)} {r : List Nat} (h : PrepDec.Agree fs r) {i v : Nat}
+    (hi : i < 8) (hv : fs.getD i none = some v) : r.getD i 0 = v := by
+  simp only [PrepDec.Agree, PrepDec.agreeB, Bool.and_eq_true, List.all_eq_true, List.mem_range] at h
+  have := h.2 i hi
+  rw [hv] at this
+  simpa using this
+
+/-- Two records agreeing with the same fixed fields, and equal on the free ones, are equal. -/
+theorem agree_eq {fs : List (Option Nat)} {a b : List Nat} (ha : PrepDec.Agree fs a)
+    (hb : PrepDec.Agree fs b) (hfree : ∀ i, i < 8 → fs.getD i none = none → a.getD i 0 = b.getD i 0) :
+    a = b := by
+  apply list_ext_getD 0 (by rw [agree_len ha, agree_len hb])
+  intro i hi
+  rw [agree_len ha] at hi
+  cases hf : fs.getD i none with
+  | none => exact hfree i hi hf
+  | some v => rw [agree_field ha hi hf, agree_field hb hi hf]
+
+/-- The static context is the M2 checker's (true of `ctxM2`, `WasmViewT1`). -/
+def CtxIsM2 (Pv : WasmViewParams) : Prop :=
+  ∀ q p k X, Pv.ctxOf q p k = some X → ∃ MH, checkModuleM2 X.cfg X.p X.fn = some MH ∧ X.M = MH.mod
+
+/-- **The residual (named): the static-analysis fields.**  For the checked module of the entry,
+the FUNC rows are its checked functions in order, every CODE field the decoder does not fix
+(`decFields … = none`: `h`, `fee`, control-flow targets and opcodes of `end` / `br` / `br_if`, call
+fields) is the module's, and so are FUNC fields 1–7 (`np + 128 nl`, charge, prologue, local mask). -/
+def StaticCert (Pv : WasmViewParams) (q : CallArgs) (cm fm : List (List Nat)) (ks : List Nat) : Prop :=
+  ∀ X p k s n, airOf Pv (q, preConf q) = some (X, p, k, s, n) →
+    ks = X.M.fns ∧
+    (∀ i, i < X.M.fns.length → ∀ pf, p.funcs[X.M.fns.getD i 0]? = some pf → ∀ l ins,
+      pf.code[l]? = some ins → ∀ f, f < 8 →
+        (PrepDec.decFields (X.M.offs.getD i 0 + l) (PrepDec.dimg ins)).getD f none = none →
+        (cm.getD (X.M.offs.getD i 0 + l) []).getD f 0 =
+          (X.M.records.toList.getD (X.M.offs.getD i 0 + l) []).getD f 0) ∧
+    (∀ i, i < X.M.fns.length → ∀ f, 1 ≤ f → f < 8 → (fm.getD i []).getD f 0 = (X.M.funcs.getD i []).getD f 0)
+
+theorem prefixOffs_last : ∀ (l : List Nat) (o : Nat), l ≠ [] →
+    (prefixOffs l o).getD (l.length - 1) 0 + l.getD (l.length - 1) 0 = l.foldl (· + ·) o := by
+  intro l
+  induction l with
+  | nil => intro o h; exact absurd rfl h
+  | cons a l ih =>
+    intro o _
+    cases l with
+    | nil => simp [prefixOffs]
+    | cons b l =>
+      have := ih (o + a) (by simp)
+      simpa [prefixOffs] using this
+
+theorem layout_locate {fns offs sizes : List Nat} {total : Nat}
+    (hl : layoutOk fns offs sizes total = true) :
+    (∀ j, j < total → (locate offs sizes j).1 < fns.length ∧
+      (locate offs sizes j).2 < sizes.getD (locate offs sizes j).1 0 ∧
+      offs.getD (locate offs sizes j).1 0 + (locate offs sizes j).2 = j) ∧
+    (∀ i, i < fns.length → offs.getD i 0 + sizes.getD i 0 ≤ total ∧
+      ∀ l, l < sizes.getD i 0 → locate offs sizes (offs.getD i 0 + l) = (i, l)) := by
+  simp only [layoutOk, Bool.and_eq_true, decide_eq_true_eq, List.all_eq_true, List.mem_range] at hl
+  obtain ⟨⟨⟨_, _⟩, h1⟩, h2⟩ := hl
+  refine ⟨fun j hj => ⟨(h1 j hj).1.1, (h1 j hj).1.2, (h1 j hj).2⟩, fun i hi => ⟨(h2 i hi).1, fun l hl' => ?_⟩⟩
+  have := (h2 i hi).2 l hl'
+  simpa using this
+
+theorem padRep_of {l a : List (List Nat)} {h : Nat} (hlen : a.length = h) (h1 : 1 ≤ l.length)
+    (h2 : l.length ≤ h) (hlow : ∀ j, j < l.length → a.getD j [] = l.getD j [])
+    (hpad : ∀ j, l.length ≤ j → j < h → a.getD j [] = a.getD (l.length - 1) []) : a = padRep h l := by
+  apply list_ext_getD [] (by simp [padRep]; omega)
+  intro j hj
+  unfold padRep
+  by_cases hjl : j < l.length
+  · rw [hlow j hjl]
+    simp [List.getD_eq_getElem?_getD, List.getElem?_append_left hjl]
+  · rw [hpad j (by omega) (by omega), hlow _ (by omega)]
+    simp only [List.getD_eq_getElem?_getD, List.getElem?_append_right (by omega : l.length ≤ j),
+      List.getElem?_replicate]
+    rw [if_pos (by omega)]
+    cases l with
+    | nil => simp at h1
+    | cons x xs =>
+      rw [List.getLast?_eq_getLast (by simp)]
+      simp [List.getD_eq_getElem?_getD, List.getLast_eq_getElem]
+
+theorem tailConf_ent {p p' : Prepared} {mi : Nat} {s : St} {fuel : Nat} {k : EntK} {r : Res} {n : Nat}
+    (h : tailConf p mi s fuel = .ent p' k r n) : p = p' := by
+  unfold tailConf at h; split at h <;> (cases h; rfl)
+
+theorem preConfK_ent {cfg : NearCfg} {code : ByteArray} {method : String} {ctx : CallCtx} {fuel : Nat}
+    {bl full : Bool} {real : Option TTN.RealStore} {p : Prepared} {k : EntK} {r : Res} {n : Nat}
+    (h : preConfK cfg code method ctx fuel bl full real = .ent p k r n) : prepare cfg code bl = .ok p := by
+  unfold preConfK runCallG at h
+  split at h
+  · cases h
+  · split at h
+    · cases h
+    · cases h
+    · cases h
+    · cases h
+    · rename_i p0 hp
+      repeat' split at h
+      all_goals first | cases h | (rw [hp, tailConf_ent h])
+
+theorem preConf_ent {q : CallArgs} {p : Prepared} {k : EntK} {r : Res} {n : Nat} (h : preConf q = .ent p k r n) :
+    prepare q.cfg q.code true = .ok p := by
+  unfold preConf preConfL at h
+  split at h
+  · exact preConfK_ent h
+  · split at h
+    · split at h
+      · exact preConfK_ent h
+      · cases h
+    · exact preConfK_ent h
+
+
+theorem decFaithful_use {cfg : NearCfg} {c : ArenaCore.Bytes} {p : Prepared}
+    (hF : PrepDec.DecFaithfulAt cfg c) (hp : prepare cfg ⟨c.toArray⟩ true = .ok p)
+    {e : Nat × Nat × Nat} (he : e ∈ PrepDec.emits (c.map (·.toNat))) {pf : PFunc} {B : List (Nat × Nat)}
+    (hpf : p.funcs[e.1]? = some pf) (hB : PrepDec.decBody (c.map (·.toNat)) e.2.1 e.2.2 = some B) :
+    B = pf.code.toList.map PrepDec.dimg := by
+  unfold PrepDec.DecFaithfulAt PrepDec.decFaithfulB at hF
+  rw [hp] at hF
+  have := List.all_eq_true.1 hF e he
+  rw [hpf, hB] at this
+  simpa using this
+
+/-- **`RecordsCert` from the decoder certificate.**  The AIR's `DecodeCert` fixes every CODE field
+`decFields` names and FUNC's offsets; `StaticCert` supplies the rest; `DecFaithfulAt` (the reference
+decoder agrees with `prepare` on this code) and the M2 shape of the context connect the two. -/
+theorem recordsCert_of {Pv : WasmViewParams} {q : CallArgs} {c : ArenaCore.Bytes}
+    {cm fm : List (List Nat)} {ks : List Nat} (hctx : CtxOK Pv) (hM2 : CtxIsM2 Pv)
+    (hD : PrepDec.DecodeCert (c.map (·.toNat)) Pv.hCode Pv.hFunc cm fm ks)
+    (hS : StaticCert Pv (withCode q c) cm fm ks) (hF : PrepDec.DecFaithfulAt q.cfg c) :
+    RecordsCert Pv (withCode q c) cm fm := by
+  intro X p k s n hA
+  obtain ⟨hw, hX, -, -⟩ := airOf_spec Pv hA
+  have hpre : preConf (withCode q c) = .ent p k (.cont s) n := by
+    have := congrArg Prod.snd hw; simpa using this
+  have hprep := preConf_ent hpre
+  rw [show (withCode q c).code = ⟨c.toArray⟩ from rfl, show (withCode q c).cfg = q.cfg from rfl] at hprep
+  obtain ⟨hXp, -⟩ := hctx _ _ _ _ hX
+  obtain ⟨MH, hMH, hXM⟩ := hM2 _ _ _ _ hX
+  rw [hXp] at hMH
+  obtain ⟨hks, hstat, hstatF⟩ := hS X p k s n hA
+  rw [hXM] at hks hstat hstatF
+  obtain ⟨nn, nF, off, size, D⟩ := hD
+  have F := checkModuleM2_sound hMH
+  obtain ⟨hoffs, hszlen, hcs⟩ := checkModuleM2_shape hMH
+  obtain ⟨hloc1, hloc2⟩ := layout_locate F.layout
+  have hnF : MH.mod.fns.length = nF := by rw [← hks]; exact D.ksLen
+  -- per function: the body is the function's code; sizes and offsets agree
+  have hfun : ∀ i, i < nF → ∃ pf B, p.funcs[MH.mod.fns.getD i 0]? = some pf ∧
+      B = pf.code.toList.map PrepDec.dimg ∧ size i = MH.mod.sizes.getD i 0 ∧
+      (fm.getD i []).length = 8 ∧ (fm.getD i []).getD 0 0 = off i ∧
+      ∀ l, l < size i → PrepDec.Agree (PrepDec.decFields (off i + l) (B.getD l (0, 0)))
+        (cm.getD (off i + l) []) := by
+    intro i hi
+    obtain ⟨iS, bE, B, hem, hdb, hBl, hfl, hf0, hag⟩ := D.body i hi
+    obtain ⟨pf, hpf, hsz, -⟩ := PrepDec.checkModuleM2_agree hMH i (by omega)
+    have hpf' : p.funcs[(ks.getD i 0, iS, bE).1]? = some pf := by rw [hks]; exact hpf
+    have hBeq := decFaithful_use hF hprep hem hpf' hdb
+    refine ⟨pf, B, hpf, hBeq, ?_, hfl, hf0, hag⟩
+    rw [← hBl, hBeq, hsz]; simp
+  have hoff : ∀ i, i < nF → off i = MH.mod.offs.getD i 0 := by
+    intro i
+    induction i with
+    | zero => intro _; rw [D.off0, hoffs, prefixOffs_zero _ _ (by omega)]
+    | succ i ih =>
+      intro hi
+      obtain ⟨-, -, -, -, hsi, -⟩ := hfun i (by omega)
+      rw [D.offS i hi, ih (by omega), hsi, hoffs, prefixOffs_succ _ _ i (by omega)]
+  -- every CODE row below the code size is the module's record
+  have hrow : ∀ j, j < MH.mod.codeSize → cm.getD j [] = MH.mod.records.toList.getD j [] := by
+    intro j hj
+    obtain ⟨hk, hl, hj'⟩ := hloc1 j hj
+    generalize hkl : locate MH.mod.offs MH.mod.sizes j = kl at hk hl hj'
+    obtain ⟨i, l⟩ := kl
+    simp only at hk hl hj'
+    obtain ⟨pf, B, hpf, hB, hsi, -, -, hag⟩ := hfun i (by omega)
+    obtain ⟨pf', hpf2, hsz2, hrec⟩ := PrepDec.checkModuleM2_agree hMH i hk
+    rw [hpf] at hpf2; cases hpf2
+    obtain ⟨ins, r, hins, hr, hagr⟩ := hrec l (by omega)
+    have hlr : l < size i := by omega
+    have h1 := hag l hlr
+    rw [hoff i (by omega)] at h1
+    have hBl : B.getD l (0, 0) = PrepDec.dimg ins := by
+      rw [hB]
+      have : l < pf.code.size := by omega
+      simp [List.getD_eq_getElem?_getD, Array.getElem?_eq_getElem this] at hins ⊢
+      rw [← hins]
+    rw [hBl] at h1
+    have hrj : MH.mod.records.toList.getD j [] = r := by
+      have := F.recs j hj
+      rw [hkl] at this
+      simp only at this
+      rw [hr] at this
+      simp [List.getD_eq_getElem?_getD, this]
+    subst hj'
+    rw [hrj]
+    exact agree_eq h1 hagr (fun f hf hn => by rw [hstat i hk pf hpf l ins hins f hf hn, hrj])
+  -- the live CODE rows are the code size
+  have hnn : nn = MH.mod.codeSize := by
+    have hpos : 1 ≤ nF := D.hnF.1
+    obtain ⟨-, -, -, -, hsl, -, -, -⟩ := hfun (nF - 1) (by omega)
+    rw [← D.offL, hoff (nF - 1) (by omega), hsl, hcs, hoffs]
+    have hne : MH.mod.sizes ≠ [] := by
+      intro h0; have := congrArg List.length h0; simp only [List.length_nil] at this; omega
+    have := prefixOffs_last MH.mod.sizes 0 hne
+    rw [show MH.mod.sizes.length - 1 = nF - 1 by omega] at this
+    exact this
+  have hrl : MH.mod.records.toList.length = MH.mod.codeSize := by simp [F.recSize]
+  refine ⟨?_, ?_⟩
+  · unfold codeRecs
+    rw [hXM]
+    apply padRep_of D.cmLen (by rw [hrl, ← hnn]; exact D.hn.1) (by rw [hrl, ← hnn]; exact D.hn.2)
+      (fun j hj => hrow j (by rw [hrl] at hj; exact hj))
+    intro j h1 h2
+    rw [D.padC j (by omega) h2, hrl, hnn]
+  · unfold funcRecs
+    rw [hXM]
+    have hfl : MH.mod.funcs.length = nF := by rw [F.funcsLen, hnF]
+    apply padRep_of D.fmLen (by have := D.hnF; omega) (by have := D.hnF; omega)
+    · intro i hi
+      rw [hfl] at hi
+      obtain ⟨-, -, -, -, -, hfl8, hf0, -⟩ := hfun i hi
+      have hfr := F.funcs i (by omega)
+      have hrl8 : (MH.mod.funcs.getD i []).length = 8 := by
+        rw [hfr]; simp only [funcRow, limbs4, List.length_append, List.length_cons, List.length_nil]
+      apply list_ext_getD 0 (by rw [hfl8, hrl8])
+      intro f hf
+      rw [hfl8] at hf
+      by_cases f0 : f = 0
+      · subst f0
+        rw [hf0, hoff i hi, hfr]
+        simp only [funcRow, List.cons_append, List.getD_cons_zero]
+      · exact hstatF i (by omega) f (by omega) hf
+    · intro i h1 h2
+      rw [D.padF i (by omega) h2, hfl]
+
 /-- **The named premises.** -/
 structure PrepNamed (sf : Intake → TTN.Store) (V : ViewImpl) (Pv : WasmViewParams) (tr : PTr) :
     Prop where
   win : tr.bIn.wasm = wasmD Pv (some (tr.q, .pre))
   ghost : ∃ I, tr.bIn.ctxRoot = V.ctxD (.intake I) ∧ setArgs (sf I) tr.q = tr.q
-  cert : RecordsCert Pv (withCode tr.q tr.code) tr.cm tr.fm
+  /-- A-T4: the static-analysis fields (`StaticCert`; the decoded fields are in-circuit) -/
+  stat : StaticCert Pv (withCode tr.q tr.code) tr.cm tr.fm tr.ks
+  /-- A-T4: the reference decoder agrees with `prepare` on the hashed code (trace-independent;
+  decided by evaluation for a given code, `PrepT1.decFaithful_d3tiny`) -/
+  df : PrepDec.DecFaithfulAt tr.q.cfg tr.code
   ent : ∃ X p k s n, airOf Pv (tr.q, preConf tr.q) = some (X, p, k, s, n)
   rest : PrepRest Pv tr
 
@@ -188,6 +493,7 @@ theorem setConf_eq_pre {σ : TTN.Store} {cc : CallConf} (h : setConf σ cc = .pr
 /-- **PREP's store-canonical relative obligation for one leaf trace.** -/
 theorem prep_relC {sf : Intake → TTN.Store} {V : ViewImpl} {Pv : WasmViewParams}
     (hV : V.wasmD = wasmD Pv) (hcl : ClearCall V) (hVwf : ∀ x, (V.bnd x).WF)
+    (hctxP : CtxOK Pv) (hM2 : CtxIsM2 Pv)
     {d d' : ArenaCore.Bytes} {tr : PTr} (hh : prepHolds sf V Pv d d' tr) (x : RConf)
     (hcx : Canon sf x) (hx : bndOf V.bnd x = d) :
     (Sha384Coll ∨ Coll V.ctxD ∨ Sha256Coll) ∨ ∃ x', Canon sf x' ∧ bndOf V.bnd x' = d' ∧ MWasm x x' := by
@@ -244,7 +550,7 @@ theorem prep_relC {sf : Intake → TTN.Store} {V : ViewImpl} {Pv : WasmViewParam
   rotate_left
   · exact .inl (.inr (.inr ⟨_, _, hcd, by rw [hc.sha, hhash]⟩))
   have hcert : RecordsCert Pv tr.q tr.cm tr.fm := by
-    have := hn.cert; rw [hcd, withCode_self] at this; exact this
+    have := recordsCert_of hctxP hM2 hc.dec hn.stat hn.df; rw [hcd, withCode_self] at this; exact this
   -- 5. the out-record is the view of `(q, preConf q)`
   obtain ⟨X, p, k, s, n, hA⟩ := hn.ent
   obtain ⟨hcmX, hfmX⟩ := hcert X p k s n hA
@@ -294,7 +600,7 @@ def airsWP (A0 : Airs) (sf : Intake → TTN.Store) (V : ViewImpl) (Pv : WasmView
 E's store-canonical relative obligation, with `Bad = Sha384Coll ∨ Coll V.ctxD ∨ Sha256Coll`. -/
 theorem segSoundWasmPrepRelC_of (A0 : Airs) (sf : Intake → TTN.Store) (V : ViewImpl)
     (Pv : WasmViewParams) (hV : V.wasmD = wasmD Pv) (hcl : ClearCall V) (hctxP : CtxOK Pv)
-    (hVwf : ∀ x, (V.bnd x).WF) :
+    (hM2 : CtxIsM2 Pv) (hVwf : ∀ x, (V.bnd x).WF) :
     TmplRelC sf V (airsWP A0 sf V Pv) (Sha384Coll ∨ Coll V.ctxD ∨ Sha256Coll) .wasm := by
   intro d d' t x hh hcx hx
   cases t with
@@ -303,7 +609,7 @@ theorem segSoundWasmPrepRelC_of (A0 : Airs) (sf : Intake → TTN.Store) (V : Vie
     · exact .inl (.inl h)
     · exact .inl (.inr (.inl h))
     · exact .inr h
-  | inr p => exact prep_relC hV hcl hVwf hh x hcx hx
+  | inr p => exact prep_relC hV hcl hVwf hctxP hM2 hh x hcx hx
 
 /-! ## 5. Non-vacuity of the named premises -/
 
@@ -314,12 +620,14 @@ theorem prepNamed_honest {sf : Intake → TTN.Store} {V : ViewImpl} {Pv : WasmVi
     (hbIn : tr.bIn = V.bnd (.call I c K tr.q .pre))
     (hbOut : tr.bOut = V.bnd (.call I c K tr.q (preConf tr.q)))
     (hcan : setArgs (sf I) tr.q = tr.q)
-    (hcert : RecordsCert Pv (withCode tr.q tr.code) tr.cm tr.fm)
+    (hstat : StaticCert Pv (withCode tr.q tr.code) tr.cm tr.fm tr.ks)
+    (hdf : PrepDec.DecFaithfulAt tr.q.cfg tr.code)
     (hent : ∃ X p k s n, airOf Pv (tr.q, preConf tr.q) = some (X, p, k, s, n)) :
     PrepNamed sf V Pv tr where
   win := by rw [hbIn]; simp only [ViewImpl.bnd, split, hV]
   ghost := ⟨I, by rw [hbIn]; rfl, hcan⟩
-  cert := hcert
+  stat := hstat
+  df := hdf
   ent := hent
   rest := by
     intro wo hwo
@@ -332,6 +640,8 @@ theorem prepNamed_honest {sf : Intake → TTN.Store} {V : ViewImpl} {Pv : WasmVi
 #print axioms prep_relC
 #print axioms segSoundWasmPrepRelC_of
 #print axioms prepNamed_honest
+#print axioms recordsCert_of
+#print axioms preConf_ent
 
 end TmplPrep
 end WasmBase

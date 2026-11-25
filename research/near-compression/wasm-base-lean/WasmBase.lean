@@ -212,4 +212,8 @@ import WasmBase.Main.SegStore
 import WasmBase.Main.WasmViewT1
 import WasmBase.PrepAir
 import WasmBase.PrepSound
+import WasmBase.PrepDec
+import WasmBase.PrepCert
+import WasmBase.PrepDecSound
 import WasmBase.Main.TmplPrep
+import WasmBase.Main.PrepT1

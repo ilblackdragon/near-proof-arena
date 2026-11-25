@@ -28,7 +28,7 @@ import json, sys
 t = json.load(open(sys.argv[1]))
 fs = sys.argv[3]
 t.update(name='t1-d3tiny-prep', certs=fs + '/calc/dkt_certs_o2.json', exclusions=fs + '/lean/DKTCertsO2_big.keys',
-         heights={'PHDR': 4, 'SHA256': 128, 'CODE': t['heights']['CODE'], 'FUNC': t['heights']['FUNC']})
+         heights={'PHDR': 4, 'SHA256': 128, 'CB': int(__import__('os').environ.get('PREP_CB', '512')), 'HDR': int(__import__('os').environ.get('PREP_HDR', '16')), 'CODE': t['heights']['CODE'], 'FUNC': t['heights']['FUNC']})
 json.dump(t, open(sys.argv[2], 'w'), indent=1, sort_keys=True)
 EOF
 if [ "$WHAT" = prove ] || [ "$WHAT" = all ]; then
@@ -41,6 +41,6 @@ if [ "$WHAT" = verify ] || [ "$WHAT" = all ]; then
   grep -E 'PREPLEAFVERIFY|panick' "$WD/prepleafverify.log"
 fi
 if [ "$WHAT" = tamper ] || [ "$WHAT" = all ]; then
-  $CAP "$BS" preptamper "$WD/airPrep.json" "$CODE" "$PREP" "$WD/prep-template.json" "$WD/leaf" "$SEG_LEAF" "$NSEG" > "$WD/preptamper.log" 2>&1 || true
-  grep -E 'MUTANT|PREPTAMPER|panick' "$WD/preptamper.log"
+  $CAP "$BS" preptamper "$WD/airPrep.json" "$CODE" "$PREP" "$WD/prep-template.json" "$WD/leaf" "$SEG_LEAF" "$NSEG" ${PREP_OTHER:-} > "$WD/preptamper.log" 2>&1 || true
+  grep -E 'MUTANT|in-circuit|PREPTAMPER|panick' "$WD/preptamper.log"
 fi
