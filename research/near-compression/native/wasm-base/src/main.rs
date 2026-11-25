@@ -16,6 +16,7 @@ mod tracegen;
 mod seg;
 mod segcmd;
 mod prepcmd;
+mod prepdec;
 mod dump;
 #[allow(dead_code, clippy::all)]
 mod s384 {

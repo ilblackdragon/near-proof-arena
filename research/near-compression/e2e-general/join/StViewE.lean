@@ -2,6 +2,8 @@ import StateM5a.StateViewParams
 import NearSpecV3.E2E.StEnc
 import NearSpecV3.E2E.OvlInv
 import NearSpecV3.E2E.OvlVal
+import StateM5a.GlueRel
+import NearSpecV3.E2E.GlueFin
 
 /-!
 # Lane E's `StViewE` for lane B's state view (E2E-M11f, item 1)
@@ -23,10 +25,10 @@ LeafColl` and the `hst` premise of `viewImpl_binding_bad` (`viewImpl_hst_E`) wit
 ## The key list and `FitsReach`
 
 `StV.eng` now carries the chunk's key list (`View.lean`, `EngSt`), filled by the view's key
-function `V.keys : Intake → List Bytes` (`stOfK (V.keys I) c` in `split`). Lane B's
-`FitsReach E R` names `stOf c = stOfK [] c` (kept for source compatibility), which has the empty
-key list; its intended statement is **`FitsReachK κ R`** below (`∀ I c, R I c → fitsB E (stOfK
-(κ I) c)`). Lane B should switch `FitsReach` to this form.
+function `V.keys : Intake → List Bytes`, and at `start` the intake's overlay `Ovl.ofTrie I.tMain`
+(lane E's D-a; `stOfI V.keys I c` in `split`, `= stOfK (V.keys I) c` away from `start`). Lane B's
+`FitsReach E κ R` is stated for `stOfI` and is **`FitsReachK κ R`** below by `rfl` (`∀ I c, R I c →
+fitsB E (stOfI κ I c)`).
 
 `fitsReachK_of` reduces `FitsReachK` to a per-configuration fact on the overlay, `OvlFacts`:
 the key list has `≤ 2^24` keys; every key's pre-state and current values are `< 2^24` bytes; the
@@ -95,7 +97,7 @@ theorem viewImpl_hst_E (V : ViewImpl) (hV : V.stD = stD (stViewParams_B stViewE)
 /-- **`FitsReach` with the key list**: every configuration of the reachability predicate `R`
 (indexed by the intake) has its state component, with the key list `κ I`, in the circuit form. -/
 def FitsReachK (κ : Intake → List Bytes) (R : Intake → EConf → Prop) : Prop :=
-  ∀ I c, R I c → fitsB stViewE (stOfK (κ I) c) = true
+  ∀ I c, R I c → fitsB stViewE (stOfI κ I c) = true
 
 /-- The per-configuration facts on an overlay `o` with key list `K`. -/
 structure OvlFacts (K : List Bytes) (o : Ovl) : Prop where
@@ -108,8 +110,16 @@ structure OvlFacts (K : List Bytes) (o : Ovl) : Prop where
 theorem posOvl_strip (p : EPos) : posOvl (eposMap rsStrip p) = posOvl p := by
   cases p <;> rfl
 
-theorem ovlOf_stOfK (K : List Bytes) (c : EConf) : ovlOf (stOfK K c) = posOvl c.pos :=
-  posOvl_strip c.pos
+theorem ovlOf_stOfK (K : List Bytes) (c : EConf) : ovlOf (stOfK K c) = posOvl c.pos := by
+  obtain ⟨p, r⟩ := c; cases p <;> rfl
+
+/-- **The view's state component carries the intake's overlay at `start`** (D-a) and the receipt
+state's elsewhere. -/
+theorem ovlOf_stOfI (κ : Intake → List Bytes) (I : Intake) (c : EConf) :
+    ovlOf (stOfI κ I c) = match c.pos with
+      | .start => some (Ovl.ofTrie I.tMain)
+      | p => posOvl p := by
+  obtain ⟨p, r⟩ := c; cases p <;> rfl
 
 theorem zero32_wf : (PTrie.hash StateM5a.StateViewParams.zero32).wf = true := by decide +kernel
 
@@ -145,15 +155,54 @@ run's key list (proved for the engine below, `engOvlInv_of`). -/
 def EngOvlInv (κ : Intake → List Bytes) (R : Intake → EConf → Prop) : Prop :=
   ∀ I c o, R I c → posOvl c.pos = some o → OvlFacts (κ I) o
 
-/-- **`FitsReachK` from the engine invariant.** -/
+/-- **The state commitment at `start` commits IF-INTAKE's working set** (D-a; M12 finding (1)):
+the view's component at `start` has the working set of the intake's overlay — every entry
+`(k, pre, pre, false)` of the revealed pre-state trie — whose root is lane B's `R_0`; its trie is the
+intake's trie (`TCH` = `prev_state_root` by the intake's check). -/
+theorem wsOf_start (κ : Intake → List Bytes) (I : Intake)
+    (r : Successor.StorageExecution.Recording) :
+    wsOfB stViewE (stOfI κ I ⟨.start, r⟩) = (κ I).map (entryAt (Ovl.ofTrie I.tMain)) ∧
+      trieOfB (stOfI κ I ⟨.start, r⟩) = I.tMain := ⟨rfl, rfl⟩
+
+/-- … and each entry is the pre-state value, unwritten. -/
+theorem entryAt_ofTrie (t : PTrie) (k : Bytes) :
+    entryAt (Ovl.ofTrie t) k = (k, preV (Ovl.ofTrie t) k, preV (Ovl.ofTrie t) k, false) := rfl
+
+/-- **The start invariant** (D-a): at a reached `start` configuration the intake's overlay
+satisfies `OvlFacts` for the key list. -/
+def StartOvlInv (κ : Intake → List Bytes) (R : Intake → EConf → Prop) : Prop :=
+  ∀ I r, R I ⟨.start, r⟩ → OvlFacts (κ I) (Ovl.ofTrie I.tMain)
+
+/-- `OvlFacts` gives the circuit form for the view's component (`stOfI`). -/
+theorem fitsB_of_factsI (κ : Intake → List Bytes) (I : Intake) (c : EConf) (o : Ovl)
+    (ho : ovlOf (stOfI κ I c) = some o) (hf : OvlFacts (κ I) o) :
+    fitsB stViewE (stOfI κ I c) = true := by
+  have hk : stViewE.keysOf (stOfI κ I c) = κ I := rfl
+  apply fitsB_of
+  · simp only [wsOfB, ho, List.length_map, hk]
+    exact Nat.le_trans hf.keys_len (Nat.le_refl _)
+  · intro e he
+    simp only [wsOfB, ho, hk, List.mem_map] at he
+    obtain ⟨k, hkK, rfl⟩ := he
+    exact hf.vals k hkK
+  · simp only [trieOfB, ho]; exact hf.trie_wf
+  · exact Enc.idxOf_lt (stOfI κ I c)
+  · simp only [ovlInv, ho, hk, Bool.and_eq_true, decide_eq_true_eq, List.all_eq_true]
+    exact ⟨hf.nodup, fun p hp => hf.covered p.1 (List.mem_map.mpr ⟨p, hp, rfl⟩)⟩
+
+/-- **`FitsReachK` from the engine invariant** and the start invariant. -/
 theorem fitsReachK_of (κ : Intake → List Bytes) (R : Intake → EConf → Prop)
-    (h : EngOvlInv κ R) : FitsReachK κ R := by
+    (h : EngOvlInv κ R) (h0 : StartOvlInv κ R) : FitsReachK κ R := by
   intro I c hR
-  cases ho : posOvl c.pos with
-  | none =>
-    apply fitsB_none
-    rw [ovlOf_stOfK, ho]
-  | some o => exact fitsB_of_facts _ c o ho (h I c o hR ho)
+  obtain ⟨p, r⟩ := c
+  cases p with
+  | start => exact fitsB_of_factsI κ I _ _ rfl (h0 I r hR)
+  | done out => exact fitsB_none (v := stOfI κ I ⟨.done out, r⟩) rfl
+  | txs _ _ rs => exact fitsB_of_factsI κ I _ rs.o rfl (h I _ rs.o hR rfl)
+  | locals _ rs => exact fitsB_of_factsI κ I _ rs.o rfl (h I _ rs.o hR rfl)
+  | delayed _ rs => exact fitsB_of_factsI κ I _ rs.o rfl (h I _ rs.o hR rfl)
+  | incoming _ rs => exact fitsB_of_factsI κ I _ rs.o rfl (h I _ rs.o hR rfl)
+  | yields _ _ _ _ _ rs => exact fitsB_of_factsI κ I _ rs.o rfl (h I _ rs.o hR rfl)
 
 /-! ## Non-vacuity -/
 
@@ -272,10 +321,20 @@ theorem engOvlInv_of (κ : Intake → List Bytes) [OvlVal.VmWritesShort] : EngOv
   · intro k hk
     exact hI.cover out r (hR.trans hdone) k (OvlInv.reach_covered I.prog _ hR ho hdone k hk)
 
+/-- **The start invariant for the engine** (D-a): the intake's overlay has no committed change, so
+`OvlFacts` is the intake-side conditions `len`, `pre`, `wf`. -/
+theorem startOvlInv_of (κ : Intake → List Bytes) : StartOvlInv κ (RK κ) := by
+  intro I r ⟨hI, _⟩
+  refine ⟨hI.len, fun k hk => ?_, hI.wf, by simp [Ovl.ofTrie], by simp [Ovl.ofTrie]⟩
+  have hpre : okB (preV (Ovl.ofTrie I.tMain) k) = true := by
+    unfold preV; exact hI.pre k hk
+  simp only [entryAt, Ovl.ofTrie, kvFind]
+  exact ⟨hpre, hpre⟩
+
 /-- **`FitsReachK` for the engine.** -/
 theorem fitsReachK_engine (κ : Intake → List Bytes) [OvlVal.VmWritesShort] :
     FitsReachK κ (RK κ) :=
-  fitsReachK_of κ (RK κ) (engOvlInv_of κ)
+  fitsReachK_of κ (RK κ) (engOvlInv_of κ) (startOvlInv_of κ)
 
 /-- **A key list that covers the run's writes**: the keys of the accepting run's committed output
 (unique: `done_unique`), `[]` if the run does not accept. (The honest key list — the chunk's
@@ -370,6 +429,9 @@ example : IntakeOk κRun demoIntake where
 #print axioms viewImpl_hst_E
 #print axioms fitsB_of_facts
 #print axioms fitsReachK_of
+#print axioms startOvlInv_of
+#print axioms wsOf_start
+#print axioms ovlOf_stOfI
 #print axioms okB_of_vok
 #print axioms engOvlInv_of
 #print axioms OvlVal.reach_vals

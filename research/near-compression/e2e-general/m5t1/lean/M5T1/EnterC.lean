@@ -29,7 +29,7 @@ call's `CallArgs`, carried in the trace type like lane A's ghost context):
 preCodeRoot q`), `clearEnter` (the clear fields of `call I c [] q .pre` are those of `eng I c` with
 `t := 0`, `rPrepaid := pre q`; lane E's M12 `clearE` meets it with `pre q =
 u64c q.ctx.prepaidGas`, `ViewE.clearE_enter`), `outOne` (the engine-state
-outgoing accumulator is one digest, as `outDE (.eng a)`), `pos` (lane B: `posOK` of `stD (stOfK …)`
+outgoing accumulator is one digest, as `outDE (.eng a)`), `pos` (lane B: `posOK` of `stD (stOfI …)`
 excludes `done`).
 
 ## Results
@@ -239,7 +239,7 @@ structure RtView (V : ViewImpl) (vmc : CallArgs → Bytes) (pre : CallArgs → N
   clearEnter : ∀ I c q, V.clear (.call I c [] q .pre) =
     { V.clear (.base (.eng I c)) with t := 0, rPrepaid := pre q }
   outOne : ∀ a, (V.outD (.eng a)).2.1.length = 1
-  pos : ∀ I c, posOK (V.stD (stOfK (V.keys I) c)) → ∀ out, c.pos ≠ .done out
+  pos : ∀ I c, posOK (V.stD (stOfI V.keys I c)) → ∀ out, c.pos ≠ .done out
 
 /-- **The view of the call configuration the enter edge produces**: the engine record with
 `phase 6`, `inCall`, clock `0`, the query's `rPrepaid` and the `.pre` Wasm part. -/
@@ -449,7 +449,7 @@ theorem enter_open {V : ViewImpl} {vmc : CallArgs → Bytes} {pre : CallArgs →
   have hnf : ∀ out, c.pos ≠ .done out := by
     apply hV.pos I c
     have := in_fields hV he ("stRoot", 42) (by simp [engF])
-    have hst : recVal (V.bnd (.base (.eng I c))) "stRoot" = V.stD (stOfK (V.keys I) c) := rfl
+    have hst : recVal (V.bnd (.base (.eng I c))) "stRoot" = V.stD (stOfI V.keys I c) := rfl
     rw [← hst, this]
     exact ch.pos
   have ho := out_enc hV H ch he

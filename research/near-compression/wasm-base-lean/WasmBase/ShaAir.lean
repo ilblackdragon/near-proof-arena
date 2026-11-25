@@ -410,6 +410,19 @@ or the memory range `[ptr, ptr + len)` otherwise.  This is the byte-value link, 
 register-file / memory tables, which live on the state side. -/
 def HashInputLink (_tr : WasmBase.Trace) (_t : Nat) : Prop := True
 
+/-- **Stated, not proved (A-T3 finding, A-T4 statement): the call's length is the hashed length.**
+`sh_len` (the `len` of the call summary `callMsg`, constant along a message by `cConst`) and the
+classical byte counter `Nd` are tied by no constraint of this table, so the summary a digest row
+receives does not bind how many bytes were hashed: a trace may answer `sha256(len, ptr, reg)` with
+the digest of a message of another length.  On every digest row that claims a digest (`Dmult = 1`)
+the two must agree.  This is part of the `HashInputLink` obligation (the bytes consumed are the
+call's input, *and there are `len` of them*); the AIR fix is to carry `Nd` in `callMsg` next to
+`sh_len` (as PREP's digest message does, `PrepAir.Prep.digMsgP`), which changes the segment AIR's
+vk and lane D's WASM leaf program, so it is left to the next segment-AIR revision. -/
+def HashLenLink (tr : WasmBase.Trace) (t : Nat) : Prop :=
+  ∀ r, r < tr.height t → tr.cell t r ZkFormal.Sha.Layout.colDmult = 1 →
+    tr.cell t r shLen = tr.cell t r ZkFormal.Sha.Layout.colNd
+
 /-- **Stated, not proved (a join obligation).**  The digest message of a hash call is the register
 `regSetH reg (Crypto.sha256 v)` writes: `(reg, ts)`, length `32`, and `32` bytes.  That is what
 turns the `busHashCall` digest message into a space-6 register fill on a joined proof. -/

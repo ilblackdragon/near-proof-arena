@@ -37,15 +37,17 @@ input digest need not be).
   satisfies it) and `x'` not at `done`: `ovE x = some o`, `ovE x' = some o'`, `o'.trie = o.trie`,
   and `kv o' = updK (netQ o o') (kv o)` — lane F's `ReqsFaithful` (`OvlSem.ovOut x' = upd (qOf x
   x') (ovIn x)`) for `Ov := PTrie × (Bytes → Option (Option Bytes))`.
-* **`state_glue`**: `SplitGlueOn` (the glue restricted by the preconditions) for the STATE split
-  semantics `stateSem root apply` (state value = `root I trie lookups`, lane B's working-set root
-  over the chunk's keys) from lane B's `ApplyFaithfulS` (`apply q (root I t f) = root I t (updK q
-  f)`: `m5tSeg` applies the net requests; `e2e-general/join/GlueB.lean` shows lane B's working set
-  has this shape: `entryAt o k = entryOf o.trie (kv o) k`, `wsRoot_entryAt`, `rootB`);
-  `split_sound_relC_on` is `split_sound_relC` with the
-  preconditions passed through the engine half (`EngHalfRCOn`), and **`state_sound_relC`** is
-  `TmplSoundRel8C sf V A Bad .state` from `EngHalfRCOn` (lane F), `StHalf` (lane B) and
-  `ApplyFaithfulS` (lane B).
+* **The relational split (D-c, lane B's finding B2-1)**: M12's functional lane-B premise
+  `ApplyFaithfulS` (`apply q (root I t f) = root I t (updK q f)`) is retired — a *function* of the
+  root forces equal-root overlays to stay equal-root under every update (lane B's
+  `applyFaithful_coll`), which no circuit proves. The split is relational: `StHalfRel M Rel Bad`
+  (lane B: the state rows move every input whose state value is `r`, along any pair related by the
+  traffic, to `r'`), `ReqsRelOn M Rel P` (lane F / E: a meaning instance satisfying `P` is related
+  by its own traffic), and **`split_sound_relC_relOn`**: `EngHalfRCOn` ∧ `StHalfRel` ∧
+  `ReqsRelOn` ⇒ `TmplSoundRel8C`. The STATE instance takes **`W` = the 42-B `stRoot`** (lane B's
+  `StHalfC.stHalf_inst`; `e2e-general/join/StateW.lean` proves lane F's `ReqsRel` side for lane B's
+  `stRel` from `state_reqs`); lane B's `GlueRel.state_sound_relC_rel` closes the M12 instance
+  (`stateSem`, `W` = the working-set root) relationally.
 
 Why two preconditions. Lane F's `ReqsFaithful` quantifies over all meaning instances. (a)
 Without distinct committed keys `OvlInv`'s walk does not apply (and `kvPut` on a list with repeated
@@ -68,15 +70,14 @@ lane B's IF-INTAKE computes `R_0` from (the authenticated partial trie `I.tMain`
 `I.tMain.hashOf = slotB2.prevStateRoot` by the intake's check, which lane G's `PSR` value reads).
 So `wOut (eng I start) = root I I.tMain (fun _ => none)` = IF-INTAKE's `R_0`.
 
-**Finding (M12, boundary gap).** `R_0` is **not** in INIT's output boundary: at `start` the state
-component `stOfK κ I ⟨start, _⟩` has no overlay, so lane B's `wsOfB` is `[]` and `stD` does not
-commit to `R_0`. The first STATE leaf (from `start`) therefore cannot obtain its `wIn` from its
-input digest; it must recompute `R_0` from `I.tMain`, which only `ctxRoot` (witness-sized
-`Ser.enc I`) commits. Fix options (no change to `S`/`claimDigest`/checker): (a) `View.split`
-carries `I.tMain`'s working set at `start` (lane B's `ovlOf` at `start` := `Ovl.ofTrie I.tMain`,
-so `stD` at `start` commits `R_0`; a `View.lean` change, rebuild of every package); (b) the first
-STATE leaf also verifies lane B's IF proof (as INIT and FINAL do) and takes `R_0` from it. Lane E
-recommends (a). Not changed in M12.
+**Finding (M12, boundary gap) — fixed by D-a.** In M12 `R_0` was not in INIT's output boundary
+(the state component at `start` had no overlay, so lane B's `wsOfB` was `[]`). Integrator decision
+D-a adopted option (a): `View.split` now carries the intake's overlay at `start`
+(`EngSt.ovl0 = some (Ovl.ofTrie I.tMain)`, `Bnd.stOfI`; `none` elsewhere), lane B's `ovlOf` reads it
+there (`StateViewParams.ovlOf`), so `stD` at `start` commits the working set of IF-INTAKE
+(`StViewEJoin.wsOf_start`: entries `(k, pre, pre, false)`, trie `I.tMain`). **`init_glue_view`**:
+the state component of `eng I ⟨start, r⟩` carries exactly `ovE` — the overlay the STATE glue
+starts from — so the first STATE leaf takes `wIn` from its input digest.
 
 ## 4. FINAL (lane G ∧ lane B's IF-FINAL)
 
@@ -85,9 +86,9 @@ recommends (a). Not changed in M12.
 (sortKV n) = some (some T') ∧ rootHash (some T') = post` for its committed change list `n`.
 **`final_glue`**: if the overlay's trie is `T` (not the empty hash), its sorted committed list is
 `sortKV n`, and `m5b_final`'s conclusion holds, then `Ovl.finalize o = .ok post` (the D2,
-non-lazy finalize). Open (named, `FinalizeAgree`): the logged lazy `finalizeR o` returns
-`Ovl.finalize o` (the lazy-trie / partial-trie agreement for the finalize fold; not in the spec
-library today).
+non-lazy finalize). M12's named `FinalizeAgree` (the logged lazy `finalizeR o` returns
+`Ovl.finalize o`) is false as stated; D-b (`GlueFin.lean`) states it precisely (hash-consistent
+store, the overlay's trie the revealed pre-state) and proves it from `Logged.R_finalize`.
 
 Axioms: `propext`, `Classical.choice`, `Quot.sound` only.
 -/
@@ -333,11 +334,6 @@ theorem state_reqs {x x' : RConf} (hm : MState x x') (hp : StatePre x x') :
 
 /-! ### The split, relative and canonical, with a precondition -/
 
-/-- The glue on the meaning instances satisfying `P`. -/
-def SplitGlueOn {A : Airs8} {k : Tmpl} {S : SplitAir A k} (M : SplitSem S)
-    (P : RConf → RConf → Prop) : Prop :=
-  ∀ x x', Meaning k x x' → P x x' → M.wOut x' = M.apply (M.qOf x x') (M.wIn x)
-
 /-- Lane F's `EngHalfRC` (`M5T1.SplitC`) with the precondition `P` of the meaning instance it opens
 (STATE: the input overlay is `fits`-form, the output is not `done`). -/
 def EngHalfRCOn (sf : Intake → TTN.Store) (V : ViewImpl) {A : Airs8} {k : Tmpl} {S : SplitAir A k}
@@ -346,18 +342,46 @@ def EngHalfRCOn (sf : Intake → TTN.Store) (V : ViewImpl) {A : Airs8} {k : Tmpl
     Bad ∨ ∃ x', Canon sf x' ∧ Meaning k x x' ∧ CtxLink k ctx x x' ∧ P x x' ∧ M.wIn x = r ∧
       q = M.qOf x x' ∧ (M.wOut x' = r' → b' = lbOf V x')
 
-/-- **A split leaf is relatively, canonically sound** from its halves and the glue on `P`. -/
-theorem split_sound_relC_on (sf : Intake → TTN.Store) (V : ViewImpl) {A : Airs8} {k : Tmpl}
-    (S : SplitAir A k) (M : SplitSem S) (P : RConf → RConf → Prop) (Bad : Prop)
-    (hE : EngHalfRCOn sf V M P Bad) (hS : StHalf M Bad) (hg : SplitGlueOn M P) :
+/-- **The state half, relational** (lane B; `StateM5a.StHalfC.StHalfRel` restated): the state rows
+move every input whose state value is `r`, along any pair related by the traffic `q`, to `r'`. -/
+def StHalfRel {A : Airs8} {k : Tmpl} {S : SplitAir A k} (M : SplitSem S)
+    (Rel : S.Q → RConf → RConf → Prop) (Bad : Prop) : Prop :=
+  ∀ q r r', S.HoldsS q r r' → Bad ∨ ∀ x x', M.wIn x = r → Rel q x x' → M.wOut x' = r'
+
+/-- **The engine side of the relational glue, on `P`**: a meaning instance satisfying `P` is
+related by its own traffic. -/
+def ReqsRelOn {A : Airs8} {k : Tmpl} {S : SplitAir A k} (M : SplitSem S)
+    (Rel : S.Q → RConf → RConf → Prop) (P : RConf → RConf → Prop) : Prop :=
+  ∀ x x', Meaning k x x' → P x x' → Rel (M.qOf x x') x x'
+
+/-- **A split leaf is relatively, canonically sound** from the engine half (on `P`), the relational
+state half and the relational glue on `P` (D-c: replaces M12's functional `split_sound_relC_on`). -/
+theorem split_sound_relC_relOn (sf : Intake → TTN.Store) (V : ViewImpl) {A : Airs8} {k : Tmpl}
+    (S : SplitAir A k) (M : SplitSem S) (Rel : S.Q → RConf → RConf → Prop)
+    (P : RConf → RConf → Prop) (Bad : Prop)
+    (hE : EngHalfRCOn sf V M P Bad) (hS : StHalfRel M Rel Bad) (hF : ReqsRelOn M Rel P) :
     TmplSoundRel8C sf V A Bad k := by
   intro ctx b b' tr hh x hc hx
   obtain ⟨q, r, r', h1, h2⟩ := S.joint ctx b b' tr hh
   rcases hE ctx b b' q r r' h1 x hc hx with hb | ⟨x', hc', hm, hl, hp, hr, hq, hout⟩
   · exact .inl hb
-  rcases hS q r r' h2 with hb | hr'
+  rcases hS q r r' h2 with hb | hS'
   · exact .inl hb
-  exact .inr ⟨x', hc', hout (by rw [hg x x' hm hp, ← hq, hr, hr']), hm, hl⟩
+  exact .inr ⟨x', hc', hout (hS' x x' hr (hq ▸ hF x x' hm hp)), hm, hl⟩
+
+/-- **A template with several leaf modes** (e.g. STATE = working-set leaves ⊕ the finalize leaf,
+D-b): if every accepted trace of `A` is an accepted trace of one of two mode AIRs, and each mode is
+sound, so is `A`. -/
+theorem tmplSoundRel8C_modes {sf : Intake → TTN.Store} {V : ViewImpl} {A A1 A2 : Airs8} {Bad : Prop}
+    {k : Tmpl}
+    (hA : ∀ ctx b b' (tr : A.Tr (.tmpl k)), A.Holds (.tmpl k) ctx b b' tr →
+      (∃ t1, A1.Holds (.tmpl k) ctx b b' t1) ∨ (∃ t2, A2.Holds (.tmpl k) ctx b b' t2))
+    (h1 : TmplSoundRel8C sf V A1 Bad k) (h2 : TmplSoundRel8C sf V A2 Bad k) :
+    TmplSoundRel8C sf V A Bad k := by
+  intro ctx b b' tr hh x hc hx
+  rcases hA ctx b b' tr hh with ⟨t1, h⟩ | ⟨t2, h⟩
+  · exact h1 ctx b b' t1 h x hc hx
+  · exact h2 ctx b b' t2 h x hc hx
 
 /-! ### The STATE split instance -/
 
@@ -394,38 +418,6 @@ def stateSem {A : Airs8} {HoldsE HoldsS joint}
     | _, _ => []
   apply q r := r.map (apply q)
 
-/-- **Lane B's side of the STATE glue** (`ApplyFaithful` at the working-set level): its state
-function applied to a request list computes the root of the updated lookups (`m5tSeg`: `WsBus.
-seg_root`, `chain_sound`; the trie, hence every `pre`, is unchanged). -/
-def ApplyFaithfulS (root : Intake → PTrie → (Bytes → Option (Option Bytes)) → Bytes)
-    (apply : KV → Bytes → Bytes) : Prop :=
-  ∀ I t f q, apply q (root I t f) = root I t (updK q f)
-
-/-- **The STATE glue** (lane E): from lane B's `ApplyFaithfulS`, on STATE's precondition. -/
-theorem state_glue {A : Airs8} {HoldsE HoldsS joint}
-    (root : Intake → PTrie → (Bytes → Option (Option Bytes)) → Bytes)
-    (apply : KV → Bytes → Bytes) (hB : ApplyFaithfulS root apply) :
-    SplitGlueOn (stateSem (A := A) (HoldsE := HoldsE) (HoldsS := HoldsS) (joint := joint) root apply)
-      StatePre := by
-  intro x x' hm hp
-  obtain ⟨o, o', ho, ho', ht, hk⟩ := state_reqs hm hp
-  cases hm with
-  | @run I c c' _ =>
-  simp only [stateSem, wS, intakeOf, ho, ho', Option.map_some, Option.some.injEq, ht]
-  rw [hB, show kv o' = updK (netQ o o') (kv o) from funext hk]
-
-/-- **STATE is relatively, canonically sound** from lane F's engine half (with the
-precondition), lane B's state half and lane B's `ApplyFaithfulS`. -/
-theorem state_sound_relC (sf : Intake → TTN.Store) (V : ViewImpl) {A : Airs8} {HoldsE HoldsS joint}
-    (root : Intake → PTrie → (Bytes → Option (Option Bytes)) → Bytes)
-    (apply : KV → Bytes → Bytes) (Bad : Prop)
-    (hE : EngHalfRCOn sf V (stateSem (A := A) (HoldsE := HoldsE) (HoldsS := HoldsS)
-      (joint := joint) root apply) StatePre Bad)
-    (hS : StHalf (stateSem (A := A) (HoldsE := HoldsE) (HoldsS := HoldsS) (joint := joint) root
-      apply) Bad)
-    (hB : ApplyFaithfulS root apply) : TmplSoundRel8C sf V A Bad .state :=
-  split_sound_relC_on sf V _ _ StatePre Bad hE hS (state_glue root apply hB)
-
 /-! ## 4. INIT -/
 
 /-- **The INIT glue**: INIT's output `eng I ⟨start, _⟩` carries the intake's partial trie with no
@@ -438,6 +430,11 @@ theorem init_glue (root : Intake → PTrie → (Bytes → Option (Option Bytes))
   refine ⟨rfl, ?_⟩
   simp only [wS, intakeOf, ovE]
   congr 2
+
+/-- **D-a: the view's state component at `start` carries the overlay the STATE glue starts from.** -/
+theorem init_glue_view (κ : Intake → List Bytes) (I : Intake) (r : Recording) :
+    (split κ (.base (.eng I ⟨.start, r⟩))).2.2.1 =
+      .eng .start ⟨r, κ I, ovE (.base (.eng I ⟨.start, r⟩))⟩ := rfl
 
 /-- INIT's meaning ends at `eng I ⟨start, _⟩` or at `gfin` (`init_step_shape`); in the first case the
 engine configuration is at `start` (the intake step's continuation, `Machine.lean`). -/
@@ -459,8 +456,10 @@ theorem final_glue {o : Ovl} {T T' : PTrie} {post : Bytes} {n : KV} (ht : o.trie
     simp only [beq_iff_eq, this, ↓reduceIte, hB.1, hB.2]
   | _ => simp only [hB.1, hB.2]
 
-/-- The named FINAL premise (open): the checker's logged, lazy-trie finalize returns the D2
-finalize of the same overlay. -/
+/-- M12's named FINAL premise: the checker's logged, lazy-trie finalize returns the D2 finalize of
+the same overlay. **False as stated** (the lazy finalize ignores `o.trie` and re-reveals the
+pre-state from the environment's root: `GlueFin.finalizeAgree_fails`); the precise form with the
+store / trie premises is `GlueFin.FinalizeAgreeT`, **proved** (`GlueFin.finalizeAgree`, D-b). -/
 def FinalizeAgree : Prop :=
   ∀ (o : Ovl) (r : Recording) (e : Env) (a : Bytes) (r' : Recording),
     finalizeR o r e = .ok (a, r') → o.finalize = .ok a
@@ -521,10 +520,10 @@ theorem canon_wasm (sf : Intake → TTN.Store) {I : Intake} {c : EConf} {K : VmV
 #print axioms esteps_pqT
 #print axioms kv_net
 #print axioms state_reqs
-#print axioms split_sound_relC_on
-#print axioms state_glue
-#print axioms state_sound_relC
+#print axioms split_sound_relC_relOn
+#print axioms tmplSoundRel8C_modes
 #print axioms init_glue
+#print axioms init_glue_view
 #print axioms final_glue
 
 end NearSpecV3.E2E.Glue

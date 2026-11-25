@@ -1,0 +1,2 @@
+M8_TEMPLATE_PROVED wasm_prep bytes=488409 seconds=0.0 params=(n_stack 18, w_stack 8, lb 1) queries=[100, 71, 45, 33] bits=268.2
+# INFO.json heights [[2,4],[7,128],[9,512],[4,16],[5,32],[2,4]]; R1 in lane D cells: PREP cached CODE/FUNC 18-limb roots == A-T2 wasm0, wasm1: True, True
