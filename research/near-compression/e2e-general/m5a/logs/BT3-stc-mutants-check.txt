@@ -1,0 +1,9 @@
+honest: PRECHECK OK: every constraint on every row; every bus balances (5041 distinct messages) 
+stcrin: precheck: 2 unbalanced messages by bus {211: 2}; first [((211, [15004940, 2662542, 895089, 4060892, 12148062, 16035881, 12218157, 12406274, 5979543, 5545141, 28 
+stcrout: precheck: 2 unbalanced messages by bus {212: 2}; first [((212, [15911400, 13330490, 6783829, 3867180, 2748557, 4246531, 2798446, 14162166, 10337920, 15412948, 5 
+stctag: precheck: 2 unbalanced messages by bus {212: 2}; first [((212, [15911400, 13330490, 6783829, 3867180, 2748557, 4246531, 2798446, 14162166, 10337920, 15412948, 5 
+stcrest: precheck: 2 unbalanced messages by bus {211: 2}; first [((211, [15004940, 2662542, 895089, 4060892, 12148062, 16035881, 12218157, 12406274, 5979543, 5545141, 28 
+stcws: precheck: STC: constraint 98 fails on row 0 
+stclen: precheck: STC: constraint 198 fails on row 0 
+stcbig: precheck: 1 unbalanced messages by bus {31: 1}; first [((31, [2013265920]), 2013265920)] 
+stcbyte: precheck: 4 unbalanced messages by bus {31: 4}; first [((31, [126]), 1), ((31, [175]), 2013265920)] 

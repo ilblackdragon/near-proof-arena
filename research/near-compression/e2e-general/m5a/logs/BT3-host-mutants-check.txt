@@ -1,0 +1,5 @@
+honest: PRECHECK OK: every constraint on every row; every bus balances (4782 distinct messages) 
+hostnopfx: precheck: 16 unbalanced messages by bus {13: 2, 215: 12, 216: 2}; first [((13, [0, 18, 1295, 5687, 19530, 41239, 64463, 28077, 27193, 17320, 31605, 48883, 10825 
+hostrecv: precheck: 4 unbalanced messages by bus {13: 2, 215: 2}; first [((13, [0, 18, 1295, 5687, 19530, 41239, 64463, 28077, 27193, 17320, 31605, 48883, 10825, 11688, 1 
+hostkind: precheck: 1 unbalanced messages by bus {215: 1}; first [((215, [2013265920, 9]), 2013265920)] 
+hostpl: precheck: 6 unbalanced messages by bus {30: 2, 208: 2, 216: 2}; first [((30, [0, 18, 2013265906, 15, 58]), 2013265920), ((30, [0, 18, 2013265907, 15, 58]), 1)] 

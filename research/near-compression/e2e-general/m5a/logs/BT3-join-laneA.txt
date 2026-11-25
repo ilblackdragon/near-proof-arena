@@ -1,0 +1,35 @@
+# B-T3 (B2-4): lane A's 8 storage_write messages verbatim (join/t1-laneA-storage-write.json) in m5tSegH with the STBH prefix run; no control hack
+# tracegen.py state.json segh.names.json OUT --split --template templates/S.json --host --host-join join/t1-laneA-storage-write.json; prover check
+TABLE SHA    width  544 height 2^12 cells   2228224 constraints  1028 interactions    17 deg 4
+TABLE WSA    width   63 height 2^5  cells      2016 constraints    30 interactions     9 deg 2
+TABLE WSL    width  173 height 2^5  cells      5536 constraints   108 interactions    82 deg 2
+TABLE WSP    width  129 height 2^5  cells      4128 constraints    83 interactions    37 deg 3
+TABLE RNG    width   21 height 2^8  cells      5376 constraints    23 interactions     1 deg 2
+TABLE STB    width    7 height 2^13 cells     57344 constraints    15 interactions     3 deg 4
+TABLE STW    width   76 height 2^5  cells      2432 constraints   112 interactions     6 deg 2
+TABLE WSX    width  133 height 2^5  cells      4256 constraints   168 interactions    50 deg 3
+TABLE STBH   width   12 height 2^13 cells     98304 constraints    32 interactions     5 deg 5
+TABLE STWH   width   83 height 2^5  cells      2656 constraints   115 interactions     8 deg 2
+TABLE HTAPE  width   10 height 2^13 cells     81920 constraints     0 interactions     2 deg 0
+TABLE HOSTTAPE width   28 height 2^13 cells    229376 constraints     0 interactions     5 deg 0
+TABLE SHA512 width   83 height 2^15 cells   2719744 (native v4)
+TABLE SHA512T width    9 height 2^7  cells      1152 (native v4)
+HEIGHTS {"SHA": 12, "WSA": 5, "WSL": 5, "WSP": 5, "RNG": 8, "STB": 13, "STW": 5, "WSX": 5, "STBH": 13, "STWH": 5, "HTAPE": 13, "HOSTTAPE": 13, "SHA512": 15}
+CELLS 5442464; compressions 111
+PRECHECK OK: every constraint on every row; every bus balances (4782 distinct messages)
+# the joined write's STBH key run (j, kind, byte):
+0 k0 9 '\t' addr -
+1 kr 115 's' addr -
+2 kr 53 '5' addr -
+3 kr 107 'k' addr -
+4 kr 50 '2' addr -
+5 kr 49 '1' addr -
+6 kr 48 '0' addr -
+7 kr 46 '.' addr -
+8 kr 115 's' addr -
+9 kr 50 '2' addr -
+10 kr 97 'a' addr -
+11 kr 48 '0' addr -
+12 kr 48 '0' addr -
+13 kc 44 ',' addr -
+14 kh 116 't' addr 0

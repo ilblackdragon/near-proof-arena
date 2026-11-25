@@ -71,6 +71,7 @@ import StateM5a.StHalfC
 import StateM5a.T1Ws
 import StateM5a.GlueRel
 import StateM5a.StcSound
+import StateM5a.StHostPfx
 
 /-! Axiom audit of the M5a lemmas (`lake build StateM5a.Audit` prints them): every theorem must
 depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
@@ -785,3 +786,8 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.StcSound.srng_send_lt
 #print axioms StateM5a.StcSound.stc_seg
 #print axioms StateM5a.StcSound.stHalf_seg
+#print axioms StateM5a.StHostPfx.prefix_kinds
+#print axioms StateM5a.StHostPfx.prefix_run
+#print axioms StateM5a.StHostPfx.stbh_tag
+#print axioms StateM5a.StHostPfx.stbh_sep
+#print axioms StateM5a.StHostPfx.stbh_last

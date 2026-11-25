@@ -79,8 +79,8 @@ def nx (s : String) (j : Nat := 0) : Expr := T.n s j
 
 /-- `Stb`'s constraints (same columns, same offsets) plus: `hid` is constant on a run and is a
 storage call's id; **B2-4**: one kind per active row; `0x09` at `j = 0`, `0x2c` on the separator;
-inside a run the kinds go `k0 → kr* → kc → kh*` (a key run: `0x09 ‖ receiver ‖ 0x2c ‖ key`); a
-value run (`hid = 314`) is all `kh`. -/
+inside a run the kinds go `k0 → kr* → kc → kh*` (a key run: `0x09 ‖ receiver ‖ 0x2c ‖ key`), and a
+run does not end inside the prefix (`last·(k0 + kr) = 0`); a value run (`hid = 314`) is all `kh`. -/
 def constraints : List Expr :=
   let na := nx "act"; let inRun := Expr.isTransition * na * (1 - c "last")
   Stb.constraints ++
@@ -93,7 +93,8 @@ def constraints : List Expr :=
    inRun * c "kr" * (nx "k0" + nx "kh"),
    inRun * c "kc" * (1 - nx "kh"),
    inRun * c "kh" * (1 - nx "kh"),
-   c "act" * (c "hid" - K HID_WRITE) * (c "hid" - K HID_REMOVE) * (1 - c "kh")]
+   c "act" * (c "hid" - K HID_WRITE) * (c "hid" - K HID_REMOVE) * (1 - c "kh"),
+   c "last" * (c "k0" + c "kr")]
 
 def interactions : List Interaction :=
   let A := c "act"
