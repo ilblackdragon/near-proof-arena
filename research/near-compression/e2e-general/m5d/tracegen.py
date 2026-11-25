@@ -398,16 +398,28 @@ class Gen:
         assert len(fi) == C['FI_LEN']
         fd = self.s384(C['ID_FIN'], [C['FIN_TAG']] + fi)
         cd = self.s384(C['ID_CLAIM'], stream)
-        # B_out (G-2): ctxD(.header H) and outD(.done o)'s digest, = Lean's BOut on this case
+        # B_out (G-5): lane E's view encodings ctxDE (.header H) = bdigest (3 ‖ Ser.enc H),
+        # outDE (.done o).1 = bdigest (Ser.enc o) (ViewSer's natW / hashW forms), = Lean's BOut
         ci = stream[C['CI_OFF']:C['CI_OFF'] + 302]
-        hd = self.s384(C['ID_HDR'], [C['TAG_HDR']] + ci)
-        ob = (root + roots[C['TR_OUT']] + u(gl, 8) + u(gas, 8) + u(bal, 16) + roots[C['TR_SH']] + cong +
-              [0] * 32 + roots[C['TR_RS']] + ci[129:137] + [0] * 9)
-        assert len(ob) == 252
+        natw = lambda le: [0] + [0] * (16 - len(le)) + list(reversed(le))  # noqa: E731  (0 ‖ beN 16, from LE bytes)
+        hashw = lambda b: [0] + list(b)  # noqa: E731
+        hb = ([C['TAG_HDR']] + natw([4]) + hashw(ci[1:33]) + hashw(ci[33:65]) + hashw(ci[65:97]) +
+              hashw(ci[97:129]) + natw(ci[129:137]) + natw(ci[137:145]) + natw(ci[145:153]) +
+              natw(ci[153:161]) + natw(ci[161:169]) + natw(ci[169:185]) + hashw(ci[185:217]) +
+              hashw(ci[217:249]) + [0] + natw(ci[254:270]) + natw(ci[270:286]) + natw(ci[286:294]) +
+              natw(ci[294:296]) + [0] + [0])
+        assert len(hb) == C['HDR_LEN']
+        hd = self.s384(C['ID_HDR'], hb)
+        ob = (hashw(root) + hashw(roots[C['TR_OUT']]) + [0] + natw(u(gl, 8)) + natw(u(gas, 8)) +
+              natw(u(bal, 16)) + hashw(roots[C['TR_SH']]) + natw(cong[1:17]) + natw(cong[17:33]) +
+              natw(cong[33:41]) + natw(cong[41:43]) + [0] + [0] + hashw([0] * 32) +
+              hashw(roots[C['TR_RS']]) + natw(ci[129:137]))
+        assert len(ob) == C['OUT_LEN']
         if not self.mutant:
-            assert bytes(ob).hex() == d['bout']['encOutputsF1'], 'encOutputsF1'
+            assert bytes(hb).hex() == d['bout']['encHdr'], 'encHdr'
+            assert bytes(ob).hex() == d['bout']['encOut'], 'encOut'
             assert bytes(hd[:42]).hex() == d['bout']['ctxHeaderD'], 'ctxHeaderD'
-        od = self.s384(C['ID_OUT'], [C['TAG_OUT']] + ob)
+        od = self.s384(C['ID_OUT'], ob)
         if not self.mutant:
             assert bytes(od[:42]).hex() == d['bout']['outDoneD'], 'outDoneD'
         # STMT

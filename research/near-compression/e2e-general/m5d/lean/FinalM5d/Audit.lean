@@ -14,6 +14,9 @@ import FinalM5d.S384Out
 import FinalM5d.Cls.All
 import FinalM5d.WalkSel
 import FinalM5d.InitSel
+import FinalM5d.InitBus
+import FinalM5d.Leaf
+import FinalM5d.T1G5
 
 /-! Axiom audit of the M5d headline results: each must depend on `propext`, `Classical.choice`,
 `Quot.sound` only (no `sorryAx`, no `Lean.ofReduceBool`). -/
@@ -42,7 +45,6 @@ import FinalM5d.InitSel
 #print axioms FinalM5d.Split.segSoundFinal_join
 #print axioms FinalM5d.Split.final_join_headerOk
 #print axioms FinalM5d.Split.segSoundInit_join
-#print axioms FinalM5d.BOut.encCIF1_hdrF1
 #print axioms FinalM5d.MrkWalk.walkLevel_eq
 #print axioms FinalM5d.MrkWalk.walkRoot_eq
 #print axioms FinalM5d.Split.finK_bind
@@ -69,3 +71,28 @@ import FinalM5d.InitSel
 #print axioms FinalM5d.InitSel.lay_first_pair
 #print axioms FinalM5d.InitSel.init_blk_main_slot
 #print axioms FinalM5d.InitSel.init_lay_first_pair
+#print axioms FinalM5d.InitBus.init_blk_act0
+#print axioms FinalM5d.InitBus.init_ix_blk
+#print axioms FinalM5d.InitBus.init_lay_head
+#print axioms FinalM5d.InitBus.init_slot
+#print axioms FinalM5d.InitBus.init_main_index
+#print axioms FinalM5d.InitBus.precheck_holds_init
+#print axioms FinalM5d.Leaf.initView_viewE
+#print axioms FinalM5d.Leaf.finView_viewE
+#print axioms FinalM5d.Leaf.encRaw_viewE
+#print axioms FinalM5d.Leaf.encDone_viewE
+#print axioms FinalM5d.Leaf.join_sound_abs
+#print axioms FinalM5d.Leaf.join_sound_relC
+#print axioms FinalM5d.Leaf.init_g_half
+#print axioms FinalM5d.Leaf.init_sound8
+#print axioms FinalM5d.Leaf.init_soundRel8C
+#print axioms FinalM5d.Leaf.fin_clear
+#print axioms FinalM5d.Leaf.fin_g_half
+#print axioms FinalM5d.Leaf.final_soundRel8C
+#print axioms FinalM5d.T1G5.t1_init_c0
+#print axioms FinalM5d.T1G5.t1_final_c10
+#print axioms FinalM5d.T1G5.t1_same_ctx
+#print axioms FinalM5d.T1G5.t1_fin_dig
+#print axioms FinalM5d.T1G5.t1_clear
+#print axioms FinalM5d.T1G5.k0_viewE
+#print axioms FinalM5d.T1G5.k10_viewE

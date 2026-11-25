@@ -103,10 +103,85 @@ instance : Ser ApplyFacts := Ser.ofInj (fun (x : ApplyFacts) => (x.1, x.2, x.3))
 instance : Ser Claim := Ser.ofInj
   (fun (x : Claim) => (x.1, x.2, x.3, x.4, x.5, x.6, x.7, x.8, x.9, x.10, x.11, x.12)) (by inj_tac)
 
-/-- **Root**: the chunk header's inner part. -/
-instance : Ser ChunkInner := Ser.ofInj
-  (fun (x : ChunkInner) => (x.1, x.2, x.3, x.4, x.5, x.6, x.7, x.8, x.9, x.10, x.11, x.12, x.13,
-    x.14, x.15, x.16, x.17)) (by inj_tac)
+/-! ### G-5 (lanes E ∧ G): circuit-friendly serialisers of the `done` components
+
+`ctxDE (.header H) = bdigest (3 ‖ Ser.enc H)` and `outDE (.done o).1 = bdigest (Ser.enc o)` are
+recomputed by lane G's FINAL AIR, so `Ser ChunkInner` / `Ser Outputs` use fixed-width forms for the
+fields a real header has: a natural is `natW n = 0 ‖ beN 16 n` when `n < 2^128` (`1 ‖ vnat n`
+otherwise), a byte string `hashW b = 0 ‖ b` when `|b| = 32` (`1 ‖ Ser.enc b` otherwise); the list
+and option fields keep `Ser.enc` (`[0]` when empty). Both are prefix-free (`natW_pf`, `hashW_pf`),
+so the two instances are (`Ser.ofInj`), and `ViewE`'s domain separation (`ctxPre`'s tag `3`,
+`outDE`'s constructor tag) is unchanged. -/
+
+/-- A natural in the fixed-width form. -/
+structure NatW where
+  n : Nat
+
+/-- A byte string in the 32-byte fixed-width form. -/
+structure HashW where
+  b : Bytes
+
+def natW (n : Nat) : Bytes := if n < 2 ^ 128 then 0 :: ArenaCore.Bytes.beN 16 n else 1 :: vnat n
+
+def hashW (b : Bytes) : Bytes := if b.length = 32 then 0 :: b else 1 :: Ser.enc b
+
+theorem natW_pf : PF (fun x : NatW => natW x.n) := by
+  intro ⟨a⟩ ⟨b⟩ r r' h
+  simp only [natW] at h
+  by_cases ha : a < 2 ^ 128 <;> by_cases hb : b < 2 ^ 128 <;>
+    simp only [ha, hb, ite_true, ite_false, List.cons_append, List.cons.injEq] at h
+  · obtain ⟨e, hr⟩ := ViewE.append_left_eq h.2
+      (by rw [ArenaCore.Bytes.beN_length, ArenaCore.Bytes.beN_length])
+    have := congrArg ArenaCore.Bytes.beToNat e
+    rw [ArenaCore.Bytes.beToNat_beN, ArenaCore.Bytes.beToNat_beN,
+      Nat.mod_eq_of_lt (show a < 256 ^ 16 by simpa using ha),
+      Nat.mod_eq_of_lt (show b < 256 ^ 16 by simpa using hb)] at this
+    exact ⟨by rw [this], hr⟩
+  · exact absurd h.1 (by decide)
+  · exact absurd h.1 (by decide)
+  · obtain ⟨e, hr⟩ := vnat_pf a b r r' h.2
+    exact ⟨by rw [e], hr⟩
+
+theorem hashW_pf : PF (fun x : HashW => hashW x.b) := by
+  intro ⟨a⟩ ⟨b⟩ r r' h
+  simp only [hashW] at h
+  by_cases ha : a.length = 32 <;> by_cases hb : b.length = 32 <;>
+    simp only [ha, hb, ite_true, ite_false, List.cons_append, List.cons.injEq] at h
+  · obtain ⟨e, hr⟩ := ViewE.append_left_eq h.2 (by rw [ha, hb])
+    exact ⟨by rw [e], hr⟩
+  · exact absurd h.1 (by decide)
+  · exact absurd h.1 (by decide)
+  · obtain ⟨e, hr⟩ := Ser.pf a b r r' h.2
+    exact ⟨by rw [e], hr⟩
+
+instance : Ser NatW := ⟨fun x => natW x.n, natW_pf⟩
+instance : Ser HashW := ⟨fun x => hashW x.b, hashW_pf⟩
+
+/-- The congestion record in the fixed-width form. -/
+def congW (c : Congestion) : NatW × NatW × NatW × NatW := (⟨c.1⟩, ⟨c.2⟩, ⟨c.3⟩, ⟨c.4⟩)
+
+theorem congW_inj : ∀ a b : Congestion, congW a = congW b → a = b := by
+  intro a b h; cases a; cases b; simp_all [congW]
+
+/-- The tuple a chunk inner is serialised through. -/
+def ciW (x : ChunkInner) :=
+  (NatW.mk x.tag, HashW.mk x.prevBlockHash, HashW.mk x.prevStateRoot, HashW.mk x.prevOutcomeRoot,
+    HashW.mk x.encodedMerkleRoot, NatW.mk x.encodedLength, NatW.mk x.heightCreated,
+    NatW.mk x.shardId, NatW.mk x.prevGasUsed, NatW.mk x.gasLimit, NatW.mk x.prevBalanceBurnt,
+    HashW.mk x.prevOutgoingReceiptsRoot, HashW.mk x.txRoot, x.proposals, congW x.congestion,
+    x.bwRequests, x.proposedSplit)
+
+theorem ciW_inj : ∀ a b : ChunkInner, ciW a = ciW b → a = b := by
+  intro a b h
+  cases a; cases b
+  simp only [ciW, Prod.mk.injEq, NatW.mk.injEq, HashW.mk.injEq] at h
+  obtain ⟨h1, h2, h3, h4, h5, h6, h7, h8, h9, h10, h11, h12, h13, h14, h15, h16, h17⟩ := h
+  have := congW_inj _ _ h15
+  subst h1 h2 h3 h4 h5 h6 h7 h8 h9 h10 h11 h12 h13 h14 h16 h17 this
+  rfl
+
+/-- **Root**: the chunk header's inner part (G-5: fixed-width fields). -/
+instance : Ser ChunkInner := Ser.ofInj ciW ciW_inj
 
 instance : Ser BlockHdr := Ser.ofInj
   (fun (x : BlockHdr) => (x.1, x.2, x.3, x.4, x.5, x.6, x.7, x.8, x.9, x.10)) (by inj_tac)
@@ -148,10 +223,23 @@ instance : Ser Intake := Ser.ofInj
 instance : Ser GFin := Ser.ofInj
   (fun (x : GFin) => (x.1, x.2, x.3, x.4, x.5, x.6, x.7, x.8, x.9, x.10, x.11)) (by inj_tac)
 
-/-- **Root**: the header outputs (`outDE (.done o)`, `ctxDE (.header H)`). -/
-instance : Ser Outputs := Ser.ofInj
-  (fun (x : Outputs) => (x.1, x.2, x.3, x.4, x.5, x.6, x.7, x.8, x.9, x.10, x.11, x.12, x.13))
-  (by inj_tac)
+/-- The tuple the header outputs are serialised through (G-5: fixed-width fields). -/
+def outW (x : Outputs) :=
+  (HashW.mk x.stateRoot, HashW.mk x.outcomeRoot, x.proposals, NatW.mk x.gasLimit, NatW.mk x.gasUsed,
+    NatW.mk x.balanceBurnt, HashW.mk x.outgoingRoot, congW x.congestion, x.bwRequests,
+    x.proposedSplit, HashW.mk x.txRoot, HashW.mk x.encodedMerkleRoot, NatW.mk x.encodedLength)
+
+theorem outW_inj : ∀ a b : Outputs, outW a = outW b → a = b := by
+  intro a b h
+  cases a; cases b
+  simp only [outW, Prod.mk.injEq, NatW.mk.injEq, HashW.mk.injEq] at h
+  obtain ⟨h1, h2, h3, h4, h5, h6, h7, h8, h9, h10, h11, h12, h13⟩ := h
+  have := congW_inj _ _ h8
+  subst h1 h2 h3 h4 h5 h6 h7 h9 h10 h11 h12 h13 this
+  rfl
+
+/-- **Root**: the header outputs (`outDE (.done o)`). -/
+instance : Ser Outputs := Ser.ofInj outW outW_inj
 
 /-! ## The Wasm machine -/
 

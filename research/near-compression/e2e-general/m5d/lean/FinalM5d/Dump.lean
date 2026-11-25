@@ -133,7 +133,7 @@ def dump (dir : String) (cb wb : Bytes) : Except String Lean.Json := do
     ("walk", Lean.Json.mkObj [("b2i", num I.wk.b2i), ("mainShard", num I.wk.mainShard),
       ("mainIdx", num ((I.Lmain.index I.wk.mainShard).getD 999999)),
       ("slotPrevStateRoot", hx I.slotB2.prevStateRoot)]),
-    ("bout", Lean.Json.mkObj [("ctxHeaderD", hx (BOut.ctxHeaderD H)),
-      ("outDoneD", hx (BOut.outDoneD o).1), ("encOutputsF1", hx (BOut.encOutputsF1 o))])]
+    ("bout", Lean.Json.mkObj [("ctxHeaderD", hx (BOut.ctxHeaderD H)), ("encHdr", hx (BOut.encHdr H)),
+      ("outDoneD", hx (BOut.outDoneD o).1), ("encOut", hx (BOut.encOut o))])]
 
 end FinalM5d.Dump
