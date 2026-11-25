@@ -890,6 +890,12 @@ STATE engine half are not (F3-1, no STATE engine rows); split leaves in the rela
   view's depth-24 root of T1's INTAKE leaves = the segment proof's public `R_in` (`ca91c86e…`), of
   `updE` (T1's change list) = `R_out` (`2d2e132a…`).
 
+* **Against lane E's M12 glue**: M12's `Glue.ApplyFaithfulS` has the same functional shape (B2-1
+  applies); `StateM5a.GlueRel.state_sound_relC_rel` closes M12's STATE instance from `EngHalfRCOn` and
+  the relational `StHalfRelS` via M12's `state_reqs`. With `W` = the bare working-set root,
+  `wsLen` and the value bounds the circuit statement needs are not carried; lane B recommends
+  `W = stRoot` (above).
+
 **The `stRoot` interface for lane F's F3-1 (resume, STATE; decision proposed by lane B, B-T2).** A
 resume / STATE leaf is one trace = lane F's rows + lane B's `m5tSeg` tables + `STC`. Messages
 (cross-lane ids proposed for the integrator's numbering: `STMQ` 211, `STMA` 212, `SREQ` 213, `HB`
