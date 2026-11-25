@@ -967,8 +967,10 @@ circuit, lane B's `stHalf_inst` and the named `RsStep` / `RsJoint` / `ChipOK` (t
   `SegLeavesN` (distinct keys, input root), reduced (`segLeavesN_of` [K]) to two per-index content
   facts `LastNew` / `Untouched` (open: M5b's `write_sent` / `ws_final` / `LeafCR` chain per
   template). New obligation on the view: `((P.wsOf v).map Prod.fst).Nodup` (lane E's `keysOf`).
-* Lane F: compute the 14 `r_in` limbs from `engF`'s `stRoot` bytes, send `STMQ`, receive `STMA`
-  into the output record's `stRoot`; lane A / F: provide `CTXB` / `CTXL`.
+* Lane F's F-4 `RB` rows (merged mid-session) send `STMQ` / receive `STMA` in exactly `STC`'s layout
+  (14 three-byte big-endian limbs, `[r, tag, rest]`), so a joined resume leaf is `RB` + `m5tSegC`'s
+  tables; lane F's stand-in `RsJoint` (the `STC` side) is what `StcSound.stc_holds` / `holdsSt_seg`
+  give from `Holds` (the joined AIR and its bus ids: integrator). Lane A / F: provide `CTXB` / `CTXL`.
 
 **The `stRoot` interface for lane F's F3-1 (resume, STATE; decision proposed by lane B, B-T2).** A
 resume / STATE leaf is one trace = lane F's rows + lane B's `m5tSeg` tables + `STC`. Messages
