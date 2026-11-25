@@ -115,8 +115,26 @@ theorem state_sound_stRoot (sf : Intake → NearSpecV3.Wasm.TTN.Store) (V : View
   · exact .inl (hBad hb)
   · exact .inr h
 
+/-- **The STATE template with its two leaf modes** (D-b with D-c): working-set leaves (`W` =
+`stRoot`, `state_sound_stRoot`) and the finalize leaf (lane B's IF-FINAL,
+`GlueFin.fin_sound_relC`), joined by `Glue.tmplSoundRel8C_modes`. -/
+theorem state_sound_two (sf : Intake → NearSpecV3.Wasm.TTN.Store) (V : ViewImpl)
+    (hV : V.stD = stD PB) {A A1 A2 : Airs8} {HoldsE HoldsS joint HoldsE' HoldsS' joint'}
+    (win : RConf → Bytes) (Bad : Prop) (hBad : Sha384Coll → Bad)
+    (hA : ∀ ctx b b' (tr : A.Tr (.tmpl .state)), A.Holds (.tmpl .state) ctx b b' tr →
+      (∃ t1, A1.Holds (.tmpl .state) ctx b b' t1) ∨ (∃ t2, A2.Holds (.tmpl .state) ctx b b' t2))
+    (hE1 : EngHalfRCOn sf V (stSem V (A := A1) (HoldsE := HoldsE) (HoldsS := HoldsS) (joint := joint))
+      (StatePreW V) Bad)
+    (hS1 : ∀ q r r', HoldsS q r r' → HoldsSt PB q r r')
+    (hE2 : EngHalfRCOn sf V (GlueFin.finSem (A := A2) (HoldsE := HoldsE') (HoldsS := HoldsS')
+      (joint := joint') win) GlueFin.FinPre Bad)
+    (hS2 : GlueFin.FinHalfB HoldsS' win Bad) : TmplSoundRel8C sf V A Bad .state :=
+  tmplSoundRel8C_modes hA (state_sound_stRoot sf V hV Bad hBad hE1 hS1)
+    (GlueFin.fin_sound_relC sf V win Bad hE2 hS2)
+
 end LaneE.StateW
 
 #print axioms LaneE.StateW.ovlOf_stV
 #print axioms LaneE.StateW.reqsRel_state
 #print axioms LaneE.StateW.state_sound_stRoot
+#print axioms LaneE.StateW.state_sound_two

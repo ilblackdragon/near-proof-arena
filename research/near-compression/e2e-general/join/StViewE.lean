@@ -3,6 +3,7 @@ import NearSpecV3.E2E.StEnc
 import NearSpecV3.E2E.OvlInv
 import NearSpecV3.E2E.OvlVal
 import StateM5a.GlueRel
+import NearSpecV3.E2E.GlueFin
 
 /-!
 # Lane E's `StViewE` for lane B's state view (E2E-M11f, item 1)
