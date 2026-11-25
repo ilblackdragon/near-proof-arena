@@ -1,7 +1,7 @@
-# E2E lane F: the runtime rows of T1's FunctionCall receipt (M5-T1), the `rt` leaves (F-2), the relative store-canonical form (F-3)
+# E2E lane F: the runtime rows of T1's FunctionCall receipt (M5-T1), the `rt` leaves (F-2), the relative store-canonical form (F-3), the resume leaf split with lane B (F-4)
 
 Plan: `docs/zk-formal/E2E-GENERAL-CHUNK-PLAN.md` §3.3 (Wasm ↔ state join), §4.2 (M5), §5.2 (status).
-Date 2026-11-21 (F-3: 2026-11-25). Labels: **[M]** measured here, **[K]** kernel-checked Lean (std axioms, no `sorry`),
+Date 2026-11-21 (F-3, F-4: 2026-11-25). Labels: **[M]** measured here, **[K]** kernel-checked Lean (std axioms, no `sorry`),
 **[S]** design / stated only.
 
 Target T1 = `d3c8/d3/02-h10196-s3`. Its one incoming receipt (`78c006d5…`, `s2a04 → s5k210.s2a00`,
@@ -250,12 +250,79 @@ leaf). Log: [`docs/logs/e2e-f3-runtime-2026-11-25.md`](../../../../docs/logs/e2e
   overlay after the step(s) is the overlay before updated by exactly `qOf`) is open, lane B's
   side `ApplyFaithful` is a named premise; `glue_of` composes them.
 
+## F-4 (2026-11-25): the resume leaf against lane B's `stRoot` interface
+
+Log: [`docs/logs/e2e-f4-runtime-2026-11-25.md`](../../../../docs/logs/e2e-f4-runtime-2026-11-25.md).
+F3-1 said the F-3 resume AIR could not meet `TmplSoundRel8C` because it copied `stRoot`, the
+accumulators and `vmAcc`. F-4 changes exactly those fields and proves the leaf's relative
+obligation as a **split leaf** with lane B's half.
+
+### The AIR (`Rb.lean`, `Acc.lean`, `BndLay.rbCons`; `Air.lean`)
+
+* **`RB`** (row 0, public values only): input = call record (`phase 6`, `inCall`, Wasm tag) with
+  `vmAcc = bdigest []` (the template answers one VM call, `K = []`) and `RX`'s totals in; output by
+  `BndLay.resRule` — copies (`claimDigest`, `blockIdx`, `actionIdx`, `t`, `ctxRoot`, `outRcptN`,
+  `proposalsAcc`, `bwAcc`), `phase 1`/`inCall 0`/no Wasm, **`receiptIdx + 1`** (byte carry chain),
+  `RX` totals out, **`rPrepaid = rBurnt = rUsed = 0`**, **`vmAcc = bdigest []`** (lane E's M12
+  `clearE`, `vmDE []`); `stRoot` and the accumulators are left to:
+* **`STMQ`/`STMA`** (lane B's interface, plan §3.5): `RB` sends `[r_in, tag_out, rest_out]` and
+  receives `[r_out, tag_in, rest_in]` with `r_out` the output record's `stRoot` (14 three-byte
+  limbs; metas are 42 `RNG`-checked bytes);
+* **`ACC`**: one row per 128-B block, chained SHA-512 compressions from `IV384` on the **native
+  SHA-512 chip** (lane B's `s384` v4 on `IF384`; Lean: a sender-only stub, `chipStub`), first
+  message bytes = `B_in`'s accumulator, truncated digest of the last row = `B_out`'s; `RB` demands
+  one hash per accumulator (`ACCD [0]`, `[1]`).
+* `RX` keeps `B_in.rPrepaid = RX.gas`. The enter AIR is unchanged (byte-identical export).
+
+### The leaf on T1 [M] (`logs/F4-leaves.txt`, `logs/F4-mutants.txt`, `results/f4/`)
+
+| leaf | params | proof | prove / verify / RSS | `d_in` → `d_out` | mutants |
+|---|---|---|---|---|---|
+| resume (1,531 public values; 5 compressions) | ns 14, lb 5, w 10, degree 9 (chip) | **468,680 B**, 268.3 bit (relations 170,048, whir 268,688) | 22.8 s / 29 ms / 9.6 GiB | `3a3862e9…` → `50500c19…` | **19/19** (M5-T1's 8, `bndgas`, `bndprepaid`, `bndburnt`; new `stcopy`, `accnoappend`, `rcptnoappend`, `accitem`, `vmnoreset`, `vminK`, `ridxcopy`, `prepaidout`) |
+
+Imported by lane D's `m8-import` (`M8_TEMPLATE_PROVED rt-resume`) to
+`/data/illia/nearproof-deps/e2e-m5t1/f4/tmpl/rt-resume/`. **Stand-ins on T1**: lane B's `STC` is an
+`XTAPE` stand-in (answers `STMA` with `bdigest("lane-F F-4 stand-in STC r_out" ‖ r_in)`; lane I's
+plan has one placeholder `stRoot` in and out), metas `tag = 1`, `rest = 0^42`; the records carry the
+Lean run's real `chainD Ser.enc` accumulators (dump: `outcomesChain`, `outgoingChain`, `ser`), so
+`d_in` no longer chains with the plan-derived upstream records until lane I's driver is regenerated.
+
+### Lean [K]
+
+| file | what is proved |
+|---|---|
+| `RbSem.lean` | row-0 semantics of `RB` on any `Holds (fullAir …)` trace; **`rb_out`**: a call record `B = B_in` has `vmAcc = bdigest []`, counters = `RX`'s public totals in, `receiptIdx + 1 < 2^64`, and `B_out = resRec B st a₁ a₂ g cm tb` (`inc_sem`: the carry chain is `+1`; little-endian sums `sumLE`) |
+| `AccDef.lean`, `AccSem*.lean` | what `ACC` establishes (`AccOK`: per `hid`, a whole-block byte message `m` with `m[0..42) = accIn`, `accOut = chainDig m`), `chainDig_pad` (`chainDig (pad e) = bdigest e`); **`acc_sound`**: `Holds` ∧ the chip contract `ChipOK` (named, lane B's `Sha512IfContract`) ∧ tapes that send nothing on `RNG`/`IF384` and receive nothing on `ACCD` ⇒ `AccOK` (`AccSem1`: send-has-a-receiver, the only `ACCD` receiver / `IF384` sender; `AccSem2`–`5`: row facts, ranges, words = big-endian bytes, `row_ok` via lane B's `comp_sound`; `AccSem6`: the run folds to `SHA512.blocks` from `IV384`; `AccSem`: last row per `hid`, the walk to the first row) |
+| `ResumeF.lean` | **`rsHolds_of`**: the prover's statement (AIR, byte public values, digests, tape conditions) ∧ `ChipOK` ⇒ the resume leaf predicate `RsHoldsC` that `resume_relC8` takes |
+| `ResumeC.lean` | `RsView` (laws; **`rsView_viewE`**: lane E's `viewE` meets them), `bnd_resume` (the view of `eng I c'` is `resRec` of the call record), **`resume_engHalf`** (relational engine half, `Q = StQ`, `W = stRoot`), `split_sound_rel`, **`resume_relC8`** (`TmplSoundRel8C … .rt` for the resume leaf = engine half ∧ **lane B's `StHalfC.stHalf_inst`**), **`rt_relC8_full`** (the `rt` kind: enter ∨ resume), `enter_pos_laneB` (enter's position law is lane B's `rtPos`) |
+| `EnterC.lean` | `RtView.pos` in the `Sha384Coll ∨ _` form (lane B's), `enter_open` returns the position check |
+| `T1Resume.lean` | non-vacuity on T1's leaf in the kernel: **every `RB` constraint vanishes** (`t1_rb_constr`), public values are bytes, **both appends are `bdigest (acc_in ‖ Ser.enc item)`** (`t1_acc0`, `t1_acc1`: 2 + 3 SHA-512 compressions) |
+
+**Named premises of `resume_relC8`** (by owner):
+
+| premise | owner | content |
+|---|---|---|
+| `RsStep` | **A** | the opened call has finished: `cc = .fin r` (lane A's `fin` record) |
+| | **F** | `estepO (strictO [(q, r)]) I.prog c = .ok c'` from a non-final position, totals out = `RX`'s, one outcome `o` / one outgoing receipt `rr` appended, proposals unchanged (F-2's open item (1)); the `ACC` messages are `pad (X ‖ Ser.enc o)`, `pad (Y ‖ Ser.enc rr)` (no in-circuit `Ser.enc` encoder / padding check yet; `X`, `Y` are pinned by the circuit) |
+| | **F / E** | `stRel P V q x x'` for the produced pair (the resume analogue of lane E's `StateW.reqsRel_state`: overlay invariant for the oracle step + lane B's `wsOfB_upd`; the meta's `rest` digest) |
+| `RsJoint` | **B** | the leaf's state rows prove `HoldsSt` (`STC` ∧ `WsMoves`) for its `STMQ`/`STMA`/`SREQ`/`HB` traffic (`STC` not built) |
+| `ChipOK` | **B / D** | the native SHA-512 chip's faithfulness on its sends (`FAITHFUL-v4.md`) |
+
+Checks (after merging main `248ceb0c0`): `lake build M5T1 m5t1-tool` 472 jobs (`logs/axioms.txt`:
+std axioms only, no `sorryAx`), `spec/lean/v3` 459 jobs, `pytest -q oracle/tools tools
+research/near-compression/e2e-general/t1`: 183 passed, 1 skipped. The package now requires lane B's
+`StateM5a` (`lakefile.toml`).
+
+Not done: `RsStep` itself; `next` (K ≠ []); enter's `EntChecks.prepaid`/`.code` join (not cheap:
+the enter leaf has no receipt rows — it needs the `MSG`/`RX` rows or a cross-leaf link).
+
 ## Open (M5-T1 list, updated)
 
 1. ~~MSG/DG row lemmas, RNG bus fact~~ (F-2); ~~enter view contract~~ (F-3: `enter_relC` from
-   the circuit + named checks); resume: F3-1 (split with lane B, accumulator appends, `estepO`
-   composition); enter's `EntChecks.prepaid` / `code` (join with the receipt rows); STATE engine
-   rows (none yet); F3-2 (clear-field convention, lane E / owner).
+   the circuit + named checks); ~~resume: F3-1~~ (F-4: split with lane B, `ACC` appends, `vmAcc`,
+   M12 clear fields; `resume_relC8`); the `estepO` composition (`RsStep`); enter's
+   `EntChecks.prepaid` / `code` (join with the receipt rows); STATE engine rows (none yet);
+   ~~F3-2~~ (lane E's M12).
 2. **Template coverage**: one FunctionCall per V1 action receipt, ED25519 signer, no inputs/outputs,
    successful call without promises, ≤ 4 non-empty logs, refund > 0, receiver exists with a local
    contract; account-id validity (`AccountId.valid`) and `softExceeded` (recorder size) not in the

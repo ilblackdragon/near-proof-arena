@@ -45,8 +45,8 @@ theorem sender_idx {b k : Nat}
     (h1 : NoSendOn b tape) (h2 : NoSendOn b xtape) {t : Nat} (ht : t < (fullAir tape xtape).tables.length)
     {i : Interaction} (hi : i ∈ ((fullAir tape xtape).tables[t]'ht).interactions) (hb : i.bus = b)
     (hs : i.send = true) : t = k := by
-  have ht8 : t < 8 := fullAir_len (tape := tape) (xtape := xtape) ▸ ht
-  by_cases h6 : t < 6
+  have ht8 : t < 11 := fullAir_len (tape := tape) (xtape := xtape) ▸ ht
+  by_cases h6 : t < 9
   · by_cases hne : t = k
     · exact hne
     have := hns t hne
@@ -56,17 +56,17 @@ theorem sender_idx {b k : Nat}
       simp only [fullAir]; rw [List.getElem_append_left]
     rw [e] at hi
     exact (noSend_spec this hi hb hs).elim
-  · obtain _ | _ | _ | _ | _ | _ | _ | _ | t := t
+  · obtain _ | _ | _ | _ | _ | _ | _ | _ | _ | _ | _ | t := t
     all_goals try omega
     · exact (tape_sender h1 hi hb hs).elim
     · exact (tape_sender h2 hi hb hs).elim
 
-theorem getD_big {b t : Nat} (h : 6 ≤ t) : NoSend (m5t1Air.tables.getD t default) b = true := by
+theorem getD_big {b t : Nat} (h : 9 ≤ t) : NoSend (m5t1Air.tables.getD t default) b = true := by
   rw [List.getD_eq_getElem?_getD, List.getElem?_eq_none (by simp [m5t1Air]; omega)]; rfl
 
 theorem noSend_sch : ∀ t, t ≠ 2 → NoSend (m5t1Air.tables.getD t default) B_SCH = true := by
   intro t hne
-  obtain _ | _ | _ | _ | _ | _ | t := t
+  obtain _ | _ | _ | _ | _ | _ | _ | _ | _ | t := t
   all_goals first | decide +kernel | exact absurd rfl hne | exact getD_big (by omega)
 end
 

@@ -21,12 +21,12 @@ def main (args : List String) : IO UInt32 := do
     IO.FS.writeFile out j.pretty
     return 0
   | ["air", out, names, sch] =>
-    IO.FS.writeFile out (ZkFormal.Air.Air.exportJson m5t1Air)
+    IO.FS.writeFile out (ZkFormal.Air.Air.exportJson exportAir)
     IO.FS.writeFile names namesJson
     IO.FS.writeFile sch schemaJson
-    for (nm, t) in tableNames.zip m5t1Air.tables do
+    for (nm, t) in tableNames.zip exportAir.tables do
       let deg := (t.allConstraints.map ZkFormal.Air.Expr.degree).foldl max 0
-      IO.println s!"{nm}: width {t.width}, constraints {t.allConstraints.length}, interactions {t.interactions.length}, degree {deg}, wf {ZkFormal.Air.Table.wf m5t1Air 4 t}"
+      IO.println s!"{nm}: width {t.width}, constraints {t.allConstraints.length}, interactions {t.interactions.length}, degree {deg}, wf {ZkFormal.Air.Table.wf exportAir 4 t}"
     IO.println s!"schema entries {schema.length}, public values {Rx.NUM_PUB}"
     return 0
   | ["air-ent", out, names] =>

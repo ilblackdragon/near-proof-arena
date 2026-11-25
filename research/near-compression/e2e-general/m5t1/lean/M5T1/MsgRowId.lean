@@ -67,7 +67,7 @@ theorem mbegOK_true : mbegOK = true := by decide +kernel
 
 theorem noSend_mbeg : ∀ t, t ≠ 5 → NoSend (m5t1Air.tables.getD t default) B_MBEG = true := by
   intro t hne
-  obtain _ | _ | _ | _ | _ | _ | t := t
+  obtain _ | _ | _ | _ | _ | _ | _ | _ | _ | t := t
   all_goals first | decide +kernel | exact absurd rfl hne | exact getD_big (by omega)
 
 /-! ## `RX` column bounds -/

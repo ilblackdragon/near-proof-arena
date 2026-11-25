@@ -25,6 +25,13 @@ field `fid = 96 + mt` of the same family.
 | `SRQ` / `SRS` / `HBR` | `(ts, seg, klen, kptr)` / `(ts, present, vlen, vptr)` / `(ts, pos, byte)` | a read (lane B's §M5b read design: key bytes on `HB`, value bytes back) |
 | `VMCALL` / `VMRES` | `(qf, ts)` / `(qf, tsEnd, ok, nLogs, nActions, retIdx)` | the Wasm call of receipt `qf` (lane A): the context is the family's `FB` fields |
 | `OUTC` / `OUTR` | `(qf, d₀..d₃₁)` | the outcome leaf / an outgoing receipt's hash (to `FINAL`) |
+| `STMQ` | `(r_in 14 limbs, tag_out, rest_out 14 limbs)` | **F-4, lane B's `STMQ`** (cross-lane id 211): the resume edge's input `stRoot` and the output state's meta, to lane B's `STC` rows |
+| `STMA` | `(r_out 14 limbs, tag_in, rest_in 14 limbs)` | **F-4, lane B's `STMA`** (cross-lane id 212): the output `stRoot` and the input state's meta, from `STC` |
+| `IF384` | `(cid, pair, 3 limbs, 3 limbs)` | **F-4**: the native SHA-512 compression chip's interface (lane B's `IF384`; native bus 103) |
+| `ACCD` | `(hid)` | **F-4**: the resume edge demands one SHA-384 accumulator append per `hid` (0: outcomes, 1: outgoing receipts) from `ACC` |
+
+Limbs of a 42-B digest on `STMQ`/`STMA`: limb `j < 14` is bytes `3j, 3j+1, 3j+2` big-endian
+(`65536·b₀ + 256·b₁ + b₂`, `< 2^24`).
 -/
 
 namespace M5T1
@@ -46,7 +53,13 @@ def B_VMCALL : Nat := 13
 def B_VMRES : Nat := 14
 def B_OUTC : Nat := 15
 def B_OUTR : Nat := 16
-def NUM_BUSES : Nat := 17
+def B_STMQ : Nat := 17
+def B_STMA : Nat := 18
+def B_IF384 : Nat := 19
+def B_ACCD : Nat := 20
+def NUM_BUSES : Nat := 21
+/-- The bus count of the F-2 / F-3 AIRs (the enter leaf keeps it: its AIR value is unchanged). -/
+def NUM_BUSES_F3 : Nat := 17
 
 /-! ## Message types -/
 

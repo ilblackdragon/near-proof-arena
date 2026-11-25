@@ -213,10 +213,11 @@ def chain : List Expr :=
    (([("gout", "gout", 8), ("cout", "cout", 8), ("tbout", "tbout", 16), ("oth", "othout", 16),
       ("sbout", "sbout", 16), ("wgout", "wgout", 16)] : List (String × String × Nat)).flatMap
      fun (g, p, w) => (List.range w).map fun k => lastA * (c g k - pub p k))) ++
-  -- F-2: one receipt per `resume` segment; the boundary pair (`BndLay.resumeCons`)
+  -- F-2: one receipt per `resume` segment. F-4: the boundary rules are the `RB` table's
+  -- (`BndLay.rbCons`, public values only); the row keeps the one rule that reads a column: the
+  -- call's `rPrepaid` is the receipt's prepaid gas
   [.isFirst * (c "la1" - 1)] ++
-  BndLay.resumeCons ⟨BndLay.callF, PL.off "bin"⟩ ⟨BndLay.engF, PL.off "bout"⟩
-    (fun g k => pub g k) (fun g k => c g k)
+  BndLay.eqLE ⟨BndLay.callF, PL.off "bin"⟩ "rPrepaid" (fun k => c "gas" k)
 
 def constraints : List Expr :=
   let A := c "act"

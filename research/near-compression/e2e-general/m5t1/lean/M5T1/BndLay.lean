@@ -144,8 +144,9 @@ def enterCons (I O : Side) : List Expr :=
   constF I "phase" 1 ++ constF I "inCall" 0 ++ constF I "wasmTag" 0 ++
   callF.flatMap fun p => ruleCons I O p.1 p.2 (outRule p.1)
 
-/-- **`resume`**: `in` in a call (`callF`), `out` out of a call (`engF`); the receipt step's values
-come from the `RX` row (`x g k`: little-endian byte `k` of `RX` group / public group `g`). -/
+/-- **`resume`** (F-2 / F-3 version, superseded by F-4's `rbCons` + `rxPrepaid`; kept for the
+record): `in` in a call (`callF`), `out` out of a call (`engF`); the receipt step's values come
+from the `RX` row (`x g k`: little-endian byte `k` of `RX` group / public group `g`). -/
 def resumeCons (I O : Side) (pubG colG : String → Nat → Expr) : List Expr :=
   constF I "phase" 6 ++ constF I "inCall" 1 ++ constF I "wasmTag" 1 ++
   constF O "phase" 1 ++ constF O "inCall" 0 ++ constF O "wasmTag" 0 ++
@@ -155,5 +156,72 @@ def resumeCons (I O : Side) (pubG colG : String → Nat → Expr) : List Expr :=
   eqLE O "gasUsed" (pubG "gout") ++ eqLE O "gasBurnt" (pubG "gout") ++ eqLE O "compute" (pubG "cout") ++
   eqLE O "balanceBurnt" (pubG "tbout") ++
   eqLE I "rPrepaid" (colG "gas") ++ eqLE O "rBurnt" (colG "vb") ++ eqLE O "rUsed" (colG "vu")
+
+/-! ## F-4: the resume edge (`call I c K q (.fin r) → eng I c'`) in lane E's M12 shape
+
+Output rule per `engF` field (`resRule`); the input is a call record (`phase 6`, `inCall 1`, a Wasm
+part) with `vmAcc = bdigest []` (the template answers one VM call: `K = []`, so the tape the
+step reads is `[(q, r)]`) and the counters of `RX`'s totals in.
+
+| output field | rule | why (lane E's `clearE`, `outDE`, `vmDE`; lane B's `STMA`) |
+|---|---|---|
+| `claimDigest`, `blockIdx`, `actionIdx`, `t`, `ctxRoot`, `outRcptN`, `proposalsAcc`, `bwAcc` | copy | constants of `clearE` / `ctxDE (.intake I)` / one outgoing digest / no proposal (named) / the `outDE` tag |
+| `phase`, `inCall`, `wasmTag` | `1, 0, 0` | out of the call |
+| `receiptIdx` | input + 1 (byte carry chain) | `clearE`: `|outcomes|`, one outcome per receipt step |
+| `gasUsed`, `gasBurnt`, `compute`, `balanceBurnt` | `RX`'s totals out (public groups) | `clearE`: the receipt state's totals |
+| `rPrepaid`, `rBurnt`, `rUsed` | `0` | `clearE_resume` |
+| `vmAcc` | `bdigest []` | `vmDE []` |
+| `stRoot` | free here: **`STMA`'s `r_out`** (lane B's `STC`) | `stD (stOfK κ I c')` |
+| `outcomeAcc`, `outRcpt0` | free here: **`ACC`'s SHA-384 append** | `chainD Ser.enc (os ++ [o]) = bdigest (chainD os ‖ Ser.enc o)` |
+-/
+
+/-- How the resume leaf constrains one field of its output record (F-4). -/
+inductive RRule where
+  | copy
+  | num (v : Nat)
+  | dig (b : List Nat)
+  /-- input + 1 (`receiptIdx`) -/
+  | inc
+  /-- the little-endian public group `g` (an `RX` total) -/
+  | pubG (g : String)
+  /-- not constrained by the boundary rules: `STMA` (`stRoot`), `ACC` (the accumulators) -/
+  | free
+
+/-- **The resume edge's output rules** (F-4). -/
+def resRule : String → RRule
+  | "phase" => .num 1 | "inCall" => .num 0 | "wasmTag" => .num 0
+  | "receiptIdx" => .inc
+  | "gasUsed" => .pubG "gout" | "gasBurnt" => .pubG "gout" | "compute" => .pubG "cout"
+  | "balanceBurnt" => .pubG "tbout"
+  | "rPrepaid" => .num 0 | "rBurnt" => .num 0 | "rUsed" => .num 0
+  | "vmAcc" => .dig emptyDig
+  | "stRoot" => .free | "outcomeAcc" => .free | "outRcpt0" => .free
+  | _ => .copy
+
+/-- `receiptIdx` out = in + 1: little-endian bytes, carry bits `cy k` (`k < 7`), top carry `0`. -/
+def incCons (I O : Side) (f : String) (cy : Nat → Expr) : List Expr :=
+  let w := fw O.L f
+  (List.range w).map fun k =>
+    gate (I.le f k + (if k = 0 then K 1 else cy (k - 1)) - O.le f k -
+      K 256 * (if k + 1 = w then K 0 else cy k))
+
+/-- The constraints of one output field of the resume edge. -/
+def resCons (I O : Side) (pubG : String → Nat → Expr) (cy : Nat → Expr) (f : String) (w : Nat) :
+    RRule → List Expr
+  | .copy => copyF I O f
+  | .num v => constF O f v
+  | .dig b => (List.range w).map fun j => gate (O.b f j - K (b.getD j 0))
+  | .inc => incCons I O f cy
+  | .pubG g => eqLE O f (pubG g)
+  | .free => []
+
+/-- **The resume edge's boundary rules** (F-4; the `RB` table, public values only): the input is
+a call record with `vmAcc = bdigest []` and `RX`'s totals in; the output by `resRule`. -/
+def rbCons (I O : Side) (pubG : String → Nat → Expr) (cy : Nat → Expr) : List Expr :=
+  constF I "phase" 6 ++ constF I "inCall" 1 ++ constF I "wasmTag" 1 ++
+  ((List.range 42).map fun j => gate (I.b "vmAcc" j - K (emptyDig.getD j 0))) ++
+  eqLE I "gasUsed" (pubG "gin") ++ eqLE I "gasBurnt" (pubG "gin") ++ eqLE I "compute" (pubG "cin") ++
+  eqLE I "balanceBurnt" (pubG "tbin") ++
+  engF.flatMap fun p => resCons I O pubG cy p.1 p.2 (resRule p.1)
 
 end M5T1.BndLay

@@ -430,7 +430,8 @@ theorem t1_rtView : RtView V1 vmc1 pre1 posOK1 where
   clearEnter := fun _ _ _ => rfl
   outOne := fun _ => rfl
   pos := by
-    intro I c h out hc
+    intro I c h
+    refine .inr fun out hc => ?_
     simp only [posOK1, V1, stOfI, hc, eposMap, stD1] at h
     exact zero42_ne h
 
@@ -484,10 +485,10 @@ theorem t1_enter_opens (sf : Intake → TTN.Store) (I : Intake) (c : EConf)
     ∃ x', Canon sf x' ∧ bndOf V1.bnd x' = bdigest (bytesOf t1EntPub 450 834) ∧
       Meaning .rt (.base (.eng I c)) x' := by
   have he : (V1.bnd (.base (.eng I c))).encode = bytesOf t1EntPub 0 450 := by rw [t1_in I c hc, R1_enc]
-  obtain ⟨I', c', hx, hnf, hcan, ho⟩ := enter_open t1_rtView sf t1_ent_holds (t1_checks q hq) _ he
+  obtain ⟨I', c', hx, -, hcan, ho⟩ := enter_open t1_rtView sf t1_ent_holds (t1_checks q hq) _ he
   simp only [RConf.base.injEq, Conf.eng.injEq] at hx
   obtain ⟨rfl, rfl⟩ := hx
-  exact ⟨_, hcan, by simp only [bndOf]; rw [ho], .enter I c _ hnf⟩
+  exact ⟨_, hcan, by simp only [bndOf]; rw [ho], .enter I c _ hc⟩
 
 #print axioms t1_ent_holds
 #print axioms t1_rtView

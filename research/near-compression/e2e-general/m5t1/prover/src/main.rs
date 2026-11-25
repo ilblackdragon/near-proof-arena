@@ -21,6 +21,13 @@
 //! template has one vk. `prove <out_dir>` saves `RT.proof` (`Proof::encode`), `RT.vk.json` (the
 //! `SavedVk` envelope) and `statement.json` (per-AIR public values, heights, cached roots, and the
 //! boundary digests `bdigest(B_in)`, `bdigest(B_out)` recomputed from the public values).
+//!
+//! **F-4 (resume).** The resume AIR adds `RB` (boundary rules, `STMQ`/`STMA`) and `ACC` (the
+//! SHA-384 accumulator appends), whose compressions go to lane B's native SHA-512 compression chip
+//! (`s384/`, copied unchanged from `../m5a/prover`: the recursion chip v4, degree 9): Lean's `IF384`
+//! bus (19; the Lean chip stub `Acc.chipStub` is not exported) is mapped to the chip's interface bus
+//! 103, the chip proves the dump's `comps.json`, and its tables `SHA512` / `SHA512T` are appended
+//! after the Lean tables and tapes. A dump without `comps.json` (the enter leaf) has no chip.
 mod air;
 #[allow(dead_code, clippy::all)]
 mod sha384 {
@@ -28,6 +35,12 @@ mod sha384 {
     pub mod mb;
 }
 mod sha256gen;
+#[allow(dead_code, clippy::all)]
+mod s384 {
+    pub mod air;
+    pub mod reference;
+    pub mod trace;
+}
 
 use air::{ClassicalAir, E, JsonAir, TableSpec};
 use openvm_cpu_backend::CpuBackend;
@@ -47,6 +60,17 @@ use std::time::Instant;
 
 const RESUME: &[&str] = &["SHA", "RNG", "SCHT", "MSG", "DG", "RX"];
 const P: u64 = 0x7800_0001;
+/// [F-4] Lean's `IF384` (`Ids.B_IF384`), mapped to the native chip's interface bus.
+const LEAN_IF: u16 = 19;
+
+fn map_bus(b: u16) -> u16 {
+    if b == LEAN_IF { s384::air::BUS_IF } else { b }
+}
+
+enum Native {
+    Sha512,
+    Table,
+}
 
 fn set_levers() {
     unsafe {
@@ -277,6 +301,10 @@ struct Inst {
     /// the statement tape and the T1 stand-in tape (public), as net message counts
     tapes: Vec<(String, BTreeMap<Key, u64>)>,
     tmpl: Option<serde_json::Value>,
+    /// [F-4] the native SHA-512 chip's tables and its expected interface traffic (bus 103)
+    native: Vec<(Native, RowMajorMatrix<F>)>,
+    chip_if: BTreeMap<Key, u64>,
+    n_comps: usize,
 }
 
 fn pin_of(tmpl: &Option<serde_json::Value>, table: &str) -> Option<usize> {
@@ -310,8 +338,13 @@ fn load(air_path: &str, dir: &str) -> Inst {
     } else {
         RESUME
     };
-    let cl = ClassicalAir::parse(&text, names);
+    let mut cl = ClassicalAir::parse(&text, names);
     assert_eq!(cl.tables.len(), names.len());
+    for t in cl.tables.iter_mut() {
+        for i in t.inters.iter_mut() {
+            i.bus = map_bus(i.bus);
+        }
+    }
     let pb = std::fs::read(d.join("pubs.bin")).unwrap();
     let pubs: Vec<F> = pb.chunks(4).map(|c| F::new(u32::from_le_bytes(c.try_into().unwrap()))).collect();
     let (mut spec, mut mats) = (vec![], vec![]);
@@ -382,7 +415,48 @@ fn load(air_path: &str, dir: &str) -> Inst {
             tapes.push((name.to_string(), tape));
         }
     }
-    Inst { spec, mats, pubs, tapes, tmpl }
+    // [F-4] the SHA-512 chip (lane B's harness, `../m5a/prover/src/main.rs`)
+    let (mut native, mut chip_if, mut n_comps) = (vec![], BTreeMap::new(), 0);
+    if let Ok(txt) = std::fs::read_to_string(d.join("comps.json")) {
+        let cv: serde_json::Value = serde_json::from_str(&txt).unwrap();
+        let comps: Vec<s384::reference::Comp> = cv
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|x| {
+                let w = |k: &str, i: usize| x[k][i].as_str().unwrap().parse::<u64>().unwrap();
+                s384::reference::Comp { h: std::array::from_fn(|i| w("h", i)), block: std::array::from_fn(|i| w("block", i)) }
+            })
+            .collect();
+        let mut h = s384::trace::main_height(comps.len());
+        if let Some(p) = pin_of(&tmpl, "SHA512") {
+            assert!(h <= 1 << p, "SHA512: {} compressions exceed the template's 2^{p} rows", comps.len());
+            h = 1 << p;
+        } else if tmpl.is_some() {
+            panic!("SHA512: no pinned height in template.json");
+        }
+        let main = s384::trace::gen_main(&comps, h);
+        let table = s384::trace::gen_table(&main, h);
+        native = vec![
+            (Native::Sha512, RowMajorMatrix::new(main.iter().map(|&x| F::new(x)).collect(), s384::air::WIDTH)),
+            (Native::Table, RowMajorMatrix::new(table.iter().map(|&x| F::new(x)).collect(), s384::air::T_WIDTH)),
+        ];
+        for (s, c) in comps.iter().enumerate() {
+            let out = s384::reference::sha2_compress(c);
+            let ws: Vec<u64> = c.h.iter().chain(c.block.iter()).chain(out.iter()).copied().collect();
+            for m in 0..16 {
+                let mut msg = vec![(s * s384::air::ROWS) as u32, m as u32];
+                for wv in [ws[2 * m], ws[2 * m + 1]] {
+                    for v in s384::air::limbs(wv) {
+                        msg.push(v as u32);
+                    }
+                }
+                add(&mut chip_if, (s384::air::BUS_IF, msg), 1);
+            }
+        }
+        n_comps = comps.len();
+    }
+    Inst { spec, mats, pubs, tapes, tmpl, native, chip_if, n_comps }
 }
 
 fn precheck(inst: &Inst) -> Result<(), String> {
@@ -391,7 +465,7 @@ fn precheck(inst: &Inst) -> Result<(), String> {
             check_constraints(t, m, &inst.pubs)?;
         }
     }
-    let mut net = BTreeMap::new();
+    let mut net = inst.chip_if.clone();
     for (t, m) in inst.spec.iter().zip(&inst.mats) {
         if t.harness.is_none() {
             traffic(t, m, &inst.pubs, &mut net);
@@ -415,7 +489,13 @@ fn precheck(inst: &Inst) -> Result<(), String> {
 }
 
 fn airs(inst: &Inst) -> Vec<AirRef<Sha384Config>> {
-    inst.spec.iter().map(|t| Arc::new(JsonAir { spec: t.clone() }) as AirRef<Sha384Config>).collect()
+    let mut v: Vec<AirRef<Sha384Config>> =
+        inst.spec.iter().map(|t| Arc::new(JsonAir { spec: t.clone() }) as AirRef<Sha384Config>).collect();
+    if !inst.native.is_empty() {
+        v.push(Arc::new(s384::air::Sha512Air4));
+        v.push(Arc::new(s384::air::TableAir4));
+    }
+    v
 }
 
 /// The commitment of a cached table (full height, no tight heights).
@@ -456,6 +536,10 @@ fn ctx(eng: &Sha384CpuEngine, inst: &Inst, mats: &[RowMajorMatrix<F>], pubs: &[F
             out.push((i, AirProvingContext { cached_mains: vec![cached], common_main: empty, public_values: pv }));
         }
     }
+    let base = mats.len();
+    for (j, (_, m)) in inst.native.iter().enumerate() {
+        out.push((base + j, AirProvingContext::simple(m.clone(), vec![])));
+    }
     ProvingContext::new(out)
 }
 
@@ -468,6 +552,10 @@ fn full_floor(inst: &Inst) -> Vec<(usize, usize, usize)> {
             let h = m.values.len() / m.width;
             (if t.cached { 1 } else { m.width - t.prep.as_ref().map(|p| p.0).unwrap_or(0) }, h.trailing_zeros() as usize, h)
         })
+        .chain(inst.native.iter().map(|(_, m)| {
+            let h = m.values.len() / m.width;
+            (m.width, h.trailing_zeros() as usize, h)
+        }))
         .collect()
 }
 
@@ -516,14 +604,18 @@ fn save(out: &std::path::Path, inst: &Inst, vk: &MultiStarkVerifyingKey<Sha384Co
     std::fs::write(out.join("RT.proof"), &b).unwrap();
     let vkb = serde_json::to_vec(&SavedVk { domain_odd_factor: vk.inner.params.whir.domain_odd_factor, vk }).unwrap();
     std::fs::write(out.join("RT.vk.json"), &vkb).unwrap();
-    let airs: Vec<serde_json::Value> = inst
-        .spec
+    let mut names: Vec<String> = inst.spec.iter().map(|t| t.name.clone()).collect();
+    if !inst.native.is_empty() {
+        names.push("SHA512".into());
+        names.push("SHA512T".into());
+    }
+    let airs: Vec<serde_json::Value> = names
         .iter()
         .enumerate()
         .map(|(i, t)| {
             let v = proof.trace_vdata[i].as_ref();
             serde_json::json!({
-                "name": t.name,
+                "name": t,
                 "num_public_values": proof.public_values[i].len(),
                 "log_height": v.map(|v| v.log_height),
                 "tight_height": v.and_then(|v| v.tight_height),
@@ -590,9 +682,20 @@ fn report(inst: &Inst) {
             t.name, m.width, h.trailing_zeros(), h * m.width, t.constraints.len(), ni, d
         );
     }
-    let pinned: Vec<String> = inst.spec.iter().zip(&inst.mats).map(|(t, m)| format!("\"{}\": {}", t.name, (m.values.len() / m.width).trailing_zeros())).collect();
+    for (k, m) in &inst.native {
+        let h = m.values.len() / m.width;
+        cells += h * m.width;
+        let nm = match k {
+            Native::Sha512 => "SHA512",
+            Native::Table => "SHA512T",
+        };
+        println!("TABLE {:<6} width {:>5} height 2^{:<2} cells {:>9} (native v4, degree {})", nm, m.width, h.trailing_zeros(), h * m.width, s384::air::DEGREE);
+    }
+    let pinned: Vec<String> = inst.spec.iter().zip(&inst.mats).map(|(t, m)| format!("\"{}\": {}", t.name, (m.values.len() / m.width).trailing_zeros()))
+        .chain(inst.native.iter().take(1).map(|(_, m)| format!("\"SHA512\": {}", (m.values.len() / m.width).trailing_zeros())))
+        .collect();
     println!("HEIGHTS {{{}}}", pinned.join(", "));
-    println!("CELLS committed {cells}");
+    println!("CELLS committed {cells}; compressions {}", inst.n_comps);
 }
 
 fn main() {
@@ -616,9 +719,10 @@ fn main() {
     if mode == "check" {
         return;
     }
-    let total: usize = inst.mats.iter().map(|m| m.values.len()).sum();
-    let maxh = inst.mats.iter().map(|m| m.values.len() / m.width).max().unwrap();
-    let degree = inst.spec.iter().flat_map(|t| t.constraints.iter().map(deg)).max().unwrap_or(2).max(2);
+    let total: usize = inst.mats.iter().chain(inst.native.iter().map(|(_, m)| m)).map(|m| m.values.len()).sum();
+    let maxh = inst.mats.iter().chain(inst.native.iter().map(|(_, m)| m)).map(|m| m.values.len() / m.width).max().unwrap();
+    let degree = inst.spec.iter().flat_map(|t| t.constraints.iter().map(deg)).max().unwrap_or(2).max(2)
+        .max(if inst.native.is_empty() { 0 } else { s384::air::DEGREE });
     let prm = if let Some(t) = &inst.tmpl {
         let g = |k: &str| t["params"][k].as_u64().unwrap_or_else(|| panic!("template params.{k}")) as usize;
         let root = std::env::var("NEARPROOF_ROOT").unwrap_or_else(|_| "/data/illia/nearproof".into());

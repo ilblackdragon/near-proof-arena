@@ -14,6 +14,12 @@ sha_msgs.json (the SHA-256 table's messages), tape.json (the statement: receipt-
 outcome leaves, outgoing receipt hashes), xtape.json (T1 stand-ins: lane B's account read / write,
 lane A's Wasm call), pubs.bin, and expected.json (the outputs, for the comparison).
 
+F-4 (resume): also RB.bin (the boundary rules' carries, the stand-in `STMQ`/`STMA` metas), ACC.bin
+(one row per SHA-512 block of the two SHA-384 accumulator appends `bdigest (acc ‖ Ser.enc item)`,
+the items from the Lean run's `ser` fields), comps.json (the native chip's compressions), the
+stand-in for lane B's `STC` on XTAPE (consumes `STMQ`, answers `STMA` with `B_out.stRoot`), and
+t1-resume-pubs.json / t1-rb-row0.json / t1-acc.json (values for lane F's Lean non-vacuity).
+
 Mutants (`--mutant`): a prover that deviates from the spec in one value, with every *other* cell
 recomputed consistently where it can be (exit 3 = not applicable).
 """
@@ -72,6 +78,73 @@ def inv(x):
 
 def u32(v):
     return list(struct.pack("<I", v))
+
+
+# ---------------------------------------------------------------------------------------------
+# F-4: SHA-512 compression (FIPS 180-4 §6.4.2) for the ACC rows and the chip's comps.json
+_K512 = [int(x, 16) for x in """
+428a2f98d728ae22 7137449123ef65cd b5c0fbcfec4d3b2f e9b5dba58189dbbc 3956c25bf348b538 59f111f1b605d019
+923f82a4af194f9b ab1c5ed5da6d8118 d807aa98a3030242 12835b0145706fbe 243185be4ee4b28c 550c7dc3d5ffb4e2
+72be5d74f27b896f 80deb1fe3b1696b1 9bdc06a725c71235 c19bf174cf692694 e49b69c19ef14ad2 efbe4786384f25e3
+0fc19dc68b8cd5b5 240ca1cc77ac9c65 2de92c6f592b0275 4a7484aa6ea6e483 5cb0a9dcbd41fbd4 76f988da831153b5
+983e5152ee66dfab a831c66d2db43210 b00327c898fb213f bf597fc7beef0ee4 c6e00bf33da88fc2 d5a79147930aa725
+06ca6351e003826f 142929670a0e6e70 27b70a8546d22ffc 2e1b21385c26c926 4d2c6dfc5ac42aed 53380d139d95b3df
+650a73548baf63de 766a0abb3c77b2a8 81c2c92e47edaee6 92722c851482353b a2bfe8a14cf10364 a81a664bbc423001
+c24b8b70d0f89791 c76c51a30654be30 d192e819d6ef5218 d69906245565a910 f40e35855771202a 106aa07032bbd1b8
+19a4c116b8d2d0c8 1e376c085141ab53 2748774cdf8eeb99 34b0bcb5e19b48a8 391c0cb3c5c95a63 4ed8aa4ae3418acb
+5b9cca4f7763e373 682e6ff3d6b2b8a3 748f82ee5defb2fc 78a5636f43172f60 84c87814a1f0ab72 8cc702081a6439ec
+90befffa23631e28 a4506cebde82bde9 bef9a3f7b2c67915 c67178f2e372532b ca273eceea26619c d186b8c721c0c207
+eada7dd6cde0eb1e f57d4f7fee6ed178 06f067aa72176fba 0a637dc5a2c898a6 113f9804bef90dae 1b710b35131c471b
+28db77f523047d84 32caab7b40c72493 3c9ebe0a15c9bebc 431d67c49c100d4c 4cc5d4becb3e42b6 597f299cfc657e2a
+5fcb6fab3ad6faec 6c44198c4a475817""".split()]
+IV384 = [0xcbbb9d5dc1059ed8, 0x629a292a367cd507, 0x9159015a3070dd17, 0x152fecd8f70e5939,
+         0x67332667ffc00b31, 0x8eb44a8768581511, 0xdb0c2e0d64f98fa7, 0x47b5481dbefa4fa4]
+M64 = (1 << 64) - 1
+
+
+def _rotr(x, n):
+    return ((x >> n) | (x << (64 - n))) & M64
+
+
+def compress512(h, ws):
+    """SHA-512 compression of 16 big-endian words `ws` from chaining value `h` (8 words)."""
+    w = list(ws)
+    for t in range(16, 80):
+        s0 = _rotr(w[t - 15], 1) ^ _rotr(w[t - 15], 8) ^ (w[t - 15] >> 7)
+        s1 = _rotr(w[t - 2], 19) ^ _rotr(w[t - 2], 61) ^ (w[t - 2] >> 6)
+        w.append((w[t - 16] + s0 + w[t - 7] + s1) & M64)
+    a, b, c, d, e, f, g, hh = h
+    for t in range(80):
+        t1 = (hh + (_rotr(e, 14) ^ _rotr(e, 18) ^ _rotr(e, 41)) + ((e & f) ^ (~e & g)) + _K512[t] + w[t]) & M64
+        t2 = ((_rotr(a, 28) ^ _rotr(a, 34) ^ _rotr(a, 39)) + ((a & b) ^ (a & c) ^ (b & c))) & M64
+        a, b, c, d, e, f, g, hh = (t1 + t2) & M64, a, b, c, (d + t1) & M64, e, f, g
+    return [(x + y) & M64 for x, y in zip(h, [a, b, c, d, e, f, g, hh])]
+
+
+def pad512(m):
+    """SHA-512 padding (§5.1.2): `m ‖ 0x80 ‖ 0^k ‖ be128(8·len)`."""
+    k = (239 - len(m) % 128) % 128
+    return bytes(m) + b"\x80" + bytes(k) + (8 * len(m)).to_bytes(16, "big")
+
+
+def wlimbs(x):
+    return [x % 2 ** 21, x // 2 ** 21 % 2 ** 21, x // 2 ** 42]
+
+
+def split4(b8):
+    """`Acc.splitCons` of one word's 8 big-endian bytes: (s0, s1, s2, s3)."""
+    return [b8[5] & 31, b8[5] >> 5, b8[2] & 3, b8[2] >> 2]
+
+
+def split_rng(sp):
+    """`Acc.splitRng`'s eight RNG values of one word."""
+    return [sp[0], 8 * sp[0], sp[1], 32 * sp[1], sp[2], 64 * sp[2], sp[3], 4 * sp[3]]
+
+
+def limb3(b):
+    """`Rb.limb`: 14 three-byte big-endian limbs of a 42-byte string."""
+    assert len(b) == 42
+    return [65536 * b[3 * j] + 256 * b[3 * j + 1] + b[3 * j + 2] for j in range(14)]
 
 
 # ---------------------------------------------------------------------------------------------
@@ -894,14 +967,21 @@ def main():
     # F-2: the `rt` resume edge's boundary pair (lane I's driver plan), checked against the Lean run
     assert plan, "--plan PLAN.json (lane I's driver plan) is required: the resume leaf's public values"
     import rtbnd
-    b_in, b_out, e_in, e_out, d_in, d_out = rtbnd.pair(plan, "RT resume")
+    b_in, b_out, e_in, e_out, d_in, d_out = rtbnd.pair(plan, "RT resume", run=run_path)
+    items = [bytes.fromhex(recs[0]["after"]["outcomes"][-1]["ser"]),
+             bytes.fromhex(recs[0]["after"]["outgoing"][-1]["ser"])]
     assert len(rxs) == 1, "one receipt per resume segment"
     x0 = rxs[0]
     check(b_in["phase"] == 6 and b_in["inCall"] and b_out["phase"] == 1 and not b_out["inCall"], "resume phases")
     check(b_in["gasUsed"] == tot_in["gin"] == b_in["gasBurnt"] and b_in["compute"] == tot_in["cin"], "B_in totals = Lean RS before")
     check(b_out["gasUsed"] == want_out["gout"] == b_out["gasBurnt"] and b_out["compute"] == want_out["cout"], "B_out totals = Lean RS after")
     check(b_in["balanceBurnt"] == tot_in["tbin"] and b_out["balanceBurnt"] == want_out["tbout"], "balance burnt = RS txBurnt")
-    check(b_in["rPrepaid"] == x0["gas"] and b_out["rBurnt"] == x0["vb"] and b_out["rUsed"] == x0["vu"], "prepaid / VM burnt / used")
+    check(b_in["rPrepaid"] == x0["gas"], "prepaid")
+    # F-4 (M12 clear fields): the output's in-flight counters are 0, `receiptIdx` advances
+    check(b_out["rPrepaid"] == 0 and b_out["rBurnt"] == 0 and b_out["rUsed"] == 0, "rPrepaid/rBurnt/rUsed out = 0")
+    check(b_out["receiptIdx"] == b_in["receiptIdx"] + 1, "receiptIdx + 1")
+    h_out = dict(b_out)  # the honest output (the stand-in STC answers its stRoot)
+    enc = rtbnd.bndrec.encode
     if mut("bndgas"):
         # the claimed output boundary charges the chunk 1 more gas than the receipt step
         e_out = rtbnd.bndrec.encode(dict(b_out, gasUsed=b_out["gasUsed"] + 1, gasBurnt=b_out["gasBurnt"] + 1))
@@ -912,9 +992,81 @@ def main():
         applied.append("bndprepaid")
     if mut("bndburnt"):
         # the output boundary's in-flight burnt gas differs from the VM's answer
-        e_out = rtbnd.bndrec.encode(dict(b_out, rBurnt=b_out["rBurnt"] - 1))
+        e_out = rtbnd.bndrec.encode(dict(b_out, rBurnt=1))
         applied.append("bndburnt")
+    # F-4 mutants on the boundary pair (the stand-in STC and ACC keep the honest values)
+    if mut("stcopy"):
+        b_out = dict(b_out, stRoot=b_in["stRoot"]); e_out = enc(b_out); applied.append("stcopy")
+    if mut("accnoappend"):
+        b_out = dict(b_out, outcomeAcc=b_in["outcomeAcc"]); e_out = enc(b_out); applied.append("accnoappend")
+    if mut("rcptnoappend"):
+        b_out = dict(b_out, outRcptAcc=list(b_in["outRcptAcc"])); e_out = enc(b_out); applied.append("rcptnoappend")
+    if mut("vmnoreset"):
+        b_out = dict(b_out, vmAcc=rtbnd.bndrec.bdigest(b"vm")); e_out = enc(b_out); applied.append("vmnoreset")
+    if mut("vminK"):
+        b_in = dict(b_in, vmAcc=rtbnd.bndrec.bdigest(rtbnd.EMPTY + b"(q, r)")); e_in = enc(b_in); applied.append("vminK")
+    if mut("ridxcopy"):
+        b_out = dict(b_out, receiptIdx=b_in["receiptIdx"]); e_out = enc(b_out); applied.append("ridxcopy")
+    if mut("prepaidout"):
+        b_out = dict(b_out, rPrepaid=b_in["rPrepaid"]); e_out = enc(b_out); applied.append("prepaidout")
+    if mut("accitem"):
+        items[0] = bytes([items[0][0] ^ 1]) + items[0][1:]; applied.append("accitem")
     setpub("bin", list(e_in)); setpub("bout", list(e_out))
+
+    # ----- F-4: RB (boundary rules, STMQ/STMA) -------------------------------------------------
+    rb = Trace(names["RB"])
+    r = rb.row()
+    rso, rsi = [0] * 42, [0] * 42  # stand-in metas (no `rest` encoding / STC yet): tag 1, rest 0^42
+    rb.set(r, "tgo", 1); rb.setv(r, "rso", rso); rb.set(r, "tgi", 1); rb.setv(r, "rsi", rsi)
+    ri = b_in["receiptIdx"]
+    cy, cv = [], 1
+    for k in range(8):  # `BndLay.incCons`: LE byte k of in + carry = out byte + 256·carry
+        v = ((ri >> (8 * k)) & 255) + cv
+        cv = v >> 8
+        cy.append(cv)
+    rb.setv(r, "cri", cy[:7])
+    rb_rng = rso + rsi
+    # the T1 stand-in for lane B's STC (XTAPE): consume STMQ, answer STMA with the honest r_out
+    xtape.append((B["STMQ"], False, limb3(list(b_in["stRoot"])) + [1] + limb3(rso)))
+    xtape.append((B["STMA"], True, limb3(list(h_out["stRoot"])) + [1] + limb3(rsi)))
+
+    # ----- F-4: ACC (the two SHA-384 appends), the chip's compressions -------------------------
+    acc = Trace(names["ACC"])
+    comps, acc_rng, acc_dump = [], [], []
+    accs_in = [b_in["outcomeAcc"], b_in["outRcptAcc"][0]]
+    for hid in (0, 1):
+        msgb = pad512(accs_in[hid] + items[hid])
+        nblk = len(msgb) // 128
+        hcur = list(IV384)
+        for k in range(nblk):
+            blk = msgb[128 * k:128 * (k + 1)]
+            ws = [int.from_bytes(blk[8 * i:8 * i + 8], "big") for i in range(16)]
+            o = compress512(hcur, ws)
+            r = acc.row()
+            acc.set(r, "act", 1); acc.set(r, "fst", int(k == 0)); acc.set(r, "lst", int(k == nblk - 1))
+            acc.set(r, "hid", hid); acc.set(r, "cid", 128 * len(comps))
+            acc.setv(r, "blk", list(blk))
+            sp = []
+            for i in range(16):
+                sp += split4(blk[8 * i:8 * i + 8])
+            acc.setv(r, "bsp", sp)
+            acc.setv(r, "h", [l for x in hcur for l in wlimbs(x)])
+            acc.setv(r, "o", [l for x in o for l in wlimbs(x)])
+            acc_rng += list(blk) + [v for i in range(16) for v in split_rng(sp[4 * i:4 * i + 4])]
+            comps.append(dict(h=[str(x) for x in hcur], block=[str(x) for x in ws]))
+            if k == nblk - 1:
+                dgb = b"".join(x.to_bytes(8, "big") for x in o[:6])
+                assert dgb == hashlib.sha384(accs_in[hid] + items[hid]).digest(), "ACC: SHA-384 chain"
+                dsp = []
+                for t in range(6):
+                    dsp += split4(dgb[8 * t:8 * t + 8])
+                acc.setv(r, "dg", list(dgb)); acc.setv(r, "dsp", dsp)
+                acc_rng += list(dgb) + [v for t in range(6) for v in split_rng(dsp[4 * t:4 * t + 4])]
+            hcur = o
+        acc_dump.append(dict(hid=hid, acc_in=accs_in[hid].hex(), item_ser=items[hid].hex(), padded=msgb.hex(),
+                             acc_out=hashlib.sha384(accs_in[hid] + items[hid]).digest()[:42].hex()))
+    print(f"F-4: RB row 0, ACC {len(acc.rows)} rows / {len(comps)} compressions (outcome item {len(items[0])} B, "
+          f"refund item {len(items[1])} B)")
     print(f"resume boundary: d_in {d_in} d_out {d_out} (lane I plan, M11i shape) = bdigest of the public records")
     pub_vals = [pubs[nm] for nm in pubnames]
     with open(f"{out}/expected_pubs.bin", "wb") as f:
@@ -939,6 +1091,8 @@ def main():
             for k in range(w):
                 rng_count[rx.get(rrow, g, k if w > 1 else None)] += 1
         rng_count[rx.get(rrow, "r10") + 246] += 1
+    for v in rb_rng + acc_rng:
+        rng_count[v] += 1
     rng = Trace(names["RNG"])
     for v in range(256):
         row = rng.row()
@@ -947,8 +1101,14 @@ def main():
     assert sum(rng_count[v] for v in range(256)) == sum(rng_count.values()), "RNG value >= 256"
 
     # ----- write -------------------------------------------------------------------------------
-    for name, t in [("RNG", rng), ("SCHT", scht), ("MSG", msg), ("DG", dg), ("RX", rx)]:
+    for name, t in [("RNG", rng), ("SCHT", scht), ("MSG", msg), ("DG", dg), ("RX", rx), ("RB", rb), ("ACC", acc)]:
         t.write(f"{out}/{name}.bin")
+    json.dump(comps, open(f"{out}/comps.json", "w"))
+    # F-4: the T1 resume leaf's values for lane F's Lean non-vacuity (`ResumeC`)
+    json.dump([v % P for v in pub_vals], open(f"{out}/t1-resume-pubs.json", "w"))
+    json.dump({nm: rb.rows[0][i] for i, nm in enumerate(rb.names)}, open(f"{out}/t1-rb-row0.json", "w"))
+    json.dump(dict(rows=[{nm: row[i] for i, nm in enumerate(acc.names)} for row in acc.rows], hashes=acc_dump),
+              open(f"{out}/t1-acc.json", "w"))
     json.dump(sha_msgs, open(f"{out}/sha_msgs.json", "w"))
     json.dump([[b, s, m] for b, s, m in tape], open(f"{out}/tape.json", "w"))
     json.dump([[b, s, m] for b, s, m in xtape], open(f"{out}/xtape.json", "w"))
@@ -956,7 +1116,7 @@ def main():
         f.write(struct.pack(f"<{len(pub_vals)}I", *[v % P for v in pub_vals]))
     # F-2: the boundary pair's place in the public values; the template's tables
     json.dump([pubnames.index("bin.0"), 834, 450], open(f"{out}/bnd.json", "w"))
-    json.dump(["SHA", "RNG", "SCHT", "MSG", "DG", "RX"], open(f"{out}/tables.json", "w"))
+    json.dump(["SHA", "RNG", "SCHT", "MSG", "DG", "RX", "RB", "ACC"], open(f"{out}/tables.json", "w"))
     if tmpl:
         json.dump(json.load(open(tmpl)), open(f"{out}/template.json", "w"), indent=1)
     expected = dict(
