@@ -1,0 +1,8 @@
+M9_SPEC n_rec=2092 regions=[('W', 85), ('S', 88), ('G', 14), ('E', 408), ('C', 400), ('Tpre', 8), ('Tfin', 8), ('Wfin', 376), ('Q', 408), ('X', 247), ('XT', 36), ('F', 14)] stmt(private: free 891 + dropped 2092)=2983 leaves=['INIT', 'STATE_IF', 'RT_ENTER', 'WASM', 'WASM', 'RT_RESUME', 'STATE_SEG', 'FINAL'] pv groups A=[0, 19, 20, 27, 30, 31] IF=[9, 5] SEG=[7, 2] FINAL=[4, 5, 6, 7, 8] claimDigest=bb5aad11..9f2f01
+M9_EDGE INIT->STATE_IF: {"bound": ["S.prev_state_root (INIT pv 28..44 = WSB pv 0..15)"], "free_introduced": ["W (85)", "E (408)", "Tfin (8)", "Wfin (376)", "F (14)"]}
+M9_EDGE STATE_IF->RT_ENTER: {"bound": [], "free": ["E: RT_ENTER B_in (408 B, eng record): no leaf exposes the BndRec of eng I c"]}
+M9_EDGE RT_ENTER->WASM0: {"bound": [], "free": ["W: lane A entry state (seam .pre -> .ent, C7 PREP)"], "carried": ["C (400 B)", "Tpre"]}
+M9_EDGE WASM0->WASM1: {"bound": ["W: lane A boundary fields + CODE/FUNC roots"]}
+M9_EDGE WASM1->RT_RESUME: {"bound": ["C: 400 B of the call record (from RT_ENTER B_out, carried)"], "free": ["Tfin (t)", "Wfin (376 B Wasm part, lane A fin r record)"], "dropped_later": ["W (lane A final state)", "Tpre"]}
+M9_EDGE RT_RESUME->STATE_SEG: {"bound": [], "dropped_later": ["Q: RT_RESUME B_out (eng record)", "X: RX env / totals", "XT: TAPE / XTAPE roots"]}
+M9_EDGE STATE_SEG->FINAL: {"bound": ["S: last R_out = IF R_n (FINAL leaf, shared witness cell)"], "free": ["F: finInDigest (FinIn not opened by lane B; FINB bus = joint leaf)"], "dropped": ["W", "S (rest)", "G", "Tpre", "Q", "X", "XT", "C/E/Tfin/Wfin (zero)"]}

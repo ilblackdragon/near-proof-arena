@@ -1739,9 +1739,61 @@ summary.
   the layout); `StaticCert` in-circuit; `DecFaithfulAt` in general; `PrepRest`; lane D's tree-spec
   insertion of the PREP leaf (its new heights `CB` 512, `HDR` 16).
 
-### 5.0 Lane D: status, 2026-11-21 (milestone M8, heterogeneous tree; prototype)
+### 5.0 Lane D: status, 2026-11-25 (milestone M9, T1 tree over real leaves; prototype)
 
-**Where to read:** `research/near-compression/e2e/README.md` §0 (M8; D-9 is now §0.9),
+**Where to read:** `research/near-compression/e2e/README.md` §0 (M9; M8 is now §0.1), log
+`docs/logs/e2e-zk-lane-d-2026-11-25-m9.md`, results `e2e/results/zk/m9/`.
+
+**Done (M9):**
+* **The T1 tree has no stub.** The leaves are INIT (G-4) · STATE_IF (B) · RT_ENTER (F) · WASM ×2
+  (A-T2, one program) · RT_RESUME (F) · STATE_SEG (B) · FINAL (G-3), arity 4, depth 2, `zk = 6`
+  wrap. Packet **329,724 B**. Verify 40–42 ms on one core, fresh process. Prove 7,684 s (sum of
+  proofs, shared host). Peak 34.0 GB: a node proof needs 32.3 GB even with streamed commitments,
+  so 20G is not enough. Negatives: 16/16 fresh-process plus 2/2 cross-setup against the M8 stub
+  tree. **M9b** adds lane A's PREP before seg 0 (hash bytes = `.pre` `codeRoot` = SHA-256 ‖ 0^10;
+  CODE / FUNC roots = seg 0's in-tree; PREP leaf program `768878963b4ca981…`): packet **329,220 B**,
+  verify 42–51 ms, 16/16 + 2/2, and the **stub swap 4/4 refused** (INIT, PREP, RT_RESUME, FINAL each
+  replaced by a stub with the same statement: `P_2` refuses the program).
+* **Adopted (lane E M11i):** `View.split` phase codes at leaf boundaries (init 0, eng 1, call 6,
+  done 4 / doneG 5; the wrap checks 0 and {4, 5}), and the `TailCanon` pin (range-digest and
+  `h(B)` limb 17 = `64·t` from 16 bits) as a program-level fix (`e2e-tree-m9.patch`, no AIR
+  change). `M8_REUSE` program-root check (stale-reuse fix).
+* **Edges.** Real:
+  * `prev_state_root` (INIT → STATE_IF).
+  * The lane B chain.
+  * Lane A's segment chain, and the CODE / FUNC roots from PREP (M9b).
+  * 400 B of `BndRec.encode` call-record bytes RT_ENTER → RT_RESUME.
+  * `ctx` at INIT / FINAL.
+
+  Prototype (free / dropped / pinned):
+  * The eng records at the rt leaves' outer edges.
+  * `.pre → .ent`; `t` and the `fin r` Wasm part.
+  * `finInDigest`.
+  * FINAL's `B_out` digests (T1 constants).
+  * The rt `claimDigest` bytes against `ctx`.
+
+  `BndRec` digests are not used as the record anywhere: no two adjacent leaves expose them.
+
+**Needs an owner / lane E decision (stop rule: not changed here):**
+* The tree's DONE state carries no record, so FINAL's `B_out` (`done H o`) cannot reach the
+  wrap. TreeM8's `WrapFinalSound` reads only the phase. If the wrap must check `h(B_done)`
+  against `S`, then V_d's statement changes.
+* The rt leaves expose `BndRec` as bytes, while INIT / FINAL expose 3-byte limbs. One common
+  form is needed: a byte → limb record source in the leaf, or limbs in lane F's public values.
+
+**Open:**
+* `BndRec` digests as the record (concrete `ViewImpl`).
+* Lane B's STATE leaves exposing `stRoot`.
+* PREP's entry state.
+* The joint INIT / FINAL leaves (`PSR` / `FINB` buses).
+* A run-independent setup.
+* Node memory and PAD_N cost.
+
+The Fib-fixture tests pass on `pq-e2e-m9` (`results/zk/m9/tests/`).
+
+### 5.0-M8 Lane D: status, 2026-11-21 (milestone M8, heterogeneous tree; prototype)
+
+**Where to read:** `research/near-compression/e2e/README.md` §0.1 (M8; D-9 is now §0.9),
 ZK-ARGUMENT §10.5, log `docs/logs/e2e-zk-lane-d-2026-11-21-m8.md`.
 
 **Done (M8):**

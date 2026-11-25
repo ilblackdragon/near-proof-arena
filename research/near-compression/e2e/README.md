@@ -1,7 +1,7 @@
 # E2E: real D0a chunks → final PQ proof → fresh-process verification (2026-10-31, ZK updates 2026-11-03/05: D-1 … D-9)
 
 Status: **research run, owner's relaxed targets of 2026-10-31.** `security_established=false` in
-every RESULT.json. The M8 heterogeneous-tree packets (`results/zk/m8/`, §0) are a prototype with
+every RESULT.json. The M9 (`results/zk/m9/`, §0) and M8 (`results/zk/m8/`, §0.1) heterogeneous-tree packets are prototypes with
 `zero_knowledge_established=false`. `zero_knowledge_established=true`, always scoped to the classical programmable
 ROM, in: the D-9 tree-wrap packets (`results/zk/d9/{tree9,t274,sample}/*`, §0.9; ZK-ARGUMENT §10.4: one
 setup with leaf geometry families over classes S / M / L); the D-8 tree-wrap packets (`results/zk/d8/tree8/*`, §0a; ZK-ARGUMENT §10.3: chunks whose
@@ -13,7 +13,113 @@ packets of shape-floored chains (`results/zk/shape/`, `results/zk/d6/classes/`);
 RESULT.json. No GPU was used; GPU latencies are model projections only
 (`../prover-budget/model.py`). No Lean spec or checker change.
 
-## 0. Update 2026-11-21, milestone M8 (lane E2E-D): the heterogeneous tree — a generic template leaf, real T1 leaves of lanes A and B aggregated under one wrap
+## 0. Update 2026-11-25, milestone M9 (lane E2E-D): the T1 tree over real leaves only
+
+Status: **prototype.** `security_established = false`; `zero_knowledge_established = false` (the
+setup is per run, the record is lane D's prototype schema and the boundaries listed below are
+free). Deps tree `pq-e2e-m9` = `pq-e2e-m8` + `native/recursion/patches/e2e-tree-m9.patch`. Driver
+`pq-chunk-e2e/src/htree.rs`. Scripts `scripts/{m9_import.sh, m9_spec.py, run_m9.sh,
+m9_negatives.py, collect_m9.sh}`. Log `docs/logs/e2e-zk-lane-d-2026-11-25-m9.md`.
+
+**What changed since M8**
+* **No stub.** The leaves are INIT (lane G **G-4**, main slot in-circuit) · STATE_IF (lane B) ·
+  RT_ENTER (lane F) · WASM seg 0, seg 1 (lane A **A-T2**, pinned tight heights, one program) ·
+  RT_RESUME (lane F) · STATE_SEG (lane B) · FINAL (lane G G-3). This is lane I's T1 chain. The
+  lanes' saved proofs are used unchanged (`m9_import.sh`: `m8-import` verifies each natively).
+  Lane F's leaves were already on lane D's base configuration, so no re-proof was needed.
+* **Record = named regions** (`m9_spec.py`; `spec.json` `regions`, `edges`), 2,092 cells.
+  Values no real leaf produces are INIT's private witnesses ("free"). Values no real leaf
+  consumes are read by FINAL into witnesses ("dropped").
+* **Circuit, adopted from lane E M11i.** (i) `View.split` phase codes at leaf boundaries: init 0,
+  eng 1, call 6, done 4 / doneG 5. The D-5 placeholders 1 / 2 are gone. The wrap checks
+  `s_a.phase = 0` and `s_e.phase ∈ {4, 5}`, and no template takes a 4 / 5 input. (ii)
+  **`TailCanon`**: the 18th limb of every range digest (`hash_range`) and of every `h(B)` /
+  cached-commitment limb vector is rebuilt from 16 bits as `64·t`. Before, it was free up to the
+  `lo6` shift (≈ 2^-334 near-collision, not an attack). These are program-level changes with no
+  AIR or vk change. D0a programs change, so the D-9 setup is not reproduced by `pq-e2e-m9`.
+* **Driver.** `M8_REUSE` checks the program root, so a stale leaf is not reused. PAD_L's program
+  is generated even when no PAD leaf exists. `M9_SWAP_STUB` adds a stub-swap negative.
+
+**Measured: `results/zk/m9/t1real/`** (G-4 INIT; 8 threads, shared host at load 15–27; wrap
+`zk = 6` at `ns19lb6`, tree `ns20lb5`, leaves `ns20lb2`; `NEARPROOF_STREAM_COMMIT=1`)
+
+| | M9 (real leaves) | M8 (stubs) |
+|---|---|---|
+| **packet** (`S` 1,007 B + wrap 328,705 B + 12 B) | **329,724 B** | 330,648 B |
+| verify, fresh process, 1 core (3×) | **40.1–41.7 ms** (wrap 28.9–29.2 ms), peak 22 MB | 40.1–43.1 ms |
+| fresh-process negatives | **16/16** (`m8_negatives.py`) + **2/2** cross-setup (`m9_negatives.py`: the M8 stub packet under the M9 setup; the M9 packet under the M8 setup) | 16/16 |
+| stub swap (`M9_SWAP_STUB`) | 4/4 refused on the M9b tree (below) | — |
+| proofs | 14: 8 leaves, 2 `P_2`, 2 `PAD_N`, `P_*`, wrap; template set 8 (INIT, STATE_IF, RT_ENTER, WASM, RT_RESUME, STATE_SEG, FINAL, `PAD_L`) | 14, set 7 |
+| prove (sum of proofs) | **7,684 s**: leaves 1,791 (INIT 293, STATE_IF 209, RT_ENTER 188, WASM 219 / 213, RT_RESUME 200, STATE_SEG 218, FINAL 252), `P_2` 1,193 / 825, `PAD_N` 1,692 / 786, `P_*` 845, wrap 552 | 5,955 s |
+| peak RSS | **34.0 GB** (node proofs: 32.3 GB in-process with streamed commitments, the GKR transient); leaves ≤ 14.6 GB | 33.1 GB |
+| leaf geometry | NvAir 2^20 (541,152), SHA 2^21 (1,834,496); largest leaf program STATE_IF 302k rows | 530,928 / 1,819,136 |
+| node geometry | NvAir 2^21 (1,838,540), 2 SHA (2^22 + 2,286,436); `P_2` 830,764 rows, `P_*` 781,852 | 1,823,044 |
+| wrap | heights (20, 379,944) / (21, 1,299,200), program 195,126 rows | 379,708 |
+| setup | 5,035,748 B, sha256 `5156e5dd…` | 5,031,949 B |
+
+The leaves 1..7 were proved in run `m9v` (G-3 INIT, 24G cap). That run was OOM-killed at the first
+`P_2`. The measured tree reused them under the program-root check, refused the G-3 INIT leaf
+(`M8_REUSE LEAF0.proof NOT reusable`) and re-proved INIT with G-4. **20G does not hold a node
+proof** (32.3 GB); the run used the coordinator's 34G allowance.
+
+**Edges: real vs prototype** (full table in the log)
+* **Real** (public values / commitments of real leaves on both sides):
+  * INIT → STATE_IF: `prev_state_root` (PSR).
+  * The lane B chain: prev root, wsLen, `R_0 = R_in`, and last `R_out` = `R_n` at FINAL.
+  * WASM 0 → 1: lane A's fields and CODE / FUNC roots.
+  * RT_ENTER → RT_RESUME: 400 of the 408 non-Wasm **`BndRec.encode` bytes** of the call
+    record, carried across the Wasm leaves (`t` excepted).
+  * `ctx = claimDigest` at INIT and FINAL.
+* **Prototype**:
+  * RT_ENTER `B_in` (eng record) is free.
+  * Lane A's entry state is free (`.pre → .ent`).
+  * `t` and the `fin r` Wasm part at RT_RESUME's input are free.
+  * Dropped: RT_RESUME's `B_out`, its RX env / totals and its TAPE / XTAPE roots.
+  * `finInDigest` at FINAL is free.
+  * FINAL's `B_out` digests are pinned as T1 constants.
+  * The rt leaves' `claimDigest` bytes are not tied to `ctx` in-circuit.
+* **`BndRec` digests are not the record anywhere.** No two adjacent leaves expose the same
+  `BndRec`, and lane E's `ViewImpl` is still a parameter.
+
+**Finding F-M9-1 (lane F).** The enter proof has 816 public values, not 1,192. Lane F's prover
+sizes each AIR's public values by the largest index its constraints read, so `B_out`'s Wasm part
+is not in the proof.
+
+**M9b (+ PREP, lane A A-T3): `results/zk/m9/t1prep/`.** PREP is inserted before seg 0 (wasm
+kind, call → call). Its 32 hash bytes are the `.pre` record's `codeRoot` cells
+(`preCodeRoot = SHA-256(code) ‖ 0^10`, region `Wpre`). Its CODE / FUNC commitments are the W
+part's roots, which seg 0 reads (R1 in-tree). Its length goes to `PLEN`. The record has 2,469
+cells and the tree 12 leaves (9 + 3 PAD_L). PREP's leaf program root is `768878963b4ca981…`
+(`programs.log`; 159,184 rows).
+
+| M9b | value |
+|---|---|
+| **packet** (`S` 1,007 B + wrap 328,201 B + 12 B) | **329,220 B** |
+| verify, fresh process, 1 core (3×) | **41.9–51.0 ms** (wrap 30.3–31.2 ms) |
+| fresh-process negatives | **16/16** + **2/2** cross-setup |
+| **stub swap** (`run_m9.sh swap`, `M9_SWAP_STUB=0,3,6,8`) | **4/4 refused**. INIT, PREP, RT_RESUME and FINAL were each replaced by a statement-only stub with the real leaf's exact statement. Each stub was proved at the leaf geometry (228–354 s; its program root is not in the set). `P_2` over its group with the run's template set fails to generate: "anchor child program commitment not in the anchor set", "anchor set selector sums to one" |
+| proofs | 18: 9 leaves + 3 PAD_L, 3 `P_2`, 1 `PAD_N`, `P_*`, wrap; template set 9 (+ PREP) |
+| prove (sum of proofs) | **12,760 s**: leaves 1,772 (INIT 240, STATE_IF 183, RT_ENTER 159, PREP 203, WASM 209 / 198, RT_RESUME 227, STATE_SEG 172, FINAL 182), PAD_L 268 / 206 / 199, `P_2` 749 / 735 / 735, `PAD_N` **5,989** (zkbuild slice over its 40 GB `memory.high`: another lane's 14.5 GB Lean job ran beside the 29 GB node; unthrottled ≈ 790 s), `P_*` 1,433, wrap 674 |
+| peak RSS | 33.1 GB (6 threads, resumed after an OOM kill at the 34G cap in the first `PAD_N`; in-process peak 32.0 GB) |
+| geometry | leaf NvAir 2^20 (543,036), SHA 2^21 (1,837,568); node NvAir 2^21 (1,814,612); wrap (20, 380,084) / (21, 1,299,200), program 195,220 rows |
+| setup | 5,038,076 B, sha256 `554eac97…` |
+| PREP leaf program root | **`768878963b4ca981…`** (159,184 rows); WASM `586d63e9e5579b39…` (one program for both segments) |
+
+**Open.**
+* Lane E's `BndRec` digests as the record (needs a concrete `ViewImpl`, and every template
+  exposing `bdigest(B)` or the encode bytes).
+* The free edges above (STATE ↔ rt `BndRec`, `.pre → .ent`, `fin r`, FinIn / `FINB`).
+* A `DONE` record checked by the wrap (FINAL's outputs: an interface decision, see the plan).
+* A byte → limb record source so the rt leaves' `claimDigest` bytes are tied to `ctx`.
+* A run-independent setup.
+* Node memory: 32 GB, cheaper PAD_N.
+
+**Tests on `pq-e2e-m9`** (`results/zk/m9/tests/`, `tests_m8.sh` with `NEARPROOF_PQ_DEPS`, 34G cap; the
+end-to-end test was OOM-killed at 14G and at 26G): `htree_spec_checks` (with the new phase-code
+refusals: doneG input, unknown code), `htree_fib_end_to_end` (5 positives, the 10 constraint-level
+negatives rejected, wrap OK), `tree_d9_wrap_set_debug`, agg / tree 6/6: all pass.
+
+## 0.1 Update 2026-11-21, milestone M8 (lane E2E-D): the heterogeneous tree — a generic template leaf, real T1 leaves of lanes A and B aggregated under one wrap
 
 Status: **prototype.** `security_established = false`; `zero_knowledge_established = false` for
 the M8 packets (reasons below). Deps tree `pq-e2e-m8` = `pq-e2e-d9` + the M8 circuit change

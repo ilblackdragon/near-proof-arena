@@ -1,0 +1,5 @@
+ACCEPTED M9 packet under the M9 setup (control; S identical to the M8 packet's)
+REJECTED M8 stub-leaf packet vs M9 setup: rc=1 HTREE_VERIFY_REJECT wrap verifier: AIR 0: height (20, Some(379708)) differs from the pinned (20, Some(379944))
+REJECTED M9 packet vs M8 (stub) setup: rc=1 HTREE_VERIFY_REJECT wrap verifier: AIR 0: height (20, Some(379944)) differs from the pinned (20, Some(379708))
+M9_NEGATIVES 2/2 rejected
+M9_NEGATIVES_ALL_REJECTED 2/2

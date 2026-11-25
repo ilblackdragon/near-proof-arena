@@ -1,0 +1,26 @@
+TEST_OK htree_spec_checks test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 113 filtered out; finished in 0.00s
+TEST_OK htree_tests::htree_fib_end_to_end test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 113 filtered out; finished in 1652.98s
+TEST_OK tree_tests::tree_d9_wrap_set_debug test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 113 filtered out; finished in 767.67s
+TEST_OK agg/tree test result: ok. 6 passed; 0 failed; 11 ignored; 0 measured; 97 filtered out; finished in 93.65s
+TESTS_M8_DONE
+HTREE_POSITIVE_OK leaf INIT (honest) host_failures=[]
+HTREE_POSITIVE_OK leaf A (honest) host_failures=[]
+HTREE_POSITIVE_OK leaf B (honest) host_failures=[]
+HTREE_DEBUG_REJECTED leaf A: a pinned public value differs
+HTREE_GENERATION_REFUSED free public value; another template's layout
+HTREE_POSITIVE_OK PAD (honest, DONE) host_failures=[]
+HTREE_DEBUG_REJECTED PAD on a MID boundary
+HTREE_LEAF_PIN [(19, Some(19092)), (17, Some(68352)), (7, Some(128)), (16, Some(65536))]
+HTREE_TEMPLATE_SET INIT A B FINAL PAD_L distinct roots
+HTREE_NODE_PIN [(20, Some(634280)), (22, Some(2872160)), (7, Some(128)), (16, Some(65536))]
+HTREE_POSITIVE_OK P_2 INIT A B FINAL (honest) host_failures=[]
+HTREE_DEBUG_REJECTED P_2: template set without B (template swap / unknown template)
+HTREE_DEBUG_REJECTED P_2: boundary mismatch (A from another start)
+HTREE_DEBUG_REJECTED P_2: A and B reordered
+HTREE_DEBUG_REJECTED P_2: PAD in the middle (on a MID boundary)
+HTREE_DEBUG_REJECTED P_2: PAD instead of FINAL
+HTREE_DEBUG_REJECTED P_2: a leaf of another chunk's ctx
+HTREE_DEBUG_REJECTED P_2: forged B boundary preimage (chained consistently)
+HTREE_WRAP_OK rows=66744
+HTREE_DEBUG_REJECTED wrap: a root that never reaches DONE (no FINAL)
+HTREE_FIB_END_TO_END_OK

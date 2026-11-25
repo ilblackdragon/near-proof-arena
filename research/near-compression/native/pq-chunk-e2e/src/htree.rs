@@ -638,7 +638,10 @@ pub fn tree_prove(spec_path: &str, out: &Path, certs: &str, exclusions: &str) {
     // (native verification under the vk of this circuit, pinned heights, statement, program root
     // checked by the caller); a measurement aid after a failure late in a run
     let reuse_dir = std::env::var("M8_REUSE").ok().map(std::path::PathBuf::from);
-    let reuse = |file: &str, eng: &Sha384CpuEngine, c: &NvCircuit, h: &[vd::PinnedHeight], st: &RangeStmt| -> Option<(MultiStarkVerifyingKey<SC>, Proof<SC>)> {
+    // [M9] the caller passes the program root the proof must have (the leaf / node program as this
+    // run generates it): without it a stale proof of a leaf or node whose child changed but whose
+    // statement did not (e.g. lane A's re-proved Wasm segments, same boundary) would be reused
+    let reuse = |file: &str, eng: &Sha384CpuEngine, c: &NvCircuit, h: &[vd::PinnedHeight], st: &RangeStmt, root: Digest| -> Option<(MultiStarkVerifyingKey<SC>, Proof<SC>)> {
         let f = reuse_dir.as_ref()?.join(file);
         if !f.exists() {
             return None;
@@ -647,7 +650,8 @@ pub fn tree_prove(spec_path: &str, out: &Path, certs: &str, exclusions: &str) {
         let (_, vk) = eng.keygen(&c.airs::<SC>());
         let ok = eng.verify(&vk, &p).is_ok()
             && vd::proof_heights(&p).as_deref() == Some(h)
-            && openvm_recursion_circuit::nv::agg::check_range_statement(&p.public_values[0], st);
+            && openvm_recursion_circuit::nv::agg::check_range_statement(&p.public_values[0], st)
+            && root_of(&p) == root;
         println!("M8_REUSE {file} {}", if ok { "reused" } else { "NOT reusable" });
         ok.then_some((vk, p))
     };
@@ -657,7 +661,16 @@ pub fn tree_prove(spec_path: &str, out: &Path, certs: &str, exclusions: &str) {
     let mut kinds: std::collections::BTreeMap<String, Vec<f64>> = Default::default();
     for (i, l) in leaves.iter().enumerate() {
         let t0 = std::time::Instant::now();
-        if let Some((v, p)) = reuse(&format!("LEAF{i}.proof"), &leaf_engine, &lc, &h_l, &l.stmt) {
+        let want = if reuse_dir.is_some() {
+            let (mats, b) = lc.generate_with(|b| {
+                l.body(b);
+            });
+            assert!(b.failures.is_empty(), "leaf {i}: {:?}", b.failures);
+            program_commitment(leaf_engine.config(), &mats[0])
+        } else {
+            [0; 6]
+        };
+        if let Some((v, p)) = reuse(&format!("LEAF{i}.proof"), &leaf_engine, &lc, &h_l, &l.stmt, want) {
             let name = l.spec.as_ref().map_or("PAD".to_string(), |s| s.name.clone());
             let c = root_of(&p);
             if !c_leaf.iter().any(|(_, x)| *x == c) {
@@ -692,12 +705,98 @@ pub fn tree_prove(spec_path: &str, out: &Path, certs: &str, exclusions: &str) {
         n_proofs += 1;
         items.push(Item { vk: v, p, stmt: l.stmt.clone() });
     }
+    // [M9] M9_SWAP_STUB=i,j,..: replace leaf i by a statement-only stub exposing exactly leaf i's
+    // statement (ctx, index, both boundary states; its record cells are witnesses holding the real
+    // values), prove it at the leaf geometry, and require that P_2 over its group with this run's
+    // template set refuses it (the stub's program is not in {C_t}); then stop
+    let swap_stub: Vec<usize> = std::env::var("M9_SWAP_STUB").ok().map(|v| v.split(',').map(|x| x.parse().unwrap()).collect()).unwrap_or_default();
+    let mut swap_results: Vec<(usize, Vec<Item>)> = vec![];
+    for &i in &swap_stub {
+        let l = &leaves[i];
+        let sp = l.spec.as_ref().expect("a template leaf");
+        let (pvs, cached) = match &l.child {
+            Some((_, p)) => (p.public_values.clone(), h::proof_cached(p)),
+            None => (vec![], vec![]),
+        };
+        let rin = h::record_values(&sp.rec_in, &pvs, &cached, &l.w);
+        let rout = h::record_values(&sp.rec_out, &pvs, &cached, &l.w);
+        let stub = TemplateSpec {
+            name: format!("{}_STUB", sp.name),
+            phase_in: sp.phase_in,
+            phase_out: sp.phase_out,
+            rec_in: (0..rin.len()).map(Src::Stmt).collect(),
+            rec_out: (rin.len()..rin.len() + rout.len()).map(Src::Stmt).collect(),
+            stmt_len: rin.len() + rout.len(),
+            ctx_mode: CtxMode::Witness,
+            n_pass: 0,
+            pv_equal: vec![],
+            pv_const: vec![],
+            cached_const: vec![],
+        };
+        let w = LeafWitness { stmt: rin.iter().chain(&rout).copied().collect(), ctx: l.stmt.ctx.clone(), pass: vec![], a: l.w.a };
+        let st = h::leaf_statement(&stub, None, &w);
+        assert!(st == l.stmt, "stub {i}: its statement is not the real leaf's");
+        let sl = Leaf { spec: Some(stub), child: None, w, stmt: st.clone(), pad: None };
+        let t0 = std::time::Instant::now();
+        let (mats, b) = lc.generate_with(|b| {
+            sl.body(b);
+        });
+        assert!(b.failures.is_empty(), "stub {i}: {:?}", b.failures);
+        let (v, p, _) = prove_mats(&lc, &leaf_engine, mats, &b);
+        assert_eq!(vd::proof_heights(&p).unwrap(), h_l, "stub {i}: heights");
+        assert!(openvm_recursion_circuit::nv::agg::check_range_statement(&p.public_values[0], &st), "stub {i}: statement");
+        let c = root_of(&p);
+        println!("M9_STUB_LEAF_PROVED {i} template={} rows={} root={:x} in_set={} seconds={:.1}", sp.name, b.instrs.len(), c[0], c_leaf.iter().any(|(_, x)| *x == c), secs(t0));
+        let g0 = i - i % arity;
+        let grp: Vec<Item> = (g0..g0 + arity)
+            .map(|j| if j == i { Item { vk: v.clone(), p: p.clone(), stmt: st.clone() } } else { Item { vk: items[j].vk.clone(), p: items[j].p.clone(), stmt: items[j].stmt.clone() } })
+            .collect();
+        swap_results.push((i, grp));
+    }
     // the template set: one program per template leaf seen (a template whose children differ in
     // heights has several), then PAD_L last
-    let pad_pos = c_leaf.iter().position(|(n, _)| n == "PAD").expect("a PAD_L program");
-    let (_, c_pad_leaf) = c_leaf.remove(pad_pos);
+    // [M9] a tree whose leaves fill every slot (T1: 8 leaves at arity 4) proves no PAD_L: its
+    // program (one per leaf geometry, witness-independent) is still in the set, generated here
+    let c_pad_leaf = match c_leaf.iter().position(|(n, _)| n == "PAD") {
+        Some(pad_pos) => c_leaf.remove(pad_pos).1,
+        None => {
+            let s = h::done_state();
+            let (mats, b) = lc.generate_with(|b| {
+                build_pad(b, &ctx, F::from_usize(leaves.len()), &s);
+            });
+            assert!(b.failures.is_empty(), "PAD_L: {:?}", b.failures);
+            program_commitment(leaf_engine.config(), &mats[0])
+        }
+    };
     let mut set: Vec<Digest> = c_leaf.iter().map(|x| x.1).collect();
     set.push(c_pad_leaf);
+    if !swap_results.is_empty() {
+        let probe2 = super::tree::circ(k, cap_log, cap_log - 1, openvm_recursion_circuit::nv::circuit::MAX_SHA_INSTANCES, cap_log, None);
+        let mut all_rej = true;
+        for (i, grp) in &swap_results {
+            let refs: Vec<(&MultiStarkVerifyingKey<SC>, &Proof<SC>)> = grp.iter().map(|x| (&x.vk, &x.p)).collect();
+            let pre: Vec<RangeStmt> = grp.iter().map(|x| x.stmt.clone()).collect();
+            assert!(RangeStmt::compose(&pre).is_some(), "the swapped group still chains natively");
+            let r = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                let (_, b) = probe2.generate_with(|b| {
+                    build_node2(b, &refs, &pre, &set);
+                });
+                b.failures.clone()
+            }));
+            let rejected = match &r {
+                Ok(f) => !f.is_empty(),
+                Err(_) => true,
+            };
+            all_rej &= rejected;
+            let why = match &r {
+                Ok(f) => format!("{} failures: {:?}", f.len(), f.iter().take(3).collect::<Vec<_>>()),
+                Err(_) => "generation panicked".into(),
+            };
+            println!("M9_SWAP_STUB leaf={i} P_2 {} ({why})", if rejected { "REFUSED" } else { "ACCEPTED" });
+        }
+        println!("{}", if all_rej { "M9_SWAP_STUB_ALL_REFUSED" } else { "M9_SWAP_STUB_SOME_ACCEPTED" });
+        return;
+    }
     println!("M8_TEMPLATE_SET {}", c_leaf.iter().map(|(n, c)| format!("{n}:{:x}", c[0])).collect::<Vec<_>>().join(" "));
     let templates: Vec<HTemplate> = specs
         .iter()
@@ -808,7 +907,7 @@ pub fn tree_prove(spec_path: &str, out: &Path, certs: &str, exclusions: &str) {
                 let a = items.last().unwrap().stmt.e.as_canonical_u32() as usize;
                 let j = items.len();
                 let pst = RangeStmt { ctx: ctx.clone(), a: F::from_usize(a), e: F::from_usize(a + 1), s_a: done.clone(), s_e: done.clone() };
-                if let Some((v, p)) = reuse(&format!("PADN{}_{j}.proof", lvl - 1), &parent, &nc, &h_n, &pst) {
+                if let Some((v, p)) = reuse(&format!("PADN{}_{j}.proof", lvl - 1), &parent, &nc, &h_n, &pst, c_pad_node) {
                     assert_eq!(root_of(&p), c_pad_node);
                     save_proof(&out.join(format!("PADN{}_{j}.proof", lvl - 1)), &p);
                     n_proofs += 1;
@@ -842,7 +941,16 @@ pub fn tree_prove(spec_path: &str, out: &Path, certs: &str, exclusions: &str) {
                 })
             };
             let cst = RangeStmt::compose(&pre).expect("children chain");
-            if let Some((v, p)) = reuse(&format!("NODE{lvl}_{j}.proof"), &parent, &nc, &h_n, &cst) {
+            let want = if lvl == 2 {
+                c_node2
+            } else if reuse_dir.is_some() {
+                let mut s = None;
+                let (mats, _) = gen_node(&nc, &mut s);
+                program_commitment(parent.config(), &mats[0])
+            } else {
+                [0; 6]
+            };
+            if let Some((v, p)) = reuse(&format!("NODE{lvl}_{j}.proof"), &parent, &nc, &h_n, &cst, want) {
                 let r = root_of(&p);
                 if lvl == 2 {
                     assert_eq!(r, c_node2);
@@ -950,7 +1058,7 @@ pub fn tree_prove(spec_path: &str, out: &Path, certs: &str, exclusions: &str) {
     let kind_stats: serde_json::Map<String, serde_json::Value> =
         kinds.iter().map(|(k, v)| (k.clone(), serde_json::json!({"n": v.len(), "mean_s": v.iter().sum::<f64>() / v.len() as f64}))).collect();
     let result = serde_json::json!({
-        "scope": "E2E-D M8 prototype: heterogeneous tree (generic template leaf, template set of several kinds, stub INIT / FINAL) over T1-shaped segments (lane A Wasm segments, lane B state proof, re-proved under the verifier's backend at the stack's base configuration) + wrap",
+        "scope": sj.get("scope").and_then(|x| x.as_str()).unwrap_or("E2E-D M8 prototype: heterogeneous tree (generic template leaf, template set of several kinds, stub INIT / FINAL) over T1-shaped segments (lane A Wasm segments, lane B state proof, re-proved under the verifier's backend at the stack's base configuration) + wrap"),
         "security_established": false,
         "zero_knowledge_established": false,
         "zero_knowledge_scope": "not claimed for the prototype: the packet is S (plan 3.4.1) + the zk-masked wrap and nothing else leaves the tree, but the prototype's setup is per run (its template set lists this run's template leaf programs at the segments' natural heights, not pinned template shapes) and the stub INIT / FINAL are not sound templates",
