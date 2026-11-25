@@ -826,6 +826,48 @@ Log: [`docs/logs/e2e-lean-m11i-2026-11-21.md`](../logs/e2e-lean-m11i-2026-11-21.
 * **Not done in M12:** `PackOK`, `ProgBound`, `GlueByteBool` (zk-formal Nv chain; see the log);
   (H1)/(H2); `FinalizeAgree`; the two View/Templates changes of findings (1)–(2).
 
+**Lane E D-a – D-d, (H2) (2026-11-25) [K]** (integrator decisions; log
+[`docs/logs/e2e-lean-dadd-2026-11-25.md`](../logs/e2e-lean-dadd-2026-11-25.md)). `S`, `claimDigest`,
+checker unchanged; standard axioms only.
+* **D-a (M12 finding (1) fixed): the boundary at `start` commits `R_0`.** `View.split` uses
+  `stOfI κ I c` — the key list and, at `start`, the intake's overlay `EngSt.ovl0 = some
+  (Ovl.ofTrie I.tMain)` (`none` elsewhere, `stOfI_of_ne`); lane B's `ovlOf` / `setOvl` read it, so
+  `stD` at `start` commits IF-INTAKE's working set (`StViewEJoin.wsOf_start`) and the first STATE
+  leaf takes `wIn` from its input digest (`Glue.init_glue_view`). Lane fixes: lane B `FitsReach` /
+  `rtPos` on `stOfI` (`posOK_stOfI`), lane E `FitsReachK` with the start invariant
+  (`startOvlInv_of`), lane F `RtView.pos` / `T1Enter` on `stOfI`.
+* **D-b (finding (2)): the finalize step is its own STATE leaf** (`E2E/GlueFin.lean`; no
+  `FinStart` / `Templates.lean` change). M12's `FinalizeAgree` is **false as stated**
+  (`finalizeAgree_fails`: the lazy finalize ignores `o.trie`); **`FinalizeAgreeT`** (`HInv
+  e.store`, `o.trie = preT e.store e.preRoot`) is **proved** (`finalizeAgree`, from
+  `Logged.R_finalize`). `fin_step_root` (the step from `yields _ _ 0` reaches `done out` with
+  `out.root` = `finalizeR` of the committed overlay `finO`), the glue **`fin_reqs`** (proved),
+  lane B's half `FinHalfB` (IF-FINAL, relational; `final_glue` when the IF's trie is `o.trie`),
+  **`fin_sound_relC`**; `Glue.tmplSoundRel8C_modes` (STATE AIR = working-set ⊕ finalize mode).
+  Named: `IntakeTrie I` (`I.prog.t = preT I.prog.env.store I.prog.env.preRoot`, `HInv`; with
+  `finPre_trie_of_reach` it gives `FinPre`'s trie premise on runs from `start`).
+* **D-c: relational split, `W` = `stRoot`.** M12's functional `ApplyFaithfulS` / `state_glue` /
+  `state_sound_relC` / `SplitGlueOn` are retired; `Glue.StHalfRel`, `ReqsRelOn`,
+  **`split_sound_relC_relOn`**. `join/StateW.lean`: the STATE instance with lane B's `StQ` traffic
+  and the 42-B `stRoot` as value; **`reqsRel_state`** (lane F's `ReqsRel` side for lane B's `stRel`,
+  proved on `StatePreW` = both components `fits`, output not `done`), **`state_sound_stRoot`**
+  (`EngHalfRCOn` (F) ∧ `HoldsSt` (B: `STC` ∧ `WsMoves`) ⇒ `TmplSoundRel8C … .state`); **`state_sound_two`**: the
+  STATE template = this mode ⊕ the D-b finalize mode.
+* **D-d: incremental `rest`** (`join/RestI.lean`). Lane B's `encRest_inj` field generalised to
+  `encRest_bind` (`Sha384Coll ∨ =`). `encRestI = d_static ‖ d_queue ‖ d_move` (126 B):
+  `d_static` (key list, trie reveal shape: copied, constant along a run), `d_queue` (cons chain
+  `chainR id` over the position's pending txs / receipts: one SHA-384 of `42 + |item|` per consumed
+  item), `d_move` (the rest: position with queue and keys blanked, receipt state, recorder,
+  committed key order, `prosp`, removals: one hash per step). Today's `rest_out` re-hashes the key
+  list, the trie shape and the pending receipts every step (witness-sized); with `encRestI` it is
+  one 126-B compression plus the pops and `d_move`. `encRestI_bind`, `stViewParams_BI`,
+  `stD_binding_BI`. Interface: `STC` opens `rest` into the three digests; lane B's default instance
+  keeps `encRestB` until the `STC` table is built.
+* **(H2) proved** (`join/CanonH2.lean`, wasm-base env): `cstep_canon` (every call-machine step keeps
+  canonicity), `canon_cstep` (`Glue.canon_wasm`'s premise). (H1) open: `CutW.fcW` builds the store
+  from `c.env`, so (H1) is "every `ActCtx` of the receipt step has `env = P.env`" (a `Tape`-style
+  walk). `PackOK` / `ProgBound` / `GlueByteBool`: not started (lane D's `m8-tree` held the memory).
+
 ##### Per-lane discharge status (M12, after A-T3, F-3, G-4)
 
 | premise | lane | proved from the circuit [K] | named premises left | open (no AIR / not stated) |
@@ -833,9 +875,9 @@ Log: [`docs/logs/e2e-lean-m11i-2026-11-21.md`](../logs/e2e-lean-m11i-2026-11-21.
 | WASM `TmplRelC .wasm` | A | `TmplWasm.segSoundWasmRelC_of`, `TmplPrep.segSoundWasmPrepRelC_of` (segments ⊕ PREP; `Bad = Sha384Coll ∨ Coll ctxD ∨ Sha256Coll`), `prep_sha_sound`; `ClearCall` for `clearE` (`clearE_call`) | `SegPremAMP` (σ host contract, `CodeOK`/`FuncOK`), `CutSeed`, `RestOK` (`stackRem`, `vmCtxDigest`), `GhostC`; PREP: `RecordsCert`, `ent`, `rest` | **decoder certificate** (records = `checkModuleM2 (prepare code)`: the main Wasm gap), `CodeOK`/`FuncOK` from S3, `PrepRest` error branches, (H2) |
 | RT enter `TmplSoundRel8C .rt` | F | `EnterC.enter_relC`, `enter_relC8`, non-vacuity `T1Enter.t1_enter_nonvac`; `RtView.clearEnter` met by `clearE` (`clearE_enter`, `pre = u64c ∘ prepaidGas`) | `EntChecks.vm` (A: remainder digest), `.pos` (B: `StCommit.rest` opening), `.prepaid`/`.code` (F: join with the `MSG`/`RX` rows) | `RtOthers` |
 | RT resume, next | F | — | — | F3-1 (split with lane B: `stRoot`, accumulator appends with `Ser.enc` items, `vmAcc → bdigest []`, `estepO` composition); M12 AIR deltas: `receiptIdx + 1`, `rPrepaid/rBurnt/rUsed := 0`; counters otherwise as `clearE_resume` |
-| STATE `TmplSoundRel8C .state` | F ∧ B | glue: `Glue.state_reqs` (= `ReqsFaithful` on `StatePre`), `state_glue`, `state_sound_relC` | B: `StHalf` (`m5tSeg` restated), `ApplyFaithfulS` (lane B's `wsRoot` of `entryAt` factors through `(trie, kvFind)`); F: `EngHalfRCOn` (incl. `StatePre`) | no STATE engine rows (lane F); `R_0` at `start` (finding 1); the finalize step (finding 2) |
+| STATE `TmplSoundRel8C .state` | F ∧ B | glue: `Glue.state_reqs`; D-c: `split_sound_relC_relOn`, `StateW.reqsRel_state`, `state_sound_stRoot` (`W` = `stRoot`); D-a: `R_0` at `start` (`wsOf_start`); D-b: finalize leaf `GlueFin.fin_reqs`, `fin_sound_relC`, `finalizeAgree`; modes `tmplSoundRel8C_modes` | B: `HoldsSt` (`STC` ∧ `WsMoves`; `SegLeaves`), `FinHalfB` (IF-FINAL); F: `EngHalfRCOn` on `StatePreW` / `FinPre`; `IntakeTrie` | no STATE engine rows (lane F); `STC` table (B) |
 | INIT `SegSoundInit` / `SegSoundInit8` | G ∧ B | `Split.segSoundInit_join` (T1 form), G-4 `InitSel.init_blk_main_slot`, `init_lay_first_pair`, `WalkSel.walk_single` (E1 class: main-slot selection in-circuit); glue `Glue.init_glue` | `InitGPart` (from `Holds`: `BLK` row 0 active, `IX`/`LAY` bus glue, row ↔ decoded structure), `InitBPart` (lane B INTAKE) | M8 absolute form with the context link stated over lane D's leaf; epochs ≥ 2 (out of class E1) |
-| FINAL `SegSoundFinal` / `TmplSoundRel8C .final` | G ∧ B | `Split.segSoundFinal_join`, `final_join_headerOk` (T1 form), `final_template_sound_holds`; glue `Glue.final_glue`; `clearE_final` (FINAL copies `gasUsed`/`balanceBurnt`) | `FinalBPart` (lane B FINAL root + M5c `FinReach`), `FinalGPart` (`ClassF1`/`Computed` from `Holds`, `B_out` digest incl. the two counters), `FinalizeAgree` | the relative canonical M8 form for lane G's leaf (their joins target the T1 absolute form) |
+| FINAL `SegSoundFinal` / `TmplSoundRel8C .final` | G ∧ B | `Split.segSoundFinal_join`, `final_join_headerOk` (T1 form), `final_template_sound_holds`; glue `Glue.final_glue`; `clearE_final` (FINAL copies `gasUsed`/`balanceBurnt`) | `FinalBPart` (lane B FINAL root + M5c `FinReach`), `FinalGPart` (`ClassF1`/`Computed` from `Holds`, `B_out` digest incl. the two counters); `FinalizeAgree` proved in its precise form (D-b, `GlueFin.finalizeAgree`; the post-state root is now proved in the finalize STATE leaf) | the relative canonical M8 form for lane G's leaf (their joins target the T1 absolute form) |
 | `TreeFaithful`, `PadSound8`, `NodeExecV` | D | `treeFaithful_of_aggH`, `nodeExecV_of_contracts`, `nodeSha_of`, `nodeLink_*` (M11g–i) | `ProgFull`/`ProgBound`, `GlueByteBool`, `ShaContract`, `PackOK`, `NodeInner`, `TailCanon` | `TailCanon` fix in GLUE (lane D), PREP in the tree spec |
 | driver (M10) | I | — | — | M12 clear convention in `t1.py` (above); `B_out`/`plan.json` re-cut with PREP as a `wasm` leaf and the singleton `outRcptAcc` |
 
@@ -913,7 +955,9 @@ resume / STATE leaf is one trace = lane F's rows + lane B's `m5tSeg` tables + `S
   step's changes, `metaOf` of the two states); `ReqsRel` for `stRel` via `wsOfB_upd` (the overlay's
   trie is unchanged, `committed` after = `w` over before), equal trie hash, `idxOf = 0`.
 * Open (lane E / F): `rest_out` is a witness-sized hash of the stripped engine state per step; a
-  `rest` encoding with O(1) parts per receipt step is lane E's choice. Not built: the `STC` table.
+  `rest` encoding with O(1) parts per receipt step is lane E's choice — **done as D-d**
+  (`join/RestI.lean`, `encRestI`: static / queue / moving sub-digests, binding; above). Not built:
+  the `STC` table.
 
 
 Notes for the lanes:
@@ -1165,9 +1209,10 @@ domain separation.
 `ViewE.clearE`; the split-leaf glue (`E2E/Glue.lean`: `state_sound_relC`, `init_glue`,
 `final_glue`; `join/GlueB.lean`); structural canonicity lemmas; lane G's item encodings shown
 non-injective; per-lane discharge table. Next for lane E (M13), in order:
-1. Findings (1)–(2) of M12 (owner / integrator): `R_0` at `start` (`View.split`), the finalize step
-   (`FinStart`); then (H1)/(H2) and `FinalizeAgree`.
-2. `PackOK`, `ProgBound`, `GlueByteBool` (unchanged from the list below; not started in M12).
+1. ~~Findings (1)–(2) of M12~~ (D-a, D-b done), ~~`FinalizeAgree`~~ (precise form proved), ~~(H2)~~
+   (`join/CanonH2.lean`); (H1) (a `Tape`-style walk: every `ActCtx` has `env = P.env`).
+2. `PackOK`, `ProgBound`, `GlueByteBool` (unchanged from the list below; not started — lane D's
+   `m8-tree` prover held the memory during M12 and D-a – D-d).
 
 Next for lane E (M12), in order (as written after M11i):
 1. Owner: `RealStore` (a)/(b); `height_created`; the intake-side receipt-size hypothesis (`cur`).
@@ -1575,6 +1620,39 @@ changed.
 **Next (lane A):** the decoder certificate (README §4 steps 2–5) for d3tiny's subset; the
 `stackRem`/`gasLeft` publics (`RestOK`); `CodeOK`/`FuncOK` from S3; `Nd` in the segment `sha256`
 summary.
+
+**Done 2026-11-25, tenth session (lane A): milestone A-T4, the decoder certificate**
+(`e2e-general/a-t1/README.md` §11; log `docs/logs/e2e-laneA-wasm-2026-11-03.md`). `S`,
+`claimDigest` and the checker are unchanged.
+* **Design [S].** PREP decodes in-circuit every record field the bytes fix: opcode, indices,
+  constants, offsets, pc and layout. The static-analysis fields go to a named residual
+  (`StaticCert`): `h`, `fee`, control targets and halt/next choices, call fields, FUNC 1–7 and the
+  closure order. A full in-circuit `prepare` was judged several milestones of work (README §11.1).
+* **AIR [M].** New tables:
+  * `CB`: the code bytes, fed to the SHA slots;
+  * `HDR`: the section walk from byte 8, emitting each body's `(k, iS, bE)`.
+
+  CODE/FUNC keep their 8 cached columns and gain decoder columns: an 11-byte window, 13
+  opcode-class indicator polynomials, LEB chains, the pointer chain and a `busFn` permutation with
+  FUNC.
+  * T1 PREP leaf: **488,409 B, 268.2 bits**, 26 s, 12 ms, 7.7 GB, pinned heights. Its roots are
+    unchanged (= both segment leaves'), and `m8-import` verifies it.
+  * Mutants: **19/19**. Two other programs' records (`i64.gt_u → lt_u`; constant + 1) are rejected
+    **in-circuit**. A call's opcode is still rejected by R1 only (the residual).
+* **Lean [K].**
+  * `PrepDec`: the reference walk / decoder, `DecodeCert` and `DecFaithfulAt`.
+  * `PrepCert.recordAtM2_agree` / `checkModuleM2_agree`: the spec's records agree with the decoded
+    fields.
+  * **`TmplPrep.recordsCert_of`**: `RecordsCert` from `DecodeCert` + `StaticCert` +
+    `DecFaithfulAt` + `CtxIsM2`. `PrepNamed.cert` is replaced by `stat` + `df`; `PrepCirc` gains
+    `dec`.
+  * `PrepT1.decFaithful_d3tiny` (`decide +kernel`, on demand, 12 GB) and `PrepT1Ctx.ctxM2_isM2`.
+  * `PrepDecSound`: `PrepDecodeSound` is stated; the byte-read layer `lb_read_sound` is proved.
+  * `ShaAir.HashLenLink` states the `sh_len = Nd` obligation precisely. The AIR fix changes the
+    segment vk, so it is deferred.
+* **Open:** `PrepDecodeSound` beyond the byte reads (CB = SHA message, the HDR / CODE inductions,
+  the layout); `StaticCert` in-circuit; `DecFaithfulAt` in general; `PrepRest`; lane D's tree-spec
+  insertion of the PREP leaf (its new heights `CB` 512, `HDR` 16).
 
 ### 5.0 Lane D: status, 2026-11-21 (milestone M8, heterogeneous tree; prototype)
 

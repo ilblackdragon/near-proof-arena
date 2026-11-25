@@ -87,6 +87,12 @@ theorem dmult_bit {pub : List F} {tr : Trace} (H : Holds prepAir pub tr) {r : Na
 theorem toNat_le_one {x : F} (h : x = 0 ∨ x = 1) : x.toNat ≤ 1 := by
   rcases h with rfl | rfl <;> decide
 
+/-- A table none of whose interactions is on bus 211. -/
+theorem bus_ne_of_all {T : Table} (h : (T.inters.map (·.bus)).all (· != busHashCall) = true)
+    {i : Inter} (hi : i ∈ T.inters) : i.bus ≠ busHashCall := by
+  have := List.all_eq_true.1 h i.bus (List.mem_map_of_mem hi)
+  simpa using this
+
 /-- **Every occurrence on bus 211**: `PHDR`'s summary send / digest receive (count `act`), or a SHA
 row's digest send / summary receive (count `Dmult`). -/
 theorem occ211 {pub : List F} {tr : Trace} {o : Occ} (ho : o ∈ occs prepAir tr pub)
@@ -109,22 +115,20 @@ theorem occ211 {pub : List F} {tr : Trace} {o : Occ} (ho : o ∈ occs prepAir tr
     · exact .inl ⟨r, hr, .inl rfl⟩
     · exact .inl ⟨r, hr, .inr rfl⟩
   | 1, _ =>
-    simp only [prepAir, Prep.shaTable, List.getElem_cons_succ, List.getElem_cons_zero, List.mem_cons,
-      List.mem_nil_iff, or_false] at hi
-    rcases hi with rfl | rfl | rfl | rfl
-    · exact .inr ⟨r, hr, .inl rfl⟩
-    · simp [busHashDigest, busHashCall] at hb
-    · simp [busHashDigest, busHashCall] at hb
-    · exact .inr ⟨r, hr, .inr rfl⟩
-  | 2, _ =>
-    simp only [prepAir, Code.table, List.getElem_cons_succ, List.getElem_cons_zero, List.mem_cons,
-      List.mem_nil_iff, or_false] at hi
-    subst hi; simp [busFetch, busHashCall] at hb
-  | 3, _ =>
-    simp only [prepAir, Func.table, List.getElem_cons_succ, List.getElem_cons_zero, List.mem_cons,
-      List.mem_nil_iff, or_false] at hi
-    subst hi; simp [busFunc, busHashCall] at hb
-  | n + 4, h => exact absurd h (by simp [prepAir])
+    simp only [prepAir, Prep.shaTableD, List.getElem_cons_succ, List.getElem_cons_zero] at hi
+    rcases List.mem_append.1 hi with hi | hi
+    · simp only [Prep.shaTable, List.mem_cons, List.mem_nil_iff, or_false] at hi
+      rcases hi with rfl | rfl | rfl | rfl
+      · exact .inr ⟨r, hr, .inl rfl⟩
+      · simp [busHashDigest, busHashCall] at hb
+      · simp [busHashDigest, busHashCall] at hb
+      · exact .inr ⟨r, hr, .inr rfl⟩
+    · exact absurd hb (bus_ne_of_all (T := ⟨"", [], [], Prep.byteRecv⟩) (by decide) hi)
+  | 2, _ => exact absurd hb (bus_ne_of_all (T := Prep.CB.table) (by decide) hi)
+  | 3, _ => exact absurd hb (bus_ne_of_all (T := Prep.Hdr.table) (by decide) hi)
+  | 4, _ => exact absurd hb (bus_ne_of_all (T := Prep.CodeP.table) (by decide) hi)
+  | 5, _ => exact absurd hb (bus_ne_of_all (T := Prep.FuncP.table) (by decide) hi)
+  | n + 6, h => exact absurd h (by simp [prepAir])
 
 theorem sum_ne_zero_mem {l : List Nat} (h : l.sum ≠ 0) : ∃ x ∈ l, x ≠ 0 := by
   induction l with

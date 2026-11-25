@@ -4,11 +4,12 @@ import NearSpecV3.E2E.Glue
 /-!
 # Lane E's STATE glue against lane B's working set (E2E-M12, item 2)
 
-`NearSpecV3.E2E.Glue.state_glue` needs lane B's side as `ApplyFaithfulS root apply`: lane B's
-state function applied to the net requests computes the working-set root of the updated committed
-lookups, for a root `root I t f` that depends on the overlay only through its partial trie `t` and
-its committed lookup `f`. This file (lane E, outside lane B's directory, like `StViewE.lean`)
-shows lane B's working set has that shape:
+M12's `Glue.state_glue` needed lane B's side as a functional `ApplyFaithfulS root apply`; that
+premise is **retired** (decision D-c, lane B's finding B2-1: a function of the root is not what a
+circuit proves) in favour of the relational split (`Glue.split_sound_relC_relOn`, lane B's
+`GlueRel.state_sound_relC_rel`, and with `W` = `stRoot` lane E's `join/StateW.lean`). This file
+(lane E, outside lane B's directory, like `StViewE.lean`) still records the shape lane B's working
+set has, which `GlueRel.entries_updK` uses:
 
 * `entryOf t f k`: lane B's entry `(k, pre, cur, written)` from the trie and the lookup;
   **`entryAt_eq`**: `StateViewParams.entryAt o k = entryOf o.trie (Glue.kv o) k` (definitional);
@@ -16,10 +17,8 @@ shows lane B's working set has that shape:
   keys); **`wsRoot_entryAt`**: lane B's root of `(κ I).map (entryAt o)` is `rootB P κ I o.trie
   (Glue.kv o)`.
 
-So the STATE glue's lane-B premise is exactly **`Glue.ApplyFaithfulS (rootB P κ) apply`**: lane B's
-`m5tSeg` function `apply` maps the root of `(κ I).map (entryOf t f)` to the root of
-`(κ I).map (entryOf t (updK q f))` — its `WsBus.seg_root` / `chain_sound` restated over the
-entries (named, lane B).
+So lane B's relational half for the M12 instance (`GlueRel.StHalfRelS`) is `m5tSeg`'s
+`WsBus.seg_root` / `chain_sound` over the entries `(κ I).map (entryOf t f)`.
 
 Check: `cd research/near-compression/e2e-general/m5a/lean && lake env lean ../../join/GlueB.lean`.
 Axioms: `propext`, `Classical.choice`, `Quot.sound` only.

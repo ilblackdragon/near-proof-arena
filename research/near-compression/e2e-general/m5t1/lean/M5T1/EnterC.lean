@@ -29,7 +29,7 @@ call's `CallArgs`, carried in the trace type like lane A's ghost context):
 preCodeRoot q`), `clearEnter` (the clear fields of `call I c [] q .pre` are those of `eng I c` with
 `t := 0`, `rPrepaid := pre q`; lane E's M12 `clearE` meets it with `pre q =
 u64c q.ctx.prepaidGas`, `ViewE.clearE_enter`), `outOne` (the engine-state
-outgoing accumulator is one digest, as `outDE (.eng a)`), `pos` (lane B: `posOK` of `stD (stOfK …)`
+outgoing accumulator is one digest, as `outDE (.eng a)`), `pos` (lane B: `posOK` of `stD (stOfI …)`
 excludes `done`, or there is a SHA-384 collision — F-4: the `Sha384Coll ∨ _` form of lane B's
 `StHalfC.rtPos`).
 
@@ -240,7 +240,7 @@ structure RtView (V : ViewImpl) (vmc : CallArgs → Bytes) (pre : CallArgs → N
   clearEnter : ∀ I c q, V.clear (.call I c [] q .pre) =
     { V.clear (.base (.eng I c)) with t := 0, rPrepaid := pre q }
   outOne : ∀ a, (V.outD (.eng a)).2.1.length = 1
-  pos : ∀ I c, posOK (V.stD (stOfK (V.keys I) c)) → Sha384Coll ∨ ∀ out, c.pos ≠ .done out
+  pos : ∀ I c, posOK (V.stD (stOfI V.keys I c)) → Sha384Coll ∨ ∀ out, c.pos ≠ .done out
 
 /-- **The view of the call configuration the enter edge produces**: the engine record with
 `phase 6`, `inCall`, clock `0`, the query's `rPrepaid` and the `.pre` Wasm part. -/
@@ -442,14 +442,14 @@ theorem enter_open {V : ViewImpl} {vmc : CallArgs → Bytes} {pre : CallArgs →
     {posOK : Bytes → Prop} (hV : RtView V vmc pre posOK) (sf : Intake → TTN.Store)
     {pub : List Fp} {tr : Trace Fp} {q : CallArgs} (H : Holds Ent.entAir pub tr)
     (ch : EntChecks vmc pre posOK pub q) (x : RConf) (he : (V.bnd x).encode = bytesOf pub 0 450) :
-    ∃ I c, x = .base (.eng I c) ∧ posOK (V.stD (stOfK (V.keys I) c)) ∧
+    ∃ I c, x = .base (.eng I c) ∧ posOK (V.stD (stOfI V.keys I c)) ∧
       Canon sf (.call I c [] (setArgs (sf I) q) .pre) ∧
       (V.bnd (.call I c [] (setArgs (sf I) q) .pre)).encode = bytesOf pub 450 834 := by
   obtain ⟨I, c, rfl⟩ := phase_eng (phase_one (hV.wf x) H he)
   -- lane B's position check on the input's `stRoot`
-  have hpos : posOK (V.stD (stOfK (V.keys I) c)) := by
+  have hpos : posOK (V.stD (stOfI V.keys I c)) := by
     have := in_fields hV he ("stRoot", 42) (by simp [engF])
-    have hst : recVal (V.bnd (.base (.eng I c))) "stRoot" = V.stD (stOfK (V.keys I) c) := rfl
+    have hst : recVal (V.bnd (.base (.eng I c))) "stRoot" = V.stD (stOfI V.keys I c) := rfl
     rw [← hst, this]
     exact ch.pos
   have ho := out_enc hV H ch he

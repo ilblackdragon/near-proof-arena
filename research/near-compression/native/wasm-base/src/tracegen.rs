@@ -57,6 +57,9 @@ pub struct Prep {
     pub host_tab: Vec<[u64; 8]>,
     /// the observed host responses, in call order
     pub hosts: Vec<HostEv>,
+    /// the entry function's defined index (`fn`) and, when listed, the checked functions (`fns`)
+    pub fn_idx: u64,
+    pub fns: Option<Vec<u64>>,
 }
 
 /// One host call observed by the spec: signature, request arguments, outcome and `g_after`.
@@ -127,6 +130,8 @@ impl Prep {
                 })
                 .unwrap_or_default(),
             stack_rem: v.get("stackRem").and_then(|x| x.as_u64()).unwrap_or(0),
+            fn_idx: v.get("fn").and_then(|x| x.as_u64()).unwrap_or(0),
+            fns: v.get("fns").map(nums),
             funcs: v
                 .get("funcs")
                 .and_then(|g| g.as_array())

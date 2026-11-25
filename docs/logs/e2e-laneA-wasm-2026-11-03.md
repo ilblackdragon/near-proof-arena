@@ -416,3 +416,39 @@ Branch base: main `9d38f908d`; main `25d3636a4` (lane G G-4) merged before the f
   main's checkout into the worktree (6.3 GB, removed at the end); temporary files in
   `nearproof-deps/tmp-laneA/at3` (removed at the end); the PREP leaf kept at
   `nearproof-deps/e2e-laneA/at3/prep/`.
+
+## Tenth session: milestone A-T4, the decoder certificate (2026-11-25)
+
+Details: `research/near-compression/e2e-general/a-t1/README.md` §11. Single agent. Branch base: main
+`4a939ba61`; main `3930da629` (lane B B-T2) merged before the final builds.
+
+* **Design:** an in-circuit byte-level decoder for the record fields the bytes fix. The static
+  analysis (`h`, `fee`, control targets, call fields, FUNC 1–7, closure order) is the named residual
+  `StaticCert`. The reference decoder's faithfulness to `prepare` is a trace-independent `Bool`
+  check per code (`DecFaithfulAt`).
+* **AIR / native [M]:**
+  * `PrepAir.lean`: `CB`, `HDR`, and the decoder columns of CODE / FUNC.
+  * `prepdec.rs`: the honest traces.
+  * `prepcmd.rs`: the 6 matrices and 5 new in-circuit mutants (`PREP_OTHER` preps).
+  * `run_prep.sh`: heights `CB` 512, `HDR` 16.
+  * T1: 488,409 B, 26.1 s, 12 ms, 7.7 GB, 268.2 bits, pinned
+    `[(2,4),(7,128),(9,512),(4,16),(5,32),(2,4)]`. Roots unchanged; `m8-import` OK (cached cells =
+    `wasm0`/`wasm1`'s). Tampers 19/19.
+* **Lean [K]:**
+  * New files: `PrepDec.lean`, `PrepCert.lean`, `PrepDecSound.lean`, `Main/PrepT1Ctx.lean`,
+    `Main/PrepT1.lean` (on demand).
+  * `TmplPrep.recordsCert_of`; `prep_relC` / `segSoundWasmPrepRelC_of` take `CtxIsM2`;
+    `ShaAir.HashLenLink`.
+  * Standard axioms only; no `sorry` / `native_decide` / `axiom`.
+* **Not proved:** `PrepDecodeSound` beyond `lb_read_sound` (named, stated).
+* Checks: `WasmBase wasmbase-tool` 768 jobs; `WasmBase.Main.PrepT1` on demand (43 s, 12 GB cap);
+  `spec/lean/v3` 458 jobs; pytest (`oracle/tools tools research/near-compression/e2e-general/t1`)
+  183 passed, 1 skipped.
+* Operations:
+  * While lane D's M8 tree held the slice, every job ran at ≤ 4 GB, one at a time; the PREP prover
+    and the kernel check ran after it finished, at ≤ 12 GB.
+  * The worktree's dependency `.lake` directories are symlinks to main's checkout (not copies).
+    `spec/lean/v3`'s build after the merge therefore updated main's `.lake` for main's own sources.
+  * Temporary files: `nearproof-deps/tmp-laneA/at4` (removed at the end). Leaf at
+    `nearproof-deps/e2e-laneA/at4/prep/`.
+

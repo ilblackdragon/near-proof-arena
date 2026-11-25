@@ -2,7 +2,7 @@
 //!
 //!   nearproof-wasm-base prepleaf       <airPrep.json> <code.wasm> <prep.json> <template.json> <out_dir>
 //!   nearproof-wasm-base prepleafverify <airPrep.json> <out_dir> [<seg_leaf_dir> <n_seg>]
-//!   nearproof-wasm-base preptamper     <airPrep.json> <code.wasm> <prep.json> <template.json> <out_dir> <seg_leaf_dir> <n_seg>
+//!   nearproof-wasm-base preptamper     <airPrep.json> <code.wasm> <prep.json> <template.json> <out_dir> <seg_leaf_dir> <n_seg> [<other prep.json> ...]
 //!
 //! PREP proves, for the contract code `c` (the SHA-256 message of its `SHA256` table), that
 //! `SHA-256(c)` is the public code hash (32 bytes + the length; `PrepSound.prep_sha_sound` [K]), and commits the
@@ -18,6 +18,7 @@ use crate::config::{F, Sha384Config, Sha384RefEngine};
 use crate::seg;
 use crate::segcmd::{full_tight_floor, load, proof_heights, read_template, read_vk, save_vk, sha256_hex, template_params};
 use crate::sha;
+use crate::prepdec;
 use crate::tracegen::{self, Prep};
 use openvm_stark_backend::{
     AirRef, StarkEngine,
@@ -55,16 +56,38 @@ pub struct PrepIn {
     /// the CODE / FUNC record rows (before template padding)
     pub code: Vec<[u64; 8]>,
     pub func: Vec<[u64; 8]>,
+    /// A-T4: the live CODE records and the FUNC rows' body indices (the decoder layout)
+    pub n_code: usize,
+    pub ks: Vec<u64>,
 }
 
 impl PrepIn {
     pub fn honest(code: &[u8], prep: &Prep) -> PrepIn {
-        PrepIn { msg: code.to_vec(), pubs: prep_pubs(code), code: tracegen::code_rows(&prep.records), func: tracegen::func_rows(prep) }
+        PrepIn { msg: code.to_vec(), pubs: prep_pubs(code), code: tracegen::code_rows(&prep.records), func: tracegen::func_rows(prep),
+            n_code: prep.records.len(), ks: prep_ks(prep) }
     }
 }
 
 fn rows_mat(rows: &[[u64; 8]]) -> RowMajorMatrix<F> {
     RowMajorMatrix::new(rows.iter().flat_map(|r| r.iter().map(|&x| F::from_u64(x))).collect(), 8)
+}
+
+/// The body index (defined-function index) of each checked function, in FUNC order: `prep.fns` when
+/// the prep file lists them, else the entry function alone.
+pub fn prep_ks(prep: &Prep) -> Vec<u64> {
+    if let Some(f) = &prep.fns {
+        return f.clone();
+    }
+    assert_eq!(prep.funcs.len(), 1, "prep file without `fns` and more than one checked function");
+    vec![prep.fn_idx]
+}
+
+fn pad_to(rows: &[[u64; 8]], name: &str) -> Vec<[u64; 8]> {
+    let h = seg::tmpl_h(name, rows.len());
+    let mut v = rows.to_vec();
+    let last = *v.last().expect("rows");
+    v.resize(h, last);
+    v
 }
 
 /// A cached record table (`CODE` / `FUNC`): the padded record matrix plus a zero `mult` column.
@@ -77,8 +100,13 @@ fn with_mult(m: &RowMajorMatrix<F>) -> RowMajorMatrix<F> {
     RowMajorMatrix::new(v, 9)
 }
 
-/// The four matrices of `prepAir`, at the template heights.
+/// The six matrices of `prepAir`, at the template heights.
 pub fn prep_mats(spec: &AirSpec, inp: &PrepIn) -> Vec<RowMajorMatrix<F>> {
+    let tb = |n: &str| &spec.tables[spec.index(n)];
+    let crec = pad_to(&inp.code, "CODE");
+    let frec = pad_to(&inp.func, "FUNC");
+    let dm = prepdec::build(tb("CB"), tb("HDR"), tb("CODE"), tb("FUNC"), seg::tmpl_h("CB", inp.msg.len()),
+        seg::tmpl_h("HDR", 4), &inp.msg, &crec, &frec, inp.n_code, &inp.ks);
     let mut out = vec![];
     for t in &spec.tables {
         let m = match t.name.as_str() {
@@ -96,8 +124,10 @@ pub fn prep_mats(spec: &AirSpec, inp: &PrepIn) -> Vec<RowMajorMatrix<F>> {
                 v.resize(h * sha::NCOLS, F::ZERO);
                 RowMajorMatrix::new(v, sha::NCOLS)
             }
-            "CODE" => with_mult(&seg::pad_rep("CODE", &rows_mat(&inp.code))),
-            "FUNC" => with_mult(&seg::pad_rep("FUNC", &rows_mat(&inp.func))),
+            "CB" => dm.cb.clone(),
+            "HDR" => dm.hdr.clone(),
+            "CODE" => dm.code.clone(),
+            "FUNC" => dm.func.clone(),
             n => panic!("prepAir: unexpected table {n}"),
         };
         assert_eq!(m.width, t.cols.len(), "{} width", t.name);
@@ -382,6 +412,28 @@ pub fn cmd_preptamper(a: &[String]) {
     m.func = c0[..nf].to_vec();
     cases.push(("swapped code root (CODE committed with the FUNC records, FUNC with CODE's)", m, false));
     cases.push(("natural tight heights (no pinned floor)", honest.clone(), true));
+    // A-T4: mutants the decoder certificate must reject in-circuit (the pre-check fails and the
+    // prover's proof does not verify), whatever the segment leaves say
+    let n_r1 = cases.len();
+    let mut m = honest.clone();
+    let last = m.code.len() - 1;
+    m.code[last][4] += 1;
+    cases.push(("A-T4 CODE padding row differs from the last record (x0 + 1)", m, false));
+    let mut m = honest.clone();
+    m.code[6][4] += 1;
+    cases.push(("A-T4 i64.const immediate in CODE row 6 + 1 (60001)", m, false));
+    let mut m = honest.clone();
+    m.func[0][0] += 1;
+    cases.push(("A-T4 FUNC row 0 offset + 1", m, false));
+    for (i, op) in a.iter().skip(7).enumerate() {
+        let po = Prep::parse(&std::fs::read_to_string(op).unwrap());
+        let mut m = honest.clone();
+        m.code = tracegen::code_rows(&po.records);
+        m.func = tracegen::func_rows(&po);
+        m.n_code = po.records.len();
+        let name: &'static str = Box::leak(format!("A-T4 another program's records ({}: {})", i, op.rsplit('/').next().unwrap()).into_boxed_str());
+        cases.push((name, m, false));
+    }
     for (k, (name, inp, natural)) in cases.into_iter().enumerate() {
         let mats = match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| prep_mats(&spec, &inp))) {
             Ok(m) => m,
@@ -427,7 +479,14 @@ pub fn cmd_preptamper(a: &[String]) {
         };
         println!("  MUTANT {k} {name}: precheck {}; {}", match &pre { Ok(()) => "ok".to_string(), Err(e) => format!("FAIL ({})", &e[..e.len().min(90)]) },
             match &verdict { Ok(m) => format!("ACCEPTED ({m})"), Err(e) => format!("REJECTED: {e}") });
-        results.push(verdict.is_err());
+        if k >= n_r1 {
+            // in-circuit: the pre-check must fail, and the proof must not pass the verifier alone
+            let incirc = pre.is_err() && verdict.as_ref().err().map(|e| !e.starts_with("R1")).unwrap_or(false);
+            println!("    in-circuit rejection: {}", if incirc { "YES" } else { "NO" });
+            results.push(incirc);
+        } else {
+            results.push(verdict.is_err());
+        }
         let _ = std::fs::remove_dir_all(&dir);
     }
     // saved-file mutants

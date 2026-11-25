@@ -186,7 +186,7 @@ theorem bnd_resume {I : Intake} {c c' : EConf} {q : VmQ} {cc : CallConf} {o : Ou
     (hg : (engClear c'.pos).gasUsed = g) (hg' : (engClear c'.pos).gasBurnt = g)
     (hc : (engClear c'.pos).compute = cm) (ht : (engClear c'.pos).balanceBurnt = tb) :
     V.bnd (.base (.eng I c')) =
-      resRec (V.bnd (.call I c [] q cc)) (V.stD (stOfK (V.keys I) c'))
+      resRec (V.bnd (.call I c [] q cc)) (V.stD (stOfI V.keys I c'))
         (bdigest ((V.bnd (.call I c [] q cc)).outcomeAcc ++ Ser.enc o))
         (bdigest (chainD Ser.enc (eposAcc c.pos).2.1 ++ Ser.enc rr)) g cm tb := by
   have f1 := engClear_fixed c.pos
@@ -288,7 +288,7 @@ theorem resume_engHalf {sf : Intake → TTN.Store} {V : ViewImpl} (hV : RsView V
       rw [show accIn pub 1 = bytesOf pub (BIN + callF.off "outRcpt0") 42 from rfl, ← this]
       simp [recVal, ViewImpl.bnd, split, hV.outE]
     have hbr := bnd_resume hV (I := I) (q := q0) (cc := .fin rv) hacc hri hg hg' hcm htb
-    have hst : V.stD (stOfK (V.keys I) c') = outB pub "stRoot" 42 := hr'
+    have hst : V.stD (stOfI V.keys I c') = outB pub "stRoot" 42 := hr'
     rw [hst, ← ei0, ← hA0, ← ei1, ← hA1] at hbr
     refine Prod.ext ?_ ?_
     · exact (phase_eng V I c').symm
@@ -331,7 +331,7 @@ theorem rt_relC8_full {V : ViewImpl} {vmc : CallArgs → Bytes} {pre : CallArgs 
 `StHalfC.rtPos`. -/
 theorem enter_pos_laneB (P : StateM5a.StateView.StViewParams) (V : ViewImpl)
     (hV : V.stD = StateM5a.StateView.stD P) :
-    ∀ I c, StateM5a.StHalfC.StPosOK (V.stD (stOfK (V.keys I) c)) →
+    ∀ I c, StateM5a.StHalfC.StPosOK (V.stD (stOfI V.keys I c)) →
       Sha384Coll ∨ ∀ out, c.pos ≠ .done out :=
   StateM5a.StHalfC.rtPos P V hV
 
