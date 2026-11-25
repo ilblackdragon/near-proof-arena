@@ -851,7 +851,8 @@ checker unchanged; standard axioms only.
   **`split_sound_relC_relOn`**. `join/StateW.lean`: the STATE instance with lane B's `StQ` traffic
   and the 42-B `stRoot` as value; **`reqsRel_state`** (lane F's `ReqsRel` side for lane B's `stRel`,
   proved on `StatePreW` = both components `fits`, output not `done`), **`state_sound_stRoot`**
-  (`EngHalfRCOn` (F) ∧ `HoldsSt` (B: `STC` ∧ `WsMoves`) ⇒ `TmplSoundRel8C … .state`).
+  (`EngHalfRCOn` (F) ∧ `HoldsSt` (B: `STC` ∧ `WsMoves`) ⇒ `TmplSoundRel8C … .state`); **`state_sound_two`**: the
+  STATE template = this mode ⊕ the D-b finalize mode.
 * **D-d: incremental `rest`** (`join/RestI.lean`). Lane B's `encRest_inj` field generalised to
   `encRest_bind` (`Sha384Coll ∨ =`). `encRestI = d_static ‖ d_queue ‖ d_move` (126 B):
   `d_static` (key list, trie reveal shape: copied, constant along a run), `d_queue` (cons chain

@@ -56,7 +56,8 @@ lemma; `nearspec-v3-check-successor` does not import `E2E/`. Standard axioms onl
   B's `StQ`, value the 42-B `stRoot`, `qOf` = the net requests and both `metaOf`s), **`reqsRel_state`**
   (lane F's `ReqsRel` side for lane B's `stRel`, proved on `StatePreW` = both components `fits`,
   output not `done`: `state_reqs` + `wsOfB_upd` + `ovlOf_stV`), **`state_sound_stRoot`**
-  (`EngHalfRCOn` on `StatePreW` ∧ lane B's `HoldsSt` ⇒ `TmplSoundRel8C … .state`).
+  (`EngHalfRCOn` on `StatePreW` ∧ lane B's `HoldsSt` ⇒ `TmplSoundRel8C … .state`). **`state_sound_two`**: the STATE template as the
+  working-set mode ⊕ the finalize mode (`tmplSoundRel8C_modes`).
 
 ## D-d: an incremental `rest` (`join/RestI.lean`)
 
