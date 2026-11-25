@@ -43,7 +43,8 @@ from `Holds` of `m5tSeg` and the named leaf content `SegLeaves`).
 ## The non-final position check (lane F's `RtView.pos`, `EntChecks.pos`)
 
 `stD` now tags an engine state at `done` with `3` (`StateView.tagOf`), so "the position is not
-final" is one byte of the opening: **`StPosOK d`** (`∃ c, c.WF ∧ c.tag = 1 ∧ bdigest c.ser = d`).
+final" is one byte of the opening: **`StPosOK d`** (`∃ c, c.WF ∧ NonFinTag c.tag ∧ bdigest c.ser = d`;
+E2E-M14: the tag is the position class `StateView.posTag`, `NonFinTag t` = `t ∈ {1, 4, …, 9}`).
 `posOK_sound`: `StPosOK (stD P v)` gives an engine state at a non-final position, or a
 `Sha384Coll`; `rtPos` is lane F's `RtView.pos` in the `Sha384Coll ∨ _` form (lane F's law has no
 `Bad`; `enter_relC`'s `Bad` already contains `Sha384Coll`, so the one-line change is local to
@@ -70,25 +71,38 @@ abbrev Bytes := ArenaCore.Bytes
 
 /-! ## 1. The non-final position check -/
 
-/-- **The position check on a state commitment**: an opening with tag `1` (engine, not final). -/
-def StPosOK (d : Bytes) : Prop := ∃ c : StCommit, c.WF ∧ c.tag = 1 ∧ bdigest c.ser = d
+/-- An engine tag at a non-final position (`StateView.posTag` of every position but `done`; E2E-M14:
+the tag carries the position class, so "not final" is the tag set `{1, 4, …, 9}`). -/
+def NonFinTag (t : Nat) : Prop := t = 1 ∨ (4 ≤ t ∧ t ≤ 9)
 
-theorem tagOf_one {v : StV} (h : tagOf v = 1) : ∃ p st, v = .eng p st ∧ ∀ out, p ≠ .done out := by
+instance (t : Nat) : Decidable (NonFinTag t) := by unfold NonFinTag; infer_instance
+
+/-- **The position check on a state commitment**: an opening with an engine, non-final tag. -/
+def StPosOK (d : Bytes) : Prop := ∃ c : StCommit, c.WF ∧ NonFinTag c.tag ∧ bdigest c.ser = d
+
+theorem posTag_nonFin {p : EPos} (h : NonFinTag (posTag p)) : ∀ out, p ≠ .done out := by
+  intro out he; subst he; simp [posTag, NonFinTag] at h
+
+theorem tagOf_nonFin {v : StV} (h : NonFinTag (tagOf v)) : ∃ p st, v = .eng p st ∧ ∀ out, p ≠ .done out := by
   cases v with
-  | none => simp [tagOf] at h
-  | fin => simp [tagOf] at h
-  | eng p st =>
-    refine ⟨p, st, rfl, fun out he => ?_⟩
-    subst he; simp [tagOf] at h
+  | none => simp [tagOf, NonFinTag] at h
+  | fin => simp [tagOf, NonFinTag] at h
+  | eng p st => exact ⟨p, st, rfl, posTag_nonFin h⟩
 
-theorem tagOf_eng {p : EPos} {st : EngSt} (hp : ∀ out, p ≠ .done out) : tagOf (.eng p st) = 1 := by
+theorem tagOf_eng {p : EPos} {st : EngSt} (hp : ∀ out, p ≠ .done out) : NonFinTag (tagOf (.eng p st)) := by
   cases p with
   | done out => exact absurd rfl (hp out)
-  | _ => rfl
+  | yields yf yn f i k rs => cases f <;> simp [tagOf, posTag, NonFinTag]
+  | _ => simp [tagOf, posTag, NonFinTag]
 
-theorem ser_tag_ne (c : StCommit) (hc : c.tag = 1) (r : Bytes) : c.ser ≠ (255 : UInt8) :: r := by
-  rw [ser_cons, hc]; intro h; simp only [List.cons.injEq] at h
-  exact absurd (congrArg UInt8.toNat h.1) (by decide)
+theorem ser_tag_ne (c : StCommit) (hc : NonFinTag c.tag) (r : Bytes) : c.ser ≠ (255 : UInt8) :: r := by
+  rw [ser_cons]; intro h; simp only [List.cons.injEq] at h
+  have h1 := congrArg UInt8.toNat h.1
+  have h255 : (255 : UInt8).toNat = 255 := rfl
+  rw [StateM5a.SerInj.ofNat_toNat, h255] at h1
+  unfold NonFinTag at hc
+  have : c.tag % 256 = c.tag := Nat.mod_eq_of_lt (by omega)
+  omega
 
 /-- **The position check is sound**: an opening with tag 1 of `stD P v` makes `v` an engine
 state at a non-final position, or there is a 42-B SHA-384 collision. -/
@@ -102,8 +116,8 @@ theorem posOK_sound (P : StViewParams) (v : StV) (h : StPosOK (stD P v)) :
   · simp only [stD, hf, ite_true] at hd
     by_cases hs : c.ser = (commitOf P v).ser
     · have e := ser_inj _ _ hw (commitOf_wf P v hf) hs
-      have : tagOf v = 1 := by rw [← ht, e]; rfl
-      exact .inr (tagOf_one this)
+      have : NonFinTag (tagOf v) := by rw [show tagOf v = c.tag by rw [e]; rfl]; exact ht
+      exact .inr (tagOf_nonFin this)
     · exact .inl ⟨_, _, hs, hd⟩
 
 theorem eposMap_done {f : RS → RS} {p : EPos} {out : MainOutD2} (h : eposMap f p = .done out) :
@@ -139,7 +153,7 @@ theorem rtPos (P : StViewParams) (V : ViewImpl) (hV : V.stD = stD P) :
 opening is its own commitment). -/
 theorem posOK_complete (P : StViewParams) {p : EPos} {st : EngSt} (hf : P.fits (.eng p st) = true)
     (hp : ∀ out, p ≠ .done out) : StPosOK (stD P (.eng p st)) :=
-  ⟨commitOf P _, commitOf_wf P _ hf, tagOf_eng hp, by simp [stD, hf]⟩
+  ⟨commitOf P _, commitOf_wf P _ hf, tagOf_eng (st := st) hp, by simp [stD, hf]⟩
 
 /-! ## 2. The `stRoot` transition (`STC`) -/
 

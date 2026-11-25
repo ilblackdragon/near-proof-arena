@@ -19,7 +19,7 @@ A state commitment has two forms, chosen by the Boolean `P.fits v`:
 
 | field | width | value (`commitOf P v`) |
 |---|---|---|
-| `tag` | 1 B | the `StV` constructor (`none` 0, `eng` 1 at a non-final position, `eng` at `done` 3, `fin` 2), `tagOf` (B-T2: the done tag makes the non-final position check one byte of the opening, `StHalfC.StPosOK`) |
+| `tag` | 1 B | the `StV` constructor and the engine position (`tagOf`: `none` 0, `fin` 2, `eng` its `posTag` — `start` 1, `done` 3, `txs` 4, `locals` 5, `delayed` 6, `incoming` 7, `yields _ _ 0` 8, other `yields` 9; B-T2: the done tag makes the non-final position check one byte of the opening, `StHalfC.StPosOK`; E2E-M14: the position class, incl. the finalize precondition, is one byte too) |
 | `ws` | 48 B | the working-set root (`RCH`): `wsRoot P (P.wsOf v)` |
 | `wsLen` | `u64` | the number of working-set entries `(P.wsOf v).length` (public value 16) |
 | `trie` | 32 B | the root hash of the (partial) trie `(P.trieOf v).hashOf` (`TCH`; SHA-256, `RawTrieNodeWithSize`) |
@@ -642,15 +642,35 @@ theorem ser_inj (c d : StCommit) (hc : c.WF) (hd : d.WF) (h : c.ser = d.ser) : c
 
 /-! ## The parameters and the commitment -/
 
-/-- The constructor of a state component. -/
+/-- **The position tag** of an engine state (E2E-M14, lane E): the position's constructor, with the
+finalize precondition `yields _ _ 0` (`GlueFin.FinPre`) separated from the other `yields` positions:
+`start` 1, `done` 3, `txs` 4, `locals` 5, `delayed` 6, `incoming` 7, `yields _ _ 0` 8, `yields _ _ (f+1)` 9.
+(`start` and `done` keep the B-T2 values; `0` / `2` are `StV.none` / `StV.fin`.) A leaf reads its
+input's / output's position class from one byte of the `STC` opening (`LaneE.RestI.tag_sound`). -/
+def posTag : NearSpecV3.E2E.EPos → Nat
+  | .start => 1
+  | .done _ => 3
+  | .txs .. => 4
+  | .locals .. => 5
+  | .delayed .. => 6
+  | .incoming .. => 7
+  | .yields _ _ 0 _ _ _ => 8
+  | .yields .. => 9
+
+/-- The tag of a state component: `none` 0, `fin` 2, an engine state its `posTag`. -/
 def tagOf : StV → Nat
   | .none => 0
-  | .eng (.done _) _ => 3
-  | .eng .. => 1
+  | .eng p _ => posTag p
   | .fin .. => 2
 
-theorem tagOf_le (v : StV) : tagOf v ≤ 3 := by
-  unfold tagOf; split <;> omega
+theorem posTag_le (p : NearSpecV3.E2E.EPos) : posTag p ≤ 9 := by
+  unfold posTag; split <;> omega
+
+theorem tagOf_le (v : StV) : tagOf v ≤ 9 := by
+  unfold tagOf; split
+  · omega
+  · exact posTag_le _
+  · omega
 
 /-- **The parameters of the state view**: the projection of `StV` onto the state lane's parts and
 the remainder, with the obligations they carry.
@@ -731,7 +751,7 @@ theorem ser_cons (c : StCommit) :
     c.ser = UInt8.ofNat c.tag :: (c.ws ++ u64 c.wsLen ++ c.trie ++ u64 c.idx ++ c.rest) := by
   simp [StCommit.ser]
 
-/-- The two forms never share a preimage (the first byte is the tag `≤ 2`, resp. `0xFF`). -/
+/-- The two forms never share a preimage (the first byte is the tag `≤ 9`, resp. `0xFF`). -/
 theorem ser_ne_raw (v : StV) (r : Bytes) : (commitOf P v).ser ≠ (255 : UInt8) :: r := by
   rw [ser_cons]
   intro h

@@ -114,8 +114,8 @@ def test_chain_fixture_conventions():
         assert bndrec.decode(bndrec.encode(r)) == r
     # record sizes: init / done (empty outRcptAcc) 408 B, engine 450 B, call 834 B (lane F's engF / callF)
     assert [len(bndrec.encode(r)) for r in c] == [408, 450, 450, 834, 834, 834, 834, 450, 450, 450, 408]
-    # every cut distinct except c7 = c8 (the engine position is only in stRoot's `rest`: a placeholder)
-    assert len(set(ds)) == 10 and ds[7] == ds[8]
+    # E2E-M14: every cut distinct (c7 ≠ c8: the position tag 7 → 8 and `rest`)
+    assert len(set(ds)) == 11
     # the accumulators are the Lean run's chainD Ser.enc; FunctionCall receipt = one append each
     b, a = inp["acc"]["before"], inp["acc"]["after"]
     assert c[2]["outcomeAcc"].hex() == b["outcomesChain"] and c[7]["outRcptAcc"] == [bytes.fromhex(a["outgoingChain"])]
@@ -124,18 +124,23 @@ def test_chain_fixture_conventions():
     # M12: resume outputs receiptIdx + 1 and clears the call fields; done carries the header outputs
     assert (c[6]["receiptIdx"], c[7]["receiptIdx"]) == (1, 2) and c[7]["rPrepaid"] == 0
     assert c[10]["gasUsed"] == inp["gasUsed"] == 1577739758301 and c[10]["compute"] == 0
-    # M13: start commits R_0 (lane B's IF R_in) through stRoot; S2 at the enter output
+    # M13: start commits R_0 (lane B's IF R_in) through stRoot (M14: tag 1, the Lean-evaluated encRestI rest)
+    rest = {k: bytes.fromhex(v["rest"]) for k, v in inp["m14"]["cuts"].items()}
     assert c[1]["stRoot"] == chain.st_commit(1, bytes.fromhex(inp["R_0"]), 17, bytes.fromhex(inp["prev_state_root"]),
-                                             0, chain.ZERO)
+                                             0, rest["c1"])
     assert c[3]["wasm"]["codeRoot"].hex() == inp["call"]["code_sha256"] + "00" * 10
     # B-T4: init / done carry stD .none (the kernel-evaluated constant = its record recomputed); c2 … c6
-    # carry R_A (STATE seg A's output root), c7 … c9 R_n; the finalize step changes only the tag (1 → 3)
+    # carry R_A (STATE seg A's output root), c7, c8 R_n. M14: the position tags (incoming 7, yields _ _ 0 8,
+    # done 3) and encRestI rests; at done (c9) no overlay: the empty tree's root, wsLen 0, trie 0^32
     assert c[0]["stRoot"] == c[10]["stRoot"] == chain.ST_NONE == chain.st_none()
     ra, rn = bytes.fromhex(inp["R_A"]), bytes.fromhex(inp["R_n"])
     tr = bytes.fromhex(inp["prev_state_root"])
-    assert all(c[k]["stRoot"] == chain.st_commit(1, ra, 17, tr, 0, chain.ZERO) for k in range(2, 7))
-    assert c[8]["stRoot"] == chain.st_commit(1, rn, 17, tr, 0, chain.ZERO)
-    assert c[9]["stRoot"] == chain.st_commit(3, rn, 17, tr, 0, chain.ZERO)
+    assert all(c[k]["stRoot"] == chain.st_commit(7, ra, 17, tr, 0, rest["c2"]) for k in range(2, 7))
+    assert c[7]["stRoot"] == chain.st_commit(7, rn, 17, tr, 0, rest["c7"])
+    assert c[8]["stRoot"] == chain.st_commit(8, rn, 17, tr, 0, rest["c8"])
+    assert c[9]["stRoot"] == chain.st_commit(3, chain.ws_empty(), 0, bytes(32), 0, rest["c9"])
+    # M14: ctxRoot = ctxD (.intake I) at every engine / call cut
+    assert all(c[k]["ctxRoot"].hex() == inp["m14"]["ctx_intake"] for k in range(1, 10))
     assert c[4]["wasm"]["gasLeft"] == inp["call"]["g0"] and c[6]["wasm"]["gasLeft"] == 0
 
 
@@ -161,6 +166,47 @@ def test_chain_violations_are_loud():
     old = dict(c[2], claimDigest=bytes.fromhex(inp["claimDigest_S"]), bwAcc=bndrec.ZERO)
     row = chain._rec_row("x", None, old, c[3], c[2], c[3], "", "")
     assert not row["in_equal"] and row["out_equal"] and row["diff_in"] == ["claimDigest", "bwAcc"]
+
+
+def test_chain_m14_rest():
+    """E2E-M14: the committed Lean evaluation of the engine cuts, recomputed / cross-checked in Python."""
+    inp = t1_inputs()
+    assert chain.rest_check(inp) == []
+    m = inp["m14"]["cuts"]
+    assert [(n, int(m[n]["tag"])) for n in chain.M14_CUTS] == [("c1", 1), ("c2", 7), ("c7", 7), ("c8", 8), ("c9", 3)]
+    # d_static is copied along the run until done; done keeps d_keys and swaps d_shape for the constant
+    assert len({m[n]["d_static"] for n in ("c1", "c2", "c7", "c8")}) == 1 != len({m[n]["d_static"] for n in chain.M14_CUTS})
+    assert m["c9"]["d_keys"] == m["c1"]["d_keys"] and m["c9"]["d_shape"] == inp["m14"]["d_shape_none"]
+    # receipt 1 is popped by the resume (c2's queue = [receipt 1], c7's = []); c7 → c8 moves the position only
+    assert len(m["c2"]["queue"]) == 1 and m["c7"]["queue"] == [] and m["c7"]["d_queue"] == bndrec.bdigest(b"").hex()
+    assert m["c7"]["d_move"] != m["c8"]["d_move"] and m["c7"]["d_static"] == m["c8"]["d_static"]
+    # a mutated evaluation is reported
+    bad = copy.deepcopy(inp)
+    bad["m14"]["cuts"]["c8"]["tag"] = "7"
+    bad["m14"]["cuts"]["c2"]["queue"] = []
+    v = chain.rest_check(bad)
+    assert any(x.startswith("c8: tag") for x in v) and any(x.startswith("c2: d_queue") for x in v)
+
+
+M5A_PKG = os.path.join(HERE, "..", "m5a", "lean")
+HAVE_M5A = shutil.which("lake") is not None and os.path.isdir(os.path.join(M5A_PKG, ".lake/build/lib/lean/StateM5a"))
+
+
+@pytest.mark.skipif(not (HAVE_T1 and HAVE_M5A), reason="T1 case or lane B's built package absent")
+def test_chain_m14_lean(tmp_path):
+    """E2E-M14: re-run the Lean evaluator (`join/rest-eval.sh`, lane B's package next to this file) on T1:
+    the committed `m14` values (tags, rests, the remainder's digests, ctxD (.intake I), stRoot) are Lean's."""
+    inp = t1_inputs()
+    got = chain.m14_eval(inp, T1_CASE, str(tmp_path), M5A_PKG)
+    want = inp["m14"]
+    assert got["ctx_intake"] == want["ctx_intake"] and got["d_shape_none"] == want["d_shape_none"]
+    for n in chain.M14_CUTS:
+        for k in ("pos", "tag", "fits", "wsLen", "trie", "d_keys", "d_shape", "d_static", "d_queue", "d_move", "rest",
+                  "queue", "stRoot", "written"):
+            assert got["cuts"][n][k] == want["cuts"][n][k], (n, k)
+    c = chain.build(inp)
+    for i, n in ((1, "c1"), (2, "c2"), (7, "c7"), (8, "c8"), (9, "c9")):
+        assert c[i]["stRoot"].hex() == got["cuts"][n]["stRoot"], n
 
 
 @pytest.mark.skipif(not HAVE_T1, reason="T1 corpus case absent")
@@ -197,11 +243,14 @@ def test_chain_saved_leaves():
     assert all(r["PREP"]["checks"].values())
     # B-T4: lane B's leaves cut at the rt boundaries; every STC r_in / r_out is the chain's stRoot and the
     # records assembled with them are the chain's cuts, digest for digest
+    # E2E-M14 moved c1 … c9's stRoot (tag, rest) and ctxRoot: a leaf saved before M14 differs exactly there
+    # (m14_stale) until its lane re-proves it on this chain
     for k in ("IF", "STATE seg A", "RT resume, state half", "STATE seg B", "finalize, state half"):
-        assert all(r[k]["checks"].values()), (k, r[k]["checks"])
-        assert r[k]["in_equal"] and r[k]["out_equal"], k
+        if r[k]["in_equal"] and r[k]["out_equal"]:
+            assert all(r[k]["checks"].values()), (k, r[k]["checks"])
+        else:
+            assert r[k]["m14_stale"], (k, r[k]["checks"])
     assert r["IF"]["d_in"] == r["STATE seg A"]["d_in"] and r["IF"]["d_out"] == r["finalize, state half"]["d_out"]
-    assert r["STATE seg A"]["d_out"] == chain.digests(chain.build(inp))[2]
     assert r["WASM seg 0"]["in_equal"] and r["WASM seg 0"]["out_equal"] and r["WASM seg 1"]["in_equal"]
     # A-T5: the halting segment's out-record is lane A's `.fin r` record (finding I2b-2 closed), and
     # every in/out digest of the two Wasm leaves is the chain's (c4 -> c5 -> c6)
@@ -211,8 +260,7 @@ def test_chain_saved_leaves():
     # engine halves SE c1 -> c2, c7 -> c8, c8 -> c9): every in / out record equals the chain's
     for k in ("RT enter", "RT resume", "STATE seg A, engine half", "STATE seg B, engine half", "finalize, engine half"):
         if k in r:
-            assert r[k]["in_equal"] and r[k]["out_equal"], (k, r[k].get("diff_in"), r[k].get("diff_out"))
-            assert not r[k]["diff_in"] and not r[k]["diff_out"], k
+            assert (r[k]["in_equal"] and r[k]["out_equal"]) or r[k]["m14_stale"], (k, r[k].get("diff_in"), r[k].get("diff_out"))
             # F-6 (lane D's F-M9-1): the whole boundary pair is in the proof, in one AIR, as bytes
             assert all(r[k]["checks"].values()), (k, r[k]["checks"])
 

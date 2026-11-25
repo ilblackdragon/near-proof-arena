@@ -3,6 +3,7 @@
 
     chain.py inputs RUN_DIR [--lean-run LEAN_RUN.json] [--out data/t1-inputs.json]
     chain.py plan OUT_DIR [--inputs data/t1-inputs.json] [--no-lean] [--no-leaves]
+    chain.py rest [--keys STATE_JSON] [--inputs data/t1-inputs.json]     (E2E-M14: Lean evaluation of the cuts' stRoot / ctxRoot)
 
 `inputs` collects, from a `t1.py run` output directory (report / Lean outputs / calls / case) and
 lane F's Lean engine dump (`m5t1-tool dump`: the outcome and outgoing-receipt `Ser.enc` items and
@@ -28,14 +29,20 @@ Conventions (plan §3.5 M11i, M12, M13 / "D-a – D-d", lane F F-4):
   the finalize state half, all `m5tSegC`) expose their `STC` row's `r_in` / `r_out`, = the cuts' `stRoot`.
 * M13: the `start` cut commits lane B's `R_0` (`EngSt.ovl0`); the finalize step
   (`yields _ _ 0 → done out`) is its own STATE leaf (IF-FINAL); `W` = the whole `stRoot`.
-  `rest`: lane E's `encRestI` is **not adopted** by lane B's default instance or lane F's leaves
-  (both still carry a stand-in `rest`), so the driver keeps a `rest = 0^42` placeholder.
+* **M14 (lane E)**: every engine / call cut's record commits to the configuration the next leaf
+  computes on. `stRoot` = lane B's `StCommit` under `stViewParams_BI` (lane E's `encRestI`): `tag` =
+  the position tag (`StateView.posTag`: `start` 1, `done` 3, `txs` 4, `locals` 5, `delayed` 6,
+  `incoming` 7, `yields _ _ 0` 8, other `yields` 9), `rest = bdigest (d_static ‖ d_queue ‖ d_move)`,
+  `d_static = bdigest (d_keys ‖ d_shape)`; at `done` (`c9`) there is no overlay: `ws` = the empty
+  depth-24 tree's root, `wsLen = 0`, trie `0^32`. `ctxRoot` = `ctxD (.intake I) = bdigest (1 ‖ Ser.enc I)`
+  at `c1 … c9`. All of it is Lean-evaluated on T1's run (`join/rest-eval.sh`, `chain.py rest`;
+  inputs field `m14`) and cross-checked here (`rest_check`).
 * S2 / A-T3: the enter output is lane A's `.pre` record (`fbBnd`: counters 0, digests
   `bdigest []`, `codeRoot = SHA-256(code) ‖ 0^10`); PREP (`.pre → .ent`) follows enter.
 * F-4: accumulators are the Lean run's `chainD Ser.enc` (`acc' = bdigest (acc ‖ enc item)`).
 
 Fields no component computes yet are `0^42` placeholders, each listed with its owner in
-`PLACEHOLDERS`; a placeholder is the same value at every cut where the view's value is a constant
+`PLACEHOLDERS` (M14: `stRoot.rest` and `ctxRoot` are no longer placeholders); a placeholder is the same value at every cut where the view's value is a constant
 and changes nowhere else, so the chain holds digest for digest by construction and a
 leaf's exposed value is compared with the view's value wherever the view's value is known.
 """
@@ -169,6 +176,7 @@ def inputs_from(case, full, calls, comps, prep, lean_run, laneb_if=None):
         assert root16(s[0:16]).hex() == st["pre_root"] and s[16] == st["wsLen"]
     seg_a_root(inp)
     done_digests(inp)
+    m14_fixture(inp)
     return inp
 
 
@@ -217,10 +225,6 @@ def inputs_from_run(run_dir, lean_run=LEAN_RUN, laneb_if=LANEB_IF):
 # ---------------------------------------------------------------------------
 # fields no component computes yet: (cut field, view value, owner)
 PLACEHOLDERS = [
-    ("stRoot.rest at every engine / call cut", "bdigest (encRest (restOf v)) — encRestI (D-d) not adopted",
-     "B (default instance) + F (resume STMQ/STMA metas) + E (encRestI)"),
-    ("ctxRoot at engine / call cuts", "ctxD (.intake I) = bdigest (1 ‖ Ser.enc I)",
-     "E: Ser Intake closure (ViewSer); G: INIT computes it (B_1)"),
     ("wasm.vmCtxDigest", "bdigest (encRest (.other (q, cc)) / (.air …))", "A (m6 §6; gasLeft is public since A-T5 and blank drops gas.g; needs σ at host rows)"),
     ("wasm.fuel", "the call machine's n (fuel_out = fuel_in − Δt)", "A: expose fuel_in of segment 0 / PREP"),
     ("wasm.codeRoot / funcRoot packing", "codeC.root (codeRecs …) (stand-in ccT1 in Lean)",
@@ -277,6 +281,130 @@ def _eng_clear(side, n_out):
                 compute=side["compute"])
 
 
+# ---------------------------------------------------------------------------
+# E2E-M14 (lane E): the engine cuts' stRoot / ctxRoot, Lean-evaluated (`join/rest-eval.sh`)
+# ---------------------------------------------------------------------------
+REST_EVAL = os.path.join(HERE, "..", "join", "rest-eval.sh")
+M14_CUTS = ("c1", "c2", "c7", "c8", "c9")      # the engine cuts (c3 … c6 carry c2's state component)
+POS_TAG = {"start": 1, "done": 3, "txs": 4, "locals": 5, "delayed": 6, "incoming": 7}
+
+
+def pos_tag(pos):
+    """`StateView.posTag` from the evaluator's position name (`yields/yf/yn/fuel/i/k`)."""
+    sp = pos.split("/")
+    if sp[0] == "yields":
+        return 8 if sp[3] == "0" else 9
+    return POS_TAG[sp[0]]
+
+
+def chain_r(items):
+    """`View.chainR id`: `[] ↦ bdigest []`, `a :: l ↦ bdigest (chainR l ‖ a)` (the head is outermost)."""
+    a = E
+    for x in reversed(items):
+        a = bndrec.bdigest(a + x)
+    return a
+
+
+def ws_empty():
+    """The empty depth-24 working-set tree's root (`zd nodeH zero48 24`; `StNone.wsRoot_nil`)."""
+    z = bytes(48)
+    for _ in range(24):
+        z = hashlib.sha384(z + z).digest()
+    return z
+
+
+def m14_fixture(inp):
+    """M14: the committed Lean evaluation (`m14`) for T1's claim, when `inp` lacks it."""
+    if not inp.get("m14") and os.path.exists(INPUTS):
+        fx = json.load(open(INPUTS))
+        if fx.get("claim_sha256") == inp.get("claim_sha256") and fx.get("m14"):
+            inp["m14"] = fx["m14"]
+
+
+def m14_ws(inp):
+    """The working-set root of each engine cut: lane B's `R_0` / `R_A` / `R_n`; `c9` (done): the empty tree."""
+    return {"c1": inp.get("R_0"), "c2": inp.get("R_A"), "c7": inp.get("R_n"), "c8": inp.get("R_n"),
+            "c9": ws_empty().hex()}
+
+
+def rest_check(inp):
+    """M14: the Lean evaluation (`inp["m14"]`) recomputed / cross-checked in Python; the violations."""
+    m = inp.get("m14")
+    if not m:
+        return ["no m14 evaluation"]
+    bad = []
+
+    def need(cond, msg):
+        if not cond:
+            bad.append(msg)
+    H = lambda x: bytes.fromhex(x)  # noqa: E731
+    cs = m["cuts"]
+    ws = m14_ws(inp)
+    keys = sorted(bytes.fromhex(k) for k in m["keys"])
+    need([bytes.fromhex(k) for k in m["keys"]] == keys and len(keys) == inp["wsLen"], "keys: lane B's leaf order, wsLen")
+    need(H(m["empty"]) == E and H(m["ws_empty"]) == ws_empty(), "bdigest [] / the empty tree's root")
+    need(len(H(m["ctx_intake"])) == 42 and m["ctx_intake"] != inp["ctx_raw_be"], "ctxD (.intake I) is a 42-B digest")
+    for n in M14_CUTS:
+        x = cs[n]
+        g = {k: H(x[k]) for k in ("d_keys", "d_shape", "d_static", "d_queue", "d_move", "rest", "encRestI", "trie")}
+        q = [H(a) for a in x["queue"]]
+        need(x["fits"] is True and int(x["idx"]) == 0, f"{n}: circuit form, idx 0")
+        need(int(x["tag"]) == pos_tag(x["pos"]), f"{n}: tag = posTag ({x['pos']})")
+        need(g["encRestI"] == g["d_static"] + g["d_queue"] + g["d_move"], f"{n}: encRestI = d_static ‖ d_queue ‖ d_move")
+        need(g["rest"] == bndrec.bdigest(g["encRestI"]), f"{n}: rest = bdigest (encRestI)")
+        need(g["d_static"] == bndrec.bdigest(g["d_keys"] + g["d_shape"]), f"{n}: d_static = bdigest (d_keys ‖ d_shape)")
+        need(g["d_queue"] == chain_r(q), f"{n}: d_queue = chainR id (queue items)")
+        need(H(x["d_keys"]) == H(cs["c1"]["d_keys"]), f"{n}: d_keys constant")
+        if n == "c9":
+            need(int(x["wsLen"]) == 0 and g["trie"] == bytes(32) and g["d_shape"] == H(m["d_shape_none"]),
+                 "c9 (done): no overlay — wsLen 0, trie 0^32, d_shape = bdigest (Ser.enc none)")
+        else:
+            need(int(x["wsLen"]) == inp["wsLen"] and g["trie"].hex() == inp["prev_state_root"],
+                 f"{n}: wsLen, trie = prev_state_root")
+            need(x["keys"] == m["keys"], f"{n}: working-set keys = κ I")
+            need(g["d_static"] == H(cs["c1"]["d_static"]), f"{n}: d_static constant before done")
+        st = st_commit(int(x["tag"]), H(ws[n]), int(x["wsLen"]), g["trie"], 0, g["rest"]) if ws[n] else None
+        need(x.get("ws_root") == ws[n] and st is not None and x.get("stRoot") == st.hex(),
+             f"{n}: stRoot (Lean, StCommit.ser) = Python st_commit")
+    # the cuts are T1's: the receipt-state counters and committed changes are lane F's dump's
+    b, a = inp["acc"]["before"], inp["acc"]["after"]
+    for n, side, nout in (("c2", b, len(b["outcomes"])), ("c7", a, len(a["outcomes"])), ("c8", a, len(a["outcomes"]))):
+        rs = cs[n]["rs"]
+        need((int(rs["gas"]), int(rs["compute"]), int(rs["txBurnt"]), int(rs["nOutcomes"])) ==
+             (side["gas"], side["compute"], side["txBurnt"], nout), f"{n}: RS counters = lane F's dump")
+        need(dict((k, v) for k, v in cs[n]["written"]) == dict(map(tuple, side["committed"])),
+             f"{n}: written entries = the committed changes")
+    need(cs["c1"]["pos"] == "start" and cs["c2"]["pos"].startswith("incoming/") and int(cs["c2"]["pos"].split("/")[1]) >= 1,
+         "c1 start, c2 incoming with receipt 1 at the head")
+    need(cs["c7"]["queue"] == cs["c2"]["queue"][1:], "c7's queue = c2's tail (receipt 1 popped)")
+    need(cs["c8"]["pos"].split("/")[0] == "yields" and cs["c8"]["pos"].split("/")[3] == "0" and cs["c9"]["pos"] == "done",
+         "c8 = yields _ _ 0, c9 = done")
+    rcpt = inp.get("receipt1_ser")
+    need(rcpt is None or cs["c2"]["queue"][:1] == [rcpt], "c2's queue head = lane F's dump's receipt (Ser.enc)")
+    return bad
+
+
+def m14_eval(inp, case, workdir, pkg=None):
+    """Run the Lean evaluator (`join/rest-eval.sh`) on T1's case with the inputs' key list and lane B's
+    working-set roots; returns its JSON (with `keys`)."""
+    import subprocess
+    keys = inp.get("m14", {}).get("keys") or inp.get("keys")
+    ws = {k: v for k, v in m14_ws(inp).items() if k != "c9" and v}
+    src = os.path.join(workdir, "rest-in.json")
+    out = os.path.join(workdir, "rest-out.json")
+    json.dump({"keys": keys, "ws": ws}, open(src, "w"))
+    env = dict(os.environ, TMPDIR=workdir)
+    if pkg:
+        env["M5A_PKG"] = pkg
+    r = subprocess.run(["bash", REST_EVAL, case, src, out], stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                       env=env, timeout=1800)
+    if r.returncode != 0 or not os.path.exists(out):
+        raise RuntimeError(r.stdout.decode(errors="replace")[-2000:])
+    j = json.load(open(out))
+    j["keys"] = keys
+    return j
+
+
 # the leaves: (name, lanes, cut in, cut out, what)
 LEAVES = [
     ("INIT ⊕ IF", "G (INIT) ⊕ B (IF-INTAKE)", 0, 1, "init cb wb → eng I start (split leaf: CLM bytes + PSR join)"),
@@ -286,7 +414,7 @@ LEAVES = [
     ("WASM seg 0", "A", 4, 5, "steps (0, 13]"),
     ("WASM seg 1", "A", 5, 6, "steps (13, 26], halts → .fin r"),
     ("RT resume", "F ⊕ B (STC)", 6, 7, "estepO (strictO [(q, r)]): refund, outcome, outgoing receipt"),
-    ("STATE seg B", "B ⊕ F (engine rows)", 7, 8, "VM-free steps after receipt 1 → eng I ⟨yields _ _ 0⟩ (may be empty)"),
+    ("STATE seg B", "B ⊕ F (engine rows)", 7, 8, "VM-free steps after receipt 1 → eng I ⟨yields _ _ 0⟩ (T1: 2 steps, incoming [] → yields → yields _ _ 0)"),
     ("finalize", "B (IF-FINAL) ⊕ F (engine rows)", 8, 9, "yields _ _ 0 → eng I ⟨done out⟩ (D-b: own STATE leaf)"),
     ("FINAL", "G ⊕ B (FINAL half)", 9, 10, "eng I ⟨done out⟩ → fin I out → done H o"),
 ]
@@ -310,25 +438,34 @@ def build(inp):
     if inp.get("prep"):
         code_root, func_root = root42(inp["prep"]["code_root_words"]), root42(inp["prep"]["func_root_words"])
 
-    def st(tag, ws):
-        return st_commit(tag, ws, wslen, prev, 0, ZERO)
+    m14 = inp.get("m14")
 
+    def st(cut, ws):
+        """M14: the cut's `StCommit` (Lean-evaluated tag / rest; c9 = done: empty tree, wsLen 0, trie 0^32)."""
+        if not m14:          # pre-M14 placeholders (tag 1 / 3, rest 0^42)
+            return st_commit(3 if cut == "c9" else 1, ws, wslen, prev, 0, ZERO)
+        x = m14["cuts"][cut]
+        if cut == "c9":
+            return st_commit(int(x["tag"]), ws_empty(), 0, bytes(32), 0, bytes.fromhex(x["rest"]))
+        return st_commit(int(x["tag"]), ws, wslen, prev, 0, bytes.fromhex(x["rest"]))
+
+    ctx_i = bytes.fromhex(m14["ctx_intake"]) if m14 else ZERO     # ctxD (.intake I) at c1 … c9
     eng0 = dict(outcomeAcc=E, outRcptAcc=[E], proposalsAcc=E, bwAcc=tagd(1))
     c = [None] * 11
     c[0] = _rec("init", ctxRoot=bytes.fromhex(inp["ctx_raw_be"]), stRoot=st_none,
                 outcomeAcc=E, outRcptAcc=[], proposalsAcc=E, bwAcc=tagd(0))
-    c[1] = _rec("eng", ctxRoot=ZERO, stRoot=st(1, r0), **eng0)
-    c[2] = _rec("eng", ctxRoot=ZERO, stRoot=st(1, ra), **_eng_acc(acc_b),
+    c[1] = _rec("eng", ctxRoot=ctx_i, stRoot=st("c1", r0), **eng0)
+    c[2] = _rec("eng", ctxRoot=ctx_i, stRoot=st("c2", ra), **_eng_acc(acc_b),
                 **_eng_clear(acc_b, len(acc_b["outcomes"])))
     c[3] = dict(c[2], phase=bndrec.PHASE["call"], inCall=True, rPrepaid=call["prepaid"],
                 wasm=wasm_pre(call["code_sha256"]))
     c[4] = dict(c[3], wasm=wasm_air(segs[0]["in"], code_root, func_root, call["stackRem"]))
     c[5] = dict(c[3], wasm=wasm_air(segs[0]["out"], code_root, func_root, call["stackRem"]))
     c[6] = dict(c[3], wasm=wasm_fin())
-    c[7] = _rec("eng", ctxRoot=ZERO, stRoot=st(1, rn), **_eng_acc(acc_a),
+    c[7] = _rec("eng", ctxRoot=ctx_i, stRoot=st("c7", rn), **_eng_acc(acc_a),
                 **_eng_clear(acc_a, len(acc_a["outcomes"])))
-    c[8] = dict(c[7])
-    c[9] = dict(c[7], stRoot=st(3, rn), receiptIdx=inp["n_outcomes"], gasUsed=inp["gasUsed"],
+    c[8] = dict(c[7], stRoot=st("c8", rn))
+    c[9] = dict(c[7], stRoot=st("c9", rn), receiptIdx=inp["n_outcomes"], gasUsed=inp["gasUsed"],
                 gasBurnt=inp["gasUsed"], balanceBurnt=inp["balanceBurnt"], compute=inp["computeUsage"])
     # G-5: ctxD (.header H) = bdigest (3 ‖ Ser.enc H), outD (.done o).1 = bdigest (Ser.enc o) with ViewSer's
     # fixed-width Ser ChunkInner / Ser Outputs (Lean-evaluated by `m5d-tool dump`: inputs ctx_header / out_done)
@@ -464,6 +601,33 @@ SAVED_F = {"STATE seg A": f"{DEPS}/e2e-m5t1/f6/se-seg-a-proof", "STATE seg B": f
 TREE = f"{DEPS}/tmp-laneD/m9b"   # lane D's M9 prototype tree (the leaves it imported: imported.sha256)
 
 
+# E2E-M14: the leaves whose exposed records / STC messages carry c1 … c9's stRoot or ctxRoot; each must be
+# re-proved on the M14 chain (until then its row differs exactly in those fields: `test_chain_saved_leaves`)
+M14_REPROVE = {
+    "IF (B-T4, m5tIFC)": "B: STC r_in = c1 (tag 1, encRestI rest), r_out = c9 (tag 3, done: empty ws, wsLen 0, trie 0^32)",
+    "STATE seg A (B-T4)": "B: STC c1 → c2 (tags 1 → 7, rests)",
+    "RT resume, state half (B-T4)": "B: STC c6 → c7 (tags 7 → 7, rests)",
+    "STATE seg B (B-T4)": "B: STC c7 → c8 (tags 7 → 8, rests)",
+    "finalize, state half (B-T4)": "B: STC c8 → c9 (tags 8 → 3; the done close: empty ws, wsLen 0, trie 0^32)",
+    "RT enter (F-6)": "F: records c2 → c3 (stRoot, ctxRoot)",
+    "RT resume (F-6)": "F: records c6 → c7 (stRoot, ctxRoot)",
+    "STATE seg A, engine half (F-6 SE)": "F: records c1 → c2",
+    "STATE seg B, engine half (F-6 SE)": "F: records c7 → c8",
+    "finalize, engine half (F-6 SE)": "F: records c8 → c9",
+}
+M14_FIELDS = {"stRoot", "ctxRoot"}
+M14_STC = {"r_in", "r_out", "tags (in, out)"}
+
+
+def m14_stale(row):
+    """A saved leaf that differs from the M14 chain only in the fields M14 moved (re-prove pending)."""
+    if row["leaf"] not in M14_REPROVE or (row.get("in_equal") and row.get("out_equal")):
+        return False
+    if "diff_in" in row:
+        return set(row["diff_in"]) | set(row["diff_out"]) <= M14_FIELDS
+    return all(v for k, v in row["checks"].items() if not any(k.startswith(x) for x in M14_STC))
+
+
 def _fdiff(a, b, pre=""):
     out = []
     for n, k in bndrec.BND_FIELDS if not pre else bndrec.WASM_FIELDS:
@@ -531,6 +695,14 @@ def _state_row(leaf, path, c, a, b, inp, ws_in, ws_out, tags, owner, why):
             "owner": owner, "why": why}, st
 
 
+def _tags(inp, a, b):
+    """The STC (tag_in, tag_out) of a lane B half: the cuts' M14 tags (pre-M14: 1 / 3)."""
+    m = inp.get("m14")
+    if not m:
+        return (1, 3 if b == "c9" else 1)
+    return (int(m["cuts"][a]["tag"]), int(m["cuts"][b]["tag"]))
+
+
 def leaf_table(c, inp, saved=SAVED, saved_b=SAVED_B):
     rows = []
     ex = os.path.exists
@@ -546,13 +718,13 @@ def leaf_table(c, inp, saved=SAVED, saved_b=SAVED_B):
                                 "h(B_0) assembled from the leaf = h(c0)": bndrec.digest(b0) == bndrec.digest(c[0]),
                                 "prev_state_root = IF's": root16(pv[28:44]).hex() == inp["prev_state_root"]},
                      "in_equal": bndrec.digest(b0) == bndrec.digest(c[0]), "out_equal": False,
-                     "owner": "B-T4: B_1's stRoot is the IF's STC r_in (c1); E / G: B_1's ctxRoot (ctxD (.intake I)); D: the joined INIT + IF leaf; INIT exposes B_0 only",
-                     "why": "INIT's B_0 = the chain's c0 (lane G's wrapper takes stD .none: B-T4's constant); B_1 = eng I start: its stRoot is the IF's STC r_in (B-T4), its ctxRoot E / G's"})
+                     "owner": "B-T4: B_1's stRoot is the IF's STC r_in (c1); G: B_1's ctxRoot = ctxD (.intake I) in-circuit (M14: the value is on the chain, Lean-evaluated; preimage 1 ‖ Ser.enc I); D: the joined INIT + IF leaf; INIT exposes B_0 only",
+                     "why": "INIT's B_0 = the chain's c0 (lane G's wrapper takes stD .none: B-T4's constant); B_1 = eng I start: its stRoot is the IF's STC r_in (B-T4), its ctxRoot ctxD (.intake I) (M14)"})
     # IF (B-T4, m5tIFC): the INTAKE half closes c1's stRoot (R_0, tag 1), the FINAL half opens c9's (R_n, tag 3)
     p = saved["IF"]
     if ex(p):
-        row, st = _state_row("IF (B-T4, m5tIFC)", p, c, 1, 9, inp, inp.get("R_0"), inp.get("R_n"), (1, 3),
-                             "E / G: c1's ctxRoot (ctxD (.intake I)); F / E: rest (0^42 placeholder; lane F's engine rows own it)",
+        row, st = _state_row("IF (B-T4, m5tIFC)", p, c, 1, 9, inp, inp.get("R_0"), inp.get("R_n"), _tags(inp, "c1", "c9"),
+                             "G / D: c1's ctxRoot (ctxD (.intake I)) from the joined INIT leaf; F: the engine rows that open / close rest (encRestI, M14)",
                              "the INTAKE half's stRoot (InitBOut's state part) is c1's and the FINAL half's (FinPre's) is c9's")
         row["checks"].update({"post_state_root = header": root16(st[53:69]).hex() == inp["post_state_root"],
                               "#changes = 10": st[69] == 10})
@@ -619,21 +791,22 @@ def leaf_table(c, inp, saved=SAVED, saved_b=SAVED_B):
     # STATE (B-T4): the segment cut at the rt boundaries, m5tSegC
     p = saved["STATE"]
     if ex(p):
-        rows.append(_state_row("STATE seg A (B-T4)", p, c, 1, 2, inp, inp.get("R_0"), inp.get("R_A"), (1, 1),
+        rows.append(_state_row("STATE seg A (B-T4)", p, c, 1, 2, inp, inp.get("R_0"), inp.get("R_A"), _tags(inp, "c1", "c2"),
                                "F: STATE engine rows (receipt 0's three forwards: counters, outcome / outgoing appends)",
                                "the 8 changes before receipt 1; stRoot in / out = c1 / c2")[0])
     p = saved_b["STATE R"]
     if ex(p):
-        rows.append(_state_row("RT resume, state half (B-T4)", p, c, 6, 7, inp, inp.get("R_A"), inp.get("R_n"), (1, 1),
+        rows.append(_state_row("RT resume, state half (B-T4)", p, c, 6, 7, inp, inp.get("R_A"), inp.get("R_n"), _tags(inp, "c2", "c7"),
                                "F: join with the resume leaf (its RB rows send STMQ / take STMA in STC's layout; XTAPE stand-in today)",
                                "receipt 1's 2 changes; stRoot in / out = c6 / c7")[0])
     p = saved_b["STATE B"]
     if ex(p):
-        rows.append(_state_row("STATE seg B (B-T4)", p, c, 7, 8, inp, inp.get("R_n"), inp.get("R_n"), (1, 1),
-                               "F: STATE engine rows (none on T1)", "no change; c7 = c8 while rest is a placeholder")[0])
+        rows.append(_state_row("STATE seg B (B-T4)", p, c, 7, 8, inp, inp.get("R_n"), inp.get("R_n"), _tags(inp, "c7", "c8"),
+                               "F: STATE engine rows (two VM-free steps on T1: incoming [] → yields → yields _ _ 0)",
+                               "no working-set change; M14: c7 ≠ c8 (tag 7 → 8, rest)")[0])
     p = saved_b["STATE fin"]
     if ex(p):
-        rows.append(_state_row("finalize, state half (B-T4)", p, c, 8, 9, inp, inp.get("R_n"), inp.get("R_n"), (1, 3),
+        rows.append(_state_row("finalize, state half (B-T4)", p, c, 8, 9, inp, inp.get("R_n"), inp.get("R_n"), _tags(inp, "c8", "c9"),
                                "F: finalize engine rows (yields → done: counters, rest); the IF's FINAL half closes the same c9 stRoot (join value)",
                                "opens c8's stRoot, closes c9's (tag 3); FinHalfB's batched FINAL is the IF proof's")[0])
     else:
@@ -664,6 +837,10 @@ def leaf_table(c, inp, saved=SAVED, saved_b=SAVED_B):
                      "in_equal": False, "out_equal": bndrec.digest(bo) == bndrec.digest(c[10]),
                      "owner": "B-T4: c9's stRoot = the IF's STC r_out (FinPre's state part); D: B_in = c9 in the joined FINAL leaf (finInDigest is a join value, not a BndRec field)",
                      "why": "FINAL's B_out = the chain's c10 (stD .none: B-T4's constant); B_in = c9, whose stRoot is the IF's STC r_out (B-T4)"})
+    for r in rows:
+        r["m14_stale"] = m14_stale(r)
+        if r["m14_stale"]:
+            r["owner"] = "re-prove (E2E-M14): " + M14_REPROVE[r["leaf"]] + "; " + r["owner"]
     tree = None
     if ex(f"{TREE}/imported.sha256"):
         tree = [ln.split()[1] for ln in open(f"{TREE}/imported.sha256") if ln.strip()]
@@ -692,6 +869,10 @@ def write_md(out, c, ds, rows, lean, consts, bad, tree):
         L.append(f"| {r['leaf']} | {r['exposes']} | {r['in_equal']} | {r['out_equal']} | {dif or '—'} | {r['owner']} |")
     if tree:
         L += ["", "Lane D's M9 prototype tree (`tmp-laneD/m9b`) imported: " + ", ".join(f"`{t}`" for t in tree if t.endswith(".proof"))]
+    stale = [r["leaf"] for r in rows if r.get("m14_stale")]
+    if stale:
+        L += ["", "**E2E-M14: re-prove on this chain** (each differs only in the moved `stRoot` / `ctxRoot` / `STC` "
+              "tags and rests): " + ", ".join(stale)]
     L += ["", "## Placeholders (0^42 until the owner lands it)", ""] + [f"* {a}: {b} — **{o}**" for a, b, o in PLACEHOLDERS]
     open(os.path.join(out, "chain.md"), "w").write("\n".join(L) + "\n")
 
@@ -700,7 +881,7 @@ def cmd_plan(a):
     inp = json.load(open(a.inputs))
     os.makedirs(a.out, exist_ok=True)
     c = build(inp)
-    bad = [x for x in check_conventions(c, inp) if x]
+    bad = [x for x in check_conventions(c, inp) if x] + (rest_check(inp) if inp.get("m14") else [])
     ds = digests(c)
     lean = consts = {"ok": None}
     if not a.no_lean:
@@ -738,6 +919,25 @@ def cmd_inputs(a):
     return 0
 
 
+def cmd_rest(a):
+    """M14: run the Lean evaluator on T1 and store its output as the inputs' `m14` field."""
+    inp = json.load(open(a.inputs))
+    if a.keys:
+        st = json.load(open(a.keys))
+        inp["keys"] = sorted(set(st["keys_read"]) | set(k for k, _ in st["changes"]), key=bytes.fromhex)
+    case = os.path.join(DEPS, "corpora", inp["case"])
+    os.makedirs(a.work, exist_ok=True)
+    m = m14_eval(inp, case, a.work, a.pkg)
+    inp.pop("keys", None)
+    inp["m14"] = m
+    if os.path.exists(LEAN_RUN):
+        inp["receipt1_ser"] = json.load(open(LEAN_RUN))["receipts"][0]["receipt"]["ser"]
+    bad = rest_check(inp)
+    print("\n".join(bad) if bad else "rest_check: ok")
+    json.dump(inp, open(a.out or a.inputs, "w"), indent=1)
+    return 1 if bad else 0
+
+
 def main():
     ap = argparse.ArgumentParser()
     sp = ap.add_subparsers(dest="cmd", required=True)
@@ -750,8 +950,14 @@ def main():
     p.add_argument("--inputs", default=INPUTS)
     p.add_argument("--no-lean", action="store_true")
     p.add_argument("--no-leaves", action="store_true")
+    p = sp.add_parser("rest")
+    p.add_argument("--inputs", default=INPUTS)
+    p.add_argument("--keys", help="a state.json (keys_read, changes): the key list κ I in leaf order")
+    p.add_argument("--work", default=os.path.join(DEPS, "tmp-laneE", "m14"))
+    p.add_argument("--pkg", help="lane B's package (default: ../m5a/lean)")
+    p.add_argument("--out")
     a = ap.parse_args()
-    return {"inputs": cmd_inputs, "plan": cmd_plan}[a.cmd](a)
+    return {"inputs": cmd_inputs, "plan": cmd_plan, "rest": cmd_rest}[a.cmd](a)
 
 
 if __name__ == "__main__":

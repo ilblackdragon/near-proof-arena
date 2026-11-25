@@ -868,6 +868,45 @@ checker unchanged; standard axioms only.
   from `c.env`, so (H1) is "every `ActCtx` of the receipt step has `env = P.env`" (a `Tape`-style
   walk). `PackOK` / `ProgBound` / `GlueByteBool`: not started (lane D's `m8-tree` held the memory).
 
+**Lane E M14 (2026-11-25) [K]/[M]: each T1 cut's record commits to the configuration the next leaf
+computes on** (log [`docs/logs/e2e-lean-m14-2026-11-25.md`](../logs/e2e-lean-m14-2026-11-25.md); lifts
+lane F's F-6 blocker). `S`, `claimDigest`, checker unchanged; standard axioms only.
+* **Values [K-evaluated]/[M]**: `join/RestEval.lean` (`join/rest-eval.sh`, lane B's package) runs
+  `INTAKE` and `estep` on T1 and evaluates, per engine cut (`c1` start, `c2` = `c3 … c6`'s state
+  `incoming [receipt 1]`, `c7` `incoming []`, `c8` `yields _ _ 0`, `c9` `done`), the view's
+  `stOfI κ I c` under `stViewParams_BI`: tag, `fits`, `wsLen`, trie, `d_keys` / `d_shape` / `d_static`
+  / `d_queue` / `d_move`, `rest`, the whole `stRoot` (`commitR_eq`; `done`'s empty tree
+  `wsRoot_nil_BI`), and `ctxD (.intake I) = bdigest (1 ‖ Ser.enc I)` (`ec137d24…`, 95,923-B preimage).
+  `t1/chain.py rest` stores them (`t1-inputs.json` `m14`), `rest_check` cross-checks them in Python
+  (digest structure, `chainR` of the queue, tags, the receipt-state counters / committed changes /
+  queue head = lane F's dump); `stRoot` and `ctxRoot` at `c1 … c9` are no longer placeholders.
+  **Finding M14-1**: at `done` the view has no overlay, so `c9`'s `stRoot` is `⟨3, empty-tree root,
+  wsLen 0, trie 0^32, 0, rest⟩`, not B-T4's `close c R_n mo` (wsLen 17, trie kept); lane B's finalize
+  `STC` mode must output that record.
+* **Tag** (`StateView.posTag`): `start` 1, `done` 3, `txs` 4, `locals` 5, `delayed` 6, `incoming` 7,
+  `yields _ _ 0` **8**, other `yields` 9 (`none` 0, `fin` 2). Binding unchanged (`stD_binding_BI`;
+  `tagOf ≤ 9 < 255`; the tag is a function of the moving part, `tagOf_restMove`). One byte of the
+  `STC` opening gives the position class: `tag_sound` / `tag_eq`, `finPos_of_tag` (8 ⇒ `FinPre`'s
+  `yields _ _ 0`), `incoming_of_tag`, `done_of_tag`. Lane B: `StPosOK` = an opening with
+  `NonFinTag` (`1` or `4 … 9`), `posOK_*` / `rtPos` re-proved.
+* **Interface** (`join/RestI.lean`; `encRestI` refined: `d_static = bdigest (d_keys ‖ d_shape)`,
+  `dStatic_bind`, `encRestI_bind`). An engine leaf whose `STC` row gives `metaOf v = mi`
+  (`StHalfC.st_step`) witnesses `dS, dQ, dM` (42 B each) with `bdigest (dS ‖ dQ ‖ dM) = mi.rest`
+  (`rest_open`), the moving part `x` with `bdigest (Ser.enc x) = dM` (`move_open`: `x = restMove
+  (restOfB v)` — position with queue / keys blanked, receipt state without overlay and outputs,
+  recorder, committed key order, `prosp`, removals), and per consumed item `bdigest (dT ‖ a) = dQ`
+  (`queue_pop`), `a = Ser.enc y` (`incoming_head` / `locals_head` / `txs_head`), or `dQ = bdigest []`
+  (`queue_empty`); `open_pop` composes them. Output: `rest_out = bdigest (dS' ‖ dQ' ‖ bdigest (Ser.enc
+  x'))` with `dS'` copied (finalize: `bdigest (d_keys ‖ bdigest (Ser.enc none))`), `dQ'` the tail
+  digest or a chain pushed from the intake (`txs P.txs`, `incoming P.incoming`: open `ctxRoot`) or from
+  `x` (`locals rs.locals`) (`rest_close`, `metaOf_BI`: `mo = metaOf v'`). Lane B's `STC` keeps `rest`
+  opaque except where it needs `d_keys` (`static_open`, `keys_open`: the IF's key list).
+* **Re-prove** (every saved leaf whose records / `STC` messages carry `c1 … c9`): lane B's IF, seg A,
+  resume half, seg B, finalize half (`m5a/t1cut/stc-meta.json` now from `m14`); lane F's RT enter,
+  RT resume, `SE` seg A / seg B / finalize; lane D's tree. INIT, FINAL, PREP, WASM unaffected.
+  `t1/test_t1.py`: `test_chain_m14_rest`, `test_chain_m14_lean` (re-runs the evaluator),
+  `m14_stale` rows in `test_chain_saved_leaves`.
+
 ##### Per-lane discharge status (M12, after A-T3, F-3, G-4)
 
 | premise | lane | proved from the circuit [K] | named premises left | open (no AIR / not stated) |

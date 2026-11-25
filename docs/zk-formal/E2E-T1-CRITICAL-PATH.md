@@ -42,9 +42,14 @@ lane A's `wasmD`), with every convention adopted since I-2:
   `o.balanceBurnt`, the rest 0.
 * **M13** (D-a – D-d): the `start` cut commits lane B's `R_0` (`stRoot` = `StCommit` with
   `ws = R_0`, tag 1); the finalize step is its own STATE leaf (`yields _ _ 0 → eng I ⟨done out⟩`,
-  `stD` tag 3); `W` = the whole `stRoot`. **`rest`: lane E's `encRestI` is not adopted** by lane
-  B's default instance or lane F's leaves (`STMQ`/`STMA` metas are stand-ins), so the driver keeps
-  the current encoder with `rest = 0^42`.
+  `stD` tag 3); `W` = the whole `stRoot`.
+* **M14 (lane E, 2026-11-25)**: `stRoot` at `c1 … c9` is the view's value under lane E's `encRestI`
+  (`rest = bdigest (d_static ‖ d_queue ‖ d_move)`, `d_static = bdigest (d_keys ‖ d_shape)`) with the
+  position tag `StateView.posTag` (`start` 1, `incoming` 7, `yields _ _ 0` 8, `done` 3, …); at `done`
+  (`c9`) no overlay: the empty tree's root, `wsLen 0`, trie `0^32` (finding M14-1). `ctxRoot` at
+  `c1 … c9` = `ctxD (.intake I)`. Lean-evaluated on T1's run (`join/rest-eval.sh`, `chain.py rest`,
+  inputs field `m14`) and cross-checked in Python (`chain.rest_check`). Log
+  [`e2e-lean-m14-2026-11-25.md`](../logs/e2e-lean-m14-2026-11-25.md).
 * **S2 / A-T3**: the enter output is lane A's `.pre` record (`fbBnd`: counters 0, digests
   `bdigest []`, `codeRoot = SHA-256(code) ‖ 0^10`); **PREP after enter** (`.pre → .ent`); the
   call's last cut is lane A's `fbBnd (q, .fin r)`.
@@ -60,39 +65,42 @@ lane A's `wasmD`), with every convention adopted since I-2:
 | cut | configuration | phase | receiptIdx | gasUsed | compute | rPrepaid | `h(B)` |
 |---|---|---|---|---|---|---|---|
 | c0 | `init cb wb` (`B_0`) | 0 | 0 | 0 | 0 | 0 | `039f9e01ba1c3e6c…` (B-T4: `stD .none`) |
-| c1 | `eng I start` (commits `R_0`) | 1 | 0 | 0 | 0 | 0 | `4ae97236e9279de7…` |
-| c2 | `eng I c` at receipt 1's step | 1 | 1 | 568,551,750,000 | 568,551,750,000 | 0 | `3d9f81b4513b3120…` (B-T4: `R_A`) |
-| c3 | `call I c [] q .pre` | 6 | 1 | 568,551,750,000 | 568,551,750,000 | 54 T | `bff8b6336bebcedc…` |
-| c4 | `call … (preConf q)` (`.ent`) | 6 | 1 | ″ | ″ | 54 T | `4d961418b2fca6f1…` |
-| c5 | `call …` at t = 13 | 6 | 1 | ″ | ″ | 54 T | `de147d2dc6305e61…` |
-| c6 | `call … (.fin r)` | 6 | 1 | ″ | ″ | 54 T | `10f87ec90f71fc29…` |
-| c7 | `eng I c'` after receipt 1 | 1 | 2 | 1,577,739,758,301 | 1,732,463,022,301 | 0 | `afe47194b7e4566c…` |
-| c8 | `eng I ⟨yields _ _ 0⟩` | 1 | 2 | ″ | ″ | 0 | `afe47194b7e4566c…` (= c7: the position is only in `rest`) |
-| c9 | `eng I ⟨done out⟩` | 1 | 2 | ″ | ″ | 0 | `f7c8b2b65dc38957…` |
+| c1 | `eng I start` (commits `R_0`; tag 1) | 1 | 0 | 0 | 0 | 0 | `6a39043b1fb01e7b…` (M14) |
+| c2 | `eng I c` at receipt 1's step (`incoming [r]`, tag 7) | 1 | 1 | 568,551,750,000 | 568,551,750,000 | 0 | `1a491f96f272a299…` (B-T4: `R_A`) |
+| c3 | `call I c [] q .pre` | 6 | 1 | 568,551,750,000 | 568,551,750,000 | 54 T | `12f8dbda72d4fae8…` |
+| c4 | `call … (preConf q)` (`.ent`) | 6 | 1 | ″ | ″ | 54 T | `d4c7cff460504af3…` |
+| c5 | `call …` at t = 13 | 6 | 1 | ″ | ″ | 54 T | `6a4e146465f26495…` |
+| c6 | `call … (.fin r)` | 6 | 1 | ″ | ″ | 54 T | `05601a54cad9a9da…` |
+| c7 | `eng I c'` after receipt 1 (`incoming []`, tag 7) | 1 | 2 | 1,577,739,758,301 | 1,732,463,022,301 | 0 | `46558b74b676ba30…` |
+| c8 | `eng I ⟨yields _ _ 0⟩` (tag 8) | 1 | 2 | ″ | ″ | 0 | `58bd710104672dca…` (M14: ≠ c7) |
+| c9 | `eng I ⟨done out⟩` (tag 3, no overlay) | 1 | 2 | ″ | ″ | 0 | `a45222586028f67a…` |
 | c10 | `done H o` | 4 | 0 | 1,577,739,758,301 | 0 | 0 | `dfaf4cfeed1ca468…` (B-T4: `stD .none`) |
 
 | # | leaf | lanes | in → out | `d_in` → `d_out` |
 |---|---|---|---|---|
-| 1 | INIT ⊕ IF (split leaf, joined by the `CLM` bytes and `PSR`) | G ⊕ B | c0 → c1 | `039f9e01` → `4ae97236` |
-| 2 | STATE seg A (receipt 0, the 3 forwards; 8 of 10 changes) | B ⊕ F | c1 → c2 | `4ae97236` → `3d9f81b4` |
-| 3 | RT enter | F | c2 → c3 | `3d9f81b4` → `bff8b633` |
-| 4 | PREP | A | c3 → c4 | `bff8b633` → `4d961418` |
-| 5 | WASM seg 0 (steps (0, 13]) | A | c4 → c5 | `4d961418` → `de147d2d` |
-| 6 | WASM seg 1 (steps (13, 26], halts) | A | c5 → c6 | `de147d2d` → `10f87ec9` |
-| 7 | RT resume (`STMQ`/`STMA` to lane B's `STC`, `ACC`) | F ⊕ B | c6 → c7 | `10f87ec9` → `afe47194` |
-| 8 | STATE seg B (VM-free steps to `yields _ _ 0`; may be empty) | B ⊕ F | c7 → c8 | `afe47194` → `afe47194` |
-| 9 | finalize (IF-FINAL, D-b) | B ⊕ F | c8 → c9 | `afe47194` → `f7c8b2b6` |
-| 10 | FINAL | G ⊕ B | c9 → c10 | `f7c8b2b6` → `dfaf4cfe` |
+| 1 | INIT ⊕ IF (split leaf, joined by the `CLM` bytes and `PSR`) | G ⊕ B | c0 → c1 | `039f9e01` → `6a39043b` |
+| 2 | STATE seg A (6 VM-free steps: receipt 0, the 3 forwards; 8 of 10 changes) | B ⊕ F | c1 → c2 | `6a39043b` → `1a491f96` |
+| 3 | RT enter | F | c2 → c3 | `1a491f96` → `12f8dbda` |
+| 4 | PREP | A | c3 → c4 | `12f8dbda` → `d4c7cff4` |
+| 5 | WASM seg 0 (steps (0, 13]) | A | c4 → c5 | `d4c7cff4` → `6a4e1464` |
+| 6 | WASM seg 1 (steps (13, 26], halts) | A | c5 → c6 | `6a4e1464` → `05601a54` |
+| 7 | RT resume (`STMQ`/`STMA` to lane B's `STC`, `ACC`; pops receipt 1) | F ⊕ B | c6 → c7 | `05601a54` → `46558b74` |
+| 8 | STATE seg B (2 VM-free steps to `yields _ _ 0`, no working-set change) | B ⊕ F | c7 → c8 | `46558b74` → `58bd7101` |
+| 9 | finalize (IF-FINAL, D-b; tags 8 → 3) | B ⊕ F | c8 → c9 | `58bd7101` → `a4522258` |
+| 10 | FINAL | G ⊕ B | c9 → c10 | `a4522258` → `dfaf4cfe` |
 
 Every adjacent pair chains digest for digest (`chain.chain_ok`). **The records are the view's
 wherever a component computes the field; the rest are `0^42` placeholders** (`chain.PLACEHOLDERS`):
-`stRoot.rest` everywhere (F, E; B-T4: `stD .none` and `stRoot.ws` at c2 are lane B's values now),
-`ctxD (.intake I)` at
-every engine / call cut (E: `Ser Intake`; G), `ctxD (.header H)` and `bdigest (Ser.enc o)` at done
-(E: `Ser ChunkInner` / `Ser Outputs`; G), `wasm.vmCtxDigest` and `wasm.fuel` (A), the 42-B packing
-of the cached CODE / FUNC commitment (A; the driver packs 5 × u64be + u16be). A placeholder is
-the same at every cut where the view's value is a constant, so it hides no step; it hides the
-fields listed.
+`wasm.vmCtxDigest` and `wasm.fuel` (A), the 42-B packing of the cached CODE / FUNC commitment (A;
+the driver packs 5 × u64be + u16be). M14 retired the `stRoot.rest` and `ctxD (.intake I)`
+placeholders (Lean-evaluated values, above). A placeholder is the same at every cut where the view's
+value is a constant, so it hides no step; it hides the fields listed.
+
+**M14 re-prove list** (`chain.M14_REPROVE`; each saved leaf differs from the chain exactly in the
+moved `stRoot` / `ctxRoot` / `STC` tags and rests, `chain.m14_stale`): **B** IF, STATE seg A, the
+resume's state half, STATE seg B, the finalize state half (`m5a/t1cut/stc-meta.json` from `m14`; the
+`done` close of M14-1); **F** RT enter, RT resume, `SE` seg A / seg B / finalize; **D** the tree.
+The table below records the pre-M14 status of those leaves.
 
 ### 2.1 Saved leaves against the chain [M] (`chain.leaf_table`)
 
@@ -121,10 +129,11 @@ digests (its `spec.edges` list the free cells).
 
 ### 2.2 Remaining to "T1 tree over real leaves with real `BndRec` on every edge"
 
-1. **E** (view data only): decide the `u32` byte order of `ctxD (.raw)` (I2b-1); `Ser Intake`,
-   `Ser ChunkInner`, `Ser Outputs` closures (`ctxD (.intake I)`, `ctxD (.header H)`,
-   `outD (.done o)`); adopt `encRestI` in lane B's default instance (D-d) and fix the per-position
-   `rest` contents lane F's metas carry.
+1. **E** — M14 done: `ctxD (.intake I)` and every engine cut's `stRoot` under `encRestI` with the
+   position tag, Lean-evaluated on T1 (`join/rest-eval.sh`, `chain.py rest`, `rest_check`); the
+   opening interface for lanes B / F (`join/RestI.lean`: `rest_open`, `move_open`, `queue_pop`,
+   `incoming_head`, `rest_close`, `open_pop`, `tag_sound`, `finPos_of_tag`). Left: an optional
+   structured `ctxD (.intake I)` if re-hashing the 95,923-B intake preimage per leaf is too costly.
 2. **B** — B-T4 done: `stD .none` = `799a6864…` (kernel, `StNoneE.stD_none_viewE`); `m5tIFC` (the IF's
    `STC` row: `c1` / `c9` `stRoot`; `Stc.trieEqs` soundness fix); the STATE segment cut at the `rt`
    cuts (seg A, the resume's state half, seg B, the finalize state half, `m5tSegC`); all five
