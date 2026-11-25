@@ -48,7 +48,7 @@ m9_negatives.py, collect_m9.sh}`. Log `docs/logs/e2e-zk-lane-d-2026-11-25-m9.md`
 | **packet** (`S` 1,007 B + wrap 328,705 B + 12 B) | **329,724 B** | 330,648 B |
 | verify, fresh process, 1 core (3×) | **40.1–41.7 ms** (wrap 28.9–29.2 ms), peak 22 MB | 40.1–43.1 ms |
 | fresh-process negatives | **16/16** (`m8_negatives.py`) + **2/2** cross-setup (`m9_negatives.py`: the M8 stub packet under the M9 setup; the M9 packet under the M8 setup) | 16/16 |
-| stub swap (`M9_SWAP_STUB`) | see M9b below | — |
+| stub swap (`M9_SWAP_STUB`) | 4/4 refused on the M9b tree (below) | — |
 | proofs | 14: 8 leaves, 2 `P_2`, 2 `PAD_N`, `P_*`, wrap; template set 8 (INIT, STATE_IF, RT_ENTER, WASM, RT_RESUME, STATE_SEG, FINAL, `PAD_L`) | 14, set 7 |
 | prove (sum of proofs) | **7,684 s**: leaves 1,791 (INIT 293, STATE_IF 209, RT_ENTER 188, WASM 219 / 213, RT_RESUME 200, STATE_SEG 218, FINAL 252), `P_2` 1,193 / 825, `PAD_N` 1,692 / 786, `P_*` 845, wrap 552 | 5,955 s |
 | peak RSS | **34.0 GB** (node proofs: 32.3 GB in-process with streamed commitments, the GKR transient); leaves ≤ 14.6 GB | 33.1 GB |
@@ -92,7 +92,18 @@ part's roots, which seg 0 reads (R1 in-tree). Its length goes to `PLEN`. The rec
 cells and the tree 12 leaves (9 + 3 PAD_L). PREP's leaf program root is `768878963b4ca981…`
 (`programs.log`; 159,184 rows).
 
-M9B_RESULTS_PLACEHOLDER
+| M9b | value |
+|---|---|
+| **packet** (`S` 1,007 B + wrap 328,201 B + 12 B) | **329,220 B** |
+| verify, fresh process, 1 core (3×) | **41.9–51.0 ms** (wrap 30.3–31.2 ms) |
+| fresh-process negatives | **16/16** + **2/2** cross-setup |
+| **stub swap** (`run_m9.sh swap`, `M9_SWAP_STUB=0,3,6,8`) | **4/4 refused**. INIT, PREP, RT_RESUME and FINAL were each replaced by a statement-only stub with the real leaf's exact statement. Each stub was proved at the leaf geometry (228–354 s; its program root is not in the set). `P_2` over its group with the run's template set fails to generate: "anchor child program commitment not in the anchor set", "anchor set selector sums to one" |
+| proofs | 18: 9 leaves + 3 PAD_L, 3 `P_2`, 1 `PAD_N`, `P_*`, wrap; template set 9 (+ PREP) |
+| prove (sum of proofs) | **12,760 s**: leaves 1,772 (INIT 240, STATE_IF 183, RT_ENTER 159, PREP 203, WASM 209 / 198, RT_RESUME 227, STATE_SEG 172, FINAL 182), PAD_L 268 / 206 / 199, `P_2` 749 / 735 / 735, `PAD_N` **5,989** (zkbuild slice over its 40 GB `memory.high`: another lane's 14.5 GB Lean job ran beside the 29 GB node; unthrottled ≈ 790 s), `P_*` 1,433, wrap 674 |
+| peak RSS | 33.1 GB (6 threads, resumed after an OOM kill at the 34G cap in the first `PAD_N`; in-process peak 32.0 GB) |
+| geometry | leaf NvAir 2^20 (543,036), SHA 2^21 (1,837,568); node NvAir 2^21 (1,814,612); wrap (20, 380,084) / (21, 1,299,200), program 195,220 rows |
+| setup | 5,038,076 B, sha256 `554eac97…` |
+| PREP leaf program root | **`768878963b4ca981…`** (159,184 rows); WASM `586d63e9e5579b39…` (one program for both segments) |
 
 **Open.**
 * Lane E's `BndRec` digests as the record (needs a concrete `ViewImpl`, and every template

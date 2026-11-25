@@ -1,0 +1,72 @@
+M8_CLAIM_S bytes=1007 claimDigest=bb5aad11ba6ba32d91739f13a2dbd544f2420d770bcd2c3fde9ddc0e1c02710caee28e5e9e4e299f2f01
+M8_TREE arity=4 depth=2 n_rec=2469 stmt_len=3736 templates=8 node_margin=1.13
+M8_LEAF 0 template=INIT phase 0->1 child=true
+M8_LEAF 1 template=STATE_IF phase 1->1 child=true
+M8_LEAF 2 template=RT_ENTER phase 1->6 child=true
+M8_LEAF 3 template=PREP phase 6->6 child=true
+M8_LEAF 4 template=WASM phase 6->6 child=true
+M8_LEAF 5 template=WASM phase 6->6 child=true
+M8_LEAF 6 template=RT_RESUME phase 6->1 child=true
+M8_LEAF 7 template=STATE_SEG phase 1->1 child=true
+M8_LEAF 8 template=FINAL phase 1->4 child=true
+M8_CHAIN_OK leaves=12 (natively: ctx, indices, boundary digests)
+M8_LEAF_PROBE 0 rows=163802 pin=[(21, Some(317820)), (21, Some(1099776)), (7, Some(128)), (16, Some(65536))] s=0.4
+M8_LEAF_PROBE 1 rows=303888 pin=[(21, Some(543036)), (21, Some(1332992)), (7, Some(128)), (16, Some(65536))] s=0.4
+M8_LEAF_PROBE 2 rows=44738 pin=[(21, Some(86444)), (19, Some(301824)), (7, Some(128)), (16, Some(65536))] s=0.1
+M8_LEAF_PROBE 3 rows=160208 pin=[(21, Some(342872)), (21, Some(1614976)), (7, Some(128)), (16, Some(65536))] s=0.5
+M8_LEAF_PROBE 4 rows=246862 pin=[(21, Some(488552)), (21, Some(1837568)), (7, Some(128)), (16, Some(65536))] s=0.4
+M8_LEAF_PROBE 5 rows=246862 pin=[(21, Some(488552)), (21, Some(1837568)), (7, Some(128)), (16, Some(65536))] s=0.4
+M8_LEAF_PROBE 6 rows=199068 pin=[(21, Some(382932)), (21, Some(1309696)), (7, Some(128)), (16, Some(65536))] s=0.4
+M8_LEAF_PROBE 7 rows=192170 pin=[(21, Some(384296)), (21, Some(1478400)), (7, Some(128)), (16, Some(65536))] s=0.4
+M8_LEAF_PROBE 8 rows=275720 pin=[(21, Some(498512)), (21, Some(1304960)), (7, Some(128)), (16, Some(65536))] s=0.4
+M8_LEAF_PROBE 9 rows=3014 pin=[(21, Some(4548)), (9, Some(384)), (7, Some(128)), (16, Some(65536))] s=0.1
+M8_LEAF_PROBE 10 rows=3014 pin=[(21, Some(4548)), (9, Some(384)), (7, Some(128)), (16, Some(65536))] s=0.1
+M8_LEAF_PROBE 11 rows=3014 pin=[(21, Some(4548)), (9, Some(384)), (7, Some(128)), (16, Some(65536))] s=0.1
+M8_LEAF_GEOM Geom { log_rows: 20, prog_log: 19, sha_instances: 1, heights: [(20, Some(543036)), (21, Some(1837568)), (7, Some(128)), (16, Some(65536))] }
+M8_REUSE LEAF0.proof reused
+M8_REUSE LEAF1.proof reused
+M8_REUSE LEAF2.proof reused
+M8_REUSE LEAF3.proof reused
+M8_REUSE LEAF4.proof reused
+M8_REUSE LEAF5.proof reused
+M8_REUSE LEAF6.proof reused
+M8_REUSE LEAF7.proof reused
+M8_REUSE LEAF8.proof reused
+M8_REUSE LEAF9.proof reused
+M8_REUSE LEAF10.proof reused
+M8_REUSE LEAF11.proof reused
+M8_TEMPLATE_SET INIT:1ed74871440eb251 STATE_IF:f6a0da69ce21ebae RT_ENTER:a053d6d1633be10c PREP:768878963b4ca981 WASM:586d63e9e5579b39 RT_RESUME:daea0020f3142952 STATE_SEG:f8544a89488ee10a FINAL:53c17140060a7236
+M8_NODE2_SIZES rows=818696 nv_used=1596700 sha_used=5614216 -> (21,20,2)
+M8_NODE_GEOM Geom { log_rows: 21, prog_log: 20, sha_instances: 2, heights: [(21, Some(1814612)), (22, Some(4194304)), (7, Some(128)), (16, Some(65536)), (22, Some(2286436))] }
+M8_REUSE NODE2_0.proof reused
+M8_REUSE NODE2_1.proof reused
+M8_REUSE NODE2_2.proof reused
+GKR_FILL total_wall_s=43.07
+M8_PAD_NODE_PROVED L2_3 seconds=5988.7
+GKR_FILL total_wall_s=85.21
+M8_NODE_PROVED L3_0 kind=Pstar rows=782232 seconds=1433.4
+M8_WRAP_NEGATIVE_CONTROLS_OK other_statement changed_program
+M8_TREE_WRAP_VERIFIED {"arity":4,"bundle_bytes":329220,"depth":2,"leaf_geom":{"heights":[[20,543036],[21,1837568],[7,128],[16,65536]],"log_rows":20,"prog_log":19,"sha_instances":1},"leaves":12,"node_geom":{"heights":[[21,1814612],[22,4194304],[7,128],[16,65536],[22,2286436]],"log_rows":21,"prog_log":20,"sha_instances":2},"scope":"E2E-D M9 prototype: heterogeneous tree over real T1 leaves only (lanes G INIT/FINAL, B STATE_IF/STATE_SEG, F RT enter/resume, A WASM segments), arity / depth per spec, wrap zk = 6; boundary record = lane D prototype regions (BndRec bytes only between the rt leaves), free / dropped cells listed in spec.edges","seconds":{"node3_0":1433.359848403,"padn2_3":5988.748889712,"wrap":674.319613112},"seconds_by_kind":{"node_star":{"mean_s":1433.359848403,"n":1},"pad_node":{"mean_s":5988.748889712,"n":1},"wrap":{"mean_s":674.319613112,"n":1}},"security_established":false,"setup_bytes":5038076,"setup_sha256":"554eac975a18a3472faf544c3bfe6a2f46e7a6b4792f1f568e94d8c499eac9ff","statement_bytes":1007,"stub_statement_cells":3736,"template_set_size":9,"templates":["INIT","STATE_IF","RT_ENTER","WASM","RT_RESUME","STATE_SEG","PREP","FINAL"],"total_seconds":8287.102733768,"tree_proofs":18,"wrap_heights":[[20,380084],[21,1299200],[7,128],[16,65536]],"wrap_program_rows":195220,"wrap_proof_bytes":328201,"zero_knowledge_established":false,"zero_knowledge_scope":"not claimed for the prototype: the packet is S (plan 3.4.1) + the zk-masked wrap and nothing else leaves the tree, but the prototype's setup is per run (its template set lists this run's template leaf programs at the segments' natural heights, not pinned template shapes) and the stub INIT / FINAL are not sound templates"}
+	Command being timed: "taskset -c 4-11 /data/illia/nearproof-deps/tmp-laneD/drv4/release/nearproof-chunk-e2e m8-tree /data/illia/nearproof-deps/tmp-laneD/m9b/spec.json /data/illia/nearproof-deps/tmp-laneD/m9b/tree /data/illia/nearproof/.claude/worktrees/agent-a0fbe02471ed9827c/research/near-compression/final-soundness/calc/dkt_certs_o2.json /data/illia/nearproof/.claude/worktrees/agent-a0fbe02471ed9827c/research/near-compression/final-soundness/lean/DKTCertsO2_big.keys"
+	User time (seconds): 12922.34
+	System time (seconds): 1236.46
+	Percent of CPU this job got: 170%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 2:18:07
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 33119488
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 1525978
+	Minor (reclaiming a frame) page faults: 607012000
+	Voluntary context switches: 4186716
+	Involuntary context switches: 8348612
+	Swaps: 0
+	File system inputs: 367676272
+	File system outputs: 27520
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

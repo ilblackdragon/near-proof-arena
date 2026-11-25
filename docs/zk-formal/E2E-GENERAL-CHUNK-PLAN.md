@@ -1090,7 +1090,10 @@ items above.
   wrap. Packet **329,724 B**. Verify 40–42 ms on one core, fresh process. Prove 7,684 s (sum of
   proofs, shared host). Peak 34.0 GB: a node proof needs 32.3 GB even with streamed commitments,
   so 20G is not enough. Negatives: 16/16 fresh-process plus 2/2 cross-setup against the M8 stub
-  tree. M9b adds lane A's PREP leaf (README §0).
+  tree. **M9b** adds lane A's PREP before seg 0 (hash bytes = `.pre` `codeRoot` = SHA-256 ‖ 0^10;
+  CODE / FUNC roots = seg 0's in-tree; PREP leaf program `768878963b4ca981…`): packet **329,220 B**,
+  verify 42–51 ms, 16/16 + 2/2, and the **stub swap 4/4 refused** (INIT, PREP, RT_RESUME, FINAL each
+  replaced by a stub with the same statement: `P_2` refuses the program).
 * **Adopted (lane E M11i):** `View.split` phase codes at leaf boundaries (init 0, eng 1, call 6,
   done 4 / doneG 5; the wrap checks 0 and {4, 5}), and the `TailCanon` pin (range-digest and
   `h(B)` limb 17 = `64·t` from 16 bits) as a program-level fix (`e2e-tree-m9.patch`, no AIR

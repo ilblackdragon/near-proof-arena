@@ -1,0 +1,116 @@
+{
+  "arity": 4,
+  "bundle_bytes": 329220,
+  "depth": 2,
+  "leaf_geom": {
+    "heights": [
+      [
+        20,
+        543036
+      ],
+      [
+        21,
+        1837568
+      ],
+      [
+        7,
+        128
+      ],
+      [
+        16,
+        65536
+      ]
+    ],
+    "log_rows": 20,
+    "prog_log": 19,
+    "sha_instances": 1
+  },
+  "leaves": 12,
+  "node_geom": {
+    "heights": [
+      [
+        21,
+        1814612
+      ],
+      [
+        22,
+        4194304
+      ],
+      [
+        7,
+        128
+      ],
+      [
+        16,
+        65536
+      ],
+      [
+        22,
+        2286436
+      ]
+    ],
+    "log_rows": 21,
+    "prog_log": 20,
+    "sha_instances": 2
+  },
+  "scope": "E2E-D M9 prototype: heterogeneous tree over real T1 leaves only (lanes G INIT/FINAL, B STATE_IF/STATE_SEG, F RT enter/resume, A WASM segments), arity / depth per spec, wrap zk = 6; boundary record = lane D prototype regions (BndRec bytes only between the rt leaves), free / dropped cells listed in spec.edges",
+  "seconds": {
+    "node3_0": 1433.359848403,
+    "padn2_3": 5988.748889712,
+    "wrap": 674.319613112
+  },
+  "seconds_by_kind": {
+    "node_star": {
+      "mean_s": 1433.359848403,
+      "n": 1
+    },
+    "pad_node": {
+      "mean_s": 5988.748889712,
+      "n": 1
+    },
+    "wrap": {
+      "mean_s": 674.319613112,
+      "n": 1
+    }
+  },
+  "security_established": false,
+  "setup_bytes": 5038076,
+  "setup_sha256": "554eac975a18a3472faf544c3bfe6a2f46e7a6b4792f1f568e94d8c499eac9ff",
+  "statement_bytes": 1007,
+  "stub_statement_cells": 3736,
+  "template_set_size": 9,
+  "templates": [
+    "INIT",
+    "STATE_IF",
+    "RT_ENTER",
+    "WASM",
+    "RT_RESUME",
+    "STATE_SEG",
+    "PREP",
+    "FINAL"
+  ],
+  "total_seconds": 8287.102733768,
+  "tree_proofs": 18,
+  "wrap_heights": [
+    [
+      20,
+      380084
+    ],
+    [
+      21,
+      1299200
+    ],
+    [
+      7,
+      128
+    ],
+    [
+      16,
+      65536
+    ]
+  ],
+  "wrap_program_rows": 195220,
+  "wrap_proof_bytes": 328201,
+  "zero_knowledge_established": false,
+  "zero_knowledge_scope": "not claimed for the prototype: the packet is S (plan 3.4.1) + the zk-masked wrap and nothing else leaves the tree, but the prototype's setup is per run (its template set lists this run's template leaf programs at the segments' natural heights, not pinned template shapes) and the stub INIT / FINAL are not sound templates"
+}
