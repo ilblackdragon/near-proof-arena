@@ -2065,7 +2065,7 @@ See `research/near-compression/e2e-general/m5t1/README.md`; log
 * **[M] Size:** `SCHT` preprocessed, one row per entry (3,255 → 44 columns): `relations`
   290,732 → 136,608 B. `RX` split not done (plan in README).
 
-### 5.3 M5d (FINAL and INIT templates, lane G): status, 2026-11-25 (G-3)
+### 5.3 M5d (FINAL and INIT templates, lane G): status, 2026-11-25 (G-4)
 
 See `research/near-compression/e2e-general/m5d/README.md` (commands, tables, costs) and
 `LEAF-TEMPLATE-SPEC.md` (for lane D); log `docs/logs/e2e-laneG-m5d-2026-11-21.md`.
@@ -2149,10 +2149,25 @@ T1's row values satisfy `RowOK`, the window is T1's `chunk_inner`, `headerOk` ho
   `B_out` lacks `V.clear (done …)` (gas burnt, compute, indices) — lane E to fix `clear` at `done`
   or the joint leaf passes them through. Owner/lane E decision, not taken here.
 
+**G-4 (lane G, 2026-11-25)** — log `docs/logs/e2e-laneG-g4-2026-11-25.md`, README §G-4, leaf spec §6.
+* **Soundness fix: INIT's main-slot selection is in-circuit** (was the open `walkSegment` item;
+  `psr_slot` was rejected only by the statement check). Class E1 (one epoch record; every `d3`
+  claim): `INI` reads the claim's shard id and checks `#epochs = 1`; new table `LAY` finds
+  `L.index shard` (first `id_to_index` match); `BLK` selects the first new slot at that index,
+  exactly one. No change to `S`, `claimDigest`, the checker or INIT's public values.
+* **[K]** `WalkSel.walk_single` / `main_slot_single` (the checker's `walkSegment` on a one-epoch
+  table = the first block whose slot `L.index shard0` is new), `InitSel.init_blk_main_slot`,
+  `init_lay_first_pair` (from `Holds initAir`: unique first selection / first matching pair). Std
+  axioms. Open [S]: the bus glue between the three tables and the walks' row ↔ decode correspondence.
+* **[M]** T1 INIT re-proved: **355,691 B**, 23.8 s, 6.27 GB, 268.2-bit, `fs-count` + `m8-import` OK,
+  saved at `/data/illia/nearproof-deps/e2e-m5d/g4/tmpl/init/` (new vk; AIR list gains `LAY`).
+  Battery **13/13**: `psr_slot`, new `psr_ix`, `sel_two`, `sel_none` rejected by the AIR.
+* Out of class (≥ 2 epoch records) INIT rejects; the general walk is not built.
+
 **Open, in order:** (1) `Computed` — the functional-sender facts per SHA-256 consumer (then
 `sha_msg`), the `MRK` rows ⇒ `walkLevel` (functional `NODE` bus), `BODY`/`SEG` ⇒ `encodeRcpts`,
 `S384` padding + digest bytes (then `s384_chain` + `sha384_of_blocks` give SHA-384); (2) lane B's
-`FinalBPart` / `InitBPart` (INTAKE's `ℓ_B` check); (3) transactions (81 % of cases), then proposals,
+`FinalBPart` / `InitBPart` (INTAKE's `ℓ_B` check); INIT's general walk (≥ 2 epochs); (3) transactions (81 % of cases), then proposals,
 bandwidth requests; templates per generated class; (4) lane D: `h(B_out)` assembly in the FINAL
 leaf from the exposed component digests.
 

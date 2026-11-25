@@ -50,7 +50,9 @@ def main (args : List String) : IO UInt32 := do
   | ["air-init", out, names] =>
     IO.FS.writeFile out (ZkFormal.Air.Air.exportJson InitT.initAir)
     IO.FS.writeFile names (namesJson InitT.initNames InitT.initLayouts
-      (finalConsts ++ [("ID_CTX", toString InitT.ID_CTX), ("CTX_TAG", toString InitT.CTX_TAG)]))
+      (finalConsts ++ [("ID_CTX", toString InitT.ID_CTX), ("CTX_TAG", toString InitT.CTX_TAG),
+        ("P_CH", toString InitT.P_CH), ("P_CI", toString InitT.P_CI), ("CI_SHARD", toString InitT.CI_SHARD),
+        ("POST_NEP", toString InitT.POST_NEP), ("POST_LAY", toString InitT.POST_LAY)]))
     for (n, t) in InitT.initNames.zip InitT.initAir.tables do
       IO.println s!"TABLE {n}: width {t.width}, constraints {t.constraints.length}, interactions {t.interactions.length}"
     return 0
