@@ -792,6 +792,47 @@ Instances (what each lane states):
   HOST buses (lane B item 3), with `wIn`/`wOut` the working-set root inside `B.wasm`'s host state.
 * Lane E owes the three glue lemmas (not done in M11i).
 
+##### Lane G's G-3 boundary gaps (decisions, M11i; `m5d/README` §G-3)
+
+All three follow from `ViewE.viewE` (the concrete view; lane B's `stD`, lane A's `wasmD`):
+
+1. **`B_0` (INIT input, `init cb wb`, phase 0).** Fixed: `ctxRoot = ctxDE (.raw cb wb)` =
+   **lane G's encoding adopted** `bdigest (0 ‖ u32 ℓ_B ‖ u32 |cb| ‖ cb ‖ wb)` for `|cb| < 2^32` (the
+   only branch a real claim takes; the `≥ 2^32` branch `bdigest (5 ‖ Ser.enc (cb, wb))` only makes
+   the function injective); `stRoot = stD .none` (lane B's `StateView.stD` at `.none`, a constant);
+   accumulators `outDE .none = (bdigest [], [], bdigest [], bdigest [0])` — **not** lane G's
+   proposed `(bdigest [], [bdigest []], bdigest [], bdigest [])`, which equals `outD (.eng ([], [],
+   []))` and breaks `Coll outD → Bad`; `vmAcc = vmDE [] = bdigest []`; `wasm = none`,
+   `inCall = false`; clear fields `clearE` = constants (`claimDigest = bdigest []`, all counters 0:
+   the chunk context travels in the leaf statement's `ctx`, not in the record).
+2. **INIT output / FINAL input.** There is no leaf ending at `B_0`: `INIT` is one `CM` step
+   `init cb wb → eng I start` (or `gfin G`), so its leaf is the **join** INIT (lane G, `InitGPart`)
+   ∧ INTAKE (lane B, `InitBPart`), composed by `TreeM8.split_sound` (§ "Split leaves"); its `B_out`
+   is the full record of `eng I ⟨start, …⟩` (`ctxDE (.intake I)`, `stD (stOfK (κ I) …)`,
+   `outDE (.eng ([], [], []))`, `vmDE []`, `clearE`). Likewise FINAL's input is the full record of
+   `eng I ⟨done out, _⟩` / `fin I out`; **`finInDigest` and `prev_state_root` are join values**
+   (on the bus between the two halves), not boundary fields. **`outRcptAcc` shape:** in an engine
+   state it is the singleton `[chainD enc rs]` over the *unrouted* outgoing list (`AccV`'s
+   `List Rcpt`; the shard routing is `finK`'s output, so it cannot be in an engine-state
+   accumulator); FINAL opens it (witnesses the list, recomputes the chain), then builds its own
+   routed `u64 shard ‖ u32 ℓ ‖ enc r` chain internally. **Item encodings:** `ViewE` uses the
+   prefix-free `Ser.enc` (`OutD1`, `Rcpt`, `Proposal`), whose injectivity is proved; lane G's
+   `OutD1.leaf` and `u32 ℓ ‖ Rcpt.encode r` may replace them once their injectivity is proved
+   (lane E, M12 — open); until then a leaf computing a different item encoding does not meet the
+   view.
+3. **FINAL output `done H o` (phase 4).** Clear fields: **constants** (`clearE`); no pass-through
+   leaf is needed — the outputs that matter are in `o`, which `outDE (.done o)` commits to.
+   `outDE (.done o) = (bdigest (Ser.enc o), [], bdigest [], bdigest [2])` (the first field commits to
+   the whole `Outputs`, the last is the constructor tag); `ctxRoot = ctxDE (.header H) =
+   bdigest (3 ‖ Ser.enc H)` (`ViewSer` supplies `Ser ChunkInner`, `Ser Outputs`); `stRoot = stD
+   .none`; `vmAcc = bdigest []`. Lane G's current `ctxD(.header H)` / `outD(.done o).1` values must
+   be recomputed with these formulas. Lane I's plan to carry `gasUsed`/`gasBurnt`/`compute`/
+   `receiptIdx` into `done` is dropped.
+* **Open (lane G):** slot selection (`walkSegment`) is not in-circuit; the `psr_slot` mutant is
+  rejected only by the statement check — a FINAL/INIT soundness gap to close in-circuit (it is part
+  of `SegRelInit`'s / `SegRelFinal`'s meaning, `CM.step`).
+* No checker or spec definition changed for these; `ViewE`/`ViewSer` are E2E-layer definitions.
+
 ##### Lane A's A-T1 points (decisions, M11i)
 
 1. **Relative obligation adopted.** A field-copying leaf cannot open its input digest by itself
