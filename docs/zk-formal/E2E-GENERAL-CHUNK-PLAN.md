@@ -813,11 +813,14 @@ Instances (what each lane states):
    PREP proves exactly it as a `wasm`-kind leaf (kind map `kindOf` in `E2ETree8`); no new kind.
 4. **`gasLeft` added** to `WasmBnd` (`Boundary.lean`, lane A's m6 README §6.1 diff verbatim:
    after `fuel`, `u64` in the codec), with **default `0`** so lane A's record literals
-   (`airBnd`, `fbBnd`) build unchanged; lane A then sets it per §6.2 (`s.gas.g` on the AIR branch)
+   (`airBnd`, `fbBnd`) build unchanged (two positional proofs in `WasmView.lean` — `wasmBnd_ok`'s
+   anonymous constructor and one `WasmBnd.mk.injEq` destructuring — were shifted by one field in
+   this branch; lane A's `WasmBase WasmBase-tool` builds, 727 jobs); lane A then sets it per §6.2 (`s.gas.g` on the AIR branch)
    and drops `gas.g` from `blank`. Every v3 `E2E` module downstream of `Boundary` and the zk-formal
    E2E/Nv chain are rebuilt. **On merge with lane A's A-T1:** `TmplWasm.wb_ext` (`cases a; cases
    b; simp_all` over 13 field equalities) needs a 14th hypothesis `a.gasLeft = b.gasLeft` (its
-   callers have both records from `airBnd`, where it is `rfl` with the default).
+   callers have both records from `airBnd`, where it is `rfl` with the default), and any other
+   positional `WasmBnd.mk.injEq` pattern in A-T1 / lane F / lane G files gains one `-`.
 
 ---
 
