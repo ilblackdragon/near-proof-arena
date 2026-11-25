@@ -619,6 +619,45 @@ definition changed. Log: [`docs/logs/e2e-lean-m11h-2026-11-21.md`](../logs/e2e-l
 **M11i (lane E, 2026-11-21) [K].** Standard axioms only, no `sorry`, no checker definition changed.
 Log: [`docs/logs/e2e-lean-m11i-2026-11-21.md`](../logs/e2e-lean-m11i-2026-11-21.md).
 
+* **Soundness fix S1–S3 (lane A's A-T2 finding; `E2E/StoreBlind.lean`, `defaultTargets`).**
+  *The defect:* `TTN.RealStore.store` is a function, carried in call configurations (the query
+  `q`, the tape `K`, the Wasm states), so no `vmD`/Wasm remainder is injective (`no_ser_store`,
+  lane A's `vmD_coll`, `wasmViewParams_empty`). Hence **`BndCollision V.bnd` holds for every view**
+  and the conclusions `E2EStmt ∨ Bad ∨ BndCollision` of `e2e_sound_t1`, `e2e_sound_t1_rel`,
+  `e2e_sound_m8(_rel)`, `e2e_sound_of_tree8` are vacuous as they stand. `S`, `claimDigest` and
+  the checker are untouched by the fix (it changes only views and the soundness statement's
+  collision event), so no stop was needed.
+  *The fix (S1):* `setR s` overwrites every store, `stripR = setR blankStore`; a view is
+  **`StoreBlind`** if its record ignores stores; **`Canon sf x`**: every store in `x` is `sf I`
+  (the store the context determines — in the honest run `CutW`'s `fun hb => (env.codeOf (ofBA
+  hb)).map toBA`); `canon_strip_inj`: stripping is injective on canonical configurations;
+  **`bnd_eq_canon`**: for a store-blind well-formed view, equal digests of canonical
+  configurations are equal configurations, a 42-B SHA-384 collision, or a component collision with
+  the tape / Wasm components restricted to stripped values (`CollOn VStripped vmD`,
+  `CollOn WStripped wasmD`). **The per-template obligation becomes `TmplRelC sf V A Bad k`**
+  (every *canonical* opening of the input digest steps to a *canonical* opening of the output):
+  **`e2e_sound_t1_relC`** concludes `E2EStmt ∨ Bad ∨ BndCollisionOn (Canon sf) V.bnd`, and
+  **`e2e_sound_t1_relC_bind`** splits that into SHA-384 and component collisions — real bad
+  events. Non-vacuity: **`vSB`** is an explicit store-blind view (`vSB_blind`) whose tape and Wasm
+  commitments are binding on stripped values (`vmSB_bind`, `wasmSB_bind`: `→ Sha384Coll`). *S2:*
+  `preCodeRoot q = SHA-256(q.code) ‖ 0^10` (42 B), the `.pre` record's `codeRoot`, written by lane
+  F's enter leaf. *S3:* `CodeCommit` (the cached-commitment root of the padded CODE/FUNC records)
+  with its collision event `CodeCommit.Coll`. **What the lanes do:** lane A — `encRest_inj` modulo
+  stores (`encRest a = encRest b → stripW a = stripW b`, with `ViewSer.argsN`/`confN`/`stN`),
+  `fbBnd (q, .pre)`'s `codeRoot := preCodeRoot q`, `codeRootOf := CodeCommit.root` of the padded
+  records, and its binding lemmas restated as `CollOn WStripped`; lane F — the `enter`/`next`
+  leaves produce canonical `x'` (the engine's query, store `sf I`) and write `preCodeRoot`; all
+  lanes — target `TmplRelC` (the M11i `TmplRel` is the special case where openings are
+  canonical). **Lane B's state view checked:** `StV` contains no function-typed component
+  (`StEnc.encStV_inj` holds for every `StV`), and `join/StViewE.stViewE` is an explicit
+  `StViewE` instance — not affected. **M8 fixed too** (`E2E/TreeM8C.lean`, `defaultTargets`): `TmplSoundRel8C`,
+  **`e2e_sound_m8_relC`** (collision restricted to canonical configurations) and
+  **`e2e_sound_m8_relC_bind`** (split into real bad events); lane D's `e2e_sound_of_tree8`
+  composes with it the same way (`treeFaithful_of_aggH` is unchanged). **Open (lane E, M12):** the
+  honest side for `Canon` (the engine's queries carry `sf I` for `sf I := fun hb =>
+  (I.env.codeOf …)`, or the per-block env); `View.lean`/`Boundary.lean` themselves are unchanged
+  (the fix is a new module, so that the v3 / lane A / lane B / zk-formal chains need no rebuild;
+  moving it into `View.lean` is mechanical).
 * **The official per-template obligation is now the relative form** (`Templates.lean`,
   replacing M11h's absolute `TmplSound` as the lanes' target; lanes A and F found independently
   that no segment circuit can meet the absolute form, `M5T1.Obl.tmplSound_image`,
