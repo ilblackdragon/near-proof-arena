@@ -207,9 +207,12 @@ def test_chain_saved_leaves():
     # every in/out digest of the two Wasm leaves is the chain's (c4 -> c5 -> c6)
     assert r["WASM seg 1"]["out_equal"]
     assert all(r[f"WASM seg {k}"][f"d_{s}_equal"] for k in (0, 1) for s in ("in", "out"))
-    assert {"claimDigest", "bwAcc", "vmAcc", "outcomeAcc"} <= set(r["RT enter"]["diff_in"])
-    assert {"claimDigest", "t", "bwAcc", "proposalsAcc"} <= set(r["RT resume"]["diff_in"])
-    assert "receiptIdx" not in r["RT resume"]["diff_out"] and "outcomeAcc" not in r["RT resume"]["diff_out"]
+    # F-5: lane F's leaves are proved on the chain's records (enter c2 -> c3, resume c6 -> c7, the STATE
+    # engine halves SE c1 -> c2, c7 -> c8, c8 -> c9): every in / out record equals the chain's
+    for k in ("RT enter", "RT resume", "STATE seg A, engine half", "STATE seg B, engine half", "finalize, engine half"):
+        if k in r:
+            assert r[k]["in_equal"] and r[k]["out_equal"], (k, r[k].get("diff_in"), r[k].get("diff_out"))
+            assert not r[k]["diff_in"] and not r[k]["diff_out"], k
 
 
 @pytest.mark.skipif(not (HAVE_T1 and HAVE_LEAN), reason="T1 case or Lean v3 package absent")

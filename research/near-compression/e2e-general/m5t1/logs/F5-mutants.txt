@@ -1,0 +1,63 @@
+# F-5 mutant batteries (each must be rejected; chain pairs)
+## enter (c2 -> c3)
+== enter mutant phase: PRECHECK FAIL: ENT: constraint 52 fails on row 0
+== enter mutant gas: PRECHECK FAIL: ENT: constraint 184 fails on row 0
+== enter mutant stroot: PRECHECK FAIL: ENT: constraint 93 fails on row 0
+== enter mutant clock: PRECHECK FAIL: ENT: constraint 85 fails on row 0
+== enter mutant coderoot: PRECHECK FAIL: ENT: constraint 719 fails on row 0
+== enter mutant prefuel: PRECHECK FAIL: ENT: constraint 476 fails on row 0
+== enter mutant gasleft: PRECHECK FAIL: ENT: constraint 484 fails on row 0
+== enter mutant framesdig: PRECHECK FAIL: ENT: constraint 492 fails on row 0
+== enter mutant outrcpt: PRECHECK FAIL: ENT: constraint 283 fails on row 0
+== enter mutant inphase: PRECHECK FAIL: ENT: constraint 0 fails on row 0
+## resume (c6 -> c7)
+== mutant gasburnt (mutant applied: ['gasburnt']): PRECHECK FAIL: RX: constraint 244 fails on row 0
+== mutant refund (mutant applied: ['refund']): PRECHECK FAIL: RX: constraint 494 fails on row 0
+== mutant status (mutant applied: ['status']): PRECHECK FAIL: 4 unbalanced messages by bus {5: 2, 15: 2}; first [((5, [189, 0]), 2013265920), ((5, [189, 5]), 1), ((15, [1, 185, 116, 54, 235, 239, 240, 1, 142
+== mutant rcptid (mutant applied: ['rcptid']): PRECHECK FAIL: 6 unbalanced messages by bus {4: 2, 15: 2, 16: 2}; first [((4, [231, 0, 50]), 2013265919), ((4, [231, 0, 51]), 2), ((15, [1, 28, 84, 207, 37, 49,
+== mutant statement (mutant applied: ['statement']): PRECHECK FAIL: RX: constraint 950 fails on row 0
+== mutant acctpost (mutant applied: ['acctpost']): PRECHECK FAIL: 4 unbalanced messages by bus {4: 2, 8: 2}; first [((4, [168, 0, 0]), 1), ((4, [168, 0, 1]), 2013265920), ((8, [4, 128, 0]), 2013265920)]
+== mutant logbyte (mutant applied: ['logbyte']): PRECHECK FAIL: 4 unbalanced messages by bus {4: 2, 15: 2}; first [((4, [184, 0, 116]), 1), ((4, [184, 0, 117]), 2013265920), ((15, [1, 7, 12, 253, 26, 185, 226,
+== mutant vmburnt (mutant applied: ['vmburnt']): PRECHECK FAIL: RX: constraint 950 fails on row 0
+== mutant bndgas (mutant applied: ['bndgas']): PRECHECK FAIL: RB: constraint 224 fails on row 0
+== mutant bndprepaid (mutant applied: ['bndprepaid']): PRECHECK FAIL: RX: constraint 1031 fails on row 0
+== mutant bndburnt (mutant applied: ['bndburnt']): PRECHECK FAIL: RB: constraint 272 fails on row 0
+== mutant stcopy (mutant applied: ['stcopy']): PRECHECK FAIL: 2 unbalanced messages by bus {18: 2}; first [((18, [13022682, 13312266, 12131680, 14886122, 3576185, 6813269, 10528846, 11667167, 9477116, 153728
+== mutant accnoappend (mutant applied: ['accnoappend']): PRECHECK FAIL: ACC: constraint 135 fails on row 1
+== mutant rcptnoappend (mutant applied: ['rcptnoappend']): PRECHECK FAIL: ACC: constraint 135 fails on row 4
+== mutant vmnoreset (mutant applied: ['vmnoreset']): PRECHECK FAIL: RB: constraint 380 fails on row 0
+== mutant vminK (mutant applied: ['vminK']): PRECHECK FAIL: RB: constraint 17 fails on row 0
+== mutant ridxcopy (mutant applied: ['ridxcopy']): PRECHECK FAIL: RB: constraint 157 fails on row 0
+== mutant prepaidout (mutant applied: ['prepaidout']): PRECHECK FAIL: RB: constraint 265 fails on row 0
+== mutant accitem (mutant applied: ['accitem']): PRECHECK FAIL: ACC: constraint 135 fails on row 1
+== mutant finpre (mutant applied: ['finpre']): PRECHECK FAIL: RB: constraint 681 fails on row 0
+== mutant finpc (mutant applied: ['finpc']): PRECHECK FAIL: RB: constraint 423 fails on row 0
+== mutant finmem (mutant applied: ['finmem']): PRECHECK FAIL: RB: constraint 505 fails on row 0
+## STATE engine half SE (c1 -> c2, c7 -> c8, c8 -> c9)
+== [STATE seg A] mutant phase: PRECHECK FAIL: SE: constraint 52 fails on row 0
+== [STATE seg A] mutant vmacc: PRECHECK FAIL: SE: constraint 201 fails on row 0
+== [STATE seg A] mutant prepaid: PRECHECK FAIL: SE: constraint 127 fails on row 0
+== [STATE seg A] mutant gasburnt: PRECHECK FAIL: SE: constraint 251 fails on row 0
+== [STATE seg A] mutant ctxcopy: PRECHECK FAIL: SE: constraint 85 fails on row 0
+== [STATE seg A] mutant claimcopy: PRECHECK FAIL: SE: constraint 10 fails on row 0
+== [STATE seg A] mutant clock: PRECHECK FAIL: SE: constraint 84 fails on row 0
+== [STATE seg A] mutant incall: PRECHECK FAIL: SE: constraint 8 fails on row 0
+== [STATE seg A] mutant stroot: PRECHECK FAIL: 2 unbalanced messages by bus {18: 2}; first [((18, [13022682, 13312266, 12131680, 14886122, 3576185, 6813269, 10528846, 11667167, 9477116, 15372879, 11923450, 8570304, 3971000, 13157450, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]), 1), ((18, [13088218, 13312266, 12131680, 14886122, 3576185, 6813269, 10528846, 11667167, 9477116, 15372879, 11923450, 8570304, 3971000, 13157450, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]), 2013265920)]
+== [STATE seg B] mutant phase: PRECHECK FAIL: SE: constraint 52 fails on row 0
+== [STATE seg B] mutant vmacc: PRECHECK FAIL: SE: constraint 201 fails on row 0
+== [STATE seg B] mutant prepaid: PRECHECK FAIL: SE: constraint 127 fails on row 0
+== [STATE seg B] mutant gasburnt: PRECHECK FAIL: SE: constraint 251 fails on row 0
+== [STATE seg B] mutant ctxcopy: PRECHECK FAIL: SE: constraint 85 fails on row 0
+== [STATE seg B] mutant claimcopy: PRECHECK FAIL: SE: constraint 10 fails on row 0
+== [STATE seg B] mutant clock: PRECHECK FAIL: SE: constraint 84 fails on row 0
+== [STATE seg B] mutant incall: PRECHECK FAIL: SE: constraint 8 fails on row 0
+== [STATE seg B] mutant stroot: PRECHECK FAIL: 2 unbalanced messages by bus {18: 2}; first [((18, [14549577, 4479328, 11259935, 3858733, 2529902, 4475581, 11599515, 15151034, 1640132, 4385781, 10715622, 5509834, 12008299, 13414724, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]), 1), ((18, [14615113, 4479328, 11259935, 3858733, 2529902, 4475581, 11599515, 15151034, 1640132, 4385781, 10715622, 5509834, 12008299, 13414724, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]), 2013265920)]
+== [finalize] mutant phase: PRECHECK FAIL: SE: constraint 52 fails on row 0
+== [finalize] mutant vmacc: PRECHECK FAIL: SE: constraint 201 fails on row 0
+== [finalize] mutant prepaid: PRECHECK FAIL: SE: constraint 127 fails on row 0
+== [finalize] mutant gasburnt: PRECHECK FAIL: SE: constraint 251 fails on row 0
+== [finalize] mutant ctxcopy: PRECHECK FAIL: SE: constraint 85 fails on row 0
+== [finalize] mutant claimcopy: PRECHECK FAIL: SE: constraint 10 fails on row 0
+== [finalize] mutant clock: PRECHECK FAIL: SE: constraint 84 fails on row 0
+== [finalize] mutant incall: PRECHECK FAIL: SE: constraint 8 fails on row 0
+== [finalize] mutant stroot: PRECHECK FAIL: 2 unbalanced messages by bus {18: 2}; first [((18, [14955283, 8380046, 8790330, 5774827, 14253357, 13016882, 6308428, 6698476, 3642915, 8991958, 13509775, 896005, 14319925, 11790821, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]), 1), ((18, [15020819, 8380046, 8790330, 5774827, 14253357, 13016882, 6308428, 6698476, 3642915, 8991958, 13509775, 896005, 14319925, 11790821, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]), 2013265920)]

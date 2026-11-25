@@ -81,7 +81,7 @@ def main():
     json.dump([0, 450, 834], open(f"{out}/bnd.json", "w"))
     if "--template" in opt:
         json.dump(json.load(open(opt["--template"])), open(f"{out}/template.json", "w"), indent=1)
-    print(f"ENT dump: d_in {d_in} d_out {d_out} (lane I plan, M11i shape), code hash {ch.hex()}, {len(pubs)} public values")
+    print(f"ENT dump: d_in {d_in} d_out {d_out} (lane I chain / plan pair), code hash {ch.hex()}, {len(pubs)} public values")
 
 
 if __name__ == "__main__":

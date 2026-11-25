@@ -449,14 +449,17 @@ SAVED = {
     "INIT": f"{DEPS}/e2e-m5d/g5/tmpl/init",
     "IF": f"{T4}/if/out",
     "STATE": f"{T4}/seg0/out",
-    "RT enter": f"{DEPS}/e2e-m5t1/f3/enter-proof",
+    "RT enter": f"{DEPS}/e2e-m5t1/f5/enter-proof",       # F-5: proved on this chain's c2 -> c3
     "PREP": f"{DEPS}/e2e-laneA/at4/prep/leaf",
     "WASM": f"{DEPS}/e2e-laneA/at5/leaf-k13/leaf",
-    "RT resume": f"{DEPS}/e2e-m5t1/f4/resume-proof",
+    "RT resume": f"{DEPS}/e2e-m5t1/f5/resume-proof",     # F-5: c6 -> c7
     "FINAL": f"{DEPS}/e2e-m5d/g5/tmpl/final",
 }
 # B-T4: the other three state halves (out/ = proof + statement + htape.json, the STC stand-in's messages)
 SAVED_B = {"STATE R": f"{T4}/seg1/out", "STATE B": f"{T4}/seg2/out", "STATE fin": f"{T4}/seg3/out"}
+# F-5: lane F's STATE engine halves (`SE`, proof + statement: the two records' BndRec.encode bytes)
+SAVED_F = {"STATE seg A": f"{DEPS}/e2e-m5t1/f5/se-seg-a-proof", "STATE seg B": f"{DEPS}/e2e-m5t1/f5/se-seg-b-proof",
+           "finalize": f"{DEPS}/e2e-m5t1/f5/se-finalize-proof"}
 TREE = f"{DEPS}/tmp-laneD/m9b"   # lane D's M9 prototype tree (the leaves it imported: imported.sha256)
 
 
@@ -546,9 +549,9 @@ def leaf_table(c, inp, saved=SAVED, saved_b=SAVED_B):
     p = saved["RT enter"]
     if ex(p):
         pv = json.load(open(f"{p}/statement.json"))["public_values"]
-        rows.append(_rec_row("RT enter (F-3)", p, bndrec.decode(bytes(pv[:450])), bndrec.decode(bytes(pv[450:1284])), c[2], c[3],
-                             "F: re-prove enter with the M12 / M11i record (claimDigest = bdigest [], outD (.eng) accumulators + tag, vmAcc = bdigest []); stRoot / ctxRoot wait for B / E",
-                             "pre-M12 record: real claimDigest, 0^42 accumulators / tag / vmAcc / proposalsAcc, run4's stRoot placeholder"))
+        rows.append(_rec_row("RT enter (F-5)", p, bndrec.decode(bytes(pv[:450])), bndrec.decode(bytes(pv[450:1284])), c[2], c[3],
+                             "F: EntChecks.prepaid / .code (join with the receipt rows); A: vmCtxDigest (placeholder shared with the chain)",
+                             "F-5: proved from this chain's c2 -> c3 (rtbnd.pair_chain); re-prove when the chain moves"))
     # PREP (A-T4)
     p = saved["PREP"]
     if ex(p):
@@ -597,9 +600,9 @@ def leaf_table(c, inp, saved=SAVED, saved_b=SAVED_B):
     p = saved["RT resume"]
     if ex(p):
         pv = json.load(open(f"{p}/statement.json"))["public_values"]
-        rows.append(_rec_row("RT resume (F-4)", p, bndrec.decode(bytes(pv[247:1081])), bndrec.decode(bytes(pv[1081:1531])), c[6], c[7],
-                             "F: re-prove with claimDigest = bdigest [], bwAcc / proposalsAcc = outD (.eng) values, B_in.wasm = lane A's fin record; B: STC answers stRoot (stand-in today)",
-                             "F-4 shape (M12 counters, real accumulators) but plan-copied claimDigest / proposalsAcc / bwAcc / ctxRoot, the Wasm part of the run4 plan's last cut, stand-in STC r_out"))
+        rows.append(_rec_row("RT resume (F-5)", p, bndrec.decode(bytes(pv[247:1081])), bndrec.decode(bytes(pv[1081:1531])), c[6], c[7],
+                             "F: RsStep (estepO composition), in-circuit Ser.enc items; A: RsFin (vmCtxDigest opening); B/D: one trace with B-T4's state half (XTAPE stand-in = its htape)",
+                             "F-5: proved from this chain's c6 -> c7; B_in.wasm = lane A's fin record, checked in-circuit (finInCons)"))
     # STATE (B-T4): the segment cut at the rt boundaries, m5tSegC
     p = saved["STATE"]
     if ex(p):
@@ -623,6 +626,15 @@ def leaf_table(c, inp, saved=SAVED, saved_b=SAVED_B):
     else:
         rows.append({"leaf": "finalize (STATE, D-b)", "path": None, "exposes": "—", "in_equal": False, "out_equal": False,
                      "owner": "B (IF-FINAL half as a leaf with STC) + F (engine rows yields → done)", "why": "no leaf exists"})
+    # STATE engine halves (F-5): SE leaves, full BndRec in / out
+    for nm, (a_, b_) in (("STATE seg A", (1, 2)), ("STATE seg B", (7, 8)), ("finalize", (8, 9))):
+        p = SAVED_F[nm]
+        if ex(f"{p}/statement.json"):
+            pv = json.load(open(f"{p}/statement.json"))["public_values"]
+            rows.append(_rec_row(f"{nm}, engine half (F-5 SE)", p, bndrec.decode(bytes(pv[:450])), bndrec.decode(bytes(pv[450:900])),
+                                 c[a_], c[b_], "F: SeStep (the VM-free engine rows: counters, accumulators, SREQ/HB traffic); "
+                                 "B/D: one trace with B-T4's state half (XTAPE stand-in = its htape)",
+                                 "SE: boundary rules + STMQ/STMA; proved from this chain's records"))
     # FINAL (G-5): B_out = done H o from ctxD (.header H), outD (.done o).1 and the two counters
     p = saved["FINAL"]
     if ex(p):

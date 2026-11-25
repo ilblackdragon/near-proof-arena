@@ -13,6 +13,8 @@ import M5T1.SplitC
 import M5T1.ResumeC
 import M5T1.T1Resume
 import M5T1.ResumeF
+import M5T1.SeC
+import M5T1.T1Se
 
 /-! The axioms of every lane F headline theorem (standard axioms only). -/
 
@@ -72,3 +74,12 @@ import M5T1.ResumeF
 #print axioms M5T1.T1Resume.t1_acc1
 #print axioms M5T1.AccSem.acc_sound
 #print axioms M5T1.ResumeF.rsHolds_of
+-- F-5
+#print axioms M5T1.RbSem.rb_fin_in
+#print axioms M5T1.RbSem.preRec_ne_fin
+#print axioms M5T1.SeSem.se_out
+#print axioms M5T1.SeC.se_engHalf
+#print axioms M5T1.SeC.fin_engHalf
+#print axioms M5T1.SeC.finalize_relC8
+#print axioms M5T1.T1Se.t1_se_constr
+#print axioms M5T1.T1Se.t1_se_chain

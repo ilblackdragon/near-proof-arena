@@ -51,7 +51,8 @@ theorem mem_chunks {α : Type} (n : Nat) : ∀ (m : Nat) (l : List α), l.length
       refine ⟨k + 1, by omega, ?_⟩
       rwa [List.drop_drop, show n + n * k = n * (k + 1) by rw [Nat.mul_succ]; omega] at he'
 
-/-! Row 0: the 511 `RB` constraints, by kernel evaluation in chunks of 100. -/
+/-! Row 0: the 853 `RB` constraints (F-5: + 342 for the input's `fin` record), by kernel evaluation
+in chunks of 100. -/
 theorem rb0_0 : ∀ e ∈ (Rb.table.constraints.drop 0).take 100, e.eval t1ResTr 6 0 t1ResPub = 0 := by
   decide +kernel
 theorem rb0_1 : ∀ e ∈ (Rb.table.constraints.drop 100).take 100, e.eval t1ResTr 6 0 t1ResPub = 0 := by
@@ -64,18 +65,27 @@ theorem rb0_4 : ∀ e ∈ (Rb.table.constraints.drop 400).take 100, e.eval t1Res
   decide +kernel
 theorem rb0_5 : ∀ e ∈ (Rb.table.constraints.drop 500).take 100, e.eval t1ResTr 6 0 t1ResPub = 0 := by
   decide +kernel
+theorem rb0_6 : ∀ e ∈ (Rb.table.constraints.drop 600).take 100, e.eval t1ResTr 6 0 t1ResPub = 0 := by
+  decide +kernel
+theorem rb0_7 : ∀ e ∈ (Rb.table.constraints.drop 700).take 100, e.eval t1ResTr 6 0 t1ResPub = 0 := by
+  decide +kernel
+theorem rb0_8 : ∀ e ∈ (Rb.table.constraints.drop 800).take 100, e.eval t1ResTr 6 0 t1ResPub = 0 := by
+  decide +kernel
 
 theorem t1_rb_row0 : ∀ e ∈ Rb.table.constraints, e.eval t1ResTr 6 0 t1ResPub = 0 := by
   intro e he
-  obtain ⟨k, hk, he⟩ := mem_chunks 100 6 _ (by decide +kernel) e he
-  rcases (by omega : k = 0 ∨ k = 1 ∨ k = 2 ∨ k = 3 ∨ k = 4 ∨ k = 5) with
-    rfl | rfl | rfl | rfl | rfl | rfl
+  obtain ⟨k, hk, he⟩ := mem_chunks 100 9 _ (by decide +kernel) e he
+  rcases (by omega : k = 0 ∨ k = 1 ∨ k = 2 ∨ k = 3 ∨ k = 4 ∨ k = 5 ∨ k = 6 ∨ k = 7 ∨ k = 8) with
+    rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl
   · exact rb0_0 e he
   · exact rb0_1 e he
   · exact rb0_2 e he
   · exact rb0_3 e he
   · exact rb0_4 e he
   · exact rb0_5 e he
+  · exact rb0_6 e he
+  · exact rb0_7 e he
+  · exact rb0_8 e he
 
 /-- Every `RB` constraint is `isFirst`-gated or the booleanity of a carry column. -/
 def rowZeroOK : Expr → Bool

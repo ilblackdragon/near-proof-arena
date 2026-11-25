@@ -1083,7 +1083,7 @@ def main():
                              acc_out=hashlib.sha384(accs_in[hid] + items[hid]).digest()[:42].hex()))
     print(f"F-4: RB row 0, ACC {len(acc.rows)} rows / {len(comps)} compressions (outcome item {len(items[0])} B, "
           f"refund item {len(items[1])} B)")
-    print(f"resume boundary: d_in {d_in} d_out {d_out} (lane I plan, M11i shape) = bdigest of the public records")
+    print(f"resume boundary: d_in {d_in} d_out {d_out} (lane I chain / plan pair) = bdigest of the public records")
     pub_vals = [pubs[nm] for nm in pubnames]
     with open(f"{out}/expected_pubs.bin", "wb") as f:
         f.write(struct.pack(f"<{len(pub_vals)}I", *[v % P for v in pub_vals]))

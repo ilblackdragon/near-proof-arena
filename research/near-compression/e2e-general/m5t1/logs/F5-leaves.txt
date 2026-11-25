@@ -1,0 +1,60 @@
+# F-5 (2026-11-25): lane F's T1 leaves on lane I's chain (chain.py plan after main's B-T4 merge)
+== enter
+PARAMS n_stack 10 w_stack 8 log_blowup 7 degree 2 pow 24 queries [45, 38]
+SOUNDNESS total=268.8 logup=321.4 proximity=300.1 query=268.8
+PROOF total=88327 gkr=56 relations=644 stacking=1360 whir=81056
+TIME prove 2.74s verify 0.0010s threads 8 peak_rss_kib 1197276 proof_bytes 88327
+SAVED /data/illia/nearproof-deps/e2e-m5t1/f5/enter-proof (RT.proof 88327 B, RT.vk.json 183229 B); boundary d_in "3d9f81b4513b3120c7490fbe2de0f649ecb70cd046e00b235306184580f549c9842317adc3c0df064e30" d_out "bff8b6336bebcedcba375be8fadb473c90e9eface5177ac0559366a3f25bfb2ccbc8db57fd06bc96bbef"
+VERIFY OK (native SWIRL verifier); statement check (tape roots + public values): OK
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:02.77
+	Maximum resident set size (kbytes): 1197276
+M8_TEMPLATE_PROVED rt-enter bytes=88327 seconds=0.0 params=(n_stack 10, w_stack 8, lb 7) queries=[45, 38] bits=268.8
+== resume
+PARAMS n_stack 14 w_stack 10 log_blowup 5 degree 9 pow 24 queries [55, 45, 33]
+SOUNDNESS total=268.3 logup=322.4 proximity=295.1 query=268.3
+PROOF total=474182 gkr=13832 relations=170048 stacking=2188 whir=274190
+TIME prove 17.02s verify 0.0232s threads 8 peak_rss_kib 10030048 proof_bytes 474182
+SAVED /data/illia/nearproof-deps/e2e-m5t1/f5/resume-proof (RT.proof 474182 B, RT.vk.json 2445353 B); boundary d_in "10f87ec90f71fc29c0893fc4a84d199a3a0c567bdc33adab5c93f58b762bf700986858ca9f947b52a0fa" d_out "afe47194b7e4566c8ca2113a87ec7b62df3e76dd2a18eee72d4963da023506efbc2350f63a10ac9a2fc0"
+VERIFY OK (native SWIRL verifier); statement check (tape roots + public values): OK
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:20.79
+	Maximum resident set size (kbytes): 10030048
+M8_TEMPLATE_PROVED rt-resume bytes=474182 seconds=0.0 params=(n_stack 14, w_stack 10, lb 5) queries=[55, 45, 33] bits=268.3
+== se-seg-a
+PARAMS n_stack 10 w_stack 8 log_blowup 7 degree 2 pow 24 queries [45, 38]
+SOUNDNESS total=268.8 logup=321.4 proximity=300.1 query=268.8
+PROOF total=130363 gkr=5768 relations=8448 stacking=1460 whir=110938
+TIME prove 2.64s verify 0.0019s threads 8 peak_rss_kib 1391976 proof_bytes 130363
+SAVED /data/illia/nearproof-deps/e2e-m5t1/f5/se-seg-a-proof (RT.proof 130363 B, RT.vk.json 109859 B); boundary d_in "4ae97236e9279de72d2e8897596ba29a6b815760389d87e76a749265de4b510d57b2446141b824108c0d" d_out "3d9f81b4513b3120c7490fbe2de0f649ecb70cd046e00b235306184580f549c9842317adc3c0df064e30"
+VERIFY OK (native SWIRL verifier); statement check (tape roots + public values): OK
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:02.90
+	Maximum resident set size (kbytes): 1391976
+M8_TEMPLATE_PROVED state-eng bytes=130363 seconds=0.0 params=(n_stack 10, w_stack 8, lb 7) queries=[45, 38] bits=268.8
+== se-seg-b
+PARAMS n_stack 10 w_stack 8 log_blowup 7 degree 2 pow 24 queries [45, 38]
+SOUNDNESS total=268.8 logup=321.4 proximity=300.1 query=268.8
+PROOF total=129901 gkr=5768 relations=8448 stacking=1460 whir=110476
+TIME prove 2.97s verify 0.0019s threads 8 peak_rss_kib 1419372 proof_bytes 129901
+SAVED /data/illia/nearproof-deps/e2e-m5t1/f5/se-seg-b-proof (RT.proof 129901 B, RT.vk.json 109859 B); boundary d_in "afe47194b7e4566c8ca2113a87ec7b62df3e76dd2a18eee72d4963da023506efbc2350f63a10ac9a2fc0" d_out "afe47194b7e4566c8ca2113a87ec7b62df3e76dd2a18eee72d4963da023506efbc2350f63a10ac9a2fc0"
+VERIFY OK (native SWIRL verifier); statement check (tape roots + public values): OK
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:03.27
+	Maximum resident set size (kbytes): 1419372
+M8_TEMPLATE_PROVED state-eng bytes=129901 seconds=0.0 params=(n_stack 10, w_stack 8, lb 7) queries=[45, 38] bits=268.8
+== se-finalize
+PARAMS n_stack 10 w_stack 8 log_blowup 7 degree 2 pow 24 queries [45, 38]
+SOUNDNESS total=268.8 logup=321.4 proximity=300.1 query=268.8
+PROOF total=129565 gkr=5768 relations=8448 stacking=1460 whir=110140
+TIME prove 2.63s verify 0.0019s threads 8 peak_rss_kib 1444332 proof_bytes 129565
+SAVED /data/illia/nearproof-deps/e2e-m5t1/f5/se-finalize-proof (RT.proof 129565 B, RT.vk.json 109859 B); boundary d_in "afe47194b7e4566c8ca2113a87ec7b62df3e76dd2a18eee72d4963da023506efbc2350f63a10ac9a2fc0" d_out "f7c8b2b65dc389570734629017c7b6896d0e4b88ce640efd3cdc54d04a1b02ee52ae507921e4da95ea53"
+VERIFY OK (native SWIRL verifier); statement check (tape roots + public values): OK
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:02.91
+	Maximum resident set size (kbytes): 1444332
+M8_TEMPLATE_PROVED state-eng bytes=129565 seconds=0.0 params=(n_stack 10, w_stack 8, lb 7) queries=[45, 38] bits=268.8
+== STMQ/STMA vs lane B's B-T4 state halves (stmcheck.py)
+se-seg-a:seg0 STMQ: EQUAL (tag 1)
+se-seg-a:seg0 STMA: EQUAL (tag 1)
+resume:seg1 STMQ: EQUAL (tag 1)
+resume:seg1 STMA: EQUAL (tag 1)
+se-seg-b:seg2 STMQ: EQUAL (tag 1)
+se-seg-b:seg2 STMA: EQUAL (tag 1)
+se-finalize:seg3 STMQ: EQUAL (tag 3)
+se-finalize:seg3 STMA: EQUAL (tag 1)

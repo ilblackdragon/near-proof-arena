@@ -1,4 +1,4 @@
-# E2E lane F: the runtime rows of T1's FunctionCall receipt (M5-T1), the `rt` leaves (F-2), the relative store-canonical form (F-3), the resume leaf split with lane B (F-4)
+# E2E lane F: the runtime rows of T1's FunctionCall receipt (M5-T1), the `rt` leaves (F-2), the relative store-canonical form (F-3), the resume leaf split with lane B (F-4), the chained leaves and the STATE engine half (F-5)
 
 Plan: `docs/zk-formal/E2E-GENERAL-CHUNK-PLAN.md` §3.3 (Wasm ↔ state join), §4.2 (M5), §5.2 (status).
 Date 2026-11-21 (F-3, F-4: 2026-11-25). Labels: **[M]** measured here, **[K]** kernel-checked Lean (std axioms, no `sorry`),
@@ -316,12 +316,84 @@ research/near-compression/e2e-general/t1`: 183 passed, 1 skipped. The package no
 Not done: `RsStep` itself; `next` (K ≠ []); enter's `EntChecks.prepaid`/`.code` join (not cheap:
 the enter leaf has no receipt rows — it needs the `MSG`/`RX` rows or a cross-leaf link).
 
+## F-5 (2026-11-25): lane F's T1 leaves on lane I's chain; the STATE engine half
+
+Log: [`docs/logs/e2e-f5-runtime-2026-11-25.md`](../../../../docs/logs/e2e-f5-runtime-2026-11-25.md).
+After merging main with lane B's B-T4 (`chain.py`: `R_A` at c2, `ST_NONE` at c0 / c10). `S`,
+`claimDigest` and the checker are unchanged (no stop).
+
+### The leaves chain [M] (`logs/F5-leaves.txt`, `logs/F5-mutants.txt`, `results/f5/`)
+
+The boundary pairs are now **lane I's chain records themselves** (`chain.py plan OUT` →
+`OUT/chain.json`; `rtbnd.pair_chain`: enter = c2 → c3, resume = c6 → c7; `segen.py`: STATE seg A
+c1 → c2, seg B c7 → c8, finalize c8 → c9). Nothing is overridden: `claimDigest = bdigest []`, `t =
+0`, the real `chainD Ser.enc` accumulators, `proposalsAcc` / `bwAcc` as `outDE (.eng)`, the
+resume input's Wasm part = lane A's `fbBnd (q, .fin r)` (A-T5's halting out-record), `stRoot` =
+lane B's `STC` commitment; the leaf's conventions are asserted on the pair and its digests are
+asserted equal to the chain's. `chain.leaf_table`: every lane F row **in ✓ / out ✓**.
+
+| leaf | AIR | cuts | `d_in` → `d_out` | proof | bits | prove / RSS | mutants |
+|---|---|---|---|---|---|---|---|
+| RT enter | `ENT` (unchanged since F-3) | c2 → c3 | `3d9f81b4` → `bff8b633` | 88,327 B | 268.8 | 2.7 s / 1.2 GB | 10/10 |
+| RT resume | F-4 + **`finInCons`** (RB 853 constraints) | c6 → c7 | `10f87ec9` → `afe47194` | 474,182 B | 268.3 | 17.0 s / 9.6 GiB | **22/22** (F-4's 19 + `finpre`, `finpc`, `finmem`) |
+| STATE seg A, engine half | **`SE`** (new) | c1 → c2 | `4ae97236` → `3d9f81b4` | 130,363 B | 268.8 | 2.6 s / 1.4 GB | 9/9 |
+| STATE seg B, engine half | `SE` | c7 → c8 | `afe47194` → `afe47194` | 129,901 B | 268.8 | 3.0 s / 1.4 GB | 9/9 |
+| finalize, engine half | `SE` | c8 → c9 | `afe47194` → `f7c8b2b6` | 129,565 B | 268.8 | 2.6 s / 1.4 GB | 9/9 |
+
+All five verify natively and are imported by lane D's `m8-import` (`M8_TEMPLATE_PROVED`) to
+`/data/illia/nearproof-deps/e2e-m5t1/f5/tmpl/{rt-enter,rt-resume,state-eng-*}/`; the three `SE`
+leaves are **one program** (one vk, `1c74367c…`). `SE` mutants (each leaf): `phase`, `vmacc`,
+`prepaid`, `gasburnt`, `ctxcopy`, `claimcopy`, `clock`, `incall`, `stroot`.
+
+**The join with lane B's state halves balances message for message** (`stmcheck.py`): the
+`STMQ [r_in, tag_out, rest_out]` / `STMA [r_out, tag_in, rest_in]` payloads of seg A, the
+resume, seg B and the finalize leaf equal those on lane B's B-T4 `htape.json` (`T1C/seg0…seg3`;
+finalize: `tag_out = 3`), in opposite directions. On T1 each side's counterpart is still a public
+tape (lane F's `XTAPE` stand-in ↔ lane B's `htape`): one trace for both halves (and the cross-lane
+bus ids — lane F's Lean ids 17 / 18 vs lane B's 211 / 212) is the integrator's / lane D's join.
+`rest = 0^42` on both sides (`encRestI` not adopted; its preimage would live in lane F's engine
+rows, which do not exist for VM-free steps).
+
+### The AIRs
+
+* **Resume: the input's Wasm part is lane A's `fin` record** (`BndLay.finInCons`, 342 constraints
+  on public values): counters `0`, digests `bdigest []` (`fbCode` off `.pre`), `vmCtxDigest` free.
+  F-4 left it free; F-5 consumes A-T5's `fbBnd (q, .fin r)` at c6. The old run4 plan's halted
+  `airBnd` record is now rejected (`finmem`, `finpc`), as is an un-run call (`finpre`: the `.pre`
+  record).
+* **`SE` (`Se.lean`), the STATE engine half's boundary table** (one row, public values only;
+  `[SE, RNG]` + `XTAPE`): input an engine record; output by `Se.seRule` — phase 1, out of a call,
+  `vmAcc = bdigest []`, `rPrepaid = rBurnt = rUsed = 0`, `gasUsed = gasBurnt`, copies of
+  `claimDigest`, `blockIdx`, `actionIdx`, `t`, `ctxRoot`, `outRcptN`, `bwAcc`; **`stRoot` =
+  `STMA`'s `r_out`** (lane B's `STC`, exactly as `RB`); the receipt-state counters and the
+  accumulators (`outcomeAcc`, `outRcpt0`, `proposalsAcc`) are left to the step contract.
+
+### Lean [K] (`lake build M5T1 m5t1-tool` 506 jobs; `logs/axioms.txt`: std axioms only)
+
+| file | what is proved |
+|---|---|
+| `RbSem.lean` (§5) | **`rb_fin_in`**: on every satisfying resume trace the opened input record's Wasm part is `finRec v` (lane A's fin shape); `preRec_ne_fin` (it is not the `.pre` record: `SHA-256(code) ‖ 0^10 ≠ bdigest []`) |
+| `ResumeC.lean` | `RsStep` restated over `cc = .fin r`; the call-finished part is the new named lane A premise **`RsFin`** (a fin-shaped record of a canonical call is `.fin r`, modulo `Sha384Coll`: the `vmCtxDigest` opening, lane A's `FinRest`); `resume_engHalf` / `resume_relC8` / `rt_relC8_full` take it |
+| `SeSem.lean` | `SE`'s rules on any trace: `se_phase`, `se_gas`, **`se_out`** (an engine record with `SE`'s copies, constants and the output's free bytes **is** the public `B_out`) |
+| `SeC.lean` | **`se_engHalf`**: lane E's `Glue.EngHalfRCOn` from the circuit, `RsView` and the named **`SeStep`** (generic in the split semantics and precondition); **`fin_engHalf`** (`EngHalfRCOn` on **`FinPre`**, `GlueFin.finSem`), **`finalize_relC8`** (with lane B's `FinHalfB` and lane E's `fin_reqs`: `TmplSoundRel8C … .state` for the finalize leaf) |
+| `join-check/StateSE.lean` (`join-check/run.sh`: lane E's `StViewE` + `StateW` + this, in lane F's env) | **`state_engHalf`** (`EngHalfRCOn` on **`StatePreW`**, lane E's `stSem`), **`stateSeg_relC8`** (with lane B's `HoldsSt` via `state_sound_stRoot`) |
+| `T1Enter.lean`, `T1ResumeData.lean` / `T1Resume.lean` | regenerated on the chain pairs (`t1enter_lean.py`, `t1resume_lean.py`): the enter non-vacuity (`t1_enter_nonvac`, `t1_enter_opens`) and every `RB` constraint (now 853) on T1's leaf |
+| `T1SeData.lean` / `T1Se.lean` | non-vacuity on T1's three `SE` leaves: **every `SE` constraint vanishes** (`t1_se_constr`), bytes, the leaves chain (`t1_se_chain`) |
+
+**`SeStep` (named, lane F)** — what the missing VM-free engine rows must give: the step
+`MState x x'` with the precondition (`StatePreW` / `FinPre`), the leaf's `SREQ`/`HB` traffic and
+metas = the step's (`qw w = M.qOf x x'`), the output `stRoot` from the state half's value (working
+set: by the split; finalize: lane B's `STC` closing the `done` commitment over IF-FINAL's post root),
+and the counters / accumulators of `x'` = the output's bytes (`FreeOut`). Not done in F-5: the rows
+themselves (receipt 0, the three forwards, the finalize step), so `SeStep` is the STATE engine
+half's whole step content; `RsStep`'s `estepO` composition (F-2 item 1); `next` (`K ≠ []`).
+
 ## Open (M5-T1 list, updated)
 
 1. ~~MSG/DG row lemmas, RNG bus fact~~ (F-2); ~~enter view contract~~ (F-3: `enter_relC` from
    the circuit + named checks); ~~resume: F3-1~~ (F-4: split with lane B, `ACC` appends, `vmAcc`,
    M12 clear fields; `resume_relC8`); the `estepO` composition (`RsStep`); enter's
-   `EntChecks.prepaid` / `code` (join with the receipt rows); STATE engine rows (none yet);
+   `EntChecks.prepaid` / `code` (join with the receipt rows); ~~STATE engine half~~ (F-5: `SE` boundary rows, `EngHalfRCOn` on `StatePreW` / `FinPre` modulo `SeStep`; the VM-free step rows themselves: none yet); `RsFin` (A);
    ~~F3-2~~ (lane E's M12).
 2. **Template coverage**: one FunctionCall per V1 action receipt, ED25519 signer, no inputs/outputs,
    successful call without promises, ≤ 4 non-empty logs, refund > 0, receiver exists with a local
