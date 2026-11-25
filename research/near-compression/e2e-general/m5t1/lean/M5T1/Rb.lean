@@ -40,7 +40,9 @@ def limbs (b : Nat → Expr) : List Expr := (List.range 14).map (limb b)
 
 def constraints : List Expr :=
   ((List.range 7).map fun k => bool (c "cri" k)) ++
-  BndLay.rbCons SI SO (fun g k => Rx.pub g k) (fun k => c "cri" k)
+  (BndLay.rbCons SI SO (fun g k => Rx.pub g k) (fun k => c "cri" k) ++
+  -- F-5: the input's Wasm part is lane A's `fin` record (`BndLay.finRule`)
+  BndLay.finInCons SI)
 
 def interactions : List Interaction :=
   [snd B_STMQ .isFirst (limbs (SI.b "stRoot") ++ [c "tgo"] ++ limbs (fun j => c "rso" j)),

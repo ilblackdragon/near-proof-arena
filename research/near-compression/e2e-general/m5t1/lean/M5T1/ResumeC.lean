@@ -128,15 +128,26 @@ def RsHolds8 (tape xtape : Tp) (_ctx : Bytes) (b b' : LB) (w : RsW) : Prop :=
 
 /-! ## 3. The named receipt-step contract -/
 
-/-- **The receipt-step contract** (named premise; module header: lanes A, F, E/B). For every
-resume leaf trace and every canonical opening `call I c [] q cc` of its input record: -/
+/-- **Lane A's part (F-5): a `fin`-shaped record is the record of a finished call.** The resume
+leaf checks in-circuit that its input's Wasm part has lane A's `fin` shape (`RbSem.rb_fin_in`:
+counters `0`, digests `bdigest []`; not the `.pre` record, `RbSem.preRec_ne_fin`); that the
+configuration behind it is `.fin r` is what the remainder digest `vmCtxDigest =
+bdigest (encRest (.other (q, cc)))` says (lane A's `FinRest`, modulo a SHA-384 collision). -/
+def RsFin (sf : Intake → TTN.Store) (V : ViewImpl) : Prop :=
+  ∀ (I : Intake) (c : EConf) (K : VmV) (q : VmQ) (cc : CallConf) (w : WasmBnd),
+    Canon sf (.call I c K q cc) → V.wasmD (some (q, cc)) = some w → w = RbSem.finRec w.vmCtxDigest →
+    Sha384Coll ∨ ∃ r, cc = .fin r
+
+/-- **The receipt-step contract** (named premise; module header: lanes F, E/B; F-5: the call's
+`fin` record is `RsFin`'s, lane A). For every resume leaf trace and every canonical opening
+`call I c [] q (.fin r)` of its input record: -/
 def RsStep (sf : Intake → TTN.Store) (V : ViewImpl) (P : StateM5a.StateView.StViewParams)
     (tape xtape : Tp) : Prop :=
-  ∀ (d d' : Bytes) (w : RsW) (I : Intake) (c : EConf) (q : VmQ) (cc : CallConf),
-    RsHoldsC tape xtape d d' w → Canon sf (.call I c [] q cc) →
-    (V.bnd (.call I c [] q cc)).encode = bytesOf w.1 BIN 834 →
-    ∃ (r : Run) (c' : EConf) (o : OutD1) (rr : Rcpt),
-      cc = .fin r ∧ (∀ out, c.pos ≠ .done out) ∧
+  ∀ (d d' : Bytes) (w : RsW) (I : Intake) (c : EConf) (q : VmQ) (r : Run),
+    RsHoldsC tape xtape d d' w → Canon sf (.call I c [] q (.fin r)) →
+    (V.bnd (.call I c [] q (.fin r))).encode = bytesOf w.1 BIN 834 →
+    ∃ (c' : EConf) (o : OutD1) (rr : Rcpt),
+      (∀ out, c.pos ≠ .done out) ∧
       estepO (strictO [(q, r)]) I.prog c = .ok c' ∧
       eposAcc c'.pos = ((eposAcc c.pos).1 ++ [o], (eposAcc c.pos).2.1 ++ [rr], (eposAcc c.pos).2.2) ∧
       (∃ X : Bytes, X.length = 42 ∧ AccDef.msgOf w.2.1 0 = SHA512.pad ((X ++ Ser.enc o).map UInt8.toNat)) ∧
@@ -145,7 +156,7 @@ def RsStep (sf : Intake → TTN.Store) (V : ViewImpl) (P : StateM5a.StateView.St
       (engClear c'.pos).gasUsed = valG w.1 "gout" 8 ∧ (engClear c'.pos).gasBurnt = valG w.1 "gout" 8 ∧
       (engClear c'.pos).compute = valG w.1 "cout" 8 ∧
       (engClear c'.pos).balanceBurnt = valG w.1 "tbout" 16 ∧
-      stRel P V (qOfW w) (.call I c [] q cc) (.base (.eng I c'))
+      stRel P V (qOfW w) (.call I c [] q (.fin r)) (.base (.eng I c'))
 
 /-! ## 4. The output record is the view of `eng I c'` -/
 
@@ -241,9 +252,10 @@ def rsSem (P : StateM5a.StateView.StViewParams) (V : ViewImpl) (tape xtape : Tp)
   qOf _ _ := ⟨[], ⟨0, []⟩, ⟨0, []⟩⟩
   apply q _ := []
 
-/-- **The engine half of the resume leaf** (from the circuit, `RsView`, and `RsStep`). -/
+/-- **The engine half of the resume leaf** (from the circuit, `RsView`, `RsFin` and `RsStep`). -/
 theorem resume_engHalf {sf : Intake → TTN.Store} {V : ViewImpl} (hV : RsView V)
-    (P : StateM5a.StateView.StViewParams) (tape xtape : Tp) hJ (hS : RsStep sf V P tape xtape) :
+    (P : StateM5a.StateView.StViewParams) (tape xtape : Tp) hJ (hF : RsFin sf V)
+    (hS : RsStep sf V P tape xtape) :
     EngHalfRel sf V (rsSem P V tape xtape hJ) (fun q x x' => stRel P V q x x') Sha384Coll := by
   classical
   rintro ctx b b' q r r' ⟨w, ⟨hh, h6, h1⟩, rfl, rfl, rfl⟩ x hc hx
@@ -266,8 +278,12 @@ theorem resume_engHalf {sf : Intake → TTN.Store} {V : ViewImpl} (hV : RsView V
   have hK : V.vmD K = bdigest [] := by rw [← hvm]; simp [ViewImpl.bnd, split]
   rcases hV.vmOne K hK with rfl | hcol
   case inr => exact .inl hcol
-  obtain ⟨rv, c', o, rr, rfl, hnf, hstep, hacc, ⟨X, hX, hm0⟩, ⟨Y, hY, hm1⟩, hri, hg, hg', hcm, htb, hrel⟩ :=
-    hS b.2 b'.2 ⟨pub, tr, gh⟩ I c q0 cc ⟨H, hb, hd, hd', hA⟩ hc he
+  -- F-5: the input's Wasm part is `fin`-shaped (in-circuit), so the call has finished (lane A)
+  have hfin := RbSem.rb_fin_in H (hV.wf _) hw' (bnd_call_out hV I c [] q0 cc) he
+  rcases hF I c [] q0 cc ww hc hw hfin with hcol | ⟨rv, rfl⟩
+  case inl => exact .inl hcol
+  obtain ⟨c', o, rr, hnf, hstep, hacc, ⟨X, hX, hm0⟩, ⟨Y, hY, hm1⟩, hri, hg, hg', hcm, htb, hrel⟩ :=
+    hS b.2 b'.2 ⟨pub, tr, gh⟩ I c q0 rv ⟨H, hb, hd, hd', hA⟩ hc he
   refine .inr ⟨.base (.eng I c'), trivial, .resume hnf (by simpa using hstep), trivial, ?_, hrel, ?_⟩
   · -- the input state value is the input record's `stRoot`
     show V.stD (stV V _) = rIn pub
@@ -300,19 +316,19 @@ theorem resume_engHalf {sf : Intake → TTN.Store} {V : ViewImpl} (hV : RsView V
 theorem resume_relC8 {sf : Intake → TTN.Store} {V : ViewImpl} (hV : RsView V)
     (P : StateM5a.StateView.StViewParams) (hVst : V.stD = StateM5a.StateView.stD P) (tape xtape : Tp)
     (hJ : ∀ ctx b b' w, RsHolds8 tape xtape ctx b b' w → HoldsSt P (qOfW w) (rIn w.1) (rOut w.1))
-    (hS : RsStep sf V P tape xtape) :
+    (hF : RsFin sf V) (hS : RsStep sf V P tape xtape) :
     TmplSoundRel8C sf V (rsAirs tape xtape) Sha384Coll .rt := by
   have hSt := StateM5a.StHalfC.stHalf_inst P (rsSplit P tape xtape hJ) V hVst (rsSem P V tape xtape hJ)
     rfl rfl (fun _ => rfl) (fun _ => rfl) (fun q r r' h => h)
-  exact split_sound_rel sf V _ _ _ (resume_engHalf hV P tape xtape hJ hS) hSt
+  exact split_sound_rel sf V _ _ _ (resume_engHalf hV P tape xtape hJ hF hS) hSt
 
 /-- **The resume leaf's part of `SplitC.RtOthers`** (the shape `rt_relC8` takes). -/
 theorem resume_others {sf : Intake → TTN.Store} {V : ViewImpl} (hV : RsView V)
     (P : StateM5a.StateView.StViewParams) (hVst : V.stD = StateM5a.StateView.stD P) (tape xtape : Tp)
     (hJ : ∀ ctx b b' w, RsHolds8 tape xtape ctx b b' w → HoldsSt P (qOfW w) (rIn w.1) (rOut w.1))
-    (hS : RsStep sf V P tape xtape) :
+    (hF : RsFin sf V) (hS : RsStep sf V P tape xtape) :
     SplitC.RtOthers sf V (RsHolds8 tape xtape) Sha384Coll :=
-  resume_relC8 hV P hVst tape xtape hJ hS
+  resume_relC8 hV P hVst tape xtape hJ hF hS
 
 /-- **The `rt` kind: enter ∨ resume** (`SplitC.rt_relC8`): an `rt` leaf AIR whose accepted leaves
 are the enter leaf or the resume leaf is relatively, canonically sound. -/
@@ -322,9 +338,9 @@ theorem rt_relC8_full {V : ViewImpl} {vmc : CallArgs → Bytes} {pre : CallArgs 
     (sf : Intake → TTN.Store) (A : Airs8)
     (hA : SplitC.RtPrograms vmc pre posOK (RsHolds8 tape xtape) A)
     (hJ : ∀ ctx b b' w, RsHolds8 tape xtape ctx b b' w → HoldsSt P (qOfW w) (rIn w.1) (rOut w.1))
-    (hS : RsStep sf V P tape xtape) :
+    (hF : RsFin sf V) (hS : RsStep sf V P tape xtape) :
     TmplSoundRel8C sf V A (Sha384Coll ∨ Sha384Coll) .rt :=
-  SplitC.rt_relC8 hE sf _ A Sha384Coll hA (resume_others hV P hVst tape xtape hJ hS)
+  SplitC.rt_relC8 hE sf _ A Sha384Coll hA (resume_others hV P hVst tape xtape hJ hF hS)
 
 /-- **Enter's position law from lane B** (F-4: `RtView.pos` in the `Sha384Coll ∨ _` form): with
 `posOK := StPosOK` (an `STC` opening with tag `1`) and lane B's `stD`, the law is lane B's

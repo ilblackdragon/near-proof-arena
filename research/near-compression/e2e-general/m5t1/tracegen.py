@@ -14,6 +14,9 @@ sha_msgs.json (the SHA-256 table's messages), tape.json (the statement: receipt-
 outcome leaves, outgoing receipt hashes), xtape.json (T1 stand-ins: lane B's account read / write,
 lane A's Wasm call), pubs.bin, and expected.json (the outputs, for the comparison).
 
+F-5: `--plan` may be lane I's chain (`chain.py plan` → chain.json): the resume pair is then the
+chain's c6 → c7 unchanged (`rtbnd.pair_chain`), the stand-in `STC` answers c7's `stRoot`.
+
 F-4 (resume): also RB.bin (the boundary rules' carries, the stand-in `STMQ`/`STMA` metas), ACC.bin
 (one row per SHA-512 block of the two SHA-384 accumulator appends `bdigest (acc ‖ Ser.enc item)`,
 the items from the Lean run's `ser` fields), comps.json (the native chip's compressions), the
@@ -1009,6 +1012,19 @@ def main():
         b_out = dict(b_out, receiptIdx=b_in["receiptIdx"]); e_out = enc(b_out); applied.append("ridxcopy")
     if mut("prepaidout"):
         b_out = dict(b_out, rPrepaid=b_in["rPrepaid"]); e_out = enc(b_out); applied.append("prepaidout")
+    # F-5: the input's Wasm part must be lane A's fin record (`BndLay.finInCons`)
+    if mut("finpre"):
+        # the call has not run: the input carries the `.pre` record (S2 codeRoot)
+        w = rtbnd.pre_record(b_in["wasm"]["vmCtxDigest"], rtbnd.code_hash_of(run_path))
+        b_in = dict(b_in, wasm=w); e_in = enc(b_in); applied.append("finpre")
+    if mut("finpc"):
+        # a running segment's record (pc ≠ 0)
+        b_in = dict(b_in, wasm=dict(b_in["wasm"], pc=1)); e_in = enc(b_in); applied.append("finpc")
+    if mut("finmem"):
+        # a halted AIR record (memRoot of the final image, not `bdigest []`)
+        mr = b_in["wasm"]["memRoot"]
+        b_in = dict(b_in, wasm=dict(b_in["wasm"], memRoot=bytes([mr[0] ^ 1]) + mr[1:])); e_in = enc(b_in)
+        applied.append("finmem")
     if mut("accitem"):
         items[0] = bytes([items[0][0] ^ 1]) + items[0][1:]; applied.append("accitem")
     setpub("bin", list(e_in)); setpub("bout", list(e_out))

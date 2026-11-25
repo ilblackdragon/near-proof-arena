@@ -162,7 +162,11 @@ def PG : String → Nat → Expr := fun g k => Rx.pub g k
 def CY : Nat → Expr := fun k => Rb.c "cri" k
 
 theorem mem_rb {e : Expr} (h : e ∈ rbCons SI SO PG CY) : e ∈ Rb.table.constraints :=
-  List.mem_append_right _ h
+  List.mem_append_right _ (List.mem_append_left _ h)
+
+/-- F-5: the input's `fin`-record constraints are `RB`'s. -/
+theorem mem_fin {e : Expr} (h : e ∈ finInCons SI) : e ∈ Rb.table.constraints :=
+  List.mem_append_right _ (List.mem_append_right _ h)
 
 theorem mem_field {p : String × Nat} (hp : p ∈ engF) {e : Expr}
     (he : e ∈ resCons SI SO PG CY p.1 p.2 (resRule p.1)) : e ∈ Rb.table.constraints := by
@@ -511,5 +515,123 @@ theorem rb_out {B : BndRec} (hwf : B.WF) {w : WasmBnd} (hw : B.wasm = some w) {d
       have := h2 j (by simpa [emptyDig] using hj); simpa [SO, Rb.SO, bout_eq] using this)).symm
   · rw [hnum 0 rfl rfl]; rfl
 end
+
+
+/-! ## 5. F-5: the input's Wasm part is lane A's `fin` record
+
+`BndLay.finInCons` (F-5) pins the input record's Wasm part to the shape of lane A's halting
+out-record `fbBnd (q, .fin r)` (A-T5): counters `0`, digests `bdigest []`, the remainder digest
+free. `rb_fin_in`: on every satisfying trace the opened record's Wasm part is `finRec v`;
+`preRec_ne_fin`: it is not the `.pre` record. Which fallback configuration it is (`.fin r`) is the
+remainder digest's (lane A; `ResumeC.RsFin`). -/
+
+/-- Lane A's `fbBnd (q, .fin r)` shape with remainder digest `v` (F-5). -/
+def finRec (v : ArenaCore.Bytes) : WasmBnd :=
+  { pc := 0, sp := 0, stackRem := 0, fuel := 0, gasLeft := 0, framesDigest := bdigest [],
+    memRoot := bdigest [], memPages := 0, globalsDigest := bdigest [], registersDigest := bdigest [],
+    vmCtxDigest := v, promisesDigest := bdigest [], codeRoot := bdigest [], funcRoot := bdigest [] }
+
+theorem wasm_ranges {B : BndRec} (h : B.WF) {w : WasmBnd} (hw : B.wasm = some w) :
+    w.pc < 256 ^ 8 ∧ w.sp < 256 ^ 8 ∧ w.stackRem < 256 ^ 8 ∧ w.fuel < 256 ^ 8 ∧
+    w.gasLeft < 256 ^ 8 ∧ w.memPages < 256 ^ 8 := by
+  obtain ⟨cd, ph, bi, ri, ai, ic, t, sr, cr, gu, gb, bb, co, rp, rb, ru, oa, orl, pa, ba, va, wa⟩ := B
+  simp only at hw; subst hw
+  obtain ⟨h, -⟩ := h
+  simp only [BndRec.codec, WasmBnd.codec, mapC, pairC, natC, optC] at h
+  obtain ⟨-, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, -, h⟩ := h
+  obtain ⟨a, b, c, d, e, -, -, f, -⟩ := h
+  exact ⟨a, b, c, d, e, f⟩
+
+theorem fw_wasmF {p : String × Nat} (hp : p ∈ wasmF) : fw callF p.1 = p.2 := by
+  simp only [wasmF, List.mem_cons, List.mem_nil_iff, or_false] at hp
+  rcases hp with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> rfl
+
+theorem mem_finR {p : String × Nat} (hp : p ∈ wasmF) {e : Expr}
+    (he : e ∈ ruleCons SI SI p.1 p.2 (finRule p.1)) : e ∈ Rb.table.constraints :=
+  mem_fin (List.mem_flatMap.2 ⟨p, hp, he⟩)
+
+section
+variable {tape xtape : Tp} {pub : List Fp} {tr : Trace Fp} (H : Holds (fullAir tape xtape) pub tr)
+include H
+
+/-- A `.num 0` field of the input's Wasm part reads `beN 8 0`. -/
+theorem fin_num {f : String} (hp : (f, 8) ∈ wasmF) (hr : finRule f = .num 0) :
+    bytesOf pub (BIN + callF.off f) 8 = beN 8 0 := by
+  have h1 := constF_sem H SI f 0 (fun e he => mem_finR hp (by rw [hr]; exact he))
+  have hw : fw callF f = 8 := fw_wasmF hp
+  exact bytesOf_num pub _ 8 0 (fun k hk => by
+    have := h1 k (by show k < fw callF f; omega)
+    simpa [SI, Rb.SI, bin_eq, hw] using this)
+
+/-- A `.dig emptyDig` field of the input's Wasm part reads `bdigest []`. -/
+theorem fin_dig {f : String} (hp : (f, 42) ∈ wasmF) (hr : finRule f = .dig emptyDig) :
+    bytesOf pub (BIN + callF.off f) 42 = bdigest [] := by
+  have h2 := dig_sem' H SI f (fun e he => mem_finR hp (by rw [hr]; exact he))
+  rw [emptyDig_eq]
+  exact bytesOf_dig pub (BIN + callF.off f) emptyDig (fun j hj => by
+    have := h2 j (by simpa [emptyDig] using hj); simpa [SI, Rb.SI, bin_eq] using this)
+
+/-- **F-5: the resume input's Wasm part is lane A's `fin` record shape** (`finRec`: counters `0`,
+digests `bdigest []`, any remainder digest). -/
+theorem rb_fin_in {B : BndRec} (hwf : B.WF) {w : WasmBnd} (hw : B.wasm = some w) {d : ArenaCore.Bytes}
+    (ho : B.outRcptAcc = [d]) (he : B.encode = bytesOf pub BIN 834) : w = finRec w.vmCtxDigest := by
+  have hin := in_fieldsR hwf hw ho he
+  obtain ⟨r1, r2, r3, r4, r5, r6⟩ := wasm_ranges hwf hw
+  have rv : ∀ f, recVal B f = wasmVal w f ∨ f ∈ ["claimDigest", "phase", "blockIdx", "receiptIdx",
+      "actionIdx", "inCall", "t", "stRoot", "ctxRoot", "gasUsed", "gasBurnt", "balanceBurnt",
+      "compute", "rPrepaid", "rBurnt", "rUsed", "outcomeAcc", "outRcptN", "outRcpt0",
+      "proposalsAcc", "bwAcc", "vmAcc", "wasmTag"] := by
+    intro f; unfold recVal; split <;> simp [hw]
+  have num : ∀ f (v : Nat), (f, 8) ∈ wasmF → finRule f = .num 0 → wasmVal w f = beN 8 v →
+      v < 256 ^ 8 → v = 0 := by
+    intro f v hp hr hv hlt
+    have hc : (f, 8) ∈ callF := List.mem_append_right _ hp
+    have e1 := hin _ hc
+    rcases rv f with e | e
+    · rw [e, hv, fin_num H hp hr] at e1
+      have := congrArg beToNat e1
+      rw [beToNat_beN, beToNat_beN, Nat.mod_eq_of_lt hlt] at this
+      simpa using this
+    · simp only [wasmF, List.mem_cons, List.mem_nil_iff, or_false, Prod.mk.injEq] at hp
+      simp at e
+      rcases hp with ⟨rfl, -⟩ | ⟨rfl, -⟩ | ⟨rfl, -⟩ | ⟨rfl, -⟩ | ⟨rfl, -⟩ | ⟨rfl, -⟩ | ⟨rfl, -⟩ |
+        ⟨rfl, -⟩ | ⟨rfl, -⟩ | ⟨rfl, -⟩ | ⟨rfl, -⟩ | ⟨rfl, -⟩ | ⟨rfl, -⟩ | ⟨rfl, -⟩ <;> simp_all
+  have dig : ∀ f (v : ArenaCore.Bytes), (f, 42) ∈ wasmF → finRule f = .dig emptyDig →
+      wasmVal w f = v → v = bdigest [] := by
+    intro f v hp hr hv
+    have hc : (f, 42) ∈ callF := List.mem_append_right _ hp
+    have e1 := hin _ hc
+    rcases rv f with e | e
+    · rw [e, hv, fin_dig H hp hr] at e1; exact e1
+    · simp only [wasmF, List.mem_cons, List.mem_nil_iff, or_false, Prod.mk.injEq] at hp
+      simp at e
+      rcases hp with ⟨rfl, -⟩ | ⟨rfl, -⟩ | ⟨rfl, -⟩ | ⟨rfl, -⟩ | ⟨rfl, -⟩ | ⟨rfl, -⟩ | ⟨rfl, -⟩ |
+        ⟨rfl, -⟩ | ⟨rfl, -⟩ | ⟨rfl, -⟩ | ⟨rfl, -⟩ | ⟨rfl, -⟩ | ⟨rfl, -⟩ | ⟨rfl, -⟩ <;> simp_all
+  obtain ⟨pc, sp, sr, fu, gl, fd, mr, mp, gd, rd, vc, pd, cr, fr⟩ := w
+  simp only [finRec, WasmBnd.mk.injEq]
+  refine ⟨num "pc" pc (by decide) rfl rfl r1, num "sp" sp (by decide) rfl rfl r2,
+    num "stackRem" sr (by decide) rfl rfl r3, num "fuel" fu (by decide) rfl rfl r4,
+    num "gasLeft" gl (by decide) rfl rfl r5, dig "framesDigest" fd (by decide) rfl rfl,
+    dig "memRoot" mr (by decide) rfl rfl, num "memPages" mp (by decide) rfl rfl r6,
+    dig "globalsDigest" gd (by decide) rfl rfl, dig "registersDigest" rd (by decide) rfl rfl, trivial,
+    dig "promisesDigest" pd (by decide) rfl rfl, dig "codeRoot" cr (by decide) rfl rfl,
+    dig "funcRoot" fr (by decide) rfl rfl⟩
+end
+
+/-- **The `.pre` record is not `fin`-shaped**: its `codeRoot` (`SHA-256(code) ‖ 0^10`) ends in ten
+zero bytes, `bdigest []` does not. -/
+theorem preRec_ne_fin (v v' : ArenaCore.Bytes) (q : NearSpecV3.Wasm.CallCut.CallArgs) :
+    preRec v q ≠ finRec v' := by
+  intro h
+  have h1 := congrArg (fun w => (w.codeRoot.drop 32)) h
+  simp only [preRec, finRec] at h1
+  have h2 : (SB.preCodeRoot q).drop 32 = List.replicate 10 0 := by
+    simp [SB.preCodeRoot, ArenaCore.sha256_length]
+  rw [h2, emptyDig_eq] at h1
+  revert h1; decide
+
+
+#print axioms rb_fin_in
+#print axioms preRec_ne_fin
 
 end M5T1.RbSem

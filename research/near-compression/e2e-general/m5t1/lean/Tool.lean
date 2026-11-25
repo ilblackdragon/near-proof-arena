@@ -1,6 +1,7 @@
 import M5T1.Dump
 import M5T1.Air
 import M5T1.Ent
+import M5T1.Se
 
 /-! `m5t1-tool dump CASE_DIR OUT_JSON`: the Lean run of every incoming receipt of a corpus case
 (`M5T1.Dump.dumpCase`): receipt, RS before/after, VM query and answer, outcome, new receipts.
@@ -8,7 +9,8 @@ import M5T1.Ent
 `m5t1-tool air AIR_JSON NAMES_JSON SCHEMA_JSON`: export the M5-T1 AIR (`M5T1.m5t1Air`), its column
 names and the byte engine's schema.
 
-`m5t1-tool air-ent AIR_JSON NAMES_JSON`: export the `rt` enter leaf's AIR (`M5T1.Ent.entAir`). -/
+`m5t1-tool air-ent AIR_JSON NAMES_JSON`: export the `rt` enter leaf's AIR (`M5T1.Ent.entAir`).
+`m5t1-tool air-se AIR_JSON NAMES_JSON`: export the STATE engine half's leaf AIR (`M5T1.Se.seAir`, F-5). -/
 
 open M5T1
 
@@ -35,5 +37,15 @@ def main (args : List String) : IO UInt32 := do
       ",".intercalate (M5T1.Ent.PL.names.map q) ++ "]}")
     let t := M5T1.Ent.table
     IO.println s!"ENT: width {t.width}, constraints {t.allConstraints.length}, interactions 0, wf {ZkFormal.Air.Table.wf M5T1.Ent.entAir 4 t}, public values {M5T1.Ent.NUM_PUB}"
+    return 0
+  | ["air-se", out, names] =>
+    IO.FS.writeFile out (ZkFormal.Air.Air.exportJson M5T1.Se.seAir)
+    IO.FS.writeFile names ("{\"SE\":[" ++ ",".intercalate (M5T1.Se.L.names.map q) ++ "],\"RNG\":[" ++
+      ",".intercalate (Rng.L.names.map q) ++ "],\"tables\":[\"SE\",\"RNG\"],\"pub\":[" ++
+      ",".intercalate (M5T1.Se.PL.names.map q) ++ "]}")
+    for (nm, t) in M5T1.Se.tableNames.zip M5T1.Se.seAir.tables do
+      let deg := (t.allConstraints.map ZkFormal.Air.Expr.degree).foldl max 0
+      IO.println s!"{nm}: width {t.width}, constraints {t.allConstraints.length}, interactions {t.interactions.length}, degree {deg}, wf {ZkFormal.Air.Table.wf M5T1.Se.seAir 4 t}"
+    IO.println s!"SE leaf: public values {M5T1.Se.NUM_PUB}"
     return 0
   | _ => IO.eprintln "usage: m5t1-tool dump CASE_DIR OUT_JSON | air AIR_JSON NAMES_JSON SCHEMA_JSON"; return 2

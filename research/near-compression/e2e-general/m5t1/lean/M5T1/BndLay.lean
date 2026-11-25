@@ -224,4 +224,26 @@ def rbCons (I O : Side) (pubG : String → Nat → Expr) (cy : Nat → Expr) : L
   eqLE I "balanceBurnt" (pubG "tbin") ++
   engF.flatMap fun p => resCons I O pubG cy p.1 p.2 (resRule p.1)
 
+/-! ## F-5: the resume input's Wasm part is lane A's `fin` record
+
+Lane A's A-T5 halting segment ends at `fbBnd (q, .fin r)` (`TmplWasm.WasmHoldsF`): every counter
+`0`, every digest `bdigest []` (`fbCode` is `bdigest []` off `.pre`), the remainder digest
+`vmCtxDigest = bdigest (encRest (.other (q, .fin r)))` (lane A's `FinRest`). F-4's resume leaf left
+the input Wasm part free; F-5 pins it to that shape (`finRule`), so an opening of `B_in` is a
+fallback record that is not `.pre` (`codeRoot ≠ SHA-256(code) ‖ 0^10`) and not an AIR record of a
+running segment (its `framesDigest` would be the AIR context digest); which fallback
+configuration it is — `.fin r` — is the remainder digest's (lane A, `ResumeC.RsFin`). -/
+
+/-- How the resume leaf constrains one field of its input record's Wasm part (F-5). -/
+def finRule : String → ORule
+  | "vmCtxDigest" => .free
+  | "framesDigest" => .dig emptyDig | "memRoot" => .dig emptyDig | "globalsDigest" => .dig emptyDig
+  | "registersDigest" => .dig emptyDig | "promisesDigest" => .dig emptyDig
+  | "codeRoot" => .dig emptyDig | "funcRoot" => .dig emptyDig
+  | _ => .num 0
+
+/-- **The resume input's Wasm part is the `fin` record shape** (F-5). -/
+def finInCons (I : Side) : List Expr :=
+  wasmF.flatMap fun p => ruleCons I I p.1 p.2 (finRule p.1)
+
 end M5T1.BndLay
