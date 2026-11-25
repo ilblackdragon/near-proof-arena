@@ -1,0 +1,23 @@
+# A-T5: leaf_tamper.sh on e2e-laneA/at5/leaf-k13 (segleafverify must refuse each; OLD_LEAF = the A-T2 leaves)
+REJECTED proof 0 byte flipped (middle)
+REJECTED proof 1 truncated by one byte
+REJECTED proofs swapped (seg-0 <-> seg-1, public files kept)
+REJECTED seg-1 public value [11] + 1 (proof unchanged)
+REJECTED seg-1 public value [12] + 1 (proof unchanged)
+REJECTED seg-1 public value [13] + 1 (proof unchanged)
+REJECTED seg-1 public value [31] + 1 (proof unchanged)
+REJECTED seg-1 public value [67] + 1 (proof unchanged)
+REJECTED seg-1 public value [85] + 1 (proof unchanged)
+REJECTED seg-1 public value [8] + 1 (proof unchanged)
+REJECTED seg-1 public value [108] + 1 (proof unchanged)
+REJECTED seg-1 public value [109] + 1 (proof unchanged)
+REJECTED seg-1 public value [110] + 1 (proof unchanged)
+REJECTED seg-1 public value [113] + 1 (proof unchanged)
+REJECTED seg-1 public value [114] + 1 (proof unchanged)
+REJECTED seg-1 out_record 'fin' -> 'air' (halting segment claims the AIR state)
+REJECTED seg-0 out_record 'air' -> 'fin' (a cut claims the fin record)
+REJECTED vk: one WHIR query fewer in round 0
+REJECTED seg-0 = the same segment proved at its natural tight heights (same vk, A-T1 leaf)
+REJECTED seg-1 = the same segment proved at its natural tight heights (same vk, A-T1 leaf)
+REJECTED manifest: template SHA512 height 8192 -> 4096 (pinned heights changed)
+LEAF_TAMPER rejected 21 accepted 0

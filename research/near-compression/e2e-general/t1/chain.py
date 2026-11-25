@@ -194,7 +194,7 @@ PLACEHOLDERS = [
      "B: split the STATE segment at the RT cuts"),
     ("ctxRoot at engine / call cuts", "ctxD (.intake I) = bdigest (1 ‖ Ser.enc I)",
      "E: Ser Intake closure (ViewSer); G: INIT computes it (B_1)"),
-    ("wasm.vmCtxDigest", "bdigest (encRest (.other (q, cc)) / (.air …))", "A (m6 §6; needs gasLeft + σ at host rows)"),
+    ("wasm.vmCtxDigest", "bdigest (encRest (.other (q, cc)) / (.air …))", "A (m6 §6; gasLeft is public since A-T5 and blank drops gas.g; needs σ at host rows)"),
     ("wasm.fuel", "the call machine's n (fuel_out = fuel_in − Δt)", "A: expose fuel_in of segment 0 / PREP"),
     ("wasm.codeRoot / funcRoot packing", "codeC.root (codeRecs …) (stand-in ccT1 in Lean)",
      "A: fix the 42-B packing of the cached commitment (driver: 5 × u64be + u16be)"),
@@ -219,8 +219,9 @@ def wasm_fin():
 def wasm_air(b, code_root, func_root, stack_rem):
     """lane A's `airBnd` from one side of a segment's public boundary: `pc`, `sp = sb`, frames /
     globals / registers = `ctxDigest[:42]`, `memRoot[:42]`, `memPages = nblk / 64`,
-    `promisesDigest = bdigest []`, **`gasLeft = g`** (M11i target; lane A's `airBnd` still has the
-    default 0), `stackRem` (honest, unbound), code / func roots (PREP's cached commitments)."""
+    `promisesDigest = bdigest []`, **`gasLeft = g`** (M11i; lane A A-T5: `airBnd.gasLeft = s.gas.g`,
+    public as `g_out`), `stackRem` (A-T5: public at the out-cut), code / func roots (PREP's cached
+    commitments)."""
     fd = bytes.fromhex(b["ctx"])[:42]
     return {"pc": b["pc"], "sp": b["sb"], "stackRem": stack_rem, "fuel": 0, "gasLeft": b["g"],
             "framesDigest": fd, "memRoot": bytes.fromhex(b["mem"])[:42], "memPages": b["nblk"] // 64,

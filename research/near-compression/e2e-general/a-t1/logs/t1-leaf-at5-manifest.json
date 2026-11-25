@@ -1,0 +1,214 @@
+{
+  "code_root": "[9222518703046826505, 2651504207013451294, 246627625208553625, 17572554510288209602, 16038372197112515757, 40959]",
+  "func_root": "[14467547537345229192, 14156450685634643581, 7282698439347463273, 7814187258016737858, 3253048009232565580, 14110]",
+  "k": 13,
+  "pinned_heights": [
+    [
+      2,
+      4
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      3,
+      8
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      16,
+      65536
+    ],
+    [
+      16,
+      65536
+    ],
+    [
+      5,
+      32
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      4,
+      16
+    ],
+    [
+      4,
+      16
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      6,
+      64
+    ],
+    [
+      5,
+      32
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      4,
+      16
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      4,
+      16
+    ],
+    [
+      4,
+      16
+    ],
+    [
+      13,
+      8192
+    ],
+    [
+      7,
+      128
+    ]
+  ],
+  "segments": [
+    {
+      "halted": 0,
+      "proof_bytes": 557517,
+      "proof_sha256": "0a074ecfbdd9d50d6046982d989a3f24295330a40a6c93d15c72cf34fd01b541",
+      "prove_s": 26.8753711,
+      "pubs_sha256": "6f05630e69884ed5db99361401a201f3f8918a170c26261369cc21b3dda8bd38",
+      "segment": 0,
+      "t_in": 0,
+      "t_out": 13,
+      "verify_ms": 17.769389
+    },
+    {
+      "halted": 1,
+      "proof_bytes": 556887,
+      "proof_sha256": "4ab4282251218ff9a65a71a0333a344d4044f53854a99bb6e812e8270ce064e3",
+      "prove_s": 25.575576619,
+      "pubs_sha256": "aa5703f8b895eafd6f71e138ffa859962ab58fa659b6aef9a333d53ca6db0e4d",
+      "segment": 1,
+      "t_in": 13,
+      "t_out": 26,
+      "verify_ms": 17.032857
+    }
+  ],
+  "soundness_bits": 268.2098245308336,
+  "template": {
+    "certs": "/data/illia/nearproof/.claude/worktrees/agent-a2b50b52dd67035c0/research/near-compression/final-soundness/calc/dkt_certs_o2.json",
+    "exclusions": "/data/illia/nearproof/.claude/worktrees/agent-a2b50b52dd67035c0/research/near-compression/final-soundness/lean/DKTCertsO2_big.keys",
+    "heights": {
+      "ADD": 4,
+      "BIT": 4,
+      "BYTE": 65536,
+      "CALL": 4,
+      "CMP": 4,
+      "CODE": 32,
+      "CONST": 8,
+      "CONV": 4,
+      "CTRL": 4,
+      "CUTI": 16,
+      "CUTO": 16,
+      "DIV": 4,
+      "DROP": 4,
+      "FUNC": 4,
+      "HOST": 4,
+      "HOSTB": 32,
+      "HOSTO": 4,
+      "HOSTT": 64,
+      "IF": 4,
+      "LOAD": 4,
+      "LOCAL": 4,
+      "MEMB": 16,
+      "MPATH": 16,
+      "MUL": 4,
+      "RANGE16": 65536,
+      "REG": 16,
+      "RET": 4,
+      "SEGB": 4,
+      "SHA512": 8192,
+      "SHIFT": 4,
+      "STACK": 4,
+      "STORE": 4,
+      "UNREACH": 4
+    },
+    "log_blowup": 1,
+    "n_stack": 18,
+    "name": "t1-d3tiny-k13",
+    "pow": 24,
+    "w_stack": 8
+  },
+  "tight_heights": "pinned: full template height per AIR (A-T2)",
+  "vk_sha256": "4e469b4573c149afac5971859b75da547383c5167eb634e45897ed819ff7b9d2"
+}

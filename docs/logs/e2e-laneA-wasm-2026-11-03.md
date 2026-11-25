@@ -452,3 +452,53 @@ Details: `research/near-compression/e2e-general/a-t1/README.md` §11. Single age
   * Temporary files: `nearproof-deps/tmp-laneA/at4` (removed at the end). Leaf at
     `nearproof-deps/e2e-laneA/at4/prep/`.
 
+
+## 2026-11-25 — A-T5: the next segment-AIR revision (`a-t1/README.md` §12)
+
+* **Scope:** lane I's I-2b items for lane A: the halting segment's out-record (finding I2b-2),
+  `gasLeft` and `stackRem` as bound fields, and `HashLenLink`. No change to `S`, `claimDigest` or
+  the checker.
+* **AIR / native [M]:**
+  * `SegAir.lean`: publics 108–116 (`numPub` 117).
+    * SEGB's gas gadget: 63 bit columns and 68 degree-2 constraints, proving
+      `g_out + R·(S_out − S_seg) = segb_out`.
+    * CUTO's budget row publishes `stackRem`.
+  * `seg.rs`: the gadget witness and the new publics.
+  * `segcmd.rs`:
+    * `segleaf` writes the out-record kind (`fin` on the halting segment) and the bound values.
+    * `segleafverify` checks the status and the kind.
+    * 9 new `segtamper` cases.
+  * `ShaAir.lean`: `callMsgL` carries `Nd`, and `HOSTO` gains `elen`; `tracegen.rs` fills it.
+* **T1:**
+  * Proofs: 557,517 / 556,887 B, 268.2 bits, 26.9 / 25.6 s, 8.2 GB, pinned heights.
+  * Lane D: `m8-import` OK, equal heights and vk (one program).
+  * `segcheck` passes at K = 1…26 (26/26), and KAT passes 98/98.
+  * Digests are the chain's: `e90f4a94 → b28bfa13 → b3135387` (c4 → c5 → c6).
+  * Tampers: `leaf_tamper` 21/21; `segtamper` 57/57 (seg 0) and 56/57 (seg 1). The one accepted
+    seg 1 case is an `R` byte with `d = 0`; the wrapper's `R` check refuses it.
+* **Lean [K]:**
+  * New files: `Main/SegGasRem.lean` (`segb_gas_sound`, `cuto_rem_sound`) and `ShaLenSound.lean`
+    (`hashLenLink_of_holds`).
+  * `WasmView`: `gasLeft = s.gas.g`, `blank` drops `gas.g`.
+  * `TmplWasm`:
+    * `WOut` binds `gasLeft` / `stackRem`.
+    * `RestOK` is reduced to `vmCtxDigest` and the gas-thread pin.
+    * The halting leaf: `WasmHoldsF`, `wasm_fin_core`, `wasm_relC_fin`, `airsWF`, with non-vacuity
+      `leafWF_honest` / `finRest_honest`.
+* **Findings:**
+  * A-T4's `HashLenLink` is false on the register branch (KAT `sharegkat`); it is restated.
+  * The segment AIR has no SHA-256 table, contrary to A-T4 §11.5.
+* **Not done:** PREP's `.pre` / `.ent` records (not cheap: an in-circuit entry view and `BndRec`
+  hashing); `vmCtxDigest` / `fuel` publics; the root packing; lane D's tree run.
+* **Checks** (after merging main `38c3262cc`):
+  * `WasmBase wasmbase-tool`: 769 jobs, standard axioms.
+  * `spec/lean/v3`: 459 jobs.
+  * `make pin-check`: ok.
+  * pytest (`oracle/tools tools …/t1`): 189 passed, 1 skipped.
+* **Operations:**
+  * `zkbuild.slice` was pinned above `MemoryHigh` by lane D (~29 GB) and lane G (~14.5 GB),
+    stalling ~75 %.
+  * Lane A's jobs therefore ran in capped scopes outside the slice: Lean and cargo at 5 GB; proofs
+    and tampers at 12 GB.
+  * Temporary files are in `nearproof-deps/tmp-laneA/at5`. The leaves are in
+    `nearproof-deps/e2e-laneA/at5/`.

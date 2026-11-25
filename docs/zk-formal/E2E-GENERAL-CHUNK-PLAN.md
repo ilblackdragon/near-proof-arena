@@ -872,7 +872,7 @@ checker unchanged; standard axioms only.
 
 | premise | lane | proved from the circuit [K] | named premises left | open (no AIR / not stated) |
 |---|---|---|---|---|
-| WASM `TmplRelC .wasm` | A | `TmplWasm.segSoundWasmRelC_of`, `TmplPrep.segSoundWasmPrepRelC_of` (segments ⊕ PREP; `Bad = Sha384Coll ∨ Coll ctxD ∨ Sha256Coll`), `prep_sha_sound`; `ClearCall` for `clearE` (`clearE_call`) | `SegPremAMP` (σ host contract, `CodeOK`/`FuncOK`), `CutSeed`, `RestOK` (`stackRem`, `vmCtxDigest`), `GhostC`; PREP: `RecordsCert`, `ent`, `rest` | **decoder certificate** (records = `checkModuleM2 (prepare code)`: the main Wasm gap), `CodeOK`/`FuncOK` from S3, `PrepRest` error branches, (H2) |
+| WASM `TmplRelC .wasm` | A | `TmplWasm.segSoundWasmRelC_of`, `TmplPrep.segSoundWasmPrepRelC_of` (segments ⊕ PREP; `Bad = Sha384Coll ∨ Coll ctxD ∨ Sha256Coll`), `prep_sha_sound`; `ClearCall` for `clearE` (`clearE_call`) | `SegPremAMP` (σ host contract, `CodeOK`/`FuncOK`), `CutSeed`, `RestOK` (A-T5: `vmCtxDigest` + the gas-thread pin; `stackRem`, `gasLeft` are public), `rop`, `GhostC`; halting leaf (A-T5): `SegPremHMP`, `FinRest`; PREP: `RecordsCert`, `ent`, `rest` | **decoder certificate** (records = `checkModuleM2 (prepare code)`: the main Wasm gap), `CodeOK`/`FuncOK` from S3, `PrepRest` error branches, (H2) |
 | RT enter `TmplSoundRel8C .rt` | F | `EnterC.enter_relC`, `enter_relC8`, non-vacuity `T1Enter.t1_enter_nonvac`; `RtView.clearEnter` met by `clearE` (`clearE_enter`, `pre = u64c ∘ prepaidGas`); F-4: `RtView.pos` in lane B's `Sha384Coll ∨ _` form = `StHalfC.rtPos` (`ResumeC.enter_pos_laneB`) | `EntChecks.vm` (A: remainder digest), `.pos` (B: `STC` opening with tag 1, `STMP`), `.prepaid`/`.code` (F: join with the `MSG`/`RX` rows) | — (`ResumeC.rt_relC8_full`: enter ∨ resume) |
 | RT resume | F ∧ B | F-4: `RbSem.rb_out` (boundary rules from `RB`), `AccSem.acc_sound` (`ACC` SHA-384 appends), `ResumeC.resume_engHalf`, **`resume_relC8`** (engine half ∧ lane B's `stHalf_inst`), `rt_relC8_full`; `rsView_viewE`; non-vacuity `T1Resume` (RB constraints and both appends on T1's leaf) | `RsStep` (A: `cc = .fin r`; F: `estepO` composition, totals, appended items, `ACC` message = `pad (X ‖ Ser.enc item)`; F/E: `stRel` for the pair), `RsJoint` (B: `HoldsSt` = `STC` ∧ `WsMoves`), `ChipOK` (native chip) | `RsStep`'s proof; `next` (`K ≠ []`); in-circuit `Ser.enc` items |
 | STATE `TmplSoundRel8C .state` | F ∧ B | glue: `Glue.state_reqs`; D-c: `split_sound_relC_relOn`, `StateW.reqsRel_state`, `state_sound_stRoot` (`W` = `stRoot`); D-a: `R_0` at `start` (`wsOf_start`); D-b: finalize leaf `GlueFin.fin_reqs`, `fin_sound_relC`, `finalizeAgree`; modes `tmplSoundRel8C_modes` | B: `HoldsSt` (`STC` ∧ `WsMoves`; `SegLeaves`), `FinHalfB` (IF-FINAL); F: `EngHalfRCOn` on `StatePreW` / `FinPre`; `IntakeTrie` | no STATE engine rows (lane F); `STC` table (B) |
@@ -1137,6 +1137,18 @@ All three follow from `ViewE.viewE` (the concrete view; lane B's `stD`, lane A's
      adds `Sha256Coll` to `Bad`.
    * In the per-lane table, read lane A's row as: Lean tools `segSoundWasmRelC_of`,
      `segSoundWasmPrepRelC_of`, `wasmD_binding` (restricted), `seg_setSt`, `preConf_canon`.
+6. **Lane A A-T5 (2026-11-25; `a-t1/README.md` §12) [K][M].**
+   * `gasLeft` per §6.2: `airBnd.gasLeft = s.gas.g`, `blank` drops `gas.g`, `InDom` gains
+     `g < 2^64`. The segment AIR publishes `g_out` (SEGB's gas gadget) and `stackRem` (CUTO's budget
+     row): publics 108–116, `numPub` 117. `WOut` binds both (`SegGasRem.segb_gas_sound`,
+     `cuto_rem_sound`).
+   * **I2b-2 closed:** the halting segment's out-record is `fbBnd (q, .fin r)`
+     (`TmplWasm.WasmHoldsF`, `wasm_fin_core`, `wasm_relC_fin`). The Wasm kind with both leaf types is
+     `airsWF`.
+   * `HashLenLink` is a theorem of `wasmBaseHashAir`, restated for the register branch
+     (`ShaLenSound.hashLenLink_of_holds`). The segment AIR has no SHA-256 table.
+   * T1's Wasm leaves were re-proved (557,517 / 556,887 B, 268.2 bits, one leaf program). Their
+     digests are the chain's: `c4 → c5 → c6`.
 
 ---
 

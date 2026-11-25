@@ -1,0 +1,43 @@
+# A-T5: run_leaf.sh <wd> 13 1 24 (stack prover, capped 12 GB scope, 8 threads)
+TEMPLATE_SEGMENTS 2 cells 2141928 tallest 65536 n_stack 18 w_stack 8
+PARAMS n_stack 18 w_stack 8 log_blowup 1 pow 24 degree 9 (stack base configuration)
+KEYGEN 0.00s; SOUNDNESS total=268.2 logup=324.4 proximity=295.1 query=268.2
+  LEAF 0: 557517 B, prove 26.9s, verify 18 ms, statement ok, peak_rss_kib 8171680
+  LEAF 1: 556887 B, prove 25.6s, verify 17 ms, statement ok, peak_rss_kib 8198968
+SEGLEAF OK 2 segments at one template vk (sha256 4e469b4573c149afac5971859b75da547383c5167eb634e45897ed819ff7b9d2), boundaries chain; saved to leaf
+  DISK 0: 557517 B verified in 18 ms, heights = template's pinned (log, tight), public values = saved, chains
+  DISK 1: 556887 B verified in 17 ms, heights = template's pinned (log, tight), public values = saved, chains
+SEGLEAFVERIFY OK 2 segments from disk under one vk
+# lane D m8-import (pq-e2e-m8 drv2)
+M8_TEMPLATE_PROVED wasm_seg bytes=557517 seconds=0.0 params=(n_stack 18, w_stack 8, lb 1) queries=[100, 71, 45, 33] bits=268.2
+M8_TEMPLATE_PROVED wasm_seg bytes=556887 seconds=0.0 params=(n_stack 18, w_stack 8, lb 1) queries=[100, 71, 45, 33] bits=268.2
+INFO.json: heights equal, vk_sha256 equal (0f88f4ad4850ededfe662a70a5f43b4477b375b51eeb73f0f1a6f8be8518ec72)
+# segcheck K = 1..26 (A-T5 AIR)
+K=1 ok precheck_ok=26 SEGCHECK OK 26 segments chained: B_out(k) = B_in(k+1) for every k
+K=2 ok precheck_ok=13 SEGCHECK OK 13 segments chained: B_out(k) = B_in(k+1) for every k
+K=3 ok precheck_ok=9 SEGCHECK OK 9 segments chained: B_out(k) = B_in(k+1) for every k
+K=4 ok precheck_ok=7 SEGCHECK OK 7 segments chained: B_out(k) = B_in(k+1) for every k
+K=5 ok precheck_ok=6 SEGCHECK OK 6 segments chained: B_out(k) = B_in(k+1) for every k
+K=6 ok precheck_ok=5 SEGCHECK OK 5 segments chained: B_out(k) = B_in(k+1) for every k
+K=7 ok precheck_ok=4 SEGCHECK OK 4 segments chained: B_out(k) = B_in(k+1) for every k
+K=8 ok precheck_ok=4 SEGCHECK OK 4 segments chained: B_out(k) = B_in(k+1) for every k
+K=9 ok precheck_ok=3 SEGCHECK OK 3 segments chained: B_out(k) = B_in(k+1) for every k
+K=10 ok precheck_ok=3 SEGCHECK OK 3 segments chained: B_out(k) = B_in(k+1) for every k
+K=11 ok precheck_ok=3 SEGCHECK OK 3 segments chained: B_out(k) = B_in(k+1) for every k
+K=12 ok precheck_ok=3 SEGCHECK OK 3 segments chained: B_out(k) = B_in(k+1) for every k
+K=13 ok precheck_ok=2 SEGCHECK OK 2 segments chained: B_out(k) = B_in(k+1) for every k
+K=14 ok precheck_ok=2 SEGCHECK OK 2 segments chained: B_out(k) = B_in(k+1) for every k
+K=15 ok precheck_ok=2 SEGCHECK OK 2 segments chained: B_out(k) = B_in(k+1) for every k
+K=16 ok precheck_ok=2 SEGCHECK OK 2 segments chained: B_out(k) = B_in(k+1) for every k
+K=17 ok precheck_ok=2 SEGCHECK OK 2 segments chained: B_out(k) = B_in(k+1) for every k
+K=18 ok precheck_ok=2 SEGCHECK OK 2 segments chained: B_out(k) = B_in(k+1) for every k
+K=19 ok precheck_ok=2 SEGCHECK OK 2 segments chained: B_out(k) = B_in(k+1) for every k
+K=20 ok precheck_ok=2 SEGCHECK OK 2 segments chained: B_out(k) = B_in(k+1) for every k
+K=21 ok precheck_ok=2 SEGCHECK OK 2 segments chained: B_out(k) = B_in(k+1) for every k
+K=22 ok precheck_ok=2 SEGCHECK OK 2 segments chained: B_out(k) = B_in(k+1) for every k
+K=23 ok precheck_ok=2 SEGCHECK OK 2 segments chained: B_out(k) = B_in(k+1) for every k
+K=24 ok precheck_ok=2 SEGCHECK OK 2 segments chained: B_out(k) = B_in(k+1) for every k
+K=25 ok precheck_ok=2 SEGCHECK OK 2 segments chained: B_out(k) = B_in(k+1) for every k
+K=26 ok precheck_ok=1 SEGCHECK OK 1 segments chained: B_out(k) = B_in(k+1) for every k
+# KAT (run_kat.sh, A-T5 tool + stack prover)
+KAT: 98 passed, 0 failed (python ref = Lean spec = Rust trace + AIR pre-check)

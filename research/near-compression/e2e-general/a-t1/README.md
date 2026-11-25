@@ -7,6 +7,17 @@ T1 = `/data/illia/nearproof-deps/corpora/d3c8/d3/02-h10196-s3`: one FunctionCall
 (code `8152bed2…`, 345 B), method `run`, input `again`, 26 Wasm steps, six host calls:
 `input`, `register_len`, `read_register`, `storage_write` (existing key), `log_utf8`, `value_return`.
 
+**Update 2026-11-25 (A-T5, §12).**
+* The segment AIR's out-boundary exposes `stackRem` (CUTO's budget row) and `gasLeft = s.gas.g`
+  (SEGB's gas gadget `g_out + R·(S_out − S_seg) = segb_out`); `airBnd.gasLeft = s.gas.g`, and the
+  remainder no longer carries `gas.g`. `WOut` binds both (Lean: `segb_gas_sound`, `cuto_rem_sound`).
+* The halting segment's out-record is the fin record `fbBnd (q, .fin r)` (finding I2b-2):
+  `TmplWasm.WasmHoldsF`, `wasm_fin_core`, `wasm_relC_fin`, the two-kind system `airsWF`.
+* `HashLenLink` is a theorem of `wasmBaseHashAir` (restated: the register branch hashes the
+  register's length). The segment AIR has no SHA-256 table, so this does not touch it.
+* T1's two Wasm leaves re-proved (557,517 / 556,887 B, 268.2 bits, one lane D program); their in/out
+  digests are the chain's `c4 → c5 → c6` (`e90f4a94 → b28bfa13 → b3135387`).
+
 **Update 2026-11-25 (A-T4, §11).**
 * PREP decodes the hashed code in-circuit. New tables: `CB` (code bytes, fed to the SHA slots),
   `HDR` (the section walk) and the CODE/FUNC decoder columns. Every byte-determined record field is
@@ -938,3 +949,156 @@ is **not done here**. It belongs to the next segment-AIR revision.
 * `PrepRest`, PREP's error branches, `CodeOK`/`FuncOK` from S3, and lane D's tree-spec insertion are
   unchanged from §10.4.
 
+
+## 12. Milestone A-T5 (2026-11-25): the next segment-AIR revision
+
+Lane I's I-2b chain (`docs/zk-formal/E2E-T1-CRITICAL-PATH.md` §2) left lane A three items: the
+halting segment's out-record (finding I2b-2), `gasLeft` (M11i) and the stack budget as bound
+fields, and the `sha256` length link. All three are done. `S`, `claimDigest` and the checker are
+unchanged, and nothing here needs them changed (stop rule not triggered). Lean: `WasmBase
+wasmbase-tool` builds (769 jobs) and `spec/lean/v3` builds (459 jobs) after merging main
+(`38c3262cc`, lane G G-5). Standard axioms only; no `sorry`, `native_decide` or `axiom`.
+
+### 12.1 The AIR change [K][M]
+
+**Public values 108–116** (`Seg.numPub` 105 → 117; 105–107 stay `wasmBaseSegAirG`'s):
+
+| publics | meaning | constraint |
+|---|---|---|
+| 108, 109 `rem_lo`, `rem_hi` | the out-cut's stack budget `[rem mod 2^16, rem / 2^16]` | `CUTO`: `k5·(F₃ − rem_lo)`, `k5·(F₄ − rem_hi)` on the (one) space-5 row |
+| 110–113 `g_out` | the spec's gas register `s.gas.g` at the out-cut, four 16-bit limbs | `SEGB`'s gas gadget |
+| 114–116 `R` | the bytes of `regularOpCost` | the wrapper pins them to the template's constant (T1: 822,756) |
+
+**SEGB's gas gadget** (`SegAir.lean`, `Seg.Segb.gas*`): 30 bit columns for `d = S_out − S_seg,out`
+(bytes `δ₀ δ₁ δ₂`, 6-bit `δ₃`, so `d < 2^30 < P`), 33 bit columns for three 11-bit carries, and per
+16-bit limb `k`: `gₖ + Uₖ + c_{k−1} = Bₖ + 2^16·cₖ`, where `Uₖ` collects the byte products `ρᵢδₘ`
+of weight `2^{16k}` and `2^{16k+8}`. Every side of a limb equation is `< 2^28`, so the equations hold
+over the naturals and sum to `g_out + R·d = segb_out`. All four `SEGB` rows repeat the gadget's
+columns, so the 68 new constraints need no selector and have degree 2. SEGB grows from 4 to 67
+columns; no table gains an interaction.
+
+**Lean [K] (`Main/SegGasRem.lean`):**
+* `segb_gas_sound`: from `HoldsXS` and the wrapper's range checks `GasPubOK` (limbs `< 2^16`, bytes
+  `< 2^8`) and `S_seg,out ≤ S_out`: `gOutN + ropN·(S_out − S_seg,out) = gbOutN`.
+* `cuto_rem_sound`: if CUTO's hashed list is `cutView X s`, then `remN pub = s.stackRem`. The view
+  has exactly one space-5 message (`budMsg s.stackRem`); its CUTO row has `k5 = 1`
+  (`cuto_k5_of_five`, through `cuto_kL_lookupS`).
+* `Cuti.seg_cutoView_AMP`: a cut segment's CUTO list is the view of its successor state.
+
+### 12.2 `gasLeft` in the view and the mid-call template [K]
+
+* `WasmView.airBnd.gasLeft := s.gas.g`. `blank` now zeroes `gas.g` (m6 §6.2), so the remainder
+  digest `vmCtxDigest` no longer moves with the gas register. `InDom.lt64` gains `s.gas.g < 2^64`
+  (from `RelW`: `g ≤ segb < 2^64`, `SegDom.seg_inDom`). `blank_inj` and `wasmBnd_binding` take
+  `gas.g` from `gasLeft`.
+* `TmplWasm.WOut`: `gas : w.gasLeft = gOutN pub` (was the interim `= 0`), `gok : GasPubOK pub`,
+  `rem : w.stackRem = remN pub`.
+* `RestOK` is now only the remainder digest plus the **gas-thread pin**
+  `sg (t_out + 1) = (S_seg,out, segb_out)`. Why the pin stays named: the AIR binds the public out
+  gas register to the channel's last space-7 message (SEGB's receive; segtamper "S_seg_out+1 with
+  the gadget re-solved" is rejected by the CH bus), but `RelW` does not interpret space-7 messages,
+  so the ghost thread `sg` is not tied to them.
+* New `WasmHolds.rop : ropN pub = X.R` (named, static): the wrapper checks the `R` bytes against the
+  template constant; the template applies to calls with that `regularOpCost`.
+* `wasm_core` derives `wo.stackRem = sN.stackRem` and `wo.gasLeft = sN.gas.g` from the AIR. The
+  non-vacuity results (`leafW_honest`, `restOK_honest`, `wasmHolds_honest`, `wasmHoldsC_honest`)
+  take the honest publics as hypotheses.
+
+### 12.3 The halting segment: the fin out-record (finding I2b-2) [K]
+
+The configuration after the last segment is not an AIR state. `.ent p .method r m`, with `r` the
+terminal result, takes one `cstep` to `.fin (afterMethod (entPost r))`, whose record is
+`fbBnd (q, .fin r')`: every counter is 0 and every digest is `bdigest []`, except `vmCtxDigest`.
+Lane F's resume leaf reads exactly this record.
+
+* `LeafWF`: the halting wrapper. Its in-checks are `WIn` and `n ≤ fuel_in`; it checks the status
+  `halted ∈ {1, 2}`; the out-record is `WOutFin` (the fin record's constant fields).
+* `WasmHoldsF` = `LeafWF` ∧ `SegPremHMP` (the halting segment's premises, `SegCallSigma`) ∧
+  `StaticOK` ∧ `meth : k = .method` ∧ `win` ∧ `CutSeed` ∧ `FinRest`. `FinRest` is the named
+  `vmCtxDigest` of the call's result, the analogue of `RestOK`'s.
+* **`wasm_fin_core`**: an opened in-record steps by `CSteps` to
+  `.fin (afterMethod (entPost (step s')))` at digest `d'`. The steps are the segment's `n − 1`
+  steps, the terminal step (`seg_sound_haltσ_mp`) and the exit (`csteps_exit`).
+* **`wasm_relC_fin`** / `segSoundWasmFinRelC_of`: lane E's store-canonical `TmplRelC`. The result
+  is canonical (`afterMethod_setRun`, `entPost_setSt`, `sync_setSt`: lane E's `join/CanonH2.lean`
+  lemmas, restated in the default build).
+* `airsWF` (`WTr ⊕ WTr`) with `segSoundWasmRelC_airsWF` gives cut and halting leaves in one Wasm
+  kind. Non-vacuity: `leafWF_honest`, `finRest_honest`.
+* Natively, `segleaf` writes `wasm_fields.out_record = "fin"` for the halting segment. It also writes
+  `stack_rem_out`, `gas_left_out` and `regular_op_cost`. `segleafverify` checks that only the last
+  segment halts and that the record kind matches.
+
+### 12.4 `HashLenLink` [K][M]
+
+The segment AIR has no SHA-256 table: a `sha256` call there is answered through the σ-pinned host
+contract. A-T4 §11.5 said otherwise, and that was wrong. The link belongs to `wasmBaseHashAir`:
+
+* `Sha.callMsgL = [ts, hid, sh_len, ptr, reg, Nd, 0, 0]` is received on the digest row.
+* `HOSTO` sends `[ts, hid, a0, a1, a2, elen, 0, 0]`, with the new witness `elen` constrained by
+  `(a0 − (2^64 − 1))·(elen − a0) = 0`.
+* `Dmult` is a bit (`cDmultB`).
+* **Finding:** A-T4's `HashLenLink` (`sh_len = Nd`) is false for honest traces on `memOrRegH`'s
+  register branch (`len = u64Bound − 1`): the KAT `sharegkat` failed the bus pre-check. It is
+  restated as `sh_len = Nd ∨ sh_len = 2^64 − 1`. Binding the register's length is the join
+  obligation (stated).
+* **`ShaLenSound.hashLenLink_of_holds`**: `Holds (wasmBaseHashAir nloc ngl) → HashLenLink tr 26`.
+  The proof goes through the bus-211 occurrences (`occ211`), the bit counts, the balance, and the
+  constraint on the `HOSTO` sender row.
+* KAT: 98/98 (`run_kat.sh`: Python reference = Lean spec = Rust trace + AIR pre-check), including
+  the SHA programs.
+
+### 12.5 T1's two Wasm leaves re-proved [M]
+
+Run as `run_leaf.sh … 13 1 24`: stack prover, base configuration, 8 threads, in a 12 GB capped
+scope (§12.7). Logs: `logs/t1-leaf-at5*.txt`, `logs/t1-segtamper-at5-seg{0,1}.txt`.
+
+| | A-T2 (§9.1) | A-T5 |
+|---|---|---|
+| seg 0 / seg 1 proof | 554,709 / 553,071 B | **557,517 / 556,887 B** |
+| prove, verify, peak RSS | 25.7 / 28.3 s, 17 / 17 ms, 8.2 GB | 26.9 / 25.6 s, 18 / 17 ms, 8.2 GB |
+| soundness, queries | 268.2 bits, [100, 71, 45, 33] | same |
+| publics | 105 | 117 |
+| vk sha256 | `b1eed0ca…` | `4e469b45…b7b9d2` (lane D `INFO.json`: `0f88f4ad…8518ec72`) |
+| heights | pinned, equal across segments | pinned, equal (lane D `m8-import`: equal heights and vk, so one WASM leaf program) |
+| `segcheck` K = 1 … 26 | 26/26 | 26/26 |
+
+**Against lane I's chain** (`t1/chain.py plan`, `leaf_table`, SAVED → A-T5 leaves): **every Wasm
+field equal, every digest equal.**
+* seg 0: `h(c4) = e90f4a94…` → `h(c5) = b28bfa13…`. The `gasLeft` public is 53,990,571,634,314 and
+  `stackRem` is 262,032.
+* seg 1: `b28bfa13…` → `h(c6) = b3135387…`. The out-record is the fin record.
+* `vmCtxDigest` and `fuel` are still placeholders shared with the chain.
+* PREP (A-T4, unchanged): its CODE/FUNC roots are still the segments' (R1).
+
+**Mutants.**
+* `leaf_tamper.sh`: **21/21 rejected**. That is A-T2's 14 plus the publics 108, 109, 110, 113 and
+  114 edited, and the out-record kind swapped on either segment.
+* `segtamper` (in-circuit; each case proved and verified): seg 0 **57/57 rejected**. The new cases
+  are `g_out` limbs, an `R` byte, `S_seg,out`, `rem_lo` / `rem_hi`, the gadget bits `gd0` / `gc0`,
+  and the gas register forged with the gadget re-solved (rejected by the CH bus).
+* seg 1: **56/57**. The accepted case is "`R` byte + 1, rows honest": in the halting segment
+  `d = S_out − S_seg,out = 0` (the last host call re-synchronised the register), so `R` does not
+  enter the gadget. The wrapper's check `ropN = R_t` rejects it (`leaf_tamper` "[114] + 1").
+
+Paths: `/data/illia/nearproof-deps/e2e-laneA/at5/leaf-k13/leaf/` (proofs, vk, pubs, manifest) and
+lane D's imported form `/data/illia/nearproof-deps/e2e-laneA/at5/m8-tmpl/wasm{0,1}/`.
+
+### 12.6 Not done
+
+* **PREP's `.pre` / `.ent` records (c3 → c4), item 4:** not cheap. The `.ent` record's
+  `framesDigest` / `memRoot` of the entry state would need PREP to hash the entry view (a CUTO-like
+  stream plus a Merkle root), and `B_in` / `B_out` as whole records need in-circuit `BndRec`
+  hashing. PREP stays as in A-T4: the code hash and the CODE/FUNC roots.
+* `vmCtxDigest` and `fuel` as publics; the 42-B packing of the CODE/FUNC commitment; lane D's tree
+  run over the A-T5 leaves (the leaf program root was not re-measured).
+* The gas-thread pin (§12.2) and `FinRest` are named.
+
+### 12.7 Operations
+
+Lane D's M8 tree (~29 GB) and a lane G Lean job (~14.5 GB) kept `zkbuild.slice` above its
+`MemoryHigh` (40 GB) for this whole milestone: memory-pressure stall ~75 %, every job in the slice at
+~5 % CPU, lane D included. A one-second Lean module did not finish in 30 minutes. So this
+milestone's jobs ran in their own capped scopes outside the slice
+(`systemd-run --user --scope -p MemoryMax=… -p MemorySwapMax=0`, OOM-first). Caps: Lean and cargo
+at 5 GB, the two leaf proofs and the mutant battery at 12 GB (8 threads). The host had ≥ 60 GB
+available throughout.
