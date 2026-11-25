@@ -1,0 +1,24 @@
+TABLE SHA    width  544 height 2^13 cells   4456448 constraints  1028 interactions    17 deg 4
+TABLE S384   width  449 height 2^6  cells     28736 constraints   812 interactions   321 deg 4
+TABLE RNG    width   69 height 2^8  cells     17664 constraints    71 interactions     3 deg 2
+TABLE STMT   width    4 height 2^11 cells      8192 constraints     9 interactions     2 deg 4
+TABLE FIN    width 1010 height 2^2  cells      4040 constraints  1773 interactions  1298 deg 2
+TABLE BODY   width   17 height 2^12 cells     69632 constraints    40 interactions     5 deg 5
+TABLE SEG    width  132 height 2^5  cells      4224 constraints   144 interactions    76 deg 4
+TABLE RS     width  218 height 2^10 cells    223232 constraints   331 interactions   109 deg 4
+TABLE PART   width   37 height 2^5  cells      1184 constraints    16 interactions     9 deg 4
+TABLE SHD    width   71 height 2^3  cells       568 constraints    59 interactions    53 deg 4
+TABLE OUTL   width  124 height 2^5  cells      3968 constraints    83 interactions    78 deg 4
+TABLE MRK    width  108 height 2^6  cells      6912 constraints   135 interactions    70 deg 4
+TABLE SHA512 width   83 height 2^13 cells    679936 (native v4)
+TABLE SHA512T width    9 height 2^7  cells      1152 (native v4)
+CELLS 5505888; compressions 32
+PRECHECK OK: every constraint on every row; every bus balances (11675 distinct messages)
+TIME load+precheck 0.87s
+PARAMS n_stack 18 w_stack 8 log_blowup 1 degree 9 pow 24 queries [100, 71, 45, 33] k [2, 4, 4, 4]
+TIME keygen 0.01s
+SOUNDNESS total=268.2 logup=324.4 proximity=295.1 query=268.2
+PROOF total=485862 gkr=19160 relations=180420 stacking=2368 whir=282918
+TIME prove 21.76s verify 0.0263s threads 8 peak_rss_kib 6857696 proof_bytes 485862
+SAVED /data/illia/nearproof-deps/e2e-m5d/g3/t1f/proof-final (STATE.proof 485862 B, STATE.vk.json 2237116 B)
+VERIFY OK (native SWIRL verifier); statement check (public values): OK

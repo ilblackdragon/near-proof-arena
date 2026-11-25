@@ -2020,7 +2020,7 @@ See `research/near-compression/e2e-general/m5t1/README.md`; log
 * **[M] Size:** `SCHT` preprocessed, one row per entry (3,255 → 44 columns): `relations`
   290,732 → 136,608 B. `RX` split not done (plan in README).
 
-### 5.3 M5d (FINAL and INIT templates, lane G): status, 2026-11-21
+### 5.3 M5d (FINAL and INIT templates, lane G): status, 2026-11-25 (G-3)
 
 See `research/near-compression/e2e-general/m5d/README.md` (commands, tables, costs) and
 `LEAF-TEMPLATE-SPEC.md` (for lane D); log `docs/logs/e2e-laneG-m5d-2026-11-21.md`.
@@ -2084,6 +2084,25 @@ T1's row values satisfy `RowOK`, the window is T1's `chunk_inner`, `headerOk` ho
   `gen_class.py` generates the FINAL AIR per `(NS, d, t)` (`Cls.f1_eq`: the generated F1 is
   `finalAir`); proved and verified on one case each of (4, 2, 8) 977,328 B, (5, 33, 100)
   1,110,996 B, (4, 1, 3) precheck OK, proof not completed (host throttling) — natural heights, seg-v1.
+
+**G-3 (lane G, 2026-11-25)** — log `docs/logs/e2e-laneG-g3-2026-11-25.md`, README §G-3.
+* **[M] T1's INIT and FINAL re-proved on the G-2 AIRs** (`SLOT` `sel`, `BLK` walk with the `ℓ_B`
+  check, `PSR` 22 / `FINB` 23, `B_out` digests), lane D's base configuration, templates `F1` /
+  `INIT-14`: FINAL **485,862 B**, 21.8 s, 6.86 GB; INIT **350,435 B**, 19.0 s, 6.24 GB; 268.2-bit;
+  native verify + statement check, lane D `fs-count` and **`m8-import`** OK. Saved in lane D's M8
+  leaf format at `/data/illia/nearproof-deps/e2e-m5d/g3/tmpl/{init,final}/` (`TMPL.proof`,
+  `TMPL.vk.json`, `INFO.json`; hashes in `m5d/results/g3/SHA256SUMS`) — drop-in for the stub
+  INIT / FINAL of `results/zk/m8/t1real`. INIT's `prev_state_root` public values = lane B
+  STATE_IF's `WSB` limbs 0..15 on T1.
+* **[M] Batteries with the prover:** FINAL 35/35 rejected (AIR precheck); INIT 10/10 (6 AIR, 4
+  statement check: `pre_byte`, `blk_byte`, `wit_byte` — other chunks — and `psr_slot`, the open
+  slot selection).
+* **`BndRec` gap** (README §G-3 table): INIT's `B_0` needs only lane E's view constants
+  (`stD .none`, `outD .none`, `vmD []`, `clear` at `init`) and the adoption of `ctxD(.raw)`; INIT's
+  `B_out` (`eng I start`) and FINAL's `B_in` need lane B's parts (INTAKE / FINAL + `finK`) in a
+  joint leaf (`finInDigest` is not a `BndRec` field; `outRcptAcc` list vs one chain); FINAL's
+  `B_out` lacks `V.clear (done …)` (gas burnt, compute, indices) — lane E to fix `clear` at `done`
+  or the joint leaf passes them through. Owner/lane E decision, not taken here.
 
 **Open, in order:** (1) `Computed` — the functional-sender facts per SHA-256 consumer (then
 `sha_msg`), the `MRK` rows ⇒ `walkLevel` (functional `NODE` bus), `BODY`/`SEG` ⇒ `encodeRcpts`,

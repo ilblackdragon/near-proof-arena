@@ -1,0 +1,17 @@
+TABLE S384   width  449 height 2^8  cells    114944 constraints   812 interactions   321 deg 4
+TABLE RNG    width   69 height 2^8  cells     17664 constraints    71 interactions     3 deg 2
+TABLE CLM    width   12 height 2^14 cells    196608 constraints    30 interactions     4 deg 6
+TABLE BLK    width   31 height 2^8  cells      7936 constraints    55 interactions    17 deg 5
+TABLE INI    width  150 height 2^2  cells       600 constraints   113 interactions    62 deg 2
+TABLE SHA512 width   83 height 2^14 cells   1359872 (native v4)
+TABLE SHA512T width    9 height 2^7  cells      1152 (native v4)
+CELLS 1698776; compressions 124
+PRECHECK OK: every constraint on every row; every bus balances (18611 distinct messages)
+TIME load+precheck 0.02s
+PARAMS n_stack 18 w_stack 4 log_blowup 1 degree 9 pow 24 queries [100, 71, 45, 33] k [2, 4, 4, 4]
+TIME keygen 0.00s
+SOUNDNESS total=268.2 logup=324.4 proximity=295.1 query=268.2
+PROOF total=350435 gkr=19160 relations=53116 stacking=2176 whir=275636
+TIME prove 18.98s verify 0.0100s threads 8 peak_rss_kib 6240796 proof_bytes 350435
+SAVED /data/illia/nearproof-deps/e2e-m5d/g3/t1i/proof-init (STATE.proof 350435 B, STATE.vk.json 774287 B)
+VERIFY OK (native SWIRL verifier); statement check (public values): OK
