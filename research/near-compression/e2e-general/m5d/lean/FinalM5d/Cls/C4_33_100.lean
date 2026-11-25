@@ -123,7 +123,14 @@ def PV_L : Nat := 29
 def PV_HDR : Nat := 30
 /-- `outD (.done o)`'s first component `bdigest (0x05 ‖ encOutputsF1 o)` (`BOut.outDoneD`), 14 limbs. -/
 def PV_OUT : Nat := 44
-def NUM_PUB : Nat := 58
+/-- G-5 (M12 clear fields of `done H o`): `o.gasUsed` as the 8 big-endian bytes of the boundary
+record's `u64` field (`BndRec.codec`'s `natC 8`), one byte per value; = `FinIn`'s gas bytes reversed
+(`FinIn` and the header carry them little-endian), hence `H.prev_gas_used` by `eqGu`. -/
+def PV_GU : Nat := 58
+/-- G-5: `o.balanceBurnt`, the 16 big-endian bytes of the record's `u128` field; = `FinIn`'s
+balance bytes reversed, hence `H.prev_balance_burnt` by `eqBb`. -/
+def PV_BB : Nat := 66
+def NUM_PUB : Nat := 82
 
 /-- Activity is a prefix of the rows, and the table's last row is inactive. -/
 def actPrefix (T : Cols) : List Expr :=
@@ -253,8 +260,18 @@ def boutConstraints : List Expr :=
   eqs act ((List.range 14).map fun i => P (PV_HDR + i)) (limbs3 (T.cs "hd" 42)) ++
   eqs act ((List.range 14).map fun i => P (PV_OUT + i)) (limbs3 (T.cs "od" 42))
 
+/-- G-5: the two clear counters of `done H o` (M12 `clearE`): public values `PV_GU`, `PV_BB` are the
+big-endian bytes of `FinIn`'s `gasUsed` / `balanceBurnt` (the cells `eqGu` / `eqBb` equate to the
+header's `prev_gas_used` / `prev_balance_burnt`, i.e. what `headerOk` checks). -/
+def clearConstraints : List Expr :=
+  ((List.range 8).map fun j => act * (P (PV_GU + j) - fi (FI_GAS + 7 - j))) ++
+  ((List.range 16).map fun j => act * (P (PV_BB + j) - fi (FI_BAL + 15 - j)))
+
+/-- The constraints beyond the M5d-T1 row (`B_out` digests, G-5 clear counters). -/
+def extraConstraints : List Expr := boutConstraints ++ clearConstraints
+
 def table : Table :=
-  { width := L.width, constraints := constraints ++ boutConstraints,
+  { width := L.width, constraints := constraints ++ extraConstraints,
     interactions := interactions ++ boutInteractions, maxLog := 4 }
 end Fin
 
@@ -526,7 +543,8 @@ def finalConsts : List (String × String) :=
    ("PID0", toString PID0), ("MID0", toString MID0), ("ID_CLAIM", toString ID_CLAIM),
    ("ID_FIN", toString ID_FIN), ("ID_HDR", toString ID_HDR), ("ID_OUT", toString ID_OUT),
    ("TAG_HDR", toString TAG_HDR), ("TAG_OUT", toString TAG_OUT), ("PV_HDR", toString PV_HDR),
-   ("PV_OUT", toString PV_OUT), ("RCH0", toString RCH0), ("OCH0", toString OCH0),
+   ("PV_OUT", toString PV_OUT), ("PV_GU", toString PV_GU), ("PV_BB", toString PV_BB),
+   ("RCH0", toString RCH0), ("OCH0", toString OCH0),
    ("CH_OUT", toString CH_OUT), ("CH_RC", toString CH_RC), ("TR_OUT", toString TR_OUT),
    ("TR_SH", toString TR_SH), ("TR_RS", toString TR_RS), ("NUM_PUB", toString NUM_PUB),
    ("acc0", natList acc0), ("ivLimbs", natList S384.ivLimbs),

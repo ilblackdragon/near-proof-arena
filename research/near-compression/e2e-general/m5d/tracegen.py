@@ -226,6 +226,7 @@ class Gen:
         if self.mut('fin_cong'):
             cong[3] ^= 1
         gas, bal, gl = int(fin['gasUsed']), int(fin['balanceBurnt']), int(fin['gasLimit'])
+        gas_h, bal_h = gas, bal
         if self.mut('fin_gas'):
             gas += 1
         if self.mut('fin_bal'):
@@ -437,7 +438,14 @@ class Gen:
             S3.rows[0][S3.ix('b', 127)] ^= 1
         self.fill_rng()
         pubs = limbs3(cd[:42]) + limbs3(fd[:42]) + [n, L] + limbs3(hd[:42]) + limbs3(od[:42])
+        # G-5: the clear counters of `done H o` (M12): big-endian `u64` gasUsed, `u128` balanceBurnt
+        # (the boundary record's `natC` widths) = FinIn's little-endian bytes reversed
+        assert len(pubs) == C['PV_GU']
+        pubs += fi[75:83][::-1] + fi[83:99][::-1]
+        assert len(pubs) == C['NUM_PUB']
+        # the statement side (lane D's leaf): the header's own prev_gas_used / prev_balance_burnt
         stmt = list(pubs)
+        stmt[C['PV_GU']:C['NUM_PUB']] = list(gas_h.to_bytes(8, 'big')) + list(bal_h.to_bytes(16, 'big'))
         if self.mut('pub_claim'):
             pubs[3] += 1
         if self.mut('pub_n'):
@@ -446,6 +454,13 @@ class Gen:
             pubs[C['PV_HDR'] + 2] += 1
         if self.mut('pub_out'):
             pubs[C['PV_OUT'] + 5] += 1
+        if self.mut('pub_gu'):
+            pubs[C['PV_GU'] + 7] ^= 1
+        if self.mut('pub_bb'):
+            pubs[C['PV_BB'] + 15] ^= 1
+        if self.mut('gu_le'):
+            # the counter in FinIn's (little-endian) byte order, not the record's big-endian one
+            pubs[C['PV_GU']:C['PV_BB']] = fi[75:83]
         self.pubs, self.stmt_pubs = pubs, stmt
         return dict(n=n, L=L, rcpts=len(rcpts), outcomes=len(leaves), stream=len(stream))
 
@@ -684,7 +699,8 @@ class GenInit(Gen):
             T.rows[len(pre) + len(blocks) + 5][T.ix('b')] ^= 1
         stmt = pre + u(0, 4) + post   # lane E's canonical S (StmtEnc.encode_splice)
         cb = pre + blocks + post
-        ctx = [C['CTX_TAG']] + u(len(blocks), 4) + u(len(cb), 4) + cb + wit
+        # G-5: big-endian u32 lengths (lane E's `ViewE.rawPre`, `u32 = beN 4`)
+        ctx = [C['CTX_TAG']] + list(len(blocks).to_bytes(4, 'big')) + list(len(cb).to_bytes(4, 'big')) + cb + wit
         cd = self.s384(C['ID_CLAIM'], stmt)
         xd = self.s384(C['ID_CTX'], ctx)
         I = self.T['INI']
@@ -835,7 +851,7 @@ MUTANTS = ['hdr_psr', 'hdr_por', 'hdr_emr', 'hdr_el', 'hdr_gu', 'hdr_gl', 'hdr_b
            'fin_root', 'fin_cong', 'fin_gas', 'fin_bal', 'fin_gl',
            'leaf', 'outcome_drop', 'rcpt_byte', 'rcpt_shard', 'rcpt_drop', 'rcpt_swap',
            'body_byte', 'rs_par', 'mrk_node', 'stmt_byte', 'fin_ro', 's384_pad', 'pub_claim', 'pub_n',
-           'bout_od', 'pub_hdr', 'pub_out']
+           'bout_od', 'pub_hdr', 'pub_out', 'pub_gu', 'pub_bb', 'gu_le']
 
 
 def main():
