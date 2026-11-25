@@ -1,0 +1,181 @@
+--- a/openvm-sha384/crates/recursion/src/nv/agg.rs
++++ b/openvm-sha384/crates/recursion/src/nv/agg.rs
+@@ -116,7 +116,36 @@
+     let d = crate::sha384::config::digest_from_bytes(crate::sha384::config::truncate_digest(
+         crate::sha384::config::hash_parts(TAG_RANGE, &[&crate::sha384::config::felt_bytes(&vals)]),
+     ));
+-    b.dig(job, d)
++    let dc = b.dig(job, d);
++    pin_range_tail(b, &dc);
++    dc
++}
++
++/// [E2E-D M9, lane E M11i finding `TailCanon`] In 42-byte mode GLUE sends limb 2 of word 5 as
++/// `s5 − lo6` with only `4·lo6` byte-checked; Merkle consumers compare it with a canonical tail,
++/// `hash_range`'s consumers (`assert_eq` against a child's public digest, `PvD`) did not. Pin it:
++/// the high `Dig` cell is `pack(l12..l17)` (coefficients 6..11 zero) with `l17 = 64·t`,
++/// `t = Σ_{i<16} 2^i β_i`, `β_i` LoadBit cells. 33 + 16 rows per range digest.
++pub(crate) fn pin_range_tail(b: &mut Builder, dc: &DigestCells) {
++    if crate::sha384::config::sha_levers().digest_bytes != 42 {
++        return;
++    }
++    let l = super::fmt::digest_limbs(dc.digest);
++    let t = l[17].as_canonical_u32();
++    if t % 64 != 0 || t >> 6 >= 1 << 16 {
++        b.failures.push("range digest tail not canonical".into());
++    }
++    let mut cells: Vec<V> = l[12..17].iter().map(|&x| b.load_f(x)).collect();
++    let mut acc = b.c(F::ZERO);
++    for i in 0..16 {
++        let bit = b.load_bit((t >> (6 + i)) & 1 == 1);
++        let w = b.mul_c(bit, F::from_u32(64 << i));
++        acc = b.add(acc, w);
++    }
++    cells.push(acc);
++    let mut basis = vec![];
++    let hi = pack(b, &mut basis, &cells);
++    b.assert_eq(dc.hi, hi, "range digest: canonical 42-B tail (lo6 pinned)");
+ }
+ 
+ /// Pack 12 (or 6) base cells into one Ext12 cell: sum_k x_k X^k (basis cells cached).
+--- a/openvm-sha384/crates/recursion/src/nv/tree.rs
++++ b/openvm-sha384/crates/recursion/src/nv/tree.rs
+@@ -37,8 +37,20 @@
+ use crate::sha384::config::{digest_from_bytes, felt_bytes, hash_parts, truncate_digest, Digest, Sha384Config, F, TAG_STATEMENT};
+ use openvm_stark_backend::{keygen::types::MultiStarkVerifyingKey, proof::Proof};
+ 
+-pub const PHASE_INIT: u32 = 1;
+-pub const PHASE_DONE: u32 = 2;
++/// [E2E-D M9, lane E M11i] leaf-boundary phase codes of `View.split` (TreeM8.lean: a leaf
++/// boundary is `[phase, h(B)]`): init 0, eng 1, fin 2, gfin 3, done 4, doneG 5, call 6 (D-5 .. M8
++/// used the placeholders init 1 / done 2).
++pub const PHASE_INIT: u32 = 0;
++pub const PHASE_DONE: u32 = 4;
++pub const PHASE_DONE_G: u32 = 5;
++
++/// [M9] assert `p ∈ {done, doneG}`: `(p − 4)(p − 5) = 0`.
++pub(crate) fn assert_done_phase(b: &mut Builder, p: V, what: &str) {
++    let d4 = b.add_c(p, -F::from_u32(PHASE_DONE));
++    let d5 = b.add_c(p, -F::from_u32(PHASE_DONE_G));
++    let m = b.mul(d4, d5);
++    b.zero(m, what);
++}
+ /// boundary state cells: [phase, class]
+ pub const N_STATE: usize = 2;
+ /// statement digest limbs (the NV public values 1..19)
+@@ -166,8 +178,7 @@
+     let one = b.c(F::ONE);
+     let e = b.add(av, one);
+     let sc: Vec<V> = s.iter().map(|&x| b.load_f(x)).collect();
+-    let done = b.c(F::from_u32(PHASE_DONE));
+-    b.assert_eq(sc[0], done, "PAD: boundary phase = done");
++    assert_done_phase(b, sc[0], "PAD: boundary phase = done / doneG");
+     let cells = StmtCells { ctx: ctx_c, a: av, e, s_a: sc.clone(), s_e: sc };
+     expose(b, &cells, LEVEL_LEAF);
+     RangeStmt { ctx: ctx.to_vec(), a, e: a + F::ONE, s_a: s.to_vec(), s_e: s.to_vec() }
+@@ -198,8 +209,7 @@
+     let one = b.c(F::ONE);
+     let e = b.add(av, one);
+     let sc: Vec<V> = s.iter().map(|&x| b.load_f(x)).collect();
+-    let done = b.c(F::from_u32(PHASE_DONE));
+-    b.assert_eq(sc[0], done, "PAD_N: boundary phase = done");
++    assert_done_phase(b, sc[0], "PAD_N: boundary phase = done / doneG");
+     let cells = StmtCells { ctx: ctx_c, a: av, e, s_a: sc.clone(), s_e: sc };
+     let dc = hash_range(b, &cells);
+     let l = b.load_f(F::from_u32(level));
+@@ -328,9 +338,8 @@
+     // the root covers the chunk from its first segment, init to done
+     b.zero(s.a, "wrap: a = 0");
+     let init = b.c(F::from_u32(PHASE_INIT));
+-    let done = b.c(F::from_u32(PHASE_DONE));
+     b.assert_eq(s.s_a[0], init, "wrap: B_0.phase = init");
+-    b.assert_eq(s.s_e[0], done, "wrap: B_N.phase = done");
++    assert_done_phase(b, s.s_e[0], "wrap: B_N.phase = done / doneG");
+     // D_wrap = H8(WRAP_MARKER, n_ctx, ctx, B_0.class)
+     let mut cells = consts(b, &[WRAP_MARKER, N_CTX as u32]);
+     cells.extend(&s.ctx);
+--- a/openvm-sha384/crates/recursion/src/nv/htree.rs
++++ b/openvm-sha384/crates/recursion/src/nv/htree.rs
+@@ -38,14 +38,16 @@
+     agg::{pack, RangeStmt, StmtCells},
+     builder::{coeffs, Builder, DigestCells, V},
+     fmt::{digest_limbs, NV_DIGEST},
+-    tree::{N_CTX, PHASE_DONE, PHASE_INIT},
++    tree::{N_CTX, PHASE_DONE, PHASE_DONE_G, PHASE_INIT},
+     verifier::build_verifier,
+ };
+ use crate::sha384::config::{digest_from_bytes, felt_bytes, hash_parts, truncate_digest, Digest, Sha384Config, F, TAG_STATEMENT};
+ use openvm_stark_backend::{keygen::types::MultiStarkVerifyingKey, proof::Proof};
+ 
+-/// The tree phase between segments (neither the chunk's start nor its end).
+-pub const PHASE_MID: u32 = 3;
++/// [M9, lane E M11i] Between segments a leaf boundary carries its record's own `View.split`
++/// phase: eng 1, fin 2, gfin 3, call 6 (`PHASE_MIDS`). `PHASE_MID` (eng) is the fixtures' default.
++pub const PHASE_MID: u32 = 1;
++pub const PHASE_MIDS: [u32; 4] = [1, 2, 3, 6];
+ /// boundary state cells of the heterogeneous tree: `[phase, h(B) (18 limbs)]`
+ pub const N_STATE_H: usize = 1 + NV_DIGEST;
+ const P: u32 = 0x7800_0001;
+@@ -115,14 +117,16 @@
+     /// The layout is well formed for this child (`None`: no child proof) and binds every public
+     /// value and cached commitment of it. Returns the record length.
+     pub fn check(&self, child: Option<&MultiStarkVerifyingKey<Sha384Config>>, child_proof: Option<&Proof<Sha384Config>>) -> Result<usize, String> {
+-        let legal = [(PHASE_INIT, PHASE_MID), (PHASE_MID, PHASE_MID), (PHASE_MID, PHASE_DONE), (PHASE_INIT, PHASE_DONE)];
+-        if !legal.contains(&(self.phase_in, self.phase_out)) {
+-            return Err(format!("{}: phases ({}, {}) not one of INIT->MID, MID->MID, MID->DONE, INIT->DONE (no template takes a DONE input: review-D7 I3)", self.name, self.phase_in, self.phase_out));
++        let done = |p: u32| p == PHASE_DONE || p == PHASE_DONE_G;
++        let ok_in = self.phase_in == PHASE_INIT || PHASE_MIDS.contains(&self.phase_in);
++        let ok_out = PHASE_MIDS.contains(&self.phase_out) || done(self.phase_out);
++        if !(ok_in && ok_out) {
++            return Err(format!("{}: phases ({}, {}): input must be init 0 or a mid phase {PHASE_MIDS:?}, output a mid phase or done 4 / doneG 5 (no template takes a DONE input: review-D7 I3)", self.name, self.phase_in, self.phase_out));
+         }
+         if (self.phase_in == PHASE_INIT) != self.rec_in.is_empty() {
+             return Err(format!("{}: B_in record must be empty exactly for an INIT input", self.name));
+         }
+-        if (self.phase_out == PHASE_DONE) != self.rec_out.is_empty() {
++        if done(self.phase_out) != self.rec_out.is_empty() {
+             return Err(format!("{}: B_out record must be empty exactly for a DONE output", self.name));
+         }
+         let n_rec = self.rec_in.len().max(self.rec_out.len());
+@@ -344,7 +348,21 @@
+ /// 18 limb witness cells bound to digest cells `dc` (lo: limbs 0..12, hi: 12..18).
+ fn limbs_of(b: &mut Builder, dc: &DigestCells, basis: &mut Vec<V>, what: &str) -> Vec<V> {
+     let limbs = digest_limbs(dc.digest);
+-    let cells: Vec<V> = limbs.iter().map(|&x| b.load_f(x)).collect();
++    let mut cells: Vec<V> = limbs.iter().map(|&x| b.load_f(x)).collect();
++    // [M9, TailCanon] the 18th limb as the canonical 42-B tail 64·t, t < 2^16 (bits), not a free cell
++    if crate::sha384::config::sha_levers().digest_bytes == 42 {
++        let t = limbs[17].as_canonical_u32();
++        if t % 64 != 0 || t >> 6 >= 1 << 16 {
++            b.failures.push(format!("{what}: digest tail not canonical"));
++        }
++        let mut acc = b.c(F::ZERO);
++        for i in 0..16 {
++            let bit = b.load_bit((t >> (6 + i)) & 1 == 1);
++            let w = b.mul_c(bit, F::from_u32(64 << i));
++            acc = b.add(acc, w);
++        }
++        cells[17] = acc;
++    }
+     let lo = pack(b, basis, &cells[..12]);
+     let hi = pack(b, basis, &cells[12..]);
+     b.assert_eq(dc.lo, lo, &format!("{what}: limbs lo"));
+--- a/openvm-sha384/crates/recursion/src/nv/htree_tests.rs
++++ b/openvm-sha384/crates/recursion/src/nv/htree_tests.rs
+@@ -116,6 +116,16 @@
+     s.phase_in = PHASE_DONE;
+     s.phase_out = PHASE_DONE;
+     assert!(s.check(None, None).unwrap_err().contains("DONE input"), "review-D7 I3: a DONE input is refused");
++    // [M9] the View.split codes: a doneG input is refused too, a call (6) -> eng (1) template is legal
++    let mut s = spec_final();
++    s.phase_in = crate::nv::tree::PHASE_DONE_G;
++    assert!(s.check(None, None).unwrap_err().contains("DONE input"), "a doneG input is refused");
++    let mut s = spec_final();
++    s.phase_in = 6;
++    assert!(s.check(None, None).is_ok(), "a call-phase input is legal");
++    let mut s = spec_final();
++    s.phase_in = 7;
++    assert!(s.check(None, None).is_err(), "an unknown phase code is refused");
+     let mut s = spec_init();
+     s.phase_out = PHASE_INIT;
+     assert!(s.check(None, None).is_err(), "INIT output refused");
