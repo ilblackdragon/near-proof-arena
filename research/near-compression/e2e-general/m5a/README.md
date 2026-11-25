@@ -83,7 +83,7 @@ five (`t1cut/import.sh` with lane D's `bin-m9`: `state-if`, `state-a`, `state-re
 chain digest for digest (`h(c1)` `6a39043b`, `h(c2)` `1a491f96`, `h(c6)` `05601a54` → `h(c7)`
 `46558b74`, `h(c8)` `58bd7101`, `h(c9)` `a4522258`), every check ✓ incl. the finalize leaf's `R_in` = the
 IF's `R_n`; `test_chain_saved_leaves` now requires it. **`STMQ` / `STMA` vs lane F's M14 dumps**
-(`m5t1/stmcheck.py` against `tmp-laneF/f7`, in progress): 8 / 8 EQUAL, incl. the finalize leaf's
+(`m5t1/stmcheck.py` against lane F's F-7 dumps `tmp-laneF/f7`, after F-7 merged): 8 / 8 EQUAL, incl. the finalize leaf's
 `tag_out = 3` and `c9`'s `done` record (`logs/BT5-stmcheck.txt`).
 
 **Mutants** (`t4_mutants.sh … check`, `logs/BT5-mutants-check.txt`): **22 / 22 rejected** — B-T4's 13
