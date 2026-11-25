@@ -1,0 +1,11 @@
+'StateM5a.StNone.stD_none_eq' depends on axioms: [propext, Classical.choice, Quot.sound]
+'StateM5a.StcRow.trieI' depends on axioms: [propext, Classical.choice, Quot.sound]
+'StateM5a.StcSound.comI_trie' depends on axioms: [propext, Classical.choice, Quot.sound]
+'StateM5a.StcSound.stc_row_okT' depends on axioms: [propext, Classical.choice, Quot.sound]
+'StateM5a.StcSound.stc_holdsT' depends on axioms: [propext, Classical.choice, Quot.sound]
+'StateM5a.StcSound.srng_send_ifc' depends on axioms: [propext, Classical.choice, Quot.sound]
+'StateM5a.StcSound.stc_ifc' depends on axioms: [propext, Classical.choice, Quot.sound]
+'StateM5a.StHalfC.stcOK_of_T' depends on axioms: [propext]
+'StateM5a.HeaderLink.init_header' depends on axioms: [propext, Classical.choice, Quot.sound]
+'StateM5a.HeaderLink.header_link' depends on axioms: [propext, Classical.choice, Quot.sound]
+'LaneB.StNoneE.stD_none_viewE' depends on axioms: [propext, Classical.choice, Quot.sound]   (join-check/run.sh, kernel-evaluated)

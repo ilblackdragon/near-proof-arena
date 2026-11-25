@@ -101,7 +101,15 @@ def main (args : List String) : IO UInt32 := do
     for (nm, t) in tableNamesSegC.zip (m5tSegC D).tables do
       IO.println s!"{nm}: width {t.width}, constraints {t.allConstraints.length}, interactions {t.interactions.length}"
     return 0
+  | ["tmpl-ifc", d, out, names] =>
+    -- B-T4: INTAKE + FINAL with the `stRoot` openings (`Stc.m5tIFC`: + `STC`, `SRNG`)
+    let D := d.toNat!
+    IO.FS.writeFile out (ZkFormal.Air.Air.exportJson (m5tIFC D))
+    IO.FS.writeFile names (namesJsonC D tableNamesIFC)
+    for (nm, t) in tableNamesIFC.zip (m5tIFC D).tables do
+      IO.println s!"{nm}: width {t.width}, constraints {t.allConstraints.length}, interactions {t.interactions.length}"
+    return 0
   | ["apply", st] => applyOracle st
   | _ =>
-    IO.eprintln "usage: m5a-tool air|airb|tmpl-if|tmpl-seg|tmpl-segh|tmpl-segc D AIR_JSON NAMES_JSON | m5a-tool apply STATE_JSON"
+    IO.eprintln "usage: m5a-tool air|airb|tmpl-if|tmpl-ifc|tmpl-seg|tmpl-segh|tmpl-segc D AIR_JSON NAMES_JSON | m5a-tool apply STATE_JSON"
     return 2

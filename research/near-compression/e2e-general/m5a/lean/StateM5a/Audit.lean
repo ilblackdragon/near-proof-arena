@@ -73,6 +73,8 @@ import StateM5a.GlueRel
 import StateM5a.StcSound
 import StateM5a.StHostPfx
 import StateM5a.SegLeavesN
+import StateM5a.StNone
+import StateM5a.HeaderLink
 
 /-! Axiom audit of the M5a lemmas (`lake build StateM5a.Audit` prints them): every theorem must
 depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
@@ -798,3 +800,14 @@ depend on `propext`, `Classical.choice`, `Quot.sound` at most. -/
 #print axioms StateM5a.SegLeavesN.st_stepN
 #print axioms StateM5a.SegLeavesN.stHalf_segN
 #print axioms StateM5a.StcSound.holdsSt_seg
+-- B-T4: stD .none, the trie tie of STC, the IF's openings (m5tIFC), the header link from INIT
+#print axioms StateM5a.StNone.stD_none_eq
+#print axioms StateM5a.StcRow.trieI
+#print axioms StateM5a.StcSound.comI_trie
+#print axioms StateM5a.StcSound.stc_row_okT
+#print axioms StateM5a.StcSound.stc_holdsT
+#print axioms StateM5a.StcSound.srng_send_ifc
+#print axioms StateM5a.StcSound.stc_ifc
+#print axioms StateM5a.StHalfC.stcOK_of_T
+#print axioms StateM5a.HeaderLink.init_header
+#print axioms StateM5a.HeaderLink.header_link

@@ -875,9 +875,9 @@ checker unchanged; standard axioms only.
 | WASM `TmplRelC .wasm` | A | `TmplWasm.segSoundWasmRelC_of`, `TmplPrep.segSoundWasmPrepRelC_of` (segments ⊕ PREP; `Bad = Sha384Coll ∨ Coll ctxD ∨ Sha256Coll`), `prep_sha_sound`; `ClearCall` for `clearE` (`clearE_call`) | `SegPremAMP` (σ host contract, `CodeOK`/`FuncOK`), `CutSeed`, `RestOK` (A-T5: `vmCtxDigest` + the gas-thread pin; `stackRem`, `gasLeft` are public), `rop`, `GhostC`; halting leaf (A-T5): `SegPremHMP`, `FinRest`; PREP: `RecordsCert`, `ent`, `rest` | **decoder certificate** (records = `checkModuleM2 (prepare code)`: the main Wasm gap), `CodeOK`/`FuncOK` from S3, `PrepRest` error branches, (H2) |
 | RT enter `TmplSoundRel8C .rt` | F | `EnterC.enter_relC`, `enter_relC8`, non-vacuity `T1Enter.t1_enter_nonvac`; `RtView.clearEnter` met by `clearE` (`clearE_enter`, `pre = u64c ∘ prepaidGas`); F-4: `RtView.pos` in lane B's `Sha384Coll ∨ _` form = `StHalfC.rtPos` (`ResumeC.enter_pos_laneB`) | `EntChecks.vm` (A: remainder digest), `.pos` (B: `STC` opening with tag 1, `STMP`), `.prepaid`/`.code` (F: join with the `MSG`/`RX` rows) | — (`ResumeC.rt_relC8_full`: enter ∨ resume) |
 | RT resume | F ∧ B | F-4: `RbSem.rb_out` (boundary rules from `RB`), `AccSem.acc_sound` (`ACC` SHA-384 appends), `ResumeC.resume_engHalf`, **`resume_relC8`** (engine half ∧ lane B's `stHalf_inst`), `rt_relC8_full`; `rsView_viewE`; non-vacuity `T1Resume` (RB constraints and both appends on T1's leaf) | `RsStep` (A: `cc = .fin r`; F: `estepO` composition, totals, appended items, `ACC` message = `pad (X ‖ Ser.enc item)`; F/E: `stRel` for the pair), `RsJoint` (B: `HoldsSt` = `STC` ∧ `WsMoves`), `ChipOK` (native chip) | `RsStep`'s proof; `next` (`K ≠ []`); in-circuit `Ser.enc` items |
-| STATE `TmplSoundRel8C .state` | F ∧ B | glue: `Glue.state_reqs`; D-c: `split_sound_relC_relOn`, `StateW.reqsRel_state`, `state_sound_stRoot` (`W` = `stRoot`); D-a: `R_0` at `start` (`wsOf_start`); D-b: finalize leaf `GlueFin.fin_reqs`, `fin_sound_relC`, `finalizeAgree`; modes `tmplSoundRel8C_modes` | B: `HoldsSt` (`STC` ∧ `WsMoves`; `SegLeaves`), `FinHalfB` (IF-FINAL); F: `EngHalfRCOn` on `StatePreW` / `FinPre`; `IntakeTrie` | no STATE engine rows (lane F); `STC` table (B) |
-| INIT `SegSoundInit` / `SegSoundInit8` | G ∧ B | `Split.segSoundInit_join` (T1 form); G-5 `Leaf.init_g_half`, **`init_sound8`** (`SegSoundInit8`), `init_soundRel8C`; `InitBus.init_blk_act0`, `init_main_index` (main index across `BLK`/`INI`/`LAY` from `Holds initAirS`); view laws for `viewE`; T1 `T1G5.t1_init_c0` (= `h(c0)`); glue `Glue.init_glue` | G: `InitDig` (SHA-384 messages, `CLM` stream, `lB`); B: `InitBOut` (INTAKE, `c1`) | epochs ≥ 2 (out of class E1); row ↔ decoded structure of the walks |
-| FINAL `SegSoundFinal` / `TmplSoundRel8C .final` | G ∧ B | `Split.segSoundFinal_join` (T1 form); G-5 **`Leaf.final_soundRel8C`** (relative canonical M8 form) from `fin_g_half` (lane G's rows: `tailNew`, `headerOk`, `B_out` = `done I.H o` in `viewE`'s encodings, `FinalOutPub`), `fin_clear` (the two counters from `Holds`); T1 `T1G5.t1_final_c10` (= `h(c10)`), `t1_fin_dig`; `clearE_final`; `GlueFin.finalizeAgree` | G: `FinDig` (SHA-384 messages), `Computed` (FINAL tables' roots); B: `FinPre` (`c9` opens to a run to `fin I out`, `FinReach`, `FinIn` bus, class F1) and the header link `decodeChunkInner window = .ok I.H` | `stD .none` constant (B) |
+| STATE `TmplSoundRel8C .state` | F ∧ B | glue: `Glue.state_reqs`; D-c: `split_sound_relC_relOn`, `StateW.reqsRel_state`, `state_sound_stRoot` (`W` = `stRoot`); D-a: `R_0` at `start` (`wsOf_start`); D-b: finalize leaf `GlueFin.fin_reqs`, `fin_sound_relC`, `finalizeAgree`; modes `tmplSoundRel8C_modes` | B: `HoldsSt` (`STC` ∧ `WsMoves`; `SegLeaves`), `FinHalfB` (IF-FINAL); F: `EngHalfRCOn` on `StatePreW` / `FinPre`; `IntakeTrie` | no STATE engine rows (lane F); B-T4: lane B's state halves of seg A / seg B / finalize proved (`m5tSegC`, `STC`) |
+| INIT `SegSoundInit` / `SegSoundInit8` | G ∧ B | `Split.segSoundInit_join` (T1 form); G-5 `Leaf.init_g_half`, **`init_sound8`** (`SegSoundInit8`), `init_soundRel8C`; `InitBus.init_blk_act0`, `init_main_index` (main index across `BLK`/`INI`/`LAY` from `Holds initAirS`); view laws for `viewE`; T1 `T1G5.t1_init_c0` (= `h(c0)`); glue `Glue.init_glue` | G: `InitDig` (SHA-384 messages, `CLM` stream, `lB`); B: `InitBOut` (INTAKE, `c1`; B-T4: its `stRoot` = `m5tIFC`'s `STC` input, `stc_ifc`) | epochs ≥ 2 (out of class E1); row ↔ decoded structure of the walks |
+| FINAL `SegSoundFinal` / `TmplSoundRel8C .final` | G ∧ B | `Split.segSoundFinal_join` (T1 form); G-5 **`Leaf.final_soundRel8C`** (relative canonical M8 form) from `fin_g_half` (lane G's rows: `tailNew`, `headerOk`, `B_out` = `done I.H o` in `viewE`'s encodings, `FinalOutPub`), `fin_clear` (the two counters from `Holds`); T1 `T1G5.t1_final_c10` (= `h(c10)`), `t1_fin_dig`; `clearE_final`; `GlueFin.finalizeAgree` | G: `FinDig` (SHA-384 messages), `Computed` (FINAL tables' roots); B: `FinPre` (`c9` opens to a run to `fin I out`, `FinReach`, `FinIn` bus, class F1) and the header link `decodeChunkInner window = .ok I.H` (B-T4: `HeaderLink.init_header`, a chain invariant from INIT) | — (B-T4: `stD .none` = `StNoneE.stD_none_viewE`) |
 | `TreeFaithful`, `PadSound8`, `NodeExecV` | D | `treeFaithful_of_aggH`, `nodeExecV_of_contracts`, `nodeSha_of`, `nodeLink_*` (M11g–i) | `ProgFull`/`ProgBound`, `GlueByteBool`, `ShaContract`, `PackOK`, `NodeInner`, `TailCanon` | `TailCanon` fix in GLUE (lane D), PREP in the tree spec |
 | driver (M10) | I | — | — | M12 clear convention in `t1.py` (above); `B_out`/`plan.json` re-cut with PREP as a `wasm` leaf and the singleton `outRcptAcc` |
 
@@ -971,6 +971,31 @@ circuit, lane B's `stHalf_inst` and the named `RsStep` / `RsJoint` / `ChipOK` (t
   (14 three-byte big-endian limbs, `[r, tag, rest]`), so a joined resume leaf is `RB` + `m5tSegC`'s
   tables; lane F's stand-in `RsJoint` (the `STC` side) is what `StcSound.stc_holds` / `holdsSt_seg`
   give from `Holds` (the joined AIR and its bus ids: integrator). Lane A / F: provide `CTXB` / `CTXL`.
+
+**Lane B status (B-T4, 2026-11-25) [K][M]** (`m5a/README` §B-T4; log
+[`e2e-bt4-state-2026-11-25.md`](../logs/e2e-bt4-state-2026-11-25.md)):
+* **`stD .none` published**: `StNone.stD_none_eq`; for `stViewE` the kernel-evaluated constant
+  `799a6864…0ff93e8510b26828fe9e` (`join-check/StNoneE.lean`, `stD_none_viewE`) — lane I's `chain.py`
+  `ST_NONE` at `c0` / `c10`; lane G's wrappers take it (their `0^42` stand-in retires).
+* **IF halves (`Stc.m5tIFC` = `m5tIF` ++ `STC`)**: one `STC` row opens `c1`'s commitment (tag 1,
+  `R_0`: the INTAKE half's `stRoot`, `InitBOut`'s state part) and closes `c9`'s (tag 3, `R_n`: the
+  FINAL half's, `FinPre`'s state part); `StcSound.stc_ifc` from `Holds`. **Soundness fix
+  `Stc.trieEqs`**: `STC`'s opened trie = public `prev_state_root` (`StcOKT`, `stc_holdsT`), the premise
+  `FinHalfB` needs (the IF's trie is the commitment's). **Header link**: `HeaderLink.init_header`
+  (`I.H` = the decoded chunk-inner of the claim `I.c`, from INIT's step) — lane G's FINAL premise is
+  this chain invariant plus `ctxRoot` copied `c1 … c9` and the shared `ctx`; no state-lane row.
+* **STATE cut at the `rt` boundaries** (tracegen `--seg-keys` / `--stc-meta`, `m5tSegC`): seg A
+  `c1 → c2` (8 changes, `R_0 → R_A`), the resume's state half `c6 → c7` (2 changes, `R_A → R_n`),
+  seg B `c7 → c8` (empty), the finalize leaf's state half `c8 → c9` (empty, tag 1 → 3). All five
+  T1 leaves re-proved in lane D's format and `m8-import`ed (IF 592,280 B; segments ≈ 510 KB each;
+  268.2 bits); every `STC` `r_in` / `r_out` = the chain's `stRoot`, records digest for digest. `rest`
+  stays `0^42` (`encRestI` not adopted: the preimage is lane F's).
+* **For lane F (concurrent, finalize / enter / resume engine rows)**: the state halves above are the
+  `B` side of `EngHalfRC` ⊕ `HoldsSt` for seg A, seg B and finalize, and of the resume leaf: join
+  each with lane F's rows on `STMQ` (211, `[r_in, tag_out, rest_out]`) / `STMA` (212, `[r_out,
+  tag_in, rest_in]`) — the `htape.json` of each saved leaf lists the exact messages T1 needs; the
+  finalize leaf's engine half sends `tag_out = 3`. The IF's `r_out` is the same `c9` digest (the
+  join value of IF-FINAL with the finalize and FINAL leaves).
 
 **The `stRoot` interface for lane F's F3-1 (resume, STATE; decision proposed by lane B, B-T2).** A
 resume / STATE leaf is one trace = lane F's rows + lane B's `m5tSeg` tables + `STC`. Messages

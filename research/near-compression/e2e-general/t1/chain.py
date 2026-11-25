@@ -17,12 +17,15 @@ public values with the cuts it spans (`leaf_table`). Writes `OUT/chain.json` and
 Conventions (plan §3.5 M11i, M12, M13 / "D-a – D-d", lane F F-4):
 * M11i: `WasmBnd.gasLeft` (u64 after `fuel`); `outRcptAcc` is one chain (`[chainD enc rs]` in an
   engine / call state, `[]` at `init` / `done`); `B_0`: `ctxRoot = ctxD(.raw cb wb)` =
-  `bdigest (0 ‖ u32be ℓ_B ‖ u32be |cb| ‖ cb ‖ wb)`, `stRoot = stD .none`,
+  `bdigest (0 ‖ u32be ℓ_B ‖ u32be |cb| ‖ cb ‖ wb)`, `stRoot = stD .none` (B-T4: lane B's constant `ST_NONE`),
   `outD .none = (bdigest [], [], bdigest [], bdigest [0])`, `vmAcc = bdigest []`.
 * M12 `clearE`: `claimDigest = bdigest []`, `blockIdx = actionIdx = t = 0` everywhere; engine cuts
   carry `receiptIdx = |outcomes|`, `gasUsed = gasBurnt = rs.gas`, `balanceBurnt = rs.txBurnt`,
   `compute = rs.compute` (`start`: all 0); a call adds `rPrepaid`; resume outputs `receiptIdx + 1`
   and `rPrepaid = rBurnt = rUsed = 0`; `done H o` carries `o.gasUsed`, `o.balanceBurnt`, the rest 0.
+* B-T4 (lane B): `stD .none` is the kernel-evaluated constant `ST_NONE`; `c2 … c6` carry `R_A` (STATE seg
+  A's output root); lane B's five leaves (IF at `m5tIFC`, STATE seg A, the resume's state half, seg B,
+  the finalize state half, all `m5tSegC`) expose their `STC` row's `r_in` / `r_out`, = the cuts' `stRoot`.
 * M13: the `start` cut commits lane B's `R_0` (`EngSt.ovl0`); the finalize step
   (`yields _ _ 0 → done out`) is its own STATE leaf (IF-FINAL); `W` = the whole `stRoot`.
   `rest`: lane E's `encRestI` is **not adopted** by lane B's default instance or lane F's leaves
@@ -33,7 +36,7 @@ Conventions (plan §3.5 M11i, M12, M13 / "D-a – D-d", lane F F-4):
 
 Fields no component computes yet are `0^42` placeholders, each listed with its owner in
 `PLACEHOLDERS`; a placeholder is the same value at every cut where the view's value is a constant
-(`stD .none`) and changes nowhere else, so the chain holds digest for digest by construction and a
+and changes nowhere else, so the chain holds digest for digest by construction and a
 leaf's exposed value is compared with the view's value wherever the view's value is known.
 """
 import argparse
@@ -51,6 +54,10 @@ INPUTS = os.path.join(HERE, "data", "t1-inputs.json")
 LEAN_RUN = os.environ.get("LEAN_RUN", f"{DEPS}/tmp-laneF/f4/lean-run.json")
 ZERO = bndrec.ZERO
 E = bndrec.bdigest(b"")                      # bdigest []
+# B-T4: `stD .none` of the view's state instance (`stViewParams_B stViewE`): the `stRoot` of `init` /
+# `done`, kernel-evaluated (`m5a/lean/join-check/StNoneE.lean`, `stD_none_viewE`; `StNone.stD_none_eq`:
+# tag 0, the empty depth-24 tree, wsLen 0, trie `.hash 0^32`, idx 0, rest `bdigest (encRestB (.none))`)
+ST_NONE = bytes.fromhex("799a6864c921b6955b6a85356d65c7a612fa488d824fcb1d79623dac5a750e820ff93e8510b26828fe9e")
 
 
 def tagd(i):
@@ -76,6 +83,16 @@ def st_commit(tag, ws, wslen, trie, idx, rest):
     """lane B's `StCommit.ser` (`[tag] ‖ ws(48) ‖ u64le wsLen ‖ trie(32) ‖ u64le idx ‖ rest(42)`, 139 B)."""
     assert len(ws) == 48 and len(trie) == 32 and len(rest) == 42
     return bndrec.bdigest(bytes([tag]) + ws + wslen.to_bytes(8, "little") + trie + idx.to_bytes(8, "little") + rest)
+
+
+def st_none():
+    """`stD .none` recomputed from its record (`StNone.noneCommit`): tag 0, `ws` = the empty depth-24
+    tree (`zd nodeH zero48 24`, `nodeH a b = SHA-384 (a ‖ b)`), wsLen 0, trie `0^32`, idx 0,
+    rest = `bdigest (lp (encStV .none) ‖ optEnc none) = bdigest 01 00 00`."""
+    z = bytes(48)
+    for _ in range(24):
+        z = hashlib.sha384(z + z).digest()
+    return st_commit(0, z, 0, bytes(32), 0, bndrec.bdigest(bytes.fromhex("010000")))
 
 
 def root42(words):
@@ -150,8 +167,20 @@ def inputs_from(case, full, calls, comps, prep, lean_run, laneb_if=None):
         s = json.load(open(laneb_if))["statement"]
         inp["R_0"], inp["R_n"] = dig48(s[17:35]).hex(), dig48(s[35:53]).hex()
         assert root16(s[0:16]).hex() == st["pre_root"] and s[16] == st["wsLen"]
+    seg_a_root(inp)
     done_digests(inp)
     return inp
+
+
+def seg_a_root(inp):
+    """B-T4: `R_A`, the working-set root after the changes committed before receipt 1 (lane B's STATE
+    seg A proof's `R_out`); for T1's claim without the proof, the committed inputs' value."""
+    if os.path.exists(LANEB_SEGA):
+        inp["R_A"] = dig48(json.load(open(LANEB_SEGA))["statement"][35:53]).hex()
+    elif os.path.exists(INPUTS):
+        fx = json.load(open(INPUTS))
+        if fx.get("claim_sha256") == inp.get("claim_sha256") and fx.get("R_A"):
+            inp["R_A"] = fx["R_A"]
 
 
 def done_digests(inp):
@@ -168,7 +197,8 @@ def done_digests(inp):
             inp["ctx_header"], inp["out_done"] = fx["ctx_header"], fx["out_done"]
 
 
-LANEB_IF = f"{DEPS}/laneB-t1/t1b/T1S/if/out/statement.json"
+LANEB_IF = f"{DEPS}/laneB-t1/t4/T1C/if/out/statement.json"      # B-T4 (m5tIFC); B-T1b: t1b/T1S/if/out
+LANEB_SEGA = f"{DEPS}/laneB-t1/t4/T1C/seg0/out/statement.json"    # B-T4: STATE seg A (R_A = its R_out)
 
 
 def inputs_from_run(run_dir, lean_run=LEAN_RUN, laneb_if=LANEB_IF):
@@ -187,11 +217,8 @@ def inputs_from_run(run_dir, lean_run=LEAN_RUN, laneb_if=LANEB_IF):
 # ---------------------------------------------------------------------------
 # fields no component computes yet: (cut field, view value, owner)
 PLACEHOLDERS = [
-    ("stRoot at init / done", "stD .none (lane B's default instance: a constant)", "B: publish the constant"),
     ("stRoot.rest at every engine / call cut", "bdigest (encRest (restOf v)) — encRestI (D-d) not adopted",
      "B (default instance) + F (resume STMQ/STMA metas) + E (encRestI)"),
-    ("stRoot.ws at c2 (before receipt 1)", "working-set root after the 8 changes before receipt 1",
-     "B: split the STATE segment at the RT cuts"),
     ("ctxRoot at engine / call cuts", "ctxD (.intake I) = bdigest (1 ‖ Ser.enc I)",
      "E: Ser Intake closure (ViewSer); G: INIT computes it (B_1)"),
     ("wasm.vmCtxDigest", "bdigest (encRest (.other (q, cc)) / (.air …))", "A (m6 §6; gasLeft is public since A-T5 and blank drops gas.g; needs σ at host rows)"),
@@ -275,7 +302,10 @@ def build(inp):
     wslen = inp["wsLen"]
     r0 = bytes.fromhex(inp["R_0"]) if inp.get("R_0") else bytes(48)
     rn = bytes.fromhex(inp["R_n"]) if inp.get("R_n") else bytes(48)
-    st_none = ZERO
+    st_none = ST_NONE
+    # B-T4: the working-set root after the 8 changes committed before receipt 1 (lane B's STATE seg A
+    # output, `R_A`); c2 … c6 carry it
+    ra = bytes.fromhex(inp["R_A"]) if inp.get("R_A") else bytes(48)
     code_root, func_root = bytes(42), bytes(42)
     if inp.get("prep"):
         code_root, func_root = root42(inp["prep"]["code_root_words"]), root42(inp["prep"]["func_root_words"])
@@ -288,7 +318,7 @@ def build(inp):
     c[0] = _rec("init", ctxRoot=bytes.fromhex(inp["ctx_raw_be"]), stRoot=st_none,
                 outcomeAcc=E, outRcptAcc=[], proposalsAcc=E, bwAcc=tagd(0))
     c[1] = _rec("eng", ctxRoot=ZERO, stRoot=st(1, r0), **eng0)
-    c[2] = _rec("eng", ctxRoot=ZERO, stRoot=st(1, bytes(48)), **_eng_acc(acc_b),
+    c[2] = _rec("eng", ctxRoot=ZERO, stRoot=st(1, ra), **_eng_acc(acc_b),
                 **_eng_clear(acc_b, len(acc_b["outcomes"])))
     c[3] = dict(c[2], phase=bndrec.PHASE["call"], inCall=True, rPrepaid=call["prepaid"],
                 wasm=wasm_pre(call["code_sha256"]))
@@ -414,16 +444,19 @@ def lean_consts(inp, cb, wb, workdir, pkg=bndrec.LEAN_PKG):
 # ---------------------------------------------------------------------------
 # saved leaves vs the chain
 # ---------------------------------------------------------------------------
+T4 = f"{DEPS}/laneB-t1/t4/T1C"   # B-T4: lane B's leaves cut at the rt boundaries (m5a/leaf.sh --ifc --seg-keys)
 SAVED = {
     "INIT": f"{DEPS}/e2e-m5d/g5/tmpl/init",
-    "IF": f"{DEPS}/laneB-t1/t1b/T1S/if/out",
-    "STATE": f"{DEPS}/laneB-t1/t1b/T1S/seg0/out",
+    "IF": f"{T4}/if/out",
+    "STATE": f"{T4}/seg0/out",
     "RT enter": f"{DEPS}/e2e-m5t1/f3/enter-proof",
     "PREP": f"{DEPS}/e2e-laneA/at4/prep/leaf",
     "WASM": f"{DEPS}/e2e-laneA/at5/leaf-k13/leaf",
     "RT resume": f"{DEPS}/e2e-m5t1/f4/resume-proof",
     "FINAL": f"{DEPS}/e2e-m5d/g5/tmpl/final",
 }
+# B-T4: the other three state halves (out/ = proof + statement + htape.json, the STC stand-in's messages)
+SAVED_B = {"STATE R": f"{T4}/seg1/out", "STATE B": f"{T4}/seg2/out", "STATE fin": f"{T4}/seg3/out"}
 TREE = f"{DEPS}/tmp-laneD/m9b"   # lane D's M9 prototype tree (the leaves it imported: imported.sha256)
 
 
@@ -449,7 +482,40 @@ def _rec_row(leaf, path, rec_in, rec_out, c_in, c_out, owner, why):
             "diff_in": din, "diff_out": dout, "owner": owner, "why": why}
 
 
-def leaf_table(c, inp, saved=SAVED):
+def stc_msgs(out_dir):
+    """The `STC` row's messages of a lane B leaf (the stand-in for lane F's engine rows, `htape.json`
+    of the dump): `STMQ` (211) `[r_in, tag_out, rest_out]`, `STMA` (212) `[r_out, tag_in, rest_in]`
+    (digests as 14 three-byte big-endian limbs)."""
+    f = os.path.join(out_dir, "htape.json")
+    if not os.path.exists(f):
+        f = os.path.join(os.path.dirname(out_dir.rstrip("/")), "htape.json")
+    ht = json.load(open(f))
+    q = next(m for b, snd, m in ht if b == 211)
+    a = next(m for b, snd, m in ht if b == 212)
+    return {"r_in": limbs3(q[:14]), "tag_out": q[14], "rest_out": limbs3(q[15:29]),
+            "r_out": limbs3(a[:14]), "tag_in": a[14], "rest_in": limbs3(a[15:29])}
+
+
+def _state_row(leaf, path, c, a, b, inp, ws_in, ws_out, tags, owner, why):
+    """A lane B state half (`m5tSegC` / `m5tIFC`): the `STC` row's `r_in` / `r_out` against the cuts'
+    `stRoot`, the records assembled with them (the other fields: lane F's engine half / lane D's
+    wrapper), the public working-set roots, `wsLen`, the trie and the stand-in's tags."""
+    st = json.load(open(f"{path}/statement.json"))["statement"]
+    m = stc_msgs(path)
+    rin, rout = dict(c[a], stRoot=m["r_in"]), dict(c[b], stRoot=m["r_out"])
+    chk = {f"r_in = c{a}.stRoot": m["r_in"] == c[a]["stRoot"], f"r_out = c{b}.stRoot": m["r_out"] == c[b]["stRoot"],
+           "R_in (values 17-34)": dig48(st[17:35]).hex() == ws_in, "R_out (values 35-52)": dig48(st[35:53]).hex() == ws_out,
+           "wsLen": st[16] == inp["wsLen"],
+           "prev_state_root (= the opened trie, Stc.trieEqs)": root16(st[0:16]).hex() == inp["prev_state_root"],
+           "tags (in, out)": (m["tag_in"], m["tag_out"]) == tags}
+    d_in, d_out = bndrec.digest(rin).hex(), bndrec.digest(rout).hex()
+    return {"leaf": leaf, "path": path, "exposes": "STC: r_in / r_out (STMQ / STMA), R_in, R_out, wsLen, prev_state_root",
+            "checks": chk, "d_in": d_in, "d_out": d_out,
+            "in_equal": d_in == bndrec.digest(c[a]).hex(), "out_equal": d_out == bndrec.digest(c[b]).hex(),
+            "owner": owner, "why": why}, st
+
+
+def leaf_table(c, inp, saved=SAVED, saved_b=SAVED_B):
     rows = []
     ex = os.path.exists
     # INIT (G-5): claimDigest (leaf ctx), ctxRoot of B_0 (u32 big-endian), prev_state_root (join value with IF)
@@ -464,20 +530,18 @@ def leaf_table(c, inp, saved=SAVED):
                                 "h(B_0) assembled from the leaf = h(c0)": bndrec.digest(b0) == bndrec.digest(c[0]),
                                 "prev_state_root = IF's": root16(pv[28:44]).hex() == inp["prev_state_root"]},
                      "in_equal": bndrec.digest(b0) == bndrec.digest(c[0]), "out_equal": False,
-                     "owner": "B: B_1 (ctxD (.intake I), R_0) is INTAKE's (the joined INIT + IF leaf); INIT exposes B_0 only",
-                     "why": "INIT's B_0 = the chain's c0 (stD .none at the placeholder); B_1 = eng I start is lane B's half"})
-    # IF (B-T1b): R_0, R_n, prev / post roots, wsLen, change count
+                     "owner": "B-T4: B_1's stRoot is the IF's STC r_in (c1); E / G: B_1's ctxRoot (ctxD (.intake I)); D: the joined INIT + IF leaf; INIT exposes B_0 only",
+                     "why": "INIT's B_0 = the chain's c0 (lane G's wrapper takes stD .none: B-T4's constant); B_1 = eng I start: its stRoot is the IF's STC r_in (B-T4), its ctxRoot E / G's"})
+    # IF (B-T4, m5tIFC): the INTAKE half closes c1's stRoot (R_0, tag 1), the FINAL half opens c9's (R_n, tag 3)
     p = saved["IF"]
     if ex(p):
-        s = json.load(open(f"{p}/statement.json"))["statement"]
-        rows.append({"leaf": "IF (B-T1b, STATE_IF)", "path": p, "exposes": "prev_state_root, wsLen, R_0, R_n (ws roots), post_state_root, #changes",
-                     "checks": {"R_0 = c1.stRoot's ws": dig48(s[17:35]).hex() == inp.get("R_0"),
-                                "R_n = c7..c9 stRoot's ws": dig48(s[35:53]).hex() == inp.get("R_n"),
-                                "post_state_root = header": root16(s[53:69]).hex() == inp["post_state_root"],
-                                "wsLen": s[16] == inp["wsLen"], "#changes = 10": s[69] == 10},
-                     "in_equal": None, "out_equal": False,
-                     "owner": "B: IF exposes ws roots, not stRoot = bdigest(StCommit.ser); the start cut's R_0 commitment (D-a) and IF-FINAL's finalize leaf (D-b) need STC on both IF halves",
-                     "why": "the ws parts agree; stRoot (tag, idx, rest) is not opened by IF"})
+        row, st = _state_row("IF (B-T4, m5tIFC)", p, c, 1, 9, inp, inp.get("R_0"), inp.get("R_n"), (1, 3),
+                             "E / G: c1's ctxRoot (ctxD (.intake I)); F / E: rest (0^42 placeholder; lane F's engine rows own it)",
+                             "the INTAKE half's stRoot (InitBOut's state part) is c1's and the FINAL half's (FinPre's) is c9's")
+        row["checks"].update({"post_state_root = header": root16(st[53:69]).hex() == inp["post_state_root"],
+                              "#changes = 10": st[69] == 10})
+        row["exposes"] = "STC (c1 / c9 stRoot), prev_state_root, wsLen, R_0, R_n, post_state_root, #changes"
+        rows.append(row)
     # RT enter (F-3)
     p = saved["RT enter"]
     if ex(p):
@@ -536,19 +600,29 @@ def leaf_table(c, inp, saved=SAVED):
         rows.append(_rec_row("RT resume (F-4)", p, bndrec.decode(bytes(pv[247:1081])), bndrec.decode(bytes(pv[1081:1531])), c[6], c[7],
                              "F: re-prove with claimDigest = bdigest [], bwAcc / proposalsAcc = outD (.eng) values, B_in.wasm = lane A's fin record; B: STC answers stRoot (stand-in today)",
                              "F-4 shape (M12 counters, real accumulators) but plan-copied claimDigest / proposalsAcc / bwAcc / ctxRoot, the Wasm part of the run4 plan's last cut, stand-in STC r_out"))
-    # STATE (B-T1b): one segment over all 10 changes
+    # STATE (B-T4): the segment cut at the rt boundaries, m5tSegC
     p = saved["STATE"]
     if ex(p):
-        s = json.load(open(f"{p}/statement.json"))["statement"]
-        rows.append({"leaf": "STATE seg (B-T1b, STATE_SEG)", "path": p, "exposes": "prev_state_root, wsLen, R_in, R_out (ws roots)",
-                     "checks": {"R_in = R_0 (c1)": dig48(s[17:35]).hex() == inp.get("R_0"),
-                                "R_out = R_n (c7)": dig48(s[35:53]).hex() == inp.get("R_n")},
-                     "in_equal": None, "out_equal": False,
-                     "owner": "B: split at the RT cuts (seg A: c1 → c2, after 8 changes; seg B: c7 → c8) and expose stRoot via STC (m5tSegC, not re-proved: B-T3); F: STATE engine rows (none)",
-                     "why": "one segment R_0 → R_n spans c1 → c9 across the call; no stRoot"})
-    # finalize (none)
-    rows.append({"leaf": "finalize (STATE, D-b)", "path": None, "exposes": "—", "in_equal": False, "out_equal": False,
-                 "owner": "B (IF-FINAL half as a leaf with STC) + F (engine rows yields → done)", "why": "no leaf exists"})
+        rows.append(_state_row("STATE seg A (B-T4)", p, c, 1, 2, inp, inp.get("R_0"), inp.get("R_A"), (1, 1),
+                               "F: STATE engine rows (receipt 0's three forwards: counters, outcome / outgoing appends)",
+                               "the 8 changes before receipt 1; stRoot in / out = c1 / c2")[0])
+    p = saved_b["STATE R"]
+    if ex(p):
+        rows.append(_state_row("RT resume, state half (B-T4)", p, c, 6, 7, inp, inp.get("R_A"), inp.get("R_n"), (1, 1),
+                               "F: join with the resume leaf (its RB rows send STMQ / take STMA in STC's layout; XTAPE stand-in today)",
+                               "receipt 1's 2 changes; stRoot in / out = c6 / c7")[0])
+    p = saved_b["STATE B"]
+    if ex(p):
+        rows.append(_state_row("STATE seg B (B-T4)", p, c, 7, 8, inp, inp.get("R_n"), inp.get("R_n"), (1, 1),
+                               "F: STATE engine rows (none on T1)", "no change; c7 = c8 while rest is a placeholder")[0])
+    p = saved_b["STATE fin"]
+    if ex(p):
+        rows.append(_state_row("finalize, state half (B-T4)", p, c, 8, 9, inp, inp.get("R_n"), inp.get("R_n"), (1, 3),
+                               "F: finalize engine rows (yields → done: counters, rest); the IF's FINAL half closes the same c9 stRoot (join value)",
+                               "opens c8's stRoot, closes c9's (tag 3); FinHalfB's batched FINAL is the IF proof's")[0])
+    else:
+        rows.append({"leaf": "finalize (STATE, D-b)", "path": None, "exposes": "—", "in_equal": False, "out_equal": False,
+                     "owner": "B (IF-FINAL half as a leaf with STC) + F (engine rows yields → done)", "why": "no leaf exists"})
     # FINAL (G-5): B_out = done H o from ctxD (.header H), outD (.done o).1 and the two counters
     p = saved["FINAL"]
     if ex(p):
@@ -563,8 +637,8 @@ def leaf_table(c, inp, saved=SAVED):
                                 "gasUsed / balanceBurnt = done's clear fields": (bo["gasUsed"], bo["balanceBurnt"]) == (c[10]["gasUsed"], c[10]["balanceBurnt"]),
                                 "h(B_out) assembled from the leaf = h(c10)": bndrec.digest(bo) == bndrec.digest(c[10])},
                      "in_equal": False, "out_equal": bndrec.digest(bo) == bndrec.digest(c[10]),
-                     "owner": "B: B_in = c9 (eng I <done out>) is lane B's FINAL half's (finInDigest is a join value, not a BndRec field)",
-                     "why": "FINAL's B_out = the chain's c10 (stD .none at the placeholder); B_in is the other half's"})
+                     "owner": "B-T4: c9's stRoot = the IF's STC r_out (FinPre's state part); D: B_in = c9 in the joined FINAL leaf (finInDigest is a join value, not a BndRec field)",
+                     "why": "FINAL's B_out = the chain's c10 (stD .none: B-T4's constant); B_in = c9, whose stRoot is the IF's STC r_out (B-T4)"})
     tree = None
     if ex(f"{TREE}/imported.sha256"):
         tree = [ln.split()[1] for ln in open(f"{TREE}/imported.sha256") if ln.strip()]

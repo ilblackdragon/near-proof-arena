@@ -8,7 +8,9 @@
 # chain of public values: IF's R_0 = seg0's R_in, seg_k's R_out = seg_{k+1}'s R_in, the last R_out =
 # IF's R_n, IF's post-state root = the Lean spec oracle (`m5a-tool apply`).
 # Extra args go to tracegen (e.g. --segs 3, --mutant NAME, --host: the segments' STATE rows fed by
-# lane A's HOST buses, `m5tSegH`, with the cached `HOSTTAPE` standing in for lane A's rows).
+# lane A's HOST buses, `m5tSegH`, with the cached `HOSTTAPE` standing in for lane A's rows; B-T4:
+# --seg-keys FILE (segments by key set), --stc-meta FILE (per-dump STC tags / rests), --ifc (the IF
+# with its own STC row, `m5tIFC`)). MODE=check pre-checks only (no proof).
 # Exit 4: the case exceeds the template.
 # Box rules: ≤ 8 threads, HEAVY_MEM ≤ 40G, temp files under /data/illia/nearproof-deps.
 set -euo pipefail
@@ -26,6 +28,8 @@ TOOL=$HERE/lean/.lake/build/bin/m5a-tool
 "$TOOL" tmpl-segh "$D" "$OUT/air/segh.json" "$OUT/air/segh.names.json" > "$OUT/air/segh.txt"
 # B-T3: the STATE leaf with the `stRoot` opening (`Stc.m5tSegC`: + `STC`, `SRNG`)
 "$TOOL" tmpl-segc "$D" "$OUT/air/segc.json" "$OUT/air/segc.names.json" > "$OUT/air/segc.txt"
+# B-T4: INTAKE + FINAL with the `stRoot` openings (`Stc.m5tIFC`; tracegen `--ifc`)
+"$TOOL" tmpl-ifc "$D" "$OUT/air/ifc.json" "$OUT/air/ifc.names.json" > "$OUT/air/ifc.txt"
 WANT=$(python3 -c "import json,sys; print(json.load(open(sys.argv[1]))['post_root'])" "$ST")
 GOT=$("$TOOL" apply "$ST")
 [ "$GOT" = "$WANT" ] || { echo "spec oracle: $GOT != $WANT"; exit 1; }
@@ -44,6 +48,7 @@ for d in "$OUT"/if "$OUT"/seg*; do
   air=$OUT/air/seg.json; [ "$(basename "$d")" = if ] && air=$OUT/air/if.json
   [ -f "$d/hosttape.json" ] && air=$OUT/air/segh.json
   grep -q '"STC"' "$d/tables.json" && air=$OUT/air/segc.json
+  [ "$(basename "$d")" = if ] && grep -q '"STC"' "$d/tables.json" && air=$OUT/air/ifc.json
   echo "== $(basename "$d")"
   nice -n 10 $HEAVY "$BIN" "$air" "$d" "$MODE" "$d/out" > "$d/$MODE.log" 2>&1 || { tail -20 "$d/$MODE.log"; exit 1; }
   grep -E "PRECHECK|PARAMS|SOUNDNESS|PROOF |TIME prove|VERIFY|REJECTED|ACCEPTED|SAVED" "$d/$MODE.log" || true

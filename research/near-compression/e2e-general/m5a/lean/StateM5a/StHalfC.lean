@@ -160,6 +160,17 @@ def StcOK (r r' RIn ROut : Bytes) (n : Nat) (mi mo : StMeta) : Prop :=
   ∃ c : StCommit, c.WF ∧ bdigest c.ser = r ∧ c.ws = RIn ∧ c.wsLen = n ∧ c.tag = mi.tag ∧
     c.rest = mi.rest ∧ r' = bdigest (close c ROut mo).ser
 
+/-- B-T4: `StcOK` with the opened commitment's trie fixed (`T`: the leaf's public
+`prev_state_root`, `Stc.trieEqs`); the close keeps it (`close` changes tag, `ws`, `rest` only). -/
+def StcOKT (r r' RIn ROut : Bytes) (n : Nat) (T : Bytes) (mi mo : StMeta) : Prop :=
+  ∃ c : StCommit, c.WF ∧ bdigest c.ser = r ∧ c.ws = RIn ∧ c.wsLen = n ∧ c.trie = T ∧ c.tag = mi.tag ∧
+    c.rest = mi.rest ∧ r' = bdigest (close c ROut mo).ser
+
+theorem stcOK_of_T {r r' RIn ROut : Bytes} {n : Nat} {T : Bytes} {mi mo : StMeta}
+    (h : StcOKT r r' RIn ROut n T mi mo) : StcOK r r' RIn ROut n mi mo := by
+  obtain ⟨c, h1, h2, h3, h4, -, h6, h7, h8⟩ := h
+  exact ⟨c, h1, h2, h3, h4, h6, h7, h8⟩
+
 variable (P : StViewParams)
 
 /-- The meta of a state component. -/
