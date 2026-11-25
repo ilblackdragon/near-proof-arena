@@ -635,6 +635,26 @@ Log: [`docs/logs/e2e-lean-m11i-2026-11-21.md`](../logs/e2e-lean-m11i-2026-11-21.
   by "**if the input digest opens to `x`, the output digest opens to some `x'`** with". The M8
   counterpart is `TreeM8.TmplSoundRel8` / `e2e_sound_m8_rel` (there INIT stays absolute, since
   the tree's wrap sees only the phase cell; INIT computes its whole input record from the bytes).
+* **`NodeSha` and `NodeLink` from the circuit** (`zk-formal/ZkFormal/PQ/{NvOps,NvShaNative,NvSha,NvNode}.lean`,
+  on demand). `NvOps` (sub-agent): per-op ALU row semantics from the exported NvAir by partial
+  evaluation (`add_sem`, `const_sem`, `unit1_sem`, `job_sem`, `dig_sem`, and over all 40 ops
+  `alu_slot_job`/`alu_job_job`: a nonzero SHA-unit or job-bus entry carries `P2`). `NvSha`: the
+  **SHA contract** `ShaContract` (named premise = FAITHFUL-v4 C1–C8, FAITHFUL.md §2(c) C9, §2(d)
+  R.3.1, at the ALU interface: an exactly offered job's received digest pairs are its SHA-384, pair
+  2 truncated with the `lo6` shift), `offer_of_job` (a `hash_range` job laid out as `build_agg`
+  emits it is exactly offered), **`range_cells`** (its two `Dig` cells are the native range
+  digest cells `rangeLimbs pre vals`, i.e. `digest_cells(range_digest(…))`). `NvNode`:
+  **`nodeSha_of`**, **`nodeLink_app`** (`e = Add(a, Const 1)`), **`nodeLink_node`** (the asserted
+  digest/packed cells, with the premise `PackOK`), **`nodeExecV_of_contracts`**: `NodeExecV` over
+  `NvHold` from `ProgFull`, `GlueByteBool`, `ShaContract`, `TailCanon`, `PackOK` (node children),
+  `NodeInner` (the extractor) and decidable program-layout facts (incl. `RangeJob.OK.excl`: no
+  other program row has `P2 = j`). **Finding:** ALU jobs are `tr = 1` jobs, so GLUE sends word 5's
+  limb 2 as `s5 − lo6` with only `4·lo6` byte-checked; FAITHFUL.md C9.8 pins it through canonical
+  consumers (`node`, `merkle_path`), but `hash_range`'s consumers (`assert_eq` with packed public
+  values, `PvD`) are not canonical: every internal range digest's last limb is malleable by
+  `δ ∈ {v/4}` (binding still ≈ 2^-334, not an attack; but `kidDig = rdigest st` needs the pin).
+  `tail_pin` proves a canonical consumer suffices; **fix for lane D**: pin `lo6` in GLUE or add a
+  tail byte-pair lookup to range-job `Dig` rows (`TailCanon`).
 * **The M8 heterogeneous tree** (`E2E/TreeM8.lean`, `defaultTargets`; `zk-formal/ZkFormal/PQ/E2ETree8.lean`,
   on demand). Leaf kinds `tmpl k | pad` over the five T1 templates; a leaf statement is
   `(ctx, b, b')` with `b = lbOf V x = ((V.bnd x).phase, bndOf V.bnd x)` (lane D's
@@ -890,7 +910,26 @@ T1's accepting run kernel-checked under 34 GB (`T1Run`, 27.1 GB) with `t1_e2e_st
 explained (§3.4.2); `cur` narrowed to `curHard` + `VmWritesShort`, with the spec/nearcore
 receipt-size finding.
 
-Next for lane E (M11i), in order:
+**M11i (lane E, 2026-11-21…25) [K]:** see §3.5. Done: the **relative per-template obligation
+made official** (`TmplRel`, `SegRel*`, `e2e_sound_t1_rel`); the M8 heterogeneous tree
+(`TreeM8`: `e2e_sound_m8`, `e2e_sound_m8_rel`, wrap connection, `split_sound` for STATE = F ∧ B and
+INIT/FINAL = G ∧ IF, `honest_tree_fine`; zk-formal `treeFaithful_of_aggH`); lane E's view
+components (`ViewE`, `ViewSer`); `WasmBnd.gasLeft`; `NodeSha` and `NodeLink` from the circuit
+(`NvOps`, `NvSha.range_cells`, `NvNode.nodeExecV_of_contracts`). Findings: the range-digest tail is
+not pinned (`TailCanon`, lane D), `RealStore.store` is a function so the call tape and Wasm
+remainder have no injective commitment (owner decision (a)/(b)), lane G's view proposals needed
+domain separation.
+
+Next for lane E (M12), in order:
+1. Owner: `RealStore` (a)/(b); `height_created`; the intake-side receipt-size hypothesis (`cur`).
+2. The three split-glue lemmas (`SplitGlue` for STATE, INIT, FINAL: overlay semantics).
+3. `PackOK` (the ALU's Ext12 `Mul`/`Add` chain of `pack`, basis cells from `ce`), then
+   `ProgBound` (BIND/anchor) and `GlueByteBool` (GLUE phase-bit induction); `NodeInner` is the
+   extractor's.
+4. The zk-formal Nv chain rebuilt against the `gasLeft` boundary (see the M11i log: the rebuild is
+   ≈ 2 h / 28 GB for `NvOps` alone on a quiet host).
+
+Previous list (M11h → M11i):
 1. Lanes F/A/B/G: discharge their `SegSound*` premise for their T1 leaf (and `TmplComplete` for
    the honest side). Lane D: `WrapInitSound`/`WrapFinalSound` from the wrap's checks on the opened
    record (`claimDigest` of §3.4.1, `phase`, `headerOk`).
