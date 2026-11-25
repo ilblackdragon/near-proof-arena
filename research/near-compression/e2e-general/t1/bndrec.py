@@ -15,7 +15,7 @@ import hashlib
 DIG = 42
 PHASE = {"init": 0, "eng": 1, "fin": 2, "gfin": 3, "done": 4, "doneG": 5, "call": 6}
 
-WASM_FIELDS = [("pc", "u64"), ("sp", "u64"), ("stackRem", "u64"), ("fuel", "u64"),
+WASM_FIELDS = [("pc", "u64"), ("sp", "u64"), ("stackRem", "u64"), ("fuel", "u64"), ("gasLeft", "u64"),
                ("framesDigest", "dig"), ("memRoot", "dig"), ("memPages", "u64"),
                ("globalsDigest", "dig"), ("registersDigest", "dig"), ("vmCtxDigest", "dig"),
                ("promisesDigest", "dig"), ("codeRoot", "dig"), ("funcRoot", "dig")]

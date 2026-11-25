@@ -237,6 +237,8 @@ structure WOut (pub : List F) (wi w : WasmBnd) : Prop where
   pc : w.pc = (pub.getD pubPcOut 0).toNat
   sp : w.sp = (pub.getD pubSbOut 0).toNat
   fuel : w.fuel + segLenP pub = wi.fuel
+  /-- `gasLeft` is `0` until lane A's `WasmView` sets it (`WasmBnd.gasLeft`, M11i). -/
+  gas : w.gasLeft = 0
   fd : PubDig42 pub pubCtxOut w.framesDigest
   gd : w.globalsDigest = w.framesDigest
   rd : w.registersDigest = w.framesDigest
@@ -357,7 +359,7 @@ theorem pubDig42_of_full {pub : List F} {b : Nat} {x w : ArenaCore.Bytes} (h : P
   rw [← ht, hs]
 
 theorem wb_ext {a b : WasmBnd} (h1 : a.pc = b.pc) (h2 : a.sp = b.sp) (h3 : a.stackRem = b.stackRem)
-    (h4 : a.fuel = b.fuel) (h5 : a.framesDigest = b.framesDigest) (h6 : a.memRoot = b.memRoot)
+    (h4 : a.fuel = b.fuel) (h4g : a.gasLeft = b.gasLeft) (h5 : a.framesDigest = b.framesDigest) (h6 : a.memRoot = b.memRoot)
     (h7 : a.memPages = b.memPages) (h8 : a.globalsDigest = b.globalsDigest)
     (h9 : a.registersDigest = b.registersDigest) (h10 : a.vmCtxDigest = b.vmCtxDigest)
     (h11 : a.promisesDigest = b.promisesDigest) (h12 : a.codeRoot = b.codeRoot)
@@ -510,7 +512,7 @@ theorem wasm_core {V : ViewImpl} {Pv : WasmViewParams} (hV : V.wasmD = wasmD Pv)
     obtain ⟨hsr, hvm⟩ := hrest sN wo hseg hwo
     have hfdo := pubDig42_of_full hctxO hout.fd
     have hmro := pubDig42_of_full hroO hout.mr
-    refine wb_ext ?_ ?_ hsr ?_ hfdo hmro ?_ (by rw [hout.gd]; exact hfdo) (by rw [hout.rd]; exact hfdo)
+    refine wb_ext ?_ ?_ hsr ?_ (by rw [hout.gas]; rfl) hfdo hmro ?_ (by rw [hout.gd]; exact hfdo) (by rw [hout.rd]; exact hfdo)
       hvm hout.prom ?_ ?_
     · rw [hout.pc, hpc2, Fp.toNat_cast_of_lt (hst.off k2 pc2 hk2' hpcl)]
       show _ = gpc tr.X.toCtx (sN.frames.headD default)
@@ -730,7 +732,7 @@ theorem leafW_honest {V : ViewImpl} {Pv : WasmViewParams} (hV : V.wasmD = wasmD 
     · rw [hG.2]; rfl
     · rw [hG.1, hG.2]; rfl
   · rw [hwi, hwo]
-    refine ⟨hpcO.symm, hsbO.symm, ?_, e42 hco, rfl, rfl, e42 hmo, ?_, rfl, rfl, rfl⟩
+    refine ⟨hpcO.symm, hsbO.symm, ?_, rfl, e42 hco, rfl, rfl, e42 hmo, ?_, rfl, rfl, rfl⟩
     · show n - segLenP pub + segLenP pub = n
       omega
     · rw [hGN.2]; rfl
