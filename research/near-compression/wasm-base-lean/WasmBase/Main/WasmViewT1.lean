@@ -143,7 +143,7 @@ theorem vT1_blind (lB : NearSpec.Bytes → Nat) (κ : Intake → List NearSpec.B
   | call I c K q cc =>
     have e := wasmD_set wasmViewParamsT1 blankStore (some (q, cc))
     simp only [Option.map_some, setC] at e
-    simp only [ViewImpl.bnd, vT1, vSB, SB.stripR, SB.setR, split, SB.vmSB_blind, e, ViewE.clearE]
+    simp only [ViewImpl.bnd, vT1, vSB, SB.stripR, SB.setR, SB.setArgs_ctx, split, SB.vmSB_blind, e, ViewE.clearE]
 
 theorem vT1_clear (lB : NearSpec.Bytes → Nat) (κ : Intake → List NearSpec.Bytes) (stD : StV → NearSpec.Bytes) :
     ClearCall (vT1 lB κ stD) := fun _ _ _ _ _ _ => rfl

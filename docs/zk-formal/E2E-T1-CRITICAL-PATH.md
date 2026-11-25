@@ -57,6 +57,14 @@ INIT and FINAL are lane G's (Templates.lean), the receipt step is lane F's, STAT
 | `stRoot` | lane B's `StCommit` circuit form with M5b's public `trie` (= prev_state_root) and `wsLen`; `ws` (RCH root) and `rest` are not public | **partial** |
 | `ctxRoot`, `outcomeAcc`, `outRcptAcc`, `proposalsAcc`, `bwAcc`, `vmAcc`, `balanceBurnt`, `blockIdx`, `actionIdx` | no component (F, G, A/E) | placeholder 0^42 |
 
+**Clear-field convention (lane E M12, plan §3.5 "M12"; supersedes the provenance column for the
+clear fields).** `ViewE.clearE`: `receiptIdx = |outcomes|`, `gasUsed = gasBurnt = rs.gas`,
+`balanceBurnt = rs.txBurnt`, `compute = rs.compute` at engine cuts (those of the starting engine
+state inside a call, plus `rPrepaid = prepaid gas`); at `done`: `gasUsed`, `balanceBurnt` from the
+header, the rest `0`; `claimDigest = bdigest []`, `blockIdx = actionIdx = t = rBurnt = rUsed = 0`
+everywhere. The driver's current `claimDigest` (real digest), in-call `t` (lane A's clock) and
+resume-output `rBurnt`/`rUsed`/`receiptIdx` must follow it.
+
 Consequence: the two STATE segments and RT resume → STATE have equal in/out digests today (the
 fields that change there are placeholders). **Seam found:** RT enter ends at `call … .pre`, whose
 `wasmD` is lane A's fallback record (`fbBnd`); lane A's segment 0 starts at the entry state
@@ -82,7 +90,7 @@ Status: **PASS** = proves/verifies on T1 today and its public boundary equals th
 | C8 | **leaf templates with pinned shapes** | A, B, F, G + D | **Lane A done** (A-T2: log *and* tight heights pinned; T1's two Wasm leaves give one lane D leaf program, `59b572a7…` [L]); lane B, F done as leaves; G open; leaf statement `[phase, h(B)]` fixed (§3.4.1) | per template: one parameter set, height classes, proof + vk saved, `build_seg_leaf` → `H9(...)` |
 | C9 | **heterogeneous aggregation (M8)** | D | **MISSING for T1** (D0a base templates only [L]) | anchors over T1's 5 templates; 8 leaves → arity 4, depth 2 |
 | C10 | **ZK wrap (M9)** | D | **MISSING for T1** (D0a wraps 328.8–330.4 KB [L]) | `[LEVEL_WRAP, D_wrap(S)]`, V_d from `S` alone; `WrapInitSound`, `WrapFinalSound` |
-| C11 | **Lean `e2e_sound_t1`** | E | **stated, conditional** [K]: `e2e_sound_t1` from `NvFaithfulE2E` + `WrapInitSound`/`WrapFinalSound` + the five `SegSound*`; **M11 non-vacuity on T1 done** (`t1_rel`, `t1_e2e_stmt`, `t1_honest_chain`; 27.1 GB kernel run) | per lane: discharge its `SegSound*` premise (A: `SegSoundWasm`, B: `SegSoundState`, F: `SegSoundRt`, G: `SegSoundInit`/`SegSoundFinal`), D: the wrap premises |
+| C11 | **Lean `e2e_sound_t1`** | E | **stated, conditional** [K] (M12: clear-field convention F3-2 implemented, `ViewE.clearE`; split-leaf glue `E2E/Glue.lean`: STATE `state_sound_relC` from lane F's engine half + lane B's state half and `ApplyFaithfulS`, INIT `init_glue`, FINAL `final_glue`; per-lane table in plan §3.5 "M12"): `e2e_sound_t1` from `NvFaithfulE2E` + `WrapInitSound`/`WrapFinalSound` + the five `SegSound*`; **M11 non-vacuity on T1 done** (`t1_rel`, `t1_e2e_stmt`, `t1_honest_chain`; 27.1 GB kernel run) | per lane: discharge its `SegSound*` premise (A: `SegSoundWasm`, B: `SegSoundState`, F: `SegSoundRt`, G: `SegSoundInit`/`SegSoundFinal`), D: the wrap premises |
 
 ## 4. Statement mutants [M]
 

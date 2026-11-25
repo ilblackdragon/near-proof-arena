@@ -15,8 +15,8 @@ two sides (the leaf wrapper, lane D) ∧ **named checks** `EntChecks` on a ghost
 call's `CallArgs`, carried in the trace type like lane A's ghost context):
 * `vm`: the output's remainder digest is `vmc q` (lane A's `fbBnd (q, .pre)` remainder digest —
   `encRest` is lane A's, and its preimage cannot be checked by a copying leaf);
-* `prepaid`: the output's `rPrepaid` is `pre q` (the view's clear value of the query: `0` under
-  lane E's `clearE`; the prepaid gas under lane I's driver view);
+* `prepaid`: the output's `rPrepaid` is `pre q` (the view's clear value of the query: since
+  lane E's M12 `clearE`, `u64c q.ctx.prepaidGas`, the prepaid gas, as in lane I's driver);
 * `code`: the first 32 bytes of the output's `codeRoot` are `SHA-256(q.code)` (S2; the code hash
   the receipt rows read — the account's `code_hash` — and, once joined, lane B's account read);
 * `pos`: `posOK` of the input's `stRoot` (lane B: the state commitment shows a non-final position,
@@ -27,7 +27,8 @@ call's `CallArgs`, carried in the trace type like lane A's ghost context):
 `wf` (well-formed records), `blind` (`StoreBlind`, S1), `noWasm` (`wasmD none = none`), `preW`
 (**S2**: lane A's `.pre` record is `preRec (vmc q) q` — `fbBnd`'s constants with `codeRoot =
 preCodeRoot q`), `clearEnter` (the clear fields of `call I c [] q .pre` are those of `eng I c` with
-`t := 0`, `rPrepaid := pre q`; `clearE` meets it with `pre = 0`), `outOne` (the engine-state
+`t := 0`, `rPrepaid := pre q`; lane E's M12 `clearE` meets it with `pre q =
+u64c q.ctx.prepaidGas`, `ViewE.clearE_enter`), `outOne` (the engine-state
 outgoing accumulator is one digest, as `outDE (.eng a)`), `pos` (lane B: `posOK` of `stD (stOfK …)`
 excludes `done`).
 
