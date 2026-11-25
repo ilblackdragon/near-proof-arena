@@ -8,12 +8,13 @@
 #    manifest.json; the cached CODE/FUNC commitments must equal the canonical code_root/func_root;
 # 4. `prepleafverify`: reload, verify, pinned heights, public values, and R1: PREP's out roots =
 #    every segment leaf's cached CODE/FUNC roots (A-T2's leaves, $SEG_LEAF);
-# 5. `preptamper`: the mutant battery.
+# 5. `preptamper`: the mutant battery ($PREP_OTHER: preps of other programs, rejected in-circuit; A-T4:
+#    /data/illia/nearproof-deps/e2e-laneA/at4/other/prep{B,C}.json).
 # Prover: the segment prover built against the stack backend (build_stack.sh), $WB_STACK.
 set -euo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
 WD=${1:?work dir}; WHAT=${2:-all}
-BS=${WB_STACK:-/data/illia/nearproof-deps/e2e-laneA/at3/nearproof-wasm-base-stack}
+BS=${WB_STACK:-/data/illia/nearproof-deps/e2e-laneA/at4/nearproof-wasm-base-stack}
 CODE=${T1_CODE:-/data/illia/nearproof-deps/e2e-laneA/T1c0/codes/8152bed25554d521d3fcdd919f4457b66e06b720906fdd40fd6fd0723ed36bf9.wasm}
 PREP=${T1_PREP:-/data/illia/nearproof-deps/e2e-laneA/T1tape/prep.json}
 SEG_TMPL=${SEG_TEMPLATE:-/data/illia/nearproof-deps/e2e-laneA/at2/leaf-k13p/template.json}
