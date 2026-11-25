@@ -20,3 +20,9 @@ root = "Tool"
 [[require]]
 name = "ZkFormal"
 path = "../../../../../zk-formal"
+
+# F-4: lane B's state half of the resume split (StHalfC: StQ, stHalf_inst, st_step) and its
+# SHA-512 chip interface (Sha512If).
+[[require]]
+name = "StateM5a"
+path = "../../m5a/lean"

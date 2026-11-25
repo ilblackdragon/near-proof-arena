@@ -1,6 +1,7 @@
 import NearSpecV3.E2E.Machine
 import NearSpecV3.E2E.CutW
 import NearSpecV3.E2E.Refined
+import NearSpecV3.E2E.StEnc
 import Lean.Data.Json
 
 /-!
@@ -29,6 +30,7 @@ open NearSpec NearSpecV3 NearSpecV3.D2 NearSpecV3.Logged NearSpecV3.Wasm
 open NearSpecV3.Successor NearSpecV3.Successor.StorageExecution NearSpecV3.E2E
 open NearSpecV3.Successor.StorageExecution.CutW
 open Lean (Json)
+open NearSpecV3.E2E.Enc (Ser)
 
 def hexB (b : Bytes) : String :=
   let d (n : Nat) : Char := "0123456789abcdef".get ⟨n⟩
@@ -78,7 +80,7 @@ def rcptJ (r : Rcpt) : Json :=
         ("data", match x with | some v => jb v | none => Json.null)]
     | .distribution _ => Json.mkObj [("kind", "distribution")]
   Json.mkObj [("pred", jb r.pred), ("recv", jb r.recv), ("rid", jb r.rid), ("body", body),
-    ("encode", jb r.encode), ("bodyEncode", jb r.body.encode)]
+    ("encode", jb r.encode), ("bodyEncode", jb r.body.encode), ("ser", jb (Ser.enc r))]
 
 def statusJ : OStatus → Json
   | .value => Json.mkObj [("kind", "value")]
@@ -92,7 +94,7 @@ def outJ (x : OutD1) : Json :=
     ("executor", jb x.o.executorId), ("status", statusJ x.status),
     ("statusEncode", jb x.status.encode),
     ("logs", Json.arr (x.logs.map jb).toArray), ("partialEncode", jb x.partialEncode),
-    ("leaf", jb x.leaf)]
+    ("leaf", jb x.leaf), ("ser", jb (Ser.enc x))]
 
 def rsJ (rs : RS) (recv : Bytes) : Json :=
   let acct : Json := match rs.o.getAcct recv with
@@ -100,7 +102,9 @@ def rsJ (rs : RS) (recv : Bytes) : Json :=
     | .error e => Json.str s!"error: {e}"
   Json.mkObj [("gas", jn rs.gas), ("compute", jn rs.compute), ("txBurnt", jn rs.txBurnt),
     ("otherBurnt", jn rs.otherBurnt), ("subsidized", jn rs.subsidized), ("wasmGas", jn rs.wasmGas),
-    ("nOutcomes", jn rs.outcomes.length), ("nOutgoing", jn rs.outgoing.length),
+    ("nOutcomes", jn rs.outcomes.length),
+    ("outcomesChain", jb (NearSpecV3.E2E.Bnd.chainD Ser.enc rs.outcomes)),
+    ("outgoingChain", jb (NearSpecV3.E2E.Bnd.chainD Ser.enc rs.outgoing)), ("nOutgoing", jn rs.outgoing.length),
     ("nInstant", jn rs.instant.length), ("nProposals", jn rs.proposals.length),
     ("outcomes", Json.arr (rs.outcomes.map outJ).toArray),
     ("outgoing", Json.arr (rs.outgoing.map rcptJ).toArray),

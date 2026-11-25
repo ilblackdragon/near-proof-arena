@@ -34,17 +34,17 @@ open ZkFormal.Air ZkFormal.Algebra ZkFormal.Sha.Sound M5T1 M5T1.Bus ZkFormal.Sha
 
 theorem noSend_digest : ∀ t, t ≠ 0 → NoSend (m5t1Air.tables.getD t default) B_SHA_DIGEST = true := by
   intro t hne
-  obtain _ | _ | _ | _ | _ | _ | t := t
+  obtain _ | _ | _ | _ | _ | _ | _ | _ | _ | t := t
   all_goals first | decide +kernel | exact absurd rfl hne | exact getD_big (by omega)
 
 theorem noSend_bytes : ∀ t, t ≠ 3 → NoSend (m5t1Air.tables.getD t default) B_SHA_BYTES = true := by
   intro t hne
-  obtain _ | _ | _ | _ | _ | _ | t := t
+  obtain _ | _ | _ | _ | _ | _ | _ | _ | _ | t := t
   all_goals first | decide +kernel | exact absurd rfl hne | exact getD_big (by omega)
 
 theorem noSend_mlen : ∀ t, t ≠ 3 → NoSend (m5t1Air.tables.getD t default) B_MLEN = true := by
   intro t hne
-  obtain _ | _ | _ | _ | _ | _ | t := t
+  obtain _ | _ | _ | _ | _ | _ | _ | _ | _ | t := t
   all_goals first | decide +kernel | exact absurd rfl hne | exact getD_big (by omega)
 
 /-- Every interaction of `is` sending on `b` is `X`. -/

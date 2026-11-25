@@ -21,6 +21,6 @@ def NUM_PUB : Nat := PL.width
 def table : Table :=
   { width := 1, constraints := enterCons ⟨engF, 0⟩ ⟨callF, 450⟩, interactions := [], maxLog := 2 }
 
-def entAir : Air := { tables := [table], numBuses := NUM_BUSES, numPub := NUM_PUB }
+def entAir : Air := { tables := [table], numBuses := NUM_BUSES_F3, numPub := NUM_PUB }
 
 end M5T1.Ent

@@ -1,4 +1,4 @@
-import M5T1.Rx
+import M5T1.Acc
 import ZkFormal.Sha.Table
 import ZkFormal.Air.Export
 
@@ -6,7 +6,9 @@ import ZkFormal.Air.Export
 # M5T1.Air — the assembled M5-T1 runtime AIR
 
 Tables, in order: `SHA` (the unchanged SHA-256 block table of `ZkFormal.Sha.Table`), `RNG`,
-`SCHT`, `MSG`, `DG`, `RX`. The two public tapes (`TAPE`: the statement's receipt-list digest,
+`SCHT`, `MSG`, `DG`, `RX`, and (F-4, the resume edge) `RB` (boundary rules, `STMQ`/`STMA`), `ACC`
+(the SHA-384 accumulator appends) and the `IF384` chip stub (`Acc.chipStub`; the prover runs the
+native SHA-512 compression chip in its place, so the exported AIR `exportAir` omits it). The two public tapes (`TAPE`: the statement's receipt-list digest,
 outcome leaves and outgoing receipt hashes; `XTAPE`: on T1, the stand-ins for the lanes this
 template talks to — lane A's Wasm call and lane B's account read / write) are added by the prover
 as cached tables; in Lean they are `tapeTable`s appended to these (`fullAir`).
@@ -18,11 +20,15 @@ open ZkFormal.Air
 
 def shaTable : Table := ZkFormal.Sha.Table.table B_SHA_BYTES B_SHA_DIGEST
 
-def tableNames : List String := ["SHA", "RNG", "SCHT", "MSG", "DG", "RX"]
+def tableNames : List String := ["SHA", "RNG", "SCHT", "MSG", "DG", "RX", "RB", "ACC"]
 
 def m5t1Air : Air :=
-  { tables := [shaTable, Rng.table, Scht.table, Msg.table, Dg.table, Rx.table],
+  { tables := [shaTable, Rng.table, Scht.table, Msg.table, Dg.table, Rx.table, Rb.table, Acc.table,
+      chipStub],
     numBuses := NUM_BUSES, numPub := Rx.NUM_PUB }
+
+/-- The AIR the prover interprets: every Lean table but the chip stub (the native chip replaces it). -/
+def exportAir : Air := { m5t1Air with tables := m5t1Air.tables.take 8 }
 
 /-- A public tape: constant messages, sent / received once on the first row. -/
 def tapeTable (tape : List (Nat × Bool × List Nat)) : Table :=
@@ -35,7 +41,8 @@ def fullAir (tape xtape : List (Nat × Bool × List Nat)) : Air :=
   { m5t1Air with tables := m5t1Air.tables ++ [tapeTable tape, tapeTable xtape] }
 
 def layouts : List (String × Layout) :=
-  [("RNG", Rng.L), ("SCHT", Scht.L), ("MSG", Msg.L), ("DG", Dg.L), ("RX", Rx.L)]
+  [("RNG", Rng.L), ("SCHT", Scht.L), ("MSG", Msg.L), ("DG", Dg.L), ("RX", Rx.L), ("RB", Rb.L),
+   ("ACC", Acc.L)]
 
 def q (s : String) : String := "\"" ++ s ++ "\""
 
@@ -57,6 +64,7 @@ def schemaJson : String :=
   s!"\"buses\":\{\"SHA_BYTES\":{B_SHA_BYTES},\"SHA_DIGEST\":{B_SHA_DIGEST},\"RNG\":{B_RNG}," ++
   s!"\"SCH\":{B_SCH},\"FB\":{B_FB},\"FLEN\":{B_FLEN},\"MBEG\":{B_MBEG},\"MLEN\":{B_MLEN}," ++
   s!"\"HB\":{B_HB},\"SREQ\":{B_SREQ},\"SRQ\":{B_SRQ},\"SRS\":{B_SRS},\"HBR\":{B_HBR}," ++
-  s!"\"VMCALL\":{B_VMCALL},\"VMRES\":{B_VMRES},\"OUTC\":{B_OUTC},\"OUTR\":{B_OUTR}}}"
+  s!"\"VMCALL\":{B_VMCALL},\"VMRES\":{B_VMRES},\"OUTC\":{B_OUTC},\"OUTR\":{B_OUTR}," ++
+  s!"\"STMQ\":{B_STMQ},\"STMA\":{B_STMA},\"IF384\":{B_IF384},\"ACCD\":{B_ACCD}}}"
 
 end M5T1

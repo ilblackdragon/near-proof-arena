@@ -89,7 +89,8 @@ def NoRng (tape : List (Nat × Bool × List Nat)) : Prop := ∀ e ∈ tape, e.1 
 
 theorem fullAir_tables (tape xtape : List (Nat × Bool × List Nat)) :
     (fullAir tape xtape).tables =
-      [shaTable, Rng.table, Scht.table, Msg.table, Dg.table, Rx.table, tapeTable tape, tapeTable xtape] := rfl
+      [shaTable, Rng.table, Scht.table, Msg.table, Dg.table, Rx.table, Rb.table, Acc.table, chipStub,
+        tapeTable tape, tapeTable xtape] := rfl
 
 /-- A table that never sends on bus `b`. -/
 def NoSend (T : Table) (b : Nat) : Bool := T.interactions.all fun i => !(i.bus == b && i.send)
@@ -99,6 +100,9 @@ theorem noSend_scht : NoSend Scht.table B_RNG = true := by decide +kernel
 theorem noSend_msg : NoSend Msg.table B_RNG = true := by decide +kernel
 theorem noSend_dg : NoSend Dg.table B_RNG = true := by decide +kernel
 theorem noSend_rx : NoSend Rx.table B_RNG = true := by decide +kernel
+theorem noSend_rb : NoSend Rb.table B_RNG = true := by decide +kernel
+theorem noSend_acc : NoSend Acc.table B_RNG = true := by decide +kernel
+theorem noSend_chip : NoSend chipStub B_RNG = true := by decide +kernel
 
 theorem noSend_spec {T : Table} {b : Nat} (h : NoSend T b = true) {i : Interaction}
     (hi : i ∈ T.interactions) (hb : i.bus = b) (hs : i.send = true) : False := by
@@ -111,16 +115,19 @@ theorem rng_senders {tape xtape : List (Nat × Bool × List Nat)} (h1 : NoRng ta
     {t : Nat} (ht : t < (fullAir tape xtape).tables.length) {i : Interaction}
     (hi : i ∈ ((fullAir tape xtape).tables[t]'ht).interactions) (hb : i.bus = B_RNG)
     (hs : i.send = true) : t = 1 := by
-  have hl : (fullAir tape xtape).tables.length = 8 := rfl
-  have ht8 : t < 8 := hl ▸ ht
+  have hl : (fullAir tape xtape).tables.length = 11 := rfl
+  have ht8 : t < 11 := hl ▸ ht
   simp only [fullAir_tables] at hi
-  obtain _ | _ | _ | _ | _ | _ | _ | _ | t := t
+  obtain _ | _ | _ | _ | _ | _ | _ | _ | _ | _ | _ | t := t
   · exact (noSend_spec noSend_sha hi hb hs).elim
   · rfl
   · exact (noSend_spec noSend_scht hi hb hs).elim
   · exact (noSend_spec noSend_msg hi hb hs).elim
   · exact (noSend_spec noSend_dg hi hb hs).elim
   · exact (noSend_spec noSend_rx hi hb hs).elim
+  · exact (noSend_spec noSend_rb hi hb hs).elim
+  · exact (noSend_spec noSend_acc hi hb hs).elim
+  · exact (noSend_spec noSend_chip hi hb hs).elim
   · simp only [tapeTable, List.getElem_cons_succ, List.getElem_cons_zero, List.mem_map] at hi
     obtain ⟨e, he, rfl⟩ := hi
     exact absurd hb (h1 e he)
@@ -135,7 +142,7 @@ theorem rng_senders {tape xtape : List (Nat × Bool × List Nat)} (h1 : NoRng ta
 section
 variable {tape xtape : List (Nat × Bool × List Nat)} {pub : List Fp} {tr : Trace Fp}
 
-theorem fullAir_len : (fullAir tape xtape).tables.length = 8 := rfl
+theorem fullAir_len : (fullAir tape xtape).tables.length = 11 := rfl
 theorem one_lt : 1 < (fullAir tape xtape).tables.length := by rw [fullAir_len]; decide
 
 theorem ev_next (t r c : Nat) :
