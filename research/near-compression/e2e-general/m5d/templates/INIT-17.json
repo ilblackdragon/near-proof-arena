@@ -1,7 +1,7 @@
 {
  "name": "INIT-17",
  "template": "init",
- "note": "INIT, chip 2^17: d3 census (logs/G2-census.txt): joint max of the class members (51 / 875); not proved yet; G-2: BLK (section-B framing walk) pinned at 2^8 (<= 255 header + slot rows)",
+ "note": "INIT, chip 2^17: d3 census (logs/G2-census.txt): joint max of the class members (51 / 875); not proved yet; G-2: BLK (section-B framing walk) pinned at 2^8 (<= 255 header + slot rows); G-4: LAY (layout walk, <= 64 shards: <= 130 rows) pinned at 2^8, BLK +19 selection columns",
  "params": {
   "n_stack": 18,
   "log_blowup": 1,
@@ -10,12 +10,13 @@
   "degree": 9
  },
  "heights": {
+  "BLK": 8,
   "CLM": 17,
   "INI": 2,
+  "LAY": 8,
   "RNG": 8,
   "S384": 10,
-  "SHA512": 17,
-  "BLK": 8
+  "SHA512": 17
  },
- "cells": 12807484
+ "cells": 12954888
 }

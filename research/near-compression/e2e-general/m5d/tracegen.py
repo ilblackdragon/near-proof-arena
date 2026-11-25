@@ -59,6 +59,11 @@ def limbs3(bs):
     return [65536 * bs[3 * i] + 256 * bs[3 * i + 1] + bs[3 * i + 2] for i in range(14)]
 
 
+def lim8(b):
+    """G-4: three little-endian limbs of 8 bytes (bytes 0..2, 3..5, 6..7), Lean `lim8`."""
+    return [b[0] + 256 * b[1] + 65536 * b[2], b[3] + 256 * b[4] + 65536 * b[5], b[6] + 256 * b[7]]
+
+
 def gf_mul(a, b):
     r = 0
     for _ in range(8):
@@ -496,7 +501,7 @@ class Gen:
             c = len(nxt)
             lvl += 1
 
-    SPARE = {'STMT', 'BODY', 'SEG', 'RS', 'PART', 'SHD', 'OUTL', 'MRK'}
+    SPARE = {'STMT', 'BODY', 'SEG', 'RS', 'PART', 'SHD', 'OUTL', 'MRK', 'BLK', 'LAY'}
 
     def natural(self):
         """[G-2] Log heights of every table: `nat` as `write` sizes them without a template, `fit`
@@ -595,6 +600,14 @@ class GenInit(Gen):
         o = 4
         slots, slotrow = {}, {}
         rb = nblk
+        cbytes = pre + blocks + post
+        self.hinc = {}
+        def setz(r, at):
+            # G-4: a block's height (inner_lite[0..8]) / a slot's height_included, 8 bytes at `at`
+            z = cbytes[at:at + 8]
+            B.setv(r, 'z', z)
+            reads.update(range(at, at + 8))
+            return lim8(z)
         for bi in range(nblk):
             st = o
             l1, y1 = rd32(o + 33)
@@ -603,6 +616,8 @@ class GenInit(Gen):
             o = o + 45 + l1 + l2
             rb -= 1
             blkrow('kh', st, o, y1 + y2 + y3, rb, ns, bi + 1, 0)
+            hb = setz(B.rows[-1], npre + st + 37)
+            B.setv(B.rows[-1], 'hb', hb)
             rs = ns
             for si in range(ns):
                 st = o
@@ -612,20 +627,55 @@ class GenInit(Gen):
                 o = o + 12 + ls
                 rs -= 1
                 blkrow('ks', st, o, y0, rb, rs, bi + 1, si + 1)
+                hi = setz(B.rows[-1], npre + st + 4 + ls)
+                B.setv(B.rows[-1], 'hb', hb)
+                self.hinc[id(B.rows[-1])] = hi
         assert o == len(blocks), (o, len(blocks))
+        # G-4: L.index shard from the single epoch's layout (LAY), the claim's shard id (INI)
+        C = self.C
+        post0 = npre + len(blocks)
+        if cbytes[post0 + C['POST_NEP']:post0 + C['POST_NEP'] + 4] != [1, 0, 0, 0]:
+            raise TemplateOverflow('INIT class E1: the epoch table has more than one epoch')
+        reads.update(range(post0 + C['POST_NEP'], post0 + C['POST_NEP'] + 4))
+        assert cbytes[C['P_CH'] + 3] == 0
+        lc = cbytes[C['P_CH']] + 256 * cbytes[C['P_CH'] + 1] + 65536 * cbytes[C['P_CH'] + 2]
+        reads.update(range(C['P_CH'], C['P_CH'] + 4))
+        shp = lc + C['P_CI'] + C['CI_SHARD']
+        shb = cbytes[shp:shp + 8]
+        reads.update(range(shp, shp + 8))
+        assert int.from_bytes(bytes(shb), 'little') == int(d['walk']['mainShard']), 'claim shard id'
+        ix = self.lay_walk(cbytes, post0 + C['POST_LAY'], lim8(shb), reads)
+        if self.mutant is None:
+            assert ix == int(d['walk']['mainIdx']), ('layout index', ix, d['walk']['mainIdx'])
+        b2i, mi = self.fill_sel(B, ix)
+        if self.mutant is None:
+            assert (b2i, mi) == (int(d['walk']['b2i']), int(d['walk']['mainIdx'])), 'walk selection'
         if self.mut('lbshift'):
             # a block vector re-framed one byte short: the walk's last end is |pre| + ℓ_B − 1
             last = B.rows[-1]
             last[B.ix('e')] -= 1
-        b2i, mi = int(d['walk']['b2i']), int(d['walk']['mainIdx'])
+        if self.mut('psr_ix'):
+            # a consistent walk for another main index (BLK, INI): LAY's first matching pair still
+            # carries the true index
+            ix = (ix + 1) % len([k for k in slots if k[0] == 0])
+            b2i, mi = self.fill_sel(B, ix)
+            for rr in self.T['LAY'].rows:
+                rr[self.T['LAY'].ix('ix')] = ix
+        if self.mut('sel_two'):
+            # a second slot row selected as well (the first slot of the last block)
+            other = slotrow[(nblk - 1, 0)]
+            B.rows[other][B.ix('sel')] = 1
+            self.regen_g(B)
+        if self.mut('sel_none'):
+            B.rows[slotrow[(b2i, mi)]][B.ix('sel')] = 0
+            self.regen_g(B)
         sst, sln = slots[(b2i, mi)]
         selrow = slotrow[(b2i, mi)]
-        psr = cb_ = (pre + blocks + post)[sst + 33:sst + 65]
+        psr = cbytes[sst + 33:sst + 65]
         if self.mutant is None:
             assert bytes(psr).hex() == d['walk']['slotPrevStateRoot'], 'slot prev_state_root'
         reads.update(range(sst + 33, sst + 65))
-        B.rows[selrow][B.ix('sel')] = 1
-        for rr in T.rows[npre:npre + len(blocks)]:
+        for rr in T.rows[:len(cbytes)]:
             rr[T.ix('rd')] = int(rr[T.ix('kc')] in reads)
         if self.mut('clm_kind'):
             T.rows[len(pre) + 2][T.ix('kb')] = 0
@@ -647,6 +697,7 @@ class GenInit(Gen):
             self.look(self.r8, v)
         I.set(r, 'b2i', b2i); I.set(r, 'mi', mi); I.set(r, 'sst', sst); I.set(r, 'sln', sln)
         I.setv(r, 'slx', u(sln - 65, 3)); I.setv(r, 'psr', psr)
+        I.setv(r, 'cy', cbytes[C['P_CH']:C['P_CH'] + 4]); I.setv(r, 'sh', shb)
         for v in u(sln - 65, 3):
             self.look(self.r8, v)
         if self.mut('psr_slot'):
@@ -656,6 +707,7 @@ class GenInit(Gen):
             B.rows[selrow][B.ix('sel')] = 0
             B.rows[slotrow[other]][B.ix('sel')] = 1
             r[I.ix('b2i')], r[I.ix('mi')] = other
+            self.regen_g(B)
             Tc = self.T['CLM']
             for q in range(sst + 33, sst + 65):
                 Tc.rows[q][Tc.ix('rd')] = 0
@@ -678,8 +730,105 @@ class GenInit(Gen):
                     ctxRoot=bytes(xd[:42]).hex())
 
 
+
+    def regen_g(self, B):
+        """`g` = a slot selected on an earlier row (active rows), from the rows' `sel`."""
+        g = 0
+        for r in B.rows:
+            B.set(r, 'g', g)
+            g += r[B.ix('sel')]
+
+    def fill_sel(self, B, ix):
+        """G-4: BLK's main-slot selection for main index `ix` (`walkSegment` on a single-epoch
+        segment): target slot rows, new target slots, the first one selected. Returns (b2i, mainIdx)."""
+        g, pick = 0, None
+        for r in B.rows:
+            hi = self.hinc.get(id(r))
+            B.set(r, 'ix', ix)
+            ks = r[B.ix('ks')]
+            si = r[B.ix('si')]
+            tgt = int(ks == 1 and si - 1 == ix)
+            B.set(r, 'tgt', tgt)
+            B.set(r, 'itg', 0 if (not ks or tgt) else pow((si - 1 - ix) % P, P - 2, P))
+            eq = 0
+            dv = [0, 0, 0]
+            if tgt:
+                hb = [r[B.ix('hb', q)] for q in range(3)]
+                ds = [(hi[q] - hb[q]) % P for q in range(3)]
+                eq = int(all(x == 0 for x in ds))
+                if not eq:
+                    q = next(q for q in range(3) if ds[q])
+                    dv[q] = pow(ds[q], P - 2, P)
+            B.set(r, 'eq', eq); B.setv(r, 'dv', dv)
+            sel = eq * (1 - g)
+            B.set(r, 'sel', sel); B.set(r, 'g', g)
+            if sel:
+                pick = (r[B.ix('bi')] - 1, r[B.ix('si')] - 1)
+            g += sel
+        assert pick is not None, 'no new chunk for the main index'
+        return pick
+
+    def lay_walk(self, cb, p0, sh, reads):
+        """G-4: the LAY rows over the layout bytes at `p0` (`decodeLayout` prefix up to the
+        `id_to_index` pairs); returns `L.index shard` (the first pair with key = shard)."""
+        A = self.T['LAY']
+        u32 = lambda o: cb[o] + 256 * cb[o + 1] + 65536 * cb[o + 2] + 16777216 * cb[o + 3]
+        rows = []
+        def row(kind, st, en, nb, rb=0, rp=0):
+            r = A.new()
+            A.set(r, 'act', 1); A.set(r, kind, 1); A.set(r, 's', st); A.set(r, 'e', en)
+            A.setv(r, 'y', cb[st:st + nb] + [0] * (16 - nb))
+            reads.update(range(st, st + nb))
+            A.set(r, 'rb', rb); A.set(r, 'rp', rp)
+            A.set(r, 'zr', int(rb == 0)); A.set(r, 'ir', pow(rb, P - 2, P) if rb else 0)
+            A.set(r, 'zp', int(rp == 0)); A.set(r, 'ip', pow(rp, P - 2, P) if rp else 0)
+            A.setv(r, 'sh', sh)
+            spb = u(st, 3); A.setv(r, 'sp', spb)
+            for x in spb:
+                self.look(self.r8, x)
+            rows.append(r)
+            return r
+        assert cb[p0] in (2, 3), 'layout tag'
+        nbd = u32(p0 + 1); assert cb[p0 + 4] == 0
+        o = p0 + 5
+        row('k0', p0, o, 5, rb=nbd)
+        rb = nbd
+        for _ in range(nbd):
+            ln = u32(o); assert cb[o + 3] == 0
+            rb -= 1
+            row('kb', o, o + 4 + ln, 4, rb=rb)
+            o += 4 + ln
+        n = u32(o); assert cb[o + 3] == 0
+        row('ki', o, o + 4 + 8 * n, 4)
+        o += 4 + 8 * n
+        m = u32(o); assert cb[o + 3] == 0
+        row('km', o, o + 4, 4, rp=m)
+        o += 4
+        rp, g, ix = m, 0, None
+        for _ in range(m):
+            rp -= 1
+            r = row('kp', o, o + 16, 16, rp=rp)
+            key = lim8(cb[o:o + 8])
+            ds = [(key[q] - sh[q]) % P for q in range(3)]
+            eq = int(all(x == 0 for x in ds))
+            dv = [0, 0, 0]
+            if not eq:
+                q = next(q for q in range(3) if ds[q]); dv[q] = pow(ds[q], P - 2, P)
+            A.set(r, 'eq', eq); A.setv(r, 'dv', dv)
+            hit = eq * (1 - g)
+            A.set(r, 'hit', hit); A.set(r, 'g', g)
+            if hit:
+                assert cb[o + 9:o + 16] == [0] * 7, 'layout index >= 256'
+                ix = cb[o + 8]
+            g += hit
+            o += 16
+        assert ix is not None, 'shard not in layout'
+        for r in rows:
+            A.set(r, 'ix', ix)
+        return ix
+
 INIT_MUTANTS = ['pre_byte', 'blk_byte', 'wit_byte', 'clm_kind', 'clm_byte', 'ini_lb', 'pub_ctx',
-                'lbshift', 'psr_slot', 'pub_psr']
+                'lbshift', 'psr_slot', 'pub_psr', 'psr_ix', 'sel_two', 'sel_none']
 
 MUTANTS = ['hdr_psr', 'hdr_por', 'hdr_emr', 'hdr_el', 'hdr_gu', 'hdr_gl', 'hdr_bb', 'hdr_orr', 'hdr_txr',
            'hdr_props', 'hdr_cong', 'hdr_bw', 'hdr_split',
@@ -706,7 +855,11 @@ def main():
     dump, names, out = json.load(open(args[0])), json.load(open(args[1])), args[2]
     G = GenInit if 'CLM' in names['tables'] else Gen
     g = G(dump, names, mutant)
-    info = g.run()
+    try:
+        info = g.run()
+    except TemplateOverflow as e:
+        print('TEMPLATE OVERFLOW (class): %s' % e)
+        sys.exit(4)
     if not g.applied:
         print('mutant %s: not applicable' % mutant)
         sys.exit(3)

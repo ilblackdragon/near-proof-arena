@@ -144,8 +144,9 @@ buses renumbered past these, except the two join buses below, which both sides u
 | `FINB` (`FinIn`) | **23** | `(j, byte)`, `j < FI_LEN = 246 + 8·NS`, multiplicity 1 each | lane B's IF FINAL (bytes `0..32`: `post_state_root`, from `TCH(n, post)`; lane B's `pack2` limb `t` = bytes `2t, 2t+1`, big-endian) and M5c (congestion, …) → lane G's `FIN` (`fi[j]`), in place of `finInDigest`. In the standalone FINAL template these bytes are hashed to `finInDigest` (public values 14..28) instead. |
 | `PSR` | **22** | `(j, byte)`, `j < 32`, multiplicity 1 each | lane G's `INI` (the main chunk slot's `prev_state_root`, read from the claim) → lane B's IF INTAKE (`WSB`'s public limbs 0–15). In the standalone INIT template the bytes are public values 28..44 (16 big-endian byte pairs = lane B's `pack2`). |
 | `CB`, `LB`, `SLOT` | 19, 20, 21 | INIT-internal (claim byte reads, section-B span, slots) | — |
+| `LAY`, `IX` | 23, 24 | INIT-internal (G-4: layout walk start + shard id + main index; main index to `BLK`) | — (INIT numbering; `FINB` = 23 is FINAL's) |
 
-## 6. INIT: the claim's section B (G-2) [M]
+## 6. INIT: the claim's section B (G-2) and the main-slot selection (G-4) [M]
 
 INIT now decodes the framing of section B (`BLK`, `Init.lean`): the block vector
 `encList BlockRec.encode secB` is walked field group by field group (count, per block
@@ -154,7 +155,29 @@ to exactly `|pre| + ℓ_B` — the `ℓ_B` hashed into `ctxRoot`. So `ℓ_B` is 
 `pVec dBlock` consumes, the obligation of §3 (no longer lane B's). Every slot is on `SLOT
 (block, slot, inner start, inner length)`; `INI` takes the main slot `(b2i, mainIdx)` (private,
 from the checker's walk) and reads its `prev_state_root` (inner bytes 33..65, `inner length ≥ 65`).
-**Open [S]:** that `(b2i, mainIdx)` is `walkSegment`'s choice (the walk reads section B's headers
-and section C's epochs / layouts) — mutant `psr_slot` (another slot) is *not* rejected by the AIR;
-until the walk is in-circuit the leaf must take `(b2i, mainIdx)` as trusted (e.g. a public value
-lane D checks against the statement's walk, which V_d can recompute only with section B).
+**G-4: the selection is in-circuit** (closes the G-2 open item; `psr_slot` is now rejected by the
+AIR). On the INIT class **E1** — the claim's epoch table has one record (`INI` reads `#epochs = 1`
+at `|pre| + ℓ_B + 4`; every `d3` claim, 19,007 / 19,007) — the checker's `walkSegment` reduces to
+the D2 rule: `mainShard = H.shardId`, `mainLayout` = that record's layout `L`, and `b2i` is the
+first block whose slot `L.index H.shardId` is new (`height_included = height`)
+(`WalkSel.walk_single` / `main_slot_single` [K]). The AIR mirrors it:
+
+* `INI` reads the claim's shard id (`u64` at chunk inner + 145; the inner starts at
+  `P_CH + 40 + |chain_id|`, `P_CH = 60` = `|borshBytes claimTag| + |borshBytes statementIdV3| + 4`,
+  `WalkSel.p_ch_eq` [K]) and sends `(|pre| + ℓ_B + 56, shard limbs, mainIdx)` on `LAY` (bus 23) and
+  `mainIdx` on `IX` (bus 24).
+* `LAY` (new table, pinned 2^8) walks the layout prefix `u8 tag ∈ {2,3} ‖ boundary_accounts ‖
+  shard_ids ‖ id_to_index` (`Layout.decodeLayout`, V2 and V3 alike) and selects the **first**
+  `id_to_index` pair whose key is the shard id (`Layout.index` = `find?`); its value is `mainIdx`
+  (`InitSel.lay_first_pair` [K]).
+* `BLK` reads every block's height (`inner_lite[0..8]`) and every slot's `height_included`; a slot
+  row is a target iff its index is `mainIdx`, new iff the three limbs of the two `u64` are equal;
+  `sel` = the first new target slot (row order = block order), exactly one (`InitSel.blk_main_slot`
+  [K]). The `SLOT` message of the selected row is what `INI` receives, so `(b2i, mainIdx, sst, sln)`
+  and the `prev_state_root` read are forced.
+
+Out of class E1 (an epoch table with ≥ 2 records: a segment that crosses an epoch, possibly a
+layout boundary with resharding transitions) the INIT AIR rejects; that class needs the general
+walk (layout per block, `parentV3` at a boundary) — not built. Completeness bounds of E1: layout
+index `< 256`, lengths `< 2^24` (as G-2), the layout walk ≤ 255 rows (≤ 126 shards). Still [S]: the
+row ↔ decoded-structure correspondence of these walks (as for `BLK` since G-2).

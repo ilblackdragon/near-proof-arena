@@ -5,6 +5,70 @@ Plan: `docs/zk-formal/E2E-GENERAL-CHUNK-PLAN.md` §1.1 ("outputs and roots"), §
 [`LEAF-TEMPLATE-SPEC.md`](LEAF-TEMPLATE-SPEC.md). Date 2026-11-21. Labels: **[M]** measured here,
 **[K]** kernel-checked Lean (std axioms), **[S]** stated / design only.
 
+## G-4 (2026-11-25): the main-slot selection in-circuit — `psr_slot` rejected by the AIR
+
+Log `docs/logs/e2e-laneG-g4-2026-11-25.md`. Plan §5.3. Leaf spec §6. Reproduce: `./g4.sh OUT`.
+Nothing under `spec/` changed; `S`, `claimDigest`, the checker and INIT's 44 public values are
+unchanged (T1's public values are bit-identical to G-3's). Soundness fix adopted.
+
+**The change (`Init.lean`).** INIT class **E1**: the claim's epoch table has one record (`INI`
+reads `#epochs = 1`; 19,007 / 19,007 `d3` claims). There the checker's `walkSegment` is the D2
+rule (`WalkSel.walk_single` [K], below), and the AIR now computes it:
+* `INI` reads the claim's shard id (`u64` at chunk inner + 145, inner at `60 + 40 + |chain_id|`),
+  sends `(|pre| + ℓ_B + 56, shard limbs, mainIdx)` on `LAY` (bus 23) and `mainIdx` on `IX` (24).
+* New table **`LAY`** (43 columns, pinned 2^8): walks the layout prefix `tag ‖ boundary_accounts ‖
+  shard_ids ‖ id_to_index` and selects the **first** pair with key = shard id (`Layout.index`);
+  its value byte is `mainIdx`.
+* **`BLK`** (+19 columns): reads each block's height and each slot's `height_included`; `tgt` = slot
+  index is `mainIdx`, `eq` = target and new (3 limbs equal, inverse witness otherwise),
+  `sel = eq · (1 − g)` (`g`: selected earlier), `g + sel = 1` at the last active row: exactly one
+  slot selected, the first new one at `mainIdx` in block order. Its `SLOT` message fixes `INI`'s
+  `(b2i, mainIdx, sst, sln)` and hence the `prev_state_root` read.
+* `CLM`'s `rd` may now read `pre` / `post` bytes (never witness bytes). Templates `INIT-14..18`
+  re-pinned (`LAY` 2^8; T1 at `INIT-14`: 1,714,696 cells).
+
+**T1 [M]** (`INIT-14`, lane D base configuration, grinding 24, 8 threads, `heavy` 10 G):
+
+| | G-3 | G-4 |
+|---|---|---|
+| proof | 350,435 B | **355,691 B** |
+| prove / verify | 19.0 s / 10 ms | **23.8 s / 18 ms** |
+| peak RSS | 6.24 GB | **6.27 GB** |
+| soundness | 268.2 bits | 268.2 bits |
+| tables | 7 AIRs | 8 AIRs (`… INI, LAY, SHA512, SHA512T`) |
+
+Native verify + statement check OK, lane D `fs-count` OK, **`m8-import` OK**. Saved (lane D's M8 leaf
+format): **`/data/illia/nearproof-deps/e2e-m5d/g4/tmpl/init/`** (`TMPL.proof` `6a39bcac…a3e2b`,
+`TMPL.vk.json` `235aa151…b7c45`, `INFO.json`); prover copy `…/g4/t1i/proof-init/`. In-repo
+`results/g4/`. **Lane D:** the INIT `TemplateSpec`'s AIR list gains `LAY` (index 5; public values
+still on `INI` only) and the vk changed — re-import from the G-4 path.
+
+**Battery with the prover [M]** (`logs/G4-T1-init-mutants.txt`): **13 / 13 rejected**. `psr_slot`
+is now rejected by the **AIR** (BLK `sel = eq·(1−g)` fails on the honest slot row, plus `LAY`/`IX`
+imbalance). New: `psr_ix` (a fully consistent BLK/INI walk for another main index: rejected by
+`LAY`'s `hit · (y₈ − ix)`), `sel_two` (a second slot selected), `sel_none` (no slot selected) —
+both rejected by the `sel` constraint. As before, `pre_byte`, `blk_byte`, `wit_byte` (other chunks,
+honestly re-hashed) prove and are rejected by the statement check; the other 6 by the AIR.
+
+**Lean [K]** (std axioms, `Audit.lean`; `lake build` 423 jobs green):
+* `WalkSel.walk_single`: `c.epochs = [ep]`, `decodeLayout ep.shardLayout = .ok L`,
+  `walkSegment c blks ae s0 = .ok wk` ⇒ `wk.mainShard = s0`, `wk.mainLayout = ep.shardLayout`, block
+  `wk.b2i` is new at `L.index s0` and every earlier block is not (proof through the checker's own
+  `for` loop: `pre` before the first new block, `forIn_inv` after). `main_slot_single`: the same
+  for the intake's `mainIdx` / `slotB2`. `p_ch_eq`: `P_CH = 60` from the claim tags.
+* `InitSel.blk_main_slot` / `init_blk_main_slot` (from `Holds initAir`): exactly one `BLK` row has
+  `sel = 1`, it satisfies `BlkNew` (slot row, index `ix`, limbs equal), no earlier row does, `ix`
+  is row 0's. `lay_first_pair` / `init_lay_first_pair`: exactly one `LAY` hit, the first pair whose
+  key limbs are `sh`, value byte = `ix`, bytes 1..7 zero, `sh`/`ix` = the head row's.
+  Generic: `first_sel`, `last_active`.
+* Premise / open [S]: `BLK` row 0 active (bus-level, its count row receives from `INI`); the bus
+  glue `ix(BLK) = mi = ix(LAY)` (`IX`, `LAY` messages) and the row ↔ decoded-structure / limbs ↔
+  `u64` correspondence of the walks (as for `BLK`'s framing since G-2).
+
+**Out of scope / reported:** a claim whose epoch table has ≥ 2 records (a segment crossing an epoch,
+possibly a resharding boundary) is out of class E1 and rejected by the INIT AIR (completeness only);
+no such claim in the `d3` corpus. The general walk (layout per block, `parentV3`) is not built.
+
 ## G-3 (2026-11-25): T1's INIT and FINAL re-proved on the current AIRs, saved in lane D's leaf format
 
 Log `docs/logs/e2e-laneG-g3-2026-11-25.md`. Plan §5.3. Reproduce: `./g3.sh OUT` (prove both,

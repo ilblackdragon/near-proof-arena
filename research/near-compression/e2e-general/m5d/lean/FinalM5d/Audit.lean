@@ -12,6 +12,8 @@ import FinalM5d.S384Rec
 import FinalM5d.S384Chip
 import FinalM5d.S384Out
 import FinalM5d.Cls.All
+import FinalM5d.WalkSel
+import FinalM5d.InitSel
 
 /-! Axiom audit of the M5d headline results: each must depend on `propext`, `Classical.choice`,
 `Quot.sound` only (no `sorryAx`, no `Lean.ofReduceBool`). -/
@@ -57,3 +59,13 @@ import FinalM5d.Cls.All
 #print axioms FinalM5d.Cls.f1_eq
 #print axioms FinalM5d.S384Out.split_lookup
 #print axioms FinalM5d.S384Out.s384_out_byte
+#print axioms FinalM5d.WalkSel.walk_single
+#print axioms FinalM5d.WalkSel.main_slot_single
+#print axioms FinalM5d.WalkSel.p_ch_eq
+#print axioms FinalM5d.InitSel.first_sel
+#print axioms FinalM5d.InitSel.blk_eq_iff
+#print axioms FinalM5d.InitSel.blk_main_slot
+#print axioms FinalM5d.InitSel.lay_eq_iff
+#print axioms FinalM5d.InitSel.lay_first_pair
+#print axioms FinalM5d.InitSel.init_blk_main_slot
+#print axioms FinalM5d.InitSel.init_lay_first_pair
