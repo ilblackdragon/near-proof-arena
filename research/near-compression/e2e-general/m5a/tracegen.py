@@ -78,6 +78,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import ptrie as PT  # noqa: E402
 import sha512c as S5  # noqa: E402
+import stc as STC  # noqa: E402
 
 P = 2013265921
 ID_KEY, ID_BR, ID_SN, ID_ST = 1 << 24, 2 << 24, 3 << 24, 4 << 24
@@ -1336,7 +1337,8 @@ class Gen:
                 Tl.setv(r, 'nclx', self.len_chunks(nc[1]))
                 Tl.set(r, 'idl', last_t[i])
                 # M5a-5: the touched leaf is a real entry, `i < wsLen` (bytes of `wsLen - 1 - i`)
-                ix = [((n - 1 - i) >> (8 * k)) & 255 for k in range(3)]
+                nl = (1 << self.D) + 1 if self.mutant == 'stcbig' else n   # B-T3: the claimed count
+                ix = [((nl - 1 - i) >> (8 * k)) & 255 for k in range(3)]
                 Tl.setv(r, 'ix', ix)
                 for x in ix:
                     self.rng(x)
@@ -1594,11 +1596,41 @@ class Gen:
     def chip_rows(n):
         return 128 * n
 
+    STC_MUTANTS = ('stcrin', 'stcrout', 'stctag', 'stcrest', 'stcws', 'stclen', 'stcbig', 'stcbyte')
+
+    def build_stc(self, comp, a24, b24, wslen):
+        """B-T3: the `STC` row of a segment and the stand-in's `STMQ` / `STMA` (lane F's engine rows).
+        Mutants (`--mutant stc*`) tamper one value after the honest row is built."""
+        m = self.mutant
+        # `stcbig`: the public count is `2^D + 1` (set with `pubs`); `2^D − wsLen` is no 3-byte number
+        rows, cnt, msgs, info = STC.build(self.names, comp, a24, b24, wslen, self.pre_root)
+        r = rows[0]
+        cols = {nm: i for i, nm in enumerate(self.names['STC'])}
+        ix = lambda nm, j: cols['%s.%d' % (nm, j)]
+        if m == 'stcrin':       # the engine claims another input stRoot
+            msgs[0][2][0] ^= 1
+        elif m == 'stcrout':    # the output stRoot the engine takes is not the closed commitment's
+            msgs[1][2][0] ^= 1
+        elif m == 'stctag':     # the engine is told another input tag (e.g. not final)
+            msgs[1][2][14] ^= 2
+        elif m == 'stcrest':    # the engine's output rest is not the one closed into stRoot'
+            msgs[0][2][20] ^= 1
+        elif m == 'stcws':      # the opened ws byte differs from R_in (the row's own byte changed)
+            r[ix('b', 3)] ^= 1
+        elif m == 'stclen':     # the opened wsLen byte differs from the public count
+            r[ix('b', 49)] ^= 1
+        elif m == 'stcbyte':    # a non-byte message cell with the same chip limb: b63 + 256, b62 − 1
+            assert r[ix('b', 62)] >= 1
+            r[ix('b', 63)] += 256; r[ix('b', 62)] -= 1
+        return rows, cnt, msgs, info
+
     def write_split(self, out, tmpl=None, stats_only=False):
         """One dump per template proof: `out/if` (INTAKE + FINAL) and `out/seg<s>` (STATE segment
         `s`).  `tmpl` (a template file: `{"D", "if": {"heights", "params"}, "seg": {…}}`) pins every
         table's height; a table that does not fit raises `TemplateOverflow`."""
         wslen = len(self.keys) + (1 if self.mutant == 'wslen' else -1 if self.mutant == 'wslenlo' else 0)
+        if self.mutant == 'stcbig':
+            wslen = (1 << self.D) + 1
         post = self.post_root
         if self.mutant == 'postroot':
             post = bytes([post[0] ^ 1]) + post[1:]
@@ -1636,6 +1668,21 @@ class Gen:
                     [len(self.final) + (1 if self.mutant == 'nchange' else 0)]
             else:
                 pubs = pack2(self.pre_root) + [wslen] + r24(a24) + r24(b24)
+            stc_msgs, stc_info = [], None
+            if kind == 'seg' and 'STC' in self.names:
+                # B-T3: the `STC` row opens the input `stRoot` and closes the output's (`Stc.m5tSegC`);
+                # its 4 compressions go to this segment's chip, its lookups to `SRNG`
+                def rcomp(h, block, R=R):
+                    cid = 128 * len(R['comps'])
+                    R['comps'].append(dict(h=[str(x) for x in h], block=[str(x) for x in block]))
+                    return cid, S5.compress(h, block)
+                stc_rows, srng_cnt, stc_msgs, stc_info = self.build_stc(rcomp, a24, b24, wslen)
+                T['STC'] = Table('STC', self.names['STC']); T['STC'].rows = stc_rows
+                T['SRNG'] = Table('SRNG', self.names['SRNG']); T['SRNG'].rows = STC.srng_rows(self.names, srng_cnt)
+                order = tuple(order) + ('STC', 'SRNG')
+                nat['SHA512'] = max(2, (max(self.chip_rows(len(R['comps'])), 4) - 1).bit_length())
+                if 'SHA512' in pin and nat['SHA512'] > pin['SHA512']:
+                    raise TemplateOverflow('%s SHA512: natural 2^%d > template 2^%d' % (name, nat['SHA512'], pin['SHA512']))
             summary[name] = dict(heights=nat, rows={tn(t): len(T[t].rows) for t in order},
                                  sha_rows=self.sha_rows(R['sha']), compressions=len(R['comps']),
                                  root_a=bytes(b for w in a24 for b in w.to_bytes(8, 'big')).hex(),
@@ -1648,7 +1695,7 @@ class Gen:
                 kw = {}
                 if t == 'WSB':
                     kw['exact'] = 2 << self.D
-                elif t == 'RNG':
+                elif t in ('RNG', 'SRNG'):
                     kw['exact'] = 256
                 elif t in ('BR', 'SN'):
                     rid_i = T[t].ix('rid')
@@ -1665,13 +1712,13 @@ class Gen:
             if role != 'if' and self.host:
                 json.dump(self.host_tape(role[1]), open(os.path.join(d, 'hosttape.json'), 'w'))
             elif role != 'if':
-                json.dump(self.st_tape(role[1]), open(os.path.join(d, 'htape.json'), 'w'))
+                json.dump(self.st_tape(role[1]) + stc_msgs, open(os.path.join(d, 'htape.json'), 'w'))
             if tmpl is not None:
                 json.dump(dict(name=tmpl.get('name'), kind=kind_t, D=self.D, **tmpl.get(kind_t, tmpl[kind])),
                           open(os.path.join(d, 'template.json'), 'w'), indent=1)
             json.dump(dict(kind=kind_t, pre_root=self.pre_root.hex(), post_root=post.hex(), ws_len=wslen,
                            changes=len(self.final),
-                           depth=self.D, ws_depth=WS_DEPTH, **summary[name]),
+                           depth=self.D, ws_depth=WS_DEPTH, stc=stc_info, **summary[name]),
                       open(os.path.join(d, 'stats.json'), 'w'), indent=1)
         return summary
 

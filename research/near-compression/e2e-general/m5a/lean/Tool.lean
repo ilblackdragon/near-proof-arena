@@ -2,6 +2,7 @@ import StateM5a.Air
 import StateM5a.St
 import StateM5a.Tmpl
 import StateM5a.StHostIf
+import StateM5a.Stc
 import NearSpecV3.D2.State
 import Lean.Data.Json
 
@@ -92,7 +93,15 @@ def main (args : List String) : IO UInt32 := do
     for (nm, t) in tableNamesSegH.zip (m5tSegH D).tables do
       IO.println s!"{nm}: width {t.width}, constraints {t.allConstraints.length}, interactions {t.interactions.length}"
     return 0
+  | ["tmpl-segc", d, out, names] =>
+    -- B-T3: the STATE segment template with the `stRoot` opening (`Stc.m5tSegC`: + `STC`, `SRNG`)
+    let D := d.toNat!
+    IO.FS.writeFile out (ZkFormal.Air.Air.exportJson (m5tSegC D))
+    IO.FS.writeFile names (namesJsonC D)
+    for (nm, t) in tableNamesSegC.zip (m5tSegC D).tables do
+      IO.println s!"{nm}: width {t.width}, constraints {t.allConstraints.length}, interactions {t.interactions.length}"
+    return 0
   | ["apply", st] => applyOracle st
   | _ =>
-    IO.eprintln "usage: m5a-tool air|airb|tmpl-if|tmpl-seg|tmpl-segh D AIR_JSON NAMES_JSON | m5a-tool apply STATE_JSON"
+    IO.eprintln "usage: m5a-tool air|airb|tmpl-if|tmpl-seg|tmpl-segh|tmpl-segc D AIR_JSON NAMES_JSON | m5a-tool apply STATE_JSON"
     return 2

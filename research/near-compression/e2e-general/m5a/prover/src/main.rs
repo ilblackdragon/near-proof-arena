@@ -65,6 +65,9 @@ const P: u64 = 0x7800_0001;
 /// The execution side's buses (`St.lean`): `SREQ`, `HB`.
 const B_SREQ: u16 = 28;
 const B_HB: u16 = 29;
+/// [B-T3] the cross-lane `stRoot` buses (`Stc.B_STMQ` / `B_STMA`)
+const B_STMQ: u16 = 211;
+const B_STMA: u16 = 212;
 const LEAN_IF: u16 = 16;
 
 fn set_levers() {
@@ -259,7 +262,11 @@ fn harness(name: &str, map: &BTreeMap<Key, u64>, cached: bool) -> (TableSpec, Ro
     // [B-T1] the execution side's message kinds are fixed per table, so its AIR (hence the vk) does
     // not depend on the segment's traffic: `HTAPE` = `SREQ` (7 cells) + `HB` (3); `HOSTTAPE` (the
     // stand-in for lane A's HOST rows) = `HOSTQ` (22) + `HOSTR` (8) + `HOSTB` (5)
+    // [B-T3] with the `STC` table (`Stc.m5tSegC`) the stand-in also plays lane F's `stRoot` side:
+    // `STMQ` (211, 29 cells) sent, `STMA` (212, 29) received
+    let stc = keys.iter().any(|k| k.0 == B_STMQ || k.0 == B_STMA);
     let fixed: Option<Vec<(u16, usize)>> = match name {
+        "HTAPE" if stc => Some(vec![(B_SREQ, 7), (B_HB, 3), (B_STMQ, 29), (B_STMA, 29)]),
         "HTAPE" => Some(vec![(B_SREQ, 7), (B_HB, 3)]),
         "HOSTTAPE" => Some(vec![(208, 22), (209, 8), (210, 5)]),
         _ => None,
