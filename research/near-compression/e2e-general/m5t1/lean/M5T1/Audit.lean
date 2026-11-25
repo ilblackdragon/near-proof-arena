@@ -7,6 +7,9 @@ import M5T1.MsgRow
 import M5T1.MsgRowDg
 import M5T1.MsgRowId
 import M5T1.SegRt
+import M5T1.EnterC
+import M5T1.T1Enter
+import M5T1.SplitC
 
 /-! The axioms of every lane F headline theorem (standard axioms only). -/
 
@@ -41,6 +44,14 @@ import M5T1.SegRt
 #print axioms M5T1.MsgRow.span_of
 #print axioms M5T1.MsgRow.dg_digest
 #print axioms M5T1.MsgRow.dg_digest'
-#print axioms M5T1.SegRt.carried_eq
-#print axioms M5T1.SegRt.const_eq
-#print axioms M5T1.SegRt.segSoundRt_enter_from
+#print axioms M5T1.SegRt.copy_sem
+#print axioms M5T1.SegRt.num_sem
+#print axioms M5T1.EnterC.enter_relC
+#print axioms M5T1.EnterC.enter_relC8
+#print axioms M5T1.EnterC.enter_notInit
+#print axioms M5T1.T1Enter.t1_ent_holds
+#print axioms M5T1.T1Enter.t1_enter_nonvac
+#print axioms M5T1.T1Enter.t1_enter_opens
+#print axioms M5T1.SplitC.split_sound_relC
+#print axioms M5T1.SplitC.glue_of
+#print axioms M5T1.SplitC.rt_relC8

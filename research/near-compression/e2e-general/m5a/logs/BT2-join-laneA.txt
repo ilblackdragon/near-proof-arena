@@ -1,0 +1,2 @@
+# B-T2 M6.4: tracegen --split --template templates/S.json --host --host-join join/t1-laneA-storage-write.json; prover check (seg0, m5tSegH D=5)
+TIME load+precheck 0.44s

@@ -170,6 +170,13 @@ class Table:
 
 
 class Gen:
+    # B-T2 (`--host-join FILE`, with `--host`): lane A's HOST messages for some storage calls, keyed by
+    # the state key (hex): `ts`, `S`, `rid`, `kptr`, `vptr`, `rlo`, `rhi`, `glo`, `ghi` and `msgs` (the
+    # call's HOSTQ / HOSTR / HOSTB messages as `[bus, send, msg]`, taken verbatim from lane A's run).
+    # The write's STATE rows then carry lane A's call (time, scope, register, buffer addresses,
+    # answer) and the HOSTTAPE stand-in carries lane A's messages for it in place of the synthetic ones.
+    HOST_JOIN = {}
+
     def __init__(self, st, names, mutant=None, plan=None, segs=1, extra_writes=0, split=False, host=False):
         self.segs, self.extra_writes = segs, extra_writes
         # B-T1 item 3 (`--host`, with `--split`): the segment's STATE rows are fed by lane A's HOST
@@ -1189,6 +1196,10 @@ class Gen:
             self.raw[t + 1] = v
             first.setdefault(s, t + 1)
             self.t_local[t + 1] = t + 1 - first[s] + 1      # B-T1: times restart at 1 per segment
+        for (t, s, key, ref) in out:
+            J = self.HOST_JOIN.get(key.hex())
+            if J is not None:
+                self.t_local[t] = J['ts']   # B-T2: lane A's call time for a joined write
         if self.splitmode and S == 0:
             S = 1          # no write: one empty STATE segment (R_out = R_in)
         return out, S
@@ -1423,6 +1434,9 @@ class Gen:
             gt, t = t, self.tv(t)
             pr = int(v is not None)
             kptr, vptr = self.st_layout(key, v)
+            J = self.HOST_JOIN.get(key.hex()) if self.host else None
+            if J is not None:
+                kptr, vptr = J['kptr'], J['vptr']
             vlen = len(v) if pr else 0
             assert (pr, vlen) == tuple(ref[:2]) and (not pr or sha(v) == ref[2])
             mk = m
@@ -1444,6 +1458,10 @@ class Gen:
             if self.host:
                 # the HOST stand-in's answer (`HOSTR`): r = 1 iff the key held a value before
                 Tw.set(r, 'rlo', self.host_r[gt])
+                if J is not None:
+                    assert J['rlo'] == self.host_r[gt], 'lane A evicted flag != the key\'s presence'
+                    for col in ('S', 'rid', 'rlo', 'rhi', 'glo', 'ghi'):
+                        Tw.set(r, col, J[col])
 
     def host_tape(self, only_seg):
         """B-T1 item 3: the stand-in for lane A's HOST rows of segment `only_seg`: per storage call
@@ -1453,6 +1471,10 @@ class Gen:
         tape = []
         for (t, seg, key, ref) in self.writes:
             if seg != only_seg:
+                continue
+            J = self.HOST_JOIN.get(key.hex())
+            if J is not None:
+                tape += [list(m) for m in J['msgs']]     # lane A's messages, verbatim
                 continue
             v = self.raw[t]
             pr = int(v is not None)
@@ -2189,6 +2211,8 @@ def main():
     assert split or not host, '--host needs --split'
     cap = int(args[args.index('--seg-cap') + 1]) if '--seg-cap' in args else None
     Gen.SEG_CAP = cap
+    if '--host-join' in args:
+        Gen.HOST_JOIN = json.load(open(args[args.index('--host-join') + 1]))
     g = make_gen(st, names, mutant, None, segs, extra, split, host)
     if '--unbatched' not in args:
         plan = g.make_plan()

@@ -1,0 +1,2 @@
+# B-T2 M6.4 CONTROL: lane A's messages with the key buffer = the full trie key (0x09 ‖ account ‖ ',' ‖ 't', 15 B); prover check
+PRECHECK OK: every constraint on every row; every bus balances (4792 distinct messages)

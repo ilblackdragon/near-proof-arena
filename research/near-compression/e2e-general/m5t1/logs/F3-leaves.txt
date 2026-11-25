@@ -1,0 +1,38 @@
+# F-3 (lane F, 2026-11-25): T1 rt leaves on the M11i record shape (engF 450 B, callF 834 B), lane D's base configuration, 8 threads
+## enter (S2 codeRoot, .pre record)
+TABLE ENT    width     1 height 2^2  cells         4 constraints   762 interactions     0 deg 1
+HEIGHTS {"ENT": 2}
+CELLS committed 4
+PRECHECK OK: every constraint on every row; every bus balances (0 distinct messages)
+TIME load+precheck 0.00s
+PARAMS n_stack 10 w_stack 8 log_blowup 7 degree 2 pow 24 queries [45, 38]
+TIME keygen 0.00s
+SOUNDNESS total=268.8 logup=321.4 proximity=300.1 query=268.8
+PROOF total=87739 gkr=56 relations=644 stacking=1360 whir=80468
+TIME prove 2.37s verify 0.0010s threads 8 peak_rss_kib 1218712 proof_bytes 87739
+SAVED /data/illia/nearproof-deps/e2e-m5t1/f3/enter-proof (RT.proof 87739 B, RT.vk.json 183229 B); boundary d_in "b850f1e5389c5fba6ebbcd4d0abf7c81c54b49a7ef69bc55fee6fa7879d394f7a944be77eb29e574c39c" d_out "c320b92b892d0f60463568e636a10e36d663e338addac886ec9a2863f4653c70778fe6ac08a90facfb50"
+VERIFY OK (native SWIRL verifier); statement check (tape roots + public values): OK
+
+## resume (layout follows: gasLeft, singleton outRcptAcc)
+TABLE XTAPE  width    17 height 2^9  cells      8704 constraints     0 interactions     9 deg 0
+HEIGHTS {"SHA": 9, "RNG": 8, "SCHT": 8, "MSG": 10, "DG": 3, "RX": 2, "TAPE": 6, "XTAPE": 9}
+CELLS committed 367320
+PRECHECK OK: every constraint on every row; every bus balances (1890 distinct messages)
+TIME load+precheck 0.08s
+PARAMS n_stack 14 w_stack 10 log_blowup 5 degree 4 pow 24 queries [55, 45, 33]
+TIME keygen 1.33s
+SOUNDNESS total=268.3 logup=322.4 proximity=295.1 query=268.3
+PROOF total=430143 gkr=13832 relations=136608 stacking=2140 whir=271168
+TIME prove 17.02s verify 0.0203s threads 8 peak_rss_kib 9918084 proof_bytes 430143
+SAVED /data/illia/nearproof-deps/e2e-m5t1/f3/resume-proof (RT.proof 430143 B, RT.vk.json 1781264 B); boundary d_in "7fccc1fa5d14773f829b0695555a4c03ec85f5d7fd009e32b48005485557e43168bad80b74e1e6e0c40c" d_out "6e1fe8a5d624c3ca298d5f8803af4d776e9dd8d414b0c78cdf41f3dcba930f65162933ef21cc8f00d1b3"
+VERIFY OK (native SWIRL verifier); statement check (tape roots + public values): OK
+
+## lane D m8-import
+M8_TEMPLATE_PROVED rt-enter bytes=87739 seconds=0.0 params=(n_stack 10, w_stack 8, lb 7) queries=[45, 38] bits=268.8
+M8_TEMPLATE_PROVED rt-resume bytes=430143 seconds=0.0 params=(n_stack 14, w_stack 10, lb 5) queries=[55, 45, 33] bits=268.3
+
+## SHA256SUMS (/data/illia/nearproof-deps/e2e-m5t1/f3/tmpl)
+0df16c8abaacc511d75cf43d7674f5e69cdece9d183ff57643b9457b00ae2a8a  rt-enter/TMPL.proof
+a9bd4601b0f80f74bca9f002dc34c8663f1c6aca4cc044e76d6cf33e7efa2a4f  rt-enter/TMPL.vk.json
+5458c101dfa6de8dd77e0f247a872fc1d0c62b5dfd0010adb3be8afc873f0f21  rt-resume/TMPL.proof
+6bb4a7faa1b5ffa4a710c60f1a6e689d62792157b8d66dd6a55089a8e20b08f1  rt-resume/TMPL.vk.json

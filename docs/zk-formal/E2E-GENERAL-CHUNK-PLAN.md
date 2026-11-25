@@ -764,6 +764,82 @@ Log: [`docs/logs/e2e-lean-m11i-2026-11-21.md`](../logs/e2e-lean-m11i-2026-11-21.
   rebuilt from the data at use). Lanes A/F: until then, `vmDE` and lane A's `encRest` exist only
   in the stores-blanked form.
 
+**M12 (lane E, 2026-11-25) [K].** Standard axioms only, no `sorry`/`native_decide`/`axiom`; `S`,
+`claimDigest` and the checker unchanged (sha256 `644495ff…a9ae3`). Log:
+[`docs/logs/e2e-lean-m12-2026-11-25.md`](../logs/e2e-lean-m12-2026-11-25.md).
+
+* **Clear fields (M12; lane F's F3-2, integrator decision) — `ViewE.clearE` restated.** The running
+  counters are **carried**: at an engine position with receipt state `rs`, `receiptIdx = |rs.outcomes|`,
+  `gasUsed = gasBurnt = rs.gas`, `balanceBurnt = rs.txBurnt`, `compute = rs.compute` (exactly lane F's
+  `RX` totals `gin`/`tbin`/`cin`); at `eng ⟨done out⟩` / `fin I out` the same from `out`; in a call
+  those of the engine configuration plus `rPrepaid = q.ctx.prepaidGas` (`RX.gas`); at **`done H o`
+  the header outputs FINAL already binds** (`gasUsed = o.gasUsed`, `balanceBurnt = o.balanceBurnt`,
+  `headerOk`), the rest `0`. Fields that are **not a function of the configuration** stay constant —
+  `claimDigest = bdigest []` (in every leaf's `ctx`), `blockIdx`, `actionIdx` (the receipt step is
+  atomic; `|K|` counts VM calls, not actions), `t` (per-segment AIR clock; in-call progress is
+  `wasm.fuel`), `rBurnt`, `rUsed` (in a call they would change with the Wasm state, which
+  `ClearCall` forbids; after `resume` no configuration holds them). This reconciles M11i's
+  "clear fields at `done` are constants" (only the non-header ones are). Counters are reduced mod
+  `2^64` / `2^128` (`clearE_ok`: every record in range, so `∀ x, (V.bnd x).WF` stays provable;
+  the identity on accepting runs). Lemmas: `clearE_call` (**`ClearCall`**, `rfl`: lane A's
+  `vT1_clear` unchanged), `clearE_enter` (**lane F's `RtView.clearEnter`** with `pre q =
+  u64c q.ctx.prepaidGas`), `clearE_resume` (the call's totals are the starting engine's, output
+  `rPrepaid = rBurnt = rUsed = 0`), `clearE_final` (`eng ⟨done out⟩ → fin` keeps them, `tailNew`
+  copies `gasUsed`/`balanceBurnt` into `done`). Store-blindness kept: `vSB_blind` (new simp lemma
+  `SB.setArgs_ctx`), lane A's `vT1_blind` (one simp argument added). Not a change of `S`,
+  `claimDigest` or the checker (the clear fields are view data). **Consequences for the circuits**
+  (not changed here): lane F's resume must output `receiptIdx + 1` (one outcome per receipt step;
+  today it copies) and `rPrepaid = rBurnt = rUsed = 0` (today: copy / `RX.vb` / `RX.vu`); lane G's
+  FINAL `B_out` record carries `o.gasUsed`, `o.balanceBurnt` (it has them in `FinIn`); lane I's
+  driver writes `claimDigest = bdigest []`, `t = 0` at every cut (today: the real digest, lane A's
+  in-call clock — which lane A's copying leaf already contradicts), `receiptIdx = |outcomes|` and
+  0 for `rBurnt`/`rUsed`.
+* **Split-leaf glue (`E2E/Glue.lean`, `defaultTargets`).** `stepM_pqT`/`esteps_pqT`: `OvlInv`'s
+  overlay invariant for **any** trie (so it applies to canonical openings not reached from
+  `start`). **STATE:** `state_reqs` is lane F's `ReqsFaithful` proved — along VM-free steps the
+  trie is unchanged and the committed lookups are the input's updated by the net requests
+  (`kv o' = updK (netQ o o') (kv o)`) — under `StatePre` (input committed keys distinct, which lane
+  B's `fits` form gives; output not `done`); `state_glue` (`SplitGlueOn`) from lane B's
+  `ApplyFaithfulS` (`apply q (root I t f) = root I t (updK q f)`); `split_sound_relC_on` /
+  **`state_sound_relC`**: `EngHalfRCOn` (F) ∧ `StHalf` (B) ∧ `ApplyFaithfulS` (B) ⇒
+  `TmplSoundRel8C … .state`. **INIT:** `init_glue` (INIT's output carries `Ovl.ofTrie I.tMain`,
+  every committed lookup `none`: the state value is lane B's IF-INTAKE `R_0`). **FINAL:**
+  `final_glue` (lane B's `m5b_final` conclusion for the overlay's trie and sorted committed list is
+  `Ovl.finalize o = .ok post`); open `FinalizeAgree` (the checker's logged lazy-trie `finalizeR`
+  equals `Ovl.finalize`). **Canon on honest runs (structural):** `sfE I` (the `CutW` query store
+  `fun hb => (I.env.codeOf …).map toBA`), `canon_enter`, `canon_next`, `canon_wasm`; left named: (H1)
+  every honest query has store `sfE I` (a `Tape`-style walk over `CutW`), (H2) call-machine steps
+  and `callResult` keep stores (lane A's `seg_setSt`/`enter_setSt`/`preConf_canon` cover the
+  segment steps).
+* **Findings.** (1) **`R_0` is not in INIT's output boundary**: at `start` the state component has no
+  overlay (lane B's `wsOfB = []`), so the first STATE leaf cannot take its working-set root from its
+  input digest. Recommended fix: `View.split` carries `Ovl.ofTrie I.tMain`'s working set at `start`
+  (a `View.lean` change; every package rebuilds); alternative: the first STATE leaf verifies lane B's
+  IF proof. (2) **The finalize step** (`yields _ _ 0 → done out`) cannot use the working-set glue
+  (no overlay at `done`): cut STATE before it and put it in a leaf whose state half is IF-FINAL, or
+  extend `FinStart` to `yields _ _ 0` (a `Templates.lean` change). (3) **Lane G's item encodings
+  are not injective** (`ViewE.outD1_leaf_value`: `.value`/`.valueBytes []`; `rcpt_item_not_inj`: V1
+  receipts ignore `refundTo`; ids are not length-checked): `outDE` keeps `Ser.enc`; FINAL opens
+  `B_in`'s accumulators by recomputing `chainD Ser.enc` and builds its own leaf chains. (4) Lane F's
+  `ReqsFaithful` as stated (all meaning instances) is not provable (repeated committed keys; STATE
+  runs ending at `done`); `EngHalfRCOn`/`StatePre` is the provable form.
+* **Not done in M12:** `PackOK`, `ProgBound`, `GlueByteBool` (zk-formal Nv chain; see the log);
+  (H1)/(H2); `FinalizeAgree`; the two View/Templates changes of findings (1)–(2).
+
+##### Per-lane discharge status (M12, after A-T3, F-3, G-4)
+
+| premise | lane | proved from the circuit [K] | named premises left | open (no AIR / not stated) |
+|---|---|---|---|---|
+| WASM `TmplRelC .wasm` | A | `TmplWasm.segSoundWasmRelC_of`, `TmplPrep.segSoundWasmPrepRelC_of` (segments ⊕ PREP; `Bad = Sha384Coll ∨ Coll ctxD ∨ Sha256Coll`), `prep_sha_sound`; `ClearCall` for `clearE` (`clearE_call`) | `SegPremAMP` (σ host contract, `CodeOK`/`FuncOK`), `CutSeed`, `RestOK` (`stackRem`, `vmCtxDigest`), `GhostC`; PREP: `RecordsCert`, `ent`, `rest` | **decoder certificate** (records = `checkModuleM2 (prepare code)`: the main Wasm gap), `CodeOK`/`FuncOK` from S3, `PrepRest` error branches, (H2) |
+| RT enter `TmplSoundRel8C .rt` | F | `EnterC.enter_relC`, `enter_relC8`, non-vacuity `T1Enter.t1_enter_nonvac`; `RtView.clearEnter` met by `clearE` (`clearE_enter`, `pre = u64c ∘ prepaidGas`) | `EntChecks.vm` (A: remainder digest), `.pos` (B: `StCommit.rest` opening), `.prepaid`/`.code` (F: join with the `MSG`/`RX` rows) | `RtOthers` |
+| RT resume, next | F | — | — | F3-1 (split with lane B: `stRoot`, accumulator appends with `Ser.enc` items, `vmAcc → bdigest []`, `estepO` composition); M12 AIR deltas: `receiptIdx + 1`, `rPrepaid/rBurnt/rUsed := 0`; counters otherwise as `clearE_resume` |
+| STATE `TmplSoundRel8C .state` | F ∧ B | glue: `Glue.state_reqs` (= `ReqsFaithful` on `StatePre`), `state_glue`, `state_sound_relC` | B: `StHalf` (`m5tSeg` restated), `ApplyFaithfulS` (lane B's `wsRoot` of `entryAt` factors through `(trie, kvFind)`); F: `EngHalfRCOn` (incl. `StatePre`) | no STATE engine rows (lane F); `R_0` at `start` (finding 1); the finalize step (finding 2) |
+| INIT `SegSoundInit` / `SegSoundInit8` | G ∧ B | `Split.segSoundInit_join` (T1 form), G-4 `InitSel.init_blk_main_slot`, `init_lay_first_pair`, `WalkSel.walk_single` (E1 class: main-slot selection in-circuit); glue `Glue.init_glue` | `InitGPart` (from `Holds`: `BLK` row 0 active, `IX`/`LAY` bus glue, row ↔ decoded structure), `InitBPart` (lane B INTAKE) | M8 absolute form with the context link stated over lane D's leaf; epochs ≥ 2 (out of class E1) |
+| FINAL `SegSoundFinal` / `TmplSoundRel8C .final` | G ∧ B | `Split.segSoundFinal_join`, `final_join_headerOk` (T1 form), `final_template_sound_holds`; glue `Glue.final_glue`; `clearE_final` (FINAL copies `gasUsed`/`balanceBurnt`) | `FinalBPart` (lane B FINAL root + M5c `FinReach`), `FinalGPart` (`ClassF1`/`Computed` from `Holds`, `B_out` digest incl. the two counters), `FinalizeAgree` | the relative canonical M8 form for lane G's leaf (their joins target the T1 absolute form) |
+| `TreeFaithful`, `PadSound8`, `NodeExecV` | D | `treeFaithful_of_aggH`, `nodeExecV_of_contracts`, `nodeSha_of`, `nodeLink_*` (M11g–i) | `ProgFull`/`ProgBound`, `GlueByteBool`, `ShaContract`, `PackOK`, `NodeInner`, `TailCanon` | `TailCanon` fix in GLUE (lane D), PREP in the tree spec |
+| driver (M10) | I | — | — | M12 clear convention in `t1.py` (above); `B_out`/`plan.json` re-cut with PREP as a `wasm` leaf and the singleton `outRcptAcc` |
+
+
 ##### How to discharge `SegSound*` (per lane, M11i)
 
 All boundaries are under `viewE lB κ stD wasmD` (`ViewE.lean`) with lane B's `stD`
@@ -784,6 +860,61 @@ M8 form `TmplSoundRel8 V A8 Bad k` over the circuit's leaf AIRs `circAirs8` (`E2
 | G `SegRelInit` (T1) / `SegSoundInit8` (M8, absolute) | `init cb wb → c`, `CM.step (init cb wb) = .ok c` (`c = eng I ⟨start, initRec⟩` or `gfin G`, `init_step_shape`) | `B_in`: phase 0, `ctxRoot = bdigest (0 ‖ u32 ℓ_B ‖ u32 \|cb\| ‖ cb ‖ wb)`, `stD .none`, `outDE .none`, `vmAcc = bdigest []`; `B_out`: phase 1 / 3, `ctxRoot = bdigest (1 ‖ Ser.enc I)` / `bdigest (2 ‖ Ser.enc G)`, `stD (stOfK (κ I) …)` / `stD .none`, `outDE (.eng ([], [], []))` / `outDE .none` | `∃ s secB w, s.wf ∧ claimDigest s = ctx ∧ cb = assemble s.ci secB s.secC` (INIT hashes `S` = `cb` with section B replaced by `u32 0`: `assemble_splice`, `encode_splice`) | `claimDigest_binding`, `assemble_wf`, `PublicStmt.decode_encode` |
 | G `SegRelFinal` / `TmplSoundRel8 .final` | a `CM` run from `eng I ⟨.done out, _⟩`, `fin I out` or `gfin G` to `done H o` / `doneG` | `B_out`: phase 4 / 5, `ctxRoot = bdigest (3 ‖ Ser.enc H)`, `outDE (.done o) = (bdigest (Ser.enc o), [], bdigest [], bdigest [2])`, `stD .none` | for `done H o`: `∃ s, s.wf ∧ claimDigest s = ctx ∧ decodeChunkInner s.ci.chunkInner = .ok H ∧ headerOk H o` (M5d `final_template_sound`) | `cm_done_header`, `fin_accepts_iff`, `final_header_public` |
 | D `TreeFaithful`, `PadSound8` | tree / PAD (`b' = b`, phase 4 or 5) | — | wrap: `cx (ctxOf s) = claimDigest s`, `B_0.phase = 0`, `B_N.phase ∈ {4, 5}` (**the `View.split` codes, not D-5's placeholder 1 / 2**) | `treeFaithful_of_aggH`, `compose_ctx`, `NodeExecV` (item 1 below) |
+
+**Lane F status (F-3, 2026-11-25):** enter discharged in the canonical form from the circuit
+(`m5t1/lean/M5T1/EnterC.enter_relC`, `enter_relC8`; non-vacuity on T1: `T1Enter`) under the view
+laws `RtView` and the named checks `EntChecks` (README §F-3 lists them by owner); resume and the
+STATE engine half are not (F3-1, no STATE engine rows); split leaves in the relative canonical form:
+`SplitC.split_sound_relC`.
+
+**Lane B status (B-T2, 2026-11-25) [K]** (`m5a/README` §B-T2; `m5a/lean/StateM5a/{WsBridge,StHalfC,T1Ws}.lean`):
+* **`ApplyFaithful` is unprovable as stated (finding B2-1)**: a *function* `apply` with
+  `apply q (root ov) = root (upd q ov)` forces equal-root overlays to stay equal-root under every
+  update (`applyFaithful_coll`). The circuit proves the relational form; lane B's half is
+  `StHalfRel`, lane F's `ReqsRel`, composed with lane F's `EngHalfRC` by **`split_sound_relC_rel`**
+  (⇒ `TmplSoundRel8C`; the functional split is `rel_of_fun`'s special case).
+* **The STATE / RT instance uses `W` = the 42-B `stRoot`** (not the working-set root): lane B's
+  rows own the commitment layout. `StcOK` (the new `STC` table's statement: open the input
+  `stRoot`, check `ws = R_in`, `wsLen`, exchange `(tag, rest)` with the engine half, close with
+  `R_out`), `st_step`, **`stHalf_inst` / `stHalf_inst'`** (`StcOK` ∧ `WsMoves` ⇒ `StHalfRel`;
+  with lane F's two premises ⇒ `TmplSoundRel8C`). `WsMoves` comes from `Holds` of `m5tSeg` by
+  **`WsBridge.ws_moves_seg`** (the circuit's `Dig` tree is the view's byte tree: `toB_nodeH`,
+  `toB_leaf`, `wsRoot_dig`), given the named `SegLeaves` (per-template restatement of M5b's
+  `write_sent` / `ws_final`, open) and `wsLen ≤ 2^D`.
+* **Non-final position check**: `stD` tags an engine state at `done` with `3`; `StPosOK` (an
+  opening with tag `1`), `posOK_sound`, **`rtPos`** = lane F's `RtView.pos` in the form
+  `Sha384Coll ∨ ∀ out, c.pos ≠ .done out` (lane F: add `Sha384Coll ∨` to the law; `enter_relC`'s
+  `Bad` already has it).
+* **Fix B2-2**: lane B's `cmp384` hashed the 16-word leaf block as 16 *bytes*; the view's `ws` could
+  not equal a leaf's `R_in`. Fixed; **non-vacuity on T1 in the kernel** (`T1Ws.t1_ws_nonvac`): the
+  view's depth-24 root of T1's INTAKE leaves = the segment proof's public `R_in` (`ca91c86e…`), of
+  `updE` (T1's change list) = `R_out` (`2d2e132a…`).
+
+* **Against lane E's M12 glue**: M12's `Glue.ApplyFaithfulS` has the same functional shape (B2-1
+  applies); `StateM5a.GlueRel.state_sound_relC_rel` closes M12's STATE instance from `EngHalfRCOn` and
+  the relational `StHalfRelS` via M12's `state_reqs`. With `W` = the bare working-set root,
+  `wsLen` and the value bounds the circuit statement needs are not carried; lane B recommends
+  `W = stRoot` (above).
+
+**The `stRoot` interface for lane F's F3-1 (resume, STATE; decision proposed by lane B, B-T2).** A
+resume / STATE leaf is one trace = lane F's rows + lane B's `m5tSeg` tables + `STC`. Messages
+(cross-lane ids proposed for the integrator's numbering: `STMQ` 211, `STMA` 212, `SREQ` 213, `HB`
+214, after lane A's 208–210):
+* `STMQ` engine → state: `[r_in (14 limbs of 3 B), tag_out, rest_out (14 limbs)]` — `r_in` is the
+  input record's `stRoot`; `tag_out = tagOf (stOfK κ I c')` (`1`, or `3` at `done`), `rest_out =
+  bdigest (encRest (restOf (stOfK κ I c')))`.
+* `STMA` state → engine: `[r_out (14 limbs), tag_in, rest_in (14 limbs)]` — `r_out` goes into the
+  output record's `stRoot` (replaces the copy); `(tag_in, rest_in)` is the input's opening.
+* `SREQ [ts, pr, seg = 0, klen, kptr, vlen, vptr]`, `HB [ts, addr, byte]` (M5b); the step's
+  committed-change list is the requests' overlay (last request per key).
+* `wsLen`, `R_in`, `R_out` are internal to the joined leaf. Enter's position check: `STMP [r_in]`,
+  opened by an `STC` row with tag `1`.
+* Lean for lane F: `EngHalfRC` with `W = Bytes`, `Q = StQ`, `wIn x = V.stD (stV V x)`, `qOf` = (the
+  step's changes, `metaOf` of the two states); `ReqsRel` for `stRel` via `wsOfB_upd` (the overlay's
+  trie is unchanged, `committed` after = `w` over before), equal trie hash, `idxOf = 0`.
+* Open (lane E / F): `rest_out` is a witness-sized hash of the stripped engine state per step; a
+  `rest` encoding with O(1) parts per receipt step is lane E's choice. Not built: the `STC` table.
+
 
 Notes for the lanes:
 * **INIT must commit to the decoded intake** (`bdigest (1 ‖ Ser.enc I)`): every engine and call
@@ -855,7 +986,8 @@ All three follow from `ViewE.viewE` (the concrete view; lane B's `stD`, lane A's
    proposed `(bdigest [], [bdigest []], bdigest [], bdigest [])`, which equals `outD (.eng ([], [],
    []))` and breaks `Coll outD → Bad`; `vmAcc = vmDE [] = bdigest []`; `wasm = none`,
    `inCall = false`; clear fields `clearE` = constants (`claimDigest = bdigest []`, all counters 0:
-   the chunk context travels in the leaf statement's `ctx`, not in the record).
+   the chunk context travels in the leaf statement's `ctx`, not in the record). *(M12: at `init`
+   still all constant; see "Clear fields (M12)" below for the other configurations.)*
 2. **INIT output / FINAL input.** There is no leaf ending at `B_0`: `INIT` is one `CM` step
    `init cb wb → eng I start` (or `gfin G`), so its leaf is the **join** INIT (lane G, `InitGPart`)
    ∧ INTAKE (lane B, `InitBPart`), composed by `TreeM8.split_sound` (§ "Split leaves"); its `B_out`
@@ -870,15 +1002,19 @@ All three follow from `ViewE.viewE` (the concrete view; lane B's `stD`, lane A's
    prefix-free `Ser.enc` (`OutD1`, `Rcpt`, `Proposal`), whose injectivity is proved; lane G's
    `OutD1.leaf` and `u32 ℓ ‖ Rcpt.encode r` may replace them once their injectivity is proved
    (lane E, M12 — open); until then a leaf computing a different item encoding does not meet the
-   view.
-3. **FINAL output `done H o` (phase 4).** Clear fields: **constants** (`clearE`); no pass-through
+   view. *(M12: they are **not** injective — `ViewE.outD1_leaf_value`, `rcpt_item_not_inj`;
+   `Ser.enc` stays, see "M12" below.)*
+3. **FINAL output `done H o` (phase 4).** Clear fields: **constants** (`clearE`) *(M12: replaced —
+   `gasUsed = o.gasUsed`, `balanceBurnt = o.balanceBurnt`, the header outputs FINAL already binds;
+   the rest constants)*; no pass-through
    leaf is needed — the outputs that matter are in `o`, which `outDE (.done o)` commits to.
    `outDE (.done o) = (bdigest (Ser.enc o), [], bdigest [], bdigest [2])` (the first field commits to
    the whole `Outputs`, the last is the constructor tag); `ctxRoot = ctxDE (.header H) =
    bdigest (3 ‖ Ser.enc H)` (`ViewSer` supplies `Ser ChunkInner`, `Ser Outputs`); `stRoot = stD
    .none`; `vmAcc = bdigest []`. Lane G's current `ctxD(.header H)` / `outD(.done o).1` values must
    be recomputed with these formulas. Lane I's plan to carry `gasUsed`/`gasBurnt`/`compute`/
-   `receiptIdx` into `done` is dropped.
+   `receiptIdx` into `done` is dropped *(M12: `gasUsed`/`balanceBurnt` are carried into `done` as
+   the header's values; `gasBurnt`/`compute`/`receiptIdx` are `0` there)*.
 * **Open (lane G):** slot selection (`walkSegment`) is not in-circuit; the `psr_slot` mutant is
   rejected only by the statement check — a FINAL/INIT soundness gap to close in-circuit (it is part
   of `SegRelInit`'s / `SegRelFinal`'s meaning, `CM.step`).
@@ -1025,7 +1161,15 @@ not pinned (`TailCanon`, lane D), `RealStore.store` is a function so the call ta
 remainder have no injective commitment (owner decision (a)/(b)), lane G's view proposals needed
 domain separation.
 
-Next for lane E (M12), in order:
+**M12 (lane E, 2026-11-25) [K]:** see §3.5 "M12". Done: clear-field convention (F3-2) in
+`ViewE.clearE`; the split-leaf glue (`E2E/Glue.lean`: `state_sound_relC`, `init_glue`,
+`final_glue`; `join/GlueB.lean`); structural canonicity lemmas; lane G's item encodings shown
+non-injective; per-lane discharge table. Next for lane E (M13), in order:
+1. Findings (1)–(2) of M12 (owner / integrator): `R_0` at `start` (`View.split`), the finalize step
+   (`FinStart`); then (H1)/(H2) and `FinalizeAgree`.
+2. `PackOK`, `ProgBound`, `GlueByteBool` (unchanged from the list below; not started in M12).
+
+Next for lane E (M12), in order (as written after M11i):
 1. Owner: `RealStore` (a)/(b); `height_created`; the intake-side receipt-size hypothesis (`cur`).
 2. The three split-glue lemmas (`SplitGlue` for STATE, INIT, FINAL: overlay semantics).
 3. `PackOK` (the ALU's Ext12 `Mul`/`Add` chain of `pack`, basis cells from `ce`), then
@@ -2370,6 +2514,14 @@ item 4 (completeness) not started.
   a WASM segment); building that joined trace and `StorageJoinObl` (`hb`, M6.4 `ans` in `SpecU` form,
   `regFill`) are open. T1 mutants 24 / 24 rejected; T2 IF re-proved at M (515,982 B).
 
+**B-T2 (thirteenth session, 2026-11-25) [K][M]:** README §"B-T2", log
+[`docs/logs/e2e-bt2-state-2026-11-25.md`](../logs/e2e-bt2-state-2026-11-25.md). Lane B's half of the
+STATE / RT split in lane E's relative canonical form (§3.5 "Lane B status (B-T2)"): `ws_moves_seg`,
+`st_step`, `stHalf_inst'`, `split_sound_relC_rel`, `rtPos`; findings B2-1 (`ApplyFaithful`
+unprovable → relational split) and B2-2 (view leaf digest, fixed); non-vacuity on T1 by the kernel
+(`t1_ws_nonvac`); the `stRoot` interface for lane F (`STMQ`/`STMA`/`SREQ`/`HB`, `STC`). M6.4: see
+README §B-T2 item 3. No AIR changed, nothing re-proved.
+
 ### 5.2 M5-T1 runtime (lane F): status, 2026-11-21
 
 See `research/near-compression/e2e-general/m5t1/README.md`; log
@@ -2417,6 +2569,32 @@ See `research/near-compression/e2e-general/m5t1/README.md`; log
   (`a2e7b254… → c667b45b…`, `6048b455… → aecc4056…`); mutants 11/11 (resume) + 4/4 (enter).
 * **[M] Size:** `SCHT` preprocessed, one row per entry (3,255 → 44 columns): `relations`
   290,732 → 136,608 B. `RX` split not done (plan in README).
+
+**F-3 (lane F, 2026-11-25)** — README §F-3, log [`docs/logs/e2e-f3-runtime-2026-11-25.md`](../logs/e2e-f3-runtime-2026-11-25.md).
+* **[K] `EnterC.enter_relC`**: the rt enter leaf in the M11i form (`TmplRelC` shape; M8:
+  `enter_relC8`, `enter_notInit`) **from the leaf's constraints** — every canonical opening `eng I c`
+  of the input digest steps by `MRt.enter` to the canonical opening `call I c [] q' .pre` of the
+  output digest (`q'` = the ghost query with the context's store, by S1 store-blindness), or a 42-B
+  SHA-384 collision. Premises: view laws `RtView` (lane A: S2 `.pre` record `preRec`; lane B:
+  position check; lane E: clear-field law, singleton outgoing accumulator, `wf`, `blind`) and the
+  leaf's named checks `EntChecks` (lane A's remainder digest; `rPrepaid` and the code hash = the
+  query's — lane F, open until enter is joined with the receipt rows; lane B's position).
+  **Non-vacuity on T1's real enter leaf** (`T1Enter`): `Holds` of the exported AIR on its 1,284
+  public values, SHA-256 of T1's contract in the kernel, a view meeting every law
+  (`t1_enter_nonvac`, `t1_enter_opens`). **`SplitC.split_sound_relC`** (split leaves in the relative
+  canonical form), `glue_of` (glue = lane F's `ReqsFaithful` + lane B's `ApplyFaithful`), `rt_relC8`
+  (the `rt` kind from enter + the named `RtOthers`).
+* **[M] S2 in the enter AIR** (`codeRoot = code hash ‖ 0^10`, the `.pre` record's constants) and the
+  M11i record (`gasLeft`, singleton `outRcptAcc`: `engF` 450 B, `callF` 834 B): T1 enter **87,739 B**
+  (2.4 s, 268.8-bit, mutants 10/10), resume **430,143 B** (17.0 s, 9.9 GB, 11/11), both imported by
+  lane D's `m8-import`. Digests ≠ lane I's run4 plan (pre-M11i; the plan's enter output is the
+  entry record, now PREP's).
+* **Findings.** F3-1: the resume AIR carries `stRoot`/accumulators/`vmAcc`, so its relative
+  obligation is unprovable until the lane B split, the accumulator appends and the `estepO`
+  composition exist. F3-2: `ViewE.clearE` (counters 0) vs the resume leaf's / lane I's real
+  counters — lane E / owner decision (no change of `S`, `claimDigest`, checker). Lane A's A-T3
+  `fbBnd` writes S2, so `RtView.preW` is its `.pre` branch (definitional, not cross-checked in
+  Lean). Lane F has no STATE engine rows.
 
 ### 5.3 M5d (FINAL and INIT templates, lane G): status, 2026-11-25 (G-4)
 
