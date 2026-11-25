@@ -10,6 +10,9 @@ import M5T1.SegRt
 import M5T1.EnterC
 import M5T1.T1Enter
 import M5T1.SplitC
+import M5T1.ResumeC
+import M5T1.T1Resume
+import M5T1.ResumeF
 
 /-! The axioms of every lane F headline theorem (standard axioms only). -/
 
@@ -55,3 +58,17 @@ import M5T1.SplitC
 #print axioms M5T1.SplitC.split_sound_relC
 #print axioms M5T1.SplitC.glue_of
 #print axioms M5T1.SplitC.rt_relC8
+
+-- F-4: the resume leaf
+#print axioms M5T1.RbSem.rb_out
+#print axioms M5T1.AccDef.chainDig_pad
+#print axioms M5T1.ResumeC.rsView_viewE
+#print axioms M5T1.ResumeC.resume_engHalf
+#print axioms M5T1.ResumeC.resume_relC8
+#print axioms M5T1.ResumeC.rt_relC8_full
+#print axioms M5T1.ResumeC.enter_pos_laneB
+#print axioms M5T1.T1Resume.t1_rb_constr
+#print axioms M5T1.T1Resume.t1_acc0
+#print axioms M5T1.T1Resume.t1_acc1
+#print axioms M5T1.AccSem.acc_sound
+#print axioms M5T1.ResumeF.rsHolds_of

@@ -873,8 +873,8 @@ checker unchanged; standard axioms only.
 | premise | lane | proved from the circuit [K] | named premises left | open (no AIR / not stated) |
 |---|---|---|---|---|
 | WASM `TmplRelC .wasm` | A | `TmplWasm.segSoundWasmRelC_of`, `TmplPrep.segSoundWasmPrepRelC_of` (segments ⊕ PREP; `Bad = Sha384Coll ∨ Coll ctxD ∨ Sha256Coll`), `prep_sha_sound`; `ClearCall` for `clearE` (`clearE_call`) | `SegPremAMP` (σ host contract, `CodeOK`/`FuncOK`), `CutSeed`, `RestOK` (`stackRem`, `vmCtxDigest`), `GhostC`; PREP: `RecordsCert`, `ent`, `rest` | **decoder certificate** (records = `checkModuleM2 (prepare code)`: the main Wasm gap), `CodeOK`/`FuncOK` from S3, `PrepRest` error branches, (H2) |
-| RT enter `TmplSoundRel8C .rt` | F | `EnterC.enter_relC`, `enter_relC8`, non-vacuity `T1Enter.t1_enter_nonvac`; `RtView.clearEnter` met by `clearE` (`clearE_enter`, `pre = u64c ∘ prepaidGas`) | `EntChecks.vm` (A: remainder digest), `.pos` (B: `StCommit.rest` opening), `.prepaid`/`.code` (F: join with the `MSG`/`RX` rows) | `RtOthers` |
-| RT resume, next | F | — | — | F3-1 (split with lane B: `stRoot`, accumulator appends with `Ser.enc` items, `vmAcc → bdigest []`, `estepO` composition); M12 AIR deltas: `receiptIdx + 1`, `rPrepaid/rBurnt/rUsed := 0`; counters otherwise as `clearE_resume` |
+| RT enter `TmplSoundRel8C .rt` | F | `EnterC.enter_relC`, `enter_relC8`, non-vacuity `T1Enter.t1_enter_nonvac`; `RtView.clearEnter` met by `clearE` (`clearE_enter`, `pre = u64c ∘ prepaidGas`); F-4: `RtView.pos` in lane B's `Sha384Coll ∨ _` form = `StHalfC.rtPos` (`ResumeC.enter_pos_laneB`) | `EntChecks.vm` (A: remainder digest), `.pos` (B: `STC` opening with tag 1, `STMP`), `.prepaid`/`.code` (F: join with the `MSG`/`RX` rows) | — (`ResumeC.rt_relC8_full`: enter ∨ resume) |
+| RT resume | F ∧ B | F-4: `RbSem.rb_out` (boundary rules from `RB`), `AccSem.acc_sound` (`ACC` SHA-384 appends), `ResumeC.resume_engHalf`, **`resume_relC8`** (engine half ∧ lane B's `stHalf_inst`), `rt_relC8_full`; `rsView_viewE`; non-vacuity `T1Resume` (RB constraints and both appends on T1's leaf) | `RsStep` (A: `cc = .fin r`; F: `estepO` composition, totals, appended items, `ACC` message = `pad (X ‖ Ser.enc item)`; F/E: `stRel` for the pair), `RsJoint` (B: `HoldsSt` = `STC` ∧ `WsMoves`), `ChipOK` (native chip) | `RsStep`'s proof; `next` (`K ≠ []`); in-circuit `Ser.enc` items |
 | STATE `TmplSoundRel8C .state` | F ∧ B | glue: `Glue.state_reqs`; D-c: `split_sound_relC_relOn`, `StateW.reqsRel_state`, `state_sound_stRoot` (`W` = `stRoot`); D-a: `R_0` at `start` (`wsOf_start`); D-b: finalize leaf `GlueFin.fin_reqs`, `fin_sound_relC`, `finalizeAgree`; modes `tmplSoundRel8C_modes` | B: `HoldsSt` (`STC` ∧ `WsMoves`; `SegLeaves`), `FinHalfB` (IF-FINAL); F: `EngHalfRCOn` on `StatePreW` / `FinPre`; `IntakeTrie` | no STATE engine rows (lane F); `STC` table (B) |
 | INIT `SegSoundInit` / `SegSoundInit8` | G ∧ B | `Split.segSoundInit_join` (T1 form), G-4 `InitSel.init_blk_main_slot`, `init_lay_first_pair`, `WalkSel.walk_single` (E1 class: main-slot selection in-circuit); glue `Glue.init_glue` | `InitGPart` (from `Holds`: `BLK` row 0 active, `IX`/`LAY` bus glue, row ↔ decoded structure), `InitBPart` (lane B INTAKE) | M8 absolute form with the context link stated over lane D's leaf; epochs ≥ 2 (out of class E1) |
 | FINAL `SegSoundFinal` / `TmplSoundRel8C .final` | G ∧ B | `Split.segSoundFinal_join`, `final_join_headerOk` (T1 form), `final_template_sound_holds`; glue `Glue.final_glue`; `clearE_final` (FINAL copies `gasUsed`/`balanceBurnt`) | `FinalBPart` (lane B FINAL root + M5c `FinReach`), `FinalGPart` (`ClassF1`/`Computed` from `Holds`, `B_out` digest incl. the two counters); `FinalizeAgree` proved in its precise form (D-b, `GlueFin.finalizeAgree`; the post-state root is now proved in the finalize STATE leaf) | the relative canonical M8 form for lane G's leaf (their joins target the T1 absolute form) |
@@ -908,6 +908,16 @@ M8 form `TmplSoundRel8 V A8 Bad k` over the circuit's leaf AIRs `circAirs8` (`E2
 laws `RtView` and the named checks `EntChecks` (README §F-3 lists them by owner); resume and the
 STATE engine half are not (F3-1, no STATE engine rows); split leaves in the relative canonical form:
 `SplitC.split_sound_relC`.
+
+**Lane F status (F-4, 2026-11-25) [K]/[M]** (`m5t1/README` §F-4; log
+[`e2e-f4-runtime-2026-11-25.md`](../logs/e2e-f4-runtime-2026-11-25.md)): the resume leaf no longer
+copies `stRoot`, the accumulators or `vmAcc` (F3-1): `RB` (M12 boundary rules: `receiptIdx + 1`,
+`rPrepaid = rBurnt = rUsed = 0`, `vmAcc = bdigest []` in and out) sends `STMQ` / receives `STMA`
+(lane B's interface, `r_out` = `B_out.stRoot`), `ACC` computes both accumulator appends as SHA-384
+over the native SHA-512 chip (`IF384`). T1 resume leaf **468,680 B** (268.3 bit, 22.8 s, 9.6 GiB),
+19/19 mutants, `m8-import`ed; `STC` is an `XTAPE` stand-in on T1. Lean: `resume_relC8` from the
+circuit, lane B's `stHalf_inst` and the named `RsStep` / `RsJoint` / `ChipOK` (table above);
+`rt_relC8_full` closes the `rt` kind modulo those. `S`, `claimDigest`, checker unchanged.
 
 **Lane B status (B-T2, 2026-11-25) [K]** (`m5a/README` §B-T2; `m5a/lean/StateM5a/{WsBridge,StHalfC,T1Ws}.lean`):
 * **`ApplyFaithful` is unprovable as stated (finding B2-1)**: a *function* `apply` with
