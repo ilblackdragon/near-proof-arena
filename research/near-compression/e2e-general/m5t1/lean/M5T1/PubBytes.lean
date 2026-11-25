@@ -1,7 +1,7 @@
 import M5T1.Bus
 import M5T1.EnterC
-import M5T1.SeC
 import M5T1.ResumeF
+import M5T1.Se
 
 /-!
 # M5T1.PubBytes — every public value of a lane F leaf is a byte, in-circuit (F-6)
@@ -139,17 +139,19 @@ theorem ent_rngAir : RngAir Ent.entAirB where
     · rfl
     · omega
 
-/-- The STATE engine half `[SE, RNG, XTAPE]` (a tape that sends nothing on `RNG`). -/
+/-- The STATE engine half `[SE, RNG, SH, chip stub, XTAPE]` (F-7; a tape that sends nothing on `RNG`). -/
 theorem se_rngAir {xtape : List (Nat × Bool × List Nat)} (h2 : NoRng xtape) :
     RngAir (Se.fullSe xtape) where
   len := by simp [Se.fullSe, Se.seAir]
   rng := rfl
   only := by
     intro t ht i hi hb hs
-    have hl : (Se.fullSe xtape).tables.length = 3 := rfl
-    obtain _ | _ | _ | t := t
+    have hl : (Se.fullSe xtape).tables.length = 5 := rfl
+    obtain _ | _ | _ | _ | _ | t := t
     · exact (noSend_spec (by decide +kernel : NoSend Se.table B_RNG = true) hi hb hs).elim
     · rfl
+    · exact (noSend_spec (by decide +kernel : NoSend Sh.table B_RNG = true) hi hb hs).elim
+    · exact (noSend_spec (by decide +kernel : NoSend chipStub B_RNG = true) hi hb hs).elim
     · simp only [Se.fullSe, Se.seAir, tapeTable, List.cons_append, List.nil_append,
         List.getElem_cons_succ, List.getElem_cons_zero, List.mem_map] at hi
       obtain ⟨e, he, rfl⟩ := hi
@@ -178,9 +180,9 @@ theorem se_bytes {xtape : List (Nat × Bool × List Nat)} {pub : List Fp} {tr : 
   intro i hi
   have hm : rcv B_RNG .isFirst [.pub i] ∈ pubBytes Se.NUM_PUB := mem_pubBytes (hN ▸ hi)
   refine pub_byte_gen H (se_rngAir h2) (t := 0) (by simp [Se.fullSe, Se.seAir]) ?_
-  show _ ∈ Se.interactions
-  simp only [Se.interactions, List.mem_append]
-  exact .inr hm
+  show _ ∈ Se.interactions5 ++ Se.interactions7
+  simp only [Se.interactions5, List.mem_append]
+  exact .inl (.inr hm)
 
 /-- **Every public value of the resume leaf is a byte.** -/
 theorem rb_bytes {tape xtape : List (Nat × Bool × List Nat)} {pub : List Fp} {tr : Trace Fp}
@@ -225,14 +227,6 @@ theorem entHoldsC_of {vmc : NearSpecV3.Wasm.CallCut.CallArgs → ArenaCore.Bytes
     (hc : EntChecks vmc pre posOK w.1 w.2.2) : EntHoldsC vmc pre posOK d d' w :=
   ⟨ent_core H, ent_bytes H, hd, hd', hc⟩
 
-open M5T1.SeC in
-/-- **The STATE engine half's leaf predicate from the circuit.** -/
-theorem seHoldsC_of {xtape : Tp} {d d' : ArenaCore.Bytes} {w : SeW}
-    (H : Holds (Se.fullSe xtape) w.1 w.2.1) (h2 : NoRng xtape)
-    (hd : d = NearSpecV3.E2E.Bnd.bdigest (bytesOf w.1 0 450))
-    (hd' : d' = NearSpecV3.E2E.Bnd.bdigest (bytesOf w.1 450 450)) : SeHoldsC xtape d d' w :=
-  ⟨H, se_bytes H h2, hd, hd'⟩
-
 open M5T1.ResumeC M5T1.AccDef in
 /-- **The resume leaf predicate from the circuit and the chip contract** (F-4's `rsHolds_of`
 without its byte premise). -/
@@ -252,7 +246,6 @@ theorem rsHolds_of_circuit {tape xtape : ResumeC.Tp} {d d' : ArenaCore.Bytes} {w
 #print axioms rb_bytes
 #print axioms ent_core
 #print axioms entHoldsC_of
-#print axioms seHoldsC_of
 #print axioms rsHolds_of_circuit
 
 end M5T1.PubBytes

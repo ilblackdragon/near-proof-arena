@@ -988,6 +988,22 @@ opaque, `tag` does not distinguish `yields`); adopting `encRestI` moves every `s
 values → B re-prove → F rows (`d_queue` pops, `d_move`, `ACC`, counters, `SREQ`/`HB`) and `SeStep` /
 `RsStep` from them. `S`, `claimDigest`, checker unchanged.
 
+**Lane F status (F-7, 2026-11-25) [K]/[M]** (`m5t1/README` §F-7; log
+[`e2e-f7-runtime-2026-11-25.md`](../logs/e2e-f7-runtime-2026-11-25.md)): the STATE engine half **opens
+and closes the configuration** with lane E's M14 interface — new table `SH` (SHA-384 through lane B's
+native chip) and `SE` opening rows: `B_in.stRoot` from lane B's `StCommit.ser`, `rest_in` →
+`d_static ‖ d_queue ‖ d_move`, the `d_move` preimages hashed in the trace, `rest_out` closed, the
+finalize swap / tags `8 → 3`. Lean: `ShSem.sh_sound`, `SeOpen.se_open` (in `SeHoldsC`); join-check
+`SeStepI`: `open_in`, `close_out`, **`seStep_of_move`** — F-5's `SeStep` (working-set mode) is now a
+theorem of the circuit and the residual **`SeMove`** (the VM-free step's semantics on the opened
+bytes) — `stateSeg_relC8_I` at `stD PI`, `fin_pos`, `fin_meta_out`, `resume_pop_close` (item 2: the
+pop makes `r` the executed receipt; the resume's own opening / pop rows and an in-circuit `Ser.enc` of
+`RX`'s receipt are not built). Finding **F7-1** (E): `StateW.stSem` carries `PB`'s `encRestB` meta;
+`stSemI` restates it with `PI`. Re-proved on the M14 chain (in ✓ / out ✓, `stmcheck` 8/8 with lane B's
+t5 halves): enter 101,547 B, resume 469,310 B, `SE` ≈348 KB ×3 (one vk), mutants 11 + 23 + 55, new vks
+(**D** re-imports). Item 4: opening `ctxD (.intake I)` in-circuit costs +750 compressions (cells ×4)
+and exceeded the 12 GB cap — lane E's view split is the route. `S`, `claimDigest`, checker unchanged.
+
 **Lane B status (B-T2, 2026-11-25) [K]** (`m5a/README` §B-T2; `m5a/lean/StateM5a/{WsBridge,StHalfC,T1Ws}.lean`):
 * **`ApplyFaithful` is unprovable as stated (finding B2-1)**: a *function* `apply` with
   `apply q (root ov) = root (upd q ov)` forces equal-root overlays to stay equal-root under every

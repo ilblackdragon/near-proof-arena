@@ -1,4 +1,4 @@
-# E2E lane F: the runtime rows of T1's FunctionCall receipt (M5-T1), the `rt` leaves (F-2), the relative store-canonical form (F-3), the resume leaf split with lane B (F-4), the chained leaves and the STATE engine half (F-5), the boundary pair in-circuit as bytes (F-6)
+# E2E lane F: the runtime rows of T1's FunctionCall receipt (M5-T1), the `rt` leaves (F-2), the relative store-canonical form (F-3), the resume leaf split with lane B (F-4), the chained leaves and the STATE engine half (F-5), the boundary pair in-circuit as bytes (F-6), the opening rows on the M14 chain (F-7)
 
 Plan: `docs/zk-formal/E2E-GENERAL-CHUNK-PLAN.md` §3.3 (Wasm ↔ state join), §4.2 (M5), §5.2 (status).
 Date 2026-11-21 (F-3 … F-6: 2026-11-25). Labels: **[M]** measured here, **[K]** kernel-checked Lean (std axioms, no `sorry`),
@@ -478,6 +478,54 @@ Checks: `lake build M5T1 m5t1-tool` (507 jobs; std axioms only, no `sorryAx`), `
 (`state_engHalf`, `stateSeg_relC8`), `spec/lean/v3`, `make pin-check`, `pytest -q oracle/tools tools
 research/near-compression/e2e-general/t1` — see the log.
 
+## F-7 (2026-11-25): the STATE engine half opens / closes the configuration (lane E's M14 interface)
+
+Log: [`docs/logs/e2e-f7-runtime-2026-11-25.md`](../../../../docs/logs/e2e-f7-runtime-2026-11-25.md).
+`S`, `claimDigest`, the checker unchanged (no stop). Chain: lane E's M14 (`stRoot` with `encRestI` and
+the position tag at c1 … c9, `ctxRoot = ctxD (.intake I)`).
+
+### The rows [K]/[M]
+
+* **`SH`** (`Sh.lean`, new table): SHA-384 runs through lane B's native SHA-512 chip (`ACC`
+  generalised: `hid`, `fx`, block index `bi`); `SE` demands each hash on `SHD` (digest limbs) and feeds
+  fixed-content blocks on `SHB` (SHA-512 padding in `Se.padE`).
+* **`SE`** (`Se.lean`) row 0 opens `B_in.stRoot` (hid 0: lane B's `StCommit.ser` from the opened tag,
+  working-set root, `wsLen`, trie, `idx`, `rest_in`), opens `rest_in` into `d_static ‖ d_queue ‖ d_move`
+  (hid 1), hashes the opened and the stepped moving parts (hid 6 / 7: `Ser.enc (restMove …)`, preimages
+  from lane F's Lean evaluation `join-check/f7-eval.sh`), closes `rest_out` (hid 2); finalize (`fin`):
+  `tag 8 → 3`, `d_queue' = d_queue`, the static swap `d_keys ‖ d_shape → d_keys ‖ bdigest (Ser.enc none)`
+  (hid 3–5); otherwise `d_static' = d_static`. hid 8 (`cx`): `ctxRoot = bdigest (1 ‖ Ser.enc I)` (item 4).
+* Lean: `ShSem.sh_sound` (every demanded hash, from the circuit and lane B's chip contract),
+  `SeOpen.se_open` (the byte facts; `SeHoldsC` carries them, `SeC.seHoldsC_of`), and in
+  `join-check/SeStepI.lean`: `open_in`, `close_out`, **`seStep_of_move`** (F-5's `SeStep`, working-set
+  mode, from the circuit and the residual **`SeMove`**), `stateSeg_relC8_I` (at `stD PI`), `fin_pos`,
+  `fin_meta_out`, `resume_pop_close` (item 2). Finding **F7-1** (lane E): `StateW.stSem` uses `PB`'s
+  meta (`encRestB`); `stSemI` restates it with `PI`.
+* **`SeMove`** (named; what is left of the step contract): the step from the opened configuration
+  (`Meaning`, `StatePreW`), the change list, `FreeOut`, `tag_out`, `d_move'`, `d_queue'`, static part
+  unchanged — i.e. the VM-free engine step's semantics on the opened bytes (not built: the runtime of
+  the prelude, the transaction, the local receipt, the forwards, the yield queue, the finalize step).
+
+### The leaves on the M14 chain [M]
+
+| leaf | cuts | proof | prove / RSS | mutants |
+|---|---|---|---|---|
+| RT enter | c2 → c3 | 101,547 B | 2.7 s / 1.2 GB | 11/11 |
+| RT resume (`STC` metas = M14) | c6 → c7 | 469,310 B | 21.1 s / 10.1 GB | 23/23 |
+| `SE` seg A (35 `SH` blocks) | c1 → c2 | 348,645 B | 21.0 s / 8.9 GB | 18/18 |
+| `SE` seg B (94) | c7 → c8 | 347,469 B | 19.9 s / 8.8 GB | 18/18 |
+| `SE` finalize (140) | c8 → c9 | 348,435 B | 21.5 s / 8.8 GB | 19/19 |
+
+Digests = the chain's (`chain.py`: every lane F row in ✓ / out ✓), verified, `m8-import`ed to
+`e2e-m5t1/f7/tmpl/` (new vks; one `SE` program: n_stack 13, w_stack 96, lb 5); `stmcheck.py` 8/8 EQUAL
+with lane B's M14 halves (`laneB-t1/t5/T1C`). F-7 mutants: `tagin`, `wsopen`, `restin`, `queue`,
+`movein` (rejected by the `SH` digests), `moveout`, `tagout`, `static`, `finqueue`, `finkeys`
+(`logs/F7-leaves.txt`, `logs/F7-mutants.txt`, `results/f7/`, log §3).
+
+**Item 4 (intake) [M]:** hid 8 opens `ctxRoot` in-circuit (pre-check OK) at +750 compressions, cells
+×4 (2.8 M → 11.2 M, chip 2^17); the proof was oom-killed at the 12 GB cap. Lane E's view split of
+`ctxD (.intake I)` is the way to give leaves intake fields (not changed here).
+
 ## Open (M5-T1 list, updated)
 
 1. ~~MSG/DG row lemmas, RNG bus fact~~ (F-2); ~~enter view contract~~ (F-3: `enter_relC` from
@@ -485,8 +533,11 @@ research/near-compression/e2e-general/t1` — see the log.
    M12 clear fields; `resume_relC8`); the `estepO` composition (`RsStep`); enter's
    `EntChecks.prepaid` / `code` (join with the receipt rows); ~~STATE engine half~~ (F-5: `SE` boundary rows, `EngHalfRCOn` on `StatePreW` / `FinPre` modulo `SeStep`; the VM-free step rows themselves: none yet); `RsFin` (A);
    ~~F3-2~~ (lane E's M12); ~~public values sized by the constraints (lane D's F-M9-1)~~ (F-6:
-   `Ids.pubBytes`, every public value read and byte-checked in-circuit, `PubBytes.lean`). `SeStep`,
-   `RsStep`, `encRestI`: blocked on opening `rest` / `ctxRoot` (§F-6).
+   `Ids.pubBytes`, every public value read and byte-checked in-circuit, `PubBytes.lean`). F-7:
+   `encRestI` adopted; `SeStep` (working-set mode) a theorem of the opening rows + the residual `SeMove`
+   (the VM-free step semantics); finalize: `fin_pos` / `fin_meta_out`, `SeStep` (finalize) still named
+   (its `stRoot` link is lane B's M14-1 close); `RsStep`: `resume_pop_close` proved, the resume's
+   opening / pop rows and an in-circuit `Ser.enc` of the receipt not built (§F-7).
 2. **Template coverage**: one FunctionCall per V1 action receipt, ED25519 signer, no inputs/outputs,
    successful call without promises, ≤ 4 non-empty logs, refund > 0, receiver exists with a local
    contract; account-id validity (`AccountId.valid`) and `softExceeded` (recorder size) not in the

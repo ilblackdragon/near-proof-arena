@@ -43,13 +43,15 @@ def main (args : List String) : IO UInt32 := do
     IO.println s!"enter leaf: public values {M5T1.Ent.NUM_PUB}"
     return 0
   | ["air-se", out, names] =>
-    IO.FS.writeFile out (ZkFormal.Air.Air.exportJson M5T1.Se.seAir)
+    -- F-7: `[SE, RNG, SH]` (the chip stub is the prover's native SHA-512 chip)
+    IO.FS.writeFile out (ZkFormal.Air.Air.exportJson M5T1.Se.exportAir)
     IO.FS.writeFile names ("{\"SE\":[" ++ ",".intercalate (M5T1.Se.L.names.map q) ++ "],\"RNG\":[" ++
-      ",".intercalate (Rng.L.names.map q) ++ "],\"tables\":[\"SE\",\"RNG\"],\"pub\":[" ++
+      ",".intercalate (Rng.L.names.map q) ++ "],\"SH\":[" ++ ",".intercalate (M5T1.Sh.L.names.map q) ++
+      "],\"tables\":[\"SE\",\"RNG\",\"SH\"],\"pub\":[" ++
       ",".intercalate (M5T1.Se.PL.names.map q) ++ "]}")
-    for (nm, t) in M5T1.Se.tableNames.zip M5T1.Se.seAir.tables do
+    for (nm, t) in M5T1.Se.tableNames.zip M5T1.Se.exportAir.tables do
       let deg := (t.allConstraints.map ZkFormal.Air.Expr.degree).foldl max 0
-      IO.println s!"{nm}: width {t.width}, constraints {t.allConstraints.length}, interactions {t.interactions.length}, degree {deg}, wf {ZkFormal.Air.Table.wf M5T1.Se.seAir 4 t}"
+      IO.println s!"{nm}: width {t.width}, constraints {t.allConstraints.length}, interactions {t.interactions.length}, degree {deg}, wf {ZkFormal.Air.Table.wf M5T1.Se.exportAir 4 t}"
     IO.println s!"SE leaf: public values {M5T1.Se.NUM_PUB}"
     return 0
   | _ => IO.eprintln "usage: m5t1-tool dump CASE_DIR OUT_JSON | air AIR_JSON NAMES_JSON SCHEMA_JSON"; return 2

@@ -28,6 +28,7 @@ recomputed consistently where it can be (exit 3 = not applicable).
 """
 import hashlib
 import json
+import os
 import struct
 import sys
 from collections import Counter, defaultdict
@@ -1032,8 +1033,18 @@ def main():
     # ----- F-4: RB (boundary rules, STMQ/STMA) -------------------------------------------------
     rb = Trace(names["RB"])
     r = rb.row()
-    rso, rsi = [0] * 42, [0] * 42  # stand-in metas (no `rest` encoding / STC yet): tag 1, rest 0^42
-    rb.set(r, "tgo", 1); rb.setv(r, "rso", rso); rb.set(r, "tgi", 1); rb.setv(r, "rsi", rsi)
+    # the metas lane B's STC exchanges (F-7, E2E-M14: lane E's tags and `encRestI` rests of the state
+    # components c2 -> c7, `t1-inputs.json` field `m14`, as lane B's `m5a/t1cut/stc-meta.json` seg1;
+    # without `m14`: F-6's stand-ins tag 1, rest 0^42)
+    tgo = tgi = 1
+    rso, rsi = [0] * 42, [0] * 42
+    m14p = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "t1", "data", "t1-inputs.json")
+    m14 = json.load(open(m14p)).get("m14") if os.path.exists(m14p) else None
+    if m14:
+        ci, co = m14["cuts"]["c2"], m14["cuts"]["c7"]
+        tgi, tgo = int(ci["tag"]), int(co["tag"])
+        rsi, rso = list(bytes.fromhex(ci["rest"])), list(bytes.fromhex(co["rest"]))
+    rb.set(r, "tgo", tgo); rb.setv(r, "rso", rso); rb.set(r, "tgi", tgi); rb.setv(r, "rsi", rsi)
     ri = b_in["receiptIdx"]
     cy, cv = [], 1
     for k in range(8):  # `BndLay.incCons`: LE byte k of in + carry = out byte + 256·carry
@@ -1043,8 +1054,8 @@ def main():
     rb.setv(r, "cri", cy[:7])
     rb_rng = rso + rsi
     # the T1 stand-in for lane B's STC (XTAPE): consume STMQ, answer STMA with the honest r_out
-    xtape.append((B["STMQ"], False, limb3(list(b_in["stRoot"])) + [1] + limb3(rso)))
-    xtape.append((B["STMA"], True, limb3(list(h_out["stRoot"])) + [1] + limb3(rsi)))
+    xtape.append((B["STMQ"], False, limb3(list(b_in["stRoot"])) + [tgo] + limb3(rso)))
+    xtape.append((B["STMA"], True, limb3(list(h_out["stRoot"])) + [tgi] + limb3(rsi)))
 
     # ----- F-4: ACC (the two SHA-384 appends), the chip's compressions -------------------------
     acc = Trace(names["ACC"])

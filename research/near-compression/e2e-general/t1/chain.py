@@ -588,18 +588,19 @@ SAVED = {
     "INIT": f"{DEPS}/e2e-m5d/g5/tmpl/init",
     "IF": f"{T4}/if/out",
     "STATE": f"{T4}/seg0/out",
-    "RT enter": f"{DEPS}/e2e-m5t1/f6/enter-proof",       # F-6: c2 -> c3, every public value byte-checked in-circuit
+    "RT enter": f"{DEPS}/e2e-m5t1/f7/enter-proof",       # F-7: c2 -> c3 on the M14 chain (F-6 AIR)
     "PREP": f"{DEPS}/e2e-laneA/at4/prep/leaf",
     "WASM": f"{DEPS}/e2e-laneA/at5/leaf-k13/leaf",
-    "RT resume": f"{DEPS}/e2e-m5t1/f6/resume-proof",     # F-6: c6 -> c7 (as enter)
+    "RT resume": f"{DEPS}/e2e-m5t1/f7/resume-proof",     # F-7: c6 -> c7 on the M14 chain (STC metas = m14)
     "FINAL": f"{DEPS}/e2e-m5d/g5/tmpl/final",
 }
 # B-T4 / B-T5: the other three state halves (out/ = proof + statement + htape.json, the STC stand-in's messages)
 SAVED_B = {"STATE R": f"{T4}/seg1/out", "STATE B": f"{T4}/seg2/out", "STATE fin": f"{T4}/seg3/out"}
 # F-5: lane F's STATE engine halves (`SE`, proof + statement: the two records' BndRec.encode bytes);
 # F-6: re-proved with every public value byte-checked in-circuit (`Ids.pubBytes`)
-SAVED_F = {"STATE seg A": f"{DEPS}/e2e-m5t1/f6/se-seg-a-proof", "STATE seg B": f"{DEPS}/e2e-m5t1/f6/se-seg-b-proof",
-           "finalize": f"{DEPS}/e2e-m5t1/f6/se-finalize-proof"}
+# F-7: the M14 chain, with the opening rows (`SH`: stRoot / encRestI open and close)
+SAVED_F = {"STATE seg A": f"{DEPS}/e2e-m5t1/f7/se-seg-a-proof", "STATE seg B": f"{DEPS}/e2e-m5t1/f7/se-seg-b-proof",
+           "finalize": f"{DEPS}/e2e-m5t1/f7/se-finalize-proof"}
 TREE = f"{DEPS}/tmp-laneD/m9b"   # lane D's M9 prototype tree (the leaves it imported: imported.sha256)
 
 
@@ -611,11 +612,11 @@ M14_REPROVE = {
     "RT resume, state half (B-T5)": "B: STC c6 → c7 (tags 7 → 7, rests)",
     "STATE seg B (B-T5)": "B: STC c7 → c8 (tags 7 → 8, rests)",
     "finalize, state half (B-T5)": "B: STC c8 → c9 (tags 8 → 3; the done close: empty ws, wsLen 0, trie 0^32)",
-    "RT enter (F-6)": "F: records c2 → c3 (stRoot, ctxRoot)",
-    "RT resume (F-6)": "F: records c6 → c7 (stRoot, ctxRoot)",
-    "STATE seg A, engine half (F-6 SE)": "F: records c1 → c2",
-    "STATE seg B, engine half (F-6 SE)": "F: records c7 → c8",
-    "finalize, engine half (F-6 SE)": "F: records c8 → c9",
+    "RT enter (F-7)": "F: records c2 → c3 (stRoot, ctxRoot)",
+    "RT resume (F-7)": "F: records c6 → c7 (stRoot, ctxRoot)",
+    "STATE seg A, engine half (F-7 SE)": "F: records c1 → c2",
+    "STATE seg B, engine half (F-7 SE)": "F: records c7 → c8",
+    "finalize, engine half (F-7 SE)": "F: records c8 → c9",
 }
 M14_FIELDS = {"stRoot", "ctxRoot"}
 M14_STC = {"r_in", "r_out", "tags (in, out)"}
@@ -739,7 +740,7 @@ def leaf_table(c, inp, saved=SAVED, saved_b=SAVED_B):
     p = saved["RT enter"]
     if ex(p):
         pv = json.load(open(f"{p}/statement.json"))["public_values"]
-        rows.append(_rec_row("RT enter (F-6)", p, bndrec.decode(bytes(pv[:450])), bndrec.decode(bytes(pv[450:1284])), c[2], c[3],
+        rows.append(_rec_row("RT enter (F-7)", p, bndrec.decode(bytes(pv[:450])), bndrec.decode(bytes(pv[450:1284])), c[2], c[3],
                              "F: EntChecks.prepaid / .code (join with the receipt rows); A: vmCtxDigest (placeholder shared with the chain)",
                              "F-6: proved from this chain's c2 -> c3 (rtbnd.pair_chain), every public value byte-checked in-circuit; re-prove when the chain moves"))
     # PREP (A-T4)
@@ -790,7 +791,7 @@ def leaf_table(c, inp, saved=SAVED, saved_b=SAVED_B):
     p = saved["RT resume"]
     if ex(p):
         pv = json.load(open(f"{p}/statement.json"))["public_values"]
-        rows.append(_rec_row("RT resume (F-6)", p, bndrec.decode(bytes(pv[247:1081])), bndrec.decode(bytes(pv[1081:1531])), c[6], c[7],
+        rows.append(_rec_row("RT resume (F-7)", p, bndrec.decode(bytes(pv[247:1081])), bndrec.decode(bytes(pv[1081:1531])), c[6], c[7],
                              "F: RsStep (estepO composition), in-circuit Ser.enc items; A: RsFin (vmCtxDigest opening); B/D: one trace with B-T4's state half (XTAPE stand-in = its htape)",
                              "F-5: proved from this chain's c6 -> c7; B_in.wasm = lane A's fin record, checked in-circuit (finInCons)"))
     # STATE (B-T4): the segment cut at the rt boundaries, m5tSegC
@@ -827,8 +828,8 @@ def leaf_table(c, inp, saved=SAVED, saved_b=SAVED_B):
         p = SAVED_F[nm]
         if ex(f"{p}/statement.json"):
             pv = json.load(open(f"{p}/statement.json"))["public_values"]
-            rows.append(_rec_row(f"{nm}, engine half (F-6 SE)", p, bndrec.decode(bytes(pv[:450])), bndrec.decode(bytes(pv[450:900])),
-                                 c[a_], c[b_], "F: SeStep (the VM-free engine rows: counters, accumulators, SREQ/HB traffic); "
+            rows.append(_rec_row(f"{nm}, engine half (F-7 SE)", p, bndrec.decode(bytes(pv[:450])), bndrec.decode(bytes(pv[450:900])),
+                                 c[a_], c[b_], "F-7: opening rows (SH: stRoot / encRestI open + close) in the proof; SeStep (working-set) = circuit + SeMove; F: SeMove (the VM-free step semantics on the opened bytes); "
                                  "B/D: one trace with B-T4's state half (XTAPE stand-in = its htape)",
                                  "SE: boundary rules + STMQ/STMA; proved from this chain's records"))
     # FINAL (G-5): B_out = done H o from ctxD (.header H), outD (.done o).1 and the two counters

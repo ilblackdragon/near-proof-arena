@@ -1,0 +1,103 @@
+# F-7 mutant batteries (pre-check = the exact AIR check; the stand-in XTAPE follows the mutated metas
+# and closes like lane B's STC, so only the leaf's rows and the public output can reject)
+## enter (c2 -> c3)
+== enter mutant phase: PRECHECK FAIL: ENT: constraint 52 fails on row 0
+== enter mutant gas: PRECHECK FAIL: ENT: constraint 184 fails on row 0
+== enter mutant stroot: PRECHECK FAIL: ENT: constraint 93 fails on row 0
+== enter mutant clock: PRECHECK FAIL: ENT: constraint 85 fails on row 0
+== enter mutant coderoot: PRECHECK FAIL: ENT: constraint 719 fails on row 0
+== enter mutant prefuel: PRECHECK FAIL: ENT: constraint 476 fails on row 0
+== enter mutant gasleft: PRECHECK FAIL: ENT: constraint 484 fails on row 0
+== enter mutant framesdig: PRECHECK FAIL: ENT: constraint 492 fails on row 0
+== enter mutant outrcpt: PRECHECK FAIL: ENT: constraint 283 fails on row 0
+== enter mutant inphase: PRECHECK FAIL: ENT: constraint 0 fails on row 0
+== enter mutant nonbyte: PRECHECK FAIL: 1 unbalanced messages by bus {2: 1}; first [((2, [312]), 2013265919)]
+## resume (c6 -> c7)
+== mutant gasburnt (mutant applied: ['gasburnt']): precheck: RX: constraint 244 fails on row 0
+== mutant refund (mutant applied: ['refund']): precheck: RX: constraint 494 fails on row 0
+== mutant status (mutant applied: ['status']): precheck: 4 unbalanced messages by bus {5: 2, 15: 2}; first [((5, [189, 0]), 2013265920), ((5, [189, 5]), 1), ((15, [1, 185, 116, 54, 235, 239, 240, 1, 142, 152
+== mutant rcptid (mutant applied: ['rcptid']): precheck: 6 unbalanced messages by bus {4: 2, 15: 2, 16: 2}; first [((4, [231, 0, 50]), 2013265919), ((4, [231, 0, 51]), 2), ((15, [1, 28, 84, 207, 37, 49, 44, 
+== mutant statement (mutant applied: ['statement']): precheck: RX: constraint 950 fails on row 0
+== mutant acctpost (mutant applied: ['acctpost']): precheck: 4 unbalanced messages by bus {4: 2, 8: 2}; first [((4, [168, 0, 0]), 1), ((4, [168, 0, 1]), 2013265920), ((8, [4, 128, 0]), 2013265920)]
+== mutant logbyte (mutant applied: ['logbyte']): precheck: 4 unbalanced messages by bus {4: 2, 15: 2}; first [((4, [184, 0, 116]), 1), ((4, [184, 0, 117]), 2013265920), ((15, [1, 7, 12, 253, 26, 185, 226, 84, 
+== mutant vmburnt (mutant applied: ['vmburnt']): precheck: RX: constraint 950 fails on row 0
+== mutant bndgas (mutant applied: ['bndgas']): precheck: RB: constraint 224 fails on row 0
+== mutant bndprepaid (mutant applied: ['bndprepaid']): precheck: RX: constraint 1031 fails on row 0
+== mutant bndburnt (mutant applied: ['bndburnt']): precheck: RB: constraint 272 fails on row 0
+== mutant stcopy (mutant applied: ['stcopy']): precheck: 2 unbalanced messages by bus {18: 2}; first [((18, [5171142, 3049614, 450496, 9373756, 7462440, 4283539, 11882246, 5511212, 7923642, 15834930, 9779937
+== mutant accnoappend (mutant applied: ['accnoappend']): precheck: ACC: constraint 135 fails on row 1
+== mutant rcptnoappend (mutant applied: ['rcptnoappend']): precheck: ACC: constraint 135 fails on row 4
+== mutant vmnoreset (mutant applied: ['vmnoreset']): precheck: RB: constraint 380 fails on row 0
+== mutant vminK (mutant applied: ['vminK']): precheck: RB: constraint 17 fails on row 0
+== mutant ridxcopy (mutant applied: ['ridxcopy']): precheck: RB: constraint 157 fails on row 0
+== mutant prepaidout (mutant applied: ['prepaidout']): precheck: RB: constraint 265 fails on row 0
+== mutant accitem (mutant applied: ['accitem']): precheck: ACC: constraint 135 fails on row 1
+== mutant finpre (mutant applied: ['finpre']): precheck: RB: constraint 681 fails on row 0
+== mutant finpc (mutant applied: ['finpc']): precheck: RB: constraint 423 fails on row 0
+== mutant finmem (mutant applied: ['finmem']): precheck: RB: constraint 505 fails on row 0
+== mutant nonbyte (mutant applied: ['nonbyte']): precheck: 1 unbalanced messages by bus {2: 1}; first [((2, [312]), 2013265919)]
+## STATE engine half SE (c1 -> c2, c7 -> c8, c8 -> c9)
+== [STATE seg A] mutant phase: precheck: SE: constraint 52 fails on row 0 
+== [STATE seg A] mutant vmacc: precheck: SE: constraint 201 fails on row 0 
+== [STATE seg A] mutant prepaid: precheck: SE: constraint 127 fails on row 0 
+== [STATE seg A] mutant gasburnt: precheck: SE: constraint 251 fails on row 0 
+== [STATE seg A] mutant ctxcopy: precheck: SE: constraint 85 fails on row 0 
+== [STATE seg A] mutant claimcopy: precheck: SE: constraint 10 fails on row 0 
+== [STATE seg A] mutant clock: precheck: SE: constraint 84 fails on row 0 
+== [STATE seg A] mutant incall: precheck: SE: constraint 8 fails on row 0 
+== [STATE seg A] mutant stroot: precheck: 2 unbalanced messages by bus {18: 2}; first [((18, [5938518, 4487470, 9942028, 7268426, 5178945, 4239078, 9649172, 9865522, 14389668, 4796604, 13078702, 98922
+== [STATE seg A] mutant nonbyte: precheck: 1 unbalanced messages by bus {2: 1}; first [((2, [312]), 2013265919)] 
+== [STATE seg A] mutant tagin: precheck: 2 unbalanced messages by bus {22: 2}; first [((22, [0, 1, 1, 2703542, 14527017, 11470916, 11365765, 8506111, 10830577, 7593348, 15841658, 14926865, 5810126, 14
+== [STATE seg A] mutant wsopen: precheck: 2 unbalanced messages by bus {22: 2}; first [((22, [0, 1, 1, 2703542, 14527017, 11470916, 11365765, 8506111, 10830577, 7593348, 15841658, 14926865, 5810126, 1
+== [STATE seg A] mutant restin: precheck: 4 unbalanced messages by bus {22: 4}; first [((22, [0, 1, 1, 2703542, 14527017, 11470916, 11365765, 8506111, 10830577, 7593348, 15841658, 14926865, 5810126, 1
+== [STATE seg A] mutant queue: precheck: 2 unbalanced messages by bus {22: 2}; first [((22, [1, 1, 1, 3723572, 16668840, 8511913, 6830740, 16449628, 11241956, 1773648, 2574842, 13263488, 612308, 28703
+== [STATE seg A] mutant movein: precheck: 2 unbalanced messages by bus {22: 2}; first [((22, [6, 0, 0, 10538104, 5200959, 1939369, 238211, 6675769, 10827072, 15550119, 9458985, 13399129, 11903444, 164
+== [STATE seg A] mutant moveout: precheck: 2 unbalanced messages by bus {18: 2}; first [((18, [5938518, 4487470, 9942028, 7268426, 5178945, 4239078, 9649172, 9865522, 14389668, 4796604, 13078702, 9892
+== [STATE seg A] mutant tagout: precheck: 2 unbalanced messages by bus {18: 2}; first [((18, [21241, 8593668, 3734956, 13863025, 1428072, 13032101, 11927955, 204088, 7359293, 10738496, 13717011, 57679
+== [STATE seg A] mutant static: precheck: SE: constraint 267 fails on row 0 
+== [STATE seg A] mutant finqueue: NOT APPLICABLE
+== [STATE seg A] mutant finkeys: NOT APPLICABLE
+== [STATE seg B] mutant phase: precheck: SE: constraint 52 fails on row 0 
+== [STATE seg B] mutant vmacc: precheck: SE: constraint 201 fails on row 0 
+== [STATE seg B] mutant prepaid: precheck: SE: constraint 127 fails on row 0 
+== [STATE seg B] mutant gasburnt: precheck: SE: constraint 251 fails on row 0 
+== [STATE seg B] mutant ctxcopy: precheck: SE: constraint 85 fails on row 0 
+== [STATE seg B] mutant claimcopy: precheck: SE: constraint 10 fails on row 0 
+== [STATE seg B] mutant clock: precheck: SE: constraint 84 fails on row 0 
+== [STATE seg B] mutant incall: precheck: SE: constraint 8 fails on row 0 
+== [STATE seg B] mutant stroot: precheck: 2 unbalanced messages by bus {18: 2}; first [((18, [969396, 9798070, 3253633, 2892861, 1504140, 6783175, 15215649, 6826757, 9931713, 6184704, 1034181, 8966742
+== [STATE seg B] mutant nonbyte: precheck: 1 unbalanced messages by bus {2: 1}; first [((2, [312]), 2013265919)] 
+== [STATE seg B] mutant tagin: precheck: 2 unbalanced messages by bus {22: 2}; first [((22, [0, 1, 1, 5171142, 3049614, 450496, 9373756, 7462440, 4283539, 11882246, 5511212, 7923642, 15834930, 9779937
+== [STATE seg B] mutant wsopen: precheck: 2 unbalanced messages by bus {22: 2}; first [((22, [0, 1, 1, 5171142, 3049614, 450496, 9373756, 7462440, 4283539, 11882246, 5511212, 7923642, 15834930, 977993
+== [STATE seg B] mutant restin: precheck: 4 unbalanced messages by bus {22: 4}; first [((22, [0, 1, 1, 5171142, 3049614, 450496, 9373756, 7462440, 4283539, 11882246, 5511212, 7923642, 15834930, 977993
+== [STATE seg B] mutant queue: precheck: 2 unbalanced messages by bus {22: 2}; first [((22, [1, 1, 1, 1760671, 11557059, 3584728, 549670, 13934398, 694825, 8477628, 8099564, 9889792, 13995213, 1486277
+== [STATE seg B] mutant movein: precheck: 2 unbalanced messages by bus {22: 2}; first [((22, [6, 0, 42, 765411, 2684070, 4891198, 2725959, 16729746, 8828246, 5890242, 2973956, 1834970, 753527, 1441810
+== [STATE seg B] mutant moveout: precheck: 2 unbalanced messages by bus {18: 2}; first [((18, [969396, 9798070, 3253633, 2892861, 1504140, 6783175, 15215649, 6826757, 9931713, 6184704, 1034181, 896674
+== [STATE seg B] mutant tagout: precheck: 2 unbalanced messages by bus {18: 2}; first [((18, [969396, 9798070, 3253633, 2892861, 1504140, 6783175, 15215649, 6826757, 9931713, 6184704, 1034181, 8966742
+== [STATE seg B] mutant static: precheck: SE: constraint 267 fails on row 0 
+== [STATE seg B] mutant finqueue: NOT APPLICABLE
+== [STATE seg B] mutant finkeys: NOT APPLICABLE
+== [finalize] mutant phase: precheck: SE: constraint 52 fails on row 0 
+== [finalize] mutant vmacc: precheck: SE: constraint 201 fails on row 0 
+== [finalize] mutant prepaid: precheck: SE: constraint 127 fails on row 0 
+== [finalize] mutant gasburnt: precheck: SE: constraint 251 fails on row 0 
+== [finalize] mutant ctxcopy: precheck: SE: constraint 85 fails on row 0 
+== [finalize] mutant claimcopy: precheck: SE: constraint 10 fails on row 0 
+== [finalize] mutant clock: precheck: SE: constraint 84 fails on row 0 
+== [finalize] mutant incall: precheck: SE: constraint 8 fails on row 0 
+== [finalize] mutant stroot: precheck: 2 unbalanced messages by bus {18: 2}; first [((18, [8527953, 5612917, 7876456, 11826195, 13426707, 16338394, 14172942, 8206385, 12833736, 6685868, 3569408, 49297
+== [finalize] mutant nonbyte: precheck: 1 unbalanced messages by bus {2: 1}; first [((2, [312]), 2013265919)] 
+== [finalize] mutant tagin: precheck: SE: constraint 254 fails on row 0 
+== [finalize] mutant wsopen: precheck: 2 unbalanced messages by bus {22: 2}; first [((22, [0, 1, 1, 969396, 9798070, 3253633, 2892861, 1504140, 6783175, 15215649, 6826757, 9931713, 6184704, 1034181, 8
+== [finalize] mutant restin: precheck: 4 unbalanced messages by bus {22: 4}; first [((22, [0, 1, 1, 969396, 9798070, 3253633, 2892861, 1504140, 6783175, 15215649, 6826757, 9931713, 6184704, 1034181, 8
+== [finalize] mutant queue: precheck: 4 unbalanced messages by bus {18: 2, 22: 2}; first [((18, [2690375, 13401679, 16421268, 1157076, 5302759, 6792837, 1356211, 16135297, 1366478, 14277045, 13975977,
+== [finalize] mutant movein: precheck: 2 unbalanced messages by bus {22: 2}; first [((22, [6, 0, 44, 12238081, 1753432, 8596540, 2976414, 7861903, 8127713, 6993373, 13546267, 14082779, 1869180, 136770
+== [finalize] mutant moveout: precheck: 2 unbalanced messages by bus {18: 2}; first [((18, [3661479, 12207930, 5629732, 8827877, 11204290, 3629186, 11389139, 2058623, 524532, 12062719, 5650748, 230381
+== [finalize] mutant tagout: precheck: SE: constraint 255 fails on row 0 
+== [finalize] mutant static: NOT APPLICABLE
+== [finalize] mutant finqueue: precheck: SE: constraint 300 fails on row 0 
+== [finalize] mutant finkeys: precheck: 4 unbalanced messages by bus {18: 2, 22: 2}; first [((18, [7667975, 11481914, 15117628, 11435955, 793618, 1521643, 16646395, 14015250, 8524875, 5928610, 1669308
+## through the prover (finalize)
+== [finalize] mutant tagin: PRECHECK FAIL: SE: constraint 254 fails on row 0 REJECTED (prover error) after 14.9s 
+== [finalize] mutant moveout: PRECHECK FAIL: 2 unbalanced messages by bus {18: 2}; first [((18, [3661479, 12207930, 5629732, 8827877, 11204290, 3629186, 11389139, 2058623, 524532, 12062719, 5650748, 2303810, 12530544, 16213899, 8, REJECTED (prover error) after
+== [finalize] mutant finkeys: PRECHECK FAIL: 4 unbalanced messages by bus {18: 2, 22: 2}; first [((18, [7667975, 11481914, 15117628, 11435955, 793618, 1521643, 16646395, 14015250, 8524875, 5928610, 16693083, 6865891, 12196041, 647 REJECTED (prover error) after
