@@ -245,11 +245,11 @@ def test_chain_saved_leaves():
     # records assembled with them are the chain's cuts, digest for digest
     # E2E-M14 moved c1 … c9's stRoot (tag, rest) and ctxRoot: a leaf saved before M14 differs exactly there
     # (m14_stale) until its lane re-proves it on this chain
+    # B-T5: lane B's five leaves are re-proved on the M14 chain (the done close of M14-1 at c9): equal,
+    # every check (incl. the finalize leaf's R_in = the IF's R_n, FinHalfB's link through c8)
     for k in ("IF", "STATE seg A", "RT resume, state half", "STATE seg B", "finalize, state half"):
-        if r[k]["in_equal"] and r[k]["out_equal"]:
-            assert all(r[k]["checks"].values()), (k, r[k]["checks"])
-        else:
-            assert r[k]["m14_stale"], (k, r[k]["checks"])
+        assert r[k]["in_equal"] and r[k]["out_equal"], (k, r[k]["checks"])
+        assert all(r[k]["checks"].values()), (k, r[k]["checks"])
     assert r["IF"]["d_in"] == r["STATE seg A"]["d_in"] and r["IF"]["d_out"] == r["finalize, state half"]["d_out"]
     assert r["WASM seg 0"]["in_equal"] and r["WASM seg 0"]["out_equal"] and r["WASM seg 1"]["in_equal"]
     # A-T5: the halting segment's out-record is lane A's `.fin r` record (finding I2b-2 closed), and

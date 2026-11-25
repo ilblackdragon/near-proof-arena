@@ -138,15 +138,12 @@ theorem mem_g3 {D : Nat} {e : Expr} (he : e ∈ Stc.splits) : e ∈ Stc.splits +
 
 theorem mem_le1 {u : Nat} (hu : u < 18) : Stc.c "di" u -
     Stc.w3l (Stc.wordW (fun j => Stc.c "ri" (8 * (u / 3) + j)) (fun q => Stc.c "rsi" (4 * (u / 3) + q))) (u % 3) ∈
-      Stc.limbEqs := (List.mem_append_left _ (List.mem_append_left _ (List.mem_append_left _ (List.mem_map.2 ⟨u, List.mem_range.2 hu, rfl⟩))))
+      Stc.limbEqs := (List.mem_append_left _ (List.mem_append_left _ (List.mem_map.2 ⟨u, List.mem_range.2 hu, rfl⟩)))
 theorem mem_le2 {u : Nat} (hu : u < 18) : Stc.c "do" u -
     Stc.w3l (Stc.wordW (fun j => Stc.c "ro" (8 * (u / 3) + j)) (fun q => Stc.c "rso" (4 * (u / 3) + q))) (u % 3) ∈
-      Stc.limbEqs := (List.mem_append_left _ (List.mem_append_left _ (List.mem_append_right _ (List.mem_map.2 ⟨u, List.mem_range.2 hu, rfl⟩))))
+      Stc.limbEqs := (List.mem_append_left _ (List.mem_append_right _ (List.mem_map.2 ⟨u, List.mem_range.2 hu, rfl⟩)))
 theorem mem_le3 {u : Nat} (hu : u < 18) : Expr.pub (PUB_WSA + u) -
     Stc.w3l (Stc.wordW (fun j => Stc.mI (1 + 8 * (u / 3) + j)) (fun q => Stc.c "wsi" (4 * (u / 3) + q))) (u % 3) ∈
-      Stc.limbEqs := (List.mem_append_left _ (List.mem_append_right _ (List.mem_map.2 ⟨u, List.mem_range.2 hu, rfl⟩)))
-theorem mem_le4 {u : Nat} (hu : u < 18) : Expr.pub (PUB_WSB + u) -
-    Stc.w3l (Stc.wordW (fun j => Stc.mO (1 + 8 * (u / 3) + j)) (fun q => Stc.c "wso" (4 * (u / 3) + q))) (u % 3) ∈
       Stc.limbEqs := (List.mem_append_right _ (List.mem_map.2 ⟨u, List.mem_range.2 hu, rfl⟩))
 theorem mem_gL {D : Nat} {e : Expr} (he : e ∈ Stc.limbEqs) : e ∈ Stc.splits ++ Stc.limbEqs ++ Stc.lenEqs D :=
   List.mem_append_left _ (List.mem_append_right _ he)
@@ -167,7 +164,7 @@ include hc hA in
 theorem gatedT {e : Expr} (he : e ∈ Stc.splits ++ Stc.limbEqs ++ Stc.lenEqs D ++ Stc.trieEqs) :
     ev tr t r pub e = 0 := by
   have hm : Stc.c "act" * e ∈ (Stc.table D).constraints :=
-    List.mem_cons_of_mem _ (List.mem_map.2 ⟨e, he, rfl⟩)
+    List.mem_cons_of_mem _ (List.mem_append_left _ (List.mem_map.2 ⟨e, he, rfl⟩))
   exact FieldWsb.wsb_gate hA (hc _ hm)
 
 include hc hA in
@@ -182,13 +179,16 @@ theorem padByte_lt (p : Nat) : Stc.padByte p < 256 := by
     · split <;> decide
 
 theorem mem_b {p : Nat} (h : p < 139) : Stc.c "b" p ∈ Stc.byteCols :=
-  (List.mem_append_left _ (List.mem_append_left _ (List.mem_append_left _ (List.mem_append_left _ (List.mem_append_left _ (List.mem_append_left _ (List.mem_map.2 ⟨p, List.mem_range.2 h, rfl⟩)))))))
-theorem mem_ot : Stc.c "ot" ∈ Stc.byteCols := (List.mem_append_left _ (List.mem_append_left _ (List.mem_append_left _ (List.mem_append_left _ (List.mem_append_left _ (List.mem_append_right _ (List.mem_singleton.2 rfl)))))))
-theorem mem_ow {j : Nat} (h : j < 48) : Stc.c "ow" j ∈ Stc.byteCols := (List.mem_append_left _ (List.mem_append_left _ (List.mem_append_left _ (List.mem_append_left _ (List.mem_append_right _ (List.mem_map.2 ⟨j, List.mem_range.2 h, rfl⟩))))))
-theorem mem_or {j : Nat} (h : j < 42) : Stc.c "or" j ∈ Stc.byteCols := (List.mem_append_left _ (List.mem_append_left _ (List.mem_append_left _ (List.mem_append_right _ (List.mem_map.2 ⟨j, List.mem_range.2 h, rfl⟩)))))
-theorem mem_ri {j : Nat} (h : j < 48) : Stc.c "ri" j ∈ Stc.byteCols := (List.mem_append_left _ (List.mem_append_left _ (List.mem_append_right _ (List.mem_map.2 ⟨j, List.mem_range.2 h, rfl⟩))))
-theorem mem_ro {j : Nat} (h : j < 48) : Stc.c "ro" j ∈ Stc.byteCols := (List.mem_append_left _ (List.mem_append_right _ (List.mem_map.2 ⟨j, List.mem_range.2 h, rfl⟩)))
-theorem mem_g {j : Nat} (h : j < 3) : Stc.c "g" j ∈ Stc.byteCols := (List.mem_append_right _ (List.mem_map.2 ⟨j, List.mem_range.2 h, rfl⟩))
+  (List.mem_append_left _ (List.mem_append_left _ (List.mem_append_left _ (List.mem_append_left _ (List.mem_append_left _ (List.mem_append_left _ (List.mem_append_left _ (List.mem_map.2 ⟨p, List.mem_range.2 h, rfl⟩))))))))
+theorem mem_ot : Stc.c "ot" ∈ Stc.byteCols := (List.mem_append_left _ (List.mem_append_left _ (List.mem_append_left _ (List.mem_append_left _ (List.mem_append_left _ (List.mem_append_left _ (List.mem_append_right _ (List.mem_singleton.2 rfl))))))))
+theorem mem_ow {j : Nat} (h : j < 48) : Stc.c "ow" j ∈ Stc.byteCols := (List.mem_append_left _ (List.mem_append_left _ (List.mem_append_left _ (List.mem_append_left _ (List.mem_append_left _ (List.mem_append_right _ (List.mem_map.2 ⟨j, List.mem_range.2 h, rfl⟩)))))))
+theorem mem_or {j : Nat} (h : j < 42) : Stc.c "or" j ∈ Stc.byteCols := (List.mem_append_left _ (List.mem_append_left _ (List.mem_append_left _ (List.mem_append_left _ (List.mem_append_right _ (List.mem_map.2 ⟨j, List.mem_range.2 h, rfl⟩))))))
+theorem mem_ri {j : Nat} (h : j < 48) : Stc.c "ri" j ∈ Stc.byteCols := (List.mem_append_left _ (List.mem_append_left _ (List.mem_append_left _ (List.mem_append_right _ (List.mem_map.2 ⟨j, List.mem_range.2 h, rfl⟩)))))
+theorem mem_ro {j : Nat} (h : j < 48) : Stc.c "ro" j ∈ Stc.byteCols := (List.mem_append_left _ (List.mem_append_left _ (List.mem_append_right _ (List.mem_map.2 ⟨j, List.mem_range.2 h, rfl⟩))))
+theorem mem_g {j : Nat} (h : j < 3) : Stc.c "g" j ∈ Stc.byteCols := (List.mem_append_left _ (List.mem_append_right _ (List.mem_map.2 ⟨j, List.mem_range.2 h, rfl⟩)))
+
+theorem mem_om {j : Nat} (h : j < 40) : Stc.c "om" j ∈ Stc.byteCols :=
+  List.mem_append_right _ (List.mem_map.2 ⟨j, List.mem_range.2 h, rfl⟩)
 
 include hB in
 theorem bI (p : Nat) : ev tr t r pub (Stc.mI p) < 256 := by
@@ -204,10 +204,12 @@ theorem bO (p : Nat) : ev tr t r pub (Stc.mO p) < 256 := by
   · split
     · rename_i h0 h; exact hB _ (mem_ow (by omega))
     · split
-      · rename_i h0 h1 h; exact hB _ (mem_b (by omega))
+      · rename_i h0 h1 h; exact hB _ (mem_om (by omega))
       · split
-        · rename_i h0 h1 h2 h; exact hB _ (mem_or (by unfold Stc.NB at h; omega))
-        · rw [ev_K _ (by have := padByte_lt p; omega)]; exact padByte_lt p
+        · rename_i h0 h1 h2 h; exact hB _ (mem_b (by omega))
+        · split
+          · rename_i h0 h1 h2 h3 h; exact hB _ (mem_or (by unfold Stc.NB at h; omega))
+          · rw [ev_K _ (by have := padByte_lt p; omega)]; exact padByte_lt p
 
 include hHi hLo in
 theorem parts {s : String} {n w : Nat} (hg : (s, n) ∈ Stc.grps) (hw : w < n) :
@@ -273,7 +275,7 @@ theorem mI_pad {p : Nat} (h : 139 ≤ p) : Stc.mI p = K (Stc.padByte p) := by
   unfold Stc.mI Stc.NB; exact if_neg (by omega)
 theorem mO_pad {p : Nat} (h : 139 ≤ p) : Stc.mO p = K (Stc.padByte p) := by
   unfold Stc.mO Stc.NB
-  rw [if_neg (by omega), if_neg (by omega), if_neg (by omega), if_neg (by omega)]
+  rw [if_neg (by omega), if_neg (by omega), if_neg (by omega), if_neg (by omega), if_neg (by omega)]
 
 include hc hA hB hHi hLo in
 /-- **Message word `w` (input side).** -/
@@ -379,11 +381,80 @@ theorem wsI : (TmplWsx.pubDig pub PUB_WSA).1 = wordsF (fun p => FI tr t r pub (1
   rw [pubDig_row, rowDig_of (d := ⟨_, by simp, hw⟩) h]
   simp [wordsF]
 
+/-! ### B-T5: the two close modes (`Stc.modeEqs`) -/
+
+include hc in
+theorem modeE {e : Expr} (he : e ∈ Stc.modeEqs) : ev tr t r pub e = 0 :=
+  hc _ (List.mem_cons_of_mem _ (List.mem_append_right _ he))
+
+theorem mem_m3 {e : Expr} (he : e ∈ [bool (Stc.c "fin"), Stc.c "fin" * (Stc.c "ot" - K 3),
+    (Stc.c "ot" - K 3) * Stc.c "tinv" - (Stc.c "act" - Stc.c "fin")]) : e ∈ Stc.modeEqs :=
+  List.mem_append_left _ (List.mem_append_left _ (List.mem_append_left _ he))
+theorem mem_mWs {u : Nat} (hu : u < 18) : (Stc.c "act" - Stc.c "fin") * (Expr.pub (PUB_WSB + u) -
+    Stc.w3l (Stc.wordW (fun j => Stc.mO (1 + 8 * (u / 3) + j)) (fun q => Stc.c "wso" (4 * (u / 3) + q))) (u % 3)) ∈
+      Stc.modeEqs :=
+  List.mem_append_left _ (List.mem_append_left _ (List.mem_append_right _ (List.mem_map.2 ⟨u, List.mem_range.2 hu, rfl⟩)))
+theorem mem_mE {j : Nat} (hj : j < 48) : Stc.c "fin" * (Stc.c "ow" j - K (Stc.emptyB j)) ∈ Stc.modeEqs :=
+  List.mem_append_left _ (List.mem_append_right _ (List.mem_map.2 ⟨j, List.mem_range.2 hj, rfl⟩))
+theorem mem_mO {j : Nat} (hj : j < 40) : Stc.c "om" j - (Stc.c "act" - Stc.c "fin") * Stc.c "b" (49 + j) ∈
+    Stc.modeEqs :=
+  List.mem_append_right _ (List.mem_map.2 ⟨j, List.mem_range.2 hj, rfl⟩)
+
+include hc in
+/-- `fin` is boolean. -/
+theorem fin01 : ev tr t r pub (Stc.c "fin") = 0 ∨ ev tr t r pub (Stc.c "fin") = 1 :=
+  FieldRows2.ev_bool (modeE hc (mem_m3 (by simp)))
+
+include hA in
+theorem am_step (hf : ev tr t r pub (Stc.c "fin") = 0) : ev tr t r pub (Stc.c "act" - Stc.c "fin") = 1 := by
+  rw [ev_sub, hA, hf]
+
+include hA in
+theorem am_fin (hf : ev tr t r pub (Stc.c "fin") = 1) : ev tr t r pub (Stc.c "act" - Stc.c "fin") = 0 := by
+  rw [ev_sub, hA, hf]
+
+include hc in
+/-- **`fin = 1` ⇒ the output tag is `3`.** -/
+theorem fin_tag (hf : ev tr t r pub (Stc.c "fin") = 1) : ev tr t r pub (Stc.c "ot") = 3 := by
+  have h := eq_of_sub (FieldWsb.wsb_gate hf (modeE hc (mem_m3 (e := Stc.c "fin" * (Stc.c "ot" - K 3)) (by simp))))
+  rw [h, ev_K 3 (by decide)]
+
+include hc hA in
+/-- **`fin = 0` ⇒ the output tag is not `3`** (`(ot − 3) · tinv = 1`). -/
+theorem step_tag (hf : ev tr t r pub (Stc.c "fin") = 0) : ev tr t r pub (Stc.c "ot") ≠ 3 := by
+  intro h3
+  have h := eq_of_sub (modeE hc (mem_m3 (e := (Stc.c "ot" - K 3) * Stc.c "tinv" - (Stc.c "act" - Stc.c "fin"))
+    (by simp)))
+  rw [am_step hA hf, ev_hmul, ev_sub, h3, ev_K 3 (by decide)] at h
+  simp at h
+
+include hc hA in
+/-- The output's bytes 49–88 (`om`): the input's in the step mode, `0` in the `done` mode. -/
+theorem om_val {j : Nat} (hj : j < 40) :
+    ev tr t r pub (Stc.c "om" j) =
+      if ev tr t r pub (Stc.c "fin") = 1 then 0 else ev tr t r pub (Stc.c "b" (49 + j)) := by
+  have h := eq_of_sub (modeE hc (mem_mO hj))
+  rw [h, ev_hmul]
+  rcases fin01 hc with hf | hf
+  · rw [am_step hA hf, hf]; simp [Nat.mod_eq_of_lt (ev_lt _)]
+  · rw [am_fin hA hf, hf]; simp
+
+include hc in
+/-- In the `done` mode the closed `ws` bytes are the empty tree's root (`Stc.emptyB`). -/
+theorem ow_fin (hf : ev tr t r pub (Stc.c "fin") = 1) {j : Nat} (hj : j < 48) :
+    ev tr t r pub (Stc.c "ow" j) = Stc.emptyB j := by
+  have h := eq_of_sub (FieldWsb.wsb_gate hf (modeE hc (mem_mE hj)))
+  have hb : Stc.emptyB j < 256 := by unfold Stc.emptyB; exact UInt8.toNat_lt _
+  rw [h, ev_K _ (by omega)]
+
 include hc hA hB hHi hLo in
-theorem wsO : (TmplWsx.pubDig pub PUB_WSB).1 = wordsF (fun p => FO tr t r pub (1 + p)) 0 6 := by
+/-- **B-T5: in the step mode (`fin = 0`) the closed `ws` is the public `R_out`** (`modeEqs`). -/
+theorem wsO (hf : ev tr t r pub (Stc.c "fin") = 0) :
+    (TmplWsx.pubDig pub PUB_WSB).1 = wordsF (fun p => FO tr t r pub (1 + p)) 0 6 := by
   have h := digW_of (tr := tr) (t := t) (r := r) (pub := pub) (f := fun u => Expr.pub (PUB_WSB + u))
     (X := fun k => Stc.wordW (fun j => Stc.mO (1 + 8 * k + j)) (fun q => Stc.c "wso" (4 * k + q)))
-    (wd := wordOf (fun p => FO tr t r pub (1 + p))) (fun u hu => sub0 (gated hc hA (mem_gL (mem_le4 hu))))
+    (wd := wordOf (fun p => FO tr t r pub (1 + p))) (fun u hu => sub0 (FieldWsb.wsb_gate (am_step hA hf)
+      (modeE hc (mem_mWs hu))))
     (fun k hk => by
       obtain ⟨p0, p1, p2, p3⟩ := parts hHi hLo g_wso hk
       rw [word_split (fun j _ => bO hB _) p0 p1 p2 p3 (fun e he => gated hc hA (mem_g3 (mem_sp6 hk he)))]

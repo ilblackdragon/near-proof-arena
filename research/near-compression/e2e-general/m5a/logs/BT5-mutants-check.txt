@@ -1,0 +1,27 @@
+honest if: PRECHECK OK: every constraint on every row; every bus balances (12476 distinct messages) 
+honest seg0: PRECHECK OK: every constraint on every row; every bus balances (4706 distinct messages) 
+honest seg1: PRECHECK OK: every constraint on every row; every bus balances (1760 distinct messages) 
+honest seg2: PRECHECK OK: every constraint on every row; every bus balances (1161 distinct messages) 
+honest seg3: PRECHECK OK: every constraint on every row; every bus balances (1175 distinct messages) 
+stctrie (seg0): precheck: STC: constraint 182 fails on row 0 
+ifctrie (if): precheck: STC: constraint 182 fails on row 0 
+ifcws (if): precheck: STC: constraint 157 fails on row 0 
+ifcrout (if): precheck: 2 unbalanced messages by bus {212: 2}; first [((212, [8527952, 5612917, 7876456, 11826195, 13426707, 16338394, 14172942, 82063
+segsb0 (seg0): precheck: 2 unbalanced messages by bus {12: 2}; first [((12, [0, 812274, 882723, 436320, 555537, 929335, 1381616, 2007244, 2054349, 241
+stcrin (seg0): precheck: 2 unbalanced messages by bus {211: 2}; first [((211, [2703542, 14527017, 11470916, 11365765, 8506111, 10830577, 7593348, 1584
+stcrout (seg0): precheck: 2 unbalanced messages by bus {212: 2}; first [((212, [5938518, 4487470, 9942028, 7268426, 5178945, 4239078, 9649172, 9865522
+stctag (seg0): precheck: 2 unbalanced messages by bus {212: 2}; first [((212, [5938518, 4487470, 9942028, 7268426, 5178945, 4239078, 9649172, 9865522,
+stcrest (seg0): precheck: 2 unbalanced messages by bus {211: 2}; first [((211, [2703542, 14527017, 11470916, 11365765, 8506111, 10830577, 7593348, 158
+stcws (seg0): precheck: STC: constraint 98 fails on row 0 
+stclen (seg0): precheck: STC: constraint 180 fails on row 0 
+stcbig (seg0): precheck: 1 unbalanced messages by bus {31: 1}; first [((31, [2013265920]), 2013265920)] 
+stcbyte (seg0): precheck: STC: constraint 184 fails on row 0 
+finold0 (seg3): precheck: STC: constraint 200 fails on row 0 
+finold1 (seg3): precheck: STC: constraint 219 fails on row 0 
+finws (seg3): precheck: STC: constraint 219 fails on row 0 
+finlen (seg3): precheck: STC: constraint 267 fails on row 0 
+finstep (seg2): precheck: STC: constraint 199 fails on row 0 
+iffinold0 (if): precheck: STC: constraint 200 fails on row 0 
+iffinold1 (if): precheck: STC: constraint 219 fails on row 0 
+iffinws (if): precheck: STC: constraint 219 fails on row 0 
+iffinlen (if): precheck: STC: constraint 267 fails on row 0 

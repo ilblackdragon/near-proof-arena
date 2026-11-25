@@ -12,6 +12,18 @@ NB = 139
 B_STMQ, B_STMA = 211, 212
 
 
+def empty_root(depth=24):
+    """The empty depth-24 working-set tree's root (`Tmpl.zeroDig 24`, `Stc.emptyB`)."""
+    z = b'\0' * 48
+    for _ in range(depth):
+        z = hashlib.sha384(z + z).digest()
+    return z
+
+
+EMPTY = empty_root()
+TAG_DONE = 3
+
+
 def pad_byte(p):
     return 128 if p == 139 else 4 if p == 254 else 88 if p == 255 else 0
 
@@ -51,13 +63,33 @@ class Stc:
 def build(names, comp, rin_words, rout_words, wslen, trie, tag_in=1, tag_out=1, idx=0,
           rest_in=None, rest_out=None, mutant=None):
     """One active `STC` row.  `comp(h, block)` registers a compression and returns `(cid, out)`.
-    Returns `(rows, rng_counts, stand_in_messages, info)`."""
+    Returns `(rows, rng_counts, stand_in_messages, info)`.
+
+    B-T5 (finding M14-1): the output tag `3` (`done`) selects the `done` mode (`fin = 1`): the output
+    record is the no-overlay one, `ws` = the empty tree's root, `wsLen 0`, trie `0^32` (`Stc.modeEqs`).
+    `mutant` (the `done`-close mutants, the row is built from the tampered record and hashed
+    honestly, so only `modeEqs` can reject it):
+      `finold0` — tag 3 closed as `close c R_out` (the B-T4 record) with `fin = 0`;
+      `finold1` — the same record with `fin = 1` (`ow` = `R_out`, `om` = the input's bytes);
+      `finws`   — the `done` record with `ws = R_out` instead of the empty root;
+      `finlen`  — the `done` record keeping the input's `wsLen` / trie;
+      `finstep` — a non-`done` output tag closed in the `done` mode."""
     rest_in = rest_in if rest_in is not None else bdigest(b'lane F stand-in: rest of the input engine state')
     rest_out = rest_out if rest_out is not None else bdigest(b'lane F stand-in: rest of the output engine state')
     ws_in = b''.join(w.to_bytes(8, 'big') for w in rin_words)
     ws_out = b''.join(w.to_bytes(8, 'big') for w in rout_words)
     mi = ser(tag_in, ws_in, wslen, trie, idx, rest_in)
-    mo = ser(tag_out, ws_out, wslen, trie, idx, rest_out)
+    fin = 1 if tag_out == TAG_DONE else 0
+    if mutant in ('finold1', 'finstep'):
+        fin = 1
+    if mutant == 'finold0':
+        fin = 0
+    if fin and mutant not in ('finold1', 'finws'):
+        ws_out = EMPTY
+    if fin and mutant not in ('finold1', 'finlen'):
+        mo = ser(tag_out, ws_out, 0, bytes(32), idx, rest_out)
+    else:
+        mo = ser(tag_out, ws_out, wslen, trie, idx, rest_out)
     T = Stc(names)
     r = T.row()
     cnt = {}
@@ -74,6 +106,11 @@ def build(names, comp, rin_words, rout_words, wslen, trie, tag_in=1, tag_out=1, 
         T.set(r, 'ow', mo[1 + j], j)
     for j in range(42):
         T.set(r, 'or', mo[97 + j], j)
+    # B-T5: the mode columns (`fin`, `tinv` = 1 / (ot − 3) in the step mode) and the output's bytes 49–88
+    T.set(r, 'fin', fin)
+    T.set(r, 'tinv', 0 if tag_out == TAG_DONE else pow((tag_out - TAG_DONE) % P, P - 2, P))
+    for j in range(40):
+        T.set(r, 'om', mo[49 + j], j)
 
     def side(m, sname, hname, dname, xname, c1, c2, rname, rsname, wsname):
         pm = m + bytes(pad_byte(p) for p in range(NB, 256))
@@ -119,7 +156,7 @@ def build(names, comp, rin_words, rout_words, wslen, trie, tag_in=1, tag_out=1, 
         T.set(r, 'g', gb[k], k)
     # the lookups (`Stc.ranges`): every byte column once, every split part twice
     byte_cols = list(mi) + [mo[0]] + list(mo[1:49]) + list(mo[97:139]) + list(di) + list(do) + \
-        [x for x in gb if x < 256]
+        [x for x in gb if x < 256] + list(mo[49:89])
     for x in byte_cols:
         rng(x)
     grps = (('si', 18), ('so', 18), ('rsi', 6), ('rso', 6), ('wsi', 6), ('wso', 6))
@@ -139,7 +176,8 @@ def build(names, comp, rin_words, rout_words, wslen, trie, tag_in=1, tag_out=1, 
     # the stand-in for lane F's engine rows: sends STMQ, receives STMA
     msgs = [[B_STMQ, True, stmq], [B_STMA, False, stma]]
     info = dict(st_root_in=r_in.hex(), st_root_out=r_out.hex(), rest_in=rest_in.hex(), rest_out=rest_out.hex(),
-                tag_in=tag_in, tag_out=tag_out, ws_len=wslen, trie=trie.hex(), idx=idx)
+                tag_in=tag_in, tag_out=tag_out, ws_len=wslen, trie=trie.hex(), idx=idx, fin=fin,
+                ws_out=mo[1:49].hex(), ws_len_out=int.from_bytes(mo[49:57], 'little'), trie_out=mo[57:89].hex())
     return [r], cnt, msgs, info
 
 
