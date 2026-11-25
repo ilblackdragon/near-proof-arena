@@ -403,7 +403,7 @@ def eposS : EPos → EPosS
   | .done o => .inr (.inr (.inr (.inr (.inr (.inr o)))))
 
 instance : Ser EPos := Ser.ofInj eposS (by intro a b h; cases a <;> cases b <;> simp_all [eposS])
-instance : Ser EngSt := Ser.ofInj (fun (x : EngSt) => (x.1, x.2)) (by inj_tac)
+instance : Ser EngSt := Ser.ofInj (fun (x : EngSt) => (x.1, x.2, x.3)) (by inj_tac)
 instance : Ser StV := Ser.ofInj
   (fun | .none => (.inl () : Unit ⊕ (EPos × EngSt) ⊕ MainOutD2) | .eng p s => .inr (.inl (p, s))
        | .fin o => .inr (.inr o)) (by inj_tac)

@@ -22,7 +22,7 @@ field of `BndRec`:
 |---|---|---|---|
 | tag | the configuration's kind (`init`, `eng`, `fin`, `gfin`, `done`, `doneG`, `call`) | `phase` (clear) | here |
 | `CtxV` | claim/witness bytes (`init`), the intake record `I`, the genesis record `G`, or the header `H` | `ctxRoot` | B (`INTAKE`) |
-| `StV` | the engine position with its receipt state minus the output lists, the recorder state and the chunk's key list (`EngSt`, M11f); or the main output at `fin` | `stRoot` | B (working set, trie, queues: `m5a/lean/StateM5a` `Ws`, `Store`) |
+| `StV` | the engine position with its receipt state minus the output lists, the recorder state and the chunk's key list (`EngSt`, M11f), at `start` also the intake's overlay `Ovl.ofTrie I.tMain` (`stOfI`, D-a); or the main output at `fin` | `stRoot` | B (working set, trie, queues: `m5a/lean/StateM5a` `Ws`, `Store`) |
 | `OutV` | the output lists (outcomes, outgoing receipts, proposals), or the final `Outputs` | `outcomeAcc`, `outRcptAcc`, `proposalsAcc`, `bwAcc` | B (M5d accumulators) |
 | `VmV` | the answered VM queries `K` | `vmAcc` | A/E (call tape) |
 | `WmV` | the current query and call-machine configuration (`inCall`) | `wasm` (`WasmBnd`), `inCall` | A (`memRoot`, frames, registers, …) |
@@ -93,6 +93,12 @@ run, filled from the intake by the view's key function `ViewImpl.keys` (`stOfK`)
 structure EngSt where
   st : Recording
   keys : List Bytes
+  /-- **The overlay at `start`** (E2E lane E, decision D-a): `some (Ovl.ofTrie I.tMain)` — the
+  overlay the first engine step creates from the intake's revealed pre-state trie — at the `start`
+  position, `none` elsewhere (`ovl0Of`). Like the key list a function of the intake, constant
+  where it is used; carried so that lane B's state commitment at `start` commits the working set of
+  the intake's trie (lane B's IF-INTAKE root `R_0`, finding (1) of M12). -/
+  ovl0 : Option Ovl
 
 /-- The state component (`stRoot`): position and receipt state without the output lists, the
 recorder state and the chunk's key list (`EngSt`); or the main transition's output. -/
@@ -116,11 +122,38 @@ abbrev WmV := Option (VmQ × CallConf)
 /-- All components. -/
 abbrev Parts := Nat × CtxV × StV × OutV × VmV × WmV
 
-/-- The state component of an engine configuration, carrying the key list `K`. -/
-def stOfK (K : List Bytes) (c : EConf) : StV := .eng (eposMap rsStrip c.pos) ⟨c.st, K⟩
+/-- The state component of an engine configuration, carrying the key list `K` (no start
+overlay). The view uses `stOfI`, which agrees with it away from `start` (`stOfI_of_ne`). -/
+def stOfK (K : List Bytes) (c : EConf) : StV := .eng (eposMap rsStrip c.pos) ⟨c.st, K, none⟩
+
+/-- **The overlay a position carries in the state component besides its receipt state**: at
+`start`, the overlay the first step creates (`Ovl.ofTrie I.tMain`: the intake's revealed
+pre-state trie, no committed change); `none` at every other position (D-a). -/
+def ovl0Of (I : Intake) : EPos → Option Ovl
+  | .start => some (Ovl.ofTrie I.tMain)
+  | _ => none
+
+/-- **The state component of an engine configuration of intake `I`** (the view's, `split`): the
+key list `κ I` and, at `start`, the intake's overlay `Ovl.ofTrie I.tMain` (D-a), so that lane B's
+`stD` at `start` commits the working-set root `R_0` of lane B's IF-INTAKE. -/
+def stOfI (κ : Intake → List Bytes) (I : Intake) (c : EConf) : StV :=
+  .eng (eposMap rsStrip c.pos) ⟨c.st, κ I, ovl0Of I c.pos⟩
+
+theorem ovl0Of_ne {I : Intake} {p : EPos} (h : p ≠ .start) : ovl0Of I p = none := by
+  cases p <;> first | rfl | exact absurd rfl h
+
+/-- Away from `start` the view's state component is `stOfK`. -/
+theorem stOfI_of_ne (κ : Intake → List Bytes) (I : Intake) {c : EConf} (h : c.pos ≠ .start) :
+    stOfI κ I c = stOfK (κ I) c := by
+  simp only [stOfI, stOfK, ovl0Of_ne h]
+
+/-- At `start` it carries the intake's overlay. -/
+theorem stOfI_start (κ : Intake → List Bytes) (I : Intake) (r : Recording) :
+    stOfI κ I ⟨.start, r⟩ = .eng .start ⟨r, κ I, some (Ovl.ofTrie I.tMain)⟩ := rfl
 
 /-- The state component with an **empty** key list. Kept for source compatibility only (lane B's
-`StateViewParams.FitsReach` names it); the view uses `stOfK (V.keys I)`. -/
+`StateViewParams.FitsReach` names it); the view uses `stOfI V.keys I` (= `stOfK (V.keys I)` away
+from `start`). -/
 def stOf (c : EConf) : StV := stOfK [] c
 
 /-- **The working set's keys of a state component** (lane B's `StViewE.keysOf`): the key list
@@ -131,18 +164,21 @@ def keysOf : StV → List Bytes
 
 theorem keysOf_stOfK (K : List Bytes) (c : EConf) : keysOf (stOfK K c) = K := rfl
 
+theorem keysOf_stOfI (κ : Intake → List Bytes) (I : Intake) (c : EConf) :
+    keysOf (stOfI κ I c) = κ I := rfl
+
 /-- **The split of a configuration into its components**, given the key function `κ` (the chunk's
 key list as a function of the intake record). -/
 def split (κ : Intake → List Bytes) : RConf → Parts
   | .base (.init cb wb) => (0, .raw cb wb, .none, .none, [], none)
-  | .base (.eng I c) => (1, .intake I, stOfK (κ I) c, .eng (eposAcc c.pos), [], none)
+  | .base (.eng I c) => (1, .intake I, stOfI κ I c, .eng (eposAcc c.pos), [], none)
   | .base (.fin I out) => (2, .intake I, .fin out, .none, [], none)
   | .base (.gfin G) => (3, .gen G, .none, .none, [], none)
   | .base (.done H o) => (4, .header H, .none, .done o, [], none)
   | .base .doneG => (5, .none, .none, .none, [], none)
-  | .call I c K q cc => (6, .intake I, stOfK (κ I) c, .eng (eposAcc c.pos), K, some (q, cc))
+  | .call I c K q cc => (6, .intake I, stOfI κ I c, .eng (eposAcc c.pos), K, some (q, cc))
 
-/-- Its inverse (the key list is dropped: it is a function of the intake). -/
+/-- Its inverse (the key list and the start overlay are dropped: functions of the intake). -/
 def unsplit : Parts → Option RConf
   | (0, .raw cb wb, _, _, _, _) => some (.base (.init cb wb))
   | (1, .intake I, .eng p st, .eng a, _, _) => some (.base (.eng I ⟨eposMap (rsFill a) p, st.st⟩))
@@ -156,8 +192,8 @@ def unsplit : Parts → Option RConf
 
 theorem unsplit_split (κ : Intake → List Bytes) (x : RConf) : unsplit (split κ x) = some x := by
   cases x with
-  | base c => cases c <;> simp only [split, unsplit, stOfK, eposFill_strip]
-  | call I c K q cc => simp only [split, unsplit, stOfK, eposFill_strip]
+  | base c => cases c <;> simp only [split, unsplit, stOfI, eposFill_strip]
+  | call I c K q cc => simp only [split, unsplit, stOfI, eposFill_strip]
 
 /-- **The components determine the configuration** (for any key function). -/
 theorem split_inj {κ : Intake → List Bytes} {x y : RConf} (h : split κ x = split κ y) : x = y := by
@@ -327,6 +363,7 @@ theorem coll_chainD {α : Type} (enc : α → Bytes) (henc : ∀ a b, enc a = en
 
 #print axioms unsplit_split
 #print axioms split_inj
+#print axioms stOfI_of_ne
 #print axioms viewImpl_binding
 #print axioms viewImpl_binding_bad
 #print axioms chainD_binding
