@@ -1,0 +1,8 @@
+info: M5T1/ShSem.lean:380:0: 'M5T1.ShSem.sh_sound' depends on axioms: [propext, Classical.choice, Quot.sound]
+info: M5T1/SeOpen.lean:206:0: 'M5T1.SeOpen.se_open' depends on axioms: [propext, Classical.choice, Quot.sound]
+info: M5T1/SeC.lean:252:0: 'M5T1.SeC.seHoldsC_of' depends on axioms: [propext, Classical.choice, Quot.sound]
+info: M5T1/SeC.lean:253:0: 'M5T1.SeC.eng_copied' depends on axioms: [propext, Classical.choice, Quot.sound]
+info: M5T1/SeC.lean:254:0: 'M5T1.SeC.eng_consts' depends on axioms: [propext, Classical.choice, Quot.sound]
+info: M5T1/SeC.lean:255:0: 'M5T1.SeC.se_engHalf' depends on axioms: [propext, Classical.choice, Quot.sound]
+info: M5T1/SeC.lean:256:0: 'M5T1.SeC.fin_engHalf' depends on axioms: [propext, Classical.choice, Quot.sound]
+info: M5T1/SeC.lean:257:0: 'M5T1.SeC.finalize_relC8' depends on axioms: [propext, Classical.choice, Quot.sound]
