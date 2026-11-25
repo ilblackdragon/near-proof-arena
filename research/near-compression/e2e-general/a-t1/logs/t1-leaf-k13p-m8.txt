@@ -1,0 +1,25 @@
+# lane D M8 import (m8-import, pq-e2e-m8 drv2) and leaf-program probes of T1's tree with the pinned lane A leaves
+M8_TEMPLATE_PROVED wasm_seg bytes=554709 seconds=0.0 params=(n_stack 18, w_stack 8, lb 1) queries=[100, 71, 45, 33] bits=268.2
+M8_TEMPLATE_PROVED wasm_seg bytes=553071 seconds=0.0 params=(n_stack 18, w_stack 8, lb 1) queries=[100, 71, 45, 33] bits=268.2
+M8_CHAIN_OK leaves=8 (natively: ctx, indices, boundary digests)
+M8_LEAF_PROBE 0 rows=3438 pin=[(21, Some(5240)), (11, Some(1280)), (7, Some(128)), (16, Some(65536))] s=0.1
+M8_LEAF_PROBE 1 rows=296584 pin=[(21, Some(530928)), (21, Some(1314560)), (7, Some(128)), (16, Some(65536))] s=0.4
+M8_LEAF_PROBE 2 rows=239460 pin=[(21, Some(476296)), (21, Some(1819136)), (7, Some(128)), (16, Some(65536))] s=0.4
+M8_LEAF_PROBE 3 rows=239460 pin=[(21, Some(476296)), (21, Some(1819136)), (7, Some(128)), (16, Some(65536))] s=0.4
+M8_LEAF_PROBE 4 rows=184818 pin=[(21, Some(372116)), (21, Some(1459968)), (7, Some(128)), (16, Some(65536))] s=0.3
+M8_LEAF_PROBE 5 rows=3438 pin=[(21, Some(5240)), (11, Some(1280)), (7, Some(128)), (16, Some(65536))] s=0.1
+M8_LEAF_PROBE 6 rows=2674 pin=[(21, Some(4036)), (9, Some(384)), (7, Some(128)), (16, Some(65536))] s=0.1
+M8_LEAF_PROBE 7 rows=2674 pin=[(21, Some(4036)), (9, Some(384)), (7, Some(128)), (16, Some(65536))] s=0.1
+M8_LEAF_GEOM Geom { log_rows: 20, prog_log: 19, sha_instances: 1, heights: [(20, Some(530928)), (21, Some(1819136)), (7, Some(128)), (16, Some(65536))] }
+# M8_PROGRAMS_ONLY=1 (program roots at the leaf geometry, no proof; driver = this tree's pq-chunk-e2e)
+M8_LEAF_PROGRAM 0 template=INIT rows=2414 root=8c5e7efe00c680432be29b4c48064503
+M8_LEAF_PROGRAM 1 template=STATE_IF rows=295560 root=c66803d027fb69bdb380ec9f98fe06c
+M8_LEAF_PROGRAM 2 template=WASM rows=238436 root=59b572a7fb757281cca532936106e84
+M8_LEAF_PROGRAM 3 template=WASM rows=238436 root=59b572a7fb757281cca532936106e84
+M8_LEAF_PROGRAM 4 template=STATE_SEG rows=183794 root=de591d8a8560453a2a9fc18c696a7917
+M8_LEAF_PROGRAM 5 template=FINAL rows=2414 root=1f2621154d37e61b312057033ebb55ab
+M8_LEAF_PROGRAM 6 template=PAD rows=1650 root=36ed894af1064270d5af507dbaf54e88
+M8_LEAF_PROGRAM 7 template=PAD rows=1650 root=36ed894af1064270d5af507dbaf54e88
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 2:07.42
+	Maximum resident set size (kbytes): 1864456
+# before (A-T1 leaves, results/zk/m8/t1real/tree/prove.log): WASM probes 244,330 / 244,190 rows; template set WASM:779e31f6... WASM:d921c4c2... (two programs)

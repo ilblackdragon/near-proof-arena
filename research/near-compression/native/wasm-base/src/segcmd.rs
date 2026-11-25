@@ -1028,6 +1028,37 @@ fn read_vk(path: &std::path::Path) -> SegVk {
     vk
 }
 
+/// A-T2: the prover-side tight-height floor that commits every common main at its full height:
+/// `(common-main width, log height, height)` per trace of the proving context.
+fn full_tight_floor(pc: &ProvingContext<CpuColMajorBackend<Sha384Config>>) -> Vec<(usize, usize, usize)> {
+    use openvm_stark_backend::prover::MatrixDimensions;
+    pc.common_main_traces()
+        .map(|(_, m)| (m.width(), m.height().trailing_zeros() as usize, m.height()))
+        .collect()
+}
+
+/// A-T2: the pinned `(log_height, tight_height)` of every AIR of a template, in vk order: each JSON
+/// table at its template height, the SHA-512 chip's main trace at the template's `SHA512` height
+/// and its table at 128 rows; the tight height is the full height (every table has common-main
+/// columns; a trace below `2^l_skip` rows declares none).  This is a function of the template file
+/// alone, so a template leaf's heights — program constants of lane D's leaf — are data independent.
+fn template_heights(spec: &AirSpec, th: &std::collections::HashMap<String, usize>, l_skip: usize) -> Vec<(usize, Option<usize>)> {
+    let mut hs: Vec<usize> = spec.tables.iter().map(|t| *th.get(&t.name).unwrap_or_else(|| panic!("template: no height for {}", t.name))).collect();
+    hs.push(th["SHA512"]);
+    hs.push(s384::air::ROWS);
+    hs.iter()
+        .map(|&h| {
+            assert!(h.is_power_of_two(), "template height {h}");
+            (h.trailing_zeros() as usize, (h >= 1 << l_skip).then_some(h))
+        })
+        .collect()
+}
+
+/// The `(log_height, tight_height)` per AIR a proof declares.
+fn proof_heights(p: &openvm_stark_backend::proof::Proof<Sha384Config>) -> Vec<(usize, Option<usize>)> {
+    p.trace_vdata.iter().map(|v| v.as_ref().map_or((usize::MAX, None), |v| (v.log_height, v.tight_height))).collect()
+}
+
 /// `segleaf <seg_air> <m2_air> <prep> <K> <template.json> <out_dir>`: prove every segment of the call
 /// at the pinned template (every table padded to the template height; a segment that does not fit is
 /// refused with `SEGFIT`), under the stack's base configuration (`seg_base_params`), with ONE
@@ -1043,6 +1074,7 @@ pub fn cmd_segleaf(a: &[String]) {
     seg::TEMPLATE.set(tp.heights.clone()).expect("template set once");
     let (prep, g, segs) = segments(&seg_air, &m2_air, &a[2], k);
     let prm = template_params(&tp);
+    let pinned = template_heights(&seg_air, &tp.heights, prm.l_skip);
     // the stack budget `stackRem` at a cut: the live space-5 message `[rem & 0xffff, rem >> 16]`
     let stack_rem = |c: &tracegen::CutSnap| -> Option<u64> {
         c.live.iter().find(|l| l.space == 5 && l.slot == 0).map(|l| l.v[0] | (l.v[1] << 16))
@@ -1069,7 +1101,22 @@ pub fn cmd_segleaf(a: &[String]) {
         }
         seg::precheck(&seg_air, &s.mats, &s.pubs, &s.comps).unwrap_or_else(|e| panic!("segment {i}: {e}"));
         let t = Instant::now();
-        let proof = eng.prove(&d_pk, ctx(&eng, &seg_air, &s.mats, &s.pubs, &s.comps)).expect("prove");
+        let pc = ctx(&eng, &seg_air, &s.mats, &s.pubs, &s.comps);
+        // A-T2: pin the tight heights.  Every committed common main commits its full template
+        // height (`stacked_pcs::set_tight_floor`, as lanes B and G do), so a segment's tight heights
+        // are the template's, not the position of its last non-zero row.  Lane D's leaf program
+        // takes the child's (log, tight) heights as constants: one leaf program per template.
+        // `SEG_TIGHT_NATURAL=1` keeps the natural tight heights (the pre-A-T2 leaves; tamper input).
+        let natural = std::env::var("SEG_TIGHT_NATURAL").is_ok_and(|v| v == "1");
+        if !natural {
+            openvm_stark_backend::prover::stacked_pcs::set_tight_floor(Some(full_tight_floor(&pc)));
+        }
+        let proof = eng.prove(&d_pk, pc).expect("prove");
+        openvm_stark_backend::prover::stacked_pcs::set_tight_floor(None);
+        if !natural {
+            let got = proof_heights(&proof);
+            assert_eq!(got, pinned, "segment {i}: proof heights are not the template's pinned heights");
+        }
         let tp_s = t.elapsed().as_secs_f64();
         let mut pb = vec![];
         proof.encode(&mut pb).unwrap();
@@ -1110,6 +1157,7 @@ pub fn cmd_segleaf(a: &[String]) {
     let m = serde_json::json!({
         "template": tp.raw, "k": k, "segments": man, "vk_sha256": sha256_hex(&vkb),
         "soundness_bits": b.total_bits,
+        "pinned_heights": pinned, "tight_heights": "pinned: full template height per AIR (A-T2)",
         "code_root": root(seg::pad_rep("CODE", &tracegen::code_matrix(&prep.records))),
         "func_root": root(seg::pad_rep("FUNC", &tracegen::func_matrix(&prep))),
     });
@@ -1133,6 +1181,11 @@ pub fn cmd_segleafverify(a: &[String]) {
     assert_eq!(sha256_hex(&vkb), man["vk_sha256"].as_str().unwrap(), "vk hash");
     let vk = read_vk(&out.join("SEG.vk.json"));
     let eng = Sha384RefEngine::new(vk.inner.params.clone());
+    // A-T2: the template's pinned (log, tight) heights, recomputed from the manifest's template
+    // heights (not read from a proof); every proof must declare exactly these
+    let th: std::collections::HashMap<String, usize> = man["template"]["heights"].as_object().expect("template heights")
+        .iter().map(|(k, h)| (k.clone(), h.as_u64().unwrap() as usize)).collect();
+    let pinned = template_heights(&spec, &th, vk.inner.params.l_skip);
     let mut prev: Option<Vec<F>> = None;
     for i in 0..n {
         let pb = std::fs::read(out.join(format!("seg-{i}.proof"))).unwrap();
@@ -1144,6 +1197,7 @@ pub fn cmd_segleafverify(a: &[String]) {
         let t = Instant::now();
         eng.verify(&vk, &proof).unwrap_or_else(|e| panic!("segment {i}: verifier {e:?}"));
         let tv = t.elapsed().as_secs_f64();
+        assert_eq!(proof_heights(&proof), pinned, "segment {i}: heights are not the template's pinned heights");
         let pv_ok = spec.tables.iter().enumerate().all(|(ti, t)| {
             let want: Vec<F> = if JsonAir::reads_pub(t) { pubs.clone() } else { vec![] };
             proof.public_values[ti] == want
@@ -1161,7 +1215,7 @@ pub fn cmd_segleafverify(a: &[String]) {
                 && p[seg::PUB_MEM_OUT..seg::PUB_MEM_OUT + 18] == pubs[seg::PUB_MEM_IN..seg::PUB_MEM_IN + 18];
             assert!(ok, "segment {i}: boundary chain");
         }
-        println!("  DISK {i}: {} B verified in {:.0} ms, public values = saved, chains", pb.len(), tv * 1000.0);
+        println!("  DISK {i}: {} B verified in {:.0} ms, heights = template's pinned (log, tight), public values = saved, chains", pb.len(), tv * 1000.0);
         prev = Some(pubs);
     }
     println!("SEGLEAFVERIFY OK {n} segments from disk under one vk");

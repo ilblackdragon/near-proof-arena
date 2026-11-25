@@ -1,0 +1,214 @@
+{
+  "code_root": "[9222518703046826505, 2651504207013451294, 246627625208553625, 17572554510288209602, 16038372197112515757, 40959]",
+  "func_root": "[14467547537345229192, 14156450685634643581, 7282698439347463273, 7814187258016737858, 3253048009232565580, 14110]",
+  "k": 13,
+  "pinned_heights": [
+    [
+      2,
+      4
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      3,
+      8
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      16,
+      65536
+    ],
+    [
+      16,
+      65536
+    ],
+    [
+      5,
+      32
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      4,
+      16
+    ],
+    [
+      4,
+      16
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      6,
+      64
+    ],
+    [
+      5,
+      32
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      4,
+      16
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      4,
+      16
+    ],
+    [
+      4,
+      16
+    ],
+    [
+      13,
+      8192
+    ],
+    [
+      7,
+      128
+    ]
+  ],
+  "segments": [
+    {
+      "halted": 0,
+      "proof_bytes": 554709,
+      "proof_sha256": "e41a249671b7a36c9ef46ac7463eb56c6f3bde5af361f98ecf56961b1b7c80de",
+      "prove_s": 25.664211605,
+      "pubs_sha256": "00ce3feca8bd2d2fb0ff85d74343d423afb8e5b66fdcbb68603ecfc6b8dece38",
+      "segment": 0,
+      "t_in": 0,
+      "t_out": 13,
+      "verify_ms": 17.215014
+    },
+    {
+      "halted": 1,
+      "proof_bytes": 553071,
+      "proof_sha256": "5df70bcf39cb5979924e60d5797a11fc0733b935eb72e9521f195b9d575d3f12",
+      "prove_s": 28.272156617,
+      "pubs_sha256": "c356727412ee08e793548bb0edbf98bb7cf0c0a4dd34ff05b79a0d5dbd1c011a",
+      "segment": 1,
+      "t_in": 13,
+      "t_out": 26,
+      "verify_ms": 16.976438
+    }
+  ],
+  "soundness_bits": 268.2098245308336,
+  "template": {
+    "certs": "<repo>/research/near-compression/final-soundness/calc/dkt_certs_o2.json",
+    "exclusions": "<repo>/research/near-compression/final-soundness/lean/DKTCertsO2_big.keys",
+    "heights": {
+      "ADD": 4,
+      "BIT": 4,
+      "BYTE": 65536,
+      "CALL": 4,
+      "CMP": 4,
+      "CODE": 32,
+      "CONST": 8,
+      "CONV": 4,
+      "CTRL": 4,
+      "CUTI": 16,
+      "CUTO": 16,
+      "DIV": 4,
+      "DROP": 4,
+      "FUNC": 4,
+      "HOST": 4,
+      "HOSTB": 32,
+      "HOSTO": 4,
+      "HOSTT": 64,
+      "IF": 4,
+      "LOAD": 4,
+      "LOCAL": 4,
+      "MEMB": 16,
+      "MPATH": 16,
+      "MUL": 4,
+      "RANGE16": 65536,
+      "REG": 16,
+      "RET": 4,
+      "SEGB": 4,
+      "SHA512": 8192,
+      "SHIFT": 4,
+      "STACK": 4,
+      "STORE": 4,
+      "UNREACH": 4
+    },
+    "log_blowup": 1,
+    "n_stack": 18,
+    "name": "t1-d3tiny-k13",
+    "pow": 24,
+    "w_stack": 8
+  },
+  "tight_heights": "pinned: full template height per AIR (A-T2)",
+  "vk_sha256": "b1eed0caeb1a3a01fcb9f6cdff7cba42243f504563962d923b9a34169a8aad7d"
+}

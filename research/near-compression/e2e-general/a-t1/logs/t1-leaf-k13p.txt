@@ -1,0 +1,15 @@
+# A-T2 task 1: T1 (d3tiny.run, K=13) at the pinned template, tight heights pinned (2026-11-25)
+# run_leaf.sh /data/illia/nearproof-deps/e2e-laneA/at2/leaf-k13p 13 1 24 (stack prover from this tree, HEAVY_MEM=18G, 8 threads)
+TEMPLATE_SEGMENTS 2 cells 2141676 tallest 65536 n_stack 18 w_stack 8
+PARAMS n_stack 18 w_stack 8 log_blowup 1 pow 24 degree 9 (stack base configuration)
+KEYGEN 0.00s; SOUNDNESS total=268.2 logup=324.4 proximity=295.1 query=268.2
+SEG 0 t (0, 13] steps 13 halted 0 | boundary: stream in 2 out 9 msgs, blocks 1 (read-only 0), drops 0 tombs 0, compressions 58 (stream 8, MEMB 18, MPATH 32)
+  CELLS instruction+lookup tables 1447504 | boundary tables 13084 | SHA-512 chip 681088 (height 8192) | total 2141676
+  LEAF 0: 554709 B, prove 25.7s, verify 17 ms, statement ok, peak_rss_kib 8170944
+SEG 1 t (13, 26] steps 13 halted 1 | boundary: stream in 9 out 13 msgs, blocks 1 (read-only 1), drops 0 tombs 0, compressions 39 (stream 14, MEMB 9, MPATH 16)
+  CELLS instruction+lookup tables 1447504 | boundary tables 13084 | SHA-512 chip 681088 (height 8192) | total 2141676
+  LEAF 1: 553071 B, prove 28.3s, verify 17 ms, statement ok, peak_rss_kib 8192908
+SEGLEAF OK 2 segments at one template vk (sha256 b1eed0caeb1a3a01fcb9f6cdff7cba42243f504563962d923b9a34169a8aad7d), boundaries chain; saved to leaf
+  DISK 0: 554709 B verified in 17 ms, heights = template's pinned (log, tight), public values = saved, chains
+  DISK 1: 553071 B verified in 17 ms, heights = template's pinned (log, tight), public values = saved, chains
+SEGLEAFVERIFY OK 2 segments from disk under one vk

@@ -2,7 +2,7 @@
 # A-T1 item 3: tampers of saved template leaves (segleafverify must refuse each).
 #   leaf_tamper.sh <leaf_work_dir>       (the run_leaf.sh work dir; its leaf/ is copied, never changed)
 set -uo pipefail
-. /data/illia/nearproof-deps/e2e-laneA/at1/env.sh
+. "${LANEA_ENV:-/data/illia/nearproof-deps/e2e-laneA/at1/env.sh}"
 BS=${WB_STACK:-/data/illia/nearproof-deps/e2e-laneA/at1/target-stack/release/nearproof-wasm-base}
 WD=${1:?}; cd "$WD"
 N=$(ls leaf/seg-*.proof | wc -l)
@@ -34,5 +34,15 @@ def walk(o):
             if walk(x): return True
     return False
 assert walk(v); json.dump(v,open('X/SEG.vk.json','w'))"
+# A-T2 (pinned tight heights): a proof of the same segment under the same vk at the natural tight
+# heights (the A-T1 leaf, OLD_LEAF=<its leaf dir>) and a template whose pinned heights differ
+if [ -n "${OLD_LEAF:-}" ]; then
+try "seg-0 = the same segment proved at its natural tight heights (same vk, A-T1 leaf)" "
+import shutil; shutil.copy('$OLD_LEAF/seg-0.proof','X/seg-0.proof')"
+try "seg-1 = the same segment proved at its natural tight heights (same vk, A-T1 leaf)" "
+import shutil; shutil.copy('$OLD_LEAF/seg-1.proof','X/seg-1.proof')"
+fi
+try "manifest: template SHA512 height 8192 -> 4096 (pinned heights changed)" "
+import json; m=json.load(open('X/manifest.json')); m['template']['heights']['SHA512']//=2; json.dump(m,open('X/manifest.json','w'))"
 rm -rf X
 echo "LEAF_TAMPER rejected $rej accepted $acc"
