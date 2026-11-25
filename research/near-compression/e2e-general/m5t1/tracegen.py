@@ -915,7 +915,7 @@ def main():
         e_out = rtbnd.bndrec.encode(dict(b_out, rBurnt=b_out["rBurnt"] - 1))
         applied.append("bndburnt")
     setpub("bin", list(e_in)); setpub("bout", list(e_out))
-    print(f"resume boundary: d_in {d_in[:16]}.. d_out {d_out[:16]}.. (lane I plan) = bdigest of the public records")
+    print(f"resume boundary: d_in {d_in} d_out {d_out} (lane I plan, M11i shape) = bdigest of the public records")
     pub_vals = [pubs[nm] for nm in pubnames]
     with open(f"{out}/expected_pubs.bin", "wb") as f:
         f.write(struct.pack(f"<{len(pub_vals)}I", *[v % P for v in pub_vals]))
@@ -955,7 +955,7 @@ def main():
     with open(f"{out}/pubs.bin", "wb") as f:
         f.write(struct.pack(f"<{len(pub_vals)}I", *[v % P for v in pub_vals]))
     # F-2: the boundary pair's place in the public values; the template's tables
-    json.dump([pubnames.index("bin.0"), 784, 408], open(f"{out}/bnd.json", "w"))
+    json.dump([pubnames.index("bin.0"), 834, 450], open(f"{out}/bnd.json", "w"))
     json.dump(["SHA", "RNG", "SCHT", "MSG", "DG", "RX"], open(f"{out}/tables.json", "w"))
     if tmpl:
         json.dump(json.load(open(tmpl)), open(f"{out}/template.json", "w"), indent=1)

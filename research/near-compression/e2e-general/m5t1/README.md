@@ -1,7 +1,7 @@
-# E2E lane F: the runtime rows of T1's FunctionCall receipt (M5-T1) and the `rt` leaves (F-2)
+# E2E lane F: the runtime rows of T1's FunctionCall receipt (M5-T1), the `rt` leaves (F-2), the relative store-canonical form (F-3)
 
 Plan: `docs/zk-formal/E2E-GENERAL-CHUNK-PLAN.md` §3.3 (Wasm ↔ state join), §4.2 (M5), §5.2 (status).
-Date 2026-11-21. Labels: **[M]** measured here, **[K]** kernel-checked Lean (std axioms, no `sorry`),
+Date 2026-11-21 (F-3: 2026-11-25). Labels: **[M]** measured here, **[K]** kernel-checked Lean (std axioms, no `sorry`),
 **[S]** design / stated only.
 
 Target T1 = `d3c8/d3/02-h10196-s3`. Its one incoming receipt (`78c006d5…`, `s2a04 → s5k210.s2a00`,
@@ -114,8 +114,8 @@ the receipt step with the VM answered from the tape). Lane I's driver plan
 | `Walk.lean` | the semantic interface: a message = a `Walk` over the schema (visits, `VisitOK`, `EndOK`/`ContOK`, `nextSeg`/`nextPl`/`newRAt`). |
 | `MsgSpec.lean` (sub-agent) | **walk → encoder, for every walk**: `rl_spec` (`encodeRcpts` of single-FunctionCall V1 receipts, `FcShape`, per-receipt families), `key_spec` (`kAccount`), `acct_spec` (`Acct.encode`), `ah_spec`/`seed_spec`/`rid_spec` (`actionHash`, seed, `receiptIdFrom` preimages), `rref_spec` (`Rcpt.encode` of the refund receipt), `log_spec`, `part_spec` (`OutD1.partialEncode`, incl. the empty return), `leaf_spec`/`leaf_link` (`OutD1.leaf`); non-vacuity examples. No layout mismatch. Caveats (what the walk alone does not pin): RL count vs receipt number, RREF's two signer visits equal only via `FB`, RREF id = the RID digest (refund is receipt 0), LEAFn's count field from `RX`, APRE `u128::MAX` sentinel. |
 | `MsgRow*.lean` (sub-agent) | **rows → walk**: `sch_row` (every `MSG` row's descriptor is a schema entry, = `segAt mt s`), `span_of` (every active row lies in a message span), **`msg_walk`** (a span `r0..r1` is `IsMsg mt mf (its b bytes) vs`), `span_start_unique`; **`dg_digest`** (an active `DG` row's 32 digest bytes are `sha256` of its message's bytes, via ZkFormal's closed SHA-256 table soundness), `mIdBound_of` (message ids `< 2^24` from the `RX`–`MBEG` balance) and `dg_digest'`. Premises: `SchtFixed` (the preprocessed schema columns, pinned by the vk), tapes send nothing on `SCH`/`RNG`/`SHA_BYTES`/`SHA_DIGEST`/`MLEN`/`MBEG`. |
-| `BndLay.lean`, `Ent.lean` | the `rt` leaves' public values: **the boundary pair as `BndRec.encode` bytes** (`engF` 408 B / `callF` 784 B, one byte per public value), `enterCons`, `resumeCons`. |
-| `SegRt.lean` | enter edge: `carried_eq`, `const_eq` (field-by-field semantics of `ENT` on any satisfying trace), **`segSoundRt_enter_from`**: the relative obligation for enter under the named view contract `EnterView V` (position non-final inside `stRoot` — lane B, review-D7 I3; the `.pre` Wasm record — lane A/PREP; `V.clear`'s `t`/`rPrepaid`), else a 42-B SHA-384 collision. |
+| `BndLay.lean`, `Ent.lean` | the `rt` leaves' public values: **the boundary pair as `BndRec.encode` bytes** (F-2: `engF` 408 B / `callF` 784 B; F-3: 450 / 834 B, one byte per public value), `enterCons`, `resumeCons`. |
+| `SegRt.lean` | (F-2 version; superseded in F-3 by `SegRt` per-rule semantics + `EnterC.enter_relC`) enter edge: `carried_eq`, `const_eq` (field-by-field semantics of `ENT` on any satisfying trace), **`segSoundRt_enter_from`**: the relative obligation for enter under the named view contract `EnterView V` (position non-final inside `stRoot` — lane B, review-D7 I3; the `.pre` Wasm record — lane A/PREP; `V.clear`'s `t`/`rPrepaid`), else a 42-B SHA-384 collision. |
 
 **Not yet proved (in order).** (1) Resume: compose `rx_rel_of_holds` + `SpecLink` + `msg_walk`/`MsgSpec` + `dg_digest` into `estepO (strictO (K ++ [(q, r)])) I.prog c = .ok c'` (the monadic `applyActionReceiptW` step: overlay reads/writes, recorder, `emitReceipts` forward/buffer, the action loop's other branches) and the resume view contract (stRoot / outcome accumulator / `vmAcc` updates, which the template carries today); FB single-definer uniqueness (needed to read field values as functions). (2) `TmplComplete .rt` on T1: measured only (both leaves prove at the driver's records and digests [M]); no Lean statement for a concrete `ViewImpl` (none exists yet: lane I's driver has placeholder components).
 
@@ -168,10 +168,90 @@ merge per action, `isLast` receivers). The schema engine is general (new message
 schema entries + `MsgSpec` lemmas); `RX` needs per-action rows (the split above) before more
 action kinds fit.
 
+## F-3 (2026-11-25): lane F's templates in lane E's relative, store-canonical form (M11i)
+
+Lane E's M11i (plan §3.5) made the per-template obligation **relative and store-canonical**
+(`StoreBlind.TmplRelC`, `TreeM8C.TmplSoundRel8C`: every canonical opening of the input digest
+steps to a canonical opening of the output digest), changed the record (`WasmBnd.gasLeft`; the
+engine-state outgoing accumulator is the singleton `[chainD enc rs]`, G-3 item 2) and fixed S2
+(`preCodeRoot q = SHA-256(q.code) ‖ 0^10`, the `.pre` record's `codeRoot`, written by the enter
+leaf). Log: [`docs/logs/e2e-f3-runtime-2026-11-25.md`](../../../../docs/logs/e2e-f3-runtime-2026-11-25.md).
+
+### The leaves on the M11i record [M] (`logs/F3-leaves.txt`, `logs/F3-mutants.txt`)
+
+* **Layout** (`BndLay`): `engF` 450 B (`outRcptN`, `outRcpt0`: the singleton list), `callF` 834 B
+  (`gasLeft` after `fuel`). The pairs come from lane I's run4 plan in the M11i shape (`rtbnd.py`:
+  singleton accumulator with the plan's placeholder digest, `gasLeft = 0`; every other field is
+  the plan's), so the digests differ from the plan's (lane I's driver is pre-M11i).
+* **Enter AIR** (`BndLay.outRule`, `enterCons`; 762 constraints, was 410): per output field a rule —
+  copy, constant, constant digest, free, padded. New: the **`.pre` Wasm record** (lane A's `fbBnd`:
+  `pc`, `sp`, `stackRem`, `fuel`, `gasLeft`, `memPages` = 0; `framesDigest`, `memRoot`,
+  `globalsDigest`, `registersDigest`, `promisesDigest`, `funcRoot` = `bdigest []`) and **S2**:
+  `codeRoot = h ‖ 0^10` with `h` the receiver's code hash (the 32 bytes the receipt rows read from
+  the account record, `APRE` bytes 32..64; T1: `8152bed2…36bf9` = SHA-256 of the 345-B `d3tiny`).
+  The plan put the Wasm *entry* record at the enter cut; under M11i PREP (`.pre → .ent`) is a
+  `wasm` leaf, so enter ends at `.pre`.
+* **Proofs** (lane D's base configuration, pinned templates unchanged, 8 threads):
+
+| leaf | proof | bits | prove / verify / RSS | `d_in` → `d_out` | mutants |
+|---|---|---|---|---|---|
+| enter (1,284 public values) | **87,739 B** | 268.8 | 2.4 s / 1.0 ms / 1.2 GB | `b850f1e5…` → `c320b92b…` | **10/10** (F-2's 4 + `coderoot` pad byte, `prefuel`, `gasleft`, `framesdig`, `outrcpt`, `inphase`) |
+| resume (1,531 public values) | **430,143 B** | 268.3 | 17.0 s / 20 ms / 9.9 GB | `7fccc1fa…` → `6e1fe8a5…` | **11/11** (M5-T1's 8 + F-2's 3) |
+
+  Both imported by **lane D's `m8-import`** (verifies natively; `M8_TEMPLATE_PROVED`) into the M8
+  leaf format at `/data/illia/nearproof-deps/e2e-m5t1/f3/tmpl/{rt-enter,rt-resume}/`
+  (`TMPL.proof`, `TMPL.vk.json`, `INFO.json`); `results/f3/` holds `INFO.json`, `statement.json`,
+  `SHA256SUMS`.
+
+### Lean [K] (`lake build M5T1 m5t1-tool`; std axioms only, no `sorry`)
+
+| file | what is proved |
+|---|---|
+| `SegRt.lean` (rewritten) | the enter constraints' semantics per output rule on any satisfying trace: `copy_sem`, `num_sem`, `dig_sem`, `pad_sem` (S2's zero padding), `in_sem` (input phase 1, `inCall 0`, no Wasm part). F-2's `segSoundRt_enter_from` (under the contract `EnterView`) is superseded and removed. |
+| `EnterC.lean` | the record ↔ public-value bridge: `enc_eng` / `enc_call` (`BndRec.encode` = the fields in `BndLay` order), `bytesOf_lay`, `flat_inj`, `len_eng`/`len_call`, `rules` (the 37 fields' rules, by evaluation), `bnd_enter` (the view of `call I c [] q .pre` = the engine record relabelled + the `.pre` part); **`enter_relC`** (`TmplRelC` shape: every canonical opening `x` of the input digest steps by `MRt.enter` to the canonical opening `call I c [] (setArgs (sf I) q) .pre` of the output digest, or a 42-B SHA-384 collision), `enter_open`, `enter_core`, **`enter_relC8`** (the M8 `TmplSoundRel8C` shape at leaf statements `(phase, digest)`), `enter_notInit` (its part of `NotInitIn`). |
+| `T1Enter.lean` | **non-vacuity on T1's real enter leaf**: `t1_ent_holds` (`Holds Ent.entAir` on the leaf's own 1,284 public values; kernel evaluation in 8 chunks, 3 GB), `t1_checks` (incl. **`SHA-256` of T1's 345-B contract in the kernel** = the `codeRoot` bytes), `t1_rtView` (a view `V1` meeting every `RtView` law), **`t1_enter_nonvac`** (all premises of `enter_relC` hold together, `bndOf V1.bnd (eng I c)` = the leaf's input digest) and **`t1_enter_opens`** (the conclusion's canonical opening exists) — for every non-final `eng I c` and every query with T1's code. |
+| `SplitC.lean` | **`split_sound_relC`** (`EngHalfRC` ∧ `StHalf` ∧ `SplitGlue` ⇒ `TmplSoundRel8C`: lane E's `split_sound` in the relative canonical form), **`glue_of`** (`SplitGlue` from lane F's side `ReqsFaithful` and lane B's side `ApplyFaithful`), **`rt_relC8`** (`TmplSoundRel8C … .rt` for the `rt` kind = enter ∨ the other `rt` programs, from `enter_relC8` and the named `RtOthers`). |
+
+**What `enter_relC` rests on** (`EnterC.RtView`, `EnterC.EntChecks`), by owner:
+
+| premise | owner | status |
+|---|---|---|
+| `RtView.preW`: `wasmD (some (q, .pre)) = preRec (vmc q) q` (S2 `.pre` record) | A | lane A's `fbBnd` still has `codeRoot = bdigest []`; the change is the plan's S2 instruction |
+| `EntChecks.vm`: the output's `vmCtxDigest` is `vmc q` (lane A's remainder digest of `(q, .pre)`) | A | named: a copying leaf cannot exhibit a preimage of `encRest`; closes when the leaf (or PREP) parses the remainder |
+| `RtView.pos`, `EntChecks.pos`: the input's `stRoot` shows a non-final position | B | named (`StCommit.rest` opening, review-D7 I3) |
+| `RtView.clearEnter` (clear fields of `call I c [] q .pre` = those of `eng I c` with `t := 0`, `rPrepaid := pre q`), `outOne`, `noWasm`, `wf`, `blind` | E (view shape) | met by `V1`; `clearE` meets `clearEnter` with `pre = 0`; `blind` needs lane A's store-blind `wasmD` (S1) |
+| `EntChecks.prepaid` (`rPrepaid = pre q`), `EntChecks.code` (`h = SHA-256(q.code)`) | **F** | **open**: the enter leaf has no receipt rows; closes by joining enter with the receipt family's `MSG`/`RX` rows that read `RX.gas` and the `APRE` code hash (and, for `h = SHA-256(code)`, lane B's account read + PREP's SHA-256 of the code) |
+
+**Resume and STATE (not discharged).**
+* **Finding F3-1.** The resume AIR *carries* `stRoot`, `outcomeAcc`, `outRcptAcc` and `vmAcc`, so
+  for any view whose state commitment sees the receipt step (the position advances: `stOfK κ I c ≠
+  stOfK κ I c'`) the output digest does not open — the relative obligation is unprovable for the
+  current resume AIR, not just unproved. Needed: the split with lane B (`stRoot` from the state
+  half, `SplitC.split_sound_relC`), the accumulator appends in-circuit (`outDE (.eng a)`: one
+  SHA-384 per outcome / refund receipt, `Ser.enc` items — the resume prover has no SHA-512 chip
+  today), `vmAcc' = bdigest []` (T1: `K = []`), and the `estepO (strictO (K ++ [(q, r)]))`
+  composition (F-2 open item 1). Stated as `SplitC.RtOthers` (named premise of `rt_relC8`).
+* **Finding F3-2 (clear fields).** Lane E's `viewE` uses `clearE` (all counters `0`; the gas totals
+  live in `stRoot`'s receipt state), while the resume leaf ties the boundary's `gasUsed` /
+  `gasBurnt` / `compute` / `balanceBurnt` / `rPrepaid` / `rBurnt` / `rUsed` to `RX`'s totals and lane
+  I's driver fills them with the run's counters. Under `clearE` an honest resume leaf cannot
+  satisfy its own boundary constraints (T1's totals are not 0). Decision for lane E / owner: the
+  clear fields carry the counters (driver view), or resume takes the totals from the `stRoot`
+  opening (lane B's `rest`). Enter is neutral (`clearEnter` is parametric in `pre`). Not a change
+  of `S`, `claimDigest` or the checker.
+* **STATE.** Lane F has no engine rows for VM-free steps (T1's STATE segments: receipt 0, the
+  forwards, the post-receipt steps), so `EngHalfRC` for STATE has no AIR to prove it from. The split
+  instance and the glue are stated (`SplitC` header): `W` = working-set root, `Q` = the `SREQ`/`HB`
+  requests, `qOf` = the steps' overlay requests; lane F's side of the glue `ReqsFaithful` (the
+  overlay after the step(s) is the overlay before updated by exactly `qOf`) is open, lane B's
+  side `ApplyFaithful` is a named premise; `glue_of` composes them.
+
 ## Open (M5-T1 list, updated)
 
-1. ~~MSG/DG row lemmas, RNG bus fact~~ (F-2); `SegSoundRt` resume composition and both view
-   contracts: see F-2 "Not yet proved".
+1. ~~MSG/DG row lemmas, RNG bus fact~~ (F-2); ~~enter view contract~~ (F-3: `enter_relC` from
+   the circuit + named checks); resume: F3-1 (split with lane B, accumulator appends, `estepO`
+   composition); enter's `EntChecks.prepaid` / `code` (join with the receipt rows); STATE engine
+   rows (none yet); F3-2 (clear-field convention, lane E / owner).
 2. **Template coverage**: one FunctionCall per V1 action receipt, ED25519 signer, no inputs/outputs,
    successful call without promises, ≤ 4 non-empty logs, refund > 0, receiver exists with a local
    contract; account-id validity (`AccountId.valid`) and `softExceeded` (recorder size) not in the

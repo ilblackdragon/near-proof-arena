@@ -15,3 +15,6 @@ import M5T1.MsgRow
 import M5T1.MsgRowDg
 import M5T1.MsgRowId
 import M5T1.SegRt
+import M5T1.EnterC
+import M5T1.T1Enter
+import M5T1.SplitC

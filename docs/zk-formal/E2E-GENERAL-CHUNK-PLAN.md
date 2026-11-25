@@ -785,6 +785,13 @@ M8 form `TmplSoundRel8 V A8 Bad k` over the circuit's leaf AIRs `circAirs8` (`E2
 | G `SegRelFinal` / `TmplSoundRel8 .final` | a `CM` run from `eng I ⟨.done out, _⟩`, `fin I out` or `gfin G` to `done H o` / `doneG` | `B_out`: phase 4 / 5, `ctxRoot = bdigest (3 ‖ Ser.enc H)`, `outDE (.done o) = (bdigest (Ser.enc o), [], bdigest [], bdigest [2])`, `stD .none` | for `done H o`: `∃ s, s.wf ∧ claimDigest s = ctx ∧ decodeChunkInner s.ci.chunkInner = .ok H ∧ headerOk H o` (M5d `final_template_sound`) | `cm_done_header`, `fin_accepts_iff`, `final_header_public` |
 | D `TreeFaithful`, `PadSound8` | tree / PAD (`b' = b`, phase 4 or 5) | — | wrap: `cx (ctxOf s) = claimDigest s`, `B_0.phase = 0`, `B_N.phase ∈ {4, 5}` (**the `View.split` codes, not D-5's placeholder 1 / 2**) | `treeFaithful_of_aggH`, `compose_ctx`, `NodeExecV` (item 1 below) |
 
+**Lane F status (F-3, 2026-11-25):** enter discharged in the canonical form from the circuit
+(`m5t1/lean/M5T1/EnterC.enter_relC`, `enter_relC8`; non-vacuity on T1: `T1Enter`) under the view
+laws `RtView` and the named checks `EntChecks` (README §F-3 lists them by owner); resume and the
+STATE engine half are not (F3-1, no STATE engine rows); split leaves in the relative canonical form:
+`SplitC.split_sound_relC`.
+
+
 Notes for the lanes:
 * **INIT must commit to the decoded intake** (`bdigest (1 ‖ Ser.enc I)`): every engine and call
   boundary carries it. `Ser.enc I` includes the revealed pre-state trie, so this is
@@ -2369,6 +2376,31 @@ See `research/near-compression/e2e-general/m5t1/README.md`; log
   (`a2e7b254… → c667b45b…`, `6048b455… → aecc4056…`); mutants 11/11 (resume) + 4/4 (enter).
 * **[M] Size:** `SCHT` preprocessed, one row per entry (3,255 → 44 columns): `relations`
   290,732 → 136,608 B. `RX` split not done (plan in README).
+
+**F-3 (lane F, 2026-11-25)** — README §F-3, log [`docs/logs/e2e-f3-runtime-2026-11-25.md`](../logs/e2e-f3-runtime-2026-11-25.md).
+* **[K] `EnterC.enter_relC`**: the rt enter leaf in the M11i form (`TmplRelC` shape; M8:
+  `enter_relC8`, `enter_notInit`) **from the leaf's constraints** — every canonical opening `eng I c`
+  of the input digest steps by `MRt.enter` to the canonical opening `call I c [] q' .pre` of the
+  output digest (`q'` = the ghost query with the context's store, by S1 store-blindness), or a 42-B
+  SHA-384 collision. Premises: view laws `RtView` (lane A: S2 `.pre` record `preRec`; lane B:
+  position check; lane E: clear-field law, singleton outgoing accumulator, `wf`, `blind`) and the
+  leaf's named checks `EntChecks` (lane A's remainder digest; `rPrepaid` and the code hash = the
+  query's — lane F, open until enter is joined with the receipt rows; lane B's position).
+  **Non-vacuity on T1's real enter leaf** (`T1Enter`): `Holds` of the exported AIR on its 1,284
+  public values, SHA-256 of T1's contract in the kernel, a view meeting every law
+  (`t1_enter_nonvac`, `t1_enter_opens`). **`SplitC.split_sound_relC`** (split leaves in the relative
+  canonical form), `glue_of` (glue = lane F's `ReqsFaithful` + lane B's `ApplyFaithful`), `rt_relC8`
+  (the `rt` kind from enter + the named `RtOthers`).
+* **[M] S2 in the enter AIR** (`codeRoot = code hash ‖ 0^10`, the `.pre` record's constants) and the
+  M11i record (`gasLeft`, singleton `outRcptAcc`: `engF` 450 B, `callF` 834 B): T1 enter **87,739 B**
+  (2.4 s, 268.8-bit, mutants 10/10), resume **430,143 B** (17.0 s, 9.9 GB, 11/11), both imported by
+  lane D's `m8-import`. Digests ≠ lane I's run4 plan (pre-M11i; the plan's enter output is the
+  entry record, now PREP's).
+* **Findings.** F3-1: the resume AIR carries `stRoot`/accumulators/`vmAcc`, so its relative
+  obligation is unprovable until the lane B split, the accumulator appends and the `estepO`
+  composition exist. F3-2: `ViewE.clearE` (counters 0) vs the resume leaf's / lane I's real
+  counters — lane E / owner decision (no change of `S`, `claimDigest`, checker). Lane A's `fbBnd`
+  does not yet write S2. Lane F has no STATE engine rows.
 
 ### 5.3 M5d (FINAL and INIT templates, lane G): status, 2026-11-25 (G-3)
 

@@ -39,13 +39,13 @@ case "$MODE" in
       nice -n 10 $HEAVY "$BIN" "$OUT/m5t1.json" "$OUT/mut-$m" mutant | tee "$OUT/mut-$m.log" | grep -E "PRECHECK|REJECTED|ACCEPTED|VERIFY"
     done ;;
   leaves)
-    python3 "$HERE/entgen.py" "$PLAN" "$OUT/enter" --template "$HERE/templates/rt-enter.json"
+    python3 "$HERE/entgen.py" "$PLAN" "$OUT/enter" --run "$OUT/lean-run.json" --template "$HERE/templates/rt-enter.json"
     nice -n 10 $HEAVY "$BIN" "$OUT/ent.json" "$OUT/enter" prove "$OUT/enter-proof" | tee "$OUT/enter.log"
     gen "$OUT/resume" --template "$HERE/templates/rt-resume-T1.json" | tee "$OUT/resume.gen.txt"
     nice -n 10 $HEAVY "$BIN" "$OUT/m5t1.json" "$OUT/resume" prove "$OUT/resume-proof" | tee "$OUT/resume.log" ;;
   leaf-mutants)
-    for m in ${MUTANTS:-phase gas stroot clock}; do
-      python3 "$HERE/entgen.py" "$PLAN" "$OUT/ent-mut-$m" --template "$HERE/templates/rt-enter.json" --mutant "$m" > /dev/null
+    for m in ${MUTANTS:-phase gas stroot clock coderoot prefuel gasleft framesdig outrcpt inphase}; do
+      python3 "$HERE/entgen.py" "$PLAN" "$OUT/ent-mut-$m" --run "$OUT/lean-run.json" --template "$HERE/templates/rt-enter.json" --mutant "$m" > /dev/null
       echo "== enter mutant $m"
       nice -n 10 $HEAVY "$BIN" "$OUT/ent.json" "$OUT/ent-mut-$m" mutant | tee "$OUT/ent-mut-$m.log" | grep -E "PRECHECK FAIL|REJECTED|ACCEPTED"
     done ;;

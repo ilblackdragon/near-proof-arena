@@ -42,7 +42,7 @@ def PL : Layout :=
    ("gout", 8), ("cout", 8), ("tbout", 16), ("othout", 16), ("sbout", 16), ("wgout", 16), ("noout", 1),
    ("ngout", 1),
    -- F-2: the boundary pair of the `rt` resume edge (`BndLay`): `BndRec.encode` in a call / out of it
-   ("bin", 784), ("bout", 408)]
+   ("bin", 834), ("bout", 450)]
 
 def pub (s : String) (j : Nat := 0) : Expr := .pub (PL.off s + j)
 def NUM_PUB : Nat := PL.width
