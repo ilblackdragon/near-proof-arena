@@ -2447,8 +2447,9 @@ See `research/near-compression/e2e-general/m5t1/README.md`; log
 * **Findings.** F3-1: the resume AIR carries `stRoot`/accumulators/`vmAcc`, so its relative
   obligation is unprovable until the lane B split, the accumulator appends and the `estepO`
   composition exist. F3-2: `ViewE.clearE` (counters 0) vs the resume leaf's / lane I's real
-  counters — lane E / owner decision (no change of `S`, `claimDigest`, checker). Lane A's `fbBnd`
-  does not yet write S2. Lane F has no STATE engine rows.
+  counters — lane E / owner decision (no change of `S`, `claimDigest`, checker). Lane A's A-T3
+  `fbBnd` writes S2, so `RtView.preW` is its `.pre` branch (definitional, not cross-checked in
+  Lean). Lane F has no STATE engine rows.
 
 ### 5.3 M5d (FINAL and INIT templates, lane G): status, 2026-11-25 (G-4)
 

@@ -216,7 +216,7 @@ leaf). Log: [`docs/logs/e2e-f3-runtime-2026-11-25.md`](../../../../docs/logs/e2e
 
 | premise | owner | status |
 |---|---|---|
-| `RtView.preW`: `wasmD (some (q, .pre)) = preRec (vmc q) q` (S2 `.pre` record) | A | lane A's `fbBnd` still has `codeRoot = bdigest []`; the change is the plan's S2 instruction |
+| `RtView.preW`: `wasmD (some (q, .pre)) = preRec (vmc q) q` (S2 `.pre` record) | A | lane A's A-T3 (merged 2026-11-25) writes S2 in `WasmView.fbBnd` (`codeRoot := preCodeRoot q` at `.pre`, `gasLeft` default `0`), so for lane A's `wasmD P` this law is `fbBnd P (q, .pre) = preRec (bdigest (P.encRest (.other (q, .pre)))) q` — definitional (`airOf` is `none` off `.ent`); not checked here (this package does not import `WasmBase`) |
 | `EntChecks.vm`: the output's `vmCtxDigest` is `vmc q` (lane A's remainder digest of `(q, .pre)`) | A | named: a copying leaf cannot exhibit a preimage of `encRest`; closes when the leaf (or PREP) parses the remainder |
 | `RtView.pos`, `EntChecks.pos`: the input's `stRoot` shows a non-final position | B | named (`StCommit.rest` opening, review-D7 I3) |
 | `RtView.clearEnter` (clear fields of `call I c [] q .pre` = those of `eng I c` with `t := 0`, `rPrepaid := pre q`), `outOne`, `noWasm`, `wf`, `blind` | E (view shape) | met by `V1`; `clearE` meets `clearEnter` with `pre = 0`; `blind` needs lane A's store-blind `wasmD` (S1) |
