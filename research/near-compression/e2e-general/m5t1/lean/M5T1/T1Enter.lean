@@ -431,7 +431,7 @@ theorem t1_rtView : RtView V1 vmc1 pre1 posOK1 where
   outOne := fun _ => rfl
   pos := by
     intro I c h out hc
-    simp only [posOK1, V1, stOfK, hc, eposMap, stD1] at h
+    simp only [posOK1, V1, stOfI, hc, eposMap, stD1] at h
     exact zero42_ne h
 
 /-! ## The named checks and the input opening -/
@@ -459,8 +459,8 @@ theorem R1_enc : R1.encode = bytesOf t1EntPub 0 450 := by decide +kernel
 
 theorem t1_in (I : Intake) (c : EConf) (hc : ∀ out, c.pos ≠ .done out) :
     V1.bnd (.base (.eng I c)) = R1 := by
-  have hs : stD1 (stOfK [] c) = t1_stRoot := by
-    unfold stOfK
+  have hs : stD1 (stOfI (fun _ => []) I c) = t1_stRoot := by
+    unfold stOfI
     cases h : c.pos with
     | done out => exact absurd h (hc out)
     | _ => rfl

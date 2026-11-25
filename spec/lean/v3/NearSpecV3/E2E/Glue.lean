@@ -68,15 +68,14 @@ lane B's IF-INTAKE computes `R_0` from (the authenticated partial trie `I.tMain`
 `I.tMain.hashOf = slotB2.prevStateRoot` by the intake's check, which lane G's `PSR` value reads).
 So `wOut (eng I start) = root I I.tMain (fun _ => none)` = IF-INTAKE's `R_0`.
 
-**Finding (M12, boundary gap).** `R_0` is **not** in INIT's output boundary: at `start` the state
-component `stOfK κ I ⟨start, _⟩` has no overlay, so lane B's `wsOfB` is `[]` and `stD` does not
-commit to `R_0`. The first STATE leaf (from `start`) therefore cannot obtain its `wIn` from its
-input digest; it must recompute `R_0` from `I.tMain`, which only `ctxRoot` (witness-sized
-`Ser.enc I`) commits. Fix options (no change to `S`/`claimDigest`/checker): (a) `View.split`
-carries `I.tMain`'s working set at `start` (lane B's `ovlOf` at `start` := `Ovl.ofTrie I.tMain`,
-so `stD` at `start` commits `R_0`; a `View.lean` change, rebuild of every package); (b) the first
-STATE leaf also verifies lane B's IF proof (as INIT and FINAL do) and takes `R_0` from it. Lane E
-recommends (a). Not changed in M12.
+**Finding (M12, boundary gap) — fixed by D-a.** In M12 `R_0` was not in INIT's output boundary
+(the state component at `start` had no overlay, so lane B's `wsOfB` was `[]`). Integrator decision
+D-a adopted option (a): `View.split` now carries the intake's overlay at `start`
+(`EngSt.ovl0 = some (Ovl.ofTrie I.tMain)`, `Bnd.stOfI`; `none` elsewhere), lane B's `ovlOf` reads it
+there (`StateViewParams.ovlOf`), so `stD` at `start` commits the working set of IF-INTAKE
+(`StViewEJoin.wsOf_start`: entries `(k, pre, pre, false)`, trie `I.tMain`). **`init_glue_view`**:
+the state component of `eng I ⟨start, r⟩` carries exactly `ovE` — the overlay the STATE glue
+starts from — so the first STATE leaf takes `wIn` from its input digest.
 
 ## 4. FINAL (lane G ∧ lane B's IF-FINAL)
 
@@ -439,6 +438,11 @@ theorem init_glue (root : Intake → PTrie → (Bytes → Option (Option Bytes))
   simp only [wS, intakeOf, ovE]
   congr 2
 
+/-- **D-a: the view's state component at `start` carries the overlay the STATE glue starts from.** -/
+theorem init_glue_view (κ : Intake → List Bytes) (I : Intake) (r : Recording) :
+    (split κ (.base (.eng I ⟨.start, r⟩))).2.2.1 =
+      .eng .start ⟨r, κ I, ovE (.base (.eng I ⟨.start, r⟩))⟩ := rfl
+
 /-- INIT's meaning ends at `eng I ⟨start, _⟩` or at `gfin` (`init_step_shape`); in the first case the
 engine configuration is at `start` (the intake step's continuation, `Machine.lean`). -/
 theorem init_out_shape {cb wb : Bytes} {c : Conf} (h : CM.step (.init cb wb) = .ok c) :
@@ -525,6 +529,7 @@ theorem canon_wasm (sf : Intake → TTN.Store) {I : Intake} {c : EConf} {K : VmV
 #print axioms state_glue
 #print axioms state_sound_relC
 #print axioms init_glue
+#print axioms init_glue_view
 #print axioms final_glue
 
 end NearSpecV3.E2E.Glue

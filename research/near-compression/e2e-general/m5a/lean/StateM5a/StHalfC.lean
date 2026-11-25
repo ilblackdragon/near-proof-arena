@@ -119,11 +119,21 @@ theorem posOK_stOfK (P : StViewParams) (K : List Bytes) (c : EConf)
     refine .inr fun out hc => hp out ?_
     rw [← he.1, hc]; rfl
 
+/-- **The position check on the view's `stRoot`** (`stOfI`, lane E's D-a: the start overlay is
+carried, the position is the same). -/
+theorem posOK_stOfI (P : StViewParams) (κ : Intake → List Bytes) (I : Intake) (c : EConf)
+    (h : StPosOK (stD P (stOfI κ I c))) : Sha384Coll ∨ ∀ out, c.pos ≠ .done out := by
+  rcases posOK_sound P _ h with h | ⟨p, st, he, hp⟩
+  · exact .inl h
+  · simp only [stOfI, StV.eng.injEq] at he
+    refine .inr fun out hc => hp out ?_
+    rw [← he.1, hc]; rfl
+
 /-- **Lane F's `RtView.pos`**, in the `Sha384Coll ∨ _` form, for every view whose state component
 is lane B's `stD`. -/
 theorem rtPos (P : StViewParams) (V : ViewImpl) (hV : V.stD = stD P) :
-    ∀ I c, StPosOK (V.stD (stOfK (V.keys I) c)) → Sha384Coll ∨ ∀ out, c.pos ≠ .done out := by
-  intro I c h; rw [hV] at h; exact posOK_stOfK P _ c h
+    ∀ I c, StPosOK (V.stD (stOfI V.keys I c)) → Sha384Coll ∨ ∀ out, c.pos ≠ .done out := by
+  intro I c h; rw [hV] at h; exact posOK_stOfI P _ I c h
 
 /-- **The honest side**: a `fits` engine state at a non-final position passes the check (the
 opening is its own commitment). -/
@@ -340,6 +350,7 @@ theorem wsOfB_upd (E : StViewE) (v v' : StV) (o o' : Ovl) (hv : ovlOf v = some o
 
 #print axioms posOK_sound
 #print axioms posOK_stOfK
+#print axioms posOK_stOfI
 #print axioms rtPos
 #print axioms posOK_complete
 #print axioms st_step
