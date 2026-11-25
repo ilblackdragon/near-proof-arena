@@ -1,5 +1,5 @@
 {
  "name": "state-eng",
- "params": {"n_stack": 14, "log_blowup": 5, "w_stack": 6, "pow_bits": 24, "degree": 9},
+ "params": {"n_stack": 13, "log_blowup": 5, "w_stack": 96, "pow_bits": 24, "degree": 9},
  "heights": {"SE": 2, "RNG": 8, "SH": 8, "XTAPE": 2, "SHA512": 15}
 }
